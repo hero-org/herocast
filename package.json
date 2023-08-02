@@ -1,0 +1,111 @@
+{
+  "name": "herocast",
+  "productName": "herocast",
+  "version": "1.0.0",
+  "description": "My Electron application description",
+  "main": ".webpack/main",
+  "scripts": {
+    "start": "NODE_ENV=development electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "keywords": [],
+  "author": {
+    "name": "Miguel",
+    "email": "mike.rodriguez91@gmail.com"
+  },
+  "license": "MIT",
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "herocast"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ],
+      "plugins": [
+        {
+          "name": "@electron-forge/plugin-webpack",
+          "config": {
+            "mainConfig": "./webpack.main.config.js",
+            "renderer": {
+              "config": "./webpack.renderer.config.js",
+              "entryPoints": [
+                {
+                  "html": "./src/index.html",
+                  "rhmr": "react-hot-loader/patch",
+                  "js": "./src/App.js",
+                  "name": "main_window"
+                }
+              ]
+            },
+            "devServer": {
+              "liveReload": false
+            }
+          }
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@headlessui/react": "^1.7.16",
+    "@heroicons/react": "^2.0.18",
+    "@tailwindcss/forms": "^0.5.4",
+    "connected-react-router": "^6.9.3",
+    "electron-squirrel-startup": "^1.0.0",
+    "history": "^4.10.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^7.2.0",
+    "react-router": "^6.4.2",
+    "react-router-dom": "^6.4.2",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0",
+    "tailwindcss": "^3.3.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "@babel/preset-react": "^7.9.4",
+    "@electron-forge/cli": "^6.2.1",
+    "@electron-forge/maker-deb": "6.2.1",
+    "@electron-forge/maker-rpm": "6.2.1",
+    "@electron-forge/maker-squirrel": "6.2.1",
+    "@electron-forge/maker-zip": "6.2.1",
+    "@electron-forge/plugin-webpack": "6.2.1",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
+    "@vercel/webpack-asset-relocator-loader": "^1.7.3",
+    "autoprefixer": "^10.4.14",
+    "babel-loader": "^9.1.3",
+    "css-loader": "^3.0.0",
+    "electron": "^25.3.2",
+    "enzyme": "^3.11.0",
+    "jest": "^25.2.7",
+    "node-loader": "^2.0.0",
+    "postcss": "^8.4.27",
+    "postcss-cli": "^10.1.0",
+    "postcss-loader": "^7.3.3",
+    "react-refresh": "^0.14.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^5.88.2"
+  }
+}
