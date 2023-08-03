@@ -61,7 +61,7 @@ export default function CommandPalette({ open, setOpen }) {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-xl bg-gray-900 shadow-2xl transition-all">
+            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-sm bg-gray-900 shadow-2xl transition-all">
               <Combobox onChange={(item) => (window.location = item.url)}>
                 <div className="relative">
                   <MagnifyingGlassIcon
@@ -91,7 +91,7 @@ export default function CommandPalette({ open, setOpen }) {
                             value={project}
                             className={({ active }) =>
                               classNames(
-                                'flex cursor-default select-none items-center rounded-md px-3 py-2',
+                                'flex cursor-default select-none items-center rounded-sm px-3 py-2',
                                 active && 'bg-gray-800 text-white'
                               )
                             }
@@ -120,7 +120,7 @@ export default function CommandPalette({ open, setOpen }) {
                               value={action}
                               className={({ active }) =>
                                 classNames(
-                                  'flex cursor-default select-none items-center rounded-md px-3 py-2',
+                                  'flex cursor-default select-none items-center rounded-sm px-3 py-2',
                                   active && 'bg-gray-800 text-white'
                                 )
                               }

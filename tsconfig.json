@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "allowJs": true,
+    "target": "ES6",
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "lib": [ "dom", /* ... */ ],
+    "paths": {
+      "*": ["node_modules/*"],
+      "@src/*": ["./src/*"],
+    },
+    "typeRoots": [
+        "node_modules/@types"
+    ]
+  },
+  "include": ["src/**/*",],
+}

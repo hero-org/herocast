@@ -11,19 +11,20 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { Bars3Icon, ChevronRightIcon, ChevronUpDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import FarcasterLogin from "@src/components/FarcasterLogin";
 
 const navigation = [
-  { name: 'Projects', href: '#', icon: FolderIcon, current: false },
-  { name: 'Deployments', href: '#', icon: ServerIcon, current: true },
-  { name: 'Activity', href: '#', icon: SignalIcon, current: false },
-  { name: 'Domains', href: '#', icon: GlobeAltIcon, current: false },
-  { name: 'Usage', href: '#', icon: ChartBarSquareIcon, current: false },
+  { name: 'Accounts', href: '#', icon: FolderIcon, current: false },
+  // { name: 'Deployments', href: '#', icon: ServerIcon, current: true },
+  { name: 'Your Activity', href: '#', icon: SignalIcon, current: false },
+  // { name: 'Domains', href: '#', icon: GlobeAltIcon, current: false },
+  { name: 'Analytics', href: '#', icon: ChartBarSquareIcon, current: false },
   { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false },
 ]
-const teams = [
-  { id: 1, name: 'Planetaria', href: '#', initial: 'P', current: false },
-  { id: 2, name: 'Protocol', href: '#', initial: 'P', current: false },
-  { id: 3, name: 'Tailwind Labs', href: '#', initial: 'T', current: false },
+const channels = [
+  { id: 1, name: '/dev', href: '#', initial: 'dev', current: false },
+  { id: 2, name: 'OP Stack', href: '#', initial: 'OP', current: false },
+  { id: 3, name: 'memes', href: '#', initial: 'M', current: false },
 ]
 const statuses = {
   offline: 'text-gray-500 bg-gray-100/10',
@@ -146,9 +147,9 @@ export default function Example() {
                           </ul>
                         </li>
                         <li>
-                          <div className="text-xs font-semibold leading-6 text-gray-400">Your teams</div>
+                          <div className="text-xs font-semibold leading-6 text-gray-400">Your channels</div>
                           <ul role="list" className="-mx-2 mt-2 space-y-1">
-                            {teams.map((team) => (
+                            {channels.map((team) => (
                               <li key={team.name}>
                                 <a
                                   href={team.href}
@@ -225,9 +226,9 @@ export default function Example() {
                   </ul>
                 </li>
                 <li>
-                  <div className="text-xs font-semibold leading-6 text-gray-400">Your teams</div>
+                  <div className="text-xs font-semibold leading-6 text-gray-400">Your channels</div>
                   <ul role="list" className="-mx-2 mt-2 space-y-1">
-                    {teams.map((team) => (
+                    {channels.map((team) => (
                       <li key={team.name}>
                         <a
                           href={team.href}
@@ -359,7 +360,9 @@ export default function Example() {
                 </Transition>
               </Menu>
             </header>
-
+            <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+              <FarcasterLogin />
+            </div>
             {/* Deployment list */}
             <ul role="list" className="divide-y divide-white/5">
               {deployments.map((deployment) => (
