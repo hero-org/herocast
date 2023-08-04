@@ -4,6 +4,9 @@ import { Combobox, Dialog, Transition } from '@headlessui/react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { DocumentPlusIcon, FolderPlusIcon, FolderIcon, HashtagIcon, TagIcon } from '@heroicons/react/24/outline'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { Provider, atom, useAtom, useSetAtom } from 'jotai'
+
+const commandPaletteOpen = atom(false)
 
 const projects = [
   { id: 1, name: 'Workflow Inc. / Website Redesign', url: '#' },
@@ -17,16 +20,18 @@ const quickActions = [
   { name: 'Add label...', icon: TagIcon, shortcut: 'L', url: '#' },
 ]
 
-function classNames(...classes) {
+function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function CommandPalette({ open, setOpen }) {
+export default function CommandPalette() {
+  const [isOpen] = useAtom(commandPaletteOpen)
+  const setCommandPaletteOpen = useSetAtom(commandPaletteOpen)
   const [query, setQuery] = useState('')
+
   useHotkeys(['meta+k'], () => {
-    console.log('hotkey called', open);
-    setOpen(!open);
-  }, [open], {
+    setCommandPaletteOpen(!isOpen);
+  }, [isOpen], {
     enableOnFormTags: true,
   })
   const filteredProjects =
@@ -37,14 +42,14 @@ export default function CommandPalette({ open, setOpen }) {
       })
 
   return (
-    <Transition.Root show={open} as={Fragment} afterLeave={() => setQuery('')} appear>
-      <Dialog as="div" className="relative z-10" onClose={setOpen}>
+    <Transition.Root show={isOpen} as={Fragment} afterLeave={() => setQuery('')} appear>
+      <Dialog as="div" className="relative z-10" onClose={setCommandPaletteOpen}>
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-50"
+          enter="ease-out duration-10"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="ease-in duration-50"
+          leave="ease-in duration-10"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
@@ -54,14 +59,14 @@ export default function CommandPalette({ open, setOpen }) {
         <div className="fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20">
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-50"
-            enterFrom="opacity-50 scale-95"
+            enter="ease-out duration-10"
+            enterFrom="opacity-50 scale-98"
             enterTo="opacity-100 scale-100"
-            leave="ease-in duration-50"
+            leave="ease-in duration-10"
             leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
+            leaveTo="opacity-0 scale-98"
           >
-            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-sm bg-gray-900 shadow-2xl transition-all">
+            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-md bg-gray-900 shadow-none transition-all">
               <Combobox onChange={(item) => (window.location = item.url)}>
                 <div className="relative">
                   <MagnifyingGlassIcon
@@ -69,7 +74,7 @@ export default function CommandPalette({ open, setOpen }) {
                     aria-hidden="true"
                   />
                   <Combobox.Input
-                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white focus:ring-0 sm:text-sm"
+                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white focus:outline-none focus:ring focus:border-gray-500 sm:text-sm"
                     placeholder="Search Herocast..."
                     onChange={(event) => setQuery(event.target.value)}
                   />
@@ -91,7 +96,7 @@ export default function CommandPalette({ open, setOpen }) {
                             value={project}
                             className={({ active }) =>
                               classNames(
-                                'flex cursor-default select-none items-center rounded-sm px-3 py-2',
+                                'flex cursor-default select-none items-center rounded-md px-3 py-2',
                                 active && 'bg-gray-800 text-white'
                               )
                             }

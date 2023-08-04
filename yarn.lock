@@ -6692,6 +6692,11 @@ jiti@^1.18.2:
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.19.1.tgz#fa99e4b76a23053e0e7cde098efe1704a14c16f1"
   integrity sha512-oVhqoRDaBXf7sjkll95LHVS6Myyyb1zaunVwk4Z0+WPSW4gjS0pl01zYKHScTuyEhQsFxV5L4DR5r+YqSyqyyg==
 
+jotai@^2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/jotai/-/jotai-2.2.3.tgz#4dd9f429e9cd23d81f08a6b1492931db05ccf79f"
+  integrity sha512-E3tTBb2CKwjAJKUJYVV6rKM8zxmpsPMedRclRnI2RgLzkvgDEH6mhtZPVesxIoixJ8p7949RWd8eo/8TqDDFDA==
+
 js-sha3@0.8.0:
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.8.0.tgz#b9b7a5da73afad7dedd0f8c463954cbde6818840"

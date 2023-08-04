@@ -12,9 +12,12 @@ import {
 } from '@heroicons/react/24/outline'
 import { Bars3Icon, ChevronRightIcon, ChevronUpDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import FarcasterLogin from "@src/components/FarcasterLogin";
+import { ACCOUNTS_ATOM_KEY, atomWithLocalStorage } from "@src/state";
+import { atom, useAtom } from "jotai";
+import { classNames } from "@src/utils";
 
 const navigation = [
-  { name: 'Accounts', href: '#', icon: FolderIcon, current: false },
+  // { name: 'Accounts', href: '#', icon: FolderIcon, current: false },
   // { name: 'Deployments', href: '#', icon: ServerIcon, current: true },
   { name: 'Your Activity', href: '#', icon: SignalIcon, current: false },
   // { name: 'Domains', href: '#', icon: GlobeAltIcon, current: false },
@@ -48,28 +51,13 @@ const deployments = [
   },
   // More deployments...
 ]
-const activityItems = [
-  {
-    user: {
-      name: 'Michael Foster',
-      imageUrl:
-        'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-    },
-    projectName: 'ios-app',
-    commit: '2d89f0c8',
-    branch: 'main',
-    date: '1h',
-    dateTime: '2023-01-23T11:00',
-  },
-  // More items...
-]
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+const accountsAtom = atomWithLocalStorage(ACCOUNTS_ATOM_KEY, {})
+const accountKeysAtom = atom((get) => Object.values(get(accountsAtom)))
 
 export default function Example() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [accounts] = useAtom(accountKeysAtom)
 
   return (
     <>
@@ -78,10 +66,10 @@ export default function Example() {
           <Dialog as="div" className="relative z-50 xl:hidden" onClose={setSidebarOpen}>
             <Transition.Child
               as={Fragment}
-              enter="transition-opacity ease-linear duration-300"
+              enter="transition-opacity ease-linear duration-10"
               enterFrom="opacity-0"
               enterTo="opacity-100"
-              leave="transition-opacity ease-linear duration-300"
+              leave="transition-opacity ease-linear duration-10"
               leaveFrom="opacity-100"
               leaveTo="opacity-0"
             >
@@ -91,20 +79,20 @@ export default function Example() {
             <div className="fixed inset-0 flex">
               <Transition.Child
                 as={Fragment}
-                enter="transition ease-in-out duration-300 transform"
+                enter="transition ease-in-out duration-10 transform"
                 enterFrom="-translate-x-full"
                 enterTo="translate-x-0"
-                leave="transition ease-in-out duration-300 transform"
+                leave="transition ease-in-out duration-10 transform"
                 leaveFrom="translate-x-0"
                 leaveTo="-translate-x-full"
               >
                 <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
                   <Transition.Child
                     as={Fragment}
-                    enter="ease-in-out duration-300"
+                    enter="ease-in-out duration-10"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
-                    leave="ease-in-out duration-300"
+                    leave="ease-in-out duration-10"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
@@ -268,38 +256,13 @@ export default function Example() {
         </div>
 
         <div className="xl:pl-72">
-          {/* Sticky search header */}
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-white/5 bg-gray-900 px-4 shadow-sm sm:px-6 lg:px-8">
-            <button type="button" className="-m-2.5 p-2.5 text-white xl:hidden" onClick={() => setSidebarOpen(true)}>
-              <span className="sr-only">Open sidebar</span>
-              <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-            </button>
-
-            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-              <form className="flex flex-1" action="#" method="GET">
-                <label htmlFor="search-field" className="sr-only">
-                  Search
-                </label>
-                <div className="relative w-full">
-                  <MagnifyingGlassIcon
-                    className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-500"
-                    aria-hidden="true"
-                  />
-                  <input
-                    id="search-field"
-                    className="block h-full w-full border-0 bg-transparent py-0 pl-8 pr-0 text-white focus:ring-0 sm:text-sm"
-                    placeholder="Search..."
-                    type="search"
-                    name="search"
-                  />
-                </div>
-              </form>
-            </div>
-          </div>
-
           <main className="lg:pr-96">
             <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-              <h1 className="text-base font-semibold leading-7 text-white">Deployments</h1>
+              <button type="button" className="-m-2.5 p-2.5 text-white xl:hidden" onClick={() => setSidebarOpen(true)}>
+                <span className="sr-only">Open sidebar</span>
+                <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <h1 className="text-base font-semibold leading-7 text-white">Feed</h1>
 
               {/* Sort dropdown */}
               <Menu as="div" className="relative">
@@ -309,10 +272,10 @@ export default function Example() {
                 </Menu.Button>
                 <Transition
                   as={Fragment}
-                  enter="transition ease-out duration-100"
+                  enter="transition ease-out duration-10"
                   enterFrom="transform opacity-0 scale-95"
                   enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
+                  leave="transition ease-in duration-10"
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
@@ -403,28 +366,27 @@ export default function Example() {
             </ul>
           </main>
 
-          {/* Activity feed */}
+          {/* Accounts feed */}
           <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
             <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-              <h2 className="text-base font-semibold leading-7 text-white">Activity feed</h2>
+              <h2 className="text-base font-semibold leading-7 text-white">Accounts</h2>
               <a href="#" className="text-sm font-semibold leading-6 text-indigo-400">
                 View all
               </a>
             </header>
             <ul role="list" className="divide-y divide-white/5">
-              {activityItems.map((item) => (
-                <li key={item.commit} className="px-4 py-4 sm:px-6 lg:px-8">
+              {accounts.map((item) => (
+                <li key={item.publicKey} className="px-4 py-4 sm:px-6 lg:px-8">
                   <div className="flex items-center gap-x-3">
-                    <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" />
-                    <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-white">{item.user.name}</h3>
-                    <time dateTime={item.dateTime} className="flex-none text-xs text-gray-600">
-                      {item.date}
-                    </time>
+                    {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
+                    <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-white">{item.username}</h3>
+                    {/* <span dateTime={item.timestamp} className="flex-none text-xs text-gray-600">
+                      {item.timestamp}
+                    </span> */}
                   </div>
-                  <p className="mt-3 truncate text-sm text-gray-500">
-                    Pushed to <span className="text-gray-400">{item.projectName}</span> (
-                    <span className="font-mono text-gray-400">{item.commit}</span> on{' '}
-                    <span className="text-gray-400">{item.branch}</span>)
+                  <p className="mt-2 truncate text-sm text-gray-500">
+                    login on <span className="text-gray-400">{item.timestampString}</span>{' '}
+                    fid <span className="text-gray-400">{item.fid}</span>
                   </p>
                 </li>
               ))}
