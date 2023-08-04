@@ -5,6 +5,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { DocumentPlusIcon, FolderPlusIcon, FolderIcon, HashtagIcon, TagIcon } from '@heroicons/react/24/outline'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Provider, atom, useAtom, useSetAtom } from 'jotai'
+import { classNames } from "@src/utils";
 
 const commandPaletteOpen = atom(false)
 
@@ -19,10 +20,6 @@ const quickActions = [
   { name: 'Add hashtag...', icon: HashtagIcon, shortcut: 'H', url: '#' },
   { name: 'Add label...', icon: TagIcon, shortcut: 'L', url: '#' },
 ]
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
 
 export default function CommandPalette() {
   const [isOpen] = useAtom(commandPaletteOpen)

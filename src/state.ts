@@ -22,3 +22,12 @@ export const atomWithLocalStorage = (key: string, initialValue: any) => {
 }
 
 export const ACCOUNTS_ATOM_KEY = 'accounts'
+export const MAIN_NAVIGATION_ATOM_KEY = 'main-window'
+
+export const enum MAIN_NAVIGATION_ENUM {
+  ADD_ACCOUNT = 'add-account',
+  FEED = 'feed',
+  REPLIES = 'replies',
+  NEW_POST = 'new-post',
+  SETTINGS = 'settings',
+}

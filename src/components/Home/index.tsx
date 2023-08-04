@@ -1,63 +1,100 @@
-import React from "react";
-import { Fragment, useState } from 'react'
-import { Dialog, Menu, Transition } from '@headlessui/react'
+import React, { Component, Suspense } from "react";
+import { Fragment, useState } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import {
   ChartBarSquareIcon,
-  Cog6ToothIcon,
-  FolderIcon,
-  GlobeAltIcon,
-  ServerIcon,
-  SignalIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline'
-import { Bars3Icon, ChevronRightIcon, ChevronUpDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+  Cog6ToothIcon, SignalIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline';
+import { Bars3Icon, PlusCircleIcon, UserPlusIcon } from '@heroicons/react/20/solid';
 import FarcasterLogin from "@src/components/FarcasterLogin";
-import { ACCOUNTS_ATOM_KEY, atomWithLocalStorage } from "@src/state";
+import { ACCOUNTS_ATOM_KEY, MAIN_NAVIGATION_ATOM_KEY, MAIN_NAVIGATION_ENUM, atomWithLocalStorage } from "@src/state";
 import { atom, useAtom } from "jotai";
 import { classNames } from "@src/utils";
 
-const navigation = [
-  // { name: 'Accounts', href: '#', icon: FolderIcon, current: false },
-  // { name: 'Deployments', href: '#', icon: ServerIcon, current: true },
-  { name: 'Your Activity', href: '#', icon: SignalIcon, current: false },
-  // { name: 'Domains', href: '#', icon: GlobeAltIcon, current: false },
-  { name: 'Analytics', href: '#', icon: ChartBarSquareIcon, current: false },
-  { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false },
-]
+const Feed = React.lazy(() =>
+  import('@src/components/Feed'),
+);
+const NewPost = React.lazy(() =>
+  import('@src/components/NewPost'),
+);
+const Replies = React.lazy(() =>
+  import('@src/components/Replies'),
+);
+const Settings = React.lazy(() =>
+  import('@src/components/Settings'),
+);
+
+
 const channels = [
   { id: 1, name: '/dev', href: '#', initial: 'dev', current: false },
   { id: 2, name: 'OP Stack', href: '#', initial: 'OP', current: false },
   { id: 3, name: 'memes', href: '#', initial: 'M', current: false },
 ]
-const statuses = {
-  offline: 'text-gray-500 bg-gray-100/10',
-  online: 'text-green-400 bg-green-400/10',
-  error: 'text-rose-400 bg-rose-400/10',
-}
-const environments = {
-  Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
-  Production: 'text-indigo-400 bg-indigo-400/10 ring-indigo-400/30',
-}
-const deployments = [
-  {
-    id: 1,
-    href: '#',
-    projectName: 'ios-app',
-    teamName: 'Planetaria',
-    status: 'offline',
-    statusText: 'Initiated 1m 32s ago',
-    description: 'Deploys from GitHub',
-    environment: 'Preview',
-  },
-  // More deployments...
-]
+
 
 const accountsAtom = atomWithLocalStorage(ACCOUNTS_ATOM_KEY, {})
 const accountKeysAtom = atom((get) => Object.values(get(accountsAtom)))
 
-export default function Example() {
+const mainNavigationAtom = atomWithLocalStorage(MAIN_NAVIGATION_ATOM_KEY, {})
+
+
+export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [accounts] = useAtom(accountKeysAtom)
+  const [mainNavigation, setMainNavigation] = useAtom(mainNavigationAtom)
+
+  const navigation = [
+    { name: 'Feed', icon: SignalIcon, key: MAIN_NAVIGATION_ENUM.FEED },
+    { name: 'Replies', icon: ChartBarSquareIcon, key: MAIN_NAVIGATION_ENUM.REPLIES },
+    { name: 'New Post', icon: PlusCircleIcon, key: MAIN_NAVIGATION_ENUM.NEW_POST },
+    { name: 'Add Account', icon: UserPlusIcon, key: MAIN_NAVIGATION_ENUM.ADD_ACCOUNT },
+    { name: 'Settings', icon: Cog6ToothIcon, key: MAIN_NAVIGATION_ENUM.SETTINGS },
+  ]
+  const renderContent = () => {
+    switch (mainNavigation) {
+      case MAIN_NAVIGATION_ENUM.FEED:
+        return <Feed />
+      case MAIN_NAVIGATION_ENUM.REPLIES:
+        return <Replies />
+      case MAIN_NAVIGATION_ENUM.NEW_POST:
+        return <NewPost />
+      case MAIN_NAVIGATION_ENUM.ADD_ACCOUNT:
+        return <FarcasterLogin />
+      case MAIN_NAVIGATION_ENUM.SETTINGS:
+        return <Settings />
+      default:
+        return <div>...</div>
+    }
+  }
+
+  const renderRightSidebar = () => {
+    return <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
+      <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+        <h2 className="text-base font-semibold leading-7 text-white">Accounts</h2>
+        <a href="#" className="text-sm font-semibold leading-6 text-indigo-400">
+          View all
+        </a>
+      </header>
+      <ul role="list" className="divide-y divide-white/5">
+        {accounts.map((item) => (
+          <li key={item.publicKey} className="px-4 py-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-x-3">
+              {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
+              <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-white">{item.username}</h3>
+              {/* <span dateTime={item.timestamp} className="flex-none text-xs text-gray-600">
+                {item.timestamp}
+              </span> */}
+            </div>
+            <p className="mt-2 truncate text-sm text-gray-500">
+              login on <span className="text-gray-400">{item.timestampString}</span>{' '}
+              fid <span className="text-gray-400">{item.fid}</span>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  }
 
   return (
     <>
@@ -108,7 +145,7 @@ export default function Example() {
                     <div className="flex h-16 shrink-0 items-center">
                       <img
                         className="h-8 w-auto"
-                        src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                        src="https://tailwindui.com/img/logos/mark.svg?color=white"
                         alt="Your Company"
                       />
                     </div>
@@ -118,18 +155,21 @@ export default function Example() {
                           <ul role="list" className="-mx-2 space-y-1">
                             {navigation.map((item) => (
                               <li key={item.name}>
-                                <a
-                                  href={item.href}
+                                <p
+                                  onClick={() => {
+                                    setMainNavigation(item.key);
+                                    setSidebarOpen(false);
+                                  }}
                                   className={classNames(
-                                    item.current
+                                    item.key === mainNavigation
                                       ? 'bg-gray-800 text-white'
                                       : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
                                   )}
                                 >
                                   <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
                                   {item.name}
-                                </a>
+                                </p>
                               </li>
                             ))}
                           </ul>
@@ -197,18 +237,21 @@ export default function Example() {
                   <ul role="list" className="-mx-2 space-y-1">
                     {navigation.map((item) => (
                       <li key={item.name}>
-                        <a
-                          href={item.href}
+                        <p
+                          onClick={() => {
+                            setMainNavigation(item.key);
+                            setSidebarOpen(false);
+                          }}
                           className={classNames(
-                            item.current
+                            item.key === mainNavigation
                               ? 'bg-gray-800 text-white'
                               : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
                           )}
                         >
                           <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
                           {item.name}
-                        </a>
+                        </p>
                       </li>
                     ))}
                   </ul>
@@ -257,117 +300,20 @@ export default function Example() {
 
         <div className="xl:pl-72">
           <main className="lg:pr-96">
-            <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+            <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-20">
               <button type="button" className="-m-2.5 p-2.5 text-white xl:hidden" onClick={() => setSidebarOpen(true)}>
                 <span className="sr-only">Open sidebar</span>
                 <Bars3Icon className="h-5 w-5" aria-hidden="true" />
               </button>
-              <h1 className="text-base font-semibold leading-7 text-white">Feed</h1>
-
-              {/* Sort dropdown */}
-              <Menu as="div" className="relative">
-                <Menu.Button className="flex items-center gap-x-1 text-sm font-medium leading-6 text-white">
-                  Sort by
-                  <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
-                </Menu.Button>
-                <Transition
-                  as={Fragment}
-                  enter="transition ease-out duration-10"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-10"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Menu.Items className="absolute right-0 z-10 mt-2.5 w-40 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Name
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Date updated
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href="#"
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Environment
-                        </a>
-                      )}
-                    </Menu.Item>
-                  </Menu.Items>
-                </Transition>
-              </Menu>
+              <h1 className="text-base font-semibold leading-7 text-white">{mainNavigation}</h1>
             </header>
             <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-              <FarcasterLogin />
+              <Suspense fallback={<div>Loading...</div>}>
+                {renderContent()}
+              </Suspense>
             </div>
-            {/* Deployment list */}
-            <ul role="list" className="divide-y divide-white/5">
-              {deployments.map((deployment) => (
-                <li key={deployment.id} className="relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8">
-                  <div className="min-w-0 flex-auto">
-                    <div className="flex items-center gap-x-3">
-                      <div className={classNames(statuses[deployment.status], 'flex-none rounded-full p-1')}>
-                        <div className="h-2 w-2 rounded-full bg-current" />
-                      </div>
-                      <h2 className="min-w-0 text-sm font-semibold leading-6 text-white">
-                        <a href={deployment.href} className="flex gap-x-2">
-                          <span className="truncate">{deployment.teamName}</span>
-                          <span className="text-gray-400">/</span>
-                          <span className="whitespace-nowrap">{deployment.projectName}</span>
-                          <span className="absolute inset-0" />
-                        </a>
-                      </h2>
-                    </div>
-                    <div className="mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400">
-                      <p className="truncate">{deployment.description}</p>
-                      <svg viewBox="0 0 2 2" className="h-0.5 w-0.5 flex-none fill-gray-300">
-                        <circle cx={1} cy={1} r={1} />
-                      </svg>
-                      <p className="whitespace-nowrap">{deployment.statusText}</p>
-                    </div>
-                  </div>
-                  <div
-                    className={classNames(
-                      environments[deployment.environment],
-                      'rounded-full flex-none py-1 px-2 text-xs font-medium ring-1 ring-inset'
-                    )}
-                  >
-                    {deployment.environment}
-                  </div>
-                  <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
-                </li>
-              ))}
-            </ul>
           </main>
-
-          {/* Accounts feed */}
-          <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
+          <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
             <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
               <h2 className="text-base font-semibold leading-7 text-white">Accounts</h2>
               <a href="#" className="text-sm font-semibold leading-6 text-indigo-400">
@@ -392,6 +338,7 @@ export default function Example() {
               ))}
             </ul>
           </aside>
+          {/* {renderRightSidebar()} */}
         </div>
       </div>
     </>

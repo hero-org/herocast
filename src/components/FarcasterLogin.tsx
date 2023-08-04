@@ -38,17 +38,9 @@ const FarcasterLogin = () => {
 
 
   return (
-    <>
-      <div>
-        {(!isConnected) ?
-          <LoginQrCode deepLink={token.deepLink} />
-          :
-          <div className="card text-white">
-            <button onClick={() => console.log('yo')}>Send cast to express your joy!</button>
-          </div>
-        }
-      </div>
-    </>
+    <div>
+      <LoginQrCode deepLink={token.deepLink} />
+    </div>
   )
 }
 
