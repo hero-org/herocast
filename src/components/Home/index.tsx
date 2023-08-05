@@ -8,8 +8,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { Bars3Icon, PlusCircleIcon, UserPlusIcon } from '@heroicons/react/20/solid';
 import FarcasterLogin from "@src/components/FarcasterLogin";
-import { ACCOUNTS_ATOM_KEY, MAIN_NAVIGATION_ATOM_KEY, MAIN_NAVIGATION_ENUM, atomWithLocalStorage } from "@src/state";
-import { atom, useAtom } from "jotai";
+import { ACCOUNTS_ATOM_KEY, MAIN_NAVIGATION_ATOM_KEY, MAIN_NAVIGATION_ENUM, atomWithLocalStorage, mainNavigationAtom } from "@src/state";
+import { atom, useAtom, useSetAtom } from "jotai";
 import { classNames } from "@src/utils";
 
 const Feed = React.lazy(() =>
@@ -36,13 +36,11 @@ const channels = [
 const accountsAtom = atomWithLocalStorage(ACCOUNTS_ATOM_KEY, {})
 const accountKeysAtom = atom((get) => Object.values(get(accountsAtom)))
 
-const mainNavigationAtom = atomWithLocalStorage(MAIN_NAVIGATION_ATOM_KEY, {})
 
-
-export default function Home() {
+export default function Home({ mainNavigation }: { mainNavigation: string }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [accounts] = useAtom(accountKeysAtom)
-  const [mainNavigation, setMainNavigation] = useAtom(mainNavigationAtom)
+  const setMainNavigation = useSetAtom(mainNavigationAtom)
 
   const navigation = [
     { name: 'Feed', icon: SignalIcon, key: MAIN_NAVIGATION_ENUM.FEED },
@@ -51,6 +49,10 @@ export default function Home() {
     { name: 'Add Account', icon: UserPlusIcon, key: MAIN_NAVIGATION_ENUM.ADD_ACCOUNT },
     { name: 'Settings', icon: Cog6ToothIcon, key: MAIN_NAVIGATION_ENUM.SETTINGS },
   ]
+  const title = navigation.find((item) => item.key === mainNavigation)?.name
+
+  console.log(`Home mainNavigation via props: ${mainNavigation}`)
+
   const renderContent = () => {
     switch (mainNavigation) {
       case MAIN_NAVIGATION_ENUM.FEED:
@@ -69,7 +71,7 @@ export default function Home() {
   }
 
   const renderRightSidebar = () => {
-    return <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
+    return <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
       <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         <h2 className="text-base font-semibold leading-7 text-white">Accounts</h2>
         <a href="#" className="text-sm font-semibold leading-6 text-indigo-400">
@@ -305,7 +307,7 @@ export default function Home() {
                 <span className="sr-only">Open sidebar</span>
                 <Bars3Icon className="h-5 w-5" aria-hidden="true" />
               </button>
-              <h1 className="text-base font-semibold leading-7 text-white">{mainNavigation}</h1>
+              <h1 className="text-base font-semibold leading-7 text-white">{title}</h1>
             </header>
             <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
               <Suspense fallback={<div>Loading...</div>}>
@@ -313,32 +315,7 @@ export default function Home() {
               </Suspense>
             </div>
           </main>
-          <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
-            <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-              <h2 className="text-base font-semibold leading-7 text-white">Accounts</h2>
-              <a href="#" className="text-sm font-semibold leading-6 text-indigo-400">
-                View all
-              </a>
-            </header>
-            <ul role="list" className="divide-y divide-white/5">
-              {accounts.map((item) => (
-                <li key={item.publicKey} className="px-4 py-4 sm:px-6 lg:px-8">
-                  <div className="flex items-center gap-x-3">
-                    {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
-                    <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-white">{item.username}</h3>
-                    {/* <span dateTime={item.timestamp} className="flex-none text-xs text-gray-600">
-                      {item.timestamp}
-                    </span> */}
-                  </div>
-                  <p className="mt-2 truncate text-sm text-gray-500">
-                    login on <span className="text-gray-400">{item.timestampString}</span>{' '}
-                    fid <span className="text-gray-400">{item.fid}</span>
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </aside>
-          {/* {renderRightSidebar()} */}
+          {renderRightSidebar()}
         </div>
       </div>
     </>

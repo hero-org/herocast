@@ -31,3 +31,5 @@ export const enum MAIN_NAVIGATION_ENUM {
   NEW_POST = 'new-post',
   SETTINGS = 'settings',
 }
+
+export const mainNavigationAtom = atomWithLocalStorage(MAIN_NAVIGATION_ATOM_KEY, '')

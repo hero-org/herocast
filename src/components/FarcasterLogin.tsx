@@ -39,6 +39,12 @@ const FarcasterLogin = () => {
 
   return (
     <div>
+      <h1 className="mt-10 max-w-lg text-4xl font-bold tracking-tight text-gray-200 sm:text-6xl">
+        Sign in with Farsign
+      </h1>
+      <p className="my-6 text-lg leading-8 text-gray-300">
+        Scan the QR code with your mobile camera app to sign in
+      </p>
       <LoginQrCode deepLink={token.deepLink} />
     </div>
   )

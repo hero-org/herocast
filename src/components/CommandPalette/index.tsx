@@ -1,36 +1,73 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Fragment, useState } from 'react'
 import { Combobox, Dialog, Transition } from '@headlessui/react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { DocumentPlusIcon, FolderPlusIcon, FolderIcon, HashtagIcon, TagIcon } from '@heroicons/react/24/outline'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { Provider, atom, useAtom, useSetAtom } from 'jotai'
+import { atom, useAtom } from 'jotai'
 import { classNames } from "@src/utils";
+import { MAIN_NAVIGATION_ATOM_KEY, MAIN_NAVIGATION_ENUM, atomWithLocalStorage, mainNavigationAtom } from "@src/state";
 
 const commandPaletteOpen = atom(false)
+type ActionType = {
+  name: string
+  icon: React.ComponentType<{ className: string }>
+  shortcut: string
+  action: () => void
+}
 
 const projects = [
   { id: 1, name: 'Workflow Inc. / Website Redesign', url: '#' },
   // More projects...
 ]
-const recent = [projects[0]]
-const quickActions = [
-  { name: 'Add new file...', icon: DocumentPlusIcon, shortcut: 'N', url: '#' },
-  { name: 'Add new folder...', icon: FolderPlusIcon, shortcut: 'F', url: '#' },
-  { name: 'Add hashtag...', icon: HashtagIcon, shortcut: 'H', url: '#' },
-  { name: 'Add label...', icon: TagIcon, shortcut: 'L', url: '#' },
-]
+const recent = []; //[projects[0]]
 
 export default function CommandPalette() {
-  const [isOpen] = useAtom(commandPaletteOpen)
-  const setCommandPaletteOpen = useSetAtom(commandPaletteOpen)
+  const [isOpen, setCommandPaletteOpen] = useAtom(commandPaletteOpen)
+  const [mainNav, setMainNavigation] = useAtom(mainNavigationAtom)
   const [query, setQuery] = useState('')
+  const [selectedAction, setSelectedAction] = useState<ActionType>(null)
 
+  console.log(`selectedAction: ${selectedAction && selectedAction.name} mainNav: ${mainNav}`)
+
+  // add hotkeys for all actions here by using useHotkeys repeatedly
   useHotkeys(['meta+k'], () => {
     setCommandPaletteOpen(!isOpen);
   }, [isOpen], {
     enableOnFormTags: true,
   })
+
+  const actions: ActionType[] = [
+    { name: 'Add Account', icon: DocumentPlusIcon, shortcut: 'N', action: () => setMainNavigation(MAIN_NAVIGATION_ENUM.ADD_ACCOUNT), },
+    { name: 'Switch to Feed.', icon: FolderPlusIcon, shortcut: 'F', action: () => setMainNavigation(MAIN_NAVIGATION_ENUM.FEED) },
+    { name: 'Add hashtag...', icon: HashtagIcon, shortcut: 'H', action: () => null },
+    { name: 'Add label...', icon: TagIcon, shortcut: 'L', action: () => null },
+  ]
+
+  // useEffect(() => {
+  //   const listener = (event: KeyboardEvent) => {
+  //     if (event.code === "Enter" || event.code === "NumpadEnter") {
+  //       console.log("Enter key was pressed. Run your function.");
+  //       event.preventDefault();
+  //       onClick(selectedAction);
+  //     }
+  //   };
+  //   document.addEventListener("keydown", listener);
+  //   return () => {
+  //     document.removeEventListener("keydown", listener);
+  //   };
+  // }, []);
+
+
+  const onClick = (action: ActionType) => {
+    console.log(`clicked ${action.name}`)
+    if (!action) {
+      return
+    }
+    action.action()
+    setCommandPaletteOpen(false)
+  }
+
   const filteredProjects =
     query === ''
       ? []
@@ -64,7 +101,10 @@ export default function CommandPalette() {
             leaveTo="opacity-0 scale-98"
           >
             <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-md bg-gray-900 shadow-none transition-all">
-              <Combobox onChange={(item) => (window.location = item.url)}>
+              <Combobox onChange={(e: any) => {
+                console.log('onChange', e);
+                onClick(e)
+              }}>
                 <div className="relative">
                   <MagnifyingGlassIcon
                     className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-500"
@@ -116,10 +156,11 @@ export default function CommandPalette() {
                       <li className="p-2">
                         <h2 className="sr-only">Quick actions</h2>
                         <ul className="text-sm text-gray-400">
-                          {quickActions.map((action) => (
+                          {actions.map((action) => (
                             <Combobox.Option
                               key={action.shortcut}
                               value={action}
+                              onClick={() => onClick(action)}
                               className={({ active }) =>
                                 classNames(
                                   'flex cursor-default select-none items-center rounded-sm px-3 py-2',

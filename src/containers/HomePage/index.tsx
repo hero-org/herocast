@@ -1,14 +1,16 @@
 import React from "react";
 import Home from "@src/components/Home";
 import CommandPalette from "@src/components/CommandPalette";
-import { useState } from 'react'
+import { useAtom } from "jotai";
+import { MAIN_NAVIGATION_ATOM_KEY, atomWithLocalStorage, mainNavigationAtom } from "@src/state";
+
 
 const HomePage = () => {
-  const [open, setOpen] = useState(false)
+  const [mainNavigation,] = useAtom(mainNavigationAtom)
 
   return <>
-    <CommandPalette open={open} setOpen={setOpen} />
-    <Home />
+    <CommandPalette />
+    <Home mainNavigation={mainNavigation} />
   </>;
 };
 
