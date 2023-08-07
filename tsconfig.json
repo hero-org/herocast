@@ -1,25 +1,43 @@
 {
   "compilerOptions": {
-    "jsx": "react",
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
-    "target": "ES6",
-    "module": "ESNext",
     "skipLibCheck": true,
+    "noImplicitAny": false,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
     "esModuleInterop": true,
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "outDir": "dist",
+    "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "lib": [ "dom", /* ... */ ],
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "baseUrl": "./",
+    "incremental": true,
+    "types": [
+      "node",
+      "react/next",
+      "react-dom/next"
+    ],
     "paths": {
-      "*": ["node_modules/*"],
-      "@src/*": ["./src/*"],
-    },
-    "typeRoots": [
-        "node_modules/@types"
-    ]
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
-  "include": ["src/**/*",],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "src",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

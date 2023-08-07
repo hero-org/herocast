@@ -1,0 +1,32 @@
+[package]
+name = "app"
+version = "1.0.0"
+description = "herocast desktop app"
+authors = ["herocast <3"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.65"
+build = "src/build.rs"
+
+[build-dependencies]
+tauri-build = { version = "1.2.1", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "1.2.2", features = [ "system-tray", "api-all", "icon-ico", "icon-png"] }
+tauri-plugin-window-state = { git = "https://github.com/tauri-apps/tauri-plugin-window-state/", branch = "dev" }
+tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/tauri-plugin-single-instance", branch = "dev" }
+tauri-plugin-store = { git = "https://github.com/tauri-apps/tauri-plugin-store", rev = "9bd993a" }
+
+[features]
+default = [ "custom-protocol" ]
+custom-protocol = [ "tauri/custom-protocol" ]
+
+[profile.release]
+panic = "abort" # Strip expensive panic clean-up logic
+codegen-units = 1 # Compile crates one after another so the compiler can optimize better
+lto = true # Enables link to optimizations
+opt-level = "s" # Optimize for binary size
+# strip = true  # Automatically strip symbols from the binary.

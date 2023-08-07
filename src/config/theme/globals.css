@@ -1,0 +1,170 @@
+::-webkit-scrollbar {
+  z-index: -2;
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #616161;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+  border: 5px solid transparent;
+  background-clip: content-box;
+  background-color: #2c2b2e;
+}
+
+@font-face {
+  font-family: Montserrat;
+  src: url("/src/assets/fonts/Montserrat.ttf");
+}
+
+@media screen and (max-width: 1024px) {
+  html {
+    scroll-padding-top: 10vw;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    background-color: #001F3F;
+  }
+
+  100% {
+    background-color: #FF4136;
+  }
+}
+
+.socialIcon:hover {
+  opacity: 0.8;
+}
+
+.noselect {
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Safari */
+  -khtml-user-select: none;
+  /* Konqueror HTML */
+  -moz-user-select: none;
+  /* Old versions of Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-enter-active {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-exit-active {
+  transition: opacity 500ms;
+}
+
+.scene {
+  width: 200px;
+  height: 260px;
+  perspective: 600px;
+  animation: float 6s ease-in-out infinite;
+}
+
+.card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition: transform ease-out .3s;
+  transform-style: preserve-3d;
+
+}
+
+.card__face {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  backface-visibility: hidden;
+}
+
+.card__face>img {
+  filter: drop-shadow(0px 0px 20px rgba(255, 217, 0, 0.2));
+  backdrop-filter: blur(15px) saturate(3);
+}
+
+.card__face--back {
+  transform: rotateY(180deg);
+}
+
+.card.is-flipped {
+  transform: rotateY(180deg);
+}
+
+
+@keyframes float {
+  0% {
+    transform: translatey(0px);
+  }
+
+  50% {
+    transform: translatey(-5px);
+  }
+
+  100% {
+    transform: translatey(0px);
+  }
+}
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+.nx-block-temporary-position {
+  position: unset !important;
+  overflow: hidden;
+}
+
+.notiflix-block {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.titlebar {
+  height: 30px;
+  background: #686868;
+  user-select: none;
+  display: flex;
+  justify-content: flex-end;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  overflow-y: hidden;
+}
+
+.titlebar-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+}
+
+.titlebar-button:hover {
+  background: #5bbec3;
+}
