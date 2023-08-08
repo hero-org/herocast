@@ -14,6 +14,7 @@ import { MAIN_NAVIGATION_ENUM, MAIN_NAVIGATION_TO_PAGE, RIGHT_SIDEBAR_ENUM } fro
 import CommandPalette from "@/common/components/CommandPalette";
 import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
+import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
 
 const Feed = React.lazy(() =>
   import('@/pages/Feed'),
@@ -85,7 +86,7 @@ export default function Home() {
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />
       default:
-        return null;
+        return <EmptyRightSidebar />;
     }
   }
 

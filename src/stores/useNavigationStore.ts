@@ -1,7 +1,10 @@
-import create, { State } from "zustand";
-import { devtools } from "zustand/middleware";
-import { create as mutativeCreate, Draft } from 'mutative';
 import { MAIN_NAVIGATION_ENUM } from "@/common/constants/navigation";
+import { CommandType } from "@/common/constants/types";
+import { Bars3BottomLeftIcon, ChatBubbleBottomCenterTextIcon } from "@heroicons/react/20/solid";
+import { Cog6ToothIcon, DocumentPlusIcon, FolderIcon, FolderPlusIcon, HashtagIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { Draft, create as mutativeCreate } from 'mutative';
+import { create, State } from "zustand";
+import { devtools } from "zustand/middleware";
 
 interface NavigationStoreProps {
   mainNavigation: MAIN_NAVIGATION_ENUM;
@@ -59,3 +62,46 @@ const store = (set: StoreSet) => ({
   },
 });
 export const useNavigationStore = create<NavigationStore>()(devtools(mutative(store)));
+
+export const navigationCommands: CommandType[] = [
+  {
+    name: 'Add Account',
+    aliases: ['new account'],
+    icon: UserPlusIcon,
+    shortcut: 'cmd+shift+a',
+    enableOnFormTags: true,
+    action: () => useNavigationStore.getState().toAddAccount(),
+  },
+  {
+    name: 'Switch to Feed.',
+    aliases: ['scroll',],
+    icon: Bars3BottomLeftIcon,
+    shortcut: 'shift+f',
+    enableOnFormTags: true,
+    action: () => useNavigationStore.getState().toFeed(),
+  },
+  {
+    name: 'Switch to Replies.',
+    aliases: ['threads',],
+    icon: ChatBubbleBottomCenterTextIcon,
+    shortcut: 'shift+r',
+    enableOnFormTags: true,
+    action: () => useNavigationStore.getState().toReplies(),
+  },
+  {
+    name: 'Switch to new post',
+    aliases: ['new tweet', 'write', 'create', 'compose',],
+    icon: HashtagIcon,
+    shortcut: 'cmd+n',
+    enableOnFormTags: true,
+    action: () => useNavigationStore.getState().toNewPost(),
+  },
+  {
+    name: 'Settings',
+    aliases: ['preferences', 'options', 'config',],
+    icon: Cog6ToothIcon,
+    shortcut: 'cmd+,',
+    enableOnFormTags: true,
+    action: () => useNavigationStore.getState().toSettings(),
+  },
+]

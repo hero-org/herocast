@@ -1,117 +1,72 @@
-import React, { useEffect } from "react";
-import { Fragment, useState } from 'react'
-import { Combobox, Dialog, Transition } from '@headlessui/react'
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-import { DocumentPlusIcon, FolderPlusIcon, FolderIcon, HashtagIcon, TagIcon } from '@heroicons/react/24/outline'
-import { useHotkeys } from 'react-hotkeys-hook'
+import { Fragment, useState } from 'react';
+import { Combobox, Dialog, Transition } from '@headlessui/react';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import { FaceSmileIcon } from '@heroicons/react/24/outline';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { classNames } from "@/common/helpers";
 import { useNavigationStore } from "@/stores/useNavigationStore";
-import { useNewPostStore } from "@/stores/useNewPostStore";
+import { newPostCommands, useNewPostStore } from "@/stores/useNewPostStore";
+import { navigationCommands } from "@/stores/useNavigationStore";
+import { CommandType } from "@/common/constants/types";
+import commandScore from "command-score";
 
-type ActionType = {
-  name: string
-  icon: React.ComponentType<{ className: string }>
-  shortcut: string
-  action: () => void
-  searchTerms: string
-}
+const MIN_SCORE_THRESHOLD = 0.0015;
 
 export default function CommandPalette() {
-  // const [isOpen, setCommandPaletteOpen] = useAtom(commandPaletteOpen)
-  // const [mainNav, setMainNavigation] = useAtom(mainNavigationAtom)
   const [query, setQuery] = useState('')
-  // const [selectedAction, setSelectedAction] = useState<ActionType>(null)
 
   const {
     isCommandPaletteOpen,
     toggleCommandPalette,
-    toAddAccount,
-    toReplies,
-    toFeed,
-    toNewPost,
-    toSettings,
   } = useNavigationStore();
-
-  const {
-    addNewPostDraft,
-    addFeedbackDraft,
-  } = useNewPostStore();
 
   useHotkeys(['meta+k'], () => {
     toggleCommandPalette();
   }, [isCommandPaletteOpen], {
     enableOnFormTags: true,
+    splitKey: '-'
   })
 
-  useHotkeys(['c'], () => {
-    toNewPost();
-    addNewPostDraft();
-  }, [])
+  const commands = [
+    ...navigationCommands,
+    ...newPostCommands,
+  ];
 
-  useHotkeys(['shift+f'], () => {
-    toFeed();
-  }, [])
-
-  useHotkeys(['shift+r'], () => {
-    toReplies();
-  }, [])
-
-  useHotkeys(['meta+shift+a'], () => {
-    toAddAccount();
-  }, [], {
-    enableOnFormTags: true,
-  })
-
-  useHotkeys(['meta+,'], () => {
-    toSettings();
-  }, [], {
-    enableOnFormTags: true,
-  })
-
-  useHotkeys(['meta+shift+f'], () => {
-    addFeedbackDraft();
-  }, [], {
-    enableOnFormTags: true,
-  })
-
-  const actions: ActionType[] = [
-    { name: 'Add Account', searchTerms: 'new add account', icon: DocumentPlusIcon, shortcut: 'cmd + shift + a', action: toAddAccount },
-    { name: 'Switch to Feed.', searchTerms: 'feed scroll', icon: FolderPlusIcon, shortcut: 'shift + F', action: toFeed },
-    { name: 'Switch to Replies.', searchTerms: 'replies threads', icon: FolderIcon, shortcut: 'shift + R', action: toReplies },
-    { name: 'New Post...', searchTerms: 'new posts', icon: HashtagIcon, shortcut: 'c', action: toNewPost },
-    { name: 'Settings...', searchTerms: 'settings preferences', icon: TagIcon, shortcut: 'cmd + ,', action: toSettings },
-    { name: 'Feedback', searchTerms: 'opinion debrief', icon: TagIcon, shortcut: 'cmd + shift + F', action: addFeedbackDraft },
-  ]
-
-  // useEffect(() => {
-  //   const listener = (event: KeyboardEvent) => {
-  //     if (event.code === "Enter" || event.code === "NumpadEnter") {
-  //       console.log("Enter key was pressed. Run your function.");
-  //       event.preventDefault();
-  //       onClick(selectedAction);
-  //     }
-  //   };
-  //   document.addEventListener("keydown", listener);
-  //   return () => {
-  //     document.removeEventListener("keydown", listener);
-  //   };
-  // }, []);
+  for (const command of commands) {
+    console.log('command', command.shortcut, command.shortcut.replace('cmd', 'meta'));
+    useHotkeys(command.shortcut.replace('cmd', 'meta'), () => {
+      command.action();
+    }, [], {
+      enableOnFormTags: command.enableOnFormTags,
+    })
+  }
 
 
-  const onClick = (action: ActionType) => {
-    if (!action) {
-      return
+  function onClick(command: CommandType) {
+    if (!command) {
+      return;
     }
-    action.action();
+    command.action();
     toggleCommandPalette();
   }
 
-  const filteredActions =
-    query === ''
-      ? []
-      : actions.filter((action: ActionType) => {
-        return action.searchTerms.includes(query.toLowerCase())
-      })
+
+  const getFilteredCommands = () => {
+    return commands.map((command: CommandType) => {
+      const scores = [command.name, ...command.aliases].map((alias: string) => {
+        return commandScore(alias, query);
+      });
+      return {
+        ...command,
+        score: Math.max(...scores),
+      }
+    }).filter((command: CommandType) => {
+      return command.score > MIN_SCORE_THRESHOLD;
+    });
+  }
+
+  const filteredCommands =
+    query === '' ? [] : getFilteredCommands();
 
   return (
     <Transition.Root show={isCommandPaletteOpen} as={Fragment} afterLeave={() => setQuery('')} appear>
@@ -154,7 +109,7 @@ export default function CommandPalette() {
                   />
                 </div>
 
-                {(query === '' || filteredActions.length > 0) && (
+                {(query === '' || filteredCommands.length > 0) && (
                   <Combobox.Options
                     static
                     className="max-h-80 scroll-py-2 divide-y divide-gray-500 divide-opacity-20 overflow-y-auto"
@@ -189,7 +144,7 @@ export default function CommandPalette() {
                     <li className="p-2">
                       <h2 className="sr-only">Quick actions</h2>
                       <ul className="text-sm text-gray-400">
-                        {(filteredActions.length > 0 && filteredActions || actions).map((action) => (
+                        {(filteredCommands.length > 0 && filteredCommands || commands).map((action) => (
                           <Combobox.Option
                             key={action.shortcut}
                             value={action}
@@ -197,7 +152,7 @@ export default function CommandPalette() {
                             className={({ active }) =>
                               classNames(
                                 'flex cursor-default select-none items-center rounded-sm px-3 py-2',
-                                active && 'bg-gray-800 text-white'
+                                active ? 'bg-gray-800 text-white' : ''
                               )
                             }
                           >
@@ -207,7 +162,10 @@ export default function CommandPalette() {
                                   className={classNames('h-6 w-6 flex-none', active ? 'text-white' : 'text-gray-500')}
                                   aria-hidden="true"
                                 />
-                                <span className="ml-3 flex-auto truncate">{action.name}</span>
+                                <span className="ml-3 flex-auto truncate">
+                                  {action.name}
+                                  {/* {action.score && `(${action.score})`} */}
+                                </span>
                                 <span className="ml-3 flex-none text-xs font-semibold text-gray-400">
                                   {/* <kbd className="font-sans">⌘</kbd> */}
                                   <kbd className="font-sans">{action.shortcut}</kbd>
@@ -222,11 +180,11 @@ export default function CommandPalette() {
                   </Combobox.Options>
                 )}
 
-                {query !== '' && filteredActions.length === 0 && (
+                {query !== '' && filteredCommands.length === 0 && (
                   <div className="px-6 py-14 text-center sm:px-14">
-                    <FolderIcon className="mx-auto h-6 w-6 text-gray-500" aria-hidden="true" />
+                    <FaceSmileIcon className="mx-auto h-6 w-6 text-gray-500" aria-hidden="true" />
                     <p className="mt-4 text-sm text-gray-200">
-                      no actions found
+                      nothing found - submit feedback if something should be here
                     </p>
                   </div>
                 )}

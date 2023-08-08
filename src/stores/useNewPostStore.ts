@@ -1,7 +1,10 @@
-import create, { State } from "zustand";
+import { create, State } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import isEqual from 'lodash.isequal';
+import { CommandType } from "@/common/constants/types";
+import { TagIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/20/solid";
 
 type PostType = {
   text: string;
@@ -83,3 +86,23 @@ const store = (set: StoreSet) => ({
   }
 });
 export const useNewPostStore = create<NewPostStore>()(devtools(mutative(store)));
+
+export const newPostCommands: CommandType[] = [
+  {
+    name: 'Feedback',
+    aliases: ['opinion', 'debrief'],
+    icon: TagIcon,
+    shortcut: 'cmd+shift+f',
+    action: () => useNewPostStore.getState().addFeedbackDraft(),
+    enableOnFormTags: true,
+  },
+  {
+    name: 'New Post',
+    aliases: ['new cast',],
+    icon: PencilSquareIcon,
+    shortcut: 'c',
+    action: () => useNewPostStore.getState().addNewPostDraft(),
+    enableOnFormTags: false,
+    requiresNavigationState: []
+  }
+];
