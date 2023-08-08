@@ -2,7 +2,7 @@ const AccountsRightSidebar = () => {
   const accounts = [];
 
   return <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
-    <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+    <header className="flex items-center justify-between border-y border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
       <h2 className="text-base font-semibold leading-7 text-white">Accounts</h2>
       <a href="#" className="text-sm font-semibold leading-6 text-indigo-400">
         View all

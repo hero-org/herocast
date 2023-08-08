@@ -6,6 +6,7 @@ import { DocumentPlusIcon, FolderPlusIcon, FolderIcon, HashtagIcon, TagIcon } fr
 import { useHotkeys } from 'react-hotkeys-hook'
 import { classNames } from "@/common/helpers";
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import { useNewPostStore } from "@/stores/useNewPostStore";
 
 type ActionType = {
   name: string
@@ -31,7 +32,11 @@ export default function CommandPalette() {
     toSettings,
   } = useNavigationStore();
 
-  // add hotkeys for all actions here by using useHotkeys repeatedly
+  const {
+    addNewPostDraft,
+    addFeedbackDraft,
+  } = useNewPostStore();
+
   useHotkeys(['meta+k'], () => {
     toggleCommandPalette();
   }, [isCommandPaletteOpen], {
@@ -40,6 +45,7 @@ export default function CommandPalette() {
 
   useHotkeys(['c'], () => {
     toNewPost();
+    addNewPostDraft();
   }, [])
 
   useHotkeys(['shift+f'], () => {
@@ -58,12 +64,17 @@ export default function CommandPalette() {
     toSettings();
   }, [])
 
+  useHotkeys(['meta+shift+f'], () => {
+    addFeedbackDraft();
+  }, [])
+
   const actions: ActionType[] = [
     { name: 'Add Account', searchTerms: 'new add account', icon: DocumentPlusIcon, shortcut: 'cmd + shift + a', action: toAddAccount },
-    { name: 'Switch to Feed.', searchTerms: 'feed scroll', icon: FolderPlusIcon, shortcut: 'F', action: toFeed },
-    { name: 'Switch to Replies.', searchTerms: 'replies threads', icon: FolderIcon, shortcut: 'R', action: toReplies },
+    { name: 'Switch to Feed.', searchTerms: 'feed scroll', icon: FolderPlusIcon, shortcut: 'shift + F', action: toFeed },
+    { name: 'Switch to Replies.', searchTerms: 'replies threads', icon: FolderIcon, shortcut: 'shift + R', action: toReplies },
     { name: 'New Post...', searchTerms: 'new posts', icon: HashtagIcon, shortcut: 'c', action: toNewPost },
     { name: 'Settings...', searchTerms: 'settings preferences', icon: TagIcon, shortcut: 'cmd + ,', action: toSettings },
+    { name: 'Feedback', searchTerms: 'opinion debrief', icon: TagIcon, shortcut: 'cmd + shift + F', action: addFeedbackDraft },
   ]
 
   // useEffect(() => {
@@ -192,7 +203,7 @@ export default function CommandPalette() {
                                 />
                                 <span className="ml-3 flex-auto truncate">{action.name}</span>
                                 <span className="ml-3 flex-none text-xs font-semibold text-gray-400">
-                                  <kbd className="font-sans">⌘</kbd>
+                                  {/* <kbd className="font-sans">⌘</kbd> */}
                                   <kbd className="font-sans">{action.shortcut}</kbd>
                                 </span>
                               </>

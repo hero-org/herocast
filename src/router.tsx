@@ -4,7 +4,7 @@ import { createBrowserRouter, createRoutesFromElements, Route } from 'react-rout
 // import SidebarLayout from '@/common/components/Common/Layouts/SidebarLayout';
 // import WelcomePage from '@/pages/WelcomePage/WelcomePage';
 // import TauriPage from '@/pages/TauriPage/TauriPage';
-import Home from '@/common/components/Home';
+import Home from '@/pages/Home';
 
 export const router = createBrowserRouter(
   createRoutesFromElements(

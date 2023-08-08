@@ -16,16 +16,16 @@ import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRight
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
 
 const Feed = React.lazy(() =>
-  import('@/common/components/Feed'),
+  import('@/pages/Feed'),
 );
 const NewPost = React.lazy(() =>
-  import('@/common/components/NewPost'),
+  import('@/pages/NewPost'),
 );
 const Replies = React.lazy(() =>
-  import('@/common/components/Replies'),
+  import('@/pages/Replies'),
 );
 const Settings = React.lazy(() =>
-  import('@/common/components/Settings'),
+  import('@/pages/Settings'),
 );
 
 
@@ -139,8 +139,8 @@ export default function Home() {
                     <div className="flex h-16 shrink-0 items-center">
                       <img
                         className="h-8 w-auto"
-                        src="https://tailwindui.com/img/logos/mark.svg?color=white"
-                        alt="Your Company"
+                        src="./src/assets/images/herocast.png"
+                        alt="herocast"
                       />
                     </div>
                     <nav className="flex flex-1 flex-col">
@@ -221,8 +221,8 @@ export default function Home() {
             <div className="flex h-16 shrink-0 items-center">
               <img
                 className="h-8 w-auto"
-                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                alt="Your Company"
+                src="./src/assets/images/herocast.png"
+                alt="herocast"
               />
             </div>
             <nav className="flex flex-1 flex-col">
@@ -294,7 +294,7 @@ export default function Home() {
 
         <div className="xl:pl-72">
           <main className="lg:pr-96">
-            <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-20">
+            <header className="flex items-center justify-between border-y border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-20">
               <button type="button" className="-m-2.5 p-2.5 text-white xl:hidden" onClick={() => setSidebarOpen(true)}>
                 <span className="sr-only">Open sidebar</span>
                 <Bars3Icon className="h-5 w-5" aria-hidden="true" />

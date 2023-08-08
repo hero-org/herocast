@@ -799,7 +799,7 @@
   dependencies:
     "@chakra-ui/utils" "2.0.15"
 
-"@chakra-ui/react@^2.2.6":
+"@chakra-ui/react@^2.8.0":
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/@chakra-ui/react/-/react-2.8.0.tgz#cc76a2448f9bc85f1645a1afb90d5756a5313ac3"
   integrity sha512-tV82DaqE4fMbLIWq58BYh4Ol3gAlNEn+qYOzx8bPrZudboEDnboq8aVfSBwWOY++MLWz2Nn7CkT69YRm91e5sg==
@@ -943,7 +943,7 @@
     "@chakra-ui/checkbox" "2.3.0"
     "@chakra-ui/shared-utils" "2.0.5"
 
-"@chakra-ui/system@2.6.0":
+"@chakra-ui/system@2.6.0", "@chakra-ui/system@^2.6.0":
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/@chakra-ui/system/-/system-2.6.0.tgz#29f65bb0887ee0816bbb7b4b098ca5aa4918c409"
   integrity sha512-MgAFRz9V1pW0dplwWsB99hx49LCC+LsrkMala7KXcP0OvWdrkjw+iu+voBksO3626+glzgIwlZW113Eja+7JEQ==
