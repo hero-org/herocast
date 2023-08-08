@@ -1,6 +1,7 @@
 import create, { State } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
+import isEqual from 'lodash.isequal';
 
 type PostType = {
   text: string;
@@ -32,6 +33,8 @@ interface NewPostStoreProps {
   addNewPostDraft: () => void;
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number) => void;
+  removeAllPostDrafts: () => void;
+  publishPostDraft: (draftId: number) => void;
 }
 
 export interface NewPostStore extends NewPostStoreProps, NewPostStoreProps { }
@@ -45,7 +48,9 @@ const store = (set: StoreSet) => ({
   postDrafts: [NewPostDraft],
   addNewPostDraft: () => {
     set((state) => {
-      if (state.postDrafts[-1] === NewPostDraft) return;
+      for (let i = 0; i < state.postDrafts.length; i++) {
+        if (isEqual(NewPostDraft, state.postDrafts[i])) return;
+      }
       state.postDrafts.push(NewPostDraft);
     });
   },
@@ -61,6 +66,18 @@ const store = (set: StoreSet) => ({
   },
   removePostDraft: (draftId: number) => {
     set((state) => {
+      state.postDrafts.splice(draftId, 1);
+    });
+  },
+  removeAllPostDrafts: () => {
+    set((state) => {
+      state.postDrafts = [NewPostDraft];
+    });
+  },
+  publishPostDraft: (draftId: number) => {
+    set((state) => {
+      console.log("publishing post draft", state.postDrafts[draftId]);
+      // call farsign api here
       state.postDrafts.splice(draftId, 1);
     });
   }

@@ -23,6 +23,106 @@ const deployments = [
     description: 'Deploys from GitHub',
     environment: 'Preview',
   },
+  {
+    id: 3,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 4,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 5,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 6,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 7,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 8,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 9,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 10,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 11,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
+  {
+    id: 12,
+    href: '#',
+    projectName: 'ios-app',
+    teamName: 'Planetaria',
+    status: 'offline',
+    statusText: 'Initiated 1m 32s ago',
+    description: 'Deploys from GitHub',
+    environment: 'Preview',
+  },
   // More deployments...
 ]
 
@@ -50,7 +150,7 @@ export default function Feed() {
   return (
     <ul role="list" className="divide-y divide-white/5">
       {deployments.map((deployment) => (
-        <li key={deployment.id} className="relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8">
+        <li key={deployment.id} className="relative flex items-center space-x-4 py-4">
           <div className="min-w-0 flex-auto">
             <div className="flex items-center gap-x-3">
               <div className={classNames(statuses[deployment.status], 'flex-none rounded-full p-1')}>
@@ -60,7 +160,7 @@ export default function Feed() {
                 <a href={deployment.href} className="flex gap-x-2">
                   <span className="truncate">{deployment.teamName}</span>
                   <span className="text-gray-400">/</span>
-                  <span className="whitespace-nowrap">{deployment.projectName}</span>
+                  <span className="whitespace-nowrap">{deployment.id} - {deployment.projectName}</span>
                   <span className="absolute inset-0" />
                 </a>
               </h2>

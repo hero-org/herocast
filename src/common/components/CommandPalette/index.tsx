@@ -58,15 +58,21 @@ export default function CommandPalette() {
 
   useHotkeys(['meta+shift+a'], () => {
     toAddAccount();
-  }, [])
+  }, [], {
+    enableOnFormTags: true,
+  })
 
   useHotkeys(['meta+,'], () => {
     toSettings();
-  }, [])
+  }, [], {
+    enableOnFormTags: true,
+  })
 
   useHotkeys(['meta+shift+f'], () => {
     addFeedbackDraft();
-  }, [])
+  }, [], {
+    enableOnFormTags: true,
+  })
 
   const actions: ActionType[] = [
     { name: 'Add Account', searchTerms: 'new add account', icon: DocumentPlusIcon, shortcut: 'cmd + shift + a', action: toAddAccount },

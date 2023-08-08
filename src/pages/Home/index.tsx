@@ -92,7 +92,7 @@ export default function Home() {
   return (
     <>
       <CommandPalette />
-      <div className="h-full bg-gray-900">
+      <div className="h-full bg-gray-800 overflow-y-scroll">
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog as="div" className="relative z-50 xl:hidden" onClose={setSidebarOpen}>
             <Transition.Child
@@ -191,7 +191,7 @@ export default function Home() {
                             ))}
                           </ul>
                         </li>
-                        <li className="-mx-6 mt-auto">
+                        {/* <li className="-mx-6 mt-auto">
                           <a
                             href="#"
                             className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
@@ -204,7 +204,7 @@ export default function Home() {
                             <span className="sr-only">Your profile</span>
                             <span aria-hidden="true">Tom Cook</span>
                           </a>
-                        </li>
+                        </li> */}
                       </ul>
                     </nav>
                   </div>
@@ -273,7 +273,7 @@ export default function Home() {
                     ))}
                   </ul>
                 </li>
-                <li className="-mx-6 mt-auto">
+                {/* <li className="-mx-6 mt-auto">
                   <a
                     href="#"
                     className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
@@ -286,7 +286,7 @@ export default function Home() {
                     <span className="sr-only">Your profile</span>
                     <span aria-hidden="true">Tom Cook</span>
                   </a>
-                </li>
+                </li> */}
               </ul>
             </nav>
           </div>
@@ -294,15 +294,15 @@ export default function Home() {
 
         <div className="xl:pl-72">
           <main className="lg:pr-96">
-            <header className="flex items-center justify-between border-y border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-20">
+            <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-20">
               <button type="button" className="-m-2.5 p-2.5 text-white xl:hidden" onClick={() => setSidebarOpen(true)}>
                 <span className="sr-only">Open sidebar</span>
                 <Bars3Icon className="h-5 w-5" aria-hidden="true" />
               </button>
               <h1 className="text-base font-semibold leading-7 text-white">{title}</h1>
             </header>
-            <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-              <Suspense fallback={<div>Loading...</div>}>
+            <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-6 lg:px-8">
+              <Suspense fallback={<span className="font-semibold text-gray-200">Loading...</span>}>
                 {renderContent()}
               </Suspense>
             </div>
