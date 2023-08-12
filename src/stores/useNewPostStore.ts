@@ -2,11 +2,11 @@ import { create, State } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import isEqual from 'lodash.isequal';
-import { CommandType } from "@/common/constants/types";
+import { CommandType } from "@/common/constants/commands";
 import { TagIcon } from "@heroicons/react/24/outline";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
 
-type PostType = {
+export type PostType = {
   text: string;
   media: string;
   replyTo: string;

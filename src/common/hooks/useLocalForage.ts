@@ -23,7 +23,7 @@ export function useLocalForage(key: string, defaultValue: unknown) {
   }, []);
 
   useEffect(() => {
-      if (!loading) localforage.setItem(key, state);
+    if (!loading) localforage.setItem(key, state);
   }, [state]);
 
   return [state, setState, loading];

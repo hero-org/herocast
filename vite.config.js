@@ -50,7 +50,7 @@ export default defineConfig({
         target: 'esnext',
       },
     },
-    sourcemap: false,
+    sourcemap: !!process.env.TAURI_DEBUG,
     rollupOptions: {
       plugins: [
         inject({ Buffer: ['buffer', 'Buffer'] }),

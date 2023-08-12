@@ -1,14 +1,14 @@
-import { Fragment, useState } from 'react';
+import { CommandType } from "@/common/constants/commands";
+import { classNames } from "@/common/helpers/css";
+import { accountCommands } from '@/stores/useAccountStore';
+import { navigationCommands, useNavigationStore } from "@/stores/useNavigationStore";
+import { newPostCommands } from "@/stores/useNewPostStore";
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { FaceSmileIcon } from '@heroicons/react/24/outline';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { classNames } from "@/common/helpers";
-import { useNavigationStore } from "@/stores/useNavigationStore";
-import { newPostCommands, useNewPostStore } from "@/stores/useNewPostStore";
-import { navigationCommands } from "@/stores/useNavigationStore";
-import { CommandType } from "@/common/constants/types";
 import commandScore from "command-score";
+import { Fragment, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -24,20 +24,21 @@ export default function CommandPalette() {
     toggleCommandPalette();
   }, [isCommandPaletteOpen], {
     enableOnFormTags: true,
-    splitKey: '-'
   })
 
-  const commands = [
+  const commands: CommandType[] = [
     ...navigationCommands,
     ...newPostCommands,
+    ...accountCommands,
   ];
 
   for (const command of commands) {
-    console.log('command', command.shortcut, command.shortcut.replace('cmd', 'meta'));
     useHotkeys(command.shortcut.replace('cmd', 'meta'), () => {
       command.action();
     }, [], {
       enableOnFormTags: command.enableOnFormTags,
+      splitKey: '-',
+      enabled: command.enabled || true,
     })
   }
 
@@ -158,10 +159,10 @@ export default function CommandPalette() {
                           >
                             {({ active }) => (
                               <>
-                                <action.icon
+                                {action.icon && <action.icon
                                   className={classNames('h-6 w-6 flex-none', active ? 'text-white' : 'text-gray-500')}
                                   aria-hidden="true"
-                                />
+                                />}
                                 <span className="ml-3 flex-auto truncate">
                                   {action.name}
                                   {/* {action.score && `(${action.score})`} */}

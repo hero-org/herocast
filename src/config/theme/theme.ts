@@ -46,7 +46,7 @@ const Theme = extendTheme({
       "*": {
         userSelect: "none",
         boxSizing: "border-box",
-        transition: "all 0.25s ease-out" // Global transition
+        transition: "all 0.1s ease-out" // Global transition
       },
       "html, body, #root": {
         background: 'radial-gradient(ellipse at bottom, #0d1d31 0%, #0c0d13 100%)',
@@ -80,7 +80,7 @@ const Theme = extendTheme({
   },
   config: {
     initialColorMode: "dark",
-    useSystemColorMode: false,
+    useSystemColorMode: true,
     cssVarPrefix: "tauriboilerplate",
   },
 });

@@ -19,7 +19,7 @@ const ChannelsRightSidebar = () => {
             </span> */}
           </div>
           <p className="mt-2 truncate text-sm text-gray-500">
-            login on <span className="text-gray-400">{item.timestampString}</span>{' '}
+            login on <span className="text-gray-400">{item.createdAt}</span>{' '}
             fid <span className="text-gray-400">{item.fid}</span>
           </p>
         </li>

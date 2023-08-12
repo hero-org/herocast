@@ -4,7 +4,7 @@ export const enum RIGHT_SIDEBAR_ENUM {
 }
 
 export const enum MAIN_NAVIGATION_ENUM {
-  ADD_ACCOUNT = 'add-account',
+  ACCOUNTS = 'accounts',
   FEED = 'feed',
   REPLIES = 'replies',
   NEW_POST = 'new-post',
@@ -21,8 +21,8 @@ type MainNavigationToPage = {
 }
 
 export const MAIN_NAVIGATION_TO_PAGE: MainNavigationToPage = {
-  [MAIN_NAVIGATION_ENUM.ADD_ACCOUNT]: {
-    title: 'Add Account',
+  [MAIN_NAVIGATION_ENUM.ACCOUNTS]: {
+    title: 'Accounts',
     rightSidebar: RIGHT_SIDEBAR_ENUM.ACCOUNTS,
   },
   [MAIN_NAVIGATION_ENUM.FEED]: {
@@ -31,11 +31,11 @@ export const MAIN_NAVIGATION_TO_PAGE: MainNavigationToPage = {
   },
   [MAIN_NAVIGATION_ENUM.REPLIES]: {
     title: 'Replies',
-    rightSidebar: null,
+    rightSidebar: RIGHT_SIDEBAR_ENUM.ACCOUNTS,
   },
   [MAIN_NAVIGATION_ENUM.NEW_POST]: {
     title: 'New Post',
-    rightSidebar: RIGHT_SIDEBAR_ENUM.CHANNELS,
+    rightSidebar: RIGHT_SIDEBAR_ENUM.ACCOUNTS,
   },
   [MAIN_NAVIGATION_ENUM.SETTINGS]: {
     title: 'Settings',

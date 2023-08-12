@@ -1,4 +1,4 @@
-import React, { Component, Suspense } from "react";
+import React, { Suspense } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import {
@@ -7,14 +7,15 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Bars3Icon, PlusCircleIcon, UserPlusIcon } from '@heroicons/react/20/solid';
-import FarcasterLogin from "@/common/components/FarcasterLogin";
-import { classNames } from "@/common/helpers";
+import { classNames } from "@/common/helpers/css";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { MAIN_NAVIGATION_ENUM, MAIN_NAVIGATION_TO_PAGE, RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
 import CommandPalette from "@/common/components/CommandPalette";
 import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
 import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
+import LoginModal from "@/common/components/LoginModal";
+import { useAccountStore } from "@/stores/useAccountStore";
 
 const Feed = React.lazy(() =>
   import('@/pages/Feed'),
@@ -28,6 +29,9 @@ const Replies = React.lazy(() =>
 const Settings = React.lazy(() =>
   import('@/pages/Settings'),
 );
+const Accounts = React.lazy(() =>
+  import('@/pages/Accounts'),
+);
 
 
 const channels = [
@@ -37,15 +41,12 @@ const channels = [
 ]
 
 
-
-const accounts = []
-
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const {
     mainNavigation,
-    toAddAccount,
+    toAccounts,
     toReplies,
     toFeed,
     toNewPost,
@@ -56,7 +57,7 @@ export default function Home() {
     { name: 'Feed', icon: SignalIcon, onClick: toFeed },
     { name: 'Replies', icon: ChartBarSquareIcon, onClick: toReplies },
     { name: 'New Post', icon: PlusCircleIcon, onClick: toNewPost },
-    { name: 'Add Account', icon: UserPlusIcon, onClick: toAddAccount },
+    { name: 'Accounts', icon: UserPlusIcon, onClick: toAccounts },
     { name: 'Settings', icon: Cog6ToothIcon, onClick: toSettings },
   ]
   const pageNavigation = MAIN_NAVIGATION_TO_PAGE[mainNavigation];
@@ -70,8 +71,8 @@ export default function Home() {
         return <Replies />
       case MAIN_NAVIGATION_ENUM.NEW_POST:
         return <NewPost />
-      case MAIN_NAVIGATION_ENUM.ADD_ACCOUNT:
-        return <FarcasterLogin />
+      case MAIN_NAVIGATION_ENUM.ACCOUNTS:
+        return <Accounts />
       case MAIN_NAVIGATION_ENUM.SETTINGS:
         return <Settings />
       default:
@@ -93,9 +94,10 @@ export default function Home() {
   return (
     <>
       <CommandPalette />
+      <LoginModal />
       <div className="h-full bg-gray-800 overflow-y-scroll">
         <Transition.Root show={sidebarOpen} as={Fragment}>
-          <Dialog as="div" className="relative z-50 xl:hidden" onClose={setSidebarOpen}>
+          <Dialog as="div" className="relative z-5 xl:hidden" onClose={setSidebarOpen}>
             <Transition.Child
               as={Fragment}
               enter="transition-opacity ease-linear duration-10"
@@ -216,7 +218,7 @@ export default function Home() {
         </Transition.Root>
 
         {/* Static sidebar for desktop */}
-        <div className="hidden xl:fixed xl:inset-y-0 xl:z-50 xl:flex xl:w-72 xl:flex-col">
+        <div className="hidden xl:fixed xl:inset-y-0 xl:z-5 xl:flex xl:w-72 xl:flex-col">
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 ring-1 ring-white/5">
             <div className="flex h-16 shrink-0 items-center">

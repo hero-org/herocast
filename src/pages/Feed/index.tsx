@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
-import { classNames } from "@/common/helpers";
+import { classNames } from "@/common/helpers/css";
 import { getFarcasterFeed } from "@/common/helpers/farcaster";
 const deployments = [
   {

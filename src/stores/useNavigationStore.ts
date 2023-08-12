@@ -1,9 +1,9 @@
 import { MAIN_NAVIGATION_ENUM } from "@/common/constants/navigation";
-import { CommandType } from "@/common/constants/types";
+import { CommandType } from "@/common/constants/commands";
 import { Bars3BottomLeftIcon, ChatBubbleBottomCenterTextIcon } from "@heroicons/react/20/solid";
-import { Cog6ToothIcon, DocumentPlusIcon, FolderIcon, FolderPlusIcon, HashtagIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, HashtagIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { Draft, create as mutativeCreate } from 'mutative';
-import { create, State } from "zustand";
+import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 interface NavigationStoreProps {
@@ -13,7 +13,7 @@ interface NavigationStoreProps {
 
 interface NavigationStoreActions {
   toggleCommandPalette: () => void;
-  toAddAccount: () => void;
+  toAccounts: () => void;
   toFeed: () => void;
   toReplies: () => void;
   toNewPost: () => void;
@@ -35,9 +35,9 @@ const store = (set: StoreSet) => ({
       state.isCommandPaletteOpen = !state.isCommandPaletteOpen;
     });
   },
-  toAddAccount: () => {
+  toAccounts: () => {
     set((state) => {
-      state.mainNavigation = MAIN_NAVIGATION_ENUM.ADD_ACCOUNT;
+      state.mainNavigation = MAIN_NAVIGATION_ENUM.ACCOUNTS;
     });
   },
   toFeed: () => {
@@ -65,12 +65,12 @@ export const useNavigationStore = create<NavigationStore>()(devtools(mutative(st
 
 export const navigationCommands: CommandType[] = [
   {
-    name: 'Add Account',
-    aliases: ['new account'],
+    name: 'Accounts',
+    aliases: ['new account', 'sign up'],
     icon: UserPlusIcon,
     shortcut: 'cmd+shift+a',
     enableOnFormTags: true,
-    action: () => useNavigationStore.getState().toAddAccount(),
+    action: () => useNavigationStore.getState().toAccounts(),
   },
   {
     name: 'Switch to Feed.',
