@@ -52,7 +52,13 @@
       "active": false
     },
     "allowlist": {
-      "all": true
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": [
+          "https://*"
+        ]
+      }
     },
     "windows": [
       {
@@ -69,7 +75,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": ""
     }
   }
 }

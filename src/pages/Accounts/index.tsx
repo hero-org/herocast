@@ -1,28 +1,7 @@
 import React from "react";
 import FarcasterLogin from "@/common/components/FarcasterLogin";
-import { classNames } from "@/common/helpers/css";
-import { useAccountStore } from "@/stores/useAccountStore";
-import SecretPhraseLogin from "@/common/components/SecretPhraseLogin";
 
 export default function Accounts() {
-  const {
-    accounts,
-    removeAccount,
-  } = useAccountStore();
-
-
-  const hasAccounts = (accounts && accounts.length > 0) || localStorage.getItem("farsign-signer-herocast") !== null;
-  const onRemoveAccounts = () => {
-    if (!hasAccounts) return;
-
-    localStorage.removeItem("farsign-signer-herocast");
-    localStorage.removeItem("farsign-privateKey-herocast");
-
-    for (let idx = 0; idx <= accounts.length; idx++) {
-      removeAccount(idx);
-    }
-  };
-
   return (
     <div className="flex min-w-full flex-col">
       <div>

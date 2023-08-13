@@ -11,9 +11,9 @@ export type AccountObjectType = {
   name: string;
   status: AccountStatusType;
   publicKey: string;
-  privateKey: string;
   platform: AccountPlatformType;
   platformAccountId: string;
+  privateKey?: string;
   createdAt?: string;
   data?: { deepLinkUrl: string, signerToken: string };
 }
@@ -48,7 +48,7 @@ const store = (set: StoreSet) => ({
   accounts: [],
   selectedAccountIdx: 0,
   _hydrated: false,
-  addAccount: (account: AccountObjectType) => {
+  addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => {
     supabaseClient
       .from('accounts')
       .insert({
@@ -103,7 +103,7 @@ export const useAccountStore = create<AccountStore>()(devtools(mutative(store)))
 const hydrate = async () => {
   const { data: { user } } = await supabaseClient.auth.getUser()
   const { data: accountData, error: accountError } = await supabaseClient
-    .from('decrypted_accounts')
+    .from('accounts')
     .select('*')
     .eq('user_id', user?.id)
 
@@ -123,7 +123,6 @@ const hydrate = async () => {
       platform: account.platform,
       platformAccountId: account.platform_account_id,
       createdAt: account.created_at,
-      privateKey: '',
       data: account.data,
     }))
     useAccountStore.setState({

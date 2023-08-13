@@ -68,7 +68,7 @@ export default function NewPostEntry({ draft, onTextChange, onSubmit }: { draft:
         />
       </div> */}
       <div className="min-w-0 flex-1 w-96">
-        <form onSubmit={onSubmit}>
+        <div>
           <Tab.Group>
             {({ selectedIndex }) => (
               <>
@@ -131,13 +131,14 @@ export default function NewPostEntry({ draft, onTextChange, onSubmit }: { draft:
           <div className="mt-2 flex justify-end">
             {/* <span className="mt-2 text-gray-400">posting to {selectedChannel ? `${selectedChannel.name} channel` : 'your mainfeed'}</span> */}
             <button
+              onClick={() => onSubmit()}
               type="submit"
               className="inline-flex items-center rounded-sm bg-zinc-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600"
             >
               Post
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )

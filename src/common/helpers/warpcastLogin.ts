@@ -1,5 +1,6 @@
 import { NobleEd25519Signer, bytesToHexString } from "@farcaster/hub-web";
 import * as ed from "@noble/ed25519"
+import { toBytes } from 'viem'
 
 type KeyPairType = {
   publicKey: Uint8Array,
@@ -67,8 +68,8 @@ const getWarpcastSignerStatus = async (signerToken: string): Promise<{ status: W
 }
 
 const getWarpcastSigner = async (privateKey: string) => {
-  const privateKey_encoded = Uint8Array.from(privateKey.split(",").map(split => Number(split)))
-  return new NobleEd25519Signer(privateKey_encoded);
+  const privateKeyEncoded = toBytes(privateKey) // Uint8Array.from(privateKey.split(",").map(split => Number(split)))
+  return new NobleEd25519Signer(privateKeyEncoded);
 }
 
 export { generateWarpcastSigner, getWarpcastSigner, getWarpcastSignerStatus };
