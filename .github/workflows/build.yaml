@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: setup Rust cache
+    - name: Setup Rust cache
       uses: actions/cache@v3
       with:
         key: ${{ matrix.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
@@ -33,7 +33,7 @@ jobs:
         node-version: 18
         cache: npm
         cache-dependency-path: |
-          package-lock.json
+          yarn.lock
 
     - name: 🦀 Install Rust
       uses: actions-rs/toolchain@v1
