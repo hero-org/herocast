@@ -30,8 +30,8 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 18
-        cache: npm
+        node-version: 18.16
+        cache: yarn
         cache-dependency-path: |
           yarn.lock
 
@@ -58,4 +58,4 @@ jobs:
       with:
         name: release-${{ matrix.os }}
         path: |
-          packages/admin/src-tauri/target/release/bundle
+          src-tauri/target/release/bundle
