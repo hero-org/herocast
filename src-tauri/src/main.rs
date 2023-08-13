@@ -36,17 +36,25 @@ async fn send_cast(private_key: String, message: String) -> Result<(), String> {
   println!("Posting message from rust: {}", message);
   let pk: &str = &private_key;
   println!("pk: {}", pk);
-  let account: Account = Account::from_private_key(&private_key, None)
-    .await
-    .map_err(|err| {
-      println!("error: {}", err);
-      return "error";
-    })?;
+  if private_key.is_empty() {
+    return Err("Private key is empty".to_string());
+  }
+  let account: Account = match Account::from_private_key(&private_key, None).await {
+    Ok(account) => account,
+    Err(err) => {
+      println!("Failed to create account from private key: {}", err);
+      return Err(format!("Failed to create account from private key: {}", err));
+    }
+  };
   println!("account: {}", 1);
 
-  let farcaster: Farcaster = Farcaster::new("https://nemes.farcaster.xyz:2283", account)
-    .await
-    .map_err(|_| "")?;
+  let farcaster: Farcaster = match Farcaster::new("https://nemes.farcaster.xyz:2283", account).await {
+    Ok(farcaster) => farcaster,
+    Err(err) => {
+      println!("Failed to create Farcaster: {}", err);
+      return Err(format!("Failed to create Farcaster: {}", err));
+    }
+  };
   println!("farcaster: {}", 2);
   // Publish a cast.
   // 1st Param: Content
@@ -54,10 +62,13 @@ async fn send_cast(private_key: String, message: String) -> Result<(), String> {
   //
   let m = message;
   println!("message: {}", 3);
-  let cast: PublishedCast = farcaster
-    .publish_cast(&m, None, None)
-    .await
-    .map_err(|_| "")?;
+  let cast: PublishedCast = match farcaster.publish_cast(&m, None, None).await {
+    Ok(cast) => cast,
+    Err(err) => {
+      println!("Failed to publish cast: {}", err);
+      return Err(format!("Failed to publish cast: {}", err));
+    }
+  };
   Ok(())
   // Ok(cast.hash)
 }
