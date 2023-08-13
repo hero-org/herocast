@@ -1,4 +1,4 @@
-name: Build Tauri Meteor Template.
+name: build
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os:
           # - macos-latest
@@ -18,19 +18,14 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: setup Rust cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: ${{ matrix.os }}-${{ hashFiles('packages/admin/src-tauri/Cargo.lock') }}
-        path: |
-            ~/.cargo/registry/index
-            ~/.cargo/registry/cache
-            ~/.cargo/git
-            ./packages/admin/src-tauri/target
     - name: Install Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: npm
@@ -47,13 +42,13 @@ jobs:
         sudo apt-get update
         sudo apt-get upgrade -y --no-install-recommends webkit2gtk-4.0
     - name: Install Node.js dependencies
-      run: npm install
+      run: yarn install
 
     - name: Download Rust dependencies
-      run: cargo fetch --manifest-path=packages/admin/src-tauri/Cargo.toml
+      run: cargo fetch --manifest-path=src-tauri/Cargo.toml
 
     - name: Build application
-      run: npm run build:tauri
+      run: yarn build
 
     - name: Upload release artifacts
       uses: actions/upload-artifact@v2
