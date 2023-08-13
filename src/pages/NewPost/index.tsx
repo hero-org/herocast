@@ -1,11 +1,15 @@
 import NewPostEntry from "@/common/components/NewPostEntry";
+import { HUB_URL } from "@/common/constants/farcaster";
 import { classNames } from "@/common/helpers/css";
+import { getWarpcastSigner } from "@/common/helpers/warpcastLogin";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { PostType, useNewPostStore } from "@/stores/useNewPostStore";
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import { useToast } from "@chakra-ui/react";
+import { FarcasterNetwork, getHubRpcClient, makeCastAdd } from "@farcaster/hub-web";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import React from "react";
+import { invoke } from '@tauri-apps/api/tauri'
 
 export default function NewPost() {
   const toast = useToast()
@@ -33,7 +37,13 @@ export default function NewPost() {
     }
     if (draft.text.length > 0) {
       // move this to deno supabase function
-      // console.log('submitting post', draft.text, account);
+      console.log('submitting post', draft.text, account);
+      invoke('send_cast', { privateKey: account.privateKey, message: draft.text }).then((res) => {
+        console.log('res', res);
+      }).catch((err) => {
+        console.log('err', err);
+      })
+
       // const hub = getHubRpcClient(HUB_URL, { debug: true });
       // const signer = await getWarpcastSigner(account.privateKey);
       // console.log('hub', hub);
