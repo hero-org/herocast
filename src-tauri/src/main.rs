@@ -34,12 +34,14 @@ struct CustomResponse {
 #[tauri::command]
 async fn send_cast(private_key: String, message: String) -> Result<(), String> {
   println!("Posting message from rust: {}", message);
-  let pk: &str = private_key.as_str();
+  let pk: &str = &private_key;
   println!("pk: {}", pk);
-  let account: Account = Account::from_private_key(pk, None).await.map_err(|err| {
-    println!("error: {}", err);
-    return "error";
-  })?;
+  let account: Account = Account::from_private_key(&private_key, None)
+    .await
+    .map_err(|err| {
+      println!("error: {}", err);
+      return "error";
+    })?;
   println!("account: {}", 1);
 
   let farcaster: Farcaster = Farcaster::new("https://nemes.farcaster.xyz:2283", account)
