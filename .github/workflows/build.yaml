@@ -47,8 +47,8 @@ jobs:
     - name: Install Node.js dependencies
       run: yarn install
 
-    - name: Download Rust dependencies
-      run: cargo fetch --manifest-path=src-tauri/Cargo.toml
+    # - name: Download Rust dependencies
+    #   run: cargo fetch --manifest-path=src-tauri/Cargo.toml
 
     - name: Build application
       run: yarn build
