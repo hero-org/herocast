@@ -23,7 +23,10 @@ jobs:
     - name: setup Rust cache
       uses: actions/cache@v3
       with:
-        key: ${{ matrix.os }}-${{ hashFiles('packages/admin/src-tauri/Cargo.lock') }}
+        key: ${{ matrix.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+        path: |
+          ~/.cargo
+
     - name: Install Node.js
       uses: actions/setup-node@v3
       with:
