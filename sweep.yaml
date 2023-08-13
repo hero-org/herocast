@@ -8,5 +8,5 @@ gha_enabled: True
 # This is the description of your project. It will be used by sweep when creating PRs. You can tell Sweep what's unique about your project, what frameworks you use, or anything else you want.
 # Here's an example: sweepai/sweep is a python project. The main api endpoints are in sweepai/api.py. Write code that adheres to PEP8.
 description: 'herocast is a desktop app built with React and Tauri as a power-user client for Farcaster (a sufficiently decentralized social media platform)'
-
+docs: {'tauri': 'https://tauri.app/v1/', 'rust': 'https://doc.rust-lang.org/book/', 'react': 'https://react.dev/reference/react'}
 # Default Values: https://github.com/sweepai/sweep/blob/main/sweep.yaml
