@@ -103,7 +103,8 @@ export const useAccountStore = create<AccountStore>()(devtools(mutative(store)))
 const hydrate = async () => {
   const { data: { user } } = await supabaseClient.auth.getUser()
   const { data: accountData, error: accountError } = await supabaseClient
-    .from('accounts')
+    .from('decrypted_accounts')
+    // .from('accounts')
     .select('*')
     .eq('user_id', user?.id)
 
@@ -124,6 +125,7 @@ const hydrate = async () => {
       platformAccountId: account.platform_account_id,
       createdAt: account.created_at,
       data: account.data,
+      privateKey: account.decrypted_private_key,
     }))
     useAccountStore.setState({
       accounts: accountsForState,
