@@ -16,16 +16,18 @@ import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRight
 import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
 import LoginModal from "@/common/components/LoginModal";
 import { useAccountStore } from "@/stores/useAccountStore";
+import Feed from "../Feed";
+import { ChannelType, channels } from "@/common/constants/channels";
 
-const Feed = React.lazy(() =>
-  import('@/pages/Feed'),
-);
-const NewPost = React.lazy(() =>
-  import('@/pages/NewPost'),
-);
-const Replies = React.lazy(() =>
-  import('@/pages/Replies'),
-);
+// const Feed = React.lazy(() =>
+//   import('@/pages/Feed'),
+// );
+// const NewPost = React.lazy(() =>
+//   import('@/pages/NewPost'),
+// );
+// const Replies = React.lazy(() =>
+//   import('@/pages/Replies'),
+// );
 const Settings = React.lazy(() =>
   import('@/pages/Settings'),
 );
@@ -33,13 +35,8 @@ const Accounts = React.lazy(() =>
   import('@/pages/Accounts'),
 );
 
-
-const channels = [
-  { id: 1, name: '/dev', href: '#', initial: 'dev', current: false },
-  { id: 2, name: 'OP Stack', href: '#', initial: 'OP', current: false },
-  { id: 3, name: 'memes', href: '#', initial: 'M', current: false },
-]
-
+const myChannels = channels.slice(0, 10);
+console.log('myChannels', myChannels);
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -55,8 +52,8 @@ export default function Home() {
 
   const navigation = [
     { name: 'Feed', icon: SignalIcon, onClick: toFeed },
-    { name: 'Replies', icon: ChartBarSquareIcon, onClick: toReplies },
-    { name: 'New Post', icon: PlusCircleIcon, onClick: toNewPost },
+    // { name: 'Replies', icon: ChartBarSquareIcon, onClick: toReplies },
+    // { name: 'New Post', icon: PlusCircleIcon, onClick: toNewPost },
     { name: 'Accounts', icon: UserPlusIcon, onClick: toAccounts },
     { name: 'Settings', icon: Cog6ToothIcon, onClick: toSettings },
   ]
@@ -67,10 +64,10 @@ export default function Home() {
     switch (mainNavigation) {
       case MAIN_NAVIGATION_ENUM.FEED:
         return <Feed />
-      case MAIN_NAVIGATION_ENUM.REPLIES:
-        return <Replies />
-      case MAIN_NAVIGATION_ENUM.NEW_POST:
-        return <NewPost />
+      // case MAIN_NAVIGATION_ENUM.REPLIES:
+      //   return <Replies />
+      // case MAIN_NAVIGATION_ENUM.NEW_POST:
+      //   return <NewPost />
       case MAIN_NAVIGATION_ENUM.ACCOUNTS:
         return <Accounts />
       case MAIN_NAVIGATION_ENUM.SETTINGS:
@@ -86,6 +83,8 @@ export default function Home() {
         return <AccountsRightSidebar />
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />
+      case RIGHT_SIDEBAR_ENUM.CHANNELS_AND_ACCOUNTS:
+        return <><AccountsRightSidebar /></>
       default:
         return <EmptyRightSidebar />;
     }
@@ -174,22 +173,21 @@ export default function Home() {
                         <li>
                           <div className="text-xs font-semibold leading-6 text-gray-400">Your channels</div>
                           <ul role="list" className="-mx-2 mt-2 space-y-1">
-                            {channels.map((team) => (
-                              <li key={team.name}>
-                                <a
-                                  href={team.href}
+                            {myChannels.map((channel: ChannelType) => (
+                              <li key={channel.name}>
+                                <span
                                   className={classNames(
-                                    team.current
+                                    false
                                       ? 'bg-gray-800 text-white'
                                       : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                    'cursor-pointer group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
                                   )}
                                 >
                                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white">
-                                    {team.initial}
+                                    {channel.name}
                                   </span>
-                                  <span className="truncate">{team.name}</span>
-                                </a>
+                                  {/* <span className="truncate">{team.parent_url}</span> */}
+                                </span>
                               </li>
                             ))}
                           </ul>
@@ -256,22 +254,21 @@ export default function Home() {
                 <li>
                   <div className="text-xs font-semibold leading-6 text-gray-400">Your channels</div>
                   <ul role="list" className="-mx-2 mt-2 space-y-1">
-                    {channels.map((team) => (
-                      <li key={team.name}>
-                        <a
-                          href={team.href}
+                    {myChannels.map((channel: ChannelType) => (
+                      <li key={channel.name}>
+                        <span
                           className={classNames(
-                            team.current
+                            false
                               ? 'bg-gray-800 text-white'
                               : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                            'group flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold'
                           )}
                         >
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white">
-                            {team.initial}
-                          </span>
-                          <span className="truncate">{team.name}</span>
-                        </a>
+                          {/* <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white">
+                            {channel.name}
+                          </span> */}
+                          <span className="font-normal truncate">{channel.name}</span>
+                        </span>
                       </li>
                     ))}
                   </ul>
