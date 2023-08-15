@@ -5,10 +5,16 @@ import { UserPlusIcon } from "@heroicons/react/24/outline";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { classNames } from "@/common/helpers/css";
 import isEmpty from "lodash.isempty";
+import { ChannelType, channels } from "@/common/constants/channels";
+import ChannelsOverview from "./ChannelsOverview";
+import { SidebarHeader } from "./SidebarHeader";
 
 // const EmptyStateWithAction = React.lazy(() =>
 //   import('@/common/components/EmptyStateWithAction'),
 // );
+
+const myChannels = channels.slice(0, 10);
+
 
 const AccountsRightSidebar = () => {
   const {
@@ -52,14 +58,14 @@ const AccountsRightSidebar = () => {
       ))}
     </ul>)
 
-  return <aside className="bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
-    <header className="flex items-center justify-between border-y border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-      <h2 className="text-base font-semibold leading-7 text-white">Accounts</h2>
-      {/* <a href="#" className="text-sm font-semibold leading-6 text-gray-300">
-        View all
-      </a> */}
-    </header>
+  const renderChannels = () => {
+    return <ChannelsOverview />;
+  }
+
+  return <aside className="bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-80 lg:overflow-y-auto lg:border-l lg:border-white/5">
+    <SidebarHeader title="Accounts" />
     {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
+    {renderChannels()}
   </aside>
 }
 

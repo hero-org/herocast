@@ -1,24 +1,35 @@
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
-import { accountCommands } from '@/stores/useAccountStore';
+import { accountCommands, channelCommands } from '@/stores/useAccountStore';
 import { navigationCommands, useNavigationStore } from "@/stores/useNavigationStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { FaceSmileIcon } from '@heroicons/react/24/outline';
 import commandScore from "command-score";
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { useNavigate, useLocation } from "react-router-dom";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
 export default function CommandPalette() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [query, setQuery] = useState('')
 
   const {
+    mainNavigation,
     isCommandPaletteOpen,
     toggleCommandPalette,
   } = useNavigationStore();
+
+  useEffect(() => {
+    if (location.pathname.slice(1) !== mainNavigation) {
+      navigate(mainNavigation);
+    }
+  }, [location, mainNavigation]);
 
   useHotkeys(['meta+k'], () => {
     toggleCommandPalette();
@@ -30,6 +41,7 @@ export default function CommandPalette() {
     ...navigationCommands,
     ...newPostCommands,
     ...accountCommands,
+    ...channelCommands,
   ];
 
   for (const command of commands) {
@@ -44,6 +56,7 @@ export default function CommandPalette() {
 
 
   function onClick(command: CommandType) {
+    console.log('onClick command', command);
     if (!command) {
       return;
     }
@@ -61,7 +74,7 @@ export default function CommandPalette() {
         ...command,
         score: Math.max(...scores),
       }
-    }).filter((command: CommandType) => {
+    }).filter((command: CommandType & { score: number }) => {
       return command.score > MIN_SCORE_THRESHOLD;
     });
   }

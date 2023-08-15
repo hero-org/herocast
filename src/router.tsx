@@ -1,9 +1,38 @@
 import React from 'react'
-import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import Home from '@/pages/Home';
+import Feed from '@/pages/Feed';
+import Settings from '@/pages/Settings';
+import Accounts from './pages/Accounts';
+import CommandPalette from '@/common/components/CommandPalette';
+import LoginModal from '@/common/components/LoginModal';
+import ErrorPage from './pages/ErrorPage';
 
-export const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route index element={<Home />} />
-  )
-)
+
+
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <>
+      <CommandPalette />
+      <LoginModal />
+      <Home />
+    </>,
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "feed",
+        element: <Feed />,
+      },
+      {
+        path: "accounts",
+        element: <Accounts />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
+        // lazy: () => import('@/pages/Settings'),
+      },
+    ]
+  }
+]);

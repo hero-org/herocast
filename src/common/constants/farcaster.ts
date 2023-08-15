@@ -28,3 +28,5 @@ export type CastType = {
   replies: { count: number }
   source: { type: string }
 }
+
+export const VITE_NEYNAR_API_KEY = import.meta.env.VITE_NEYNAR_API_KEY

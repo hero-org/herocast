@@ -2,79 +2,64 @@ import React, { Suspense } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import {
-  ChartBarSquareIcon,
   Cog6ToothIcon, SignalIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-import { Bars3Icon, PlusCircleIcon, UserPlusIcon } from '@heroicons/react/20/solid';
+import { Bars3Icon, UserPlusIcon } from '@heroicons/react/20/solid';
 import { classNames } from "@/common/helpers/css";
-import { useNavigationStore } from "@/stores/useNavigationStore";
-import { MAIN_NAVIGATION_ENUM, MAIN_NAVIGATION_TO_PAGE, RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
-import CommandPalette from "@/common/components/CommandPalette";
+import { RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
 import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
-import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
-import LoginModal from "@/common/components/LoginModal";
 import { useAccountStore } from "@/stores/useAccountStore";
-import Feed from "../Feed";
-import { ChannelType, channels } from "@/common/constants/channels";
+import { Outlet, useNavigate } from "react-router-dom";
 
-// const Feed = React.lazy(() =>
-//   import('@/pages/Feed'),
-// );
-// const NewPost = React.lazy(() =>
-//   import('@/pages/NewPost'),
-// );
-// const Replies = React.lazy(() =>
-//   import('@/pages/Replies'),
-// );
-const Settings = React.lazy(() =>
-  import('@/pages/Settings'),
-);
-const Accounts = React.lazy(() =>
-  import('@/pages/Accounts'),
-);
-
-const myChannels = channels.slice(0, 10);
-console.log('myChannels', myChannels);
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const navigate = useNavigate();
 
-  const {
-    mainNavigation,
-    toAccounts,
-    toReplies,
-    toFeed,
-    toNewPost,
-    toSettings,
-  } = useNavigationStore();
+  // const {
+  //   mainNavigation,
+  //   toAccounts,
+  //   toReplies,
+  //   toFeed,
+  //   toNewPost,
+  //   toSettings,
+  // } = useNavigationStore();
+
+  const getSelectedChannelName = () => useAccountStore((state) => state.selectedChannelIdx ? state.channels[state.selectedChannelIdx].name : 'Feed');
 
   const navigation = [
-    { name: 'Feed', icon: SignalIcon, onClick: toFeed },
+    {
+      name: 'Feed', router: '/feed', icon: SignalIcon, onClick: () => navigate('/feed')
+    },
     // { name: 'Replies', icon: ChartBarSquareIcon, onClick: toReplies },
     // { name: 'New Post', icon: PlusCircleIcon, onClick: toNewPost },
-    { name: 'Accounts', icon: UserPlusIcon, onClick: toAccounts },
-    { name: 'Settings', icon: Cog6ToothIcon, onClick: toSettings },
+    { name: 'Accounts', router: '/accounts', icon: UserPlusIcon, onClick: () => navigate('/accounts') },
+    { name: 'Settings', router: '/settings', icon: Cog6ToothIcon, onClick: () => navigate('/settings') },
   ]
-  const pageNavigation = MAIN_NAVIGATION_TO_PAGE[mainNavigation];
-  const title = pageNavigation.title;
+  // const pageNavigation = MAIN_NAVIGATION_TO_PAGE[mainNavigation];
+  const mainNavigation = 'FEED';
+  const title = 'yo'; // mainNavigation !== MAIN_NAVIGATION_ENUM.FEED ? pageNavigation.title : getSelectedChannelName();
+  const pageNavigation = { rightSidebar: 'ACCOUNTS' };
 
   const renderContent = () => {
-    switch (mainNavigation) {
-      case MAIN_NAVIGATION_ENUM.FEED:
-        return <Feed />
-      // case MAIN_NAVIGATION_ENUM.REPLIES:
-      //   return <Replies />
-      // case MAIN_NAVIGATION_ENUM.NEW_POST:
-      //   return <NewPost />
-      case MAIN_NAVIGATION_ENUM.ACCOUNTS:
-        return <Accounts />
-      case MAIN_NAVIGATION_ENUM.SETTINGS:
-        return <Settings />
-      default:
-        return <div>...</div>
-    }
+    return <Outlet />
+    // switch (mainNavigation) {
+    //   case MAIN_NAVIGATION_ENUM.FEED:
+    //     return <Feed />
+    //   // case MAIN_NAVIGATION_ENUM.REPLIES:
+    //   //   return <Replies />
+    //   // case MAIN_NAVIGATION_ENUM.NEW_POST:
+    //   //   return <NewPost />
+    //   case MAIN_NAVIGATION_ENUM.ACCOUNTS:
+    //     return <Accounts />
+    //   case MAIN_NAVIGATION_ENUM.SETTINGS:
+    //     return <div>yo</div>
+    //   // return <Settings />
+    //   default:
+    //     return <div>...</div>
+    // }
   }
 
   const renderRightSidebar = () => {
@@ -83,17 +68,13 @@ export default function Home() {
         return <AccountsRightSidebar />
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />
-      case RIGHT_SIDEBAR_ENUM.CHANNELS_AND_ACCOUNTS:
-        return <><AccountsRightSidebar /></>
       default:
-        return <EmptyRightSidebar />;
+        return <AccountsRightSidebar />;
     }
   }
 
   return (
     <>
-      <CommandPalette />
-      <LoginModal />
       <div className="h-full bg-gray-800 overflow-y-scroll">
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog as="div" className="relative z-5 xl:hidden" onClose={setSidebarOpen}>
@@ -170,28 +151,6 @@ export default function Home() {
                             ))}
                           </ul>
                         </li>
-                        <li>
-                          <div className="text-xs font-semibold leading-6 text-gray-400">Your channels</div>
-                          <ul role="list" className="-mx-2 mt-2 space-y-1">
-                            {myChannels.map((channel: ChannelType) => (
-                              <li key={channel.name}>
-                                <span
-                                  className={classNames(
-                                    false
-                                      ? 'bg-gray-800 text-white'
-                                      : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                    'cursor-pointer group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                  )}
-                                >
-                                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white">
-                                    {channel.name}
-                                  </span>
-                                  {/* <span className="truncate">{team.parent_url}</span> */}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </li>
                         {/* <li className="-mx-6 mt-auto">
                           <a
                             href="#"
@@ -251,28 +210,6 @@ export default function Home() {
                     ))}
                   </ul>
                 </li>
-                <li>
-                  <div className="text-xs font-semibold leading-6 text-gray-400">Your channels</div>
-                  <ul role="list" className="-mx-2 mt-2 space-y-1">
-                    {myChannels.map((channel: ChannelType) => (
-                      <li key={channel.name}>
-                        <span
-                          className={classNames(
-                            false
-                              ? 'bg-gray-800 text-white'
-                              : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                            'group flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold'
-                          )}
-                        >
-                          {/* <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white">
-                            {channel.name}
-                          </span> */}
-                          <span className="font-normal truncate">{channel.name}</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
                 {/* <li className="-mx-6 mt-auto">
                   <a
                     href="#"
@@ -293,15 +230,16 @@ export default function Home() {
         </div>
 
         <div className="xl:pl-72">
-          <main className="lg:pr-96">
+          <main className="lg:pr-80">
             <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-20">
               <button type="button" className="-m-2.5 p-2.5 text-white xl:hidden" onClick={() => setSidebarOpen(true)}>
                 <span className="sr-only">Open sidebar</span>
                 <Bars3Icon className="h-5 w-5" aria-hidden="true" />
               </button>
               <h1 className="text-base font-semibold leading-7 text-white">{title}</h1>
+              <h1 className="text-base font-semibold leading-7 text-white"></h1>
             </header>
-            <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-6 lg:px-8">
+            <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-8">
               <Suspense fallback={<span className="font-semibold text-gray-200">Loading...</span>}>
                 {renderContent()}
               </Suspense>

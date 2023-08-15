@@ -10,36 +10,32 @@ export const channels: ChannelType[] = [
     "parent_url": "chain://eip155:7777777/erc721:0x8f0055447ffae257e9025b781643127ca604baaa"
   },
   {
-    "name": "GM",
-    "parent_url": "chain://eip155:7777777/erc721:0x5556efe18d87f132054fbd4ba9afc13ebb1b0594"
-  },
-  {
     "name": "Farcaster",
     "parent_url": "chain://eip155:7777777/erc721:0x4f86113fc3e9783cf3ec9a552cbb566716a57628"
+  },
+  {
+    "name": "Memes",
+    "parent_url": "chain://eip155:1/erc721:0xfd8427165df67df6d7fd689ae67c8ebf56d9ca61"
   },
   {
     "name": "/dev",
     "parent_url": "chain://eip155:1/erc721:0x7dd4e31f1530ac682c8ea4d8016e95773e08d8b0"
   },
   {
-    "name": "Warpcast",
-    "parent_url": "chain://eip155:7777777/erc721:0x10a77f29a6bbeae936f3f27cd60546072dae4e41"
-  },
-  {
     "name": "EVM",
     "parent_url": "chain://eip155:1/erc721:0x37fb80ef28008704288087831464058a4a3940ae"
-  },
-  {
-    "name": "zk",
-    "parent_url": "chain://eip155:7777777/erc721:0xec30bb189781bbd87478f625d19d9deeeb771964"
   },
   {
     "name": "OP Stack",
     "parent_url": "https://www.optimism.io"
   },
   {
-    "name": "Memes",
-    "parent_url": "chain://eip155:1/erc721:0xfd8427165df67df6d7fd689ae67c8ebf56d9ca61"
+    "name": "AI",
+    "parent_url": "chain://eip155:7777777/erc721:0x5747eef366fd36684e8893bf4fe628efc2ac2d10"
+  },
+  {
+    "name": "Design",
+    "parent_url": "chain://eip155:7777777/erc721:0x22be981fb87effbe6780b34a6fe1dfc14a00ec8e"
   },
   {
     "name": "News",
@@ -50,28 +46,16 @@ export const channels: ChannelType[] = [
     "parent_url": "https://ethereum.org"
   },
   {
+    "name": "zk",
+    "parent_url": "chain://eip155:7777777/erc721:0xec30bb189781bbd87478f625d19d9deeeb771964"
+  },
+  {
     "name": "Bitcoin",
     "parent_url": "https://bitcoin.org"
   },
   {
     "name": "Solana",
     "parent_url": "https://solana.com"
-  },
-  {
-    "name": "Tezos",
-    "parent_url": "https://tezos.com"
-  },
-  {
-    "name": "Quilibrium",
-    "parent_url": "https://www.quilibrium.com"
-  },
-  {
-    "name": "AI",
-    "parent_url": "chain://eip155:7777777/erc721:0x5747eef366fd36684e8893bf4fe628efc2ac2d10"
-  },
-  {
-    "name": "Design",
-    "parent_url": "chain://eip155:7777777/erc721:0x22be981fb87effbe6780b34a6fe1dfc14a00ec8e"
   },
   {
     "name": "Podcasts",
@@ -88,6 +72,22 @@ export const channels: ChannelType[] = [
   {
     "name": "Screens",
     "parent_url": "chain://eip155:1/erc721:0xc4934dbb7a71f76e4068cd04fade20ad6c0023dd"
+  },
+  {
+    "name": "Tezos",
+    "parent_url": "https://tezos.com"
+  },
+  {
+    "name": "Quilibrium",
+    "parent_url": "https://www.quilibrium.com"
+  },
+  {
+    "name": "GM",
+    "parent_url": "chain://eip155:7777777/erc721:0x5556efe18d87f132054fbd4ba9afc13ebb1b0594"
+  },
+  {
+    "name": "Warpcast",
+    "parent_url": "chain://eip155:7777777/erc721:0x10a77f29a6bbeae936f3f27cd60546072dae4e41"
   },
   {
     "name": "Fitness",

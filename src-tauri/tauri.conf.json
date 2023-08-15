@@ -52,6 +52,9 @@
       "active": false
     },
     "allowlist": {
+      "shell": {
+        "open": true
+      },
       "http": {
         "all": true,
         "request": true,

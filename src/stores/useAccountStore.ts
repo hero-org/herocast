@@ -1,4 +1,5 @@
 import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
+import { ChannelType, channels } from "@/common/constants/channels";
 import { CommandType } from "@/common/constants/commands";
 import { supabaseClient } from "@/common/helpers/supabase";
 import { Draft, create as mutativeCreate } from 'mutative';
@@ -20,7 +21,9 @@ export type AccountObjectType = {
 
 interface AccountStoreProps {
   selectedAccountIdx: number;
+  selectedChannelIdx: number | null;
   accounts: AccountObjectType[];
+  channels: ChannelType[];
   _hydrated: boolean;
 }
 
@@ -28,7 +31,9 @@ interface AccountStoreActions {
   addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => void;
   setAccountActive: (accountId: number, data: any) => void;
   removeAccount: (idx: number) => void;
-  setCurrentAccount: (idx: number) => void;
+  setCurrentAccountIdx: (idx: number) => void;
+  setCurrentChannelIdx: (idx: number | null) => void;
+  resetCurrentChannel: () => void;
 }
 
 export interface AccountStore extends AccountStoreProps, AccountStoreActions { }
@@ -46,7 +51,9 @@ type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   accounts: [],
+  channels: [],
   selectedAccountIdx: 0,
+  selectedChannelIdx: null,
   _hydrated: false,
   addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => {
     supabaseClient
@@ -92,11 +99,21 @@ const store = (set: StoreSet) => ({
       state.accounts.splice(idx, 1);
     });
   },
-  setCurrentAccount: (idx: number) => {
+  setCurrentAccountIdx: (idx: number) => {
     set((state) => {
       state.selectedAccountIdx = idx;
     });
   },
+  setCurrentChannelIdx: (idx: number) => {
+    set((state) => {
+      state.selectedChannelIdx = idx;
+    });
+  },
+  resetCurrentChannel: () => {
+    set((state) => {
+      state.selectedChannelIdx = null;
+    })
+  }
 });
 export const useAccountStore = create<AccountStore>()(devtools(mutative(store)));
 
@@ -129,6 +146,7 @@ const hydrate = async () => {
     }))
     useAccountStore.setState({
       accounts: accountsForState,
+      channels: channels,
       selectedAccountIdx: 0,
       _hydrated: true
     });
@@ -144,7 +162,7 @@ const switchAccountTo = (idx: number) => {
 
   const store = useAccountStore.getState();
   if (idx > store.accounts.length) return;
-  store.setCurrentAccount(idx);
+  store.setCurrentAccountIdx(idx);
 };
 
 const getAccountCommands = () => {
@@ -166,4 +184,35 @@ const getAccountCommands = () => {
   return accountCommands;
 };
 
+const getChannelCommands = () => {
+  let channelCommands: CommandType[] = [];
+
+  // channelCommands.push({
+  //   name: `Switch to follow feed`,
+  //   aliases: ['follow feed', 'following', 'feed', 'home'],
+  //   shortcut: 'shift+0',
+  //   enableOnFormTags: true,
+  //   action: () => {
+  //     useAccountStore.getState().resetCurrentChannel();
+  //   },
+  // });
+
+  // const channels = useAccountStore.getState().channels;
+  for (let i = 0; i < 9; i++) {
+    // const channelName = useAccountStore.getState().channels[i].name;
+    channelCommands.push({
+      name: `Switch to channel ${i + 1}`,
+      aliases: [], //[`channel ${channelName}`],
+      shortcut: `shift+${i + 1}`,
+      enableOnFormTags: true,
+      action: () => {
+        useAccountStore.getState().setCurrentChannelIdx(i);
+      },
+    });
+  }
+
+  return channelCommands;
+}
+
 export const accountCommands = getAccountCommands();
+export const channelCommands = getChannelCommands();

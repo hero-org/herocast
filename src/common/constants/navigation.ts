@@ -28,7 +28,7 @@ export const MAIN_NAVIGATION_TO_PAGE: MainNavigationToPage = {
   },
   [MAIN_NAVIGATION_ENUM.FEED]: {
     title: 'Feed',
-    rightSidebar: RIGHT_SIDEBAR_ENUM.CHANNELS_AND_ACCOUNTS,
+    rightSidebar: RIGHT_SIDEBAR_ENUM.ACCOUNTS,
   },
   // [MAIN_NAVIGATION_ENUM.REPLIES]: {
   //   title: 'Replies',
