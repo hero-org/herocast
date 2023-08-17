@@ -36,7 +36,7 @@ const ChannelsOverview = () => {
           </kbd>
         </span>
       </li>
-      {(showAll ? channels : channels.slice(0, 14)).map((channel: ChannelType, idx: number) => (
+      {(showAll ? channels : channels.slice(0, 9)).map((channel: ChannelType, idx: number) => (
         <li key={channel.name} className="px-4 sm:px-6 lg:px-8">
           <div
             onClick={() => {

@@ -9,9 +9,14 @@ export type EmbedType = {
   url: string,
 }
 
-export type ReactionsType = {
-  likes: { fid: number }[]
-  recasts: { fid: number }[]
+
+export enum CastReactionType {
+  likes = 'likes',
+  recasts = 'recasts',
+}
+
+export type CastReactionsType = {
+  CastReactionType: { fid: number }[]
 }
 
 export type CastType = {
@@ -20,7 +25,7 @@ export type CastType = {
   parent_author: AuthorType | { fid?: string } | null
   parent_hash: string | null
   parent_url: string | null
-  reactions: {}
+  reactions: CastReactionsType
   text: string
   thread_hash: string | null
   timestamp: string

@@ -8,7 +8,6 @@ import {
   isUserDataAddMessage,
   UserDataType,
 } from "@farcaster/hub-web";
-import { HUB_URL } from "@/common/constants/farcaster";
 import TimeAgo from "javascript-time-ago";
 // import en from "javascript-time-ago/locale/en";
 import en from 'javascript-time-ago/locale/en.json'

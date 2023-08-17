@@ -7,3 +7,10 @@ https://github.com/michyaraque/tauri-boilerplate
 ```bash
 $ yarn dev
 ```
+
+# 🚀 Release
+
+```
+export TAURI_PRIVATE_KEY=xyz
+yarn run tauri rls:mac-intel
+```

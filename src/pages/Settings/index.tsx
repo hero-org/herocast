@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 
 
 export default function Settings() {
-  // get supabase user
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
@@ -25,12 +24,14 @@ export default function Settings() {
     }
   }
 
+  const displayEmail = user?.email ? `${user?.email.slice(0, 4)}...@${user?.email.split('@')[1]}` : '';
+
   return (
     <div className="flex flex-col">
-      <span className="text-lg font-semibold text-white mb-8">Settings</span>
+      {/* <span className="text-lg font-semibold text-white mb-8">Settings</span> */}
       <div className="flex flex-row mb-4">
         <span className="text-sm font-semibold text-gray-400 mr-2">User</span>
-        <span className="text-sm font-semibold text-white">{user?.email}</span>
+        <span className="text-sm font-semibold text-white">{displayEmail}</span>
       </div>
       {/* <button
         type="button"

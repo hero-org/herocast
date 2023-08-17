@@ -5,15 +5,12 @@ import { UserPlusIcon } from "@heroicons/react/24/outline";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { classNames } from "@/common/helpers/css";
 import isEmpty from "lodash.isempty";
-import { ChannelType, channels } from "@/common/constants/channels";
 import ChannelsOverview from "./ChannelsOverview";
 import { SidebarHeader } from "./SidebarHeader";
 
 // const EmptyStateWithAction = React.lazy(() =>
 //   import('@/common/components/EmptyStateWithAction'),
 // );
-
-const myChannels = channels.slice(0, 10);
 
 
 const AccountsRightSidebar = () => {
@@ -36,9 +33,9 @@ const AccountsRightSidebar = () => {
   )
 
   const renderAccounts = () => (
-    <ul role="list" className="divide-y divide-white/5">
+    <ul role="list" className="mx-4 divide-y divide-white/5">
       {accounts.map((item: AccountObjectType, idx: number) => (
-        <li key={item.id} className="px-4 py-4 sm:px-6 lg:px-8">
+        <li key={item.id} className="px-2 py-2 sm:px-3 lg:px-4">
           <div className="flex items-center gap-x-3">
             {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
             <h3 className={classNames(
@@ -62,7 +59,7 @@ const AccountsRightSidebar = () => {
     return <ChannelsOverview />;
   }
 
-  return <aside className="bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-80 lg:overflow-y-auto lg:border-l lg:border-white/5">
+  return <aside className="lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-80 lg:overflow-y-auto lg:border-l lg:border-white/5">
     <SidebarHeader title="Accounts" />
     {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
     {renderChannels()}

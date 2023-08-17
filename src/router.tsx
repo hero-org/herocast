@@ -6,7 +6,8 @@ import Settings from '@/pages/Settings';
 import Accounts from './pages/Accounts';
 import CommandPalette from '@/common/components/CommandPalette';
 import LoginModal from '@/common/components/LoginModal';
-import ErrorPage from './pages/ErrorPage';
+import ErrorPage from '@/pages/ErrorPage';
+import { WaitForAppLoaded } from '@/common/components/WaitAppLoading';
 
 
 

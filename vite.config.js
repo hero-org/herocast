@@ -44,10 +44,10 @@ export default defineConfig({
   },
   envPrefix: ['VITE_', 'TAURI_'],
   build: {
-    target: ['esnext'],
+    target: ['es2022'],
     optimizeDeps: {
       esbuildOptions: {
-        target: 'esnext',
+        target: 'es2022',
       },
     },
     sourcemap: !!process.env.TAURI_DEBUG,

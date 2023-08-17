@@ -2,6 +2,7 @@ import { AccountPlatformType, AccountStatusType } from "@/common/constants/accou
 import { ChannelType, channels } from "@/common/constants/channels";
 import { CommandType } from "@/common/constants/commands";
 import { supabaseClient } from "@/common/helpers/supabase";
+import { invoke } from "@tauri-apps/api";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { createJSONStorage, devtools } from "zustand/middleware";
@@ -106,6 +107,7 @@ const store = (set: StoreSet) => ({
   },
   setCurrentChannelIdx: (idx: number) => {
     set((state) => {
+      console.log('setCurrentChannelIdx', idx)
       state.selectedChannelIdx = idx;
     });
   },
@@ -151,11 +153,10 @@ const hydrate = async () => {
       _hydrated: true
     });
   }
-
   console.log('done hydrating account store')
 }
 
-hydrate();
+hydrate().finally(() => invoke('close_splashscreen'));
 
 const switchAccountTo = (idx: number) => {
   if (idx < 0) return;
@@ -187,15 +188,15 @@ const getAccountCommands = () => {
 const getChannelCommands = () => {
   let channelCommands: CommandType[] = [];
 
-  // channelCommands.push({
-  //   name: `Switch to follow feed`,
-  //   aliases: ['follow feed', 'following', 'feed', 'home'],
-  //   shortcut: 'shift+0',
-  //   enableOnFormTags: true,
-  //   action: () => {
-  //     useAccountStore.getState().resetCurrentChannel();
-  //   },
-  // });
+  channelCommands.push({
+    name: `Switch to follow feed`,
+    aliases: ['follow feed', 'following', 'feed', 'home'],
+    shortcut: 'shift+0',
+    enableOnFormTags: true,
+    action: () => {
+      useAccountStore.getState().resetCurrentChannel();
+    },
+  });
 
   // const channels = useAccountStore.getState().channels;
   for (let i = 0; i < 9; i++) {

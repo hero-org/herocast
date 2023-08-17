@@ -1,6 +1,7 @@
+import { channels } from "@/common/constants/channels";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
-import { accountCommands, channelCommands } from '@/stores/useAccountStore';
+import { accountCommands, channelCommands, useAccountStore } from '@/stores/useAccountStore';
 import { navigationCommands, useNavigationStore } from "@/stores/useNavigationStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { Combobox, Dialog, Transition } from '@headlessui/react';
@@ -25,6 +26,10 @@ export default function CommandPalette() {
     toggleCommandPalette,
   } = useNavigationStore();
 
+  const {
+    setCurrentChannelIdx
+  } = useAccountStore();
+
   useEffect(() => {
     if (location.pathname.slice(1) !== mainNavigation) {
       navigate(mainNavigation);
@@ -37,7 +42,7 @@ export default function CommandPalette() {
     enableOnFormTags: true,
   })
 
-  const commands: CommandType[] = [
+  let commands: CommandType[] = [
     ...navigationCommands,
     ...newPostCommands,
     ...accountCommands,
@@ -54,9 +59,21 @@ export default function CommandPalette() {
     })
   }
 
+  let nonHotkeyCommands: CommandType[] = [];
+  channels.map((c) => c.name).slice(10, channels.length).map((channelName: string, idx: number) => {
+    nonHotkeyCommands.push({
+      name: channelName,
+      action: () => {
+        setCurrentChannelIdx(idx + 10);
+      },
+      shortcut: '',
+      aliases: [],
+      enableOnFormTags: false,
+    });
+  });
+  commands = commands.concat(nonHotkeyCommands);
 
   function onClick(command: CommandType) {
-    console.log('onClick command', command);
     if (!command) {
       return;
     }
@@ -76,7 +93,7 @@ export default function CommandPalette() {
       }
     }).filter((command: CommandType & { score: number }) => {
       return command.score > MIN_SCORE_THRESHOLD;
-    });
+    }).slice(0, 7);
   }
 
   const filteredCommands =
@@ -158,9 +175,9 @@ export default function CommandPalette() {
                     <li className="p-2">
                       <h2 className="sr-only">Quick actions</h2>
                       <ul className="text-sm text-gray-400">
-                        {(filteredCommands.length > 0 && filteredCommands || commands).map((action) => (
+                        {(filteredCommands.length > 0 && filteredCommands || commands.slice(0, 7)).map((action) => (
                           <Combobox.Option
-                            key={action.shortcut}
+                            key={action.name}
                             value={action}
                             onClick={() => onClick(action)}
                             className={({ active }) =>

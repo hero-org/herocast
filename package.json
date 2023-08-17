@@ -1,6 +1,6 @@
 {
-  "name": "tauri-boilerplate",
-  "version": "0.0.1",
+  "name": "herocast",
+  "version": "0.1",
   "license": "",
   "private": true,
   "scripts": {
@@ -8,7 +8,9 @@
     "start": "vite",
     "rls": "tauri build",
     "rls:debug": "tauri build --debug",
-    "rls:mac": "tauri build --target universal-apple-darwin",
+    "rls:mac-universal": "tauri build --target universal-apple-darwin",
+    "rls:mac-apple": "tauri build --target aarch64-apple-darwin",
+    "rls:mac-intel": "tauri build --target x86_64-apple-darwin",
     "build": "cross-env INLINE_RUNTIME_CHUNK=true NODE_OPTIONS=--max-old-space-size=16192 yarn vite build",
     "preview": "vite preview",
     "serve": "serve -s build",
@@ -22,9 +24,9 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
     ],
     "development": [
       "last 1 chrome version",
@@ -34,7 +36,7 @@
   },
   "dependencies": {
     "@aptabase/tauri": "^0.4.1",
-    "@chakra-ui/icons": "^2.0.9",
+    "@chakra-ui/icons": "^2.1.0",
     "@chakra-ui/react": "^2.8.0",
     "@chakra-ui/system": "^2.6.0",
     "@emotion/react": "11",
@@ -46,9 +48,9 @@
     "@supabase/auth-ui-react": "^0.4.2",
     "@supabase/supabase-js": "^2.32.0",
     "@tailwindcss/forms": "^0.5.4",
-    "@tauri-apps/api": "^1.0.1",
+    "@tauri-apps/api": "^1.4",
     "command-score": "^0.1.2",
-    "esbuild": "^0.18.19",
+    "esbuild": "^0.19.2",
     "framer-motion": "6",
     "google-protobuf": "^3.21.2",
     "javascript-time-ago": "^2.5.9",
@@ -62,7 +64,7 @@
     "react-icons": "^4.4.0",
     "react-qr-code": "^2.0.11",
     "react-router-dom": "^6.4.5",
-    "rollup": "^2.0.0",
+    "rollup": "^3.28.0",
     "tailwindcss": "^3.3.3",
     "tauri-plugin-sql-api": "https://github.com/tauri-apps/tauri-plugin-sql#v1",
     "tauri-plugin-store-api": "https://github.com/tauri-apps/tauri-plugin-store#v1",
@@ -72,20 +74,20 @@
   },
   "devDependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
-    "@rollup/plugin-inject": "^4.0.4",
-    "@tauri-apps/cli": "^1.0.0-rc.8",
+    "@rollup/plugin-inject": "^5.0.3",
+    "@tauri-apps/cli": "^1.4",
     "@types/lodash.isempty": "^4.4.7",
     "@types/lodash.isequal": "^4.5.6",
     "@types/lodash.uniqby": "^4.7.7",
     "@types/node": "^18.7.15",
     "@types/react-dom": "^18.0.9",
-    "@vitejs/plugin-react": "^1.0.7",
+    "@vitejs/plugin-react": "^1",
     "autoprefixer": "^10.4.14",
     "buffer": "^6.0.3",
     "cross-env": "^7.0.3",
     "eslint": "^8.46.0",
     "postcss": "^8.4.27",
-    "rollup-plugin-polyfill-node": "^0.10.2",
+    "rollup-plugin-polyfill-node": "^0.12.0",
     "rollup-plugin-visualizer": "^5.6.0",
     "vite": "^2.9.0"
   }

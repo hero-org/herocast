@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import {
@@ -11,56 +11,48 @@ import { RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
 import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useNavigationStore } from "@/stores/useNavigationStore";
 
+type NavigationItemType = {
+  name: string;
+  router?: string;
+  icon: any;
+  onClick: () => void;
+  getTitle?: () => string;
+}
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // const {
-  //   mainNavigation,
-  //   toAccounts,
-  //   toReplies,
-  //   toFeed,
-  //   toNewPost,
-  //   toSettings,
-  // } = useNavigationStore();
+  console.log('useAccountStore.selectedChannelIdx', useAccountStore((state) => state.selectedChannelIdx));
+  const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
 
-  const getSelectedChannelName = () => useAccountStore((state) => state.selectedChannelIdx ? state.channels[state.selectedChannelIdx].name : 'Feed');
+  const {
+    toFeed,
+    toAccounts,
+    toSettings,
+  } = useNavigationStore();
 
-  const navigation = [
+  const navigation: NavigationItemType[] = [
     {
-      name: 'Feed', router: '/feed', icon: SignalIcon, onClick: () => navigate('/feed')
+      name: 'Feed',
+      router: '/feed',
+      icon: SignalIcon,
+      onClick: () => toFeed(),
+      getTitle: () => feedTitle
     },
     // { name: 'Replies', icon: ChartBarSquareIcon, onClick: toReplies },
     // { name: 'New Post', icon: PlusCircleIcon, onClick: toNewPost },
-    { name: 'Accounts', router: '/accounts', icon: UserPlusIcon, onClick: () => navigate('/accounts') },
-    { name: 'Settings', router: '/settings', icon: Cog6ToothIcon, onClick: () => navigate('/settings') },
+    { name: 'Accounts', router: '/accounts', icon: UserPlusIcon, onClick: () => toAccounts() },
+    { name: 'Settings', router: '/settings', icon: Cog6ToothIcon, onClick: () => toSettings() },
   ]
-  // const pageNavigation = MAIN_NAVIGATION_TO_PAGE[mainNavigation];
-  const mainNavigation = 'FEED';
-  const title = 'yo'; // mainNavigation !== MAIN_NAVIGATION_ENUM.FEED ? pageNavigation.title : getSelectedChannelName();
-  const pageNavigation = { rightSidebar: 'ACCOUNTS' };
 
-  const renderContent = () => {
-    return <Outlet />
-    // switch (mainNavigation) {
-    //   case MAIN_NAVIGATION_ENUM.FEED:
-    //     return <Feed />
-    //   // case MAIN_NAVIGATION_ENUM.REPLIES:
-    //   //   return <Replies />
-    //   // case MAIN_NAVIGATION_ENUM.NEW_POST:
-    //   //   return <NewPost />
-    //   case MAIN_NAVIGATION_ENUM.ACCOUNTS:
-    //     return <Accounts />
-    //   case MAIN_NAVIGATION_ENUM.SETTINGS:
-    //     return <div>yo</div>
-    //   // return <Settings />
-    //   default:
-    //     return <div>...</div>
-    // }
-  }
+  const navItem = navigation.find((item) => item.router === location.pathname) || { name: 'herocast', getTitle: null }
+  const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
+  const pageNavigation = { rightSidebar: 'ACCOUNTS' };
 
   const renderRightSidebar = () => {
     switch (pageNavigation.rightSidebar) {
@@ -138,7 +130,7 @@ export default function Home() {
                                     setSidebarOpen(false);
                                   }}
                                   className={classNames(
-                                    item.key === mainNavigation
+                                    item.router === location.pathname
                                       ? 'bg-gray-800 text-white'
                                       : 'text-gray-400 hover:text-white hover:bg-gray-800',
                                     'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
@@ -197,7 +189,7 @@ export default function Home() {
                             setSidebarOpen(false);
                           }}
                           className={classNames(
-                            item.key === mainNavigation
+                            item.router === location.pathname
                               ? 'bg-gray-800 text-white'
                               : 'text-gray-400 hover:text-white hover:bg-gray-800',
                             'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
@@ -241,7 +233,7 @@ export default function Home() {
             </header>
             <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-8">
               <Suspense fallback={<span className="font-semibold text-gray-200">Loading...</span>}>
-                {renderContent()}
+                <Outlet />
               </Suspense>
             </div>
           </main>

@@ -6,7 +6,6 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { PostType, useNewPostStore } from "@/stores/useNewPostStore";
 import { CheckCircleIcon } from "@chakra-ui/icons";
 import { useToast } from "@chakra-ui/react";
-import { FarcasterNetwork, getHubRpcClient, makeCastAdd } from "@farcaster/hub-web";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import React from "react";
 import { invoke } from '@tauri-apps/api/tauri'
