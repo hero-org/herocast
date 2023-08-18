@@ -27,7 +27,7 @@ const ChannelsOverview = () => {
             selectedChannelIdx == null
               ? 'bg-gray-800 text-white'
               : 'text-gray-400 hover:text-white hover:bg-gray-800',
-            'group align-center justify-between flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold'
+            'group align-center justify-between flex gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
           )}
         >
           <span className="font-normal truncate">Follow feed</span>

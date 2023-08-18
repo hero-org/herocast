@@ -77,7 +77,7 @@ export const navigationCommands: CommandType[] = [
     action: () => useNavigationStore.getState().toAccounts(),
   },
   {
-    name: 'Switch to Feed.',
+    name: 'Switch to Feed',
     aliases: ['scroll',],
     icon: Bars3BottomLeftIcon,
     shortcut: 'shift+f',

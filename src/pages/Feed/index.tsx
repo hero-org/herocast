@@ -23,7 +23,7 @@ export default function Feed() {
     selectedChannelIdx
   } = useAccountStore();
 
-  const selectedChannelParentUrl = channels && selectedChannelIdx ? channels[selectedChannelIdx].parent_url : undefined;
+  const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
 
   const account: AccountObjectType = accounts[selectedAccountIdx];
   const feedKey = selectedChannelParentUrl || (account && account.platformAccountId);
@@ -82,7 +82,6 @@ export default function Feed() {
     if (isLoadingFeed) {
       return;
     }
-    console.log('getFeed', { fid, parentUrl, cursor });
     setIsLoadingFeed(true);
     const apiKey = VITE_NEYNAR_API_KEY;
     const limit = 15;

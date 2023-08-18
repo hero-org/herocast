@@ -47,7 +47,7 @@
       }
     },
     "updater": {
-      "active": true,
+      "active": false,
       "endpoints": [
         "https://releases.myapp.com/{{target}}/{{arch}}/{{current_version}}"
       ],
@@ -74,22 +74,12 @@
         "height": 800,
         "resizable": true,
         "fullscreen": false,
-        "visible": false,
+        "visible": true,
         "decorations": true,
         "alwaysOnTop": false,
         "transparent": false,
         "theme": "Dark",
         "titleBarStyle": "Transparent"
-      },
-      {
-        "width": 600,
-        "height": 500,
-        "decorations": false,
-        "url": "splashscreen.html",
-        "label": "splashscreen",
-        "title": "herocast",
-        "theme": "Dark",
-        "visible": true
       }
     ],
     "security": {

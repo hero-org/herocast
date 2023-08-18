@@ -6,8 +6,8 @@ export type ChannelType = {
 
 export const channels: ChannelType[] = [
   {
-    "name": "Welcome",
-    "parent_url": "chain://eip155:7777777/erc721:0x8f0055447ffae257e9025b781643127ca604baaa"
+    "name": "/dev",
+    "parent_url": "chain://eip155:1/erc721:0x7dd4e31f1530ac682c8ea4d8016e95773e08d8b0"
   },
   {
     "name": "Farcaster",
@@ -17,13 +17,14 @@ export const channels: ChannelType[] = [
     "name": "Memes",
     "parent_url": "chain://eip155:1/erc721:0xfd8427165df67df6d7fd689ae67c8ebf56d9ca61"
   },
-  {
-    "name": "/dev",
-    "parent_url": "chain://eip155:1/erc721:0x7dd4e31f1530ac682c8ea4d8016e95773e08d8b0"
-  },
+
   {
     "name": "EVM",
     "parent_url": "chain://eip155:1/erc721:0x37fb80ef28008704288087831464058a4a3940ae"
+  },
+  {
+    "name": "Books",
+    "parent_url": "chain://eip155:1/erc721:0xc18f6a34019f5ba0fc5bc8cb6fe52e898d6bbbee"
   },
   {
     "name": "OP Stack",
@@ -40,6 +41,14 @@ export const channels: ChannelType[] = [
   {
     "name": "News",
     "parent_url": "chain://eip155:7777777/erc721:0x3cf3d6a6bcac3c60f3bb59fdd641b042102bb488"
+  },
+  {
+    "name": "Music",
+    "parent_url": "chain://eip155:7777777/erc721:0xe96c21b136a477a6a97332694f0caae9fbb05634"
+  },
+  {
+    "name": "Screens",
+    "parent_url": "chain://eip155:1/erc721:0xc4934dbb7a71f76e4068cd04fade20ad6c0023dd"
   },
   {
     "name": "Ethereum",
@@ -66,16 +75,12 @@ export const channels: ChannelType[] = [
     "parent_url": "chain://eip155:1/erc721:0xec0ba367a6edf483a252c3b093f012b9b1da8b3f"
   },
   {
-    "name": "Books",
-    "parent_url": "chain://eip155:1/erc721:0xc18f6a34019f5ba0fc5bc8cb6fe52e898d6bbbee"
-  },
-  {
-    "name": "Screens",
-    "parent_url": "chain://eip155:1/erc721:0xc4934dbb7a71f76e4068cd04fade20ad6c0023dd"
-  },
-  {
     "name": "Tezos",
     "parent_url": "https://tezos.com"
+  },
+  {
+    "name": "Welcome",
+    "parent_url": "chain://eip155:7777777/erc721:0x8f0055447ffae257e9025b781643127ca604baaa"
   },
   {
     "name": "Quilibrium",
@@ -108,10 +113,6 @@ export const channels: ChannelType[] = [
   {
     "name": "F1",
     "parent_url": "chain://eip155:7777777/erc721:0x47163feb5c3b97f90671b1e1a1359b8240edbdbe"
-  },
-  {
-    "name": "Music",
-    "parent_url": "chain://eip155:7777777/erc721:0xe96c21b136a477a6a97332694f0caae9fbb05634"
   },
   {
     "name": "e/m",

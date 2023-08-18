@@ -14,6 +14,8 @@ interface CastRowProps {
 }
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: CastRowProps) => {
+  if (isSelected) console.log(cast);
+
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
   const embedImageUrl = embedUrl?.endsWith('.png') || embedUrl?.endsWith('.jpg') ? embedUrl : null;
 
@@ -76,9 +78,11 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
             </div>
           )}
         </div>
-        <span className="flex-none py-0.5 text-xs leading-5 text-gray-500">
+        {cast.timestamp && (
+          <span className="flex-none py-0.5 text-xs leading-5 text-gray-500">
           {new Date(cast.timestamp).toLocaleString()}
         </span>
+        )}
       </div>
       <p className="text-sm leading-6 text-gray-300">{cast.text}</p>
       {embedImageUrl && (

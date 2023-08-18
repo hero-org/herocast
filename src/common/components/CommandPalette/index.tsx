@@ -60,11 +60,11 @@ export default function CommandPalette() {
   }
 
   let nonHotkeyCommands: CommandType[] = [];
-  channels.map((c) => c.name).slice(10, channels.length).map((channelName: string, idx: number) => {
+  channels.map((c) => c.name).map((channelName: string, idx: number) => {
     nonHotkeyCommands.push({
       name: channelName,
       action: () => {
-        setCurrentChannelIdx(idx + 10);
+        setCurrentChannelIdx(idx);
       },
       shortcut: '',
       aliases: [],

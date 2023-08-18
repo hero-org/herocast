@@ -39,7 +39,7 @@ const AccountsRightSidebar = () => {
           <div className="flex items-center gap-x-3">
             {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
             <h3 className={classNames(
-              idx === selectedAccountIdx ? "font-bold text-white" : "text-gray-400",
+              idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
               "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
             {item.status !== "active" && (
               <span className={classNames("underline flex-none text-sm")}>
