@@ -34,9 +34,6 @@
   },
   "dependencies": {
     "@aptabase/tauri": "^0.4.1",
-    "@chakra-ui/icons": "^2.1.0",
-    "@chakra-ui/react": "^2.8.0",
-    "@chakra-ui/system": "^2.6.0",
     "@emotion/react": "11",
     "@emotion/styled": "11",
     "@farcaster/hub-web": "^0.6.0",
@@ -49,7 +46,6 @@
     "@tauri-apps/api": "^1.4",
     "command-score": "^0.1.2",
     "esbuild": "^0.19.2",
-    "framer-motion": "6",
     "google-protobuf": "^3.21.2",
     "javascript-time-ago": "^2.5.9",
     "lodash.isempty": "^4.4.0",

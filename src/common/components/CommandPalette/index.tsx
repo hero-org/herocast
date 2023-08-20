@@ -27,6 +27,7 @@ export default function CommandPalette() {
   } = useNavigationStore();
 
   const {
+    currentChannelIdx,
     setCurrentChannelIdx
   } = useAccountStore();
 
@@ -55,7 +56,7 @@ export default function CommandPalette() {
     }, [], {
       enableOnFormTags: command.enableOnFormTags,
       splitKey: '-',
-      enabled: command.enabled || true,
+      enabled: command.enabled || true, // this obv doesn't work
     })
   }
 

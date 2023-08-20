@@ -35,8 +35,12 @@ export const channels: ChannelType[] = [
     "parent_url": "chain://eip155:7777777/erc721:0x5747eef366fd36684e8893bf4fe628efc2ac2d10"
   },
   {
-    "name": "Design",
-    "parent_url": "chain://eip155:7777777/erc721:0x22be981fb87effbe6780b34a6fe1dfc14a00ec8e"
+    "name": "Ethereum",
+    "parent_url": "https://ethereum.org"
+  },
+  {
+    "name": "Podcasts",
+    "parent_url": "chain://eip155:1/erc721:0xdf3abf79aedcc085e9a41a569964e9fb53f33728"
   },
   {
     "name": "News",
@@ -51,10 +55,6 @@ export const channels: ChannelType[] = [
     "parent_url": "chain://eip155:1/erc721:0xc4934dbb7a71f76e4068cd04fade20ad6c0023dd"
   },
   {
-    "name": "Ethereum",
-    "parent_url": "https://ethereum.org"
-  },
-  {
     "name": "zk",
     "parent_url": "chain://eip155:7777777/erc721:0xec30bb189781bbd87478f625d19d9deeeb771964"
   },
@@ -63,12 +63,12 @@ export const channels: ChannelType[] = [
     "parent_url": "https://bitcoin.org"
   },
   {
-    "name": "Solana",
-    "parent_url": "https://solana.com"
+    "name": "Design",
+    "parent_url": "chain://eip155:7777777/erc721:0x22be981fb87effbe6780b34a6fe1dfc14a00ec8e"
   },
   {
-    "name": "Podcasts",
-    "parent_url": "chain://eip155:1/erc721:0xdf3abf79aedcc085e9a41a569964e9fb53f33728"
+    "name": "Solana",
+    "parent_url": "https://solana.com"
   },
   {
     "name": "Food",

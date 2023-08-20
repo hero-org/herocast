@@ -7,20 +7,22 @@ import Accounts from './pages/Accounts';
 import CommandPalette from '@/common/components/CommandPalette';
 import LoginModal from '@/common/components/LoginModal';
 import ErrorPage from '@/pages/ErrorPage';
-import { WaitForAppLoaded } from '@/common/components/WaitAppLoading';
-
 
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <>
-      <CommandPalette />
       <LoginModal />
+      <CommandPalette />
       <Home />
     </>,
     errorElement: <ErrorPage />,
     children: [
+      {
+        path: "login",
+        element: <LoginModal />,
+      },
       {
         path: "feed",
         element: <Feed />,

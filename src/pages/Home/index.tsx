@@ -13,6 +13,7 @@ import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRight
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import { supabaseClient } from "@/common/helpers/supabase";
 
 type NavigationItemType = {
   name: string;
@@ -23,11 +24,10 @@ type NavigationItemType = {
 }
 
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation();
 
-  console.log('useAccountStore.selectedChannelIdx', useAccountStore((state) => state.selectedChannelIdx));
   const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
 
   const {

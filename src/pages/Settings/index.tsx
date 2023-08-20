@@ -1,9 +1,11 @@
 import { supabaseClient } from "@/common/helpers/supabase";
 import { User } from "@supabase/supabase-js";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 export default function Settings() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
@@ -13,15 +15,20 @@ export default function Settings() {
     }
     getUser();
   }, [])
+
   const onLogout = async () => {
+    console.log('onLogout')
+
     const {
       data: { session },
     } = await supabaseClient.auth.getSession()
-    console.log('session', session);
 
     if (session) {
-      await supabaseClient.auth.signOut()
+      const res = await supabaseClient.auth.signOut();
+      console.log('res', res);
     }
+
+    navigate('/login');
   }
 
   const displayEmail = user?.email ? `${user?.email.slice(0, 4)}...@${user?.email.split('@')[1]}` : '';
@@ -33,13 +40,13 @@ export default function Settings() {
         <span className="text-sm font-semibold text-gray-400 mr-2">User</span>
         <span className="text-sm font-semibold text-white">{displayEmail}</span>
       </div>
-      {/* <button
+      <button
         type="button"
-        onSubmit={() => onLogout()}
+        onClick={() => onLogout()}
         className="inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
       >
         Logout
-      </button> */}
+      </button>
     </div>
   )
 }

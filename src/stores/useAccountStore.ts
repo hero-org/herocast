@@ -2,7 +2,7 @@ import { AccountPlatformType, AccountStatusType } from "@/common/constants/accou
 import { ChannelType, channels } from "@/common/constants/channels";
 import { CommandType } from "@/common/constants/commands";
 import { supabaseClient } from "@/common/helpers/supabase";
-import { invoke } from "@tauri-apps/api";
+import isEmpty from "lodash.isempty";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { createJSONStorage, devtools } from "zustand/middleware";
@@ -107,7 +107,6 @@ const store = (set: StoreSet) => ({
   },
   setCurrentChannelIdx: (idx: number) => {
     set((state) => {
-      console.log('setCurrentChannelIdx', idx)
       state.selectedChannelIdx = idx;
     });
   },
@@ -119,7 +118,7 @@ const store = (set: StoreSet) => ({
 });
 export const useAccountStore = create<AccountStore>()(devtools(mutative(store)));
 
-const hydrate = async () => {
+export const hydrate = async () => {
   const { data: { user } } = await supabaseClient.auth.getUser()
   const { data: accountData, error: accountError } = await supabaseClient
     .from('decrypted_accounts')
@@ -146,6 +145,7 @@ const hydrate = async () => {
       data: account.data,
       privateKey: account.decrypted_private_key,
     }))
+
     useAccountStore.setState({
       accounts: accountsForState,
       channels: channels,
@@ -156,7 +156,7 @@ const hydrate = async () => {
   console.log('done hydrating account store')
 }
 
-hydrate().finally(() => invoke('close_splashscreen'));
+hydrate();
 
 const switchAccountTo = (idx: number) => {
   if (idx < 0) return;
@@ -198,6 +198,35 @@ const getChannelCommands = () => {
     },
   });
 
+  // channelCommands.push({
+  //   name: `Switch to next channel`,
+  //   aliases: ['channel down'],
+  //   shortcut: 'shift+j',
+  //   enableOnFormTags: true,
+  //   action: () => {
+  //     const state = useAccountStore.getState();
+  //     const newIdx = state.currentChannelIdx || -1 + 1;
+  //     if (newIdx < state.channels.length) {
+  //       state.setCurrentChannelIdx(newIdx);
+  //     }
+  //   },
+  // });
+  // channelCommands.push({
+  //   name: `Switch to previous channel`,
+  //   aliases: ['channel up'],
+  //   shortcut: 'shift+k',
+  //   enableOnFormTags: true,
+  //   action: () => {
+  //     const state = useAccountStore.getState();
+  //     const newIdx = state.currentChannelIdx - 1;
+  //     if (newIdx < 0) {
+  //       state.resetCurrentChannel();
+  //     } else if (newIdx < state.channels.length) {
+  //       state.setCurrentChannelIdx(newIdx);
+  //     }
+  //   },
+  // });
+
   // const channels = useAccountStore.getState().channels;
   for (let i = 0; i < 9; i++) {
     // const channelName = useAccountStore.getState().channels[i].name;
@@ -207,7 +236,10 @@ const getChannelCommands = () => {
       shortcut: `shift+${i + 1}`,
       enableOnFormTags: true,
       action: () => {
-        useAccountStore.getState().setCurrentChannelIdx(i);
+        const state = useAccountStore.getState();
+        if (isEmpty(state.channels)) return;
+
+        state.setCurrentChannelIdx(i);
       },
     });
   }

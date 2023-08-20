@@ -42,20 +42,16 @@ export default function Feed() {
     open(url);
   }
 
-
   useHotkeys('j', () => {
     if (selectedCastIdx >= feed.length - 5) {
-
       const cursor = feed[feed.length - 1].timestamp;
       // unbounce this call to getFeed
       getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor });
     }
 
-    if (selectedCastIdx === feed.length - 1) {
-      return;
+    if (selectedCastIdx < feed.length - 1) {
+      setSelectedCastIdx(selectedCastIdx + 1);
     }
-    setSelectedCastIdx(selectedCastIdx + 1);
-
   }, [selectedCastIdx, account, feed, nextFeedOffset, selectedChannelParentUrl], {
   })
 
@@ -96,14 +92,13 @@ export default function Feed() {
     if (cursor) {
       neynarEndpoint += `&cursor=${cursor}`;
     }
-    // console.log('making request to neynar', cursor);
     await fetch(neynarEndpoint)
       .then((response) => response.json())
       .then((data) => {
         const feedKey = parentUrl || fid;
         const feed = feeds[feedKey] || [];
-        // console.log('got response data', data, feedKey, 'nr of existing casts in feed', feed.length);
-        // console.log('feed size after uniq concat', uniqBy(feed.concat(data.casts), 'hash').length)
+        console.log('got response data', data, feedKey, 'nr of existing casts in feed', feed.length);
+        console.log('feed size after uniq concat', uniqBy(feed.concat(data.casts), 'hash').length)
         setFeeds({
           ...feeds,
           [feedKey]: uniqBy(feed.concat(data.casts), 'hash')

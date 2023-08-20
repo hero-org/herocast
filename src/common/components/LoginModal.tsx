@@ -4,21 +4,29 @@ import { Session } from '@supabase/supabase-js'
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabaseClient } from '../helpers/supabase'
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import { hydrate } from '@/stores/useAccountStore'
 
 
 export default function LoginModal() {
   const [open, setOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const {
+    toFeed
+  } = useNavigationStore();
 
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      console.log(`LoginModal getSession`, session)
       setSession(session)
       setOpen(!session)
+      hydrate().then(() => toFeed());
     })
 
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      console.log(`LoginModal onAuthStateChange`, session)
       setSession(session)
       setOpen(!session)
     })

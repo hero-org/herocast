@@ -5,6 +5,7 @@ export const enum RIGHT_SIDEBAR_ENUM {
 }
 
 export const enum MAIN_NAVIGATION_ENUM {
+  LOGIN = 'login',
   ACCOUNTS = 'accounts',
   FEED = 'feed',
   // REPLIES = 'replies',

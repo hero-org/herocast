@@ -11,7 +11,7 @@ type EmptyStateWithActionProps = {
 
 export default function EmptyStateWithAction({ title, description, icon, hideButton, submitText, onSubmit }: EmptyStateWithActionProps) {
   return (
-    <div className="pl-8 pt-4 text-left">
+    <div className="pl-8 py-4 text-left">
       <h3 className="mt-2 text-sm font-semibold text-gray-100">{title}</h3>
       <p className="mt-1 text-sm text-gray-300">{description}</p>
       {!hideButton && <div className="mt-6">
