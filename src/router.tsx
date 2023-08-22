@@ -7,15 +7,18 @@ import Accounts from './pages/Accounts';
 import CommandPalette from '@/common/components/CommandPalette';
 import LoginModal from '@/common/components/LoginModal';
 import ErrorPage from '@/pages/ErrorPage';
+import { Theme, ThemePanel } from '@radix-ui/themes';
 
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <>
-      <LoginModal />
-      <CommandPalette />
-      <Home />
+      <Theme radius="small" appearance="dark">
+        <LoginModal />
+        <CommandPalette />
+        <Home />
+      </Theme>
     </>,
     errorElement: <ErrorPage />,
     children: [

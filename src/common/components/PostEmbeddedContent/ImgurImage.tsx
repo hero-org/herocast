@@ -44,7 +44,7 @@ export const ImgurImage = ({ url }: { url: string }) => {
     return (
       <button
         type="button"
-        className="mt-2 h-48 w-48 relative block w-full rounded-sm border-1 border-dashed border-gray-700 py-12 text-center"
+        className="mt-2 h-48 w-48 object-left relative block rounded-sm border-1 border-dashed border-gray-700 py-12 text-center"
       >
         <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
         <span className="mt-2 block text-sm font-semibold text-gray-400">Loading image...</span>

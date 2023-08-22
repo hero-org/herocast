@@ -1,4 +1,5 @@
 import { supabaseClient } from "@/common/helpers/supabase";
+import { useAccountStore } from "@/stores/useAccountStore";
 import { User } from "@supabase/supabase-js";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +8,10 @@ import { useNavigate } from "react-router-dom";
 export default function Settings() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null)
+
+  const {
+    resetStore
+  } = useAccountStore();
 
   useEffect(() => {
     const getUser = async () => {
@@ -24,6 +29,8 @@ export default function Settings() {
     } = await supabaseClient.auth.getSession()
 
     if (session) {
+      resetStore();
+      setUser(null);
       const res = await supabaseClient.auth.signOut();
       console.log('res', res);
     }

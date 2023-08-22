@@ -5,6 +5,7 @@ import isEqual from 'lodash.isequal';
 import { CommandType } from "@/common/constants/commands";
 import { TagIcon } from "@heroicons/react/24/outline";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
+import { open } from '@tauri-apps/api/shell';
 
 export type PostType = {
   text: string;
@@ -89,20 +90,23 @@ export const useNewPostStore = create<NewPostStore>()(devtools(mutative(store)))
 
 export const newPostCommands: CommandType[] = [
   {
-    name: 'Feedback',
+    name: 'Feedback (send email to hellnomail@proton.me)',
     aliases: ['opinion', 'debrief'],
     icon: TagIcon,
     shortcut: 'cmd+shift+f',
-    action: () => useNewPostStore.getState().addFeedbackDraft(),
+    // action: () => useNewPostStore.getState().addFeedbackDraft(),
+    action: () => {
+      open("mailto:hellnomail@proton.me?subject=about herocast&body=hey @hellno, feedback on herocast: ");
+    },
     enableOnFormTags: true,
   },
-  {
-    name: 'New Post',
-    aliases: ['new cast',],
-    icon: PencilSquareIcon,
-    shortcut: 'c',
-    action: () => useNewPostStore.getState().addNewPostDraft(),
-    enableOnFormTags: false,
-    requiresNavigationState: []
-  }
+  // {
+  //   name: 'New Post',
+  //   aliases: ['new cast',],
+  //   icon: PencilSquareIcon,
+  //   shortcut: 'c',
+  //   action: () => useNewPostStore.getState().addNewPostDraft(),
+  //   enableOnFormTags: false,
+  //   requiresNavigationState: []
+  // }
 ];

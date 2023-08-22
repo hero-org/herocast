@@ -8,25 +8,24 @@ const ChannelsOverview = () => {
   const [showAll, setShowAll] = useState(false);
   const {
     channels,
-    selectedChannelIdx
+    selectedChannelIdx,
+    setCurrentChannelIdx
   } = useAccountStore();
 
   const onToggleShowAll = () => {
     setShowAll(!showAll);
   }
 
-  return (<div>
+  return (<>
     <SidebarHeader title="Channels" actionTitle={showAll ? 'Show less' : 'Show all'} onClick={onToggleShowAll} />
-    <ul role="list" className="mt-2 space-y-1">
-      <li key="follow-feed" className="px-4 sm:px-6 lg:px-8">
+    <ul role="list" className="mx-4 m-4">
+      <li key="follow-feed" className="px-2 sm:px-3 lg:px-4">
         <span
-          onClick={() => {
-            useAccountStore.getState().setCurrentChannelIdx(null);
-          }}
+          onClick={() => setCurrentChannelIdx(null)}
           className={classNames(
             selectedChannelIdx == null
-              ? 'bg-gray-800 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800',
+              ? 'bg-gray-800 text-gray-100'
+              : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800',
             'group align-center justify-between flex gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
           )}
         >
@@ -37,11 +36,9 @@ const ChannelsOverview = () => {
         </span>
       </li>
       {(showAll ? channels : channels.slice(0, 9)).map((channel: ChannelType, idx: number) => (
-        <li key={channel.name} className="px-4 sm:px-6 lg:px-8">
+        <li key={channel.name} className="px-2 sm:px-3 lg:px-4">
           <div
-            onClick={() => {
-              useAccountStore.getState().setCurrentChannelIdx(idx);
-            }}
+            onClick={() => setCurrentChannelIdx(idx)}
             className={classNames(
               selectedChannelIdx == idx
                 ? 'text-white font-semibold'
@@ -59,7 +56,7 @@ const ChannelsOverview = () => {
         </li>
       ))}
     </ul>
-  </div>)
+  </>)
 }
 
 export default ChannelsOverview;

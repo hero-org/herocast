@@ -4,11 +4,12 @@ import { classNames } from "@/common/helpers/css";
 import { getWarpcastSigner } from "@/common/helpers/warpcastLogin";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { PostType, useNewPostStore } from "@/stores/useNewPostStore";
-// import { CheckCircleIcon } from "@chakra-ui/icons";
-// import { useToast } from "@chakra-ui/react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import React from "react";
 import { invoke } from '@tauri-apps/api/tauri'
+
+
+// use radix toast package instead of old chakra toast
 
 export default function NewPost() {
   const toast = useToast()

@@ -14,7 +14,7 @@ interface CastRowProps {
 }
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: CastRowProps) => {
-  if (isSelected) console.log(cast);
+  // if (isSelected) console.log(cast);
 
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
   const embedImageUrl = embedUrl?.endsWith('.png') || embedUrl?.endsWith('.jpg') ? embedUrl : null;
@@ -52,22 +52,20 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
 
   return (<div className="flex grow">
-    <div className="flex flex-none place-self-start">
-      <img
-        src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
-        alt=""
-        className="relative mt-3 h-6 w-6 flex-none rounded-full bg-gray-50"
-        referrerPolicy="no-referrer"
-      />
-    </div>
     <div
       onClick={() => onSelect()}
       className={classNames(
         isSelected ? "bg-gray-700 border-l border-gray-200" : "",
-        "ml-3 grow rounded-r-sm py-1.5 px-3 cursor-pointer"
+        "grow rounded-r-sm py-1.5 px-3 cursor-pointer"
       )}>
       <div className="flex justify-between gap-x-4">
         <div className="flex flex-row py-0.5 text-xs leading-5 text-gray-300">
+          <img
+            src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
+            alt=""
+            className="relative mr-1.5 h-5 w-5 flex-none rounded-full bg-gray-50"
+            referrerPolicy="no-referrer"
+          />
           {cast.parent_hash && <ArrowUturnUpIcon className="w-4 h-4 text-gray-400" />}
           <span className="font-medium text-gray-100">@{cast.author.username} ({cast.author.display_name})</span>
           {showChannel && channel && (
@@ -80,11 +78,11 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
         </div>
         {cast.timestamp && (
           <span className="flex-none py-0.5 text-xs leading-5 text-gray-500">
-          {new Date(cast.timestamp).toLocaleString()}
-        </span>
+            {new Date(cast.timestamp).toLocaleString()}
+          </span>
         )}
       </div>
-      <p className="text-sm leading-6 text-gray-300">{cast.text}</p>
+      <p className="mt-2 text-sm leading-6 text-gray-300">{cast.text}</p>
       {embedImageUrl && (
         isSelected ? <ImgurImage url={embedImageUrl} /> : <span>🖼️</span>
       )}

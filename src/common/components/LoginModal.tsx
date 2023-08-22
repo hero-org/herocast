@@ -2,7 +2,7 @@ import React, { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { Session } from '@supabase/supabase-js'
 import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
+import { ThemeSupa, ThemeMinimal } from '@supabase/auth-ui-shared'
 import { supabaseClient } from '../helpers/supabase'
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { hydrate } from '@/stores/useAccountStore'
@@ -20,7 +20,6 @@ export default function LoginModal() {
       console.log(`LoginModal getSession`, session)
       setSession(session)
       setOpen(!session)
-      hydrate().then(() => toFeed());
     })
 
     const {
@@ -33,6 +32,13 @@ export default function LoginModal() {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (session) {
+      hydrate().then(() => toFeed());
+    }
+  }, [session])
+
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => null}>
@@ -58,7 +64,7 @@ export default function LoginModal() {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-sm bg-gray-900 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+              <Dialog.Panel className="text-white relative transform overflow-hidden rounded-sm bg-gray-900 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
                 <Dialog.Title
                   as="h3"
                   className="text-lg mb-6 leading-6 font-medium text-white"
@@ -73,6 +79,29 @@ export default function LoginModal() {
                   theme="dark" // can also be "dark" or "evenDarker"
                   appearance={{
                     theme: ThemeSupa,
+                    variables: {
+                      default: {
+                        colors: {
+                          brand: 'rgb(16 185 129)',
+                          brandAccent: 'rgb(5 150 105)',
+                          inputBorder: '#F3F4F6',
+                          inputBorderHover: 'rgb(229 231 235)',
+                          inputBorderFocus: 'rgb(229 231 235)',
+                          inputText: '#F3F4F6',
+                          inputLabelText: '#F3F4F6',
+                          inputPlaceholder: '#F3F4F6',
+                          messageText: '#F3F4F6',
+                          messageTextDanger: '#f43f5e',
+                          anchorTextColor: '#F3F4F6',
+                          anchorTextHoverColor: '#F3F4F6',
+                        },
+                        radii: {
+                          borderRadiusButton: '2px',
+                          buttonBorderRadius: '2px',
+                          inputBorderRadius: '2px',
+                        },
+                      },
+                    },
                   }}
                 />
               </Dialog.Panel>

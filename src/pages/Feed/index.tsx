@@ -5,6 +5,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import uniqBy from 'lodash.uniqby';
 import { open } from '@tauri-apps/api/shell';
 import { CastRow } from "@/common/components/CastRow";
+import { Key } from 'ts-key-enum';
 
 type FeedType = {
   [key: string]: CastType[]
@@ -42,7 +43,7 @@ export default function Feed() {
     open(url);
   }
 
-  useHotkeys('j', () => {
+  useHotkeys(['j', Key.ArrowDown], () => {
     if (selectedCastIdx >= feed.length - 5) {
       const cursor = feed[feed.length - 1].timestamp;
       // unbounce this call to getFeed
@@ -55,7 +56,7 @@ export default function Feed() {
   }, [selectedCastIdx, account, feed, nextFeedOffset, selectedChannelParentUrl], {
   })
 
-  useHotkeys('k', () => {
+  useHotkeys(['k', Key.ArrowUp], () => {
     if (selectedCastIdx === 0) {
       return;
     }
@@ -128,6 +129,7 @@ export default function Feed() {
 
   return (
     <div
+      className="mr-12"
     /* ref={listRef} */
     >
       <ul role="list" className="divide-y divide-gray-700">

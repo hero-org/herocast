@@ -4,14 +4,12 @@
   windows_subsystem = "windows"
 )]
 
-use farcaster_rs::types::casts::published_cast::PublishedCast;
-use farcaster_rs::{Account, Farcaster};
 use serde_json::json;
 use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Manager; // used by .get_window
 use tauri_plugin_aptabase::EventTracker;
-use tauri_plugin_window_state;
+// use tauri_plugin_window_state;
 
 #[derive(Clone, serde::Serialize)]
 struct SingleInstancePayload {
@@ -37,19 +35,6 @@ async fn send_cast(private_key: String, message: String) -> Result<(), String> {
   Ok(())
 }
 
-// This command must be async so that it doesn't run on the main thread.
-#[tauri::command]
-async fn close_splashscreen(window: tauri::Window) {
-  println!("Closing splashscreen called");
-  // Close splashscreen
-  if let Some(splashscreen) = window.get_window("splashscreen") {
-    splashscreen.close().unwrap();
-  }
-  // Show main window
-  window.get_window("main").unwrap().show().unwrap();
-}
-
-
 fn main() {
   let client = sentry_tauri::sentry::init((
     "https://1f1c817c7a28926f06caede2527f99c4@o4505697045184512.ingest.sentry.io/4505697054097408",
@@ -59,13 +44,13 @@ fn main() {
     },
   ));
 
-  let _guard = sentry_tauri::minidump::init(&client);
+  // let _guard = sentry_tauri::minidump::init(&client);
 
   // main window should be invisible to allow either the setup delay or the plugin to show the window
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![close_splashscreen,send_cast])
+    .invoke_handler(tauri::generate_handler![send_cast])
     .plugin(sentry_tauri::plugin())
-    .plugin(tauri_plugin_window_state::Builder::default().build()) // Enable if you want to control the window state
+    // .plugin(tauri_plugin_window_state::Builder::default().build()) // Enable if you want to control the window state
     // .plugin(tauri_plugin_store::Builder::default().build())
     // .plugin(tauri_plugin_sql::Builder::default().build())
     .plugin(

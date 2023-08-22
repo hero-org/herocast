@@ -231,7 +231,7 @@ export default function Home() {
               <h1 className="text-base font-semibold leading-7 text-white">{title}</h1>
               <h1 className="text-base font-semibold leading-7 text-white"></h1>
             </header>
-            <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-8">
+            <div className="flex items-center justify-between px-4 py-4 border border-white/5 sm:px-6 sm:py-2 lg:px-8">
               <Suspense fallback={<span className="font-semibold text-gray-200">Loading...</span>}>
                 <Outlet />
               </Suspense>

@@ -35,9 +35,19 @@ interface AccountStoreActions {
   setCurrentAccountIdx: (idx: number) => void;
   setCurrentChannelIdx: (idx: number | null) => void;
   resetCurrentChannel: () => void;
+  resetStore: () => void;
 }
 
+
 export interface AccountStore extends AccountStoreProps, AccountStoreActions { }
+
+const initialState: AccountStoreProps = {
+  accounts: [],
+  channels: [],
+  selectedAccountIdx: 0,
+  selectedChannelIdx: null,
+  _hydrated: false,
+};
 
 export const mutative = (config) =>
   (set, get) => config((fn) => set(mutativeCreate(fn)), get,
@@ -51,11 +61,7 @@ export const mutative = (config) =>
 type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
-  accounts: [],
-  channels: [],
-  selectedAccountIdx: 0,
-  selectedChannelIdx: null,
-  _hydrated: false,
+  ...initialState,
   addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => {
     supabaseClient
       .from('accounts')
@@ -114,14 +120,27 @@ const store = (set: StoreSet) => ({
     set((state) => {
       state.selectedChannelIdx = null;
     })
+  },
+  resetStore: () => {
+    set((state) => {
+      Object.entries(initialState).forEach(([key, value]) => {
+        state[key] = value;
+      });
+    })
   }
 });
 export const useAccountStore = create<AccountStore>()(devtools(mutative(store)));
 
 export const hydrate = async () => {
-  const { data: { user } } = await supabaseClient.auth.getUser()
+  console.log('hydrating 💦');
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (isEmpty(user)) {
+    console.log('no account to hydrate');
+    return;
+  }
+
   const { data: accountData, error: accountError } = await supabaseClient
-    .from('decrypted_accounts')
+    .from('accounts')
     // .from('accounts')
     .select('*')
     .eq('user_id', user?.id)
@@ -143,7 +162,7 @@ export const hydrate = async () => {
       platformAccountId: account.platform_account_id,
       createdAt: account.created_at,
       data: account.data,
-      privateKey: account.decrypted_private_key,
+      privateKey: '', // account.decrypted_private_key,
     }))
 
     useAccountStore.setState({

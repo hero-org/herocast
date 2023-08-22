@@ -5,7 +5,7 @@ import { Cog6ToothIcon, HashtagIcon, UserPlusIcon } from "@heroicons/react/24/ou
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { redirect, useNavigate } from "react-router-dom";
+import { redirect } from "react-router-dom";
 
 interface NavigationStoreProps {
   mainNavigation: MAIN_NAVIGATION_ENUM;
@@ -38,6 +38,7 @@ const store = (set: StoreSet) => ({
   },
   toAccounts: () => {
     set((state) => {
+      console.log('useNavStore: toAccounts');
       state.mainNavigation = MAIN_NAVIGATION_ENUM.ACCOUNTS;
       redirect(`/${MAIN_NAVIGATION_ENUM.ACCOUNTS}`)
     });
@@ -62,6 +63,7 @@ const store = (set: StoreSet) => ({
     set((state) => {
       console.log('useNavStore: toSettings')
       state.mainNavigation = MAIN_NAVIGATION_ENUM.SETTINGS;
+      redirect(`/${MAIN_NAVIGATION_ENUM.FEED}`)
     });
   },
 });
