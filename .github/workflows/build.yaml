@@ -50,7 +50,7 @@ jobs:
       run: yarn install
     - name: Test build
       uses: tauri-apps/tauri-action@v0
-      if: not startsWith(github.ref, 'refs/tags/v')
+      if: (!startsWith(github.ref, 'refs/tags/v'))
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build the app
