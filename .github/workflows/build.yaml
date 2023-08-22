@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main ]
   release:
-    types: [published] # has GITHUB_REF as refs/tags/<tag_name>
+    types: [ published ] # has GITHUB_REF as refs/tags/<tag_name>
 
 jobs:
   build:
@@ -48,10 +48,11 @@ jobs:
         sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
     - name: Install Node.js dependencies
       run: yarn install
-
-    - name: Build application
-      run: yarn build
-
+    - name: Test build
+      uses: tauri-apps/tauri-action@v0
+      if: not startsWith(github.ref, 'refs/tags/v')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build the app
       if: startsWith(github.ref, 'refs/tags/v')
       uses: tauri-apps/tauri-action@v0
