@@ -112,11 +112,14 @@ export default function Home() {
                   {/* Sidebar component, swap this element with another sidebar if you like */}
                   <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 ring-1 ring-white/10">
                     <div className="flex h-16 shrink-0 items-center">
-                      <img
+                      {/* <img
                         className="h-8 w-auto"
                         src="./src/assets/images/herocast.png"
                         alt="herocast"
-                      />
+                      /> */}
+                      <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:text-3xl sm:tracking-tight">
+                        herocast
+                      </h2>
                     </div>
                     <nav className="flex flex-1 flex-col">
                       <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -171,11 +174,14 @@ export default function Home() {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 ring-1 ring-white/5">
             <div className="flex h-16 shrink-0 items-center">
-              <img
+              {/* <img
                 className="h-8 w-auto"
                 src="./src/assets/images/herocast.png"
                 alt="herocast"
-              />
+              /> */}
+              <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:text-3xl sm:tracking-tight">
+                herocast
+              </h2>
             </div>
             <nav className="flex flex-1 flex-col">
               <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -228,7 +234,7 @@ export default function Home() {
                 <span className="sr-only">Open sidebar</span>
                 <Bars3Icon className="h-5 w-5" aria-hidden="true" />
               </button>
-              <h1 className="text-base font-semibold leading-7 text-white">{title}</h1>
+              <h1 className="text-2xl font-semibold leading-7 text-white">{title}</h1>
               <h1 className="text-base font-semibold leading-7 text-white"></h1>
             </header>
             <div className="flex items-center justify-between px-4 py-4 border border-white/5 sm:px-6 sm:py-2 lg:px-8">
