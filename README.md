@@ -1,11 +1,20 @@
 # Herocast
 
-https://github.com/michyaraque/tauri-boilerplate
-
 # ⚙️ Development
 
+## install dependencies
 ```bash
-$ yarn dev
+yarn
+```
+
+## run as website
+```bash
+yarn start
+```
+
+## run as app
+```bash
+yarn dev
 ```
 
 # 🚀 Release
@@ -25,3 +34,7 @@ Then copy the two .dmg files to S3
 
 # 📦 TODO
 soon: create release via github actions
+
+# Resources
+- originally based on https://github.com/michyaraque/tauri-boilerplate
+- ...
