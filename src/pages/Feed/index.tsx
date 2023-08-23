@@ -76,16 +76,16 @@ export default function Feed() {
   }, [selectedCastIdx], {
   })
 
-
   useHotkeys('o', () => {
-    onSelectCast(selectedCastIdx);
+    onExpandCast(selectedCastIdx);
   }, [selectedCastIdx], {
   })
 
   useHotkeys('shift+o', () => {
-    onExpandCast(selectedCastIdx);
+    onSelectCast(selectedCastIdx);
   }, [selectedCastIdx], {
   })
+
 
   const getFeed = async ({ fid, parentUrl, cursor }: { fid: string, parentUrl?: string, cursor?: string }) => {
     if (isLoadingFeed) {
@@ -110,8 +110,6 @@ export default function Feed() {
       .then((data) => {
         const feedKey = parentUrl || fid;
         const feed = feeds[feedKey] || [];
-        console.log('got response data', data, feedKey, 'nr of existing casts in feed', feed.length);
-        console.log('feed size after uniq concat', uniqBy(feed.concat(data.casts), 'hash').length)
         setFeeds({
           ...feeds,
           [feedKey]: uniqBy(feed.concat(data.casts), 'hash')
@@ -149,7 +147,7 @@ export default function Feed() {
           return (
             <li key={cast.hash} ref={(selectedCastIdx === idx - 3) ? scollToRef : null
             }
-              className="relative flex items-center space-x-4 py-2" >
+              className="relative flex items-center space-x-4 py-2 max-w-full lg:max-w-2xl" >
               <CastRow
                 cast={cast}
                 channels={channels}

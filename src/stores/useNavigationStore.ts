@@ -13,6 +13,7 @@ interface NavigationStoreProps {
 }
 
 interface NavigationStoreActions {
+  closeCommandPallete: () => void;
   toggleCommandPalette: () => void;
   toAccounts: () => void;
   toFeed: () => void;
@@ -31,8 +32,14 @@ type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 const store = (set: StoreSet) => ({
   mainNavigation: MAIN_NAVIGATION_ENUM.FEED,
   isCommandPaletteOpen: false,
+  closeCommandPallete: () => {
+    set((state) => {
+      state.isCommandPaletteOpen = false;
+    });
+  },
   toggleCommandPalette: () => {
     set((state) => {
+      console.log('useNavStore: toggleCommandPalette');
       state.isCommandPaletteOpen = !state.isCommandPaletteOpen;
     });
   },
@@ -106,7 +113,7 @@ export const navigationCommands: CommandType[] = [
     name: 'Settings',
     aliases: ['preferences', 'options', 'config',],
     icon: Cog6ToothIcon,
-    shortcut: 'cmd+,',
+    shortcut: 'cmd+shift+,',
     enableOnFormTags: true,
     action: () => useNavigationStore.getState().toSettings(),
   },

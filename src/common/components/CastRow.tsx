@@ -2,7 +2,7 @@ import { classNames } from "@/common/helpers/css";
 import { CastType, CastReactionType } from "@/common/constants/farcaster";
 import { ChannelType } from "@/common/constants/channels";
 import { ArrowUturnUpIcon } from "@heroicons/react/20/solid";
-import { ArrowPathRoundedSquareIcon, HeartIcon } from "@heroicons/react/24/solid";
+import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/solid";
 import { ImgurImage } from "@/common/components/PostEmbeddedContent";
 
 interface CastRowProps {
@@ -14,8 +14,11 @@ interface CastRowProps {
 }
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: CastRowProps) => {
+  if (isSelected) console.log(cast);
+
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
-  const embedImageUrl = embedUrl?.endsWith('.png') || embedUrl?.endsWith('.jpg') ? embedUrl : null;
+  const isImageUrl = embedUrl ? embedUrl.endsWith('.gif') || embedUrl.endsWith('.png') || embedUrl.endsWith('.jpg') : false;
+  const embedImageUrl = isImageUrl ? embedUrl : null;
 
   const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined => parentUrl ?
     channels.find((channel) => channel.parent_url === parentUrl) : undefined;
@@ -27,23 +30,34 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
         return <HeartIcon className={className} aria-hidden="true" />
       case CastReactionType.recasts:
         return <ArrowPathRoundedSquareIcon className={className} aria-hidden="true" />
+      case CastReactionType.replies:
+        return <ChatBubbleLeftIcon className={className} aria-hidden="true" />
       default:
         return null;
     }
   }
 
+  const renderReaction = (key: string, name: string, count: number, icon: JSX.Element | null) => (
+    <div key={`cast-${cast.hash}-${key}`} className="mt-2 flex align-center text-sm text-gray-400 group-hover:text-gray-300 cursor-default">
+      {icon || <span>{key}</span>}
+      <span className="ml-1.5">{count}</span>
+    </div>
+  )
+
   const renderCastReactions = (cast: CastType) => {
     return (<div className="flex space-x-6">
+      {cast.replies.count > 0 && renderReaction(`cast-${cast.hash}-replies`, "replies", cast.replies.count, getIconForCastReactionType(CastReactionType.replies))}
       {Object.entries(cast.reactions).map(([key, value]) => {
         const count = (value as []).length;
         const icon = getIconForCastReactionType(key as CastReactionType);
 
-        return count > 0 && (
+        return count > 0 && renderReaction(key, cast.reactions[key], count, icon);
+        {/* (
           <div key={`cast-${cast.hash}-${key}`} className="mt-2 flex align-center text-sm text-gray-400 group-hover:text-gray-300 cursor-default">
             {icon || <span>{key}</span>}
             <span className="ml-1.5">{count}</span>
           </div>
-        )
+        ) */}
       })}
     </div>)
   }
@@ -80,7 +94,12 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
           </span>
         )}
       </div>
-      <p className="mt-2 text-sm leading-6 text-gray-300">{cast.text}</p>
+      <p className="mt-2 text-sm leading-6 text-gray-300">
+        {cast.text !== embedUrl && cast.text}
+        {embedUrl && !isImageUrl && cast.text !== embedUrl && (
+          <span className="mt-3 flex text-sm text-gray-500">{embedUrl}<ArrowTopRightOnSquareIcon className="ml-1.5 mt-0.5 h-4 w-4" /></span>
+        )}
+      </p>
       {embedImageUrl && (
         isSelected ? <ImgurImage url={embedImageUrl} /> : <span>🖼️</span>
       )}

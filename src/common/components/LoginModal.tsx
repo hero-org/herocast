@@ -2,7 +2,7 @@ import React, { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { Session } from '@supabase/supabase-js'
 import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa, ThemeMinimal } from '@supabase/auth-ui-shared'
+import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabaseClient } from '../helpers/supabase'
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { hydrate } from '@/stores/useAccountStore'
@@ -33,11 +33,11 @@ export default function LoginModal() {
     return () => subscription.unsubscribe()
   }, [])
 
-  useEffect(() => {
-    if (session) {
-      hydrate().then(() => toFeed());
-    }
-  }, [session])
+  // useEffect(() => {
+  //   if (session) {
+  //     hydrate().then(() => toFeed());
+  //   }
+  // }, [session])
 
   return (
     <Transition.Root show={open} as={Fragment}>

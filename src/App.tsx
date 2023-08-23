@@ -6,8 +6,16 @@ import '@/config/theme/globals.css';
 import '@radix-ui/themes/styles.css';
 import { router } from "@/router";
 import { disableContextMenu } from '@/common/helpers/tauri/contextMenu';
+import { init } from "@aptabase/web";
+import { RUNNING_IN_TAURI } from './common/constants/tauri';
 
-disableContextMenu();
+export const VITE_APTABASE_KEY = import.meta.env.VITE_APTABASE_KEY
+
+if (RUNNING_IN_TAURI) {
+  disableContextMenu();
+} else {
+  init(VITE_APTABASE_KEY);
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');

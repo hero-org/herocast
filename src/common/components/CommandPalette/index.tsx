@@ -15,26 +15,18 @@ import { useNavigate, useLocation } from "react-router-dom";
 const MIN_SCORE_THRESHOLD = 0.0015;
 
 export default function CommandPalette() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
   const [query, setQuery] = useState('')
 
   const {
     mainNavigation,
     isCommandPaletteOpen,
+    closeCommandPallete,
     toggleCommandPalette,
   } = useNavigationStore();
 
   const {
     setCurrentChannelIdx
   } = useAccountStore();
-
-  useEffect(() => {
-    if (location.pathname.slice(1) !== mainNavigation) {
-      navigate(mainNavigation);
-    }
-  }, [location, mainNavigation]);
 
   useHotkeys(['meta+k'], () => {
     toggleCommandPalette();
@@ -74,11 +66,12 @@ export default function CommandPalette() {
   commands = commands.concat(nonHotkeyCommands);
 
   function onClick(command: CommandType) {
+    console.log('onClick command', command);
     if (!command) {
       return;
     }
     command.action();
-    toggleCommandPalette();
+    closeCommandPallete();
   }
 
 
@@ -126,7 +119,7 @@ export default function CommandPalette() {
           >
             <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-md bg-gray-900 shadow-none transition-all">
               <Combobox onChange={(e: any) => {
-                onClick(e)
+                {/* onClick(e) */ }
               }}>
                 <div className="relative">
                   <MagnifyingGlassIcon

@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 
 // export const VITE_IMGUR_CLIENT_ID = import.meta.env.VITE_IMGUR_CLIENT_ID
 
-const WARPCAST_CDN_URL = 'https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png/'
+const getImageViaCdnUrl = (imgUrl: string) => {
+  const fileSuffix = imgUrl.split('.').slice(-1)[0]
+  return `https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_${fileSuffix}/${imgUrl}`
+}
 
 export const ImgurImage = ({ url }: { url: string }) => {
   // const [image, setImage] = useState<string | null>(null)
@@ -57,7 +60,7 @@ export const ImgurImage = ({ url }: { url: string }) => {
       <img
         className="mt-2 h-72 object-left rounded-sm"
         style={{ display: 'none' }}
-        src={`${WARPCAST_CDN_URL}${url}`}
+        src={getImageViaCdnUrl(url)}
         alt=""
         referrerPolicy="no-referrer"
         onError={(e) => {

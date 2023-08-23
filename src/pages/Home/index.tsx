@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import {
@@ -11,10 +11,11 @@ import { RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
 import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import isEmpty from "lodash.isempty";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
+import { trackPageView } from "@/common/helpers/analytics";
 
 type NavigationItemType = {
   name: string;
@@ -25,8 +26,9 @@ type NavigationItemType = {
 }
 
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const navigate = useNavigate();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
 
@@ -35,6 +37,7 @@ export default function Home() {
   } = useAccountStore();
 
   const {
+    mainNavigation,
     toFeed,
     toAccounts,
     toSettings,
@@ -58,6 +61,15 @@ export default function Home() {
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
   const pageNavigation = { rightSidebar: 'ACCOUNTS' };
 
+  useEffect(() => {
+    trackPageView(location.pathname.slice(1));
+  }, [location])
+
+  useEffect(() => {
+    if (location.pathname.slice(1) !== mainNavigation) {
+      navigate(mainNavigation);
+    }
+  }, [location, mainNavigation]);
 
   const renderEmptyState = () => (
     <EmptyStateWithAction

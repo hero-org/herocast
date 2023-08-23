@@ -13,6 +13,7 @@ export type EmbedType = {
 export enum CastReactionType {
   likes = 'likes',
   recasts = 'recasts',
+  replies = 'replies',
 }
 
 export type CastReactionsType = {
