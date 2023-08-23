@@ -80,3 +80,9 @@ jobs:
         name: release-${{ matrix.os }}
         path: |
           src-tauri/target/release/**/*
+    - name: Sentry Release
+      uses: getsentry/action-release@v1.4.1
+      env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}

@@ -1,3 +1,4 @@
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig, splitVendorChunkPlugin } from 'vite'
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 import react from '@vitejs/plugin-react'
@@ -24,7 +25,10 @@ function renderChunks(deps) {
 export default defineConfig({
   base: "./",
   assetsInclude: ['**/*.webp', '**/*.png', '**/*.jpg'],
-  plugins: [react()],
+  plugins: [react(), sentryVitePlugin({
+    org: "herocast-pr",
+    project: "herocast-client"
+  })],
   server: {
     port: 4590,
     strictPort: true,
