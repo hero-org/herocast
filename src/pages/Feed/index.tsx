@@ -163,7 +163,7 @@ export default function Feed() {
           return (
             <li key={cast.hash} ref={(selectedCastIdx === idx - 3) ? scollToRef : null
             }
-              className="relative flex items-center space-x-4 py-2 max-w-full lg:max-w-2xl" >
+              className="relative flex items-center space-x-4 py-2 max-w-sm lg:max-w-2xl xl:max-w-4xl" >
               <CastRow
                 cast={cast}
                 channels={channels}

@@ -79,10 +79,10 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
             referrerPolicy="no-referrer"
           />
           {cast.parent_hash && <ArrowUturnUpIcon className="w-4 h-4 text-gray-400" />}
-          <span className="font-medium text-gray-100">@{cast.author.username} ({cast.author.display_name})</span>
+          <span className="flex font-medium text-gray-100">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name})</span></span>
           {showChannel && channel && (
             <div className="flex flex-row">
-              <span className="ml-1 -mt-0.5 inline-flex items-center rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
+              <span className="ml-2 inline-flex items-center rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
                 {channel.name}
               </span>
             </div>
@@ -94,7 +94,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
           </span>
         )}
       </div>
-      <p className="mt-2 text-sm leading-6 text-gray-300">
+      <p className="mt-2 text-sm leading-6 text-gray-300 break-words lg:break-normal">
         {cast.text !== embedUrl && cast.text}
         {embedUrl && !isImageUrl && cast.text !== embedUrl && (
           <span className="mt-3 flex text-sm text-gray-500">{embedUrl}<ArrowTopRightOnSquareIcon className="ml-1.5 mt-0.5 h-4 w-4" /></span>
