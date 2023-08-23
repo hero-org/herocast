@@ -6,6 +6,7 @@ import uniqBy from 'lodash.uniqby';
 import { open } from '@tauri-apps/api/shell';
 import { CastRow } from "@/common/components/CastRow";
 import { Key } from 'ts-key-enum';
+import { openWindow } from "@/common/helpers/navigation";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -28,19 +29,21 @@ export default function Feed() {
 
   const account: AccountObjectType = accounts[selectedAccountIdx];
   const feedKey = selectedChannelParentUrl || (account && account.platformAccountId);
-  const feed = feeds[feedKey] || [];
+  const feed = feedKey ? feeds[feedKey] : [];
 
   const onSelectCast = (idx: number) => {
     const cast = feed[idx];
-    const url = cast?.embeds?.length > 0 ? cast.embeds[0].url : null;
-    if (url) open(url);
+    if (cast?.embeds?.length === 0) return;
+
+    const url = cast.embeds[0].url;
+    openWindow(url);
   }
 
   const onExpandCast = (idx: number) => {
     const cast = feed[idx];
 
     const url = `https://warpcast.com/${cast.author.username}/${cast.hash.slice(0, 8)}`;
-    open(url);
+    openWindow(url);
   }
 
   useHotkeys(['j', Key.ArrowDown], () => {

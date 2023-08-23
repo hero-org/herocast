@@ -1,7 +1,7 @@
 import { MAIN_NAVIGATION_ENUM } from "@/common/constants/navigation";
 import { CommandType } from "@/common/constants/commands";
-import { Bars3BottomLeftIcon, ChatBubbleBottomCenterTextIcon } from "@heroicons/react/20/solid";
-import { Cog6ToothIcon, HashtagIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { Bars3BottomLeftIcon } from "@heroicons/react/20/solid";
+import { Cog6ToothIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";

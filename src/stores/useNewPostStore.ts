@@ -6,6 +6,7 @@ import { CommandType } from "@/common/constants/commands";
 import { TagIcon } from "@heroicons/react/24/outline";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { open } from '@tauri-apps/api/shell';
+import { openWindow } from "@/common/helpers/navigation";
 
 export type PostType = {
   text: string;
@@ -96,7 +97,7 @@ export const newPostCommands: CommandType[] = [
     shortcut: 'cmd+shift+f',
     // action: () => useNewPostStore.getState().addFeedbackDraft(),
     action: () => {
-      open("mailto:hellnomail@proton.me?subject=about herocast&body=hey @hellno, feedback on herocast: ");
+      openWindow("mailto:hellnomail@proton.me?subject=about herocast&body=hey @hellno, feedback on herocast: ");
     },
     enableOnFormTags: true,
   },

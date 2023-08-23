@@ -14,8 +14,6 @@ interface CastRowProps {
 }
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: CastRowProps) => {
-  // if (isSelected) console.log(cast);
-
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
   const embedImageUrl = embedUrl?.endsWith('.png') || embedUrl?.endsWith('.jpg') ? embedUrl : null;
 
