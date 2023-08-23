@@ -7,6 +7,8 @@ import get from 'lodash.get';
 import { CastRow } from "@/common/components/CastRow";
 import { Key } from 'ts-key-enum';
 import { openWindow } from "@/common/helpers/navigation";
+import { useInView } from 'react-intersection-observer';
+import isEmpty from "lodash.isempty";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -24,6 +26,13 @@ export default function Feed() {
     selectedAccountIdx,
     selectedChannelIdx
   } = useAccountStore();
+  const { ref, inView } = useInView({
+    /* Optional options */
+    threshold: 0,
+    delay: 100,
+  });
+
+  // console.log('inView', inView, 'entry', entry);
 
   const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
   const account: AccountObjectType = accounts[selectedAccountIdx];
@@ -92,9 +101,9 @@ export default function Feed() {
       return;
     }
     setIsLoadingFeed(true);
-    const apiKey = VITE_NEYNAR_API_KEY;
+
     const limit = 15;
-    let neynarEndpoint = `https://api.neynar.com/v2/farcaster/feed/?api_key=${apiKey}&limit=${limit}`;
+    let neynarEndpoint = `https://api.neynar.com/v2/farcaster/feed/?api_key=${VITE_NEYNAR_API_KEY}&limit=${limit}`;
 
     if (parentUrl) {
       neynarEndpoint += `&feed_type=filter&filter_type=parent_url&parent_url=${parentUrl}`;
@@ -128,6 +137,13 @@ export default function Feed() {
     }
   }, [account, selectedChannelParentUrl]);
 
+  useEffect(() => {
+    if (inView && !isEmpty(feed)) {
+      const cursor = feed[feed.length - 1].timestamp;
+      getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor });
+    }
+  }, [inView]);
+
   const scollToRef = useRef();
   // scroll to selected cast when selectedCastIdx changes
   useEffect(() => {
@@ -158,8 +174,9 @@ export default function Feed() {
             </li>
           );
         })}
+        <li ref={ref} className="" />
       </ul>
-      {isLoadingFeed && (<span className="font-semibold text-gray-200">Loading...</span>)}
+      {isLoadingFeed && (<span className="my-4 font-semibold text-gray-200">Loading...</span>)}
     </div >
   )
 }
