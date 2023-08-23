@@ -3,7 +3,7 @@ import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { CastType, VITE_NEYNAR_API_KEY } from "@/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import uniqBy from 'lodash.uniqby';
-import { open } from '@tauri-apps/api/shell';
+import get from 'lodash.get';
 import { CastRow } from "@/common/components/CastRow";
 import { Key } from 'ts-key-enum';
 import { openWindow } from "@/common/helpers/navigation";
@@ -26,10 +26,19 @@ export default function Feed() {
   } = useAccountStore();
 
   const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
-
   const account: AccountObjectType = accounts[selectedAccountIdx];
-  const feedKey = selectedChannelParentUrl || (account && account.platformAccountId);
-  const feed = feedKey ? feeds[feedKey] : [];
+  const getFeedKey = ({ selectedChannelParentUrl, account }: { selectedChannelParentUrl: string | undefined, account: AccountObjectType }) => {
+    if (selectedChannelParentUrl) {
+      return selectedChannelParentUrl;
+    } else if (account) {
+      return account.platformAccountId;
+    } else {
+      return null;
+    }
+  };
+
+  const feedKey = getFeedKey({ selectedChannelParentUrl, account });
+  const feed = feedKey ? get(feeds, feedKey, []) : [];
 
   const onSelectCast = (idx: number) => {
     const cast = feed[idx];
