@@ -37,7 +37,6 @@ export const router = createBrowserRouter([
       {
         path: "settings",
         element: <Settings />,
-        // lazy: () => import('@/pages/Settings'),
       },
     ]
   }
