@@ -74,7 +74,8 @@ export default defineConfig({
     exclude: [],
     esbuildOptions: {
       define: {
-        'global': "globalThis"
+        'global': "globalThis",
+        __APP_ENV__: process.env.VITE_VERCEL_ENV,
       },
       plugins: [
         NodeGlobalsPolyfillPlugin({

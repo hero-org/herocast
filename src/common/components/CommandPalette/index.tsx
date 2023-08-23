@@ -27,7 +27,6 @@ export default function CommandPalette() {
   } = useNavigationStore();
 
   const {
-    currentChannelIdx,
     setCurrentChannelIdx
   } = useAccountStore();
 

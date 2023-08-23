@@ -14,7 +14,7 @@ export type AccountObjectType = {
   status: AccountStatusType;
   publicKey: string;
   platform: AccountPlatformType;
-  platformAccountId: string;
+  platformAccountId?: string;
   privateKey?: string;
   createdAt?: string;
   data?: { deepLinkUrl: string, signerToken: string };
@@ -69,7 +69,7 @@ const store = (set: StoreSet) => ({
         name: account.name,
         status: account.status,
         public_key: account.publicKey,
-        account_platform: account.platform,
+        platform: account.platform,
         data: account.data,
         private_key: account.privateKey,
       })
@@ -89,6 +89,7 @@ const store = (set: StoreSet) => ({
         .from('accounts')
         .update({ status: AccountStatusType.active, ...data })
         .eq('id', accountId)
+        .select()
         .then(({ error, data }) => {
           console.log('response setAccountActive - data', data, 'error', error);
           if (!error) {
@@ -197,7 +198,8 @@ const getAccountCommands = () => {
       action: () => {
         switchAccountTo(i);
       },
-      enabled: () => useAccountStore.getState().accounts.length > i,
+      enabled: () => useAccountStore.getState().accounts.length > i &&
+        useAccountStore.getState().accounts[i].status === AccountStatusType.active,
     });
   }
 

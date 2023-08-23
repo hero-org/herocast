@@ -1,18 +1,14 @@
 import { WarpcastLoginStatus, generateWarpcastSigner, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { useCheckSigner, useSigner, useToken } from "@farsign/hooks";
+import { hydrate, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import React, { Dispatch, SetStateAction, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
-import { classNames } from "../helpers/css";
-import { BarsArrowUpIcon, Cog6ToothIcon, ExclamationCircleIcon, UserPlusIcon, UsersIcon } from "@heroicons/react/24/outline";
-import { supabaseClient } from "../helpers/supabase";
+import { Cog6ToothIcon, ExclamationCircleIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import usePollingUpdate from "../hooks/usePollingUpdate";
+import { QrCode } from "./QrCode";
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import { useNavigate } from "react-router-dom";
 
-const QrCode = React.lazy(() =>
-  import('@/common/components/QrCode')
-    .then(({ QrCode }) => ({ default: QrCode })),
-);
 
 const APP_NAME = "herocast";
 
@@ -20,6 +16,8 @@ const FarcasterLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [runPolling, setRunPolling] = useState(false);
+  const navigate = useNavigate();
 
   const {
     accounts,
@@ -27,6 +25,11 @@ const FarcasterLogin = () => {
     setAccountActive,
   } = useAccountStore();
 
+  const {
+    toFeed
+  } = useNavigationStore();
+
+  console.log('run polling', runPolling);
 
   const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
   const hasPendingNewAccounts = !isEmpty(pendingAccounts);
@@ -34,20 +37,32 @@ const FarcasterLogin = () => {
   const onPollingUpdate = async () => {
     console.log('onPollingUpdate');
     if (hasPendingNewAccounts) {
-      pendingAccounts.forEach(async (account) => {
-        console.log('onPollingUpdate', account)
+      pendingAccounts.forEach(async (account, idx) => {
+        console.log('onPollingUpdate for account', account.id)
         if (!account.id) return;
 
         if (account.data?.signerToken) {
           const { status, data } = await getWarpcastSignerStatus(account.data.signerToken);
+          console.log('signerStatus: ', status, data);
           if (status === WarpcastLoginStatus.success) {
+            console.log('1');
             setAccountActive(account.id, { platform_account_id: data.fid });
+            console.log('idx + 1', idx + 1, 'pendingAccounts', pendingAccounts.length);
+            if (idx + 1 === pendingAccounts.length) {
+              console.log('2');
+              setRunPolling(false);
+              console.log('3');
+              await hydrate();
+              console.log('4');
+              toFeed();
+              console.log('5');
+              window.location.reload();
+            }
           }
         }
       })
     }
   }
-  const [runPolling, setRunPolling] = useState(false);
 
   useEffect(() => {
     setRunPolling(hasPendingNewAccounts);
@@ -67,7 +82,7 @@ const FarcasterLogin = () => {
       setErrorMessage('Account name is required');
       return;
     }
-    if (hasPendingNewAccounts || isLoading) return;
+    if (isLoading) return;
 
     setIsLoading(true);
     const { publicKey, privateKey, token, deepLinkUrl } = await generateWarpcastSigner(APP_NAME);
@@ -88,10 +103,10 @@ const FarcasterLogin = () => {
 
   const renderPendingAccounts = () => {
     return (
-      <div className="py-4">
+      <div className="my-8 divide-y divide-gray-500">
         {pendingAccounts.map((account) => {
           const deepLinkUrl = account.data?.deepLinkUrl;
-          return <div key={account.id}>
+          return <div className="py-8" key={account.id}>
             <p className="text-xl text-gray-200">Account {account.name}</p>
             {deepLinkUrl && (
               <>
@@ -109,7 +124,7 @@ const FarcasterLogin = () => {
   return (
     <div>
       <div className="max-w-sm">
-        <label htmlFor="email" className="block text-lg font-medium leading-6 text-gray-100">
+        <label htmlFor="accountName" className="block text-lg font-medium leading-6 text-gray-100">
           Display name
         </label>
         <div className="mt-2 flex rounded-sm shadow-sm">
@@ -120,7 +135,7 @@ const FarcasterLogin = () => {
             <input
               name="accountName"
               id="accountName"
-              disabled={hasPendingNewAccounts || isLoading}
+              disabled={isLoading}
               onChange={(e) => {
                 if (errorMessage) {
                   setErrorMessage('')

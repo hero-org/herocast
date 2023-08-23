@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import {
@@ -11,9 +11,10 @@ import { RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
 import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useNavigationStore } from "@/stores/useNavigationStore";
-import { supabaseClient } from "@/common/helpers/supabase";
+import isEmpty from "lodash.isempty";
+import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 
 type NavigationItemType = {
   name: string;
@@ -24,11 +25,14 @@ type NavigationItemType = {
 }
 
 export default function Home() {
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation();
 
   const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
+
+  const {
+    accounts
+  } = useAccountStore();
 
   const {
     toFeed,
@@ -53,6 +57,17 @@ export default function Home() {
   const navItem = navigation.find((item) => item.router === location.pathname) || { name: 'herocast', getTitle: null }
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
   const pageNavigation = { rightSidebar: 'ACCOUNTS' };
+
+
+  const renderEmptyState = () => (
+    <EmptyStateWithAction
+      title="No accounts"
+      description="Add an account to get started"
+      onClick={() => toAccounts()}
+      submitText="Add account"
+      icon={UserPlusIcon}
+    />
+  )
 
   const renderRightSidebar = () => {
     switch (pageNavigation.rightSidebar) {
@@ -237,7 +252,8 @@ export default function Home() {
               <h1 className="text-2xl font-semibold leading-7 text-white">{title}</h1>
               <h1 className="text-base font-semibold leading-7 text-white"></h1>
             </header>
-            <div className="flex items-center justify-between px-4 py-4 border border-white/5 sm:px-6 sm:py-2 lg:px-8">
+            <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-8">
+              {location.pathname === '/feed' && isEmpty(accounts) && renderEmptyState()}
               <Suspense fallback={<span className="font-semibold text-gray-200">Loading...</span>}>
                 <Outlet />
               </Suspense>

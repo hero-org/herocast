@@ -26,13 +26,15 @@ const AccountsRightSidebar = () => {
   } = useAccountStore();
 
   const renderEmptyState = () => (
-    <EmptyStateWithAction
-      title="No accounts"
-      description="Add an account to get started"
-      onSubmit={toAccounts}
-      submitText="Add account"
-      icon={UserPlusIcon}
-    />
+    <div className="ml-6">
+      <EmptyStateWithAction
+        title="No accounts"
+        description="Add an account to get started"
+        onClick={() => toAccounts()}
+        submitText="Add account"
+        icon={UserPlusIcon}
+      />
+    </div>
   )
 
   const renderAccounts = () => (
@@ -42,7 +44,7 @@ const AccountsRightSidebar = () => {
           <li key={item.id} className="px-2 py-2 sm:px-3 lg:px-4">
             <HotkeyTooltipWrapper hotkey={`Ctrl + ${idx + 1}`} side="left">
               <div
-                onClick={() => setCurrentAccountIdx(idx)}
+                onClick={() => item.status === "active" && setCurrentAccountIdx(idx)}
                 className="flex items-center gap-x-3 cursor-pointer"
               >
                 {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
@@ -50,7 +52,7 @@ const AccountsRightSidebar = () => {
                   idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
                   "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
                 {item.status !== "active" && (
-                  <span className={classNames("underline flex-none text-sm")}>
+                  <span className={classNames("underline flex-none text-sm text-gray-400")}>
                     {item.status}
                   </span>)}
                 {item.platformAccountId && (
@@ -70,10 +72,12 @@ const AccountsRightSidebar = () => {
     return <div className="mt-4"><ChannelsOverview /></div>;
   }
 
-  return <aside className="bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-80 lg:overflow-y-auto lg:border-t lg:border-white/5">
-    <SidebarHeader title="Accounts" />
-    {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
-    {renderChannels()}
+  return <aside className="min-h-full bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-20 lg:w-80 lg:overflow-y-auto lg:border-l lg:border-white/5">
+    <div className="lg:border-t lg:border-white/5">
+      <SidebarHeader title="Accounts" />
+      {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
+      {renderChannels()}
+    </div>
   </aside>
 }
 
