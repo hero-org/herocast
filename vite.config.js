@@ -46,7 +46,7 @@ export default defineConfig({
     http: "stream-http",
     assert: "assert"
   },
-  envPrefix: ['VITE_', 'TAURI_'],
+  envPrefix: ['VITE_', 'TAURI_', 'VERCEL_'],
   build: {
     target: ['es2021'],
     optimizeDeps: {
