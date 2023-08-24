@@ -3,6 +3,8 @@ import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabaseClient } from '@/common/helpers/supabase';
 import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
+import { hydrate } from '@/stores/useAccountStore';
+import { useNavigate, useLocation } from "react-router-dom";
 
 
 const appearance = {
@@ -34,37 +36,59 @@ const appearance = {
 };
 
 export default function Login() {
-  const [session, setSession] = useState<Session | null>(null);
+  const navigate = useNavigate();
+  // const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      console.log(`LoginModal getSession`, session)
-      setSession(session)
+      console.log(`Login getSession`, session)
+      // setSession(session)
     })
 
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      console.log(`LoginModal onAuthStateChange`, session)
-      setSession(session)
+      console.log(`Login onAuthStateChange`, session)
+      // setSession(session)
+
+      if (session) {
+        console.log('Login onAuthStateChange hasSession - hydrate and navigate');
+        setIsLoading(true);
+        hydrate();
+        setIsLoading(false);
+        navigate('/feed');
+      }
     })
 
     return () => subscription.unsubscribe()
   }, [])
+
+  const { hash } = useLocation();
+  const queryParams = hash
+    .substring(1)
+    .split('&')
+    .reduce((acc, curr) => {
+      const [key, value] = curr.split('=');
+      return { ...acc, [key]: value };
+    }, {});
+  console.log(`Login hash`, hash, 'queryParams', queryParams);
+
   return (
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">
-            Sign in to your herocast account
+            Sign in
           </h2>
         </div>
-
+        {isLoading && (<span className="my-4 font-semibold text-gray-200">Loading...</span>)}
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <Auth
             supabaseClient={supabaseClient}
             providers={[]}
             appearance={appearance}
+            queryParams={queryParams}
           />
         </div>
       </div>

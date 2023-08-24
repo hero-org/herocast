@@ -61,7 +61,8 @@ export default function Home() {
 
   const navItem = navigation.find((item) => item.router === pathname) || { name: 'herocast', getTitle: null }
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
-  const pageNavigation = pathname !== '/login' ? { rightSidebar: 'ACCOUNTS' } : {};
+  const pageNavigation = pathname !== '/login' ? { rightSidebar: RIGHT_SIDEBAR_ENUM.ACCOUNTS } : {};
+  console.log('pageNavigation', pageNavigation, 'pathname', pathname);
 
   useEffect(() => {
     trackPageView(pathname.slice(1));

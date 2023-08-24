@@ -123,7 +123,9 @@ export default function Feed() {
           ...feeds,
           [feedKey]: uniqBy(feed.concat(data.casts), 'hash')
         });
-        setNextFeedOffset(data.next.cursor);
+        if (data.next) {
+          setNextFeedOffset(data.next.cursor);
+        }
       }).catch((err) => {
         console.log('err', err);
       }).finally(() => setIsLoadingFeed(false));
