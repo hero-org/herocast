@@ -6,6 +6,7 @@ import { SidebarHeader } from "./SidebarHeader";
 
 const ChannelsOverview = () => {
   const [showAll, setShowAll] = useState(false);
+  const MAX_SIDEBAR_CHANNELS = 9;
   const {
     channels,
     selectedChannelIdx,
@@ -14,6 +15,11 @@ const ChannelsOverview = () => {
 
   const onToggleShowAll = () => {
     setShowAll(!showAll);
+  }
+
+  let sidebarChannels = showAll ? channels : channels.slice(0, MAX_SIDEBAR_CHANNELS);
+  if (!showAll && selectedChannelIdx && selectedChannelIdx >= MAX_SIDEBAR_CHANNELS) {
+    sidebarChannels.push(channels[selectedChannelIdx]);
   }
 
   return (<>
@@ -35,12 +41,12 @@ const ChannelsOverview = () => {
           </kbd>
         </span>
       </li>
-      {(showAll ? channels : channels.slice(0, 9)).map((channel: ChannelType, idx: number) => (
+      {(sidebarChannels).map((channel: ChannelType, idx: number) => (
         <li key={channel.name} className="px-2 sm:px-3 lg:px-4">
           <div
             onClick={() => setCurrentChannelIdx(idx)}
             className={classNames(
-              selectedChannelIdx == idx
+              (showAll && selectedChannelIdx === idx) || (!showAll && idx === MAX_SIDEBAR_CHANNELS)
                 ? 'text-white font-semibold'
                 : 'text-gray-400 hover:text-white',
               'flex align-center justify-between flex gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'

@@ -46,6 +46,10 @@ export default function Settings() {
   const renderInfoSection = () => {
     let commands: SimpleCommand[] = [
       { name: 'Command Palette', shortcut: 'cmd+k' },
+      { name: 'Feed: go to previous cast in list', shortcut: 'k' },
+      { name: 'Feed: go to next cast in list', shortcut: 'j' },
+      { name: 'Feed: Open thread view for cast (currently showing Warpcast)', shortcut: 'o' },
+      { name: 'Feed: Open embedded link in new tab', shortcut: 'shift+o' },
       // ...navigationCommands,
       ...newPostCommands,
       ...accountCommands,
