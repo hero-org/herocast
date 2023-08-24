@@ -1,14 +1,11 @@
 import { MAIN_NAVIGATION_ENUM } from "@/common/constants/navigation";
-import { CommandType } from "@/common/constants/commands";
-import { Bars3BottomLeftIcon } from "@heroicons/react/20/solid";
-import { Cog6ToothIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { redirect } from "react-router-dom";
 
 interface NavigationStoreProps {
-  mainNavigation: MAIN_NAVIGATION_ENUM;
+  // mainNavigation: MAIN_NAVIGATION_ENUM;
   isCommandPaletteOpen: boolean;
 }
 
@@ -30,7 +27,7 @@ export const mutative = (config) =>
 type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
-  mainNavigation: MAIN_NAVIGATION_ENUM.FEED,
+  // mainNavigation: MAIN_NAVIGATION_ENUM.FEED,
   isCommandPaletteOpen: false,
   closeCommandPallete: () => {
     set((state) => {
@@ -46,13 +43,13 @@ const store = (set: StoreSet) => ({
   toAccounts: () => {
     set((state) => {
       console.log('useNavStore: toAccounts');
-      state.mainNavigation = MAIN_NAVIGATION_ENUM.ACCOUNTS;
+      // state.mainNavigation = MAIN_NAVIGATION_ENUM.ACCOUNTS;
       redirect(`/${MAIN_NAVIGATION_ENUM.ACCOUNTS}`)
     });
   },
   toFeed: () => {
     set((state) => {
-      state.mainNavigation = MAIN_NAVIGATION_ENUM.FEED;
+      // state.mainNavigation = MAIN_NAVIGATION_ENUM.FEED;
       redirect(`/${MAIN_NAVIGATION_ENUM.FEED}`)
     });
   },
@@ -69,52 +66,9 @@ const store = (set: StoreSet) => ({
   toSettings: () => {
     set((state) => {
       console.log('useNavStore: toSettings')
-      state.mainNavigation = MAIN_NAVIGATION_ENUM.SETTINGS;
+      // state.mainNavigation = MAIN_NAVIGATION_ENUM.SETTINGS;
       redirect(`/${MAIN_NAVIGATION_ENUM.FEED}`)
     });
   },
 });
 export const useNavigationStore = create<NavigationStore>()(devtools(mutative(store)));
-
-export const navigationCommands: CommandType[] = [
-  {
-    name: 'Accounts',
-    aliases: ['new account', 'sign up'],
-    icon: UserPlusIcon,
-    shortcut: 'cmd+shift+a',
-    enableOnFormTags: true,
-    action: () => useNavigationStore.getState().toAccounts(),
-  },
-  {
-    name: 'Switch to Feed',
-    aliases: ['scroll',],
-    icon: Bars3BottomLeftIcon,
-    shortcut: 'shift+f',
-    enableOnFormTags: true,
-    action: () => useNavigationStore.getState().toFeed(),
-  },
-  // {
-  //   name: 'Switch to Replies.',
-  //   aliases: ['threads',],
-  //   icon: ChatBubbleBottomCenterTextIcon,
-  //   shortcut: 'shift+r',
-  //   enableOnFormTags: true,
-  //   action: () => useNavigationStore.getState().toReplies(),
-  // },
-  // {
-  //   name: 'Switch to new post',
-  //   aliases: ['new tweet', 'write', 'create', 'compose',],
-  //   icon: HashtagIcon,
-  //   shortcut: 'cmd+n',
-  //   enableOnFormTags: true,
-  //   action: () => useNavigationStore.getState().toNewPost(),
-  // },
-  {
-    name: 'Settings',
-    aliases: ['preferences', 'options', 'config',],
-    icon: Cog6ToothIcon,
-    shortcut: 'cmd+shift+,',
-    enableOnFormTags: true,
-    action: () => useNavigationStore.getState().toSettings(),
-  },
-]

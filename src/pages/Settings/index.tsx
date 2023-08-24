@@ -1,7 +1,6 @@
 import { CommandType } from "@/common/constants/commands";
 import { supabaseClient } from "@/common/helpers/supabase";
 import { accountCommands, channelCommands, useAccountStore } from "@/stores/useAccountStore";
-import { navigationCommands } from "@/stores/useNavigationStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { User } from "@supabase/supabase-js";
 import React, { useEffect, useState } from "react";
@@ -47,7 +46,7 @@ export default function Settings() {
   const renderInfoSection = () => {
     let commands: SimpleCommand[] = [
       { name: 'Command Palette', shortcut: 'cmd+k' },
-      ...navigationCommands,
+      // ...navigationCommands,
       ...newPostCommands,
       ...accountCommands,
       ...channelCommands,

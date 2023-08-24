@@ -2,7 +2,7 @@ import { channels } from "@/common/constants/channels";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
 import { accountCommands, channelCommands, useAccountStore } from '@/stores/useAccountStore';
-import { navigationCommands, useNavigationStore } from "@/stores/useNavigationStore";
+import { useNavigationStore } from "@/stores/useNavigationStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
@@ -11,14 +11,16 @@ import commandScore from "command-score";
 import { Fragment, useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useNavigate, useLocation } from "react-router-dom";
+import { Bars3BottomLeftIcon } from "@heroicons/react/20/solid";
+import { Cog6ToothIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
 export default function CommandPalette() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('')
 
   const {
-    mainNavigation,
     isCommandPaletteOpen,
     closeCommandPallete,
     toggleCommandPalette,
@@ -33,6 +35,50 @@ export default function CommandPalette() {
   }, [isCommandPaletteOpen], {
     enableOnFormTags: true,
   })
+
+
+  const navigationCommands: CommandType[] = [
+    {
+      name: 'Accounts',
+      aliases: ['new account', 'sign up'],
+      icon: UserPlusIcon,
+      shortcut: 'cmd+shift+a',
+      enableOnFormTags: true,
+      action: () => navigate('/accounts'),
+    },
+    {
+      name: 'Switch to Feed',
+      aliases: ['scroll',],
+      icon: Bars3BottomLeftIcon,
+      shortcut: 'shift+f',
+      enableOnFormTags: true,
+      action: () => navigate('/feed'),
+    },
+    // {
+    //   name: 'Switch to Replies.',
+    //   aliases: ['threads',],
+    //   icon: ChatBubbleBottomCenterTextIcon,
+    //   shortcut: 'shift+r',
+    //   enableOnFormTags: true,
+    //   action: () => useNavigationStore.getState().toReplies(),
+    // },
+    // {
+    //   name: 'Switch to new post',
+    //   aliases: ['new tweet', 'write', 'create', 'compose',],
+    //   icon: HashtagIcon,
+    //   shortcut: 'cmd+n',
+    //   enableOnFormTags: true,
+    //   action: () => useNavigationStore.getState().toNewPost(),
+    // },
+    {
+      name: 'Settings',
+      aliases: ['preferences', 'options', 'config',],
+      icon: Cog6ToothIcon,
+      shortcut: 'cmd+shift+,',
+      enableOnFormTags: true,
+      action: () => navigate('/settings'),
+    },
+  ]
 
   let commands: CommandType[] = [
     ...navigationCommands,
@@ -66,7 +112,7 @@ export default function CommandPalette() {
   commands = commands.concat(nonHotkeyCommands);
 
   function onClick(command: CommandType) {
-    console.log('onClick command', command);
+    // console.log('onClick command', command);
     if (!command) {
       return;
     }
@@ -118,9 +164,7 @@ export default function CommandPalette() {
             leaveTo="opacity-0 scale-98"
           >
             <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-md bg-gray-900 shadow-none transition-all">
-              <Combobox onChange={(e: any) => {
-                {/* onClick(e) */ }
-              }}>
+              <Combobox onChange={(e: any) => { onClick(e) }}>
                 <div className="relative">
                   <MagnifyingGlassIcon
                     className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-500"

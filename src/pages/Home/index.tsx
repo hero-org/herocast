@@ -21,9 +21,9 @@ import { findParamInHashUrlPath } from "@/common/helpers/navigation";
 
 type NavigationItemType = {
   name: string;
-  router?: string;
+  router: string;
   icon: any;
-  onClick: () => void;
+  // onClick: () => void;
   getTitle?: () => string;
 }
 
@@ -39,7 +39,7 @@ export default function Home() {
   } = useAccountStore();
 
   const {
-    mainNavigation,
+    // mainNavigation,
     toFeed,
     toAccounts,
     toSettings,
@@ -50,13 +50,13 @@ export default function Home() {
       name: 'Feed',
       router: '/feed',
       icon: SignalIcon,
-      onClick: () => toFeed(),
+      // onClick: () => toFeed(),
       getTitle: () => feedTitle
     },
     // { name: 'Replies', icon: ChartBarSquareIcon, onClick: toReplies },
     // { name: 'New Post', icon: PlusCircleIcon, onClick: toNewPost },
-    { name: 'Accounts', router: '/accounts', icon: UserPlusIcon, onClick: () => toAccounts() },
-    { name: 'Settings', router: '/settings', icon: Cog6ToothIcon, onClick: () => toSettings() },
+    { name: 'Accounts', router: '/accounts', icon: UserPlusIcon },
+    { name: 'Settings', router: '/settings', icon: Cog6ToothIcon },
   ]
 
   const navItem = navigation.find((item) => item.router === pathname) || { name: 'herocast', getTitle: null }
@@ -69,7 +69,6 @@ export default function Home() {
   }, [pathname])
 
   useEffect(() => {
-    console.log('locationHash', locationHash);
     if (locationHash.startsWith('#error')) {
       // example location hash with error: #error=unauthorized_client&error_code=401&error_description=Email+link+is+invalid+or+has+expired
       // look for error_description
@@ -78,17 +77,17 @@ export default function Home() {
       console.log('throwing error', errorCode, description);
       throw new Response(description, { status: Number(errorCode), statusText: description });
     }
-    else if (pathname.slice(1) !== mainNavigation && pathname !== '/login') {
-      console.log('navigating to', mainNavigation, 'because pathname is different', pathname);
-      navigate(mainNavigation);
-    }
-  }, [pathname, mainNavigation]);
+    // else if (pathname.slice(1) !== mainNavigation && pathname !== '/login') {
+    //   console.log('navigating to', mainNavigation, 'because pathname is different', pathname);
+    //   navigate(mainNavigation);
+    // }
+  }, [locationHash]);
 
   const renderEmptyState = () => (
     <EmptyStateWithAction
       title="No accounts"
       description="Add an account to get started"
-      onClick={() => toAccounts()}
+      onClick={() => navigate('/accounts')}
       submitText="Add account"
       icon={UserPlusIcon}
     />
@@ -169,7 +168,7 @@ export default function Home() {
                               <li key={item.name}>
                                 <p
                                   onClick={() => {
-                                    item.onClick();
+                                    navigate(item.router);
                                     setSidebarOpen(false);
                                   }}
                                   className={classNames(
@@ -231,7 +230,7 @@ export default function Home() {
                       <li key={item.name}>
                         <p
                           onClick={() => {
-                            item.onClick();
+                            navigate(item.router);
                             setSidebarOpen(false);
                           }}
                           className={classNames(
