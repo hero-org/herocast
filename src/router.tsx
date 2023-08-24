@@ -1,5 +1,5 @@
 import React from 'react'
-import { createBrowserRouter } from 'react-router-dom';
+import { Navigate, createBrowserRouter } from 'react-router-dom';
 import Home from '@/pages/Home';
 import Feed from '@/pages/Feed';
 import Settings from '@/pages/Settings';
@@ -22,7 +22,6 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        index: true,
         path: "feed",
         element: <Feed />,
       },
@@ -41,7 +40,11 @@ export const router = createBrowserRouter([
       {
         path: "error",
         element: <ErrorPage />,
-      }
+      },
+      {
+        path: "/",
+        element: <Navigate to="feed" replace />
+      },
     ]
   }
 ]);

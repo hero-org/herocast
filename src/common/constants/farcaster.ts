@@ -1,8 +1,12 @@
 export type AuthorType = {
   fid: string,
   username: string,
-  display_name: string,
-  pfp_url: string,
+  display_name?: string,
+  displayName?: string,
+  pfp_url?: string,
+  pfp?: {
+    url: string,
+  }
 }
 
 export type EmbedType = {

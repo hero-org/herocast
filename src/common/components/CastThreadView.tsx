@@ -14,6 +14,8 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
 
+  console.log('cast thread', cast);
+
   const {
     channels,
     selectedChannelIdx
@@ -21,11 +23,13 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
 
   const renderGoBackButton = () => (
     <button
-      type="button"
-      className="flex flex-shrink inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 hover:bg-gray-600 focus:outline-none"
+      className="flex flex-shrink inline-flex items-center -ml-2 px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 hover:bg-gray-700 focus:outline-none"
       onClick={() => onBack()}
     >
-      go back
+      <kbd className="mr-2 px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+        Esc
+      </kbd>
+      back to feed
     </button>
   );
 
@@ -50,7 +54,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
   }, [])
 
   const renderThread = () => (
-    <ul role="list" className="divide-y divide-gray-700">
+    <ul role="list" className="border-b border-gray-700 divide-y divide-gray-700">
       {casts.map((cast: CastType, idx: number) => (
         <li key={cast.hash}
           className="relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
@@ -58,6 +62,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
             cast={cast}
             channels={channels}
             showChannel={selectedChannelIdx === null}
+            showEmbed
           /* isSelected={selectedCastIdx === idx} */
           /* onSelect={() => selectedCastIdx === idx ? onSelectCast(idx) : setSelectedCastIdx(idx)} */
           />

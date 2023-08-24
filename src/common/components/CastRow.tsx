@@ -11,10 +11,11 @@ interface CastRowProps {
   channels: ChannelType[];
   onSelect?: () => void;
   isSelected?: boolean;
+  showEmbed?: boolean;
 }
 
-export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: CastRowProps) => {
-  // if (isSelected) console.log(cast);
+export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed }: CastRowProps) => {
+  if (isSelected) console.log(cast);
 
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
   const isImageUrl = embedUrl ? embedUrl.endsWith('.gif') || embedUrl.endsWith('.png') || embedUrl.endsWith('.jpg') : false;
@@ -63,6 +64,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
   }
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
 
+  const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
   return (<div className="flex grow">
     <div
       onClick={() => onSelect && onSelect()}
@@ -73,13 +75,13 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
       <div className="flex justify-between gap-x-4">
         <div className="flex flex-row py-0.5 text-xs leading-5 text-gray-300">
           <img
-            src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
+            src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
             alt=""
             className="relative mr-1.5 h-5 w-5 flex-none rounded-full bg-gray-50"
             referrerPolicy="no-referrer"
           />
           {cast.parent_hash && <ArrowUturnUpIcon className="w-4 h-4 text-gray-400" />}
-          <span className="flex font-medium text-gray-100">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name})</span></span>
+          <span className="flex font-medium text-gray-100">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name || cast.author.displayName})</span></span>
           {showChannel && channel && (
             <div className="flex flex-row">
               <span className="ml-2 inline-flex items-center rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
@@ -101,7 +103,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
         )}
       </p>
       {embedImageUrl && (
-        isSelected ? <ImgurImage url={embedImageUrl} /> : <span>🖼️</span>
+        (isSelected || showEmbed) ? <ImgurImage url={embedImageUrl} /> : <span>🖼️</span>
       )}
       {renderCastReactions(cast)}
     </div>

@@ -63,9 +63,10 @@ export default function Feed() {
   }
 
   const onExpandCast = (idx: number) => {
-    // const cast = feed[idx];
+    setSelectedCastIdx(idx);
     setShowCastThreadView(true);
 
+    // const cast = feed[idx];
     // const url = `https://warpcast.com/${cast.author.username}/${cast.hash.slice(0, 8)}`;
     // openWindow(url);
   }
@@ -81,6 +82,7 @@ export default function Feed() {
       setSelectedCastIdx(selectedCastIdx + 1);
     }
   }, [selectedCastIdx, account, feed, nextFeedOffset, selectedChannelParentUrl], {
+    enabled: !isLoadingFeed && !isEmpty(feed) && !showCastThreadView
   })
 
   useHotkeys(['k', Key.ArrowUp], () => {
@@ -89,6 +91,7 @@ export default function Feed() {
     }
     setSelectedCastIdx(selectedCastIdx - 1);
   }, [selectedCastIdx], {
+    enabled: !isLoadingFeed && !isEmpty(feed) && !showCastThreadView
   })
 
   useHotkeys(['o', Key.Enter], () => {
@@ -167,7 +170,7 @@ export default function Feed() {
             channels={channels}
             showChannel={selectedChannelIdx === null}
             isSelected={selectedCastIdx === idx}
-            onSelect={() => selectedCastIdx === idx ? onSelectCast(idx) : setSelectedCastIdx(idx)}
+            onSelect={() => onExpandCast(idx)}
           />
         </li>
       ))}
@@ -176,7 +179,7 @@ export default function Feed() {
   );
 
   return (
-    <div className="mr-4">
+    <div className="min-w-full mr-4">
       {showCastThreadView ?
         <CastThreadView
           cast={feed[selectedCastIdx]}
