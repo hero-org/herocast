@@ -7,10 +7,10 @@ import { ImgurImage } from "@/common/components/PostEmbeddedContent";
 
 interface CastRowProps {
   cast: CastType;
-  isSelected: boolean;
   showChannel: boolean;
-  onSelect: () => void;
   channels: ChannelType[];
+  onSelect?: () => void;
+  isSelected?: boolean;
 }
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: CastRowProps) => {
@@ -65,10 +65,10 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
 
   return (<div className="flex grow">
     <div
-      onClick={() => onSelect()}
+      onClick={() => onSelect && onSelect()}
       className={classNames(
         isSelected ? "bg-gray-700 border-l border-gray-200" : "",
-        "grow rounded-r-sm py-1.5 px-3 cursor-pointer"
+        "grow rounded-r-sm py-2 cursor-pointer"
       )}>
       <div className="flex justify-between gap-x-4">
         <div className="flex flex-row py-0.5 text-xs leading-5 text-gray-300">

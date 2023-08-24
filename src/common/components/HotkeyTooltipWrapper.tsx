@@ -2,7 +2,6 @@
 import React from "react";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { KeyboardIcon } from '@radix-ui/react-icons';
-import { Kbd } from "@radix-ui/themes";
 
 
 type HotkeyTooltipWrapperProps = {

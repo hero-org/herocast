@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import { CastType, VITE_NEYNAR_API_KEY } from "@/common/constants/farcaster";
+import { CastType } from "@/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import uniqBy from 'lodash.uniqby';
 import get from 'lodash.get';
@@ -9,6 +9,9 @@ import { Key } from 'ts-key-enum';
 import { openWindow } from "@/common/helpers/navigation";
 import { useInView } from 'react-intersection-observer';
 import isEmpty from "lodash.isempty";
+import { CastThreadView } from "@/common/components/CastThreadView";
+import { getNeynarFeedEndpoint } from "@/common/helpers/neynar";
+import { Loading } from "@/common/components/Loading";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -20,6 +23,8 @@ export default function Feed() {
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedOffset, setNextFeedOffset] = useState("");
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
+  const [showCastThreadView, setShowCastThreadView] = useState(false);
+
   const {
     accounts,
     channels,
@@ -58,10 +63,11 @@ export default function Feed() {
   }
 
   const onExpandCast = (idx: number) => {
-    const cast = feed[idx];
+    // const cast = feed[idx];
+    setShowCastThreadView(true);
 
-    const url = `https://warpcast.com/${cast.author.username}/${cast.hash.slice(0, 8)}`;
-    openWindow(url);
+    // const url = `https://warpcast.com/${cast.author.username}/${cast.hash.slice(0, 8)}`;
+    // openWindow(url);
   }
 
   useHotkeys(['j', Key.ArrowDown], () => {
@@ -85,7 +91,7 @@ export default function Feed() {
   }, [selectedCastIdx], {
   })
 
-  useHotkeys('o', () => {
+  useHotkeys(['o', Key.Enter], () => {
     onExpandCast(selectedCastIdx);
   }, [selectedCastIdx], {
   })
@@ -95,6 +101,10 @@ export default function Feed() {
   }, [selectedCastIdx], {
   })
 
+  useHotkeys('esc', () => {
+    setShowCastThreadView(false);
+  }, [selectedCastIdx], {
+  })
 
   const getFeed = async ({ fid, parentUrl, cursor }: { fid: string, parentUrl?: string, cursor?: string }) => {
     if (isLoadingFeed) {
@@ -102,18 +112,7 @@ export default function Feed() {
     }
     setIsLoadingFeed(true);
 
-    const limit = 15;
-    let neynarEndpoint = `https://api.neynar.com/v2/farcaster/feed/?api_key=${VITE_NEYNAR_API_KEY}&limit=${limit}`;
-
-    if (parentUrl) {
-      neynarEndpoint += `&feed_type=filter&filter_type=parent_url&parent_url=${parentUrl}`;
-    } else if (fid) {
-      neynarEndpoint += `&fid=${fid}`;
-    }
-
-    if (cursor) {
-      neynarEndpoint += `&cursor=${cursor}`;
-    }
+    const neynarEndpoint = getNeynarFeedEndpoint({ fid, parentUrl, cursor });
     await fetch(neynarEndpoint)
       .then((response) => response.json())
       .then((data) => {
@@ -134,6 +133,8 @@ export default function Feed() {
   useEffect(() => {
     if (account) {
       setSelectedCastIdx(0);
+      setShowCastThreadView(false);
+
       const fid = account.platformAccountId;
       getFeed({ parentUrl: selectedChannelParentUrl, fid });
     }
@@ -155,30 +156,34 @@ export default function Feed() {
     }
   }, [selectedCastIdx]);
 
+
+  const renderFeed = () => (
+    <ul role="list" className="divide-y divide-gray-700">
+      {feed.map((cast: CastType, idx: number) => (
+        <li key={cast.hash} ref={(selectedCastIdx === idx - 3) ? scollToRef : null}
+          className="relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
+          <CastRow
+            cast={cast}
+            channels={channels}
+            showChannel={selectedChannelIdx === null}
+            isSelected={selectedCastIdx === idx}
+            onSelect={() => selectedCastIdx === idx ? onSelectCast(idx) : setSelectedCastIdx(idx)}
+          />
+        </li>
+      ))}
+      <li ref={ref} className="" />
+    </ul>
+  );
+
   return (
-    <div
-      className="mr-6"
-    /* ref={listRef} */
-    >
-      <ul role="list" className="divide-y divide-gray-700">
-        {feed.map((cast: CastType, idx: number) => {
-          return (
-            <li key={cast.hash} ref={(selectedCastIdx === idx - 3) ? scollToRef : null
-            }
-              className="relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl" >
-              <CastRow
-                cast={cast}
-                channels={channels}
-                showChannel={selectedChannelIdx === null}
-                isSelected={selectedCastIdx === idx}
-                onSelect={() => selectedCastIdx === idx ? onSelectCast(idx) : setSelectedCastIdx(idx)}
-              />
-            </li>
-          );
-        })}
-        <li ref={ref} className="" />
-      </ul>
-      {isLoadingFeed && (<span className="my-4 font-semibold text-gray-200">Loading...</span>)}
+    <div className="mr-4">
+      {showCastThreadView ?
+        <CastThreadView
+          cast={feed[selectedCastIdx]}
+          fid={account.platformAccountId}
+          onBack={() => setShowCastThreadView(false)}
+        /> : renderFeed()}
+      {isLoadingFeed && <Loading />}
     </div >
   )
 }
