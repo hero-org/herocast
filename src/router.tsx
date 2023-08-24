@@ -22,12 +22,13 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "login",
-        element: <Login />,
-      },
-      {
+        index: true,
         path: "feed",
         element: <Feed />,
+      },
+      {
+        path: "login",
+        element: <Login />,
       },
       {
         path: "accounts",
