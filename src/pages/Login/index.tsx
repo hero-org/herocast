@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { hydrate } from '@/stores/useAccountStore';
 import { useNavigate, useLocation } from "react-router-dom";
-
+import get from 'lodash.get';
 
 const appearance = {
   extend: true,
@@ -37,22 +37,33 @@ const appearance = {
 
 export default function Login() {
   const navigate = useNavigate();
-  // const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { hash } = useLocation();
+  const queryParams = hash
+    .substring(1)
+    .split('&')
+    .reduce((acc, curr) => {
+      const [key, value] = curr.split('=');
+      return { ...acc, [key]: value };
+    }, {});
+
+  const requestType = get(queryParams, 'type');
+  console.log('Login queryParams.type', requestType);
 
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       console.log(`Login getSession`, session)
-      // setSession(session)
+      setSession(session)
     })
 
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((_event, session) => {
       console.log(`Login onAuthStateChange`, session)
-      // setSession(session)
+      setSession(session);
 
-      if (session) {
+      if (session && requestType !== 'recovery') {
         console.log('Login onAuthStateChange hasSession - hydrate and navigate');
         setIsLoading(true);
         hydrate();
@@ -64,26 +75,19 @@ export default function Login() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const { hash } = useLocation();
-  const queryParams = hash
-    .substring(1)
-    .split('&')
-    .reduce((acc, curr) => {
-      const [key, value] = curr.split('=');
-      return { ...acc, [key]: value };
-    }, {});
+
   console.log(`Login hash`, hash, 'queryParams', queryParams);
 
   return (
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">
+          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white font-semibold">
             Sign in
           </h2>
         </div>
         {isLoading && (<span className="my-4 font-semibold text-gray-200">Loading...</span>)}
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        <div className="text-white text-lg mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <Auth
             supabaseClient={supabaseClient}
             providers={[]}
@@ -91,6 +95,13 @@ export default function Login() {
             queryParams={queryParams}
           />
         </div>
+        {session?.user && (<button
+          type="button"
+          onClick={() => navigate('/feed')}
+          className="mx-auto items-center justify-center gap-x-1.5 rounded-r-sm px-4 py-3 text-white text-sm bg-[#10B981] hover:bg-[#059669]"
+        >
+          Go to your feed
+        </button>)}
       </div>
     </>
   )

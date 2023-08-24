@@ -38,3 +38,7 @@ soon: create release via github actions
 # Resources
 - originally based on https://github.com/michyaraque/tauri-boilerplate
 - ...
+
+`
+console.log('VITE_VERCEL_ENV', import.meta.env.VITE_VERCEL_ENV);
+`

@@ -12,7 +12,6 @@ import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRight
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useNavigationStore } from "@/stores/useNavigationStore";
 import isEmpty from "lodash.isempty";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { trackPageView } from "@/common/helpers/analytics";
@@ -23,7 +22,6 @@ type NavigationItemType = {
   name: string;
   router: string;
   icon: any;
-  // onClick: () => void;
   getTitle?: () => string;
 }
 
@@ -38,19 +36,11 @@ export default function Home() {
     accounts
   } = useAccountStore();
 
-  const {
-    // mainNavigation,
-    toFeed,
-    toAccounts,
-    toSettings,
-  } = useNavigationStore();
-
   const navigation: NavigationItemType[] = [
     {
       name: 'Feed',
       router: '/feed',
       icon: SignalIcon,
-      // onClick: () => toFeed(),
       getTitle: () => feedTitle
     },
     // { name: 'Replies', icon: ChartBarSquareIcon, onClick: toReplies },
@@ -70,16 +60,16 @@ export default function Home() {
   useEffect(() => {
     if (locationHash.startsWith('#error')) {
       // example location hash with error: #error=unauthorized_client&error_code=401&error_description=Email+link+is+invalid+or+has+expired
-      // look for error_description
       const errorCode = findParamInHashUrlPath(locationHash, 'error_code') || '500';
       const description = findParamInHashUrlPath(locationHash, 'error_description')?.replace(/\+/g, ' ');
       console.log('throwing error', errorCode, description);
       throw new Response(description, { status: Number(errorCode), statusText: description });
+    } else if (locationHash.startsWith('#access_token')) {
+      console.log('locationhash', locationHash);
+      navigate(`/login${locationHash}`);
+    } else {
+      console.log('unknown locationHash', locationHash);
     }
-    // else if (pathname.slice(1) !== mainNavigation && pathname !== '/login') {
-    //   console.log('navigating to', mainNavigation, 'because pathname is different', pathname);
-    //   navigate(mainNavigation);
-    // }
   }, [locationHash]);
 
   const renderEmptyState = () => (
