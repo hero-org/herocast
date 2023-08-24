@@ -16,6 +16,8 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import isEmpty from "lodash.isempty";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { trackPageView } from "@/common/helpers/analytics";
+import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
+import { findParamInHashUrlPath } from "@/common/helpers/navigation";
 
 type NavigationItemType = {
   name: string;
@@ -27,7 +29,7 @@ type NavigationItemType = {
 
 export default function Home() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { pathname, hash: locationHash } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
@@ -57,19 +59,29 @@ export default function Home() {
     { name: 'Settings', router: '/settings', icon: Cog6ToothIcon, onClick: () => toSettings() },
   ]
 
-  const navItem = navigation.find((item) => item.router === location.pathname) || { name: 'herocast', getTitle: null }
+  const navItem = navigation.find((item) => item.router === pathname) || { name: 'herocast', getTitle: null }
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
-  const pageNavigation = { rightSidebar: 'ACCOUNTS' };
+  const pageNavigation = pathname !== '/login' ? { rightSidebar: 'ACCOUNTS' } : {};
 
   useEffect(() => {
-    trackPageView(location.pathname.slice(1));
-  }, [location])
+    trackPageView(pathname.slice(1));
+  }, [pathname])
 
   useEffect(() => {
-    if (location.pathname.slice(1) !== mainNavigation) {
+    console.log('locationHash', locationHash);
+    if (locationHash.startsWith('#error')) {
+      // example location hash with error: #error=unauthorized_client&error_code=401&error_description=Email+link+is+invalid+or+has+expired
+      // look for error_description
+      const errorCode = findParamInHashUrlPath(locationHash, 'error_code') || '500';
+      const description = findParamInHashUrlPath(locationHash, 'error_description')?.replace(/\+/g, ' ');
+      console.log('throwing error', errorCode, description);
+      throw new Response(description, { status: Number(errorCode), statusText: description });
+    }
+    else if (pathname.slice(1) !== mainNavigation && pathname !== '/login') {
+      console.log('navigating to', mainNavigation, 'because pathname is different', pathname);
       navigate(mainNavigation);
     }
-  }, [location, mainNavigation]);
+  }, [pathname, mainNavigation]);
 
   const renderEmptyState = () => (
     <EmptyStateWithAction
@@ -88,7 +100,7 @@ export default function Home() {
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />
       default:
-        return <AccountsRightSidebar />;
+        return <EmptyRightSidebar />;
     }
   }
 
@@ -160,7 +172,7 @@ export default function Home() {
                                     setSidebarOpen(false);
                                   }}
                                   className={classNames(
-                                    item.router === location.pathname
+                                    item.router === pathname
                                       ? 'bg-gray-800 text-white'
                                       : 'text-gray-400 hover:text-white hover:bg-gray-800',
                                     'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
@@ -222,7 +234,7 @@ export default function Home() {
                             setSidebarOpen(false);
                           }}
                           className={classNames(
-                            item.router === location.pathname
+                            item.router === pathname
                               ? 'bg-gray-800 text-white'
                               : 'text-gray-400 hover:text-white hover:bg-gray-800',
                             'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
@@ -265,7 +277,7 @@ export default function Home() {
               <h1 className="text-base font-semibold leading-7 text-white"></h1>
             </header>
             <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-8">
-              {location.pathname === '/feed' && isEmpty(accounts) && renderEmptyState()}
+              {pathname === '/feed' && isEmpty(accounts) && renderEmptyState()}
               <Suspense fallback={<span className="font-semibold text-gray-200">Loading...</span>}>
                 <Outlet />
               </Suspense>

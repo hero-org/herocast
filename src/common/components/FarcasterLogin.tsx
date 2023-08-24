@@ -17,7 +17,6 @@ const FarcasterLogin = () => {
   const [accountName, setAccountName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [runPolling, setRunPolling] = useState(false);
-  const navigate = useNavigate();
 
   const {
     accounts,

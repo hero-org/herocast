@@ -2,18 +2,14 @@ import React, { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { Session } from '@supabase/supabase-js'
 import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
+// import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabaseClient } from '../helpers/supabase'
 import { useNavigationStore } from "@/stores/useNavigationStore";
-import { hydrate } from '@/stores/useAccountStore'
 
 
 export default function LoginModal() {
   const [open, setOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
-  const {
-    toFeed
-  } = useNavigationStore();
 
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
@@ -67,7 +63,7 @@ export default function LoginModal() {
               <Dialog.Panel className="text-white relative transform overflow-hidden rounded-sm bg-gray-900 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
                 <Dialog.Title
                   as="h3"
-                  className="text-lg mb-6 leading-6 font-medium text-white"
+                  className="text-lg mb-6 leading-6 font-lg text-white"
                 >
                   <div className="flex items-center justify-center">
                     <span className="ml-3">Welcome to herocast</span>
@@ -76,9 +72,10 @@ export default function LoginModal() {
                 <Auth
                   supabaseClient={supabaseClient}
                   providers={[]}
-                  theme="dark" // can also be "dark" or "evenDarker"
+                  // theme="dark"
                   appearance={{
-                    theme: ThemeSupa,
+                    extend: true,
+                    // theme: ThemeSupa,
                     variables: {
                       default: {
                         colors: {
@@ -90,10 +87,10 @@ export default function LoginModal() {
                           inputText: '#F3F4F6',
                           inputLabelText: '#F3F4F6',
                           inputPlaceholder: '#F3F4F6',
-                          messageText: '#F3F4F6',
-                          messageTextDanger: '#f43f5e',
-                          anchorTextColor: '#F3F4F6',
-                          anchorTextHoverColor: '#F3F4F6',
+                          messageText: '#c2410c',
+                          messageTextDanger: '#b45309',
+                          anchorTextColor: '#6b7280',
+                          anchorTextHoverColor: '#d1d5db',
                         },
                         radii: {
                           borderRadiusButton: '2px',
