@@ -68,7 +68,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels }: C
       onClick={() => onSelect && onSelect()}
       className={classNames(
         isSelected ? "bg-gray-700 border-l border-gray-200" : "",
-        "grow rounded-r-sm py-2 cursor-pointer"
+        "grow rounded-r-sm py-2 px-4 cursor-pointer"
       )}>
       <div className="flex justify-between gap-x-4">
         <div className="flex flex-row py-0.5 text-xs leading-5 text-gray-300">

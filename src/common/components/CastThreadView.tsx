@@ -22,7 +22,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
   const renderGoBackButton = () => (
     <button
       type="button"
-      className="w-20 inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 hover:bg-gray-600 focus:outline-none"
+      className="flex flex-shrink inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 hover:bg-gray-600 focus:outline-none"
       onClick={() => onBack()}
     >
       go back
@@ -68,8 +68,10 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
 
   return <div className="flex flex-col text-gray-100 text-lg">
     {isLoading ? <Loading /> : renderThread()}
-    <div className="py-2">
-      {renderGoBackButton()}
-    </div>
+    {!isLoading && (
+      <div className="py-2 px-4">
+        {renderGoBackButton()}
+      </div>
+    )}
   </div>
 }
