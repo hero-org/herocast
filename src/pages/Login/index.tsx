@@ -39,6 +39,8 @@ export default function Login() {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+
   const { hash } = useLocation();
   const queryParams = hash
     .substring(1)
@@ -59,11 +61,13 @@ export default function Login() {
 
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-      console.log(`Login onAuthStateChange`, session)
+    } = supabaseClient.auth.onAuthStateChange((event, session) => {
+      console.log(`Login onAuthStateChange`, event, session)
       setSession(session);
 
-      if (session && requestType !== 'recovery') {
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log('new pw being set')
+      } else if (event === 'USER_UPDATED' || session) {
         console.log('Login onAuthStateChange hasSession - hydrate and navigate');
         setIsLoading(true);
         hydrate();
@@ -74,9 +78,6 @@ export default function Login() {
 
     return () => subscription.unsubscribe()
   }, [])
-
-
-  console.log(`Login hash`, hash, 'queryParams', queryParams);
 
   return (
     <>
@@ -95,13 +96,6 @@ export default function Login() {
             queryParams={queryParams}
           />
         </div>
-        {session?.user && (<button
-          type="button"
-          onClick={() => navigate('/feed')}
-          className="mx-auto items-center justify-center gap-x-1.5 rounded-r-sm px-4 py-3 text-white text-sm bg-[#10B981] hover:bg-[#059669]"
-        >
-          Go to your feed
-        </button>)}
       </div>
     </>
   )

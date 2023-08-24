@@ -67,7 +67,7 @@ export default function Home() {
     } else if (locationHash.startsWith('#access_token')) {
       console.log('locationhash', locationHash);
       navigate(`/login${locationHash}`);
-    } else {
+    } else if (locationHash) {
       console.log('unknown locationHash', locationHash);
     }
   }, [locationHash]);
