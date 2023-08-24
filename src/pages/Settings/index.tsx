@@ -63,10 +63,10 @@ export default function Settings() {
       </div>
       <div className="border-t border-gray-600">
         <dl className="divide-y divide-gray-600">
-          {commands.map((command, index) => (
+          {commands.map((command) => (
             <div className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
               <dt className="text-sm font-medium text-gray-100">{command.name}</dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-300 sm:col-span-2 sm:mt-0">{command.shortcut.replace(/\+/g, ' + ')}</dd>
+              <dd className="mt-1 text-sm leading-6 text-gray-200 sm:col-span-1 sm:mt-0">{command.shortcut.replace(/\+/g, ' + ')}</dd>
             </div>
           ))}
           {/* <div className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
