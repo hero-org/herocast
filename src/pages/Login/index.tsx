@@ -1,6 +1,8 @@
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabaseClient } from '@/common/helpers/supabase';
+import { useEffect, useState } from 'react';
+import { Session } from '@supabase/supabase-js';
 
 
 const appearance = {
@@ -32,6 +34,23 @@ const appearance = {
 };
 
 export default function Login() {
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      console.log(`LoginModal getSession`, session)
+      setSession(session)
+    })
+
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      console.log(`LoginModal onAuthStateChange`, session)
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
   return (
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
