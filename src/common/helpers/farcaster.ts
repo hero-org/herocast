@@ -7,11 +7,8 @@ import {
 import { toBytes } from 'viem';
 
 
-// Fid owned by the custody address
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
-
-// Testnet Configuration
-const NETWORK = FarcasterNetwork.MAINNET; // Network of the Hub
+const NETWORK = FarcasterNetwork.MAINNET;
 
 
 export const convertEditorCastToPublishableCast = (text: string, parentUrl?: string): CastAddBody => {

@@ -5,9 +5,6 @@ import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
 import { useAccountStore } from "@/stores/useAccountStore";
 
-// todo: cast in thread has slightly different structure
-// pfps don't seem to render
-// can auto expand images
 // add up down selector hotkeys in list with j and k
 
 export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: () => void, fid?: string }) => {
@@ -54,27 +51,48 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
   }, [])
 
   const renderThread = () => (
-    <ul role="list" className="border-b border-gray-700 divide-y divide-gray-700">
-      {casts.map((cast: CastType, idx: number) => (
-        <li key={cast.hash}
-          className="relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
-          <CastRow
-            cast={cast}
-            channels={channels}
-            showChannel={selectedChannelIdx === null}
-            showEmbed
-          /* isSelected={selectedCastIdx === idx} */
-          /* onSelect={() => selectedCastIdx === idx ? onSelectCast(idx) : setSelectedCastIdx(idx)} */
-          />
-        </li>
-      ))}
-    </ul>
+    <div className="flow-root">
+      <ul role="list" className="-mb-8">
+        {casts.map((cast, idx) => (
+          <li key={cast.hash}>
+            <div className="relative pb-8">
+              {/* this is the left line */}
+              {idx !== casts.length - 1 ? (
+                <span className="absolute left-3 top-5 -ml-px h-full w-px bg-radix-slate4" aria-hidden="true" />
+              ) : null}
+              <div className="relative flex items-start space-x-3">
+                <>
+                  <div className="relative">
+                    <img
+                      className="flex mt-3 h-6 w-6 items-center justify-center rounded-full bg-gray-400 ring-1 ring-radix-slate5"
+                      src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author?.pfp?.url}`}
+                      alt=""
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <CastRow
+                      cast={cast}
+                      channels={channels}
+                      showChannel={selectedChannelIdx === null}
+                      isThreadView
+                      showEmbed
+                    /* isSelected={selectedCastIdx === idx} */
+                    /* onSelect={() => selectedCastIdx === idx ? onSelectCast(idx) : setSelectedCastIdx(idx)} */
+                    />
+                  </div>
+                </>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 
   return <div className="flex flex-col text-gray-100 text-lg">
     {isLoading ? <Loading /> : renderThread()}
     {!isLoading && (
-      <div className="py-2 px-4">
+      <div className="my-4">
         {renderGoBackButton()}
       </div>
     )}
