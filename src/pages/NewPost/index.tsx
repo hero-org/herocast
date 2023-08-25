@@ -9,7 +9,6 @@ import * as Toast from '@radix-ui/react-toast';
 
 
 export default function NewPost() {
-  const toastIdRef = React.useRef()
   const [showToast, setShowToast] = useState(false)
 
   const {
@@ -29,23 +28,14 @@ export default function NewPost() {
     console.log('onSubmitPost', { draft, draftIdx })
 
     if (draft.text.length > 0) {
-      console.log('submitting post', draft.text, account);
-
       if (!account.privateKey || !account.platformAccountId) {
         return;
       }
-      const castBody = convertEditorCastToPublishableCast(draft.text);
-      publishCast({
-        castBody,
-        privateKey: account.privateKey,
-        authorFid: account.platformAccountId,
-      }).then((res) => {
-        console.log('res', res);
+      publishPostDraft(draftIdx, account).then(() => {
+        setShowToast(true);
       }).catch((err) => {
-        console.log('err', err);
-      })
-
-      setShowToast(true);
+        console.log('error publishing post draft', err);
+      });
     }
   }
   return (

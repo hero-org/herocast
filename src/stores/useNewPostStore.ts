@@ -5,8 +5,9 @@ import isEqual from 'lodash.isequal';
 import { CommandType } from "@/common/constants/commands";
 import { TagIcon } from "@heroicons/react/24/outline";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
-import { open } from '@tauri-apps/api/shell';
 import { openWindow } from "@/common/helpers/navigation";
+import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
+import { AccountObjectType } from "./useAccountStore";
 
 export type PostType = {
   text: string;
@@ -39,7 +40,7 @@ interface NewPostStoreProps {
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number) => void;
   removeAllPostDrafts: () => void;
-  publishPostDraft: (draftId: number) => void;
+  publishPostDraft: (draftId: number, account: AccountObjectType) => Promise<void>;
 }
 
 export interface NewPostStore extends NewPostStoreProps, NewPostStoreProps { }
@@ -79,9 +80,22 @@ const store = (set: StoreSet) => ({
       state.postDrafts = [NewPostDraft];
     });
   },
-  publishPostDraft: (draftId: number) => {
+  publishPostDraft: async (draftId: number, account: { privateKey: string, platformAccountId: string }) => {
     set((state) => {
-      console.log("publishing post draft", state.postDrafts[draftId]);
+      const draft = state.postDrafts[draftId];
+      console.log("publishing post draft", draft);
+
+      const castBody = convertEditorCastToPublishableCast(draft.text);
+      publishCast({
+        castBody,
+        privateKey: account.privateKey,
+        authorFid: account.platformAccountId,
+      }).then((res) => {
+        console.log('res', res);
+      }).catch((err) => {
+        console.log('err', err);
+      })
+
       // call farsign api here
       state.postDrafts.splice(draftId, 1);
     });
@@ -91,23 +105,25 @@ export const useNewPostStore = create<NewPostStore>()(devtools(mutative(store)))
 
 export const newPostCommands: CommandType[] = [
   {
-    name: 'Feedback (send email to hellnomail@proton.me)',
+    name: 'Feedback (send cast to @hellno)',
     aliases: ['opinion', 'debrief'],
     icon: TagIcon,
     shortcut: 'cmd+shift+f',
-    // action: () => useNewPostStore.getState().addFeedbackDraft(),
-    action: () => {
-      openWindow("mailto:hellnomail@proton.me?subject=about herocast&body=hey @hellno, feedback on herocast: ");
-    },
+    action: () => useNewPostStore.getState().addFeedbackDraft(),
+    // action: () => {
+    //   openWindow("mailto:hellnomail@proton.me?subject=about herocast&body=hey @hellno, feedback on herocast: ");
+    // },
     enableOnFormTags: true,
+    navigateTo: '/post'
   },
-  // {
-  //   name: 'New Post',
-  //   aliases: ['new cast',],
-  //   icon: PencilSquareIcon,
-  //   shortcut: 'c',
-  //   action: () => useNewPostStore.getState().addNewPostDraft(),
-  //   enableOnFormTags: false,
-  //   requiresNavigationState: []
-  // }
+  {
+    name: 'New Post',
+    aliases: ['new cast',],
+    icon: PencilSquareIcon,
+    shortcut: 'c',
+    action: () => useNewPostStore.getState().addNewPostDraft(),
+    enableOnFormTags: false,
+    requiresNavigationState: [],
+    navigateTo: '/post'
+  }
 ];

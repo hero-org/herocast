@@ -9,4 +9,5 @@ export type CommandType = {
   enabled?: boolean | ((keyboardEvent: KeyboardEvent, hotkeysEvent: HotkeysEvent) => boolean)
   icon?: React.ComponentType<{ className: string }>
   enableOnFormTags?: boolean
+  navigateTo?: string
 }

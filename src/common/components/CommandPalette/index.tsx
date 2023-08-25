@@ -16,6 +16,51 @@ import { Cog6ToothIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
+export const getNavigationCommands = (navigate: (path: string) => void | null): CommandType[] => (
+  [
+    {
+      name: 'Accounts',
+      aliases: ['new account', 'sign up'],
+      icon: UserPlusIcon,
+      shortcut: 'cmd+shift+a',
+      enableOnFormTags: true,
+      action: () => navigate && navigate('/accounts'),
+    },
+    {
+      name: 'Switch to Feed',
+      aliases: ['scroll',],
+      icon: Bars3BottomLeftIcon,
+      shortcut: 'shift+f',
+      enableOnFormTags: false,
+      action: () => navigate && navigate('/feed'),
+    },
+    {
+      name: 'Switch to Search',
+      aliases: ['search',],
+      icon: MagnifyingGlassIcon,
+      shortcut: '/',
+      enableOnFormTags: false,
+      action: () => navigate && navigate('/search'),
+    },
+    {
+      name: 'New post',
+      aliases: ['new tweet', 'write', 'create', 'compose',],
+      icon: PlusCircleIcon,
+      shortcut: 'shift+n',
+      enableOnFormTags: false,
+      action: () => navigate && navigate('/post'),
+    },
+    {
+      name: 'Settings',
+      aliases: ['preferences', 'options', 'config',],
+      icon: Cog6ToothIcon,
+      shortcut: 'cmd+shift+,',
+      enableOnFormTags: true,
+      action: () => navigate && navigate('/settings'),
+    },
+  ]
+)
+
 export default function CommandPalette() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('')
@@ -37,48 +82,7 @@ export default function CommandPalette() {
   })
 
 
-  const navigationCommands: CommandType[] = [
-    {
-      name: 'Accounts',
-      aliases: ['new account', 'sign up'],
-      icon: UserPlusIcon,
-      shortcut: 'cmd+shift+a',
-      enableOnFormTags: true,
-      action: () => navigate('/accounts'),
-    },
-    {
-      name: 'Switch to Feed',
-      aliases: ['scroll',],
-      icon: Bars3BottomLeftIcon,
-      shortcut: 'shift+f',
-      enableOnFormTags: true,
-      action: () => navigate('/feed'),
-    },
-    {
-      name: 'Switch to Search',
-      aliases: ['search',],
-      icon: MagnifyingGlassIcon,
-      shortcut: '/',
-      enableOnFormTags: false,
-      action: () => navigate('/search'),
-    },
-    {
-      name: 'New post',
-      aliases: ['new tweet', 'write', 'create', 'compose',],
-      icon: PlusCircleIcon,
-      shortcut: 'shift+n',
-      enableOnFormTags: true,
-      action: () => navigate('/post'),
-    },
-    {
-      name: 'Settings',
-      aliases: ['preferences', 'options', 'config',],
-      icon: Cog6ToothIcon,
-      shortcut: 'cmd+shift+,',
-      enableOnFormTags: true,
-      action: () => navigate('/settings'),
-    },
-  ]
+  const navigationCommands = getNavigationCommands(navigate);
 
   let commands: CommandType[] = [
     ...navigationCommands,
@@ -89,6 +93,9 @@ export default function CommandPalette() {
 
   for (const command of commands) {
     useHotkeys(command.shortcut.replace('cmd', 'meta'), () => {
+      if (command.navigateTo) {
+        navigate(command.navigateTo);
+      }
       command.action();
     }, [], {
       enableOnFormTags: command.enableOnFormTags,
@@ -115,6 +122,9 @@ export default function CommandPalette() {
     // console.log('onClick command', command);
     if (!command) {
       return;
+    }
+    if (command.navigateTo) {
+      navigate(command.navigateTo);
     }
     command.action();
     closeCommandPallete();

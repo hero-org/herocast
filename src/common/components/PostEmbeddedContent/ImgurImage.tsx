@@ -58,7 +58,7 @@ export const ImgurImage = ({ url }: { url: string }) => {
   return (
     <>
       <img
-        className="mt-2 h-48 lg:h-72 object-left rounded-sm"
+        className="mt-2 h-48 md:h-72 object-left rounded-sm"
         style={{ display: 'none' }}
         src={getImageViaCdnUrl(url)}
         alt=""

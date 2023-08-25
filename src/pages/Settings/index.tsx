@@ -1,3 +1,4 @@
+import { getNavigationCommands } from "@/common/components/CommandPalette";
 import { CommandType } from "@/common/constants/commands";
 import { supabaseClient } from "@/common/helpers/supabase";
 import { accountCommands, channelCommands, useAccountStore } from "@/stores/useAccountStore";
@@ -50,7 +51,7 @@ export default function Settings() {
       { name: 'Feed: go to next cast in list', shortcut: 'j' },
       { name: 'Feed: Open thread view for cast', shortcut: 'Enter or o' },
       { name: 'Feed: Open embedded link in new tab', shortcut: 'shift+o' },
-      // ...navigationCommands,
+      ...getNavigationCommands(),
       ...newPostCommands,
       ...accountCommands,
       ...channelCommands,

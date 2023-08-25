@@ -22,6 +22,17 @@ export const convertEditorCastToPublishableCast = (text: string, parentUrl?: str
     mentions: [],
     mentionsPositions: [],
   }
+
+  const hellnoIndex = text.indexOf('@hellno');
+  if (hellnoIndex !== -1) {
+    cast = {
+      ...cast,
+      text: text.replace('@hellno', ''),
+      mentions: [13596],
+      mentionsPositions: [hellnoIndex]
+    }
+  }
+
   if (parentUrl) {
     cast = {
       ...cast,
@@ -40,6 +51,10 @@ type PublishCastParams = {
 };
 
 export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCastParams) => {
+  if (!VITE_NEYNAR_HUB_URL) {
+    throw new Error('HUB_URL is not defined');
+  }
+
   console.log(`publishCast - fid ${authorFid} cast: ${JSON.stringify(castBody)}`)
   // const wallet = new Wallet(privateKey);
   // Create an EIP712 Signer with the wallet that holds the custody address of the user
@@ -50,43 +65,23 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
     network: NETWORK,
   };
 
-  // Step 2: create message
 
+  // Step 2: create message
   const cast = await makeCastAdd(
     castBody,
     dataOptions,
     ed25519Signer,
   );
 
-  /**
-   * Step 3: Broadcast CastAdd messages to Hub
-   *
-   * Send the new casts to a Hub so that they become part of the Farcaster network
-   */
-
+  // Step 3: publish message to network
   const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
-  // const client = getInsecureHubRpcClient(VITE_NEYNAR_HUB_URL);
-  //
-  // 1. If your client does not use authentication.
-  // castResults.map((castAddResult) => castAddResult.map((castAdd) => client.submitMessage(castAdd)));
-
-  const res = cast.map(async (castAdd) => {
-    console.log('submitting Message - castAdd:', castAdd)
+  const res = await cast.map(async (castAdd) => {
     return await client.submitMessage(castAdd);
   });
+  const val = await res?.value;
+  console.log('res?.value', { val });
 
-  console.log('res afer submitMessage', res);
-  console.log('res?.value', await res?.value);
-
-  // resolve res call and log with then and catch
-  // res.then((res) => {
-  //   console.log('res after submitMessage then', res);
-  // }).catch((err) => {
-  //   console.log('res after submitMessage catch', err);
-  // });
-
-  console.log(`Submitted cast to Farcaster network: ${JSON.stringify(cast)}`);
-  // console.log(`publishCast - fid ${authorFid} cast: `)
+  console.log(`Submitted cast to Farcaster network`);
 
   // client.close();
 };

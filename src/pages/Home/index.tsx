@@ -44,9 +44,27 @@ export default function Home() {
     { name: 'Settings', router: '/settings', icon: Cog6ToothIcon },
   ]
 
+  const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
+    switch (pathname) {
+      case '/feed':
+        return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
+      case '/post':
+        return RIGHT_SIDEBAR_ENUM.CHANNELS;
+      case '/search':
+        return RIGHT_SIDEBAR_ENUM.CHANNELS;
+      case '/accounts':
+        return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
+      case '/settings':
+        return RIGHT_SIDEBAR_ENUM.NONE;
+      case '/login':
+        return RIGHT_SIDEBAR_ENUM.NONE;
+      default:
+        return RIGHT_SIDEBAR_ENUM.NONE;
+    }
+  }
+
   const navItem = navigation.find((item) => item.router === pathname) || { name: 'herocast', getTitle: null }
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
-  const pageNavigation = pathname !== '/login' ? { rightSidebar: RIGHT_SIDEBAR_ENUM.ACCOUNTS } : {};
 
   useEffect(() => {
     trackPageView(pathname.slice(1));
@@ -68,7 +86,7 @@ export default function Home() {
   }, [locationHash]);
 
   const renderRightSidebar = () => {
-    switch (pageNavigation.rightSidebar) {
+    switch (getSidebarForPathname(pathname)) {
       case RIGHT_SIDEBAR_ENUM.ACCOUNTS:
         return <AccountsRightSidebar />
       case RIGHT_SIDEBAR_ENUM.CHANNELS:

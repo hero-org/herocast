@@ -195,7 +195,7 @@ export default function Feed() {
     />
   )
 
-  return isEmpty(feed) ? renderEmptyState() : (
+  return isEmpty(accounts) && isEmpty(feed) ? renderEmptyState() : (
     <div className="min-w-full mr-4">
       {showCastThreadView ? renderThread() : renderFeed()}
       {isLoadingFeed && <Loading />}

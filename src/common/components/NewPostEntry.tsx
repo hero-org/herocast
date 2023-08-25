@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Tab } from '@headlessui/react';
+import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 
 
 
@@ -128,15 +129,27 @@ export default function NewPostEntry({ draft, onTextChange, onSubmit }: { draft:
               </>
             )}
           </Tab.Group>
-          <div className="mt-2 flex justify-end">
+          <div className="mt-2 flex justify-start">
             {/* <span className="mt-2 text-gray-400">posting to {selectedChannel ? `${selectedChannel.name} channel` : 'your mainfeed'}</span> */}
             <button
               onClick={() => onSubmit()}
               type="submit"
-              className="inline-flex items-center rounded-sm bg-zinc-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600"
+              className="max-h-6inline-flex items-center rounded-sm bg-zinc-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600"
             >
               Post
             </button>
+          </div>
+          <div className="mt-4 border-l-4 border-yellow-400 bg-yellow-500 p-2">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-200" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-200">
+                  this doesn't support embedding urls or tagging other users yet
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
