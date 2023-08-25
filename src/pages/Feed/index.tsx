@@ -12,6 +12,9 @@ import isEmpty from "lodash.isempty";
 import { CastThreadView } from "@/common/components/CastThreadView";
 import { getNeynarFeedEndpoint } from "@/common/helpers/neynar";
 import { Loading } from "@/common/components/Loading";
+import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
+import { UserPlusIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -19,12 +22,13 @@ type FeedType = {
 
 
 export default function Feed() {
+  const navigate = useNavigate();
+
   const [feeds, setFeeds] = useState<FeedType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedOffset, setNextFeedOffset] = useState("");
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
-
   const {
     accounts,
     channels,
@@ -36,8 +40,6 @@ export default function Feed() {
     threshold: 0,
     delay: 100,
   });
-
-  // console.log('inView', inView, 'entry', entry);
 
   const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
   const account: AccountObjectType = accounts[selectedAccountIdx];
@@ -65,10 +67,6 @@ export default function Feed() {
   const onExpandCast = (idx: number) => {
     setSelectedCastIdx(idx);
     setShowCastThreadView(true);
-
-    // const cast = feed[idx];
-    // const url = `https://warpcast.com/${cast.author.username}/${cast.hash.slice(0, 8)}`;
-    // openWindow(url);
   }
 
   useHotkeys(['j', Key.ArrowDown], () => {
@@ -178,14 +176,28 @@ export default function Feed() {
     </ul>
   );
 
-  return (
+  const renderThread = () => (
+    <CastThreadView
+      cast={feed[selectedCastIdx]}
+      fid={account.platformAccountId}
+      onBack={() => setShowCastThreadView(false)}
+    />
+  )
+
+
+  const renderEmptyState = () => (
+    <EmptyStateWithAction
+      title="No accounts"
+      description="Add an account to get started"
+      onClick={() => navigate('/accounts')}
+      submitText="Add account"
+      icon={UserPlusIcon}
+    />
+  )
+
+  return isEmpty(feed) ? renderEmptyState() : (
     <div className="min-w-full mr-4">
-      {showCastThreadView ?
-        <CastThreadView
-          cast={feed[selectedCastIdx]}
-          fid={account.platformAccountId}
-          onBack={() => setShowCastThreadView(false)}
-        /> : renderFeed()}
+      {showCastThreadView ? renderThread() : renderFeed()}
       {isLoadingFeed && <Loading />}
     </div >
   )

@@ -6,7 +6,7 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
-import { FaceSmileIcon } from '@heroicons/react/24/outline';
+import { FaceSmileIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import commandScore from "command-score";
 import { Fragment, useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -54,22 +54,22 @@ export default function CommandPalette() {
       enableOnFormTags: true,
       action: () => navigate('/feed'),
     },
-    // {
-    //   name: 'Switch to Replies.',
-    //   aliases: ['threads',],
-    //   icon: ChatBubbleBottomCenterTextIcon,
-    //   shortcut: 'shift+r',
-    //   enableOnFormTags: true,
-    //   action: () => useNavigationStore.getState().toReplies(),
-    // },
-    // {
-    //   name: 'Switch to new post',
-    //   aliases: ['new tweet', 'write', 'create', 'compose',],
-    //   icon: HashtagIcon,
-    //   shortcut: 'cmd+n',
-    //   enableOnFormTags: true,
-    //   action: () => useNavigationStore.getState().toNewPost(),
-    // },
+    {
+      name: 'Switch to Search',
+      aliases: ['search',],
+      icon: MagnifyingGlassIcon,
+      shortcut: '/',
+      enableOnFormTags: false,
+      action: () => navigate('/search'),
+    },
+    {
+      name: 'New post',
+      aliases: ['new tweet', 'write', 'create', 'compose',],
+      icon: PlusCircleIcon,
+      shortcut: 'shift+n',
+      enableOnFormTags: true,
+      action: () => navigate('/post'),
+    },
     {
       name: 'Settings',
       aliases: ['preferences', 'options', 'config',],

@@ -1,140 +1,239 @@
 import {
-  CastAddMessage,
-  fromFarcasterTime,
+  CastAddBody, FarcasterNetwork,
+  NobleEd25519Signer,
   getHubRpcClient,
-  HubAsyncResult,
-  HubRpcClient,
-  isCastAddMessage,
-  isUserDataAddMessage,
-  UserDataType,
+  makeCastAdd,
 } from "@farcaster/hub-web";
-import TimeAgo from "javascript-time-ago";
-// import en from "javascript-time-ago/locale/en";
-import en from 'javascript-time-ago/locale/en.json'
+import { toBytes } from 'viem';
 
-import { err, ok, Result } from "neverthrow";
 
-TimeAgo.addDefaultLocale(en);
-const timeAgo = new TimeAgo("en-US");
+// Fid owned by the custody address
+export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 
-/**
- * Returns a user's casts which are not replies to any other casts in reverse chronological order.
- */
-const getPrimaryCastsByFid = async (fid: number, client: HubRpcClient): HubAsyncResult<CastAddMessage[]> => {
-  // TODO: Instead of fetching N casts and returning the primary ones, loop through until N primary casts are found.
-  const result = await client.getCastsByFid({ fid: fid, pageSize: 10, reverse: true });
+// Testnet Configuration
+const NETWORK = FarcasterNetwork.MAINNET; // Network of the Hub
 
-  if (result.isErr()) {
-    return err(result.error);
+
+export const convertEditorCastToPublishableCast = (text: string, parentUrl?: string): CastAddBody => {
+  let cast = {
+    text,
+    embeds: [],
+    embedsDeprecated: [],
+    mentions: [],
+    mentionsPositions: [],
+  }
+  if (parentUrl) {
+    cast = {
+      ...cast,
+      parentUrl,
+      embeds: [{ url: parentUrl }]
+    }
   }
 
-  // Coerce Messages into Casts, should not actually filter out any messages
-  const casts = result.value.messages.filter(isCastAddMessage);
+  return cast;
+}
 
-  return ok(casts.filter((message) => !message.data.castAddBody.parentCastId));
+type PublishCastParams = {
+  authorFid: string;
+  privateKey: string;
+  castBody: CastAddBody;
 };
 
-const getFnameFromFid = async (fid: number, client: HubRpcClient): HubAsyncResult<string> => {
-  const result = await client.getUserData({ fid: fid, userDataType: UserDataType.USERNAME });
-  return ok(
-    result.match(
-      (message) => {
-        if (isUserDataAddMessage(message)) {
-          return message.data.userDataBody.value;
-        } else {
-          return "";
-        }
-      },
-      () => `${fid}!`, // fallback to FID if no username is set
-    ),
-  );
-};
+export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCastParams) => {
+  console.log(`publishCast - fid ${authorFid} cast: ${JSON.stringify(castBody)}`)
+  // const wallet = new Wallet(privateKey);
+  // Create an EIP712 Signer with the wallet that holds the custody address of the user
+  const ed25519Signer = new NobleEd25519Signer(toBytes(privateKey));
 
-/**
- * Compares two CastAddMessages by timestamp, in reverse chronological order.
- */
-const compareCasts = (a: CastAddMessage, b: CastAddMessage) => {
-  if (a.data.timestamp < b.data.timestamp) {
-    return 1;
-  }
-  if (a.data.timestamp > b.data.timestamp) {
-    return -1;
-  }
-  return 0;
-};
+  const dataOptions = {
+    fid: Number(authorFid),
+    network: NETWORK,
+  };
 
-/**
- * Converts a CastAddMessage into a printable string representation.
- */
-const castToString = async (cast: CastAddMessage, nameMapping: Map<number, string>, client: HubRpcClient) => {
-  const fname = nameMapping.get(cast.data.fid) ?? `${cast.data.fid}!`; // if the user doesn't have a username set, use their FID
+  // Step 2: create message
 
-  // Convert the timestamp to a human readable string
-  // Safety: OK to do this since we know the timestamp coming from the Hub must be in the valid range
-  const unixTime = fromFarcasterTime(cast.data.timestamp)._unsafeUnwrap();
-  const dateString = timeAgo.format(new Date(unixTime));
-
-  const { text, mentions, mentionsPositions } = cast.data.castAddBody;
-  const encoder = new TextEncoder();
-  const bytes = encoder.encode(text);
-
-  const decoder = new TextDecoder();
-  let textWithMentions = "";
-  let indexBytes = 0;
-  for (let i = 0; i < mentions.length; i++) {
-    textWithMentions += decoder.decode(bytes.slice(indexBytes, mentionsPositions[i]));
-    const result = await getFnameFromFid(mentions[i], client);
-    // rome-ignore lint/suspicious/noAssignInExpressions: legacy code, avoid using ignore for new code
-    result.map((fname) => (textWithMentions += fname));
-    indexBytes = mentionsPositions[i];
-  }
-  textWithMentions += decoder.decode(bytes.slice(indexBytes));
-
-  // Remove newlines from the message text
-  const textNoLineBreaks = textWithMentions.replace(/(\r\n|\n|\r)/gm, " ");
-
-  return `${fname}: ${textNoLineBreaks}\n${dateString}\n`;
-};
-
-export const getFarcasterFeed = async (fids: number[]) => {
-  // const client = getInsecureHubRpcClient(HUB_URL); // Use this if you're not using SSL
-  const client = getHubRpcClient(HUB_URL, {});
-
-  // 1. Create a mapping of fids to fnames, which we'll need later to display messages
-  const fidToFname = new Map<number, string>();
-
-  const fnameResultPromises = fids.map((fid) => client.getUserData({ fid, userDataType: UserDataType.USERNAME }));
-  const fnameResults = await Promise.all(fnameResultPromises);
-
-  fnameResults.map((result) =>
-    result.map((uData) => {
-      if (isUserDataAddMessage(uData)) {
-        const fid = uData.data.fid;
-        const fname = uData.data.userDataBody.value;
-        fidToFname.set(fid, fname);
-      }
-    }),
+  const cast = await makeCastAdd(
+    castBody,
+    dataOptions,
+    ed25519Signer,
   );
 
-  // 2. Fetch primary casts for each fid and print them
-  const castResultPromises = fids.map((fid) => getPrimaryCastsByFid(fid, client));
-  const castsResult = Result.combine(await Promise.all(castResultPromises));
+  /**
+   * Step 3: Broadcast CastAdd messages to Hub
+   *
+   * Send the new casts to a Hub so that they become part of the Farcaster network
+   */
 
-  if (castsResult.isErr()) {
-    console.error("Fetching casts failed");
-    console.error(castsResult.error);
-    return;
-  }
+  const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
+  // const client = getInsecureHubRpcClient(VITE_NEYNAR_HUB_URL);
+  //
+  // 1. If your client does not use authentication.
+  // castResults.map((castAddResult) => castAddResult.map((castAdd) => client.submitMessage(castAdd)));
 
-  const sortedCasts = castsResult.value.flat().sort(compareCasts); // sort casts by timestamp
-  const stringifiedCasts = await Promise.all(sortedCasts.map((c) => castToString(c, fidToFname, client))); // convert casts to printable strings
+  const res = cast.map(async (castAdd) => {
+    console.log('submitting Message - castAdd:', castAdd)
+    return await client.submitMessage(castAdd);
+  });
 
-  for (const outputCast of stringifiedCasts) {
-    console.log(outputCast);
-  }
+  console.log('res afer submitMessage', res);
+  console.log('res?.value', await res?.value);
 
-  // 3. Close the connection
-  client.close();
+  // resolve res call and log with then and catch
+  // res.then((res) => {
+  //   console.log('res after submitMessage then', res);
+  // }).catch((err) => {
+  //   console.log('res after submitMessage catch', err);
+  // });
 
-  return stringifiedCasts;
+  console.log(`Submitted cast to Farcaster network: ${JSON.stringify(cast)}`);
+  // console.log(`publishCast - fid ${authorFid} cast: `)
+
+  // client.close();
 };
+
+
+
+///// EXAMPLES GO BELOW
+
+/**
+   * Example 1: A cast with no mentions
+   *
+   * "This is a cast with no mentions"
+   */
+
+  // const cast = await makeCastAdd(
+  //   castBody,
+  //   dataOptions,
+  //   ed25519Signer,
+  // );
+  // castResults.push(cast);
+
+  // /**
+  //  * Example 2: A cast with mentions
+  //  *
+  //  * "@dwr and @v are big fans of @farcaster"
+  //  */
+  // const castWithMentions = await makeCastAdd(
+  //   {
+  //     text: " and  are big fans of ",
+  //     embeds: [],
+  //     embedsDeprecated: [],
+  //     mentions: [3, 2, 1],
+  //     mentionsPositions: [0, 5, 22],
+  //   },
+  //   dataOptions,
+  //   ed25519Signer,
+  // );
+  // castResults.push(castWithMentions);
+
+  // /**
+  //  * Example 3: A cast with mentions and an attachment
+  //  *
+  //  * "Hey @dwr, check this out!"
+  //  */
+  // const castWithMentionsAndAttachment = await makeCastAdd(
+  //   {
+  //     text: "Hey , check this out!",
+  //     embeds: [{ url: "https://farcaster.xyz" }],
+  //     embedsDeprecated: [],
+  //     mentions: [3],
+  //     mentionsPositions: [4],
+  //   },
+  //   dataOptions,
+  //   ed25519Signer,
+  // );
+  // castResults.push(castWithMentionsAndAttachment);
+
+  // /**
+  //  * Example 4: A cast with mentions and an attachment, and a link in the text
+  //  *
+  //  * "Hey @dwr, check out https://farcaster.xyz!"
+  //  */
+  // const castWithMentionsAttachmentLink = await makeCastAdd(
+  //   {
+  //     text: "Hey , check out https://farcaster.xyz!",
+  //     embeds: [{ url: "https://farcaster.xyz" }],
+  //     embedsDeprecated: [],
+  //     mentions: [3],
+  //     mentionsPositions: [4],
+  //   },
+  //   dataOptions,
+  //   ed25519Signer,
+  // );
+  // castResults.push(castWithMentionsAttachmentLink);
+
+  // /**
+  //  * Example 5: A cast with multiple mentions
+  //  *
+  //  * "You can mention @v multiple times: @v @v @v"
+  //  */
+
+  // const castWithMultipleMentions = await makeCastAdd(
+  //   {
+  //     text: "You can mention  multiple times:   ",
+  //     embeds: [],
+  //     embedsDeprecated: [],
+  //     mentions: [2, 2, 2, 2],
+  //     mentionsPositions: [16, 33, 34, 35],
+  //   },
+  //   dataOptions,
+  //   ed25519Signer,
+  // );
+  // castResults.push(castWithMultipleMentions);
+
+  // /**
+  //  * Example 6: A cast with emoji and mentions
+  //  *
+  //  * "🤓@farcaster can mention immediately after emoji"
+  //  */
+  // const castWithEmojiAndMentions = await makeCastAdd(
+  //   {
+  //     text: "🤓 can mention immediately after emoji",
+  //     embeds: [],
+  //     embedsDeprecated: [],
+  //     mentions: [1],
+  //     mentionsPositions: [4],
+  //   },
+  //   dataOptions,
+  //   ed25519Signer,
+  // );
+  // castResults.push(castWithEmojiAndMentions);
+
+  // /**
+  //  * Example 7: A cast with emoji and a link in the text and an attachment
+  //  *
+  //  * "🤓https://url-after-unicode.com can include URL immediately after emoji"
+  //  */
+
+  // const castWithEmojiLinkAttachmnent = await makeCastAdd(
+  //   {
+  //     text: "🤓https://url-after-unicode.com can include URL immediately after emoji",
+  //     embeds: [{ url: "https://url-after-unicode.com" }],
+  //     embedsDeprecated: [],
+  //     mentions: [],
+  //     mentionsPositions: [],
+  //   },
+  //   dataOptions,
+  //   ed25519Signer,
+  // );
+  // castResults.push(castWithEmojiLinkAttachmnent);
+
+  // /**
+  //  * Example 7: A cast that replies to a URL
+  //  *
+  //  * "I think this is a great protocol 🚀"
+  //  */
+
+  // const castReplyingToAUrl = await makeCastAdd(
+  //   {
+  //     text: "I think this is a great protocol 🚀",
+  //     embeds: [],
+  //     embedsDeprecated: [],
+  //     mentions: [],
+  //     mentionsPositions: [],
+  //     parentUrl: "https://www.farcaster.xyz/",
+  //   },
+  //   dataOptions,
+  //   ed25519Signer,
+  // );
+  // castResults.push(castReplyingToAUrl);

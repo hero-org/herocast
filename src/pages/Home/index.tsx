@@ -2,7 +2,7 @@ import React, { Suspense, useEffect } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import {
-  Cog6ToothIcon, SignalIcon,
+  Cog6ToothIcon, PlusCircleIcon, SignalIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Bars3Icon, UserPlusIcon } from '@heroicons/react/20/solid';
@@ -12,11 +12,10 @@ import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRight
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import isEmpty from "lodash.isempty";
-import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { trackPageView } from "@/common/helpers/analytics";
 import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
 import { findParamInHashUrlPath } from "@/common/helpers/navigation";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 
 type NavigationItemType = {
   name: string;
@@ -32,10 +31,6 @@ export default function Home() {
 
   const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
 
-  const {
-    accounts
-  } = useAccountStore();
-
   const navigation: NavigationItemType[] = [
     {
       name: 'Feed',
@@ -43,8 +38,8 @@ export default function Home() {
       icon: SignalIcon,
       getTitle: () => feedTitle
     },
-    // { name: 'Replies', icon: ChartBarSquareIcon, onClick: toReplies },
-    // { name: 'New Post', icon: PlusCircleIcon, onClick: toNewPost },
+    { name: 'New Post', router: '/post', icon: PlusCircleIcon },
+    { name: 'Search', router: '/search', icon: MagnifyingGlassIcon },
     { name: 'Accounts', router: '/accounts', icon: UserPlusIcon },
     { name: 'Settings', router: '/settings', icon: Cog6ToothIcon },
   ]
@@ -71,16 +66,6 @@ export default function Home() {
       console.log('unknown locationHash', locationHash);
     }
   }, [locationHash]);
-
-  const renderEmptyState = () => (
-    <EmptyStateWithAction
-      title="No accounts"
-      description="Add an account to get started"
-      onClick={() => navigate('/accounts')}
-      submitText="Add account"
-      icon={UserPlusIcon}
-    />
-  )
 
   const renderRightSidebar = () => {
     switch (pageNavigation.rightSidebar) {
@@ -266,7 +251,6 @@ export default function Home() {
               <h1 className="text-base font-semibold leading-7 text-white"></h1>
             </header>
             <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-8">
-              {pathname === '/feed' && isEmpty(accounts) && renderEmptyState()}
               <Suspense fallback={<span className="font-semibold text-gray-200">Loading...</span>}>
                 <Outlet />
               </Suspense>

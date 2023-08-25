@@ -3,7 +3,9 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 import Home from '@/pages/Home';
 import Feed from '@/pages/Feed';
 import Settings from '@/pages/Settings';
-import Accounts from './pages/Accounts';
+import Accounts from '@/pages/Accounts';
+import NewPost from '@/pages/NewPost';
+import Search from '@/pages/Search';
 import CommandPalette from '@/common/components/CommandPalette';
 import ErrorPage from '@/pages/ErrorPage';
 import Login from '@/pages/Login';
@@ -32,6 +34,14 @@ export const router = createBrowserRouter([
       {
         path: "accounts",
         element: <Accounts />,
+      },
+      {
+        path: "post",
+        element: <NewPost />,
+      },
+      {
+        path: "search",
+        element: <Search />,
       },
       {
         path: "settings",

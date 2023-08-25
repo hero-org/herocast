@@ -141,7 +141,7 @@ export const hydrate = async () => {
   }
 
   const { data: accountData, error: accountError } = await supabaseClient
-    .from('accounts')
+    .from('decrypted_accounts')
     // .from('accounts')
     .select('*')
     .eq('user_id', user?.id)
@@ -163,7 +163,7 @@ export const hydrate = async () => {
       platformAccountId: account.platform_account_id,
       createdAt: account.created_at,
       data: account.data,
-      privateKey: '', // account.decrypted_private_key,
+      privateKey: account.decrypted_private_key,
     }))
 
     useAccountStore.setState({
