@@ -1,13 +1,13 @@
-import { create, State } from "zustand";
+import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import isEqual from 'lodash.isequal';
 import { CommandType } from "@/common/constants/commands";
 import { TagIcon } from "@heroicons/react/24/outline";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
-import { openWindow } from "@/common/helpers/navigation";
 import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
+import { trackEventWithProperties } from "@/common/helpers/analytics";
 
 export type PostType = {
   text: string;
@@ -81,12 +81,12 @@ const store = (set: StoreSet) => ({
     });
   },
   publishPostDraft: async (draftId: number, account: { privateKey: string, platformAccountId: string }) => {
-    set((state) => {
+    set(async (state) => {
       const draft = state.postDrafts[draftId];
       console.log("publishing post draft", draft);
 
       const castBody = convertEditorCastToPublishableCast(draft.text);
-      publishCast({
+      await publishCast({
         castBody,
         privateKey: account.privateKey,
         authorFid: account.platformAccountId,
@@ -96,7 +96,7 @@ const store = (set: StoreSet) => ({
         console.log('err', err);
       })
 
-      // call farsign api here
+      trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
       state.postDrafts.splice(draftId, 1);
     });
   }
