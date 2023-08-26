@@ -3,7 +3,6 @@ import { classNames } from "@/common/helpers/css";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { PostType, useNewPostStore } from "@/stores/useNewPostStore";
 import React, { useState } from "react";
-import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
 import CustomToast from "@/common/components/CustomToast";
 import * as Toast from '@radix-ui/react-toast';
 
@@ -17,12 +16,7 @@ export default function NewPost() {
     removeAllPostDrafts,
     publishPostDraft,
   } = useNewPostStore();
-  const {
-    accounts,
-    selectedAccountIdx
-  } = useAccountStore();
-
-  const account = accounts[selectedAccountIdx];
+  const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
 
   const onSubmitPost = async ({ draft, draftIdx }: { draft: PostType, draftIdx: number }) => {
     console.log('onSubmitPost', { draft, draftIdx })

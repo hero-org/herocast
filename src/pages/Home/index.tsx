@@ -49,7 +49,7 @@ export default function Home() {
       case '/feed':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
       case '/post':
-        return RIGHT_SIDEBAR_ENUM.CHANNELS;
+        return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
       case '/search':
         return RIGHT_SIDEBAR_ENUM.CHANNELS;
       case '/accounts':

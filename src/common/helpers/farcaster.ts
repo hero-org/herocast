@@ -5,13 +5,24 @@ import {
   makeCastAdd,
 } from "@farcaster/hub-web";
 import { toBytes } from 'viem';
+import casterData from '@/assets/data/casters-2023-08-26.json';
 
 
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
 
 
-export const convertEditorCastToPublishableCast = (text: string, parentUrl?: string): CastAddBody => {
+type CasterType = {
+  fid: number
+  username?: string
+  display_name?: string
+}
+
+export const getCasterData = (): CasterType[] => {
+  return casterData;
+}
+
+export const convertEditorCastToPublishableCast = (text: string, parentUrl?: string, parentHash?: string): CastAddBody => {
   let cast = {
     text,
     embeds: [],
@@ -20,21 +31,32 @@ export const convertEditorCastToPublishableCast = (text: string, parentUrl?: str
     mentionsPositions: [],
   }
 
-  const hellnoIndex = text.indexOf('@hellno');
-  if (hellnoIndex !== -1) {
-    cast = {
-      ...cast,
-      text: text.replace('@hellno', ''),
-      mentions: [13596],
-      mentionsPositions: [hellnoIndex]
+  let match;
+  const mentionRegex = /@(\S+)/g;
+  while ((match = mentionRegex.exec(text)) != null) {
+    // match is [@username, username]
+    console.log(`Found ${JSON.stringify(match)} start=${match.index}`);
+
+    const casterUsername = match[1];
+    console.log('casterData first 10 items:', casterData.slice(0, 10));
+    console.log('casterUsername:', casterUsername)
+    const fid = casterData.find(caster => caster.username === casterUsername)?.fid;
+    if (fid) {
+      cast = {
+        ...cast,
+        text: cast.text.replace(match[0], ''),
+        mentions: [...cast.mentions, fid],
+        mentionsPositions: [...cast.mentionsPositions, match.index]
+      }
+    } else {
+      throw new Error(`Failed to mention ${casterUsername} - couldn't post this cast`);
     }
-  }
+  };
 
   if (parentUrl) {
     cast = {
       ...cast,
       parentUrl,
-      embeds: [{ url: parentUrl }]
     }
   }
 
@@ -75,8 +97,10 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
   const res = await cast.map(async (castAdd) => {
     return await client.submitMessage(castAdd);
   });
-  const val = await res?.value;
-  console.log('res?.value', { val });
+  // Result<Promise<HubResult<Mesage>>, HubError>
+  const res2 = await Promise.resolve(res);
+  console.log('res2', res2);
+  // console.log('res?.value', { val });
 
   console.log(`Submitted cast to Farcaster network`);
 

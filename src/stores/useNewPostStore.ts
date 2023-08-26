@@ -9,25 +9,24 @@ import { convertEditorCastToPublishableCast, publishCast } from "@/common/helper
 import { AccountObjectType } from "./useAccountStore";
 import { trackEventWithProperties } from "@/common/helpers/analytics";
 
+type PostEmbedType = {
+  url: string;
+};
+
 export type PostType = {
   text: string;
-  media: string;
-  replyTo: string;
-  channel: string;
+  embeds?: PostEmbedType[];
+  parentHash?: string;
+  parentUrl?: string;
 }
 
 const NewPostDraft: PostType = {
   text: "",
-  media: "",
-  replyTo: "",
-  channel: "",
 };
 
 const NewFeedbackPostDraft: PostType = {
-  text: "hey @hellno, feedback on herocast: ",
-  media: "",
-  replyTo: "",
-  channel: "",
+  text: "hey @hellno, feedback on @herocast: ",
+  parentUrl: "https://herocast.xyz"
 };
 
 interface NewPostStoreProps {
@@ -83,9 +82,10 @@ const store = (set: StoreSet) => ({
   publishPostDraft: async (draftId: number, account: { privateKey: string, platformAccountId: string }) => {
     set(async (state) => {
       const draft = state.postDrafts[draftId];
-      console.log("publishing post draft", draft);
+      console.log("publishPostDraft", draft);
 
       const castBody = convertEditorCastToPublishableCast(draft.text);
+      console.log("accountID", account.platformAccountId, "castBody", castBody);
       await publishCast({
         castBody,
         privateKey: account.privateKey,

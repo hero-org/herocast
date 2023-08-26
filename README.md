@@ -37,6 +37,7 @@ soon: create release via github actions
 
 # Resources
 - originally based on https://github.com/michyaraque/tauri-boilerplate
+- for autocomplete in new posts:  https://github.com/webscopeio/react-textarea-autocomplete
 - ...
 
 `
