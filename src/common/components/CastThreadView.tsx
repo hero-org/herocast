@@ -58,7 +58,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
             <div className="relative pb-8">
               {/* this is the left line */}
               {idx !== casts.length - 1 ? (
-                <span className="absolute left-3 top-5 -ml-px h-full w-px bg-radix-slate4" aria-hidden="true" />
+                <span className="rounded-lg absolute left-3 top-12 -ml-px h-[calc(100%-46px)] w-px bg-radix-slate10" aria-hidden="true" />
               ) : null}
               <div className="relative flex items-start space-x-3">
                 <>
