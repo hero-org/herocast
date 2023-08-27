@@ -1,3 +1,14 @@
+type PostEmbedType = {
+  url: string;
+};
+
+export type PostType = {
+  text: string;
+  embeds?: PostEmbedType[];
+  parentHash?: string;
+  parentUrl?: string;
+}
+
 export type AuthorType = {
   fid: string,
   username: string,

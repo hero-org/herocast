@@ -6,6 +6,7 @@ import {
 } from "@farcaster/hub-web";
 import { toBytes } from 'viem';
 import casterData from '@/assets/data/casters-2023-08-26.json';
+import { PostType } from "@/common/constants/farcaster";
 
 
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
@@ -22,7 +23,10 @@ export const getCasterData = (): CasterType[] => {
   return casterData;
 }
 
-export const convertEditorCastToPublishableCast = (text: string, parentUrl?: string, parentHash?: string): CastAddBody => {
+export const convertEditorCastToPublishableCast = (draft: PostType): CastAddBody => {
+  const text = draft.text;
+  const parentUrl = draft.parentUrl;
+
   let cast = {
     text,
     embeds: [],

@@ -8,17 +8,7 @@ import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
 import { trackEventWithProperties } from "@/common/helpers/analytics";
-
-type PostEmbedType = {
-  url: string;
-};
-
-export type PostType = {
-  text: string;
-  embeds?: PostEmbedType[];
-  parentHash?: string;
-  parentUrl?: string;
-}
+import { PostType } from "@/common/constants/farcaster";
 
 const NewPostDraft: PostType = {
   text: "",
@@ -91,7 +81,9 @@ const store = (set: StoreSet) => ({
         const draft = state.postDrafts[draftId];
         console.log("publishPostDraft", draft);
 
-        const castBody = convertEditorCastToPublishableCast(draft.text);
+        const castBody = convertEditorCastToPublishableCast(draft);
+        console.log("castBody", castBody);
+
         await publishCast({
           castBody,
           privateKey: account.privateKey,

@@ -16,7 +16,7 @@ import { Cog6ToothIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
-export const getNavigationCommands = (navigate: (path: string) => void | null): CommandType[] => (
+export const getNavigationCommands = (navigate?: (path: string) => void | null): CommandType[] => (
   [
     {
       name: 'Accounts',
