@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
+import { supabaseClient } from '@/common/helpers/supabase';
 import {
   Cog6ToothIcon, PlusCircleIcon, SignalIcon,
   XMarkIcon
@@ -76,6 +77,13 @@ export default function Home() {
       navigate(`/login${locationHash}`);
     } else if (locationHash) {
       console.log('unknown locationHash', locationHash);
+    } else {
+      supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        // console.log(`home getSession`, session)
+        if (!session) {
+          navigate('/login');
+        }
+      })
     }
   }, [locationHash]);
 
