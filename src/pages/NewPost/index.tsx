@@ -12,11 +12,13 @@ export default function NewPost() {
 
   const {
     postDrafts,
-    updatePostDraftText,
+    updatePostDraft,
     removeAllPostDrafts,
     publishPostDraft,
   } = useNewPostStore();
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
+
+  console.log('postDrafts', postDrafts);
 
   const onSubmitPost = async ({ draft, draftIdx }: { draft: PostType, draftIdx: number }) => {
     console.log('onSubmitPost', { draft, draftIdx })
@@ -25,12 +27,18 @@ export default function NewPost() {
       if (!account.privateKey || !account.platformAccountId) {
         return;
       }
-      publishPostDraft(draftIdx, account).then(() => {
+      await publishPostDraft(draftIdx, account).then((res) => {
+        console.log('published post draft, res:', res);
         setShowToast(true);
       }).catch((err) => {
         console.log('error publishing post draft', err);
       });
     }
+  }
+
+  const onSubmit = (event, draft, draftIdx) => {
+    event.preventDefault();
+    onSubmitPost({ draft, draftIdx })
   }
   return (
     <>
@@ -48,14 +56,14 @@ export default function NewPost() {
               Remove all drafts
             </div>
           </div>
-          <div className="max-w-fit divide-y">
+          <div className="w-1/2 divide-y">
             {postDrafts.map((draft, draftIdx) =>
               <div key={draftIdx} className="pt-4 pb-6">
                 <NewPostEntry
                   key={`draft-${draftIdx}`}
                   draft={draft}
-                  onTextChange={(text: string) => updatePostDraftText(draftIdx, text)}
-                  onSubmit={() => onSubmitPost({ draft, draftIdx })}
+                  onChange={(cast: PostType) => updatePostDraft(draftIdx, cast)}
+                  onSubmit={(e: React.FormEvent<HTMLFormElement>) => onSubmit(e, draft, draftIdx)}
                 />
               </div>
             )}

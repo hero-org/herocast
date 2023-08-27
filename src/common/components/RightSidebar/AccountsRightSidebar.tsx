@@ -10,11 +10,6 @@ import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
 
-// const EmptyStateWithAction = React.lazy(() =>
-//   import('@/common/components/EmptyStateWithAction'),
-// );
-
-
 const AccountsRightSidebar = () => {
   const {
     toAccounts,

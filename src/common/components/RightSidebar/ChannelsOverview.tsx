@@ -46,7 +46,7 @@ const ChannelsOverview = () => {
           <div
             onClick={() => setCurrentChannelIdx(idx)}
             className={classNames(
-              (showAll && selectedChannelIdx === idx) || (!showAll && idx === MAX_SIDEBAR_CHANNELS)
+              selectedChannelIdx === idx
                 ? 'text-white font-semibold'
                 : 'text-gray-400 hover:text-white',
               'flex align-center justify-between flex gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'

@@ -50,14 +50,8 @@ export default function Home() {
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
       case '/post':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
-      case '/search':
-        return RIGHT_SIDEBAR_ENUM.CHANNELS;
       case '/accounts':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
-      case '/settings':
-        return RIGHT_SIDEBAR_ENUM.NONE;
-      case '/login':
-        return RIGHT_SIDEBAR_ENUM.NONE;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
     }
@@ -269,7 +263,7 @@ export default function Home() {
               <h1 className="text-base font-semibold leading-7 text-white"></h1>
             </header>
             <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-8">
-              <Suspense fallback={<span className="font-semibold text-gray-200">Loading...</span>}>
+              <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
                 <Outlet />
               </Suspense>
             </div>

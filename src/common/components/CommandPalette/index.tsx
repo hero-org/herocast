@@ -6,11 +6,11 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
-import { FaceSmileIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { BellIcon, FaceSmileIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import commandScore from "command-score";
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Bars3BottomLeftIcon } from "@heroicons/react/20/solid";
 import { Cog6ToothIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 
@@ -49,6 +49,14 @@ export const getNavigationCommands = (navigate: (path: string) => void | null): 
       shortcut: 'shift+n',
       enableOnFormTags: false,
       action: () => navigate && navigate('/post'),
+    },
+    {
+      name: 'Notifications',
+      aliases: ['notify', 'alert', 'mentions', 'replies', 'messages', 'inbox',],
+      icon: BellIcon,
+      shortcut: '',
+      enableOnFormTags: false,
+      action: () => navigate && navigate('/notifications'),
     },
     {
       name: 'Settings',

@@ -9,6 +9,7 @@ import Search from '@/pages/Search';
 import CommandPalette from '@/common/components/CommandPalette';
 import ErrorPage from '@/pages/ErrorPage';
 import Login from '@/pages/Login';
+import { Notifications } from '@/pages/Notifications';
 import { Theme } from '@radix-ui/themes';
 
 
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
       {
         path: "post",
         element: <NewPost />,
+      },
+      {
+        path: "notifications",
+        element: <Notifications />,
       },
       {
         path: "search",

@@ -11,8 +11,6 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
 
-  console.log('cast thread', cast);
-
   const {
     channels,
     selectedChannelIdx
@@ -20,10 +18,10 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
 
   const renderGoBackButton = () => (
     <button
-      className="flex flex-shrink inline-flex items-center -ml-2 px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 hover:bg-gray-700 focus:outline-none"
+      className="flex flex-shrink inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 md:bg-gray-800 hover:bg-gray-700 focus:outline-none"
       onClick={() => onBack()}
     >
-      <kbd className="mr-2 px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+      <kbd className="hidden md:block mr-2 px-1.5 py-1 text-xs border rounded-md bg-gray-600 text-gray-300 border-gray-600">
         Esc
       </kbd>
       back to feed

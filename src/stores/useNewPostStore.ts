@@ -34,6 +34,7 @@ interface NewPostStoreProps {
 }
 
 interface NewPostStoreProps {
+  updatePostDraft: (draftId: number, post: PostType) => void;
   updatePostDraftText: (draftId: number, text: string) => void;
   addNewPostDraft: () => void;
   addFeedbackDraft: () => void;
@@ -64,6 +65,11 @@ const store = (set: StoreSet) => ({
       state.postDrafts.push(NewFeedbackPostDraft);
     });
   },
+  updatePostDraft: (draftId: number, post: PostType) => {
+    set((state) => {
+      state.postDrafts[draftId] = post;
+    });
+  },
   updatePostDraftText: (draftId: number, text: string) => {
     set((state) => {
       state.postDrafts[draftId].text = text;
@@ -79,25 +85,27 @@ const store = (set: StoreSet) => ({
       state.postDrafts = [NewPostDraft];
     });
   },
-  publishPostDraft: async (draftId: number, account: { privateKey: string, platformAccountId: string }) => {
+  publishPostDraft: async (draftId: number, account: { privateKey: string, platformAccountId: string }): string => {
     set(async (state) => {
-      const draft = state.postDrafts[draftId];
-      console.log("publishPostDraft", draft);
+      try {
+        const draft = state.postDrafts[draftId];
+        console.log("publishPostDraft", draft);
 
-      const castBody = convertEditorCastToPublishableCast(draft.text);
-      console.log("accountID", account.platformAccountId, "castBody", castBody);
-      await publishCast({
-        castBody,
-        privateKey: account.privateKey,
-        authorFid: account.platformAccountId,
-      }).then((res) => {
-        console.log('res', res);
-      }).catch((err) => {
-        console.log('err', err);
-      })
-
-      trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
-      state.postDrafts.splice(draftId, 1);
+        const castBody = convertEditorCastToPublishableCast(draft.text);
+        await publishCast({
+          castBody,
+          privateKey: account.privateKey,
+          authorFid: account.platformAccountId,
+        }).then((res) => {
+          console.log('res', res);
+        }).catch((err) => {
+          console.log('err', err);
+        })
+        trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
+        state.removePostDraft(draftId);
+      } catch (error) {
+        return `Error when posting ${error}`;
+      }
     });
   }
 });

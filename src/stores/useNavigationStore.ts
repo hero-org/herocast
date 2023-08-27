@@ -5,7 +5,6 @@ import { devtools } from "zustand/middleware";
 import { redirect } from "react-router-dom";
 
 interface NavigationStoreProps {
-  // mainNavigation: MAIN_NAVIGATION_ENUM;
   isCommandPaletteOpen: boolean;
 }
 
@@ -27,7 +26,6 @@ export const mutative = (config) =>
 type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
-  // mainNavigation: MAIN_NAVIGATION_ENUM.FEED,
   isCommandPaletteOpen: false,
   closeCommandPallete: () => {
     set((state) => {

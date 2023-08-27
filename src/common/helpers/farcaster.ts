@@ -12,7 +12,7 @@ export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
 
 
-type CasterType = {
+export type CasterType = {
   fid: number
   username?: string
   display_name?: string
@@ -38,8 +38,8 @@ export const convertEditorCastToPublishableCast = (text: string, parentUrl?: str
     console.log(`Found ${JSON.stringify(match)} start=${match.index}`);
 
     const casterUsername = match[1];
-    console.log('casterData first 10 items:', casterData.slice(0, 10));
-    console.log('casterUsername:', casterUsername)
+    // console.log('casterData first 10 items:', casterData.slice(0, 10));
+    // console.log('casterUsername:', casterUsername)
     const fid = casterData.find(caster => caster.username === casterUsername)?.fid;
     if (fid) {
       cast = {

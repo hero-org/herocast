@@ -248,14 +248,12 @@ const getChannelCommands = () => {
   //   },
   // });
 
-  // const channels = useAccountStore.getState().channels;
   for (let i = 0; i < 9; i++) {
-    // const channelName = useAccountStore.getState().channels[i].name;
     channelCommands.push({
       name: `Switch to channel ${i + 1}`,
-      aliases: [], //[`channel ${channelName}`],
+      aliases: [],
       shortcut: `shift+${i + 1}`,
-      enableOnFormTags: true,
+      enableOnFormTags: false,
       action: () => {
         const state = useAccountStore.getState();
         if (isEmpty(state.channels)) return;
