@@ -2,11 +2,16 @@ type PostEmbedType = {
   url: string;
 };
 
+export type ParentCastIdType = {
+  fid: number;
+  hash: string;
+}
+
 export type PostType = {
   text: string;
   embeds?: PostEmbedType[];
-  parentHash?: string;
   parentUrl?: string;
+  parentCastId?: ParentCastIdType;
 }
 
 export type AuthorType = {

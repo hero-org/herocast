@@ -15,6 +15,7 @@ import { Loading } from "@/common/components/Loading";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { useNewPostStore } from "@/stores/useNewPostStore";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -35,6 +36,11 @@ export default function Feed() {
     selectedAccountIdx,
     selectedChannelIdx
   } = useAccountStore();
+
+  const {
+    removePostDraft
+  } = useNewPostStore();
+
   const { ref, inView } = useInView({
     /* Optional options */
     threshold: 0,
@@ -55,6 +61,10 @@ export default function Feed() {
 
   const feedKey = getFeedKey({ selectedChannelParentUrl, account });
   const feed = feedKey ? get(feeds, feedKey, []) : [];
+
+  const cast = feed[selectedCastIdx];
+  const postDrafts = useNewPostStore(state => state.postDrafts);
+  const draftIdx = postDrafts.findIndex(draft => draft.parentHash === cast?.hash);
 
   const onSelectCast = (idx: number) => {
     const cast = feed[idx];
@@ -105,7 +115,16 @@ export default function Feed() {
   useHotkeys('esc', () => {
     setShowCastThreadView(false);
   }, [selectedCastIdx], {
+    enableOnFormTags: true,
   })
+
+  useEffect(() => {
+    if (!showCastThreadView && draftIdx) {
+      if (draftIdx !== -1 && postDrafts[draftIdx].text == "") {
+        removePostDraft(draftIdx);
+      }
+    }
+  }, [showCastThreadView, draftIdx]);
 
   const getFeed = async ({ fid, parentUrl, cursor }: { fid: string, parentUrl?: string, cursor?: string }) => {
     if (isLoadingFeed) {

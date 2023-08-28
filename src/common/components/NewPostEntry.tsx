@@ -3,11 +3,12 @@ import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
 import { CasterType, getCasterData } from "@/common/helpers/farcaster";
-import { PostType } from "@/stores/useNewPostStore";
+import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Listbox, Transition } from '@headlessui/react'
 import { ChannelType, channels } from "@/common/constants/channels";
 import isEmpty from "lodash.isempty";
+import { PostType } from "../constants/farcaster";
 
 const Item = ({ entity: { name, char } }) => <div className="bg-gray-100">{`${name}: ${char}`}</div>;
 const Loading = ({ data }) => <div>Loading</div>;
@@ -56,8 +57,20 @@ function findUsername(username: string): CasterType[] {
 //   // More items...
 // ]
 
+type NewPostEntryProps = {
+  draftIdx: number;
+  onPost: () => void;
+  hideChannel?: boolean;
+}
 
-export default function NewPostEntry({ draft, onChange, onSubmit }: { draft: PostType, onChange: (cast: PostType) => void, onSubmit: (event?: React.FormEvent<HTMLFormElement>) => void }) {
+export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostEntryProps) {
+  const {
+    postDrafts,
+    updatePostDraft,
+    publishPostDraft,
+  } = useNewPostStore();
+
+  const draft = draftIdx !== null ? postDrafts[draftIdx] : NewPostDraft;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textareaElement = textareaRef.current;
   const {
@@ -66,19 +79,37 @@ export default function NewPostEntry({ draft, onChange, onSubmit }: { draft: Pos
 
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const hasMultipleAccounts = useAccountStore((state) => state.accounts.length > 1);
-  const channel = channels.find((channel: ChannelType) => channel.parent_url === draft.parentUrl);
+  const channel = channels.find((channel: ChannelType) => channel.parent_url === draft?.parentUrl);
+
+  const onChange = (cast: PostType) => {
+    updatePostDraft(draftIdx, cast)
+  };
+
+  const onSubmitPost = async () => {
+    if (!draft || !account.privateKey || !account.platformAccountId) return;
+
+    if (draft.text.length > 0) {
+      await publishPostDraft(draftIdx, account).then((res) => {
+        console.log('published post draft, res:', res);
+        onPost();
+      }).catch((err) => {
+        console.log('error publishing post draft', err);
+      }).finally(() => {
+      });
+    }
+  }
+  const listener = (event: KeyboardEvent) => {
+    if (event.key === "Enter" && event.metaKey) {
+      event.preventDefault();
+      onSubmitPost();
+    }
+  };
 
   useEffect(() => {
     onChange({ ...draft, parentUrl: selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined });
   }, [selectedChannelIdx])
 
   useEffect(() => {
-    const listener = (event: KeyboardEvent) => {
-      if (event.key === "Enter" && event.metaKey) {
-        event.preventDefault();
-        onSubmit();
-      }
-    };
     if (textareaElement) {
       textareaElement.addEventListener("keydown", listener);
     }
@@ -87,7 +118,7 @@ export default function NewPostEntry({ draft, onChange, onSubmit }: { draft: Pos
         textareaElement.removeEventListener("keydown", listener);
       }
     };
-  }, [textareaElement, onSubmit]);
+  }, [textareaElement, draft]);
 
   const characterToTrigger = {
     // ":": {
@@ -113,16 +144,22 @@ export default function NewPostEntry({ draft, onChange, onSubmit }: { draft: Pos
     onChange({ ...draft, parentUrl: newParentUrl })
   }
 
+  const showToolbar = !hideChannel;
+
   return (
     <div className="flex flex-col items-start">
-      <form onSubmit={(event) => onSubmit(event)} className="relative min-w-full">
+      <form onSubmit={(event) => {
+        console.log('form event onSubmit', event)
+        event.preventDefault();
+        onSubmitPost();
+      }} className="relative min-w-full">
         <div className="overflow-hidden rounded-sm ">
           <label htmlFor="new-post" className="sr-only">
             Your new post
           </label>
           <div ref={textareaRef}>
             <ReactTextareaAutocomplete
-              value={draft.text}
+              value={draft?.text || ''}
               onChange={(e) => onChange({ ...draft, text: e.target.value })}
               containerClassName="relative"
               className="block w-full rounded-sm border-0 px-3 py-2 bg-gray-700 resize-none text-radix-slate2 shadow-sm ring-1 ring-inset ring-gray-800 placeholder:text-gray-400 focus:ring-0 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
@@ -136,9 +173,11 @@ export default function NewPostEntry({ draft, onChange, onSubmit }: { draft: Pos
 
           {/* Spacer element to match the height of the toolbar */}
           <div aria-hidden="true">
-            <div className="py-2">
-              <div className="h-8" />
-            </div>
+            {showToolbar && (
+              <div className="py-2">
+                <div className="h-8" />
+              </div>
+            )}
             <div className="h-px" />
             <div className="py-2">
               <div className="py-px">
@@ -150,58 +189,60 @@ export default function NewPostEntry({ draft, onChange, onSubmit }: { draft: Pos
 
         <div className="absolute inset-x-px bottom-0">
           {/* Actions: These are just examples to demonstrate the concept, replace/wire these up however makes sense for your project. */}
-          <div className="flex flex-nowrap justify-start space-x-2 px-2 py-2 sm:px-3 bg-gray-700">
-            <Listbox as="div" value={channel} onChange={(value) => onUpdateParentUrl(value)} className="flex-shrink-0">
-              {({ open }) => (
-                <>
-                  <Listbox.Label className="sr-only">Channel</Listbox.Label>
-                  <div className="relative w-96">
-                    <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-lg bg-radix-slate10 px-2 py-1.5 text-sm font-medium text-radix-slate4 hover:bg-radix-slate9 sm:px-3">
-                      {/* {assigned.value === null ? (
+          {showToolbar && (<div className="flex flex-nowrap justify-start space-x-2 px-2 py-2 sm:px-3 bg-gray-700">
+            {!hideChannel && (
+              <Listbox as="div" value={channel} onChange={(value) => onUpdateParentUrl(value)} className="flex-shrink-0">
+                {({ open }) => (
+                  <>
+                    <Listbox.Label className="sr-only">Channel</Listbox.Label>
+                    <div className="relative w-96">
+                      <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-lg bg-radix-slate10 px-2 py-1.5 text-sm font-medium text-radix-slate4 hover:bg-radix-slate9 sm:px-3">
+                        {/* {assigned.value === null ? (
                         <UserCircleIcon className="h-5 w-5 flex-shrink-0 text-gray-300 sm:-ml-1" aria-hidden="true" />
                       ) : (
                         <img src={assigned.avatar} alt="" className="h-5 w-5 flex-shrink-0 rounded-full" />
                       )} */}
-                      <span
-                        className={classNames(
-                          isEmpty(channel) ? '' : 'text-radix-slate2',
-                          'truncate block'
-                        )}
-                      >
-                        {isEmpty(channel) ? 'Channel' : channel.name}
-                      </span>
-                    </Listbox.Button>
+                        <span
+                          className={classNames(
+                            isEmpty(channel) ? '' : 'text-radix-slate2',
+                            'truncate block'
+                          )}
+                        >
+                          {isEmpty(channel) ? 'Channel' : channel.name}
+                        </span>
+                      </Listbox.Button>
 
-                    <Transition
-                      show={open}
-                      as={Fragment}
-                      leave="transition ease-in duration-100"
-                      leaveFrom="opacity-100"
-                      leaveTo="opacity-0"
-                    >
-                      <Listbox.Options className="absolute left-0 z-100 mt-1 max-h-56 w-42 overflow-auto rounded-sm bg-radix-slate10 text-base shadow ring-1 ring-gray-900 focus:outline-none sm:text-sm">
-                        {channels.map((channel) => (
-                          <Listbox.Option
-                            key={channel.parent_url}
-                            className={({ active }) =>
-                              classNames(
-                                active ? 'bg-radix-slate8' : 'bg-radix-slate10',
-                                'relative cursor-default select-none px-3 py-2 truncate'
-                              )
-                            }
-                            value={channel}
-                          >
-                            <div className="flex items-center">
-                              <span className=" block truncate font-medium">{channel.name}</span>
-                            </div>
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </Transition>
-                  </div>
-                </>
-              )}
-            </Listbox>
+                      <Transition
+                        show={open}
+                        as={Fragment}
+                        leave="transition ease-in duration-100"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                      >
+                        <Listbox.Options className="absolute left-0 z-100 mt-1 max-h-56 w-42 overflow-auto rounded-sm bg-radix-slate10 text-base shadow ring-1 ring-gray-900 focus:outline-none sm:text-sm">
+                          {channels.map((channel) => (
+                            <Listbox.Option
+                              key={channel.parent_url}
+                              className={({ active }) =>
+                                classNames(
+                                  active ? 'bg-radix-slate8' : 'bg-radix-slate10',
+                                  'relative cursor-default select-none px-3 py-2 truncate'
+                                )
+                              }
+                              value={channel}
+                            >
+                              <div className="flex items-center">
+                                <span className=" block truncate font-medium">{channel.name}</span>
+                              </div>
+                            </Listbox.Option>
+                          ))}
+                        </Listbox.Options>
+                      </Transition>
+                    </div>
+                  </>
+                )}
+              </Listbox>
+            )}
 
             {/* <Listbox as="div" value={dated} onChange={setDated} className="flex-shrink-0">
               {({ open }) => (
@@ -256,7 +297,7 @@ export default function NewPostEntry({ draft, onChange, onSubmit }: { draft: Pos
                 </>
               )}
             </Listbox> */}
-          </div>
+          </div>)}
           <div className="flex items-center justify-between space-x-3 mt-4">
             {/* <div className="flex">
               <button
@@ -270,26 +311,31 @@ export default function NewPostEntry({ draft, onChange, onSubmit }: { draft: Pos
             <div className="flex-shrink-0">
               <button
                 type="submit"
-                className="inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                className={classNames(
+                  // isPendingPublish ? 'bg-gray-700 cursor-not-allowed' : 'cursor-pointer',
+                  "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                )}
               >
-                Post {hasMultipleAccounts && `as @${account.name}`} {!isEmpty(channel) && `in ${channel.name}`}
+                {
+                  `Post${hasMultipleAccounts ? ` as @${account.name}` : ''} ${!isEmpty(channel) && !hideChannel ? ` in ${channel.name}` : ''}`
+                }
               </button>
+            </div>
+            <div className="border-l-4 border-yellow-200 bg-yellow-300/50 p-2 pr-3">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-yellow-200" aria-hidden="true" />
+                </div>
+                <div className="">
+                  <p className="ml-1 text-sm text-yellow-200">
+                    can&apos;t embed urls yet
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </form>
-      <div className="mt-4 border-l-4 border-yellow-200 bg-yellow-300/50 p-2 pr-3">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <ExclamationTriangleIcon className="h-5 w-5 text-yellow-200" aria-hidden="true" />
-          </div>
-          <div className="">
-            <p className="text-sm text-yellow-200">
-              this doesn't support embedding urls yet
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

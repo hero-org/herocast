@@ -7,7 +7,7 @@ import {
 import { toBytes } from 'viem';
 import casterData from '@/assets/data/casters-2023-08-26.json';
 import { PostType } from "@/common/constants/farcaster";
-
+import isEmpty from 'lodash.isempty';
 
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
@@ -64,6 +64,15 @@ export const convertEditorCastToPublishableCast = (draft: PostType): CastAddBody
     }
   }
 
+  if (!isEmpty(draft.parentCastId)) {
+    cast = {
+      ...cast,
+      parentCastId: {
+        hash: toBytes(draft.parentCastId.hash),
+        fid: Number(draft.parentCastId.fid),
+      }
+    }
+  }
   return cast;
 }
 

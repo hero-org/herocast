@@ -8,32 +8,42 @@ import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
 import { trackEventWithProperties } from "@/common/helpers/analytics";
-import { PostType } from "@/common/constants/farcaster";
+import { ParentCastIdType, PostType } from "@/common/constants/farcaster";
 
-const NewPostDraft: PostType = {
+export const NewPostDraft: PostType = {
   text: "",
+  parentUrl: undefined,
+  parentCastId: undefined,
 };
+
 
 const NewFeedbackPostDraft: PostType = {
   text: "hey @hellno, feedback on @herocast: ",
   parentUrl: "https://herocast.xyz"
 };
 
-interface NewPostStoreProps {
-  postDrafts: PostType[];
-}
+type addNewPostDraftProps = {
+  parentUrl?: string
+  parentCastId?: ParentCastIdType
+};
+
 
 interface NewPostStoreProps {
-  updatePostDraft: (draftId: number, post: PostType) => void;
-  updatePostDraftText: (draftId: number, text: string) => void;
-  addNewPostDraft: () => void;
+  postDrafts: PostType[];
+  isToastOpen: boolean;
+};
+
+interface NewPostStoreActions {
+  setIsToastOpen: (isToastOpen: boolean) => void;
+  updatePostDraft: (draftIdx: number, post: PostType) => void;
+  addNewPostDraft: ({ parentCastId, parentUrl }: addNewPostDraftProps) => void;
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number) => void;
   removeAllPostDrafts: () => void;
-  publishPostDraft: (draftId: number, account: AccountObjectType) => Promise<void>;
+  publishPostDraft: (draftIdx: number, account: AccountObjectType) => Promise<void>;
 }
 
-export interface NewPostStore extends NewPostStoreProps, NewPostStoreProps { }
+export interface NewPostStore extends NewPostStoreProps, NewPostStoreActions { }
 
 export const mutative = (config) =>
   (set, get) => config((fn) => set(mutativeCreate(fn)), get);
@@ -42,12 +52,20 @@ type StoreSet = (fn: (draft: Draft<NewPostStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   postDrafts: [NewPostDraft],
-  addNewPostDraft: () => {
+  isToastOpen: false,
+  addNewPostDraft: ({ parentUrl, parentCastId }: addNewPostDraftProps) => {
     set((state) => {
+      console.log('addNewPostDraft', parentUrl, parentCastId);
+
+      const newDraft = { ...NewPostDraft, parentUrl, parentCastId };
       for (let i = 0; i < state.postDrafts.length; i++) {
-        if (isEqual(NewPostDraft, state.postDrafts[i])) return;
+        if ((parentUrl && parentUrl === state.postDrafts[i].parentUrl) ||
+          (parentCastId && parentCastId.hash === state.postDrafts[i].parentCastId?.hash)) {
+          return;
+        }
       }
-      state.postDrafts.push(NewPostDraft);
+
+      state.postDrafts.push(newDraft);
     });
   },
   addFeedbackDraft: () => {
@@ -55,19 +73,18 @@ const store = (set: StoreSet) => ({
       state.postDrafts.push(NewFeedbackPostDraft);
     });
   },
-  updatePostDraft: (draftId: number, post: PostType) => {
+  updatePostDraft: (draftIdx: number, post: PostType) => {
     set((state) => {
-      state.postDrafts[draftId] = post;
+      state.postDrafts = [
+        ...(draftIdx > 0 ? state.postDrafts.slice(0, draftIdx) : []),
+        post,
+        ...state.postDrafts.slice(draftIdx + 1),
+      ];
     });
   },
-  updatePostDraftText: (draftId: number, text: string) => {
+  removePostDraft: (draftIdx: number) => {
     set((state) => {
-      state.postDrafts[draftId].text = text;
-    });
-  },
-  removePostDraft: (draftId: number) => {
-    set((state) => {
-      state.postDrafts.splice(draftId, 1);
+      state.postDrafts.splice(draftIdx, 1);
     });
   },
   removeAllPostDrafts: () => {
@@ -75,15 +92,14 @@ const store = (set: StoreSet) => ({
       state.postDrafts = [NewPostDraft];
     });
   },
-  publishPostDraft: async (draftId: number, account: { privateKey: string, platformAccountId: string }): string => {
+  publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }) => {
     set(async (state) => {
       try {
-        const draft = state.postDrafts[draftId];
+        const draft = state.postDrafts[draftIdx];
         console.log("publishPostDraft", draft);
 
         const castBody = convertEditorCastToPublishableCast(draft);
-        console.log("castBody", castBody);
-
+        console.log("converted castBody", JSON.stringify(castBody));
         await publishCast({
           castBody,
           privateKey: account.privateKey,
@@ -94,10 +110,16 @@ const store = (set: StoreSet) => ({
           console.log('err', err);
         })
         trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
-        state.removePostDraft(draftId);
+        state.removePostDraft(draftIdx);
+        state.setIsToastOpen(true);
       } catch (error) {
         return `Error when posting ${error}`;
       }
+    });
+  },
+  setIsToastOpen: (isToastOpen: boolean) => {
+    set((state) => {
+      state.isToastOpen = isToastOpen;
     });
   }
 });
@@ -110,9 +132,6 @@ export const newPostCommands: CommandType[] = [
     icon: TagIcon,
     shortcut: 'cmd+shift+f',
     action: () => useNewPostStore.getState().addFeedbackDraft(),
-    // action: () => {
-    //   openWindow("mailto:hellnomail@proton.me?subject=about herocast&body=hey @hellno, feedback on herocast: ");
-    // },
     enableOnFormTags: true,
     navigateTo: '/post'
   },
@@ -121,7 +140,7 @@ export const newPostCommands: CommandType[] = [
     aliases: ['new cast',],
     icon: PencilSquareIcon,
     shortcut: 'c',
-    action: () => useNewPostStore.getState().addNewPostDraft(),
+    action: () => useNewPostStore.getState().addNewPostDraft({}),
     enableOnFormTags: false,
     requiresNavigationState: [],
     navigateTo: '/post'

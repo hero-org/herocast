@@ -50,14 +50,14 @@ export const getNavigationCommands = (navigate?: (path: string) => void | null):
       enableOnFormTags: false,
       action: () => navigate && navigate('/post'),
     },
-    {
-      name: 'Notifications',
-      aliases: ['notify', 'alert', 'mentions', 'replies', 'messages', 'inbox',],
-      icon: BellIcon,
-      shortcut: '',
-      enableOnFormTags: false,
-      action: () => navigate && navigate('/notifications'),
-    },
+    // {
+    //   name: 'Notifications',
+    //   aliases: ['notify', 'alert', 'mentions', 'replies', 'messages', 'inbox',],
+    //   icon: BellIcon,
+    //   shortcut: '',
+    //   enableOnFormTags: false,
+    //   action: () => navigate && navigate('/notifications'),
+    // },
     {
       name: 'Settings',
       aliases: ['preferences', 'options', 'config',],

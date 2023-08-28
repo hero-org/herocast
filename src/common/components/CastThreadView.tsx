@@ -4,27 +4,36 @@ import { getNeynarCastThreadEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
 import { useAccountStore } from "@/stores/useAccountStore";
+import NewPostEntry from "./NewPostEntry";
+import { useNewPostStore } from "@/stores/useNewPostStore";
 
-// add up down selector hotkeys in list with j and k
 
 export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: () => void, fid?: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
+
+  const draftIdx = useNewPostStore(state => state.postDrafts.findIndex(draft => draft.parentCastId?.hash === cast?.hash));
 
   const {
     channels,
     selectedChannelIdx
   } = useAccountStore();
 
+  const {
+    addNewPostDraft
+  } = useNewPostStore();
+
   const renderGoBackButton = () => (
     <button
-      className="flex flex-shrink inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 md:bg-gray-800 hover:bg-gray-700 focus:outline-none"
+      className="group md:-ml-2 flex flex-shrink inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 md:bg-gray-800 focus:outline-none"
       onClick={() => onBack()}
     >
-      <kbd className="hidden md:block mr-2 px-1.5 py-1 text-xs border rounded-md bg-gray-600 text-gray-300 border-gray-600">
+      <kbd className="hidden md:block mr-2 px-1.5 py-1 text-xs border rounded-md bg-gray-600 text-gray-300 border-gray-600 group-hover:bg-gray-500">
         Esc
       </kbd>
-      back to feed
+      <span className="group-hover:underline">
+        back to feed
+      </span>
     </button>
   );
 
@@ -34,7 +43,6 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
       await fetch(neynarEndpoint)
         .then((response) => response.json())
         .then((resp) => {
-          console.log(resp.result.casts)
           setCasts(resp.result.casts)
         })
         .catch((error) => {
@@ -46,6 +54,8 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
     }
 
     loadData();
+    console.log({ cast })
+    addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
   }, [])
 
   const renderThread = () => (
@@ -83,6 +93,9 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
             </div>
           </li>
         ))}
+        {draftIdx && <li key={`new-post-parentHash-${cast.hash}`}>
+          <NewPostEntry draftIdx={draftIdx} onPost={() => onBack()} hideChannel />
+        </li>}
       </ul>
     </div>
   );
@@ -90,7 +103,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
   return <div className="flex flex-col text-gray-100 text-lg">
     {isLoading ? <Loading /> : renderThread()}
     {!isLoading && (
-      <div className="my-4">
+      <div className="mt-12">
         {renderGoBackButton()}
       </div>
     )}
