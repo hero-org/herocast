@@ -6,6 +6,7 @@ import { CastRow } from "./CastRow";
 import { useAccountStore } from "@/stores/useAccountStore";
 import NewPostEntry from "./NewPostEntry";
 import { useNewPostStore } from "@/stores/useNewPostStore";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 
 
 export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: () => void, fid?: string }) => {
@@ -31,8 +32,9 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
       <kbd className="hidden md:block mr-2 px-1.5 py-1 text-xs border rounded-md bg-gray-600 text-gray-300 border-gray-600 group-hover:bg-gray-500">
         Esc
       </kbd>
+      <ArrowLeftIcon className="md:hidden mr-1 h-4 w-4 text-gray-400 group-hover:text-gray-300" aria-hidden="true" />
       <span className="group-hover:underline">
-        back to feed
+        back
       </span>
     </button>
   );
@@ -100,12 +102,12 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
     </div>
   );
 
-  return <div className="flex flex-col text-gray-100 text-lg">
-    {isLoading ? <Loading /> : renderThread()}
+  return <div className="flex flex-col text-gray-100 text-lg mb-8">
     {!isLoading && (
-      <div className="mt-12">
+      <div className="mb-4">
         {renderGoBackButton()}
       </div>
     )}
+    {isLoading ? <Loading /> : renderThread()}
   </div>
 }

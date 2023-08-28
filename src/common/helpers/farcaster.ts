@@ -57,13 +57,6 @@ export const convertEditorCastToPublishableCast = (draft: PostType): CastAddBody
     }
   };
 
-  if (parentUrl) {
-    cast = {
-      ...cast,
-      parentUrl,
-    }
-  }
-
   if (!isEmpty(draft.parentCastId)) {
     cast = {
       ...cast,
@@ -71,6 +64,11 @@ export const convertEditorCastToPublishableCast = (draft: PostType): CastAddBody
         hash: toBytes(draft.parentCastId.hash),
         fid: Number(draft.parentCastId.fid),
       }
+    }
+  } else if (parentUrl) {
+    cast = {
+      ...cast,
+      parentUrl,
     }
   }
   return cast;

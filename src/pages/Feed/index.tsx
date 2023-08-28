@@ -151,7 +151,7 @@ export default function Feed() {
   }
 
   useEffect(() => {
-    if (account) {
+    if (account && !showCastThreadView) {
       setSelectedCastIdx(0);
       setShowCastThreadView(false);
 

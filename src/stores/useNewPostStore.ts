@@ -55,7 +55,7 @@ const store = (set: StoreSet) => ({
   isToastOpen: false,
   addNewPostDraft: ({ parentUrl, parentCastId }: addNewPostDraftProps) => {
     set((state) => {
-      console.log('addNewPostDraft', parentUrl, parentCastId);
+      // console.log('addNewPostDraft', parentUrl, parentCastId);
 
       const newDraft = { ...NewPostDraft, parentUrl, parentCastId };
       for (let i = 0; i < state.postDrafts.length; i++) {

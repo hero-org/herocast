@@ -2,7 +2,7 @@ import { classNames } from "@/common/helpers/css";
 import { CastType, CastReactionType } from "@/common/constants/farcaster";
 import { ChannelType } from "@/common/constants/channels";
 import { ArrowUturnUpIcon } from "@heroicons/react/20/solid";
-import { ArrowPathRoundedSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/solid";
+import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { ImgurImage } from "@/common/components/PostEmbeddedContent";
 
 interface CastRowProps {
@@ -14,6 +14,25 @@ interface CastRowProps {
   showEmbed?: boolean;
   isThreadView?: boolean;
 }
+
+const castTextStyle = {
+  // based on https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/
+  /* These are technically the same, but use both */
+  'overflow-wrap': 'break-word',
+  'word-wrap': 'break-word',
+
+  '-ms-word-break': 'break-all',
+  /* This is the dangerous one in WebKit, as it breaks things wherever */
+  // 'word-break': 'break-all',
+  /* Instead use this non-standard one: */
+  'word-break': 'break-word',
+
+  /* Adds a hyphen where the word breaks, if supported (No Blink) */
+  '-ms-hyphens': 'auto',
+  '-moz-hyphens': 'auto',
+  '-webkit-hyphens': 'auto',
+  'hyphens': 'auto',
+};
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
   // if (isSelected) console.log(cast);
@@ -34,12 +53,14 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
         return <ArrowPathRoundedSquareIcon className={className} aria-hidden="true" />
       case CastReactionType.replies:
         return <ChatBubbleLeftIcon className={className} aria-hidden="true" />
+      case CastReactionType.links:
+        return <ArrowTopRightOnSquareIcon className={className} aria-hidden="true" />
       default:
         return null;
     }
   }
 
-  const renderReaction = (key: string, name: string, count: number, icon: JSX.Element | null) => (
+  const renderReaction = (key: string, count: number | string, icon: JSX.Element | null) => (
     <div key={`cast-${cast.hash}-${key}`} className="mt-2 flex align-center text-sm text-gray-400 group-hover:text-gray-300 cursor-default">
       {icon || <span>{key}</span>}
       <span className="ml-1.5">{count}</span>
@@ -47,18 +68,24 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
   )
 
   const renderCastReactions = (cast: CastType) => {
-    const likesCount = cast.reactions?.likes?.length || cast.reactions?.count;
-    const recastsCount = cast.reactions?.recasts?.length || cast.recasts?.count;
-    const repliesCount = cast.replies?.count;
+    const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;
+    const recastsCount = cast.reactions?.recasts?.length || cast.recasts?.count || 0;
+    const repliesCount = cast.replies?.count || 0;
     const reactions = {
       replies: repliesCount,
       recasts: recastsCount,
       likes: likesCount,
     }
+    const linksCount = cast.embeds.length;
+    const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;
     return (<div className="flex space-x-6">
       {Object.entries(reactions).map(([key, count]) => {
-        return count > 0 && renderReaction(key, cast.reactions[key], count, getIconForCastReactionType(key as CastReactionType));
+        return renderReaction(key, count, getIconForCastReactionType(key as CastReactionType));
       })}
+      {linksCount && !isOnchainLink ?
+        renderReaction('links', linksCount > 1 ? linksCount : '', getIconForCastReactionType(CastReactionType.links))
+        : null
+      }
     </div>)
   }
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
@@ -68,8 +95,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     <div
       onClick={() => onSelect && onSelect()}
       className={classNames(
-        isSelected ? "px-2 -ml-2 bg-gray-700 border-l border-gray-200" : "",
-        "py-1 grow rounded-r-md cursor-pointer"
+        isSelected ? "pl-2 -ml-2 pr-3 bg-gray-700 border-l border-gray-200" : "",
+        "pr-3 py-2 grow rounded-r-md cursor-pointer"
       )}>
       <div className="flex justify-between gap-x-4">
         <div className="flex flex-row py-1 leading-5 text-gray-300">
@@ -98,8 +125,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
         )}
       </div>
       <div className={classNames(isThreadView ? "ml-0.5" : "ml-6")}>
-        <p className="text-sm text-gray-300 break-words lg:break-normal">
-          {cast.text !== embedUrl && cast.text}
+        <p className="text-sm text-gray-300 break-words lg:break-normal" style={castTextStyle}>
+          {cast.text}
         </p>
         {embedImageUrl && (
           (isSelected || showEmbed) ? <ImgurImage url={embedImageUrl} /> : <span>🖼️</span>

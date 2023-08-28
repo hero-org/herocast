@@ -34,6 +34,7 @@ export enum CastReactionType {
   likes = 'likes',
   recasts = 'recasts',
   replies = 'replies',
+  links = 'links',
 }
 
 export type CastReactionsType = {
