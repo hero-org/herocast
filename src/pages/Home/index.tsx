@@ -32,7 +32,6 @@ export default function Home() {
   const navigate = useNavigate();
   const { pathname, hash: locationHash } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
   const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
 
   const {

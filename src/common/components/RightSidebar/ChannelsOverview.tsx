@@ -29,7 +29,7 @@ const ChannelsOverview = () => {
         <span
           onClick={() => setCurrentChannelIdx(null)}
           className={classNames(
-            selectedChannelIdx == null
+            selectedChannelIdx === null
               ? 'bg-gray-800 text-gray-100'
               : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800',
             'group align-center justify-between flex gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'

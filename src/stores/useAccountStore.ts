@@ -1,6 +1,7 @@
 import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
 import { ChannelType, channels } from "@/common/constants/channels";
 import { CommandType } from "@/common/constants/commands";
+import { randomNumberBetween } from "@/common/helpers/math";
 import { supabaseClient } from "@/common/helpers/supabase";
 import isEmpty from "lodash.isempty";
 import { Draft, create as mutativeCreate } from 'mutative';
@@ -262,6 +263,19 @@ const getChannelCommands = () => {
       },
     });
   }
+
+  channelCommands.push({
+    name: `Switch to random channel`,
+    aliases: ['random', 'lucky'],
+    shortcut: '',
+    enableOnFormTags: false,
+    action: () => {
+      const state = useAccountStore.getState();
+      if (isEmpty(state.channels)) return;
+
+      state.setCurrentChannelIdx(randomNumberBetween(0, state.channels.length - 1));
+    },
+  });
 
   return channelCommands;
 }
