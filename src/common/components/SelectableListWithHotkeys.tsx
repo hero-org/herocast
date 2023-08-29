@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { CastType } from "@/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from 'ts-key-enum';
@@ -19,6 +19,16 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
     threshold: 0,
     delay: 100,
   });
+
+  const scollToRef = useRef();
+  // scroll to selected cast when selectedCastIdx changes
+  useEffect(() => {
+    if (scollToRef.current) {
+      // @ts-ignore
+      scollToRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [selectedIdx]);
+
 
   useHotkeys(['o', Key.Enter], () => {
     onSelect(selectedIdx);
@@ -49,7 +59,11 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
   })
 
   return <ul role="list" className="">
-    {data.map((cast: CastType, idx: number) => renderRow(cast, idx))}
+    {data.map((cast: CastType, idx: number) =>
+      <div ref={(selectedIdx === idx - 4) ? scollToRef : null}>
+        {renderRow(cast, idx)}
+      </div>
+    )}
     <li ref={ref} className="" />
   </ul>
 }

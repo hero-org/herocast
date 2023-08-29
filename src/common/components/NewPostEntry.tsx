@@ -1,45 +1,53 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
-import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
+import { CheckIcon } from "@heroicons/react/20/solid";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
 import { CasterType, getCasterData } from "@/common/helpers/farcaster";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { Listbox, Transition } from '@headlessui/react'
+import { Listbox, Transition, Combobox } from '@headlessui/react'
 import { ChannelType, channels } from "@/common/constants/channels";
 import isEmpty from "lodash.isempty";
 import { PostType } from "../constants/farcaster";
+import { getNeynarUserSearchEndpoint } from "../helpers/neynar";
+import { Loading } from "./Loading";
 
-const Item = ({ entity: { name, char } }) => <div className="bg-gray-100">{`${name}: ${char}`}</div>;
-const Loading = ({ data }) => <div>Loading</div>;
+const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
 const casterData = getCasterData();
 
 const MentionDropdownItem = ({ entity, selected }) => {
-  const { username, display_name } = entity;
-  return (
-    <div className={classNames(
-      selected ? 'bg-radix-slate8' : 'bg-radix-slate10',
-      "relative cursor-pointer select-none py-2 pl-3 pr-9"
-    )}>
-      <div className="flex text-radix-slate12">
-        <span className={classNames('truncate font-semibold', selected && '')}>@{username}</span>
-        <span
-          className={classNames(
-            'ml-2 truncate',
-          )}
-        >
-          {display_name}
-        </span>
-      </div>
-    </div>
+  const { username, display_name, pfp: { url: pfpUrl } } = entity;
+  return (<Combobox.Option
+    as="div"
+    key={`mention-option-${username}`}
+    value={entity}
+    className={({ active }) =>
+      classNames(
+        'relative cursor-default select-none py-2 pl-3 pr-9',
+        active ? 'bg-gray-600 text-gray-100' : 'text-gray-300'
+      )
+    }
+  >
+    {({ active, selected }) => (
+      <>
+        <div className="flex items-center">
+          <img src={pfpUrl} alt="" className="h-6 w-6 flex-shrink-0 rounded-full border border-gray-600" />
+          <div className="ml-2 flex text-radix-slate12">
+            <span className="truncate font-semibold">@{username}</span>
+            <span
+              className={classNames(
+                'ml-1 truncate',
+              )}
+            >
+              {display_name}
+            </span>
+          </div>
+        </div>
+      </>
+    )}
+  </Combobox.Option>
   )
 }
-
-function findUsername(username: string): CasterType[] {
-  return casterData.filter((caster: CasterType) =>
-    caster.username?.startsWith(username) || caster.display_name?.startsWith(username)
-  );
-};
 
 // const assignees = [
 //   { name: 'Unassigned', value: null },
@@ -80,10 +88,29 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const hasMultipleAccounts = useAccountStore((state) => state.accounts.length > 1);
   const channel = channels.find((channel: ChannelType) => channel.parent_url === draft?.parentUrl);
+  const isReply = draft?.parentCastId !== undefined;
 
   const onChange = (cast: PostType) => {
     updatePostDraft(draftIdx, cast)
   };
+
+  const neynarSearchEndpoint = getNeynarUserSearchEndpoint(account?.platformAccountId);
+
+  const findUsername = (username: string): CasterType[] => {
+    return Promise.resolve(fetch(`${neynarSearchEndpoint}&q=${username}`)
+      .then((response) => response.json())
+      .then((data) => {
+        return data.result.users as CasterType[];
+      }).catch((err) => {
+        console.log('error fetching usernames', err);
+        return [];
+      }));
+
+    // return casterData.filter((caster: CasterType) =>
+    //   caster.username?.startsWith(username) || caster.display_name?.startsWith(username)
+    // );
+  };
+
 
   const onSubmitPost = async () => {
     if (!draft || !account.privateKey || !account.platformAccountId) return;
@@ -132,7 +159,8 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
     // },
     "@": {
       dataProvider: (token: string) => {
-        return findUsername(token.toLowerCase()).slice(0, 7)
+        return findUsername(token.toLowerCase());
+        // return await findUsername(token.toLowerCase()).slice(0, 7)
       },
       component: MentionDropdownItem,
       output: (item, trigger) => `@${item.username}`
@@ -153,26 +181,33 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
         event.preventDefault();
         onSubmitPost();
       }} className="relative min-w-full">
-        <div className="overflow-hidden rounded-sm ">
+        <div className="rounded-sm ">
           <label htmlFor="new-post" className="sr-only">
             Your new post
           </label>
           <div ref={textareaRef}>
-            <ReactTextareaAutocomplete
-              value={draft?.text || ''}
-              onChange={(e) => onChange({ ...draft, text: e.target.value })}
-              containerClassName="relative"
-              className="block w-full rounded-sm border-0 px-3 py-2 bg-gray-700 resize-none text-radix-slate2 shadow-sm ring-1 ring-inset ring-gray-800 placeholder:text-gray-400 focus:ring-0 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-              loadingComponent={Loading}
-              minChar={1}
-              rows={6}
-              trigger={characterToTrigger}
-              dropdownClassName="absolute z-10 -ml-4 mt-5 max-h-60 w-full overflow-auto rounded-sm bg-radix-slate10 py-1 text-gray-900 text-base shadow-sm ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-            />
+            <Combobox as="div">
+              <ReactTextareaAutocomplete
+                value={draft?.text || ''}
+                onChange={(e) => onChange({ ...draft, text: e.target.value })}
+                containerClassName="relative rounded-sm"
+                className={classNames(
+                  showToolbar ? 'rounded-sm' : 'rounded=t-sm',
+                  "block w-full border-0 px-3 py-2 bg-gray-700 ring-0 ring-gray-800 focus:ring-0 resize-none text-radix-slate2 placeholder:text-gray-400 sm:text-sm sm:leading-6"
+                )}
+                style={{ minHeight: '100px' }}
+                loadingComponent={() => <Loading />}
+                placeholder={isReply ? 'your reply...' : `What's on your mind${channel ? ` for ${channel.name}` : ''}, ${account?.name}?`}
+                minChar={2}
+                rows={5}
+                trigger={characterToTrigger}
+                dropdownClassName="absolute z-10 mt-1 max-h-56 w-full overflow-show rounded-sm bg-gray-700 text-base shadow-md ring-1 ring-gray-200 ring-opacity-5 focus:outline-none sm:text-sm"
+              />
+            </Combobox>
           </div>
 
           {/* Spacer element to match the height of the toolbar */}
-          <div aria-hidden="true">
+          <div aria-hidden="true" className="ring-0 ring-gray-800">
             {showToolbar && (
               <div className="py-2">
                 <div className="h-8" />
@@ -187,9 +222,9 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
           </div>
         </div>
 
-        <div className="absolute inset-x-px bottom-0">
+        <div className="absolute inset-x-0 bottom-0">
           {/* Actions: These are just examples to demonstrate the concept, replace/wire these up however makes sense for your project. */}
-          {showToolbar && (<div className="flex flex-nowrap justify-start space-x-2 px-2 py-2 sm:px-3 bg-gray-700">
+          {showToolbar && (<div className="flex flex-nowrap justify-start space-x-2 px-2 py-2 sm:px-3 bg-gray-700 rounded-b-sm">
             {!hideChannel && (
               <Listbox as="div" value={channel} onChange={(value) => onUpdateParentUrl(value)} className="flex-shrink-0">
                 {({ open }) => (
@@ -321,7 +356,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                 }
               </button>
             </div>
-            <div className="border-l-4 border-yellow-200 bg-yellow-300/50 p-2 pr-3">
+            {/* <div className="border-l-4 border-yellow-200 bg-yellow-300/50 p-2 pr-3">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <ExclamationTriangleIcon className="h-5 w-5 text-yellow-200" aria-hidden="true" />
@@ -332,11 +367,11 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
-      </form>
-    </div>
+      </form >
+    </div >
   )
 }
 

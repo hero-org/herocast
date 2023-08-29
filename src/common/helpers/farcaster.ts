@@ -95,7 +95,6 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
     network: NETWORK,
   };
 
-
   // Step 2: create message
   const cast = await makeCastAdd(
     castBody,

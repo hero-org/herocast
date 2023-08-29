@@ -43,6 +43,10 @@ export const channels: ChannelType[] = [
     "parent_url": "chain://eip155:1/erc721:0xdf3abf79aedcc085e9a41a569964e9fb53f33728"
   },
   {
+    "name": "herocast",
+    "parent_url": "https://herocast.xyz"
+  },
+  {
     "name": "News",
     "parent_url": "chain://eip155:7777777/erc721:0x3cf3d6a6bcac3c60f3bb59fdd641b042102bb488"
   },

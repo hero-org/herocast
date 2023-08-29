@@ -60,10 +60,10 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     }
   }
 
-  const renderReaction = (key: string, count: number | string, icon: JSX.Element | null) => (
-    <div key={`cast-${cast.hash}-${key}`} className="mt-2 flex align-center text-sm text-gray-400 group-hover:text-gray-300 cursor-default">
+  const renderReaction = (key: string, count?: number | string, icon?: JSX.Element) => (
+    <div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-sm">
       {icon || <span>{key}</span>}
-      <span className="ml-1.5">{count}</span>
+      {count !== null && <span className="ml-1.5">{count}</span>}
     </div>
   )
 
@@ -82,9 +82,10 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
       {Object.entries(reactions).map(([key, count]) => {
         return renderReaction(key, count, getIconForCastReactionType(key as CastReactionType));
       })}
-      {linksCount && !isOnchainLink ?
-        renderReaction('links', linksCount > 1 ? linksCount : '', getIconForCastReactionType(CastReactionType.links))
-        : null
+      {linksCount && !isOnchainLink ? (
+        <a href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
+          {renderReaction('links', linksCount > 1 ? linksCount : null, getIconForCastReactionType(CastReactionType.links))}
+        </a>) : null
       }
     </div>)
   }
@@ -95,8 +96,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     <div
       onClick={() => onSelect && onSelect()}
       className={classNames(
-        isThreadView ? "" : "pl-2 -ml-2 border-l border-gray-200",
-        isSelected ? "bg-gray-700" : "",
+        isThreadView ? "" : "",
+        isSelected ? "border-l border-gray-200 bg-gray-600" : "border-l border-gray-800 hover:bg-gray-700",
         "px-3 py-2 grow rounded-r-md cursor-pointer"
       )}>
       <div className="flex justify-between gap-x-4">

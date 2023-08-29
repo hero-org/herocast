@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
-import isEqual from 'lodash.isequal';
 import { CommandType } from "@/common/constants/commands";
 import { TagIcon } from "@heroicons/react/24/outline";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
@@ -99,19 +98,20 @@ const store = (set: StoreSet) => ({
         console.log("publishPostDraft", draft);
 
         const castBody = convertEditorCastToPublishableCast(draft);
-        console.log("converted castBody", JSON.stringify(castBody));
-        await publishCast({
+        // console.log("converted castBody", JSON.stringify({ ...castBody }));
+
+        publishCast({
           castBody,
           privateKey: account.privateKey,
           authorFid: account.platformAccountId,
         }).then((res) => {
-          console.log('res', res);
+          trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
+          state.removePostDraft(draftIdx);
+          state.setIsToastOpen(true);
         }).catch((err) => {
           console.log('err', err);
         })
-        trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
-        state.removePostDraft(draftIdx);
-        state.setIsToastOpen(true);
+
       } catch (error) {
         return `Error when posting ${error}`;
       }

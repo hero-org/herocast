@@ -8,6 +8,7 @@ import NewPostEntry from "./NewPostEntry";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
+import { openWindow } from "../helpers/navigation";
 
 
 export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: () => void, fid?: string }) => {
@@ -62,6 +63,14 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
   }, [])
 
+  const onOpenLinkInCast = (idx: number) => {
+    const castInThread = casts[selectedCastIdx];
+    if (castInThread?.embeds?.length === 0) return;
+
+    const url = castInThread.embeds[0].url;
+    openWindow(url);
+  }
+
   const renderRow = (cast: CastType, idx: number) => (
     <li key={cast.hash}>
       <div className="relative py-2">
@@ -86,8 +95,6 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
                 isSelected={selectedCastIdx === idx}
                 isThreadView
                 showEmbed
-              /* isSelected={selectedCastIdx === idx} */
-              /* onSelect={() => selectedCastIdx === idx ? onSelectCast(idx) : setSelectedCastIdx(idx)} */
               />
             </div>
           </>
@@ -103,19 +110,17 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
-    // onExpand={onOpenLinkInCast}
-    // onSelect={onSelectCast}
+      onSelect={() => onOpenLinkInCast(selectedCastIdx)}
+      onExpand={() => null}
     />
   )
 
   const renderThread = () => (
     <div className="flow-root">
-      <ul role="list" className="-mb-8">
-        {renderFeed()}
-        {draftIdx && <li key={`new-post-parentHash-${cast.hash}`}>
-          <NewPostEntry draftIdx={draftIdx} onPost={() => onBack()} hideChannel />
-        </li>}
-      </ul>
+      {renderFeed()}
+      {draftIdx && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast.hash}`}>
+        <NewPostEntry draftIdx={draftIdx} onPost={() => onBack()} hideChannel />
+      </div>}
     </div>
   );
 

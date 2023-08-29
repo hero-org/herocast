@@ -56,3 +56,15 @@ export const getNeynarNotificationsEndpoint = ({ fid, cursor, limit }: Notificat
 
   return neynarEndpoint;
 }
+
+// https://invented-crayfish-e70.notion.site/GET-v2-farcaster-user-search-744565be2d2444bcbcbb2748be437998
+// needs search with: &q=${query} to work
+export const getNeynarUserSearchEndpoint = (viewerFid?: string): string => {
+  let neynarEndpoint = `https://api.neynar.com/v2/farcaster/user/search?api_key=${VITE_NEYNAR_API_KEY}`
+
+  if (viewerFid) {
+    neynarEndpoint += `&viewer_fid=${viewerFid}`
+  }
+
+  return neynarEndpoint;
+}

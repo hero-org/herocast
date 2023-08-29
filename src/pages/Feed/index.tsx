@@ -72,7 +72,6 @@ export default function Feed() {
   }
 
   useEffect(() => {
-    console.log('useEffect', selectedCastIdx, feed.length, 'should fetch more?', selectedCastIdx >= feed.length - 5)
     if (isLoadingFeed || isEmpty(feed) || showCastThreadView) return;
 
     if (selectedCastIdx >= feed.length - 5) {
@@ -131,18 +130,8 @@ export default function Feed() {
     }
   }, [account, selectedChannelParentUrl]);
 
-
-  const scollToRef = useRef();
-  // scroll to selected cast when selectedCastIdx changes
-  useEffect(() => {
-    if (scollToRef.current) {
-      // @ts-ignore
-      scollToRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }
-  }, [selectedCastIdx]);
-
   const renderRow = (item: any, idx: number) => (
-    <li key={item.hash} ref={(selectedCastIdx === idx - 3) ? scollToRef : null}
+    <li key={item.hash}
       className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
       <CastRow
         cast={item as CastType}
