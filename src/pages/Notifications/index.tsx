@@ -5,6 +5,10 @@ import { classNames } from '@/common/helpers/css'
 import { useEffect, useState } from 'react'
 import { getNeynarCastThreadEndpoint, getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
 import { useAccountStore } from '@/stores/useAccountStore'
+import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys'
+import { localize, timeDiff } from '@/common/helpers/date'
+import { CastThreadView } from '@/common/components/CastThreadView'
+import isEmpty from 'lodash.isempty'
 
 // transform this into a type
 // {
@@ -113,7 +117,7 @@ enum NotificationTypeEnum {
   "cast-mention" = "cast-mention",
 }
 
-type Notification = {
+type NotificationType = {
   hash: string;
   threadHash: string;
   parentHash: string;
@@ -150,12 +154,14 @@ enum NotificationNavigationEnum {
 
 export const Notifications = () => {
   const [navigation, setNavigation] = useState<NotificationNavigationEnum>(NotificationNavigationEnum.mentions);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
+
+  console.log('selectedNotificationIdx', selectedNotificationIdx)
 
   const currentAccountFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
-  // group notifications by threadHash or parentHash
-  //
+  const now = new Date();
 
   useEffect(() => {
     const loadData = async () => {
@@ -214,20 +220,61 @@ export const Notifications = () => {
     </>
   )
 
+  const renderNotificationRow = (item: NotificationType, idx: number) => {
+    const timeAgo = timeDiff(now, new Date(item.timestamp))
+    const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
+    return (
+      <li key={item.hash}
+        className={classNames(
+          idx === selectedNotificationIdx ? 'bg-gray-600' : 'bg-gray-800 hover:bg-gray-900',
+          "flex gap-x-4 px-5 py-4"
+        )}>
+        <img className="mt-1.5 h-10 w-10 flex-none rounded-full bg-gray-50" src={item.author.pfp.url} alt="" />
+        <div className="flex-auto">
+          <div className="flex items-center justify-between gap-x-4">
+            <p className="text-sm font-semibold leading-6 text-gray-100">{item.author.username}
+              <span className="ml-1 text-gray-400">
+                {item.type === NotificationTypeEnum['cast-reply'] ? 'replied' : 'mentioned you'}
+              </span>
+            </p>
+            <p className="flex-none text-xs text-gray-400">
+              <time dateTime={item.timestamp}>{timeAgoStr}</time>
+            </p>
+          </div>
+          <p className="mt-1 line-clamp-2 text-sm leading-6 text-gray-400">{item.text}</p>
+        </div>
+      </li>
+    )
+  }
+
   const renderLeftColumn = () => {
-    return <div className="hidden w-44 shrink-0 lg:block">
-      <div className="overflow-hidden rounded-sm border border-gray-300 bg-white">
-        <ul role="list" className="divide-y divide-gray-300">
-          {notifications.map((n) => (
-            <li key={n.hash} className="px-6 py-4">
-              {/* Your content */}
-              {n.text}
-            </li>
-          ))}
-        </ul>
+    return <div className="hidden w-6/12 shrink-0 lg:block">
+      <div className="overflow-hidden rounded-l-sm border border-gray-300 bg-gray-800">
+        <tbody className="divide-y divide-white/5">
+          <SelectableListWithHotkeys
+            data={notifications}
+            selectedIdx={selectedNotificationIdx}
+            setSelectedIdx={setSelectedNotificationIdx}
+            renderRow={(item: NotificationType, idx: number) => renderNotificationRow(item, idx)}
+            onSelect={(idx) => setSelectedNotificationIdx(idx)}
+            onExpand={() => null}
+          />
+        </tbody>
       </div>
     </div>
   }
+
+  const renderMainContent = () => {
+    return !isEmpty(cast) ?
+      <CastThreadView
+        cast={cast}
+        fid={currentAccountFid}
+      /> : null;
+  }
+
+  const cast = notifications[selectedNotificationIdx];
+  console.log('cast in notifications', cast);
+
   return <div className="flex min-h-screen min-w-full flex-col">
     {renderHeader()}
     {isLoading && <div className="text-white flex-1 flex items-center justify-center">
@@ -235,12 +282,10 @@ export const Notifications = () => {
     </div>
     }
     {navigation === NotificationNavigationEnum.mentions ? (
-      <div className="mx-auto flex w-full max-w-7xl items-start gap-x-8 py-10">
+      <div className="mx-auto flex w-full max-w-7xl items-start py-5">
         {renderLeftColumn()}
-        <main className="flex-1 bg-gray-400 ">
-          {/* Main area */}
-          main
-          {renderLeftColumn()}
+        <main className="flex-1 ml-4">
+          {renderMainContent()}
         </main>
       </div>
     ) : <div className="text-white flex-1 flex items-center justify-center">

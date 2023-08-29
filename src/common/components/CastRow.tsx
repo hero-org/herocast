@@ -16,6 +16,7 @@ interface CastRowProps {
 }
 
 const castTextStyle = {
+  'white-space': 'pre-wrap',
   // based on https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/
   /* These are technically the same, but use both */
   'overflow-wrap': 'break-word',
@@ -31,6 +32,7 @@ const castTextStyle = {
   '-ms-hyphens': 'auto',
   '-moz-hyphens': 'auto',
   '-webkit-hyphens': 'auto',
+  'webkitHyphens': 'auto',
   'hyphens': 'auto',
 };
 

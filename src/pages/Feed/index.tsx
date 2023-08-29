@@ -23,6 +23,7 @@ type FeedType = {
 export default function Feed() {
   const navigate = useNavigate();
 
+
   const [feeds, setFeeds] = useState<FeedType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedOffset, setNextFeedOffset] = useState("");
@@ -75,7 +76,6 @@ export default function Feed() {
     if (isLoadingFeed || isEmpty(feed) || showCastThreadView) return;
 
     if (selectedCastIdx >= feed.length - 5) {
-      console.log('yo');
       const cursor = feed[feed.length - 1].timestamp;
       // unbounce this call to getFeed
       getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor });

@@ -11,7 +11,7 @@ import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { openWindow } from "../helpers/navigation";
 
 
-export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: () => void, fid?: string }) => {
+export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack?: () => void, fid?: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
@@ -59,7 +59,6 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
     }
 
     loadData();
-    console.log({ cast })
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
   }, [])
 
@@ -125,7 +124,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack: 
   );
 
   return <div className="flex flex-col text-gray-100 text-lg mb-8">
-    {!isLoading && (
+    {!isLoading && onBack && (
       <div className="mb-4">
         {renderGoBackButton()}
       </div>
