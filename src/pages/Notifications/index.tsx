@@ -211,7 +211,7 @@ export const Notifications = () => {
           ))}
         </div>
         <div className="mt-5 flex lg:ml-4 lg:mt-0">
-          <span className="hidden sm:block">
+          {/* <span className="hidden sm:block">
             <button
               type="button"
               className="inline-flex items-center rounded-sm bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
@@ -219,15 +219,20 @@ export const Notifications = () => {
               <PencilIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
               Edit
             </button>
-          </span>
+          </span> */}
         </div>
       </nav>
     </>
   )
 
-  useHotkeys(Key.Tab, () => {
-    setIsLeftColumnSelected(!isLeftColumnSelected)
+  useHotkeys(['tab', 'o', Key.Enter], () => {
+    setIsLeftColumnSelected(false)
   }, [isLeftColumnSelected]);
+
+  useHotkeys(['shift+tab', Key.Escape], () => {
+    setIsLeftColumnSelected(true)
+  }, [isLeftColumnSelected]);
+
 
   const renderNotificationRow = (item: NotificationType, idx: number) => {
     const timeAgo = timeDiff(now, new Date(item.timestamp))
@@ -236,7 +241,7 @@ export const Notifications = () => {
       <li key={item.hash}
         onClick={() => setSelectedNotificationIdx(idx)}
         className={classNames(
-          idx === selectedNotificationIdx ? 'bg-gray-600' : 'cursor-pointer bg-gray-800 hover:bg-gray-900',
+          idx === selectedNotificationIdx ? 'bg-gray-600' : 'cursor-pointer bg-gray-800 hover:bg-gray-700',
           "flex gap-x-4 px-5 py-4"
         )}>
         <img className="mt-1.5 h-10 w-10 flex-none rounded-full bg-gray-50" src={item.author.pfp.url} alt="" />

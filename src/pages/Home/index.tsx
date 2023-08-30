@@ -112,7 +112,7 @@ export default function Home() {
       <Toast.Provider swipeDirection="right">
         <div className="h-full bg-gray-800 overflow-y-scroll">
           <Transition.Root show={sidebarOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-5 xl:hidden" onClose={setSidebarOpen}>
+            <Dialog as="div" className="relative z-5 lg:hidden" onClose={setSidebarOpen}>
               <Transition.Child
                 as={Fragment}
                 enter="transition-opacity ease-linear duration-10"
@@ -214,7 +214,7 @@ export default function Home() {
           </Transition.Root>
 
           {/* Static sidebar for desktop */}
-          <div className="hidden xl:fixed xl:inset-y-0 xl:z-5 xl:flex xl:w-52 xl:flex-col">
+          <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-40 lg:flex-col">
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 ring-1 ring-white/5">
               <div className="flex h-16 shrink-0 items-center">
@@ -224,7 +224,7 @@ export default function Home() {
                 alt="herocast"
               /> */}
                 <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:text-3xl sm:tracking-tight">
-                  herocast
+                  h
                 </h2>
               </div>
               <nav className="flex flex-1 flex-col">
@@ -272,17 +272,17 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="xl:pl-52">
+          <div className="lg:pl-40">
             <main className="lg:pr-64">
-              <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-16">
-                <button type="button" className="-m-2.5 p-2.5 text-white xl:hidden" onClick={() => setSidebarOpen(true)}>
+              <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">
+                <button type="button" className="-m-2.5 p-2.5 text-white lg:hidden" onClick={() => setSidebarOpen(true)}>
                   <span className="sr-only">Open sidebar</span>
                   <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                 </button>
                 <h1 className="text-2xl font-semibold leading-7 text-white">{title}</h1>
                 <h1 className="text-base font-semibold leading-7 text-white"></h1>
               </header>
-              <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-8">
+              <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-6">
                 <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
                   <Outlet />
                 </Suspense>
