@@ -95,9 +95,9 @@ const store = (set: StoreSet) => ({
     set(async (state) => {
       try {
         const draft = state.postDrafts[draftIdx];
-        console.log("publishPostDraft", draft);
+        // console.log("publishPostDraft", draft);
 
-        const castBody = convertEditorCastToPublishableCast(draft);
+        const castBody = await convertEditorCastToPublishableCast(draft, account.platformAccountId);
         // console.log("converted castBody", JSON.stringify({ ...castBody }));
 
         publishCast({

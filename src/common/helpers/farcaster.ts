@@ -5,9 +5,9 @@ import {
   makeCastAdd,
 } from "@farcaster/hub-web";
 import { toBytes } from 'viem';
-import casterData from '@/assets/data/casters-2023-08-26.json';
 import { PostType } from "@/common/constants/farcaster";
 import isEmpty from 'lodash.isempty';
+import { getNeynarUserSearchEndpoint } from "./neynar";
 
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
@@ -19,11 +19,7 @@ export type CasterType = {
   display_name?: string
 }
 
-export const getCasterData = (): CasterType[] => {
-  return casterData;
-}
-
-export const convertEditorCastToPublishableCast = (draft: PostType): CastAddBody => {
+export const convertEditorCastToPublishableCast = async (draft: PostType, castAuthorFid: string): CastAddBody => {
   const text = draft.text;
   const parentUrl = draft.parentUrl;
 
@@ -34,26 +30,38 @@ export const convertEditorCastToPublishableCast = (draft: PostType): CastAddBody
     mentions: [],
     mentionsPositions: [],
   }
+  const neynarSearchEndpoint = getNeynarUserSearchEndpoint(castAuthorFid);
 
-  let match;
   const mentionRegex = /@(\S+)/g;
+  let match;
   while ((match = mentionRegex.exec(text)) != null) {
     // match is [@username, username]
-    console.log(`Found ${JSON.stringify(match)} start=${match.index}`);
+    // console.log(`Found ${JSON.stringify(match)} start=${match.index}`);
 
     const casterUsername = match[1];
-    // console.log('casterData first 10 items:', casterData.slice(0, 10));
-    // console.log('casterUsername:', casterUsername)
-    const fid = casterData.find(caster => caster.username === casterUsername)?.fid;
-    if (fid) {
-      cast = {
-        ...cast,
-        text: cast.text.replace(match[0], ''),
-        mentions: [...cast.mentions, fid],
-        mentionsPositions: [...cast.mentionsPositions, match.index]
-      }
-    } else {
-      throw new Error(`Failed to mention ${casterUsername} - couldn't post this cast`);
+    const casters = await fetch(`${neynarSearchEndpoint}&q=${casterUsername}`)
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log('fetched usernames', data)
+        return data.result.users as CasterType[];
+      }).catch((err) => {
+        console.log('error fetching usernames', err);
+        return [];
+      });
+
+    const exactUsernameMatch = casters.find((caster) => caster.username === casterUsername);
+    // console.log(`exactUsernameMatch`, exactUsernameMatch);
+    if (isEmpty(casters) || !exactUsernameMatch) {
+      const err = `Failed to mention ${casterUsername} - couldn't post this cast, got ${casters.length} results`;
+      throw new Error(err);
+    }
+    const fid = casters[0].fid;
+
+    cast = {
+      ...cast,
+      text: cast.text.replace(match[0], ''),
+      mentions: [...cast.mentions, fid],
+      mentionsPositions: [...cast.mentionsPositions, match.index]
     }
   };
 
@@ -71,6 +79,7 @@ export const convertEditorCastToPublishableCast = (draft: PostType): CastAddBody
       parentUrl,
     }
   }
+  console.log('done, reutrning cast', { ...cast })
   return cast;
 }
 

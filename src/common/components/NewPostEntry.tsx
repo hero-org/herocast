@@ -2,7 +2,7 @@ import React, { Fragment, useEffect, useRef, useState } from "react";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
-import { CasterType, getCasterData } from "@/common/helpers/farcaster";
+import { CasterType } from "@/common/helpers/farcaster";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Listbox, Transition, Combobox } from '@headlessui/react'
@@ -13,7 +13,6 @@ import { getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 
 const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
-const casterData = getCasterData();
 
 const MentionDropdownItem = ({ entity, selected }) => {
   const { username, display_name, pfp: { url: pfpUrl } } = entity;

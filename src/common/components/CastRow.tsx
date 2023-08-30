@@ -17,23 +17,22 @@ interface CastRowProps {
 }
 
 const castTextStyle = {
-  'white-space': 'pre-wrap',
+  'whiteSpace': 'pre-wrap',
   // based on https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/
   /* These are technically the same, but use both */
-  'overflow-wrap': 'break-word',
-  'word-wrap': 'break-word',
+  'overflowWrap': 'break-word',
+  'wordWrap': 'break-word',
 
-  '-ms-word-break': 'break-all',
+  'MsWordBreak': 'break-all',
   /* This is the dangerous one in WebKit, as it breaks things wherever */
   // 'word-break': 'break-all',
   /* Instead use this non-standard one: */
-  'word-break': 'break-word',
+  'wordBreak': 'break-word',
 
   /* Adds a hyphen where the word breaks, if supported (No Blink) */
-  '-ms-hyphens': 'auto',
-  '-moz-hyphens': 'auto',
-  '-webkit-hyphens': 'auto',
-  'webkitHyphens': 'auto',
+  'MsHyphens': 'auto',
+  'MozHyphens': 'auto',
+  'WebkitHyphens': 'auto',
   'hyphens': 'auto',
 };
 

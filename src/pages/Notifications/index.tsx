@@ -163,7 +163,7 @@ export const Notifications = () => {
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
   const [isLeftColumnSelected, setIsLeftColumnSelected] = useState<boolean>(true);
 
-  console.log('selectedNotificationIdx', selectedNotificationIdx)
+  // console.log('selectedNotificationIdx', selectedNotificationIdx)
 
   const currentAccountFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const now = new Date();
@@ -174,7 +174,7 @@ export const Notifications = () => {
       await fetch(neynarEndpoint)
         .then((response) => response.json())
         .then((resp) => {
-          console.log(resp.result.notifications)
+          // console.log(resp.result.notifications)
           setNotifications(resp.result.notifications);
         })
         .catch((error) => {
@@ -238,7 +238,7 @@ export const Notifications = () => {
     const timeAgo = timeDiff(now, new Date(item.timestamp))
     const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
     return (
-      <li key={item.hash}
+      <li key={`${item.hash}-${item.timestamp}`}
         onClick={() => setSelectedNotificationIdx(idx)}
         className={classNames(
           idx === selectedNotificationIdx ? 'bg-gray-600' : 'cursor-pointer bg-gray-800 hover:bg-gray-700',
@@ -292,7 +292,6 @@ export const Notifications = () => {
   }
 
   const cast = notifications[selectedNotificationIdx];
-  console.log('cast in notifications', cast);
 
   return <div className="flex min-h-screen min-w-full flex-col">
     {renderHeader()}

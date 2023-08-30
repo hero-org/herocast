@@ -49,7 +49,9 @@ export default function Home() {
     { name: 'New Post', router: '/post', icon: PlusCircleIcon },
     { name: 'Search', router: '/search', icon: MagnifyingGlassIcon },
     { name: 'Accounts', router: '/accounts', icon: UserPlusIcon },
-    // { name: 'Notifications', router: '/notifications', icon: BellIcon },
+    {
+      name: 'Notifications', router: '/notifications', icon: BellIcon, getTitle: () => 'Your notifications'
+    },
     { name: 'Settings', router: '/settings', icon: Cog6ToothIcon },
   ]
 
@@ -223,8 +225,8 @@ export default function Home() {
                 src="./src/assets/images/herocast.png"
                 alt="herocast"
               /> */}
-                <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:text-3xl sm:tracking-tight">
-                  h
+                <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
+                  herocast
                 </h2>
               </div>
               <nav className="flex flex-1 flex-col">
