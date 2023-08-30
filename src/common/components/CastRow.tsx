@@ -4,6 +4,7 @@ import { ChannelType } from "@/common/constants/channels";
 import { ArrowUturnUpIcon } from "@heroicons/react/20/solid";
 import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { ImgurImage } from "@/common/components/PostEmbeddedContent";
+import { localize, timeDiff } from "../helpers/date";
 
 interface CastRowProps {
   cast: CastType;
@@ -42,6 +43,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
   const isImageUrl = embedUrl ? embedUrl.endsWith('.gif') || embedUrl.endsWith('.png') || embedUrl.endsWith('.jpg') : false;
   const embedImageUrl = isImageUrl ? embedUrl : null;
+  const now = new Date();
 
   const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined => parentUrl ?
     channels.find((channel) => channel.parent_url === parentUrl) : undefined;
@@ -94,6 +96,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
 
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
+  const timeAgo = timeDiff(now, new Date(cast.timestamp))
+  const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
+
   return (<div className="flex grow">
     <div
       onClick={() => onSelect && onSelect()}
@@ -113,7 +118,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
             />
           )}
           {cast.parent_hash && <ArrowUturnUpIcon className="w-4 h-4 text-gray-400" />}
-          <span className="flex font-bold text-gray-100">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name || cast.author.displayName})</span></span>
+          <span className="flex font-bold text-gray-100 truncate">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name || cast.author.displayName})</span></span>
           {showChannel && channel && (
             <div className="flex flex-row">
               <span className="ml-2 inline-flex items-center rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
@@ -124,7 +129,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
         </div>
         {cast.timestamp && (
           <span className="flex-none py-0.5 text-sm leading-5 text-gray-500">
-            {new Date(cast.timestamp).toLocaleString()}
+            {timeAgoStr}
           </span>
         )}
       </div>

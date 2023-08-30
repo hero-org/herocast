@@ -12,9 +12,10 @@ type SelectableListWithHotkeysProps = {
   setSelectedIdx: (idx: number) => void,
   onSelect: (idx: number) => void,
   onExpand: (idx: number) => void,
+  isActive?: boolean,
 }
 
-export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSelectedIdx, onSelect, onExpand }: SelectableListWithHotkeysProps) => {
+export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSelectedIdx, onSelect, onExpand, isActive = true }: SelectableListWithHotkeysProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 100,
@@ -46,7 +47,7 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
     }
   }
     , [data, selectedIdx, setSelectedIdx], {
-    enabled: !isEmpty(data)
+    enabled: isActive && !isEmpty(data)
   })
 
   useHotkeys(['k', Key.ArrowUp], () => {
@@ -55,12 +56,12 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
     }
     setSelectedIdx(selectedIdx - 1);
   }, [data, selectedIdx, setSelectedIdx], {
-    enabled: !isEmpty(data)
+    enabled: isActive && !isEmpty(data)
   })
 
   return <ul role="list" className="">
     {data.map((cast: CastType, idx: number) =>
-      <div ref={(selectedIdx === idx - 4) ? scollToRef : null}>
+      <div ref={(selectedIdx === idx - 2) ? scollToRef : null}>
         {renderRow(cast, idx)}
       </div>
     )}

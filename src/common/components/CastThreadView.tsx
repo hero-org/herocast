@@ -10,8 +10,14 @@ import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { openWindow } from "../helpers/navigation";
 
+type CastThreadViewProps = {
+  cast: { hash: string, author: { fid: string } };
+  onBack?: () => void;
+  fid?: string;
+  isActive?: boolean;
+};
 
-export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack?: () => void, fid?: string }) => {
+export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
@@ -30,7 +36,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack?:
   const renderGoBackButton = () => (
     <button
       className="group md:-ml-2 flex flex-shrink inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 md:bg-gray-800 focus:outline-none"
-      onClick={() => onBack()}
+      onClick={() => onBack && onBack()}
     >
       <kbd className="hidden md:block mr-2 px-1.5 py-1 text-xs border rounded-md bg-gray-600 text-gray-300 border-gray-600 group-hover:bg-gray-500">
         Esc
@@ -60,7 +66,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack?:
 
     loadData();
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
-  }, [])
+  }, [cast.hash])
 
   const onOpenLinkInCast = (idx: number) => {
     const castInThread = casts[selectedCastIdx];
@@ -111,6 +117,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack?:
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
       onSelect={() => onOpenLinkInCast(selectedCastIdx)}
       onExpand={() => null}
+      isActive={isActive}
     />
   )
 
@@ -118,7 +125,7 @@ export const CastThreadView = ({ cast, onBack, fid }: { cast: CastType, onBack?:
     <div className="flow-root">
       {renderFeed()}
       {draftIdx && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast.hash}`}>
-        <NewPostEntry draftIdx={draftIdx} onPost={() => onBack()} hideChannel />
+        <NewPostEntry draftIdx={draftIdx} onPost={() => onBack && onBack()} hideChannel />
       </div>}
     </div>
   );

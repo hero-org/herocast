@@ -9,6 +9,8 @@ import { SelectableListWithHotkeys } from '@/common/components/SelectableListWit
 import { localize, timeDiff } from '@/common/helpers/date'
 import { CastThreadView } from '@/common/components/CastThreadView'
 import isEmpty from 'lodash.isempty'
+import { useHotkeys } from 'react-hotkeys-hook'
+import { Key } from 'ts-key-enum'
 
 // transform this into a type
 // {
@@ -152,11 +154,14 @@ enum NotificationNavigationEnum {
   reactions = "reactions",
 }
 
+
+
 export const Notifications = () => {
   const [navigation, setNavigation] = useState<NotificationNavigationEnum>(NotificationNavigationEnum.mentions);
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
+  const [isLeftColumnSelected, setIsLeftColumnSelected] = useState<boolean>(true);
 
   console.log('selectedNotificationIdx', selectedNotificationIdx)
 
@@ -220,13 +225,18 @@ export const Notifications = () => {
     </>
   )
 
+  useHotkeys(Key.Tab, () => {
+    setIsLeftColumnSelected(!isLeftColumnSelected)
+  }, [isLeftColumnSelected]);
+
   const renderNotificationRow = (item: NotificationType, idx: number) => {
     const timeAgo = timeDiff(now, new Date(item.timestamp))
     const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
     return (
       <li key={item.hash}
+        onClick={() => setSelectedNotificationIdx(idx)}
         className={classNames(
-          idx === selectedNotificationIdx ? 'bg-gray-600' : 'bg-gray-800 hover:bg-gray-900',
+          idx === selectedNotificationIdx ? 'bg-gray-600' : 'cursor-pointer bg-gray-800 hover:bg-gray-900',
           "flex gap-x-4 px-5 py-4"
         )}>
         <img className="mt-1.5 h-10 w-10 flex-none rounded-full bg-gray-50" src={item.author.pfp.url} alt="" />
@@ -248,8 +258,11 @@ export const Notifications = () => {
   }
 
   const renderLeftColumn = () => {
-    return <div className="hidden w-6/12 shrink-0 lg:block">
-      <div className="overflow-hidden rounded-l-sm border border-gray-300 bg-gray-800">
+    return <div className="hidden w-6/12 shrink-0 md:block">
+      <div className={classNames(
+        "overflow-hidden rounded-l-sm border bg-gray-800",
+        isLeftColumnSelected ? "border-gray-600" : "border-gray-800"
+      )}>
         <tbody className="divide-y divide-white/5">
           <SelectableListWithHotkeys
             data={notifications}
@@ -267,8 +280,9 @@ export const Notifications = () => {
   const renderMainContent = () => {
     return !isEmpty(cast) ?
       <CastThreadView
-        cast={cast}
+        cast={{ hash: cast.parentHash, author: cast.parentAuthor }}
         fid={currentAccountFid}
+        isActive={false}
       /> : null;
   }
 
@@ -284,7 +298,7 @@ export const Notifications = () => {
     {navigation === NotificationNavigationEnum.mentions ? (
       <div className="mx-auto flex w-full max-w-7xl items-start py-5">
         {renderLeftColumn()}
-        <main className="flex-1 ml-4">
+        <main className={classNames("flex-1 ml-4 border", !isLeftColumnSelected ? "border-gray-600" : "border-gray-800")}>
           {renderMainContent()}
         </main>
       </div>

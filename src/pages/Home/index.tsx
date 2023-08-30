@@ -89,7 +89,6 @@ export default function Home() {
       console.log('unknown locationHash', locationHash);
     } else {
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        // console.log(`home getSession`, session)
         if (!session) {
           navigate('/login');
         }
@@ -215,7 +214,7 @@ export default function Home() {
           </Transition.Root>
 
           {/* Static sidebar for desktop */}
-          <div className="hidden xl:fixed xl:inset-y-0 xl:z-5 xl:flex xl:w-72 xl:flex-col">
+          <div className="hidden xl:fixed xl:inset-y-0 xl:z-5 xl:flex xl:w-52 xl:flex-col">
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 ring-1 ring-white/5">
               <div className="flex h-16 shrink-0 items-center">
@@ -273,9 +272,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="xl:pl-72">
-            <main className="lg:pr-80">
-              <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-20">
+          <div className="xl:pl-52">
+            <main className="lg:pr-64">
+              <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-8 h-16">
                 <button type="button" className="-m-2.5 p-2.5 text-white xl:hidden" onClick={() => setSidebarOpen(true)}>
                   <span className="sr-only">Open sidebar</span>
                   <Bars3Icon className="h-5 w-5" aria-hidden="true" />
