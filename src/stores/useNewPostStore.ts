@@ -7,35 +7,47 @@ import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
 import { trackEventWithProperties } from "@/common/helpers/analytics";
-import { ParentCastIdType, PostType } from "@/common/constants/farcaster";
+import { DraftStatus, DraftType, ParentCastIdType } from "@/common/constants/farcaster";
 
-export const NewPostDraft: PostType = {
+export const NewPostDraft: DraftType = {
   text: "",
   parentUrl: undefined,
   parentCastId: undefined,
+  status: DraftStatus.writing,
+  mentionsToFids: { 'x': 'y' }
 };
 
 
-const NewFeedbackPostDraft: PostType = {
+const NewFeedbackPostDraft: DraftType = {
   text: "hey @hellno, feedback on @herocast: ",
-  parentUrl: "https://herocast.xyz"
+  parentUrl: "https://herocast.xyz",
+  status: DraftStatus.writing,
+  mentionsToFids: { 'herocast': '18665', 'hellno': '13596' }
 };
+
+export const JoinedHerocastPostDraft: DraftType = {
+  text: "I just joined @herocast!",
+  status: DraftStatus.writing,
+  mentionsToFids: { 'herocast': '18665' }
+}
 
 type addNewPostDraftProps = {
+  text?: string
   parentUrl?: string
   parentCastId?: ParentCastIdType
 };
 
 
 interface NewPostStoreProps {
-  postDrafts: PostType[];
+  drafts: DraftType[];
   isToastOpen: boolean;
 };
 
 interface NewPostStoreActions {
   setIsToastOpen: (isToastOpen: boolean) => void;
-  updatePostDraft: (draftIdx: number, post: PostType) => void;
-  addNewPostDraft: ({ parentCastId, parentUrl }: addNewPostDraftProps) => void;
+  updatePostDraft: (draftIdx: number, post: DraftType) => void;
+  updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
+  addNewPostDraft: ({ text, parentCastId, parentUrl }: addNewPostDraftProps) => void;
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number) => void;
   removeAllPostDrafts: () => void;
@@ -50,70 +62,86 @@ export const mutative = (config) =>
 type StoreSet = (fn: (draft: Draft<NewPostStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
-  postDrafts: [NewPostDraft],
+  drafts: [NewPostDraft],
   isToastOpen: false,
-  addNewPostDraft: ({ parentUrl, parentCastId }: addNewPostDraftProps) => {
+  addNewPostDraft: ({ text, parentUrl, parentCastId }: addNewPostDraftProps) => {
     set((state) => {
       // console.log('addNewPostDraft', parentUrl, parentCastId);
 
-      const newDraft = { ...NewPostDraft, parentUrl, parentCastId };
-      for (let i = 0; i < state.postDrafts.length; i++) {
-        if ((parentUrl && parentUrl === state.postDrafts[i].parentUrl) ||
-          (parentCastId && parentCastId.hash === state.postDrafts[i].parentCastId?.hash)) {
+      const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId };
+      for (let i = 0; i < state.drafts.length; i++) {
+        if ((parentUrl && parentUrl === state.drafts[i].parentUrl) ||
+          (parentCastId && parentCastId.hash === state.drafts[i].parentCastId?.hash)) {
           return;
         }
       }
 
-      state.postDrafts.push(newDraft);
+      state.drafts.push(newDraft);
     });
   },
   addFeedbackDraft: () => {
     set((state) => {
-      state.postDrafts.push(NewFeedbackPostDraft);
+      state.drafts.push(NewFeedbackPostDraft);
     });
   },
-  updatePostDraft: (draftIdx: number, post: PostType) => {
+  updatePostDraft: (draftIdx: number, draft: DraftType) => {
     set((state) => {
-      state.postDrafts = [
-        ...(draftIdx > 0 ? state.postDrafts.slice(0, draftIdx) : []),
-        post,
-        ...state.postDrafts.slice(draftIdx + 1),
+      state.drafts = [
+        ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
+        draft,
+        ...state.drafts.slice(draftIdx + 1),
+      ];
+    });
+  },
+  updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => {
+    set((state) => {
+      console.log("updateMentionsToFids", draftIdx, Object.entries(mentionsToFids));
+      // state.drafts[draftIdx].mentionsToFids = mentionsToFids;
+
+      const draft = state.drafts[draftIdx];
+      state.drafts = [
+        ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
+        { ...draft, mentionsToFids },
+        ...state.drafts.slice(draftIdx + 1),
       ];
     });
   },
   removePostDraft: (draftIdx: number) => {
     set((state) => {
-      state.postDrafts.splice(draftIdx, 1);
+      console.log('removePostDraft', draftIdx);
+      state.drafts = state.drafts.splice(draftIdx, 1);
     });
   },
   removeAllPostDrafts: () => {
     set((state) => {
-      state.postDrafts = [NewPostDraft];
+      state.drafts = [NewPostDraft];
     });
   },
   publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }) => {
     set(async (state) => {
+      const draft = state.drafts[draftIdx];
+
       try {
-        const draft = state.postDrafts[draftIdx];
-        // console.log("publishPostDraft", draft);
+        state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
+        const castBody = await Promise.resolve(convertEditorCastToPublishableCast(draft, account.platformAccountId));
+        console.log("converted castBody", JSON.stringify({ ...castBody }));
 
-        const castBody = await convertEditorCastToPublishableCast(draft, account.platformAccountId);
-        // console.log("converted castBody", JSON.stringify({ ...castBody }));
-
-        publishCast({
+        await Promise.resolve(publishCast({
           castBody,
           privateKey: account.privateKey,
           authorFid: account.platformAccountId,
-        }).then((res) => {
+        })).then((res) => {
           trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
           state.removePostDraft(draftIdx);
           state.setIsToastOpen(true);
         }).catch((err) => {
-          console.log('err', err);
+          console.log('publishPostdraft caught error:', err);
         })
 
       } catch (error) {
         return `Error when posting ${error}`;
+      } finally {
+        state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.published });
       }
     });
   },

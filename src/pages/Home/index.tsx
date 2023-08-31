@@ -11,15 +11,16 @@ import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
 import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
-import { useAccountStore } from "@/stores/useAccountStore";
+import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { trackPageView } from "@/common/helpers/analytics";
 import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
 import { findParamInHashUrlPath } from "@/common/helpers/navigation";
-import { BellIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { BellIcon, MagnifyingGlassIcon, NewspaperIcon } from "@heroicons/react/24/solid";
 import * as Toast from '@radix-ui/react-toast';
 import CustomToast from "@/common/components/CustomToast";
 import { useNewPostStore } from "@/stores/useNewPostStore";
+import { SidebarHeader } from "@/common/components/RightSidebar/SidebarHeader";
 
 type NavigationItemType = {
   name: string;
@@ -35,6 +36,12 @@ export default function Home() {
   const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
 
   const {
+    accounts,
+    selectedAccountIdx,
+    setCurrentAccountIdx
+  } = useAccountStore();
+
+  const {
     isToastOpen,
     setIsToastOpen
   } = useNewPostStore();
@@ -43,7 +50,7 @@ export default function Home() {
     {
       name: 'Feed',
       router: '/feed',
-      icon: SignalIcon,
+      icon: NewspaperIcon,
       getTitle: () => feedTitle
     },
     { name: 'New Post', router: '/post', icon: PlusCircleIcon },
@@ -109,6 +116,36 @@ export default function Home() {
     }
   }
 
+  const renderAccountSidebar = () => (
+    <div className="flex flex-col">
+      <SidebarHeader title="Accounts" />
+      <ul role="list" className="mx-4 divide-y divide-white/5">
+        {accounts.map((item: AccountObjectType, idx: number) => (
+          <li key={item.id} className="px-2 py-2 sm:px-3 lg:px-4">
+            <div
+              onClick={() => item.status === "active" && setCurrentAccountIdx(idx)}
+              className="flex items-center gap-x-3 cursor-pointer"
+            >
+              {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
+              <h3 className={classNames(
+                idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
+                "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
+              {item.status !== "active" && (
+                <span className={classNames("underline flex-none text-sm text-gray-400")}>
+                  {item.status}
+                </span>)}
+              {item.platformAccountId && (
+                <p className="mt-1 truncate text-sm text-gray-500">
+                  fid {item.platformAccountId}
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+
   return (
     <>
       <Toast.Provider swipeDirection="right">
@@ -137,7 +174,7 @@ export default function Home() {
                   leaveFrom="translate-x-0"
                   leaveTo="-translate-x-full"
                 >
-                  <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
+                  <Dialog.Panel className="relative mr-10 flex w-full max-w-xs flex-1">
                     <Transition.Child
                       as={Fragment}
                       enter="ease-in-out duration-10"
@@ -155,14 +192,14 @@ export default function Home() {
                       </div>
                     </Transition.Child>
                     {/* Sidebar component, swap this element with another sidebar if you like */}
-                    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 ring-1 ring-white/10">
+                    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 ring-1 ring-gray-700/10">
                       <div className="flex h-16 shrink-0 items-center">
                         {/* <img
                         className="h-8 w-auto"
                         src="./src/assets/images/herocast.png"
                         alt="herocast"
                       /> */}
-                        <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:text-3xl sm:tracking-tight">
+                        <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
                           herocast
                         </h2>
                       </div>
@@ -192,20 +229,21 @@ export default function Home() {
                               ))}
                             </ul>
                           </li>
-                          {/* <li className="-mx-6 mt-auto">
-                          <a
-                            href="#"
-                            className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
-                          >
-                            <img
-                              className="h-8 w-8 rounded-full bg-gray-800"
-                              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                              alt=""
-                            />
-                            <span className="sr-only">Your profile</span>
-                            <span aria-hidden="true">Tom Cook</span>
-                          </a>
-                        </li> */}
+                          {renderAccountSidebar()}
+                          <li className="-mx-6 mt-auto">
+                            <a
+                              href="#"
+                              className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
+                            >
+                              <img
+                                className="h-8 w-8 rounded-full bg-gray-800"
+                                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                alt=""
+                              />
+                              <span className="sr-only">Your profile</span>
+                              <span aria-hidden="true">Tom Cook</span>
+                            </a>
+                          </li>
                         </ul>
                       </nav>
                     </div>

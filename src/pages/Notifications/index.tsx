@@ -1,9 +1,7 @@
-import {
-  PencilIcon,
-} from '@heroicons/react/20/solid'
+
 import { classNames } from '@/common/helpers/css'
 import { useEffect, useState } from 'react'
-import { getNeynarCastThreadEndpoint, getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
+import { getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
 import { useAccountStore } from '@/stores/useAccountStore'
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys'
 import { localize, timeDiff } from '@/common/helpers/date'
@@ -163,8 +161,6 @@ export const Notifications = () => {
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
   const [isLeftColumnSelected, setIsLeftColumnSelected] = useState<boolean>(true);
 
-  // console.log('selectedNotificationIdx', selectedNotificationIdx)
-
   const currentAccountFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const now = new Date();
 
@@ -283,6 +279,7 @@ export const Notifications = () => {
   }
 
   const renderMainContent = () => {
+    console.log('renderMainContent', cast);
     return !isEmpty(cast) ?
       <CastThreadView
         cast={{ hash: cast.parentHash, author: cast.parentAuthor }}

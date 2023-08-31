@@ -18,7 +18,7 @@ export type AccountObjectType = {
   platformAccountId?: string;
   privateKey?: string;
   createdAt?: string;
-  data?: { deepLinkUrl: string, signerToken: string };
+  data?: { deeplinkUrl: string, signerToken: string };
 }
 
 interface AccountStoreProps {

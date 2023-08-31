@@ -52,6 +52,7 @@
     "@tailwindcss/forms": "^0.5.4",
     "@tauri-apps/api": "^1.4",
     "@webscopeio/react-textarea-autocomplete": "^4.9.2",
+    "axios": "^1.5.0",
     "command-score": "^0.1.2",
     "esbuild": "^0.19.2",
     "focus-trap-react": "^10.2.1",

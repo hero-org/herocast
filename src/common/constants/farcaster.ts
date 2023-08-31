@@ -7,6 +7,19 @@ export type ParentCastIdType = {
   hash: string;
 }
 
+
+export enum DraftStatus {
+  writing = "writing",
+  publishing = "publishing",
+  published = "published",
+}
+
+export type DraftType = PostType & {
+  status: DraftStatus,
+  mentionsToFids?: { [key: string]: string }
+};
+
+
 export type PostType = {
   text: string;
   embeds?: PostEmbedType[];

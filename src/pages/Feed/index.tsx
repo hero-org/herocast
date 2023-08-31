@@ -36,6 +36,8 @@ export default function Feed() {
     selectedChannelIdx
   } = useAccountStore();
 
+  const isHydrated = useAccountStore(state => state._hydrated);
+
   const {
     removePostDraft
   } = useNewPostStore();
@@ -56,7 +58,7 @@ export default function Feed() {
   const feed = feedKey ? get(feeds, feedKey, []) : [];
 
   const cast = feed[selectedCastIdx];
-  const postDrafts = useNewPostStore(state => state.postDrafts);
+  const postDrafts = useNewPostStore(state => state.drafts);
   const draftIdx = postDrafts.findIndex(draft => draft.parentHash === cast?.hash);
 
   const onOpenLinkInCast = (idx: number) => {
@@ -173,7 +175,7 @@ export default function Feed() {
     />
   )
 
-  return isEmpty(accounts) && isEmpty(feed) ? renderEmptyState() : (
+  return isHydrated && isEmpty(accounts) ? renderEmptyState() : (
     <div className="min-w-full mr-4">
       {showCastThreadView ? renderThread() : renderFeed()}
       {isLoadingFeed && <Loading />}

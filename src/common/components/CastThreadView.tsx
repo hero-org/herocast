@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { CastType } from "@/common/constants/farcaster"
 import { getNeynarCastThreadEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
@@ -22,7 +22,9 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const [casts, setCasts] = useState<CastType[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
 
-  const draftIdx = useNewPostStore(state => state.postDrafts.findIndex(draft => draft.parentCastId?.hash === cast?.hash));
+  // console.log('CastThreadView cast', cast, 'casts', casts);
+
+  const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === cast?.hash));
 
   const {
     channels,
@@ -30,7 +32,9 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   } = useAccountStore();
 
   const {
-    addNewPostDraft
+    drafts,
+    addNewPostDraft,
+    removePostDraft,
   } = useNewPostStore();
 
   const renderGoBackButton = () => (
@@ -87,7 +91,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
           <>
             <div className="relative">
               <img
-                className="flex mt-3 h-6 w-6 items-center justify-center rounded-full bg-gray-400 ring-1 ring-radix-slate5"
+                className="flex mt-3 h-5 w-5 items-center justify-center rounded-full bg-gray-400 ring-1 ring-radix-slate5"
                 src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author?.pfp?.url}`}
                 alt=""
               />

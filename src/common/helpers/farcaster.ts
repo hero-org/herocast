@@ -5,21 +5,15 @@ import {
   makeCastAdd,
 } from "@farcaster/hub-web";
 import { toBytes } from 'viem';
-import { PostType } from "@/common/constants/farcaster";
+import { DraftType, PostType } from "@/common/constants/farcaster";
 import isEmpty from 'lodash.isempty';
-import { getNeynarUserSearchEndpoint } from "./neynar";
+import { CasterType, getNeynarUserSearchEndpoint } from "./neynar";
+import get from "lodash.get";
 
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
 
-
-export type CasterType = {
-  fid: number
-  username?: string
-  display_name?: string
-}
-
-export const convertEditorCastToPublishableCast = async (draft: PostType, castAuthorFid: string): CastAddBody => {
+export const convertEditorCastToPublishableCast = async (draft: DraftType, castAuthorFid: string): Promise<CastAddBody> => {
   const text = draft.text;
   const parentUrl = draft.parentUrl;
 
@@ -35,27 +29,16 @@ export const convertEditorCastToPublishableCast = async (draft: PostType, castAu
   const mentionRegex = /@(\S+)/g;
   let match;
   while ((match = mentionRegex.exec(text)) != null) {
-    // match is [@username, username]
-    // console.log(`Found ${JSON.stringify(match)} start=${match.index}`);
+    // match contains [@username, username]
 
     const casterUsername = match[1];
-    const casters = await fetch(`${neynarSearchEndpoint}&q=${casterUsername}`)
-      .then((response) => response.json())
-      .then((data) => {
-        // console.log('fetched usernames', data)
-        return data.result.users as CasterType[];
-      }).catch((err) => {
-        console.log('error fetching usernames', err);
-        return [];
-      });
+    const fid = get(draft.mentionsToFids, casterUsername)
 
-    const exactUsernameMatch = casters.find((caster) => caster.username === casterUsername);
-    // console.log(`exactUsernameMatch`, exactUsernameMatch);
-    if (isEmpty(casters) || !exactUsernameMatch) {
-      const err = `Failed to mention ${casterUsername} - couldn't post this cast, got ${casters.length} results`;
+    if (!fid) {
+      const err = `Failed to mention ${casterUsername} - couldn't post this cast, got no fid for user "${casterUsername}"`;
+      console.log(err);
       throw new Error(err);
     }
-    const fid = casters[0].fid;
 
     cast = {
       ...cast,
@@ -79,7 +62,7 @@ export const convertEditorCastToPublishableCast = async (draft: PostType, castAu
       parentUrl,
     }
   }
-  console.log('done, reutrning cast', { ...cast })
+  console.log('convertEditorCastToPublishableCast done, result:', { ...cast })
   return cast;
 }
 
@@ -91,7 +74,7 @@ type PublishCastParams = {
 
 export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCastParams) => {
   if (!VITE_NEYNAR_HUB_URL) {
-    throw new Error('HUB_URL is not defined');
+    throw new Error('hub url is not defined');
   }
 
   console.log(`publishCast - fid ${authorFid} cast: ${JSON.stringify(castBody)}`)
@@ -111,15 +94,22 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
     ed25519Signer,
   );
 
+  console.log('cast right before sending to hub', { ...cast });
+
   // Step 3: publish message to network
   const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
   const res = await cast.map(async (castAdd) => {
+    console.log('castAdd submitMessage', { ...castAdd });
     return await client.submitMessage(castAdd);
   });
-  // Result<Promise<HubResult<Mesage>>, HubError>
-  const res2 = await Promise.resolve(res);
-  console.log('res2', res2);
-  // console.log('res?.value', { val });
+
+
+  // const res2 = await Promise.resolve(res).then((res) => {
+  //   console.log('res', res)
+  //   return res
+  // }).catch((err) => {
+  //   console.log('err', err)
+  // });
 
   console.log(`Submitted cast to Farcaster network`);
 
@@ -136,139 +126,139 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
    * "This is a cast with no mentions"
    */
 
-  // const cast = await makeCastAdd(
-  //   castBody,
-  //   dataOptions,
-  //   ed25519Signer,
-  // );
-  // castResults.push(cast);
+// const cast = await makeCastAdd(
+//   castBody,
+//   dataOptions,
+//   ed25519Signer,
+// );
+// castResults.push(cast);
 
-  // /**
-  //  * Example 2: A cast with mentions
-  //  *
-  //  * "@dwr and @v are big fans of @farcaster"
-  //  */
-  // const castWithMentions = await makeCastAdd(
-  //   {
-  //     text: " and  are big fans of ",
-  //     embeds: [],
-  //     embedsDeprecated: [],
-  //     mentions: [3, 2, 1],
-  //     mentionsPositions: [0, 5, 22],
-  //   },
-  //   dataOptions,
-  //   ed25519Signer,
-  // );
-  // castResults.push(castWithMentions);
+// /**
+//  * Example 2: A cast with mentions
+//  *
+//  * "@dwr and @v are big fans of @farcaster"
+//  */
+// const castWithMentions = await makeCastAdd(
+//   {
+//     text: " and  are big fans of ",
+//     embeds: [],
+//     embedsDeprecated: [],
+//     mentions: [3, 2, 1],
+//     mentionsPositions: [0, 5, 22],
+//   },
+//   dataOptions,
+//   ed25519Signer,
+// );
+// castResults.push(castWithMentions);
 
-  // /**
-  //  * Example 3: A cast with mentions and an attachment
-  //  *
-  //  * "Hey @dwr, check this out!"
-  //  */
-  // const castWithMentionsAndAttachment = await makeCastAdd(
-  //   {
-  //     text: "Hey , check this out!",
-  //     embeds: [{ url: "https://farcaster.xyz" }],
-  //     embedsDeprecated: [],
-  //     mentions: [3],
-  //     mentionsPositions: [4],
-  //   },
-  //   dataOptions,
-  //   ed25519Signer,
-  // );
-  // castResults.push(castWithMentionsAndAttachment);
+// /**
+//  * Example 3: A cast with mentions and an attachment
+//  *
+//  * "Hey @dwr, check this out!"
+//  */
+// const castWithMentionsAndAttachment = await makeCastAdd(
+//   {
+//     text: "Hey , check this out!",
+//     embeds: [{ url: "https://farcaster.xyz" }],
+//     embedsDeprecated: [],
+//     mentions: [3],
+//     mentionsPositions: [4],
+//   },
+//   dataOptions,
+//   ed25519Signer,
+// );
+// castResults.push(castWithMentionsAndAttachment);
 
-  // /**
-  //  * Example 4: A cast with mentions and an attachment, and a link in the text
-  //  *
-  //  * "Hey @dwr, check out https://farcaster.xyz!"
-  //  */
-  // const castWithMentionsAttachmentLink = await makeCastAdd(
-  //   {
-  //     text: "Hey , check out https://farcaster.xyz!",
-  //     embeds: [{ url: "https://farcaster.xyz" }],
-  //     embedsDeprecated: [],
-  //     mentions: [3],
-  //     mentionsPositions: [4],
-  //   },
-  //   dataOptions,
-  //   ed25519Signer,
-  // );
-  // castResults.push(castWithMentionsAttachmentLink);
+// /**
+//  * Example 4: A cast with mentions and an attachment, and a link in the text
+//  *
+//  * "Hey @dwr, check out https://farcaster.xyz!"
+//  */
+// const castWithMentionsAttachmentLink = await makeCastAdd(
+//   {
+//     text: "Hey , check out https://farcaster.xyz!",
+//     embeds: [{ url: "https://farcaster.xyz" }],
+//     embedsDeprecated: [],
+//     mentions: [3],
+//     mentionsPositions: [4],
+//   },
+//   dataOptions,
+//   ed25519Signer,
+// );
+// castResults.push(castWithMentionsAttachmentLink);
 
-  // /**
-  //  * Example 5: A cast with multiple mentions
-  //  *
-  //  * "You can mention @v multiple times: @v @v @v"
-  //  */
+// /**
+//  * Example 5: A cast with multiple mentions
+//  *
+//  * "You can mention @v multiple times: @v @v @v"
+//  */
 
-  // const castWithMultipleMentions = await makeCastAdd(
-  //   {
-  //     text: "You can mention  multiple times:   ",
-  //     embeds: [],
-  //     embedsDeprecated: [],
-  //     mentions: [2, 2, 2, 2],
-  //     mentionsPositions: [16, 33, 34, 35],
-  //   },
-  //   dataOptions,
-  //   ed25519Signer,
-  // );
-  // castResults.push(castWithMultipleMentions);
+// const castWithMultipleMentions = await makeCastAdd(
+//   {
+//     text: "You can mention  multiple times:   ",
+//     embeds: [],
+//     embedsDeprecated: [],
+//     mentions: [2, 2, 2, 2],
+//     mentionsPositions: [16, 33, 34, 35],
+//   },
+//   dataOptions,
+//   ed25519Signer,
+// );
+// castResults.push(castWithMultipleMentions);
 
-  // /**
-  //  * Example 6: A cast with emoji and mentions
-  //  *
-  //  * "🤓@farcaster can mention immediately after emoji"
-  //  */
-  // const castWithEmojiAndMentions = await makeCastAdd(
-  //   {
-  //     text: "🤓 can mention immediately after emoji",
-  //     embeds: [],
-  //     embedsDeprecated: [],
-  //     mentions: [1],
-  //     mentionsPositions: [4],
-  //   },
-  //   dataOptions,
-  //   ed25519Signer,
-  // );
-  // castResults.push(castWithEmojiAndMentions);
+// /**
+//  * Example 6: A cast with emoji and mentions
+//  *
+//  * "🤓@farcaster can mention immediately after emoji"
+//  */
+// const castWithEmojiAndMentions = await makeCastAdd(
+//   {
+//     text: "🤓 can mention immediately after emoji",
+//     embeds: [],
+//     embedsDeprecated: [],
+//     mentions: [1],
+//     mentionsPositions: [4],
+//   },
+//   dataOptions,
+//   ed25519Signer,
+// );
+// castResults.push(castWithEmojiAndMentions);
 
-  // /**
-  //  * Example 7: A cast with emoji and a link in the text and an attachment
-  //  *
-  //  * "🤓https://url-after-unicode.com can include URL immediately after emoji"
-  //  */
+// /**
+//  * Example 7: A cast with emoji and a link in the text and an attachment
+//  *
+//  * "🤓https://url-after-unicode.com can include URL immediately after emoji"
+//  */
 
-  // const castWithEmojiLinkAttachmnent = await makeCastAdd(
-  //   {
-  //     text: "🤓https://url-after-unicode.com can include URL immediately after emoji",
-  //     embeds: [{ url: "https://url-after-unicode.com" }],
-  //     embedsDeprecated: [],
-  //     mentions: [],
-  //     mentionsPositions: [],
-  //   },
-  //   dataOptions,
-  //   ed25519Signer,
-  // );
-  // castResults.push(castWithEmojiLinkAttachmnent);
+// const castWithEmojiLinkAttachmnent = await makeCastAdd(
+//   {
+//     text: "🤓https://url-after-unicode.com can include URL immediately after emoji",
+//     embeds: [{ url: "https://url-after-unicode.com" }],
+//     embedsDeprecated: [],
+//     mentions: [],
+//     mentionsPositions: [],
+//   },
+//   dataOptions,
+//   ed25519Signer,
+// );
+// castResults.push(castWithEmojiLinkAttachmnent);
 
-  // /**
-  //  * Example 7: A cast that replies to a URL
-  //  *
-  //  * "I think this is a great protocol 🚀"
-  //  */
+// /**
+//  * Example 7: A cast that replies to a URL
+//  *
+//  * "I think this is a great protocol 🚀"
+//  */
 
-  // const castReplyingToAUrl = await makeCastAdd(
-  //   {
-  //     text: "I think this is a great protocol 🚀",
-  //     embeds: [],
-  //     embedsDeprecated: [],
-  //     mentions: [],
-  //     mentionsPositions: [],
-  //     parentUrl: "https://www.farcaster.xyz/",
-  //   },
-  //   dataOptions,
-  //   ed25519Signer,
-  // );
-  // castResults.push(castReplyingToAUrl);
+// const castReplyingToAUrl = await makeCastAdd(
+//   {
+//     text: "I think this is a great protocol 🚀",
+//     embeds: [],
+//     embedsDeprecated: [],
+//     mentions: [],
+//     mentionsPositions: [],
+//     parentUrl: "https://www.farcaster.xyz/",
+//   },
+//   dataOptions,
+//   ed25519Signer,
+// );
+// castResults.push(castReplyingToAUrl);

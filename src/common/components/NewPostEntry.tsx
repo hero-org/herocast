@@ -1,5 +1,4 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
-import { CheckIcon } from "@heroicons/react/20/solid";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
 import { CasterType } from "@/common/helpers/farcaster";
@@ -8,7 +7,7 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { Listbox, Transition, Combobox } from '@headlessui/react'
 import { ChannelType, channels } from "@/common/constants/channels";
 import isEmpty from "lodash.isempty";
-import { PostType } from "../constants/farcaster";
+import { DraftStatus, DraftType } from "../constants/farcaster";
 import { getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 
@@ -31,7 +30,7 @@ const MentionDropdownItem = ({ entity, selected }) => {
       <>
         <div className="flex items-center">
           <img src={pfpUrl} alt="" className="h-6 w-6 flex-shrink-0 rounded-full border border-gray-600" />
-          <div className="ml-2 flex text-radix-slate12">
+          <div className="ml-2 flex">
             <span className="truncate font-semibold">@{username}</span>
             <span
               className={classNames(
@@ -72,12 +71,15 @@ type NewPostEntryProps = {
 
 export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostEntryProps) {
   const {
-    postDrafts,
+    drafts,
     updatePostDraft,
     publishPostDraft,
+    updateMentionsToFids,
   } = useNewPostStore();
 
-  const draft = draftIdx !== null ? postDrafts[draftIdx] : NewPostDraft;
+  const draft = draftIdx !== null ? drafts[draftIdx] : NewPostDraft;
+  const isWritingDraft = draft && (draft.status === DraftStatus.writing);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textareaElement = textareaRef.current;
   const {
@@ -89,7 +91,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   const channel = channels.find((channel: ChannelType) => channel.parent_url === draft?.parentUrl);
   const isReply = draft?.parentCastId !== undefined;
 
-  const onChange = (cast: PostType) => {
+  const onChange = (cast: DraftType) => {
     updatePostDraft(draftIdx, cast)
   };
 
@@ -104,23 +106,21 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
         console.log('error fetching usernames', err);
         return [];
       }));
-
-    // return casterData.filter((caster: CasterType) =>
-    //   caster.username?.startsWith(username) || caster.display_name?.startsWith(username)
-    // );
   };
 
 
   const onSubmitPost = async () => {
+    console.log('onSubmitPost', draft)
     if (!draft || !account.privateKey || !account.platformAccountId) return;
 
     if (draft.text.length > 0) {
-      await publishPostDraft(draftIdx, account).then((res) => {
-        console.log('published post draft, res:', res);
+      await Promise.resolve(await publishPostDraft(draftIdx, account)).then((res) => {
+        console.log('NewPostEntry published post draft, res:', res);
         onPost();
       }).catch((err) => {
-        console.log('error publishing post draft', err);
+        console.log('NewPostEntry error publishing post draft', err);
       }).finally(() => {
+        console.log('NewPostEntry finally')
       });
     }
   }
@@ -171,12 +171,40 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
     onChange({ ...draft, parentUrl: newParentUrl })
   }
 
+  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: string | Object }) => {
+    console.log('onItemSelected', trigger, item)
+
+    if (trigger === '@') {
+      console.log('new mentionsToFids', { [item?.username]: item?.fid });
+      if (!draft.mentionsToFids) {
+        updateMentionsToFids(draftIdx, { [item?.username]: item?.fid })
+      } else {
+        updateMentionsToFids(draftIdx, { ...draft.mentionsToFids, [item?.username]: item?.fid })
+      }
+    }
+  }
+
   const showToolbar = !hideChannel;
+
+  const renderButtonText = () => {
+    if (!draft) return 'Post';
+
+    switch (draft.status) {
+      case DraftStatus.writing:
+        return `Post${hasMultipleAccounts ? ` as @${account.name}` : ''} ${!isEmpty(channel) && !hideChannel ? ` in ${channel.name}` : ''}`;
+      case DraftStatus.publishing:
+        return 'Posting...';
+      case DraftStatus.published:
+        return 'Posted';
+      default:
+        return 'Post';
+    }
+  }
+
 
   return (
     <div className="flex flex-col items-start">
       <form onSubmit={(event) => {
-        console.log('form event onSubmit', event)
         event.preventDefault();
         onSubmitPost();
       }} className="relative min-w-full">
@@ -196,11 +224,12 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                 )}
                 style={{ minHeight: '100px' }}
                 loadingComponent={() => <Loading />}
-                placeholder={isReply ? 'your reply...' : `What's on your mind${channel ? ` for ${channel.name}` : ''}, ${account?.name}?`}
+                placeholder={isReply ? 'your reply...' : `say something nice${channel ? ` in the ${channel.name} channel` : ''}, ${account?.name}?`}
                 minChar={2}
                 rows={5}
                 trigger={characterToTrigger}
                 dropdownClassName="absolute z-10 mt-1 max-h-56 w-full overflow-show rounded-sm bg-gray-700 text-base shadow-md ring-1 ring-gray-200 ring-opacity-5 focus:outline-none sm:text-sm"
+                onItemSelected={({ currentTrigger, item }) => onItemSelected({ trigger: currentTrigger, draft, item })}
               />
             </Combobox>
           </div>
@@ -259,7 +288,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                               key={channel.parent_url}
                               className={({ active }) =>
                                 classNames(
-                                  active ? 'bg-radix-slate8' : 'bg-radix-slate10',
+                                  active ? 'text-gray-200 bg-gray-600' : 'text-gray-300 bg-gray-700',
                                   'relative cursor-default select-none px-3 py-2 truncate'
                                 )
                               }
@@ -345,29 +374,32 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
             <div className="flex-shrink-0">
               <button
                 type="submit"
+                disabled={!isWritingDraft}
                 className={classNames(
                   // isPendingPublish ? 'bg-gray-700 cursor-not-allowed' : 'cursor-pointer',
                   "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                 )}
               >
-                {
-                  `Post${hasMultipleAccounts ? ` as @${account.name}` : ''} ${!isEmpty(channel) && !hideChannel ? ` in ${channel.name}` : ''}`
-                }
+                {renderButtonText()}
               </button>
             </div>
-            {/* <div className="border-l-4 border-yellow-200 bg-yellow-300/50 p-2 pr-3">
+          </div>
+          {false && draft.mentionsToFids && (
+            <div className="mt-4 border-l-4 border-gray-200 bg-gray-300/50 p-2 pr-3">
               <div className="flex">
-                <div className="flex-shrink-0">
-                  <ExclamationTriangleIcon className="h-5 w-5 text-yellow-200" aria-hidden="true" />
-                </div>
                 <div className="">
-                  <p className="ml-1 text-sm text-yellow-200">
-                    can&apos;t embed urls yet
+                  <p className="ml-1 text-sm text-gray-200">
+                    mentions:
+                    {Object.entries(draft.mentionsToFids).map(([mention, fid]) => (
+                      <span key={fid} className="ml-2">
+                        @{mention}
+                      </span>
+                    ))}
                   </p>
                 </div>
               </div>
-            </div> */}
-          </div>
+            </div>
+          )}
         </div>
       </form >
     </div >
@@ -408,15 +440,3 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
 //   </div>
 
 // </div>
-
-
-// <ReactTextareaAutocomplete
-//   ref={textareaRef}
-//   rows={5}
-//   name="comment"
-//   id="comment"
-//   className="block w-full rounded-sm border-0 py-2 bg-gray-700 text-gray-300 shadow-sm ring-1 ring-inset ring-gray-800 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-//   placeholder="your cast..."
-//   value={draft.text}
-//   onChange={(e) => onTextChange(e.target.value)}
-// />

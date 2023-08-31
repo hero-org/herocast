@@ -10,7 +10,7 @@ export default function NewPost() {
   const {
     removeAllPostDrafts,
   } = useNewPostStore();
-  const postDrafts = useNewPostStore(state => state.postDrafts);
+  const postDrafts = useNewPostStore(state => state.drafts);
 
   return (
     <>
@@ -30,15 +30,15 @@ export default function NewPost() {
         <div className="w-1/2 divide-y">
           {postDrafts.map((draft, draftIdx) =>
             <div key={draftIdx} className="pt-4 pb-6">
-              {draft.parentHash && (
+              {draft.parentCastId?.hash && (
                 <div className="text-gray-400 text-sm mb-2">
-                  Replying to <span className="text-gray-100">@{draft.parentHash}</span>
+                  Replying to <span className="text-gray-100">@{draft.parentCastId?.hash}</span>
                 </div>
               )}
               <NewPostEntry
                 key={`draft-${draftIdx}`}
                 draftIdx={draftIdx}
-                onPost={() => setShowToast(true)}
+                onPost={() => null}
               // draft={draft}
               // onChange={(cast: PostType) => updatePostDraft(draftIdx, cast)}
               // onSubmit={(e: React.FormEvent<HTMLFormElement>) => onSubmit(e, draft, draftIdx)}

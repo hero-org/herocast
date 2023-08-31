@@ -20,6 +20,11 @@ type NotificationsEndpointProps = {
   limit?: number;
 }
 
+export type CasterType = {
+  fid: number
+  username?: string
+  display_name?: string
+}
 
 export const getNeynarFeedEndpoint = ({ fid, parentUrl, cursor, limit }: FeedEndpointProps): string => {
   let neynarEndpoint = `https://api.neynar.com/v2/farcaster/feed/?api_key=${VITE_NEYNAR_API_KEY}&limit=${limit || DEFAULT_FEED_PAGE_SIZE}`;
