@@ -35,12 +35,9 @@ const FarcasterLogin = () => {
 
   const onPollingUpdate = async () => {
     const accounts = useAccountStore.getState().accounts;
-    // console.log('onPollingUpdate accounts', accounts);
-
     const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
     const hasPendingNewAccounts = !isEmpty(pendingAccounts);
 
-    // console.log('onPollingUpdate');
     if (hasPendingNewAccounts && !isSignupDone) {
       pendingAccounts.forEach(async (account, idx) => {
         if (!account.id) return;
@@ -67,7 +64,6 @@ const FarcasterLogin = () => {
 
   useLayoutEffect(() => {
     return () => {
-      console.log('cleanup LayoutEffect')
       setRunPolling(false);
     }
   }, [runPolling])
@@ -108,6 +104,8 @@ const FarcasterLogin = () => {
     addNewPostDraft(JoinedHerocastPostDraft)
     navigate('/post');
   }
+
+  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
 
   const renderPendingAccounts = () => {
     return (
