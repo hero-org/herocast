@@ -172,10 +172,10 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   }
 
   const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: string | Object }) => {
-    console.log('onItemSelected', trigger, item)
+    // console.log('onItemSelected', trigger, item)
 
     if (trigger === '@') {
-      console.log('new mentionsToFids', { [item?.username]: item?.fid });
+      // console.log('new mentionsToFids', { [item?.username]: item?.fid });
       if (!draft.mentionsToFids) {
         updateMentionsToFids(draftIdx, { [item?.username]: item?.fid })
       } else {

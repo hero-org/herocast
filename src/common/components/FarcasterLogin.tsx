@@ -23,6 +23,7 @@ const FarcasterLogin = () => {
   const navigate = useNavigate();
 
   const {
+    accounts,
     addAccount,
     setAccountActive,
   } = useAccountStore();
@@ -34,12 +35,12 @@ const FarcasterLogin = () => {
 
   const onPollingUpdate = async () => {
     const accounts = useAccountStore.getState().accounts;
-    console.log('onPollingUpdate accounts', accounts);
+    // console.log('onPollingUpdate accounts', accounts);
 
     const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
     const hasPendingNewAccounts = !isEmpty(pendingAccounts);
 
-    console.log('onPollingUpdate');
+    // console.log('onPollingUpdate');
     if (hasPendingNewAccounts && !isSignupDone) {
       pendingAccounts.forEach(async (account, idx) => {
         if (!account.id) return;
@@ -49,7 +50,7 @@ const FarcasterLogin = () => {
           console.log('signerStatus: ', status, data);
           if (status === WarpcastLoginStatus.success) {
             setAccountActive(account.id, { platform_account_id: data.userFid, data });
-            console.log('idx + 1', idx + 1, 'pendingAccounts', pendingAccounts.length);
+            // console.log('idx + 1', idx + 1, 'pendingAccounts', pendingAccounts.length);
             if (idx + 1 === pendingAccounts.length) {
               setRunPolling(false);
               await hydrate();
@@ -177,7 +178,7 @@ const FarcasterLogin = () => {
           {errorMessage}
         </p>
       )}
-      {isSignupDone && (<div className="mt-10 max-w-md rounded-sm bg-green-800/50 px-4 py-6">
+      {accounts.length > 0 && (<div className="mt-10 max-w-md rounded-sm bg-green-800/50 px-4 py-6">
         <div className="flex">
           <div className="flex-shrink-0">
             <CheckCircleIcon className="h-5 w-5 text-gray-100" aria-hidden="true" />

@@ -14,7 +14,7 @@ export function getTauriStore(filename: string) {
 }
 
 export const getStateStorageForStore = (store: Store): StateStorage => {
-  console.log('getStateStorageForStore', store)
+  // console.log('getStateStorageForStore', store)
   return {
     getItem: async (name: string): Promise<string | null> => {
       console.log(name, 'has been retrieved')

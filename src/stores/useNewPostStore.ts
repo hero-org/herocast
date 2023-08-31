@@ -95,7 +95,7 @@ const store = (set: StoreSet) => ({
   },
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => {
     set((state) => {
-      console.log("updateMentionsToFids", draftIdx, Object.entries(mentionsToFids));
+      // console.log("updateMentionsToFids", draftIdx, Object.entries(mentionsToFids));
       // state.drafts[draftIdx].mentionsToFids = mentionsToFids;
 
       const draft = state.drafts[draftIdx];
@@ -108,7 +108,7 @@ const store = (set: StoreSet) => ({
   },
   removePostDraft: (draftIdx: number) => {
     set((state) => {
-      console.log('removePostDraft', draftIdx);
+      // console.log('removePostDraft', draftIdx);
       state.drafts = state.drafts.splice(draftIdx, 1);
     });
   },
@@ -124,7 +124,7 @@ const store = (set: StoreSet) => ({
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody = await Promise.resolve(convertEditorCastToPublishableCast(draft, account.platformAccountId));
-        console.log("converted castBody", JSON.stringify({ ...castBody }));
+        // console.log("converted castBody", JSON.stringify({ ...castBody }));
 
         await Promise.resolve(publishCast({
           castBody,

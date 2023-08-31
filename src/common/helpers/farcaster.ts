@@ -77,7 +77,7 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
     throw new Error('hub url is not defined');
   }
 
-  console.log(`publishCast - fid ${authorFid} cast: ${JSON.stringify(castBody)}`)
+  // console.log(`publishCast - fid ${authorFid} cast: ${JSON.stringify(castBody)}`)
   // const wallet = new Wallet(privateKey);
   // Create an EIP712 Signer with the wallet that holds the custody address of the user
   const ed25519Signer = new NobleEd25519Signer(toBytes(privateKey));
@@ -94,12 +94,12 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
     ed25519Signer,
   );
 
-  console.log('cast right before sending to hub', { ...cast });
+  // console.log('cast right before sending to hub', { ...cast });
 
   // Step 3: publish message to network
   const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
   const res = await cast.map(async (castAdd) => {
-    console.log('castAdd submitMessage', { ...castAdd });
+    // console.log('castAdd submitMessage', { ...castAdd });
     return await client.submitMessage(castAdd);
   });
 

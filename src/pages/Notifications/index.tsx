@@ -279,7 +279,6 @@ export const Notifications = () => {
   }
 
   const renderMainContent = () => {
-    console.log('renderMainContent', cast);
     return !isEmpty(cast) ?
       <CastThreadView
         cast={{ hash: cast.parentHash, author: cast.parentAuthor }}
