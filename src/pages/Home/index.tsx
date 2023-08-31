@@ -230,7 +230,7 @@ export default function Home() {
                             </ul>
                           </li>
                           {renderAccountSidebar()}
-                          <li className="-mx-6 mt-auto">
+                          {/* <li className="-mx-6 mt-auto">
                             <a
                               href="#"
                               className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
@@ -243,7 +243,7 @@ export default function Home() {
                               <span className="sr-only">Your profile</span>
                               <span aria-hidden="true">Tom Cook</span>
                             </a>
-                          </li>
+                          </li> */}
                         </ul>
                       </nav>
                     </div>
