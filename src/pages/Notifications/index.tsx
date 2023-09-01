@@ -261,7 +261,7 @@ export const Notifications = () => {
   }
 
   const renderLeftColumn = () => {
-    return <div className="hidden w-6/12 shrink-0 md:block">
+    return <div className="block w-6/12 shrink-0">
       <div className={classNames(
         "overflow-hidden rounded-l-sm border bg-gray-800",
         isLeftColumnSelected ? "border-gray-600" : "border-gray-800"
@@ -300,7 +300,7 @@ export const Notifications = () => {
     {navigation === NotificationNavigationEnum.mentions ? (
       <div className="mx-auto flex w-full max-w-7xl items-start py-5">
         {renderLeftColumn()}
-        <main className={classNames("flex-1 ml-4 border", !isLeftColumnSelected ? "border-gray-600" : "border-gray-800")}>
+        <main className={classNames("hidden md:flex-1 ml-4 border", !isLeftColumnSelected ? "border-gray-600" : "border-gray-800")}>
           {renderMainContent()}
         </main>
       </div>
