@@ -59,7 +59,7 @@ export default function Feed() {
 
   const cast = feed[selectedCastIdx];
   const postDrafts = useNewPostStore(state => state.drafts);
-  const draftIdx = postDrafts.findIndex(draft => draft.parentHash === cast?.hash);
+  // const draftIdx = postDrafts.findIndex(draft => draft.parentHash === cast?.hash);
 
   const onOpenLinkInCast = (idx: number) => {
     const cast = feed[idx];
@@ -90,13 +90,13 @@ export default function Feed() {
     enableOnFormTags: true,
   })
 
-  useEffect(() => {
-    if (!showCastThreadView && draftIdx) {
-      if (draftIdx !== -1 && postDrafts[draftIdx].text == "") {
-        removePostDraft(draftIdx);
-      }
-    }
-  }, [showCastThreadView, draftIdx]);
+  // useEffect(() => {
+  //   if (!showCastThreadView && draftIdx) {
+  //     if (draftIdx !== -1 && postDrafts[draftIdx].text == "") {
+  //       removePostDraft(draftIdx);
+  //     }
+  //   }
+  // }, [showCastThreadView, draftIdx]);
 
   const getFeed = async ({ fid, parentUrl, cursor }: { fid: string, parentUrl?: string, cursor?: string }) => {
     if (isLoadingFeed) {

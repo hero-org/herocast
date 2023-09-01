@@ -9,6 +9,7 @@ import { useNewPostStore } from "@/stores/useNewPostStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { openWindow } from "../helpers/navigation";
+import { useIsMounted } from "../helpers/hooks";
 
 type CastThreadViewProps = {
   cast: { hash: string, author: { fid: string } };
@@ -21,8 +22,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
-
-  // console.log('CastThreadView cast', cast, 'casts', casts);
+  const isMounted = useIsMounted();
 
   const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === cast?.hash));
 
@@ -71,6 +71,12 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
     loadData();
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
   }, [cast.hash])
+
+  console.log('CastThreadView isMounted', isMounted(), 'draftIdx', draftIdx, 'draft', drafts[draftIdx]?.text);
+
+  if (!isMounted() && draftIdx !== -1 && drafts[draftIdx].text === '') {
+    removePostDraft(draftIdx);
+  }
 
   const onOpenLinkInCast = (idx: number) => {
     const castInThread = casts[selectedCastIdx];
@@ -128,7 +134,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const renderThread = () => (
     <div className="flow-root">
       {renderFeed()}
-      {draftIdx && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast.hash}`}>
+      {false && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast.hash}`}>
         <NewPostEntry draftIdx={draftIdx} onPost={() => onBack && onBack()} hideChannel />
       </div>}
     </div>

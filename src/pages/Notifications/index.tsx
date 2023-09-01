@@ -165,6 +165,8 @@ export const Notifications = () => {
   const now = new Date();
 
   useEffect(() => {
+    if (!currentAccountFid) return;
+
     const loadData = async () => {
       const neynarEndpoint = getNeynarNotificationsEndpoint({ fid: currentAccountFid });
       await fetch(neynarEndpoint)
@@ -264,7 +266,7 @@ export const Notifications = () => {
         "overflow-hidden rounded-l-sm border bg-gray-800",
         isLeftColumnSelected ? "border-gray-600" : "border-gray-800"
       )}>
-        <tbody className="divide-y divide-white/5">
+        <div className="divide-y divide-white/5">
           <SelectableListWithHotkeys
             data={notifications}
             selectedIdx={selectedNotificationIdx}
@@ -273,7 +275,7 @@ export const Notifications = () => {
             onSelect={(idx) => setSelectedNotificationIdx(idx)}
             onExpand={() => null}
           />
-        </tbody>
+        </div>
       </div>
     </div>
   }

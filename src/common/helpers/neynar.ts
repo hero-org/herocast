@@ -1,4 +1,4 @@
-import { VITE_NEYNAR_API_KEY } from "@/common/constants/farcaster";
+const VITE_NEYNAR_API_KEY = import.meta.env.VITE_NEYNAR_API_KEY
 
 const DEFAULT_FEED_PAGE_SIZE = 15;
 
