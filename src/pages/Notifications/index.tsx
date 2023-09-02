@@ -1,7 +1,7 @@
 
 import { classNames } from '@/common/helpers/css'
 import { useEffect, useState } from 'react'
-import { getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
+import { fetchCasts, getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
 import { useAccountStore } from '@/stores/useAccountStore'
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys'
 import { localize, timeDiff } from '@/common/helpers/date'
@@ -9,108 +9,7 @@ import { CastThreadView } from '@/common/components/CastThreadView'
 import isEmpty from 'lodash.isempty'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Key } from 'ts-key-enum'
-
-// transform this into a type
-// {
-// 	result: {
-// 	notifications: [
-// 		{
-// 			hash: "0x1661c3687633ae6104be62256d85d3a27ec1ceae",
-// 			parentHash: "0xce5c6310d1164d80452fe3388d5f2b9d7eeedb20",
-// 			parentUrl: "chain://eipchain://eip155:7777777/erc721:0x47163feb5c3b97f90671b1e1a1359b8240edbdbe"
-// 			parentAuthor: {
-// 				fid: "194"
-// 			},
-// 			author: {
-// 				fid: "834",
-// 				username: "gabrielayuso.eth",
-// 				displayName: "GabrielAyuso.eth ⌐◨-◨",
-// 				pfp: {
-// 					url: "https://openseauserdata.com/files/b508b2a34a0295f220bffbab3d775472.svg"
-// 				}
-// 			},
-// 			text: "Not very well.
-// 				At least on Android I have to download a gif to my phone and then upload it on the app which not always works, Jam works better when uploading gifs.
-
-// 				I'd love to be able to post gifts directly from my keyboard.",
-// 			timestamp: "2023-08-05T20:25:08.907Z",
-// 			embeds: [ ],
-// 			type: "cast-reply",
-// 			reactions: {
-// 				count: 3,
-// 				fids: [
-// 					194,
-// 					4877,
-// 					7540
-// 				]
-// 			},
-// 			recasts: {
-// 				count: 0,
-// 				fids: [ ]
-// 			},
-// 			recasters: [ ],
-// 			recast: true,
-// 			replies: {
-// 			count: "3"
-// 		}
-// 		},
-// 		{
-// 			hash: "0xdffdb1adf3f60bcca7480e5619bfbd087cf220aa",
-// 			threadHash: "0xbde39822c3474649f3583537423ebb2a6cb59cc9",
-// 			parentAuthor: {
-// 				fid: "373"
-// 			},
-// 			author: {
-// 				fid: "373",
-// 				username: "jayme",
-// 				displayName: "Jayme ",
-// 					pfp: {
-// 						url: "https://lh3.googleusercontent.com/kXfYD6XCiZZz5I2lHu_00NfDS-TAzJ700i_pK7RfJiPoyR7LQLJe0S1AfHLAHUgrO4tZtDSn-XpHttdWz5YYt-Ok5E9jai6_wA6gP3Q"
-// 					}
-// 				},
-// 				text: "Also, the weekly digest now includes
-// 					- launch title + body h/t @rish
-// 					- Trending apps section
-// 					- Share via cast or x-ing 😅
-// 					-  s@ybhoutout",
-// 				timestamp: "2023-08-04T23:13:36.256Z",
-// 				embeds: [
-// 					{
-// 						url: "https://i.imgur.com/gWjNOmc.jpg"
-// 					}
-// 				],
-// 				type: "cast-mention",
-// 				reactions: {
-// 					count: 6,
-// 					fids: [
-// 						616,
-// 						3206,
-// 						3115,
-// 						9391,
-// 						13752,
-// 						194
-// 					]
-// 					},
-// 				recasts: {
-// 					count: 2,
-// 					fids: [
-// 						3206,
-// 						13752
-// 					]
-// 					},
-// 				recasters: [
-// 				"yb",
-// 				"hosein778"
-// 				],
-// 				recast: true,
-// 				replies: {
-// 				count: "1"
-// 				}
-// 			},
-// 		]
-// 	}
-// }
-//
+import { CastType } from '@/common/constants/farcaster'
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
@@ -160,6 +59,7 @@ export const Notifications = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
   const [isLeftColumnSelected, setIsLeftColumnSelected] = useState<boolean>(true);
+  const [selectedParentCast, setSelectedParentCast] = useState<CastType | null>(null);
 
   const currentAccountFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const now = new Date();
@@ -281,15 +181,36 @@ export const Notifications = () => {
   }
 
   const renderMainContent = () => {
-    return !isEmpty(cast) ?
+    return !isEmpty(selectedParentCast) ?
       <CastThreadView
-        cast={{ hash: cast.parentHash, author: cast.parentAuthor }}
+        cast={{ hash: selectedParentCast.hash, author: selectedParentCast.author }}
         fid={currentAccountFid}
         isActive={false}
       /> : null;
   }
 
-  const cast = notifications[selectedNotificationIdx];
+  useEffect(() => {
+    const getParentCast = async (hash: string) => {
+      if (!hash) return;
+      console.log('getParentCast', hash);
+      const responseFetchCasts = await fetchCasts([{ hash }]);
+      console.log('responseFetchCasts', responseFetchCasts);
+      setSelectedParentCast(responseFetchCasts[0])
+    }
+
+    if (selectedNotificationIdx !== -1) {
+      const notification = notifications[selectedNotificationIdx]
+      const hash = notification?.threadHash || notification?.parentHash || notification?.hash
+
+      getParentCast(hash)
+
+      const author = notification?.author;
+      console.log('setting selected parent cast', hash, author);
+      if (!hash) return;
+      setSelectedParentCast({ hash, author })
+
+    }
+  }, [selectedNotificationIdx])
 
   return <div className="flex min-h-screen min-w-full flex-col">
     {renderHeader()}
@@ -300,7 +221,7 @@ export const Notifications = () => {
     {navigation === NotificationNavigationEnum.mentions ? (
       <div className="mx-auto flex w-full max-w-7xl items-start py-5">
         {renderLeftColumn()}
-        <main className={classNames("hidden md:flex-1 ml-4 border", !isLeftColumnSelected ? "border-gray-600" : "border-gray-800")}>
+        <main className={classNames("hidden md:block flex-1 ml-4 border", !isLeftColumnSelected ? "border-gray-600" : "border-gray-800")}>
           {renderMainContent()}
         </main>
       </div>
@@ -309,3 +230,106 @@ export const Notifications = () => {
     </div>}
   </div>
 }
+
+
+// transform this into a type
+// {
+// 	result: {
+// 	notifications: [
+// 		{
+// 			hash: "0x1661c3687633ae6104be62256d85d3a27ec1ceae",
+// 			parentHash: "0xce5c6310d1164d80452fe3388d5f2b9d7eeedb20",
+// 			parentUrl: "chain://eipchain://eip155:7777777/erc721:0x47163feb5c3b97f90671b1e1a1359b8240edbdbe"
+// 			parentAuthor: {
+// 				fid: "194"
+// 			},
+// 			author: {
+// 				fid: "834",
+// 				username: "gabrielayuso.eth",
+// 				displayName: "GabrielAyuso.eth ⌐◨-◨",
+// 				pfp: {
+// 					url: "https://openseauserdata.com/files/b508b2a34a0295f220bffbab3d775472.svg"
+// 				}
+// 			},
+// 			text: "Not very well.
+// 				At least on Android I have to download a gif to my phone and then upload it on the app which not always works, Jam works better when uploading gifs.
+
+// 				I'd love to be able to post gifts directly from my keyboard.",
+// 			timestamp: "2023-08-05T20:25:08.907Z",
+// 			embeds: [ ],
+// 			type: "cast-reply",
+// 			reactions: {
+// 				count: 3,
+// 				fids: [
+// 					194,
+// 					4877,
+// 					7540
+// 				]
+// 			},
+// 			recasts: {
+// 				count: 0,
+// 				fids: [ ]
+// 			},
+// 			recasters: [ ],
+// 			recast: true,
+// 			replies: {
+// 			count: "3"
+// 		}
+// 		},
+// 		{
+// 			hash: "0xdffdb1adf3f60bcca7480e5619bfbd087cf220aa",
+// 			threadHash: "0xbde39822c3474649f3583537423ebb2a6cb59cc9",
+// 			parentAuthor: {
+// 				fid: "373"
+// 			},
+// 			author: {
+// 				fid: "373",
+// 				username: "jayme",
+// 				displayName: "Jayme ",
+// 					pfp: {
+// 						url: "https://lh3.googleusercontent.com/kXfYD6XCiZZz5I2lHu_00NfDS-TAzJ700i_pK7RfJiPoyR7LQLJe0S1AfHLAHUgrO4tZtDSn-XpHttdWz5YYt-Ok5E9jai6_wA6gP3Q"
+// 					}
+// 				},
+// 				text: "Also, the weekly digest now includes
+// 					- launch title + body h/t @rish
+// 					- Trending apps section
+// 					- Share via cast or x-ing 😅
+// 					-  s@ybhoutout",
+// 				timestamp: "2023-08-04T23:13:36.256Z",
+// 				embeds: [
+// 					{
+// 						url: "https://i.imgur.com/gWjNOmc.jpg"
+// 					}
+// 				],
+// 				type: "cast-mention",
+// 				reactions: {
+// 					count: 6,
+// 					fids: [
+// 						616,
+// 						3206,
+// 						3115,
+// 						9391,
+// 						13752,
+// 						194
+// 					]
+// 					},
+// 				recasts: {
+// 					count: 2,
+// 					fids: [
+// 						3206,
+// 						13752
+// 					]
+// 					},
+// 				recasters: [
+// 				"yb",
+// 				"hosein778"
+// 				],
+// 				recast: true,
+// 				replies: {
+// 				count: "1"
+// 				}
+// 			},
+// 		]
+// 	}
+// }
+//

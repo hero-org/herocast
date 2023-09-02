@@ -43,7 +43,7 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType, castA
     cast = {
       ...cast,
       text: cast.text.replace(match[0], ''),
-      mentions: [...cast.mentions, fid],
+      mentions: [...cast.mentions, Number(fid)],
       mentionsPositions: [...cast.mentionsPositions, match.index]
     }
   };
@@ -87,6 +87,7 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
     network: NETWORK,
   };
 
+  console.log('publishCast - dataOptions', { ...dataOptions }, 'castBody', { ...castBody })
   // Step 2: create message
   const cast = await makeCastAdd(
     castBody,
@@ -98,10 +99,9 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
 
   // Step 3: publish message to network
   const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
-  const res = await cast.map(async (castAdd) => {
-    // console.log('castAdd submitMessage', { ...castAdd });
-    return await client.submitMessage(castAdd);
-  });
+  const res = await Promise.resolve(cast.map(async (castAdd) => {
+    return await Promise.resolve(await client.submitMessage(castAdd));
+  }));
 
 
   // const res2 = await Promise.resolve(res).then((res) => {
@@ -111,8 +111,8 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
   //   console.log('err', err)
   // });
 
-  console.log(`Submitted cast to Farcaster network`);
-
+  console.log(`Submitted cast to Farcaster network, res:`, res);
+  return res;
   // client.close();
 };
 

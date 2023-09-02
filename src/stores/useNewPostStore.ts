@@ -109,7 +109,15 @@ const store = (set: StoreSet) => ({
   removePostDraft: (draftIdx: number) => {
     set((state) => {
       // console.log('removePostDraft', draftIdx);
-      state.drafts = state.drafts.splice(draftIdx, 1);
+      // console.log('len before', state.drafts.length)
+
+      if (state.drafts.length === 1) {
+        state.drafts = [NewPostDraft];
+        return;
+      } else {
+        state.drafts = state.drafts.splice(draftIdx, 1);
+      }
+      // console.log('len after', state.drafts.length)
     });
   },
   removeAllPostDrafts: () => {
@@ -131,6 +139,10 @@ const store = (set: StoreSet) => ({
           privateKey: account.privateKey,
           authorFid: account.platformAccountId,
         })).then((res) => {
+          if (res.error) {
+            console.log('publishPostdraft error:', res.error);
+            return;
+          }
           trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
           state.removePostDraft(draftIdx);
           state.setIsToastOpen(true);

@@ -224,7 +224,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                 )}
                 style={{ minHeight: '100px' }}
                 loadingComponent={() => <Loading />}
-                placeholder={isReply ? 'your reply...' : `say something nice${channel ? ` in the ${channel.name} channel` : ''}, ${account?.name}?`}
+                placeholder={isReply ? 'your reply...' : `say something nice${channel ? ` in the ${channel.name} channel` : ''}, ${account?.name}`}
                 minChar={2}
                 rows={5}
                 trigger={characterToTrigger}
