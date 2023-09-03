@@ -3,6 +3,7 @@ import {
   NobleEd25519Signer,
   getHubRpcClient,
   makeCastAdd,
+  makeReactionAdd,
 } from "@farcaster/hub-web";
 import { toBytes } from 'viem';
 import { DraftType, PostType } from "@/common/constants/farcaster";
@@ -114,6 +115,37 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
   console.log(`Submitted cast to Farcaster network, res:`, res);
   return res;
   // client.close();
+};
+
+export const publishReaction = async ({ authorFid, privateKey, reactionBody }: PublishReactionParams) => {
+  if (!VITE_NEYNAR_HUB_URL) {
+    throw new Error('hub url is not defined');
+  }
+
+  // Create an EIP712 Signer with the wallet that holds the custody address of the user
+  const ed25519Signer = new NobleEd25519Signer(toBytes(privateKey));
+
+  const dataOptions = {
+    fid: Number(authorFid),
+    network: NETWORK,
+  };
+
+  console.log('publishReaction - dataOptions', { ...dataOptions }, 'reactionBody', { ...reactionBody })
+  // Step 2: create message
+  const reaction = await makeReactionAdd(
+    reactionBody,
+    dataOptions,
+    ed25519Signer,
+  );
+
+  // Step 3: publish message to network
+  const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
+  const res = await Promise.resolve(reaction.map(async (reactionAdd) => {
+    return await Promise.resolve(await client.submitMessage(reactionAdd));
+  }));
+
+  console.log(`Submitted reaction to Farcaster network, res:`, res);
+  return res;
 };
 
 
