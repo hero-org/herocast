@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { CastType } from "@/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -57,8 +57,8 @@ export default function Feed() {
   const feedKey = getFeedKey({ selectedChannelParentUrl, account });
   const feed = feedKey ? get(feeds, feedKey, []) : [];
 
-  const cast = feed[selectedCastIdx];
-  const postDrafts = useNewPostStore(state => state.drafts);
+  // const cast = feed[selectedCastIdx];
+  // const postDrafts = useNewPostStore(state => state.drafts);
   // const draftIdx = postDrafts.findIndex(draft => draft.parentHash === cast?.hash);
 
   const onOpenLinkInCast = (idx: number) => {

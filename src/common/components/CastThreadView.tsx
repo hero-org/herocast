@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CastType } from "@/common/constants/farcaster"
 import { getNeynarCastThreadEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
@@ -78,7 +78,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
     removePostDraft(draftIdx);
   }
 
-  const onOpenLinkInCast = (idx: number) => {
+  const onOpenLinkInCast = () => {
     const castInThread = casts[selectedCastIdx];
     if (castInThread?.embeds?.length === 0) return;
 
@@ -125,7 +125,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
-      onSelect={() => onOpenLinkInCast(selectedCastIdx)}
+      onSelect={() => onOpenLinkInCast()}
       onExpand={() => null}
       isActive={isActive}
     />

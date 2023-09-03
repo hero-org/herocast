@@ -41,7 +41,7 @@ type addNewPostDraftProps = {
 interface NewPostStoreProps {
   drafts: DraftType[];
   isToastOpen: boolean;
-};
+}
 
 interface NewPostStoreActions {
   setIsToastOpen: (isToastOpen: boolean) => void;

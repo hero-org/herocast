@@ -86,7 +86,7 @@ export const fetchCasts = async (castHashes: { hash: string }[]): Promise<CastTy
     'Content-Type': 'application/json'
   };
 
-  return await axios.get(url, { headers, data: '{ "casts": [{ "hash": "0xa896906a5e397b4fec247c3ee0e9e4d4990b8004" },{ "hash": "0x27ff810f7f718afd8c40be236411f017982e0994" },] }' })
+  return await axios.get(url, { headers, data: JSON.stringify({ casts: castHashes }) })
     .then(response => {
       console.log(response.data);
       return response.data.casts;

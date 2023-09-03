@@ -37,7 +37,6 @@ const appearance = {
 
 export default function Login() {
   const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
 
@@ -56,14 +55,12 @@ export default function Login() {
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       console.log(`Login getSession`, session)
-      setSession(session)
     })
 
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((event, session) => {
       console.log(`Login onAuthStateChange`, event, session)
-      setSession(session);
 
       if (event === 'PASSWORD_RECOVERY') {
         console.log('new pw being set')

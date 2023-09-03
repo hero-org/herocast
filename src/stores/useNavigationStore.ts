@@ -1,8 +1,6 @@
-import { MAIN_NAVIGATION_ENUM } from "@/common/constants/navigation";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { redirect } from "react-router-dom";
 
 interface NavigationStoreProps {
   isCommandPaletteOpen: boolean;

@@ -1,7 +1,6 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef } from "react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
-import { CasterType } from "@/common/helpers/farcaster";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Listbox, Transition, Combobox } from '@headlessui/react'
