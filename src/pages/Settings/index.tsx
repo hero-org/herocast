@@ -35,7 +35,7 @@ export default function Settings() {
     if (session) {
       resetStore();
       setUser(null);
-      const res = await supabaseClient.auth.signOut();
+      await supabaseClient.auth.signOut();
     }
 
     navigate('/login');
@@ -44,7 +44,7 @@ export default function Settings() {
   const displayEmail = user?.email ? `${user?.email.slice(0, 5)}...@${user?.email.split('@')[1]}` : '';
 
   const renderInfoSection = () => {
-    let commands: SimpleCommand[] = [
+    const commands: SimpleCommand[] = [
       { name: 'Command Palette', shortcut: 'cmd+k' },
       { name: 'Feed: go to previous cast in list', shortcut: 'k' },
       { name: 'Feed: go to next cast in list', shortcut: 'j' },

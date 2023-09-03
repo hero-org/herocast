@@ -188,7 +188,7 @@ const switchAccountTo = (idx: number) => {
 };
 
 const getAccountCommands = () => {
-  let accountCommands: CommandType[] = [];
+  const accountCommands: CommandType[] = [];
 
   for (let i = 0; i < 9; i++) {
     accountCommands.push({
@@ -208,7 +208,7 @@ const getAccountCommands = () => {
 };
 
 const getChannelCommands = () => {
-  let channelCommands: CommandType[] = [];
+  const channelCommands: CommandType[] = [];
 
   channelCommands.push({
     name: `Switch to follow feed`,
