@@ -1,4 +1,3 @@
-import Database from "tauri-plugin-sql-api";
 import { Store } from "tauri-plugin-store-api";
 import { StateStorage } from "zustand/middleware";
 

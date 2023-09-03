@@ -31,7 +31,7 @@ interface AccountStoreProps {
 
 interface AccountStoreActions {
   addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => void;
-  setAccountActive: (accountId: number, data: any) => void;
+  setAccountActive: (accountId: number, data: { platform_account_id: string, data: object }) => void;
   removeAccount: (idx: number) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setCurrentChannelIdx: (idx: number | null) => void;
@@ -84,7 +84,7 @@ const store = (set: StoreSet) => ({
         });
       })
   },
-  setAccountActive: (accountId: number, data: any) => {
+  setAccountActive: (accountId: number, data: { platform_account_id: string, data: object }) => {
     set((state) => {
       supabaseClient
         .from('accounts')
@@ -188,7 +188,7 @@ const switchAccountTo = (idx: number) => {
 };
 
 const getAccountCommands = () => {
-  let accountCommands: CommandType[] = [];
+  const accountCommands: CommandType[] = [];
 
   for (let i = 0; i < 9; i++) {
     accountCommands.push({
@@ -208,7 +208,7 @@ const getAccountCommands = () => {
 };
 
 const getChannelCommands = () => {
-  let channelCommands: CommandType[] = [];
+  const channelCommands: CommandType[] = [];
 
   channelCommands.push({
     name: `Switch to follow feed`,

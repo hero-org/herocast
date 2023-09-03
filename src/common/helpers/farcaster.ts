@@ -6,9 +6,8 @@ import {
   makeReactionAdd,
 } from "@farcaster/hub-web";
 import { toBytes } from 'viem';
-import { DraftType, PostType } from "@/common/constants/farcaster";
+import { DraftType } from "@/common/constants/farcaster";
 import isEmpty from 'lodash.isempty';
-import { CasterType, getNeynarUserSearchEndpoint } from "./neynar";
 import get from "lodash.get";
 
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
@@ -25,7 +24,6 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType, castA
     mentions: [],
     mentionsPositions: [],
   }
-  const neynarSearchEndpoint = getNeynarUserSearchEndpoint(castAuthorFid);
 
   const mentionRegex = /@(\S+)/g;
   let match;
@@ -47,7 +45,7 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType, castA
       mentions: [...cast.mentions, Number(fid)],
       mentionsPositions: [...cast.mentionsPositions, match.index]
     }
-  };
+  }
 
   if (!isEmpty(draft.parentCastId)) {
     cast = {

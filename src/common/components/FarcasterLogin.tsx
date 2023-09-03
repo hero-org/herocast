@@ -1,7 +1,7 @@
+import React, { useLayoutEffect, useState } from "react";
 import { WarpcastLoginStatus, generateWarpcastSigner, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
 import { hydrate, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import { useEffect, useLayoutEffect, useState } from "react";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { Cog6ToothIcon, ExclamationCircleIcon, PlusCircleIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import usePollingUpdate from "../hooks/usePollingUpdate";
@@ -145,7 +145,7 @@ const FarcasterLogin = () => {
               onChange={(e) => {
                 if (errorMessage) {
                   setErrorMessage('')
-                };
+                }
                 setAccountName(e.target.value)
               }}
               className="block w-full rounded-none rounded-l-sm border-0 py-1.5 pl-10 bg-white/5 text-gray-200 ring-1 ring-inset ring-gray-600 placeholder:text-gray-500 focus:ring-1 focus:ring-inset focus:ring-gray-400 sm:text-sm sm:leading-6"

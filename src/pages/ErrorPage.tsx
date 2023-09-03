@@ -1,7 +1,8 @@
-import { useLocation, useRouteError } from "react-router-dom";
+import React from "react";
+import { useRouteError } from "react-router-dom";
 
 export default function ErrorPage() {
-  const error: any = useRouteError();
+  const error: unknown = useRouteError();
   console.error('ErrorPage', error);
 
   return (

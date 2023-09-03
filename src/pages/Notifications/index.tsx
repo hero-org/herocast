@@ -1,6 +1,6 @@
+import React, { useEffect, useState } from 'react'
 
 import { classNames } from '@/common/helpers/css'
-import { useEffect, useState } from 'react'
 import { fetchCasts, getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
 import { useAccountStore } from '@/stores/useAccountStore'
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys'

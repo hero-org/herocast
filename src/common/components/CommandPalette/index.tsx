@@ -1,3 +1,4 @@
+import React, { Fragment, useState } from 'react';
 import { channels } from "@/common/constants/channels";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
@@ -8,7 +9,6 @@ import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { BellIcon, FaceSmileIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import commandScore from "command-score";
-import { Fragment, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useNavigate } from "react-router-dom";
 import { Bars3BottomLeftIcon } from "@heroicons/react/20/solid";
@@ -112,7 +112,7 @@ export default function CommandPalette() {
     })
   }
 
-  let nonHotkeyCommands: CommandType[] = [];
+  const nonHotkeyCommands: CommandType[] = [];
   channels.map((c) => c.name).map((channelName: string, idx: number) => {
     nonHotkeyCommands.push({
       name: channelName,

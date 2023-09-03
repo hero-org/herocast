@@ -15,3 +15,8 @@ docs:
   hub-nodejs: ["https://github.com/farcasterxyz/hub-monorepo/blob/main/packages/hub-nodejs/docs/README.md", "We use hub monorepo nodejs web to interact with the Farcaster protocol"]
   react-js: ["https://react.dev/reference/react", "We use react js as our frontend framework"]
   tauri: ["https://tauri.app/v1/", "Tauri is our vector database"]
+sandbox:
+  enabled: true
+  image: "Nodejs"
+  install: "yarn install"
+  formatter: "yarn run lint:fix"

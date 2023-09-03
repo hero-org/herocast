@@ -41,7 +41,7 @@ type addNewPostDraftProps = {
 interface NewPostStoreProps {
   drafts: DraftType[];
   isToastOpen: boolean;
-};
+}
 
 interface NewPostStoreActions {
   setIsToastOpen: (isToastOpen: boolean) => void;
@@ -141,7 +141,7 @@ const store = (set: StoreSet) => ({
         })).then((res) => {
           if (res.error) {
             console.log('publishPostdraft error:', res.error);
-            return;
+            return
           }
           trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
           state.removePostDraft(draftIdx);

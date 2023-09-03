@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { SAVE_DELAY } from "../constants/tauri";
 import { getTauriStore } from "../helpers/tauri/storage";
 
-export function useTauriStore(key: string, defaultValue: any, storeName = 'data.dat') {
+export function useTauriStore(key: string, defaultValue: unknown, storeName = 'data.dat') {
 
   const [state, setState] = useState(defaultValue);
   const [loading, setLoading] = useState(true);
