@@ -73,6 +73,12 @@ type PublishCastParams = {
   castBody: CastAddBody;
 };
 
+type PublishReactionParams = {
+  authorFid: string;
+  privateKey: string;
+  reactionBody: any; // The type of reactionBody is not clear from the context. It should be replaced with the correct type.
+};
+
 export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCastParams) => {
   if (!VITE_NEYNAR_HUB_URL) {
     throw new Error('hub url is not defined');
