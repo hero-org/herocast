@@ -76,7 +76,6 @@ const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed,
             {icon || <span>{key}</span>}
             {count !== null && <span className="ml-1.5">{count}</span>}
           </div>)
-        )
 
   const renderCastReactions = (cast: CastType) => {
     const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;
