@@ -37,7 +37,8 @@ const castTextStyle = {
   'hyphens': 'auto',
 };
 
-export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
+const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
+  const { accounts, selectedAccountIdx } = useAccountStore();
   // if (isSelected) console.log(cast);
 
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
@@ -65,8 +66,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
   }
 
   const renderReaction = (key: string, count?: number | string, icon?: JSX.Element) => {
-        const { accounts, selectedAccountIdx } = useAccountStore();
-        const selectedAccount = accounts[selectedAccountIdx];
+          const selectedAccount = accounts[selectedAccountIdx];
         <div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-sm"
           onClick={() => {
             if (key === 'recasts' || key === 'likes') {
