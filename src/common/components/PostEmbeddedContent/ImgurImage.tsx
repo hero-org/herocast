@@ -1,5 +1,5 @@
+import React, { useEffect, useState } from "react";
 import { PhotoIcon } from "@heroicons/react/24/solid";
-import { useEffect, useState } from "react";
 
 // export const VITE_IMGUR_CLIENT_ID = import.meta.env.VITE_IMGUR_CLIENT_ID
 

@@ -1,7 +1,7 @@
+import React, { useState } from "react";
 import { ChannelType } from "@/common/constants/channels";
 import { classNames } from "@/common/helpers/css";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { useState } from "react";
 import { SidebarHeader } from "./SidebarHeader";
 
 const ChannelsOverview = () => {
@@ -17,7 +17,7 @@ const ChannelsOverview = () => {
     setShowAll(!showAll);
   }
 
-  let sidebarChannels = showAll ? channels : channels.slice(0, MAX_SIDEBAR_CHANNELS);
+  const sidebarChannels = showAll ? channels : channels.slice(0, MAX_SIDEBAR_CHANNELS);
   if (!showAll && selectedChannelIdx && selectedChannelIdx >= MAX_SIDEBAR_CHANNELS) {
     sidebarChannels.push(channels[selectedChannelIdx]);
   }

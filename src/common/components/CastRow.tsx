@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { classNames } from "@/common/helpers/css";
 import { CastType, CastReactionType } from "@/common/constants/farcaster";
 import { ChannelType } from "@/common/constants/channels";

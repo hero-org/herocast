@@ -46,7 +46,7 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType, castA
       mentions: [...cast.mentions, Number(fid)],
       mentionsPositions: [...cast.mentionsPositions, match.index]
     }
-  };
+  }
 
   if (!isEmpty(draft.parentCastId)) {
     cast = {
