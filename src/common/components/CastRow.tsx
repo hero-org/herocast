@@ -66,17 +66,17 @@ const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed,
   }
 
   const renderReaction = (key: string, count?: number | string, icon?: JSX.Element) => {
-          const selectedAccount = accounts[selectedAccountIdx];
-        <div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-sm"
-          onClick={() => {
-            if (key === 'recasts' || key === 'likes') {
-              publishReaction({ authorFid: cast.author.fid, privateKey: selectedAccount.privateKey, reactionBody: { type: key === 'likes' ? 1 : 2, target: cast.hash } });
-            }
-          }}>
-          {icon || <span>{key}</span>}
-          {count !== null && <span className="ml-1.5">{count}</span>}
-        </div>
-      )
+            const selectedAccount = accounts[selectedAccountIdx];
+          return (<div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-sm"
+            onClick={() => {
+              if (key === 'recasts' || key === 'likes') {
+                publishReaction({ authorFid: cast.author.fid, privateKey: selectedAccount.privateKey, reactionBody: { type: key === 'likes' ? 1 : 2, target: cast.hash } });
+              }
+            }}>
+            {icon || <span>{key}</span>}
+            {count !== null && <span className="ml-1.5">{count}</span>}
+          </div>)
+        )
 
   const renderCastReactions = (cast: CastType) => {
     const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;
