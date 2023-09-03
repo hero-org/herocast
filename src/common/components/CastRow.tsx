@@ -1,13 +1,16 @@
 import React from 'react';
+import { toBytes } from 'viem'
 
 import { classNames } from "@/common/helpers/css";
 import { CastType, CastReactionType } from "@/common/constants/farcaster";
 import { ChannelType } from "@/common/constants/channels";
-import { useAccountStore } from "@/path/to/accountStore";
+import { useAccountStore } from "@/stores/useAccountStore";
 import { ArrowUturnUpIcon } from "@heroicons/react/20/solid";
 import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { ImgurImage } from "@/common/components/PostEmbeddedContent";
 import { localize, timeDiff } from "../helpers/date";
+import { publishReaction } from '../helpers/farcaster';
+import { ReactionType } from '@farcaster/hub-web';
 
 interface CastRowProps {
   cast: CastType;
@@ -39,9 +42,10 @@ const castTextStyle = {
   'hyphens': 'auto',
 };
 
-const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
+export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
   const { accounts, selectedAccountIdx } = useAccountStore();
   // if (isSelected) console.log(cast);
+  const selectedAccount = accounts[selectedAccountIdx];
 
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
   const isImageUrl = embedUrl ? embedUrl.endsWith('.gif') || embedUrl.endsWith('.png') || embedUrl.endsWith('.jpg') : false;
@@ -68,24 +72,21 @@ const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed,
   }
 
   const renderReaction = (key: string, count?: number | string, icon?: JSX.Element) => {
-            const selectedAccount = accounts[selectedAccountIdx];
-            if (!selectedAccount) {
-              console.error('No selected account found');
-              return;
-            }
-            return (<div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-sm"
-            onClick={async () => {
-              if (key === 'recasts' || key === 'likes') {
-                try {
-                  await publishReaction({ authorFid: cast.author.fid, privateKey: selectedAccount.privateKey, reactionBody: { type: key === 'likes' ? 1 : 2, target: cast.hash } });
-                } catch (error) {
-                  console.error(`Error in publishReaction: ${error}`);
-                }
-              }
-            }}>
-            {icon || <span>{key}</span>}
-            {count !== null && <span className="ml-1.5">{count}</span>}
-          </div>)
+    return (<div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-sm"
+      onClick={async () => {
+        if (key === 'recasts' || key === 'likes') {
+          const authorFid = cast.author.fid;
+          try {
+            await publishReaction({ authorFid: selectedAccount.platformAccountId, privateKey: selectedAccount.privateKey, reactionBody: { type: key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
+          } catch (error) {
+            console.error(`Error in publishReaction: ${error}`);
+          }
+        }
+      }}>
+      {icon || <span>{key}</span>}
+      {count !== null && <span className="ml-1.5">{count}</span>}
+    </div>)
+  }
 
   const renderCastReactions = (cast: CastType) => {
     const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;

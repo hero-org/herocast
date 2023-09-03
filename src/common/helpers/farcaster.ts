@@ -1,6 +1,7 @@
 import {
   CastAddBody, FarcasterNetwork,
   NobleEd25519Signer,
+  ReactionBody,
   getHubRpcClient,
   makeCastAdd,
   makeReactionAdd,
@@ -74,7 +75,7 @@ type PublishCastParams = {
 type PublishReactionParams = {
   authorFid: string;
   privateKey: string;
-  reactionBody: any; // The type of reactionBody is not clear from the context. It should be replaced with the correct type.
+  reactionBody: ReactionBody;
 };
 
 export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCastParams) => {
@@ -122,11 +123,12 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
 };
 
 export const publishReaction = async ({ authorFid, privateKey, reactionBody }: PublishReactionParams) => {
-  try {
-    if (!VITE_NEYNAR_HUB_URL) {
-      throw new Error('hub url is not defined');
-    }
+  if (!VITE_NEYNAR_HUB_URL) {
+    throw new Error('hub url is not defined');
+  }
 
+  try {
+    console.log(`reactionBody`, reactionBody)
     // Create an EIP712 Signer with the wallet that holds the custody address of the user
     const ed25519Signer = new NobleEd25519Signer(toBytes(privateKey));
 
