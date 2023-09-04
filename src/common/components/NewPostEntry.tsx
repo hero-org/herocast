@@ -7,7 +7,7 @@ import { Listbox, Transition, Combobox } from '@headlessui/react'
 import { ChannelType, channels } from "@/common/constants/channels";
 import isEmpty from "lodash.isempty";
 import { DraftStatus, DraftType } from "../constants/farcaster";
-import { getNeynarUserSearchEndpoint } from "../helpers/neynar";
+import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 
 const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
@@ -46,22 +46,6 @@ const MentionDropdownItem = ({ entity, selected }) => {
   )
 }
 
-// const assignees = [
-//   { name: 'Unassigned', value: null },
-//   {
-//     name: 'Wade Cooper',
-//     value: 'wade-cooper',
-//     avatar:
-//       'https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-//   },
-//   // More items...
-// ]
-// const labels = [
-//   { name: 'Unlabelled', value: null },
-//   { name: 'Engineering', value: 'engineering' },
-//   // More items...
-// ]
-
 type NewPostEntryProps = {
   draftIdx: number;
   onPost: () => void;
@@ -78,6 +62,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
 
   const draft = draftIdx !== null ? drafts[draftIdx] : NewPostDraft;
   const isWritingDraft = draft && (draft.status === DraftStatus.writing);
+  const isPendingPublish = draft && (draft.status === DraftStatus.publishing);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textareaElement = textareaRef.current;
@@ -113,14 +98,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
     if (!draft || !account.privateKey || !account.platformAccountId) return;
 
     if (draft.text.length > 0) {
-      await Promise.resolve(await publishPostDraft(draftIdx, account)).then((res) => {
-        // console.log('NewPostEntry published post draft, res:', res);
-        onPost();
-      }).catch((err) => {
-        console.log('NewPostEntry error publishing post draft', err);
-      }).finally(() => {
-        // console.log('NewPostEntry finally')
-      });
+      await new Promise(() => publishPostDraft(draftIdx, account, onPost));
     }
   }
   const listener = (event: KeyboardEvent) => {
@@ -361,15 +339,6 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
             </Listbox> */}
           </div>)}
           <div className="flex items-center justify-between space-x-3 mt-4">
-            {/* <div className="flex">
-              <button
-                type="button"
-                className="group -my-2 -ml-2 inline-flex items-center rounded-full px-3 py-2 text-left text-gray-400"
-              >
-                <PaperClipIcon className="-ml-1 mr-2 h-5 w-5 group-hover:text-gray-500" aria-hidden="true" />
-                <span className="text-sm italic text-gray-500 group-hover:text-gray-600">Attach a file</span>
-              </button>
-            </div> */}
             <div className="flex-shrink-0">
               <button
                 type="submit"
@@ -382,8 +351,20 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                 {renderButtonText()}
               </button>
             </div>
+            <div className="flex">
+              {draft.text !== "" && (
+                <button
+                  disabled={isPendingPublish}
+                  onClick={() => onChange({ ...draft, text: '' })}
+                  type="button"
+                  className="group inline-flex items-center rounded-sm px-2 py-1.5 text-left text-gray-400 hover:bg-gray-700"
+                >
+                  <span className="text-sm text-gray-500 group-hover:text-gray-400">Remove</span>
+                </button>
+              )}
+            </div>
           </div>
-          {false && draft.mentionsToFids && (
+          {/* {draft.mentionsToFids && (
             <div className="mt-4 border-l-4 border-gray-200 bg-gray-300/50 p-2 pr-3">
               <div className="flex">
                 <div className="">
@@ -398,44 +379,9 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                 </div>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </form >
     </div >
   )
 }
-
-// <div className="min-w-0 flex-1 w-96">
-//   <div>
-//     <div className="mt-2">
-//       <div className="-m-0.5 rounded-sm p-0.5">
-//         <label htmlFor="comment" className="sr-only">
-//           Comment
-//         </label>
-//         <div ref={textareaRef}>
-//           <ReactTextareaAutocomplete
-//             value={draft.text}
-//             onChange={(e) => onTextChange(e.target.value)}
-//             containerClassName="relative mt-2"
-//             className="block w-full rounded-sm border-0 py-2 bg-gray-700 text-gray-300 shadow-sm ring-1 ring-inset ring-gray-800 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-600 sm:text-sm sm:leading-6"
-//             loadingComponent={Loading}
-//             minChar={1}
-//             rows={5}
-//             trigger={characterToTrigger}
-//             dropdownClassName="absolute z-10 -ml-4 mt-5 max-h-60 w-full overflow-auto rounded-sm bg-radix-slate10 py-1 text-base shadow-sm ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-//           />
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-//   <div className="mt-2 flex justify-start">
-//     <button
-//       onClick={() => onSubmit()}
-//       type="submit"
-//       className="max-h-6inline-flex items-center rounded-sm bg-zinc-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600"
-//     >
-//       Post {hasMultipleAccounts && `as @${account.name}`}
-//     </button>
-//   </div>
-
-// </div>

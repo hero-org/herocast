@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { classNames } from '@/common/helpers/css'
+import { castTextStyle, classNames } from '@/common/helpers/css'
 import { fetchCasts, getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
 import { useAccountStore } from '@/stores/useAccountStore'
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys'
@@ -136,7 +136,7 @@ export const Notifications = () => {
     const timeAgo = timeDiff(now, new Date(item.timestamp))
     const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
     return (
-      <li key={`${item.hash}-${item.timestamp}`}
+      <li key={`notification-${item.hash}-${item.timestamp}`}
         onClick={() => setSelectedNotificationIdx(idx)}
         className={classNames(
           idx === selectedNotificationIdx ? 'bg-gray-600' : 'cursor-pointer bg-gray-800 hover:bg-gray-700',
@@ -154,14 +154,16 @@ export const Notifications = () => {
               <time dateTime={item.timestamp}>{timeAgoStr}</time>
             </p>
           </div>
-          <p className="mt-1 line-clamp-2 text-sm leading-6 text-gray-400">{item.text}</p>
+          <p className="mt-1 line-clamp-3 text-sm text-gray-300 break-words lg:break-normal" style={castTextStyle}>
+            {item.text}
+          </p>
         </div>
       </li>
     )
   }
 
   const renderLeftColumn = () => {
-    return <div className="block w-6/12 shrink-0">
+    return <div className="block w-full md:w-6/12 shrink-0">
       <div className={classNames(
         "overflow-hidden rounded-l-sm border bg-gray-800",
         isLeftColumnSelected ? "border-gray-600" : "border-gray-800"
@@ -190,19 +192,19 @@ export const Notifications = () => {
   }
 
   useEffect(() => {
-    const getParentCast = async (hash: string) => {
-      if (!hash) return;
-      console.log('getParentCast', hash);
-      const responseFetchCasts = await fetchCasts([{ hash }]);
-      console.log('responseFetchCasts', responseFetchCasts);
-      setSelectedParentCast(responseFetchCasts[0])
-    }
+    // const getParentCast = async (hash: string) => {
+    //   if (!hash) return;
+    //   console.log('getParentCast', hash);
+    //   const responseFetchCasts = await fetchCasts([{ hash }]);
+    //   console.log('responseFetchCasts', responseFetchCasts);
+    //   setSelectedParentCast(responseFetchCasts[0])
+    // }
 
     if (selectedNotificationIdx !== -1) {
       const notification = notifications[selectedNotificationIdx]
       const hash = notification?.threadHash || notification?.parentHash || notification?.hash
 
-      getParentCast(hash)
+      // getParentCast(hash)
 
       const author = notification?.author;
       console.log('setting selected parent cast', hash, author);
@@ -210,10 +212,12 @@ export const Notifications = () => {
       setSelectedParentCast({ hash, author })
 
     }
-  }, [selectedNotificationIdx])
+  }, [selectedNotificationIdx, isLoading])
+
+  console.log('NotifcationPage render - selectedNotificationIdx', selectedNotificationIdx)
 
   return <div className="flex min-h-screen min-w-full flex-col">
-    {renderHeader()}
+    {/* {renderHeader()} */}
     {isLoading && <div className="text-white flex-1 flex items-center justify-center">
       <div className="loader">Loading...</div>
     </div>

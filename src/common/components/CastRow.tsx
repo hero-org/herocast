@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { toBytes } from 'viem'
 
-import { classNames } from "@/common/helpers/css";
+import { castTextStyle, classNames } from "@/common/helpers/css";
 import { CastType, CastReactionType } from "@/common/constants/farcaster";
 import { ChannelType } from "@/common/constants/channels";
 import { useAccountStore } from "@/stores/useAccountStore";
@@ -25,29 +25,10 @@ interface CastRowProps {
   isThreadView?: boolean;
 }
 
-const castTextStyle = {
-  'whiteSpace': 'pre-wrap',
-  // based on https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/
-  /* These are technically the same, but use both */
-  'overflowWrap': 'break-word',
-  'wordWrap': 'break-word',
-
-  'MsWordBreak': 'break-all',
-  /* This is the dangerous one in WebKit, as it breaks things wherever */
-  // 'word-break': 'break-all',
-  /* Instead use this non-standard one: */
-  'wordBreak': 'break-word',
-
-  /* Adds a hyphen where the word breaks, if supported (No Blink) */
-  'MsHyphens': 'auto',
-  'MozHyphens': 'auto',
-  'WebkitHyphens': 'auto',
-  'hyphens': 'auto',
-};
-
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
-  const { accounts, selectedAccountIdx } = useAccountStore();
   // if (isSelected) console.log(cast);
+
+  const { accounts, selectedAccountIdx } = useAccountStore();
   const [didLike, setDidLike] = useState(false)
   const [didRecast, setDidRecast] = useState(false)
 
@@ -111,8 +92,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     const recastFids = cast.recasts?.fids || map(cast.reactions.recasts, 'fid') || [];
     const reactions = {
       replies: { count: repliesCount },
-      recasts: { count: recastsCount, isActive: didRecast || includes(recastFids, userFid) },
-      likes: { count: likesCount, isActive: didLike || includes(likeFids, userFid) },
+      recasts: { count: recastsCount + Number(didRecast), isActive: didRecast || includes(recastFids, userFid) },
+      likes: { count: likesCount + Number(didLike), isActive: didLike || includes(likeFids, userFid) },
     }
     const linksCount = cast.embeds.length;
     const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;

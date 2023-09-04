@@ -14,7 +14,7 @@ export const NewPostDraft: DraftType = {
   parentUrl: undefined,
   parentCastId: undefined,
   status: DraftStatus.writing,
-  mentionsToFids: { 'x': 'y' }
+  mentionsToFids: {}
 };
 
 
@@ -26,7 +26,7 @@ const NewFeedbackPostDraft: DraftType = {
 };
 
 export const JoinedHerocastPostDraft: DraftType = {
-  text: "I just joined @herocast!",
+  text: "I just joined @herocast! ",
   status: DraftStatus.writing,
   mentionsToFids: { 'herocast': '18665' }
 }
@@ -51,7 +51,7 @@ interface NewPostStoreActions {
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number) => void;
   removeAllPostDrafts: () => void;
-  publishPostDraft: (draftIdx: number, account: AccountObjectType) => Promise<void>;
+  publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost: () => void) => Promise<void>;
 }
 
 export interface NewPostStore extends NewPostStoreProps, NewPostStoreActions { }
@@ -104,20 +104,25 @@ const store = (set: StoreSet) => ({
         { ...draft, mentionsToFids },
         ...state.drafts.slice(draftIdx + 1),
       ];
+
+      const copy = [...state.drafts];
+      copy.splice(draftIdx, 1, { ...draft, mentionsToFids });
+      state.drafts = copy;
     });
   },
   removePostDraft: (draftIdx: number) => {
     set((state) => {
-      // console.log('removePostDraft', draftIdx);
-      // console.log('len before', state.drafts.length)
+      console.log('removePostDraft', draftIdx);
+      console.log('len before', state.drafts.length)
 
       if (state.drafts.length === 1) {
         state.drafts = [NewPostDraft];
-        return;
       } else {
-        state.drafts = state.drafts.splice(draftIdx, 1);
+        const copy = [...state.drafts];
+        copy.splice(draftIdx, 1);
+        state.drafts = copy;
       }
-      // console.log('len after', state.drafts.length)
+      console.log('len after', state.drafts.length)
     });
   },
   removeAllPostDrafts: () => {
@@ -125,35 +130,37 @@ const store = (set: StoreSet) => ({
       state.drafts = [NewPostDraft];
     });
   },
-  publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }) => {
+  publishPostDraft: (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost: () => void) => {
     set(async (state) => {
       const draft = state.drafts[draftIdx];
 
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody = await Promise.resolve(convertEditorCastToPublishableCast(draft, account.platformAccountId));
-        // console.log("converted castBody", JSON.stringify({ ...castBody }));
 
-        await Promise.resolve(publishCast({
-          castBody,
-          privateKey: account.privateKey,
-          authorFid: account.platformAccountId,
-        })).then((res) => {
-          if (res.error) {
+        await Promise.resolve(
+          publishCast({
+            castBody,
+            privateKey: account.privateKey,
+            authorFid: account.platformAccountId,
+          })
+        ).then(async (res) => {
+          if (res?.error) {
             console.log('publishPostdraft error:', res.error);
             return
           }
+
+          await new Promise(f => setTimeout(f, 700));
           trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
           state.removePostDraft(draftIdx);
           state.setIsToastOpen(true);
+          onPost();
         }).catch((err) => {
           console.log('publishPostdraft caught error:', err);
         })
 
       } catch (error) {
         return `Error when posting ${error}`;
-      } finally {
-        state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.published });
       }
     });
   },
@@ -186,3 +193,7 @@ export const newPostCommands: CommandType[] = [
     navigateTo: '/post'
   }
 ];
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
