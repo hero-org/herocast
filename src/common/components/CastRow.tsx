@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { toBytes } from 'viem'
 
 import { classNames } from "@/common/helpers/css";
@@ -7,10 +7,13 @@ import { ChannelType } from "@/common/constants/channels";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { ArrowUturnUpIcon } from "@heroicons/react/20/solid";
 import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
+import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
 import { ImgurImage } from "@/common/components/PostEmbeddedContent";
 import { localize, timeDiff } from "../helpers/date";
 import { publishReaction } from '../helpers/farcaster';
 import { ReactionType } from '@farcaster/hub-web';
+import includes from 'lodash.includes';
+import map from 'lodash.map';
 
 interface CastRowProps {
   cast: CastType;
@@ -45,21 +48,26 @@ const castTextStyle = {
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
   const { accounts, selectedAccountIdx } = useAccountStore();
   // if (isSelected) console.log(cast);
+  const [didLike, setDidLike] = useState(false)
+  const [didRecast, setDidRecast] = useState(false)
+
   const selectedAccount = accounts[selectedAccountIdx];
+  const userFid = Number(selectedAccount.platformAccountId);
 
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
   const isImageUrl = embedUrl ? embedUrl.endsWith('.gif') || embedUrl.endsWith('.png') || embedUrl.endsWith('.jpg') : false;
   const embedImageUrl = isImageUrl ? embedUrl : null;
   const now = new Date();
 
+
   const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined => parentUrl ?
     channels.find((channel) => channel.parent_url === parentUrl) : undefined;
 
-  const getIconForCastReactionType = (reactionType: CastReactionType): JSX.Element | null => {
-    const className = "mt-0.5 w-4 h-4";
+  const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
+    const className = classNames(isActive ? "text-gray-300" : "", "mt-0.5 w-4 h-4");
     switch (reactionType) {
       case CastReactionType.likes:
-        return <HeartIcon className={className} aria-hidden="true" />
+        return isActive ? <HeartFilledIcon className={className} aria-hidden="true" /> : <HeartIcon className={className} aria-hidden="true" />
       case CastReactionType.recasts:
         return <ArrowPathRoundedSquareIcon className={className} aria-hidden="true" />
       case CastReactionType.replies:
@@ -67,17 +75,23 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
       case CastReactionType.links:
         return <ArrowTopRightOnSquareIcon className={className} aria-hidden="true" />
       default:
-        return null;
+        return undefined;
     }
   }
 
-  const renderReaction = (key: string, count?: number | string, icon?: JSX.Element) => {
-    return (<div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-sm"
-      onClick={async () => {
+  const renderReaction = (key: string, count?: number | string, icon?: JSX.Element, isActive?: boolean) => {
+    return (<div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-md"
+      onClick={async (event) => {
+        event.stopPropagation()
         if (key === 'recasts' || key === 'likes') {
           const authorFid = cast.author.fid;
           try {
-            await publishReaction({ authorFid: selectedAccount.platformAccountId, privateKey: selectedAccount.privateKey, reactionBody: { type: key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
+            await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody: { type: key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
+            if (key === 'likes') {
+              setDidLike(true)
+            } else {
+              setDidRecast(true)
+            }
           } catch (error) {
             console.error(`Error in publishReaction: ${error}`);
           }
@@ -89,23 +103,27 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
   }
 
   const renderCastReactions = (cast: CastType) => {
-    const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;
-    const recastsCount = cast.reactions?.recasts?.length || cast.recasts?.count || 0;
     const repliesCount = cast.replies?.count || 0;
+    const recastsCount = cast.reactions?.recasts?.length || cast.recasts?.count || 0;
+    const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;
+
+    console.log('cast reactions', cast.reactions)
+    const likeFids = cast.reactions?.fids || map(cast.reactions.likes, 'fid') || [];
+    const recastFids = cast.recasts?.fids || map(cast.reactions.recasts, 'fid') || [];
     const reactions = {
-      replies: repliesCount,
-      recasts: recastsCount,
-      likes: likesCount,
+      replies: { count: repliesCount },
+      recasts: { count: recastsCount, isActive: didRecast || includes(recastFids, userFid) },
+      likes: { count: likesCount, isActive: didLike || includes(likeFids, userFid) },
     }
     const linksCount = cast.embeds.length;
     const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;
     return (<div className="flex space-x-6">
-      {Object.entries(reactions).map(([key, count]) => {
-        return renderReaction(key, count, getIconForCastReactionType(key as CastReactionType));
+      {Object.entries(reactions).map(([key, reactionInfo]) => {
+        return renderReaction(key, reactionInfo.count, getIconForCastReactionType(key as CastReactionType, reactionInfo.isActive));
       })}
       {linksCount && !isOnchainLink ? (
         <a href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
-          {renderReaction('links', linksCount > 1 ? linksCount : null, getIconForCastReactionType(CastReactionType.links))}
+          {renderReaction('links', linksCount > 1 ? linksCount : undefined, getIconForCastReactionType(CastReactionType.links))}
         </a>) : null
       }
     </div>)
