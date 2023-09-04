@@ -60,16 +60,22 @@ export default function Login() {
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((event, session) => {
-      console.log(`Login onAuthStateChange`, event, session)
+      console.log(`Login onAuthStateChange`, event)
 
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'INITIAL_SESSION') {
+        console.log('initial session')
+      } else if (event === 'PASSWORD_RECOVERY') {
         console.log('new pw being set')
-      } else if (event === 'USER_UPDATED' || session) {
-        console.log('Login onAuthStateChange hasSession - hydrate and navigate');
+      } else if (event === 'USER_UPDATED') {
+        console.log('Login onAuthStateChange hasSession');
+      } else if (event === 'SIGNED_IN') {
+        console.log('Login onAuthStateChange signed in - hydrate and navigate');
         setIsLoading(true);
         hydrate();
         setIsLoading(false);
         navigate('/feed');
+      } else if (event === 'SIGNED_OUT') {
+        console.log('Login onAuthStateChange signed out');
       }
     })
 

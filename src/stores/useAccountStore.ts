@@ -269,6 +269,7 @@ const getChannelCommands = () => {
     aliases: ['random', 'lucky'],
     shortcut: '',
     enableOnFormTags: false,
+    navigateTo: '/feed',
     action: () => {
       const state = useAccountStore.getState();
       if (isEmpty(state.channels)) return;

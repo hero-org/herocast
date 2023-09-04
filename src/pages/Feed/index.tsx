@@ -15,6 +15,7 @@ import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
+import { Key } from "ts-key-enum";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -84,7 +85,7 @@ export default function Feed() {
     }
   }, [selectedCastIdx, feed, account, selectedChannelParentUrl])
 
-  useHotkeys('esc', () => {
+  useHotkeys([Key.Escape, '§'], () => {
     setShowCastThreadView(false);
   }, [selectedCastIdx], {
     enableOnFormTags: true,

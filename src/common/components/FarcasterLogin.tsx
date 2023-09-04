@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { WarpcastLoginStatus, generateWarpcastSigner, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
 import { hydrate, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
@@ -32,11 +32,21 @@ const FarcasterLogin = () => {
     addNewPostDraft,
   } = useNewPostStore();
 
+  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
+  const hasPendingNewAccounts = !isEmpty(pendingAccounts);
+
+  useEffect(() => {
+    if (hasPendingNewAccounts && !isSignupDone) {
+      setRunPolling(true);
+    } else {
+      setRunPolling(false);
+    }
+  }, [hasPendingNewAccounts])
 
   const onPollingUpdate = async () => {
-    const accounts = useAccountStore.getState().accounts;
-    const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
-    const hasPendingNewAccounts = !isEmpty(pendingAccounts);
+    // const accounts = useAccountStore.getState().accounts;
+    // const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
+    // const hasPendingNewAccounts = !isEmpty(pendingAccounts);
 
     if (hasPendingNewAccounts && !isSignupDone) {
       pendingAccounts.forEach(async (account, idx) => {
@@ -75,15 +85,15 @@ const FarcasterLogin = () => {
       return;
     }
     if (isLoading) return;
-
     setIsLoading(true);
+
     const { publicKey, privateKey, token, deeplinkUrl } = await generateWarpcastSigner();
-    console.log('onCreateNewAccount', publicKey, privateKey, token, deeplinkUrl);
+    console.log('onCreateNewAccount', publicKey, token, deeplinkUrl);
 
     try {
       addAccount({
         id: null,
-        platformAccountId: null,
+        platformAccountId: undefined,
         name: accountName,
         status: AccountStatusType.pending,
         platform: AccountPlatformType.farcaster,
@@ -104,8 +114,6 @@ const FarcasterLogin = () => {
     addNewPostDraft(JoinedHerocastPostDraft)
     navigate('/post');
   }
-
-  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
 
   const renderPendingAccounts = () => {
     return (

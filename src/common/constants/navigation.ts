@@ -1,7 +1,7 @@
 export const enum RIGHT_SIDEBAR_ENUM {
   ACCOUNTS = 'accounts',
   CHANNELS = 'channels',
-  CHANNELS_AND_ACCOUNTS = 'channels-and-accounts',
+  ACCOUNTS_AND_CHANNELS = 'accounts_and_channels',
   NONE = 'none',
 }
 

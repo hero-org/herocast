@@ -65,9 +65,9 @@ export default function Home() {
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
     switch (pathname) {
       case '/feed':
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
+        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
       case '/post':
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
+        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
       case '/accounts':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
       case '/notifications':
@@ -107,6 +107,8 @@ export default function Home() {
 
   const renderRightSidebar = () => {
     switch (getSidebarForPathname(pathname)) {
+      case RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS:
+        return <AccountsRightSidebar showChannels />
       case RIGHT_SIDEBAR_ENUM.ACCOUNTS:
         return <AccountsRightSidebar />
       case RIGHT_SIDEBAR_ENUM.CHANNELS:

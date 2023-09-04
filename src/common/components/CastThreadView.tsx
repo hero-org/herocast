@@ -72,8 +72,6 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
   }, [cast.hash])
 
-  console.log('CastThreadView isMounted', isMounted(), 'draftIdx', draftIdx, 'draft', drafts[draftIdx]?.text);
-
   if (!isMounted() && draftIdx !== -1 && drafts[draftIdx].text === '') {
     removePostDraft(draftIdx);
   }
@@ -87,7 +85,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   }
 
   const renderRow = (cast: CastType, idx: number) => (
-    <li key={cast.hash}>
+    <li key={`cast-thread-${cast.hash}`}>
       <div className="relative py-2">
         {/* this is the left line */}
         {idx !== casts.length - 1 ? (
@@ -134,7 +132,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const renderThread = () => (
     <div className="flow-root">
       {renderFeed()}
-      {false && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast.hash}`}>
+      {draftIdx !== -1 && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast.hash}`}>
         <NewPostEntry draftIdx={draftIdx} onPost={() => onBack && onBack()} hideChannel />
       </div>}
     </div>

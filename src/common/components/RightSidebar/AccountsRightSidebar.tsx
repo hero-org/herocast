@@ -1,6 +1,5 @@
 import React from "react";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import { useNavigationStore } from "@/stores/useNavigationStore";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { classNames } from "@/common/helpers/css";
@@ -9,11 +8,15 @@ import ChannelsOverview from "./ChannelsOverview";
 import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
+import { useNavigate } from "react-router-dom";
 
-const AccountsRightSidebar = () => {
-  const {
-    toAccounts,
-  } = useNavigationStore();
+type AccountsRightSidebarProps = {
+  showChannels?: boolean;
+}
+
+const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
+  const navigate = useNavigate();
+
   const {
     accounts,
     selectedAccountIdx,
@@ -25,12 +28,27 @@ const AccountsRightSidebar = () => {
       <EmptyStateWithAction
         title="No accounts"
         description="Add an account to get started"
-        onClick={() => toAccounts()}
+        onClick={() => navigate('/accounts')}
         submitText="Add account"
         icon={UserPlusIcon}
       />
     </div>
   )
+
+  const renderStatus = (status: string) => {
+    switch (status) {
+      case "active":
+        return <></>
+      case "pre-migration":
+        return <span className={classNames("flex-none text-sm text-yellow-300/80")}>
+          pre-migration account
+        </span>
+      default:
+        return <span className={classNames("underline flex-none text-sm text-gray-400")}>
+          {status}
+        </span>
+    }
+  }
 
   const renderAccounts = () => (
     <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
@@ -46,12 +64,9 @@ const AccountsRightSidebar = () => {
                 <h3 className={classNames(
                   idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
                   "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
-                {item.status !== "active" && (
-                  <span className={classNames("underline flex-none text-sm text-gray-400")}>
-                    {item.status}
-                  </span>)}
-                {item.platformAccountId && (
-                  <p className="mt-1 truncate text-sm text-gray-500">
+                {renderStatus(item.status)}
+                {item.platformAccountId && item.status === 'active' && (
+                  <p className="truncate text-sm text-gray-500">
                     fid {item.platformAccountId}
                   </p>
                 )}
@@ -71,7 +86,7 @@ const AccountsRightSidebar = () => {
     <div className="lg:border-t lg:border-white/5">
       <SidebarHeader title="Accounts" />
       {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
-      {renderChannels()}
+      {showChannels && renderChannels()}
     </div>
   </aside>
 }
