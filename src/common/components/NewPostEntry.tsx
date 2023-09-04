@@ -109,17 +109,17 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
 
 
   const onSubmitPost = async () => {
-    console.log('onSubmitPost', draft)
+    // console.log('onSubmitPost', draft)
     if (!draft || !account.privateKey || !account.platformAccountId) return;
 
     if (draft.text.length > 0) {
       await Promise.resolve(await publishPostDraft(draftIdx, account)).then((res) => {
-        console.log('NewPostEntry published post draft, res:', res);
+        // console.log('NewPostEntry published post draft, res:', res);
         onPost();
       }).catch((err) => {
         console.log('NewPostEntry error publishing post draft', err);
       }).finally(() => {
-        console.log('NewPostEntry finally')
+        // console.log('NewPostEntry finally')
       });
     }
   }

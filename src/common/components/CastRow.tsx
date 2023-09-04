@@ -107,7 +107,6 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     const recastsCount = cast.reactions?.recasts?.length || cast.recasts?.count || 0;
     const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;
 
-    console.log('cast reactions', cast.reactions)
     const likeFids = cast.reactions?.fids || map(cast.reactions.likes, 'fid') || [];
     const recastFids = cast.recasts?.fids || map(cast.reactions.recasts, 'fid') || [];
     const reactions = {

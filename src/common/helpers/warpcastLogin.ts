@@ -55,26 +55,17 @@ const generateKeyPair = async (): Promise<KeyPairType> => {
 
 
 const createSignerRequest = async (publicKey: string, requestFid: string, signature: string, deadline: number): Promise<WarpcastLoginType> => {
-  const payload = { key: publicKey, requestFid, signature, deadline }
-  console.log('createSignerRequest', payload);
-
-  // const response = await fetch(`${WARPCAST_API_ENDPOINT}signed-key-requests`, {
-  //   headers,
-  //   method: "POST",
-  //   body: JSON.stringify(payload),
-  // });
+  const payload = {
+    key: publicKey,
+    requestFid,
+    signature,
+    deadline,
+  }
 
   const { token, deeplinkUrl } = await axios
-    .post(`${WARPCAST_API_ENDPOINT}signed-key-requests`, {
-      key: publicKey,
-      requestFid,
-      signature,
-      deadline,
-    })
+    .post(`${WARPCAST_API_ENDPOINT}signed-key-requests`, payload)
     .then((response) => response.data.result.signedKeyRequest);
 
-  // console.log('createSignerRequest', response)
-  // const { deeplinkUrl, token }: WarpcastLoginType = (await response.json()).result.signedKeyRequest;
   return { deeplinkUrl, token };
 }
 
@@ -116,7 +107,7 @@ const getWarpcastSignerStatus = async (signerToken: string): Promise<{ status: W
 }
 
 const getWarpcastSigner = async (privateKey: string) => {
-  const privateKeyEncoded = toBytes(privateKey) // Uint8Array.from(privateKey.split(",").map(split => Number(split)))
+  const privateKeyEncoded = toBytes(privateKey);
   return new NobleEd25519Signer(privateKeyEncoded);
 }
 

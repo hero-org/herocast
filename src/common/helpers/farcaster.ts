@@ -62,7 +62,7 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType, castA
       parentUrl,
     }
   }
-  console.log('convertEditorCastToPublishableCast done, result:', { ...cast })
+  // console.log('convertEditorCastToPublishableCast done, result:', { ...cast })
   return cast;
 }
 
@@ -93,7 +93,7 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
     network: NETWORK,
   };
 
-  console.log('publishCast - dataOptions', { ...dataOptions }, 'castBody', { ...castBody })
+  // console.log('publishCast - dataOptions', { ...dataOptions }, 'castBody', { ...castBody })
   // Step 2: create message
   const cast = await makeCastAdd(
     castBody,
@@ -128,7 +128,7 @@ export const publishReaction = async ({ authorFid, privateKey, reactionBody }: P
   }
 
   try {
-    console.log(`reactionBody`, reactionBody)
+    // console.log(`reactionBody`, reactionBody)
     // Create an EIP712 Signer with the wallet that holds the custody address of the user
     const ed25519Signer = new NobleEd25519Signer(toBytes(privateKey));
 
@@ -137,7 +137,7 @@ export const publishReaction = async ({ authorFid, privateKey, reactionBody }: P
       network: NETWORK,
     };
 
-    console.log('publishReaction - dataOptions', { ...dataOptions }, 'reactionBody', { ...reactionBody })
+    // console.log('publishReaction - dataOptions', { ...dataOptions }, 'reactionBody', { ...reactionBody })
     // Step 2: create message
     const reaction = await makeReactionAdd(
       reactionBody,
