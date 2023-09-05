@@ -9,6 +9,7 @@ import isEmpty from "lodash.isempty";
 import { DraftStatus, DraftType } from "../constants/farcaster";
 import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
+import { getUrlsInText } from "../helpers/text";
 
 const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
 
@@ -364,6 +365,20 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
               )}
             </div>
           </div>
+          {/* {draft.text && (
+            <div className="mt-4 border-l-4 border-gray-200 bg-gray-300/50 p-2 pr-3">
+              <div className="flex">
+                <p className="ml-1 text-sm text-gray-200 flex-col">
+                  embeds:
+                  {getUrlsInText(draft.text).map((url) => (
+                    <span key={`text-url-${url}`} className="ml-2">
+                      {url}
+                    </span>
+                  ))}
+                </p>
+              </div>
+            </div>
+          )} */}
           {/* {draft.mentionsToFids && (
             <div className="mt-4 border-l-4 border-gray-200 bg-gray-300/50 p-2 pr-3">
               <div className="flex">

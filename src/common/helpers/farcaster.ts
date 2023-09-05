@@ -10,17 +10,21 @@ import { toBytes } from 'viem';
 import { DraftType } from "@/common/constants/farcaster";
 import isEmpty from 'lodash.isempty';
 import get from "lodash.get";
+import { getUrlsInText } from "@/common/helpers/text";
 
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
 
-export const convertEditorCastToPublishableCast = async (draft: DraftType, castAuthorFid: string): Promise<CastAddBody> => {
+export const convertEditorCastToPublishableCast = async (draft: DraftType): Promise<CastAddBody> => {
   const text = draft.text;
   const parentUrl = draft.parentUrl;
+  const embeds = getUrlsInText(text);
+
+  console.log('embeds', embeds);
 
   let cast = {
     text,
-    embeds: [],
+    embeds,
     embedsDeprecated: [],
     mentions: [],
     mentionsPositions: [],

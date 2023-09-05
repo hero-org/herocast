@@ -14,6 +14,9 @@ import { publishReaction } from '../helpers/farcaster';
 import { ReactionType } from '@farcaster/hub-web';
 import includes from 'lodash.includes';
 import map from 'lodash.map';
+import { useHotkeys } from 'react-hotkeys-hook';
+import * as Tooltip from '@radix-ui/react-tooltip';
+import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 
 interface CastRowProps {
   cast: CastType;
@@ -34,12 +37,26 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
 
   const selectedAccount = accounts[selectedAccountIdx];
   const userFid = Number(selectedAccount.platformAccountId);
+  const authorFid = cast.author.fid;
 
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
   const isImageUrl = embedUrl ? embedUrl.endsWith('.gif') || embedUrl.endsWith('.png') || embedUrl.endsWith('.jpg') : false;
   const embedImageUrl = isImageUrl ? embedUrl : null;
   const now = new Date();
 
+  useHotkeys('l', () => {
+    if (isSelected) {
+      publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody: { type: ReactionType.LIKE, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
+      setDidLike(true)
+    }
+  }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash]);
+
+  useHotkeys('r', () => {
+    if (isSelected) {
+      publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody: { type: ReactionType.RECAST, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
+      setDidRecast(true);
+    }
+  }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash]);
 
   const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined => parentUrl ?
     channels.find((channel) => channel.parent_url === parentUrl) : undefined;
@@ -65,7 +82,6 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
       onClick={async (event) => {
         event.stopPropagation()
         if (key === 'recasts' || key === 'likes') {
-          const authorFid = cast.author.fid;
           try {
             await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody: { type: key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
             if (key === 'likes') {
@@ -99,7 +115,23 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;
     return (<div className="flex space-x-6">
       {Object.entries(reactions).map(([key, reactionInfo]) => {
-        return renderReaction(key, reactionInfo.count, getIconForCastReactionType(key as CastReactionType, reactionInfo.isActive));
+        const reaction = renderReaction(key, reactionInfo.count, getIconForCastReactionType(key as CastReactionType, reactionInfo?.isActive));
+        if (key === 'likes' && isSelected) {
+          return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+            <HotkeyTooltipWrapper hotkey="l (lowercase L)" side="bottom">
+              {reaction}
+            </HotkeyTooltipWrapper>
+          </Tooltip.Provider>
+        } else if (key === 'recasts' && isSelected) {
+          return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+            <HotkeyTooltipWrapper hotkey="r" side="bottom">
+              {reaction}
+            </HotkeyTooltipWrapper>
+          </Tooltip.Provider>
+        } else {
+          return reaction;
+        }
+
       })}
       {linksCount && !isOnchainLink ? (
         <a href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
