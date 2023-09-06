@@ -22,7 +22,6 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
-  const isMounted = useIsMounted();
 
   const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === cast?.hash));
 
@@ -32,9 +31,8 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   } = useAccountStore();
 
   const {
-    drafts,
     addNewPostDraft,
-    removePostDraft,
+    removePostDraft
   } = useNewPostStore();
 
   const renderGoBackButton = () => (
@@ -70,11 +68,12 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
 
     loadData();
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
-  }, [cast.hash])
 
-  if (!isMounted() && draftIdx !== -1 && drafts[draftIdx].text === '') {
-    removePostDraft(draftIdx);
-  }
+    return () => {
+      console.log('exit thread view')
+      removePostDraft(draftIdx, true)
+    }
+  }, [cast.hash])
 
   const onOpenLinkInCast = () => {
     const castInThread = casts[selectedCastIdx];

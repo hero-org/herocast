@@ -43,14 +43,6 @@ export const getNavigationCommands = (navigate?: (path: string) => void | null):
       action: () => navigate && navigate('/search'),
     },
     {
-      name: 'New post',
-      aliases: ['new tweet', 'write', 'create', 'compose',],
-      icon: PlusCircleIcon,
-      shortcut: 'c',
-      enableOnFormTags: false,
-      action: () => navigate && navigate('/post'),
-    },
-    {
       name: 'Notifications',
       aliases: ['notify', 'alert', 'mentions', 'replies', 'messages', 'inbox',],
       icon: BellIcon,

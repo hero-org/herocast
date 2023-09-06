@@ -22,7 +22,7 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
 
   console.log('embeds', embeds);
 
-  let cast = {
+  let cast: CastAddBody = {
     text,
     embeds,
     embedsDeprecated: [],

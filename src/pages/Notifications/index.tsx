@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import { castTextStyle, classNames } from '@/common/helpers/css'
-import { fetchCasts, getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
+import { getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
 import { useAccountStore } from '@/stores/useAccountStore'
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys'
 import { localize, timeDiff } from '@/common/helpers/date'

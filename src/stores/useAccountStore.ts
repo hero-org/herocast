@@ -94,6 +94,7 @@ const store = (set: StoreSet) => ({
         .then(({ error, data }) => {
           console.log('response setAccountActive - data', data, 'error', error);
           if (!error) {
+            // I don't think this loop works ¯\_(ツ)_/¯
             state.accounts.forEach((account) => {
               if (account.id === accountId) {
                 account.status = AccountStatusType.active;
@@ -105,7 +106,18 @@ const store = (set: StoreSet) => ({
   },
   removeAccount: (idx: number) => {
     set((state) => {
-      state.accounts.splice(idx, 1);
+      supabaseClient
+        .from('accounts')
+        .delete()
+        .eq('id', state.accounts[idx].id)
+        .select()
+        .then(({ error, data }) => {
+          console.log('response removeAccount - data', data, 'error', error);
+        });
+
+      const copy = [...state.accounts];
+      copy.splice(idx, 1);
+      state.accounts = copy;
     });
   },
   setCurrentAccountIdx: (idx: number) => {

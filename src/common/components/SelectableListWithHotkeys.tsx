@@ -16,6 +16,7 @@ type SelectableListWithHotkeysProps = {
 }
 
 export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSelectedIdx, onSelect, onExpand, isActive = true }: SelectableListWithHotkeysProps) => {
+  console.log('rendering list', data, selectedIdx)
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 100,

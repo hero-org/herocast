@@ -66,5 +66,4 @@ export type CastType = {
   timestamp: string
   embeds: EmbedType[]
   replies: { count: number }
-  source: { type: string }
 }

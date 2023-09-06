@@ -39,10 +39,6 @@ export default function Feed() {
 
   const isHydrated = useAccountStore(state => state._hydrated);
 
-  const {
-    removePostDraft
-  } = useNewPostStore();
-
   const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
   const account: AccountObjectType = accounts[selectedAccountIdx];
   const getFeedKey = ({ selectedChannelParentUrl, account }: { selectedChannelParentUrl: string | undefined, account: AccountObjectType }) => {

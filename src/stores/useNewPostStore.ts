@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CommandType } from "@/common/constants/commands";
-import { TagIcon } from "@heroicons/react/24/outline";
+import { PlusCircleIcon, TagIcon } from "@heroicons/react/24/outline";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
@@ -49,7 +49,7 @@ interface NewPostStoreActions {
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
   addNewPostDraft: ({ text, parentCastId, parentUrl }: addNewPostDraftProps) => void;
   addFeedbackDraft: () => void;
-  removePostDraft: (draftId: number) => void;
+  removePostDraft: (draftId: number, onlyIfEmpty?: boolean) => void;
   removeAllPostDrafts: () => void;
   publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost: () => void) => Promise<void>;
 }
@@ -66,13 +66,22 @@ const store = (set: StoreSet) => ({
   isToastOpen: false,
   addNewPostDraft: ({ text, parentUrl, parentCastId }: addNewPostDraftProps) => {
     set((state) => {
-      // console.log('addNewPostDraft', parentUrl, parentCastId);
-
       const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId };
-      for (let i = 0; i < state.drafts.length; i++) {
-        if ((parentUrl && parentUrl === state.drafts[i].parentUrl) ||
-          (parentCastId && parentCastId.hash === state.drafts[i].parentCastId?.hash)) {
-          return;
+      if (!text && !parentUrl && !parentCastId) {
+        for (let i = 0; i < state.drafts.length; i++) {
+          const draft = state.drafts[i];
+          if (!draft.text) {
+            return
+          }
+        }
+      }
+      if (parentUrl || parentCastId) {
+        for (let i = 0; i < state.drafts.length; i++) {
+          const draft = state.drafts[i];
+          if ((parentUrl && parentUrl === draft.parentUrl) ||
+            (parentCastId && parentCastId.hash === draft.parentCastId?.hash)) {
+            return;
+          }
         }
       }
 
@@ -95,9 +104,6 @@ const store = (set: StoreSet) => ({
   },
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => {
     set((state) => {
-      // console.log("updateMentionsToFids", draftIdx, Object.entries(mentionsToFids));
-      // state.drafts[draftIdx].mentionsToFids = mentionsToFids;
-
       const draft = state.drafts[draftIdx];
       state.drafts = [
         ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
@@ -110,10 +116,15 @@ const store = (set: StoreSet) => ({
       state.drafts = copy;
     });
   },
-  removePostDraft: (draftIdx: number) => {
+  removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => {
     set((state) => {
-      console.log('removePostDraft', draftIdx);
-      console.log('len before', state.drafts.length)
+      if (draftIdx < 0 || draftIdx > state.drafts.length) {
+        return;
+      }
+
+      if (onlyIfEmpty && state.drafts[draftIdx].text) {
+        return;
+      }
 
       if (state.drafts.length === 1) {
         state.drafts = [NewPostDraft];
@@ -122,7 +133,6 @@ const store = (set: StoreSet) => ({
         copy.splice(draftIdx, 1);
         state.drafts = copy;
       }
-      console.log('len after', state.drafts.length)
     });
   },
   removeAllPostDrafts: () => {
@@ -137,7 +147,7 @@ const store = (set: StoreSet) => ({
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody = await Promise.resolve(convertEditorCastToPublishableCast(draft));
-
+        // console.log('publishPostdraft castBody', castBody)
         await Promise.resolve(
           publishCast({
             castBody,
@@ -184,12 +194,11 @@ export const newPostCommands: CommandType[] = [
   },
   {
     name: 'New Post',
-    aliases: ['new cast',],
-    icon: PencilSquareIcon,
+    aliases: ['new cast', 'write', 'create', 'compose',],
+    icon: PlusCircleIcon,
     shortcut: 'c',
     action: () => useNewPostStore.getState().addNewPostDraft({}),
     enableOnFormTags: false,
-    requiresNavigationState: [],
     navigateTo: '/post'
   }
 ];

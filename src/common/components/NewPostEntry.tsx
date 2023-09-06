@@ -9,7 +9,7 @@ import isEmpty from "lodash.isempty";
 import { DraftStatus, DraftType } from "../constants/farcaster";
 import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
-import { getUrlsInText } from "../helpers/text";
+
 
 const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
 
@@ -92,7 +92,6 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
         return [];
       }));
   };
-
 
   const onSubmitPost = async () => {
     // console.log('onSubmitPost', draft)
@@ -178,6 +177,8 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
         return 'Post';
     }
   }
+
+  if (!draft) return null;
 
 
   return (
