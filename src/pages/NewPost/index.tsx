@@ -12,8 +12,6 @@ export default function NewPost() {
   } = useNewPostStore();
   const postDrafts = useNewPostStore(state => state.drafts);
 
-  console.log('NewPost page drafts', postDrafts)
-
   return (
     <>
       <div className="flex flex-col min-w-full">
