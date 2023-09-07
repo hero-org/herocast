@@ -12,11 +12,16 @@ import isEmpty from 'lodash.isempty';
 import get from "lodash.get";
 import { getUrlsInText } from "@/common/helpers/text";
 
+function insert(str, index, value) {
+  return str.substr(0, index) + value + str.substr(index);
+}
+
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
 
 export const convertEditorCastToPublishableCast = async (draft: DraftType): Promise<CastAddBody> => {
-  const text = draft.text;
+  console.log(`input text "${draft.text}", length:`, draft.text.length)
+  let text = draft.text;
   const parentUrl = draft.parentUrl;
   const embeds = getUrlsInText(text);
 
@@ -30,14 +35,19 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
     mentionsPositions: [],
   }
 
-  const mentionRegex = /\s?@(\S+)/g;
+  const mentionRegex = /\s?@([a-zA-z.]+)/g;
   let match;
   let idxReducedByPreviousMentions = 0;
 
+  let count = 0;
   while ((match = mentionRegex.exec(text)) != null) {
+    console.log('text', text);
+    count += 1;
     // match contains [@username, username]
+    //
     const casterUsername = match[1];
     const isStartingCastWithMention = match.index === 0;
+    console.log('match', match[0], 'length', match[0].length, 'isStartingCastWithMention', isStartingCastWithMention)
     if (!isStartingCastWithMention && casterUsername.startsWith(' ')) {
       continue;
     }
@@ -49,14 +59,32 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
       console.log(err);
       continue;
     }
+
+    const matchIndex = match.index - (isStartingCastWithMention ? 0 : 1);
+    // console.log('matchIndex', matchIndex)
+    // console.log('matchIndex - idxReducedByPreviousMentions', matchIndex - idxReducedByPreviousMentions)
     cast = {
       ...cast,
-      text: cast.text.replace(match[0], ''),
+      text: cast.text.replace(isStartingCastWithMention ? match[0] : `@${match[1]}`, ''),
       mentions: [...cast.mentions, Number(fid)],
-      mentionsPositions: [...cast.mentionsPositions, match.index - idxReducedByPreviousMentions]
+      mentionsPositions: [...cast.mentionsPositions, matchIndex]
     }
-    idxReducedByPreviousMentions += match[1].length;
+    console.log('text after replace ', cast.text)
+    // const matchLength = match[0].length - (isStartingCastWithMention ? 0 : 1);
+    // idxReducedByPreviousMentions = idxReducedByPreviousMentions + matchLength;
   }
+
+  console.log('text after replace loop', cast.text)
+
+  let testText = cast.text;
+  let idxAddedByPreviousMentions = 0;
+  for (let i = 0; i < cast.mentions.length; i++) {
+    const addedMention = `@${Object.fromEntries(Object.entries(draft.mentionsToFids).map(a => a.reverse()))[cast.mentions[i]]}`;
+    testText = insert(testText, cast.mentionsPositions[i] + idxAddedByPreviousMentions, addedMention);
+    console.log('addedMention', addedMention, 'testText', testText)
+    idxAddedByPreviousMentions += addedMention.length;
+  }
+  console.log('testText', testText);
 
   if (!isEmpty(draft.parentCastId)) {
     cast = {
