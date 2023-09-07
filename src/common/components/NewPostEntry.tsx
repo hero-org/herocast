@@ -105,6 +105,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
       await new Promise(() => publishPostDraft(draftIdx, account, onPost));
     }
   }
+
   const listener = (event: KeyboardEvent) => {
     if (event.key === "Enter" && event.metaKey) {
       event.preventDefault();

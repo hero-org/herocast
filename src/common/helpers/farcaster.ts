@@ -34,11 +34,9 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
   let match;
   while ((match = mentionRegex.exec(text)) != null) {
     // match contains [@username, username]
-    // console.log('match input', match, match.input)
-    //
     const casterUsername = match[1];
     const isStartingCastWithMention = match.index === 0;
-    if (!isStartingCastWithMention && !casterUsername.startsWith(' ')) {
+    if (!isStartingCastWithMention && casterUsername.startsWith(' ')) {
       continue;
     }
 
@@ -47,7 +45,7 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
     if (!fid) {
       const err = `Failed to mention ${casterUsername} - couldn't post this cast, got no fid for user "${casterUsername}"`;
       console.log(err);
-      throw new Error(err);
+      continue;
     }
 
     cast = {

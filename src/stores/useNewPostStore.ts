@@ -51,7 +51,7 @@ interface NewPostStoreActions {
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number, onlyIfEmpty?: boolean) => void;
   removeAllPostDrafts: () => void;
-  publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost: () => void) => Promise<void>;
+  publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost: () => void) => Promise<string | null>;
 }
 
 export interface NewPostStore extends NewPostStoreProps, NewPostStoreActions { }
@@ -140,7 +140,7 @@ const store = (set: StoreSet) => ({
       state.drafts = [NewPostDraft];
     });
   },
-  publishPostDraft: (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost: () => void) => {
+  publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost: () => null): Promise<string | null> => {
     set(async (state) => {
       const draft = state.drafts[draftIdx];
 
@@ -157,7 +157,7 @@ const store = (set: StoreSet) => ({
         ).then(async (res) => {
           if (res?.error) {
             console.log('publishPostdraft error:', res.error);
-            return
+            return `Error when posting ${res.error}`;
           }
 
           await new Promise(f => setTimeout(f, 700));
@@ -170,6 +170,7 @@ const store = (set: StoreSet) => ({
         })
 
       } catch (error) {
+        console.log('caught error in newPostStore', error)
         return `Error when posting ${error}`;
       }
     });
