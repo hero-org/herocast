@@ -34,6 +34,7 @@ const FarcasterLogin = () => {
 
   const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
   const hasPendingNewAccounts = !isEmpty(pendingAccounts);
+  const hasActiveAccounts = !isEmpty(accounts.filter((account) => account.status === AccountStatusType.active));
 
   useEffect(() => {
     if (hasPendingNewAccounts && !isSignupDone) {
@@ -184,7 +185,7 @@ const FarcasterLogin = () => {
           {errorMessage}
         </p>
       )}
-      {accounts.length > 0 && (<div className="mt-10 max-w-md rounded-sm bg-green-800/50 px-4 py-6">
+      {hasActiveAccounts && (<div className="mt-10 max-w-md rounded-sm bg-green-800/50 px-4 py-6">
         <div className="flex">
           <div className="flex-shrink-0">
             <CheckCircleIcon className="h-5 w-5 text-gray-100" aria-hidden="true" />
