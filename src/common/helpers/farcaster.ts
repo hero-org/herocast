@@ -20,8 +20,8 @@ export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
 
 export const convertEditorCastToPublishableCast = async (draft: DraftType): Promise<CastAddBody> => {
-  console.log(`input text "${draft.text}", length:`, draft.text.length)
-  let text = draft.text;
+  // console.log(`input text "${draft.text}", length:`, draft.text.length)
+  const text = draft.text;
   const parentUrl = draft.parentUrl;
   const embeds = getUrlsInText(text);
 
@@ -39,15 +39,11 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
   let match;
   let idxReducedByPreviousMentions = 0;
 
-  let count = 0;
   while ((match = mentionRegex.exec(text)) != null) {
-    console.log('text', text);
-    count += 1;
     // match contains [@username, username]
-    //
+
     const casterUsername = match[1];
     const isStartingCastWithMention = match.index === 0;
-    console.log('match', match[0], 'length', match[0].length, 'isStartingCastWithMention', isStartingCastWithMention)
     if (!isStartingCastWithMention && casterUsername.startsWith(' ')) {
       continue;
     }
@@ -60,31 +56,28 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
       continue;
     }
 
-    const matchIndex = match.index - (isStartingCastWithMention ? 0 : 1);
-    // console.log('matchIndex', matchIndex)
-    // console.log('matchIndex - idxReducedByPreviousMentions', matchIndex - idxReducedByPreviousMentions)
+    const matchIndex = match.index + (isStartingCastWithMention ? 0 : 1);
     cast = {
       ...cast,
       text: cast.text.replace(isStartingCastWithMention ? match[0] : `@${match[1]}`, ''),
       mentions: [...cast.mentions, Number(fid)],
-      mentionsPositions: [...cast.mentionsPositions, matchIndex]
+      mentionsPositions: [...cast.mentionsPositions, matchIndex - idxReducedByPreviousMentions]
     }
-    console.log('text after replace ', cast.text)
-    // const matchLength = match[0].length - (isStartingCastWithMention ? 0 : 1);
-    // idxReducedByPreviousMentions = idxReducedByPreviousMentions + matchLength;
+    const matchLength = (isStartingCastWithMention ? match[0] : `@${match[1]}`).length;
+    idxReducedByPreviousMentions = idxReducedByPreviousMentions + matchLength;
   }
 
-  console.log('text after replace loop', cast.text)
+  // console.log('mentions', cast.mentions, 'mentionsPositions', cast.mentionsPositions)
 
-  let testText = cast.text;
-  let idxAddedByPreviousMentions = 0;
-  for (let i = 0; i < cast.mentions.length; i++) {
-    const addedMention = `@${Object.fromEntries(Object.entries(draft.mentionsToFids).map(a => a.reverse()))[cast.mentions[i]]}`;
-    testText = insert(testText, cast.mentionsPositions[i] + idxAddedByPreviousMentions, addedMention);
-    console.log('addedMention', addedMention, 'testText', testText)
-    idxAddedByPreviousMentions += addedMention.length;
-  }
-  console.log('testText', testText);
+  // let testText = cast.text;
+  // let idxAddedByPreviousMentions = 0;
+  // for (let i = 0; i < cast.mentions.length; i++) {
+  //   const addedMention = `@${Object.fromEntries(Object.entries(draft.mentionsToFids).map(a => a.reverse()))[cast.mentions[i]]}`;
+  //   testText = insert(testText, cast.mentionsPositions[i] + idxAddedByPreviousMentions, addedMention);
+  //   console.log('addedMention', addedMention, 'testText', testText)
+  //   idxAddedByPreviousMentions += addedMention.length;
+  // }
+  // console.log('testText', testText);
 
   if (!isEmpty(draft.parentCastId)) {
     cast = {
