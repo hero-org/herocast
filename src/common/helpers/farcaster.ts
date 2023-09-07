@@ -55,7 +55,7 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
       mentions: [...cast.mentions, Number(fid)],
       mentionsPositions: [...cast.mentionsPositions, match.index - idxReducedByPreviousMentions]
     }
-    idxReducedByPreviousMentions += match[0].length;
+    idxReducedByPreviousMentions += match[1].length;
   }
 
   if (!isEmpty(draft.parentCastId)) {
