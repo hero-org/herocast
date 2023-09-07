@@ -9,6 +9,7 @@ import isEmpty from "lodash.isempty";
 import { DraftStatus, DraftType } from "../constants/farcaster";
 import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
+import includes from 'lodash.includes';
 
 
 const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
@@ -78,6 +79,9 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
 
   const onChange = (cast: DraftType) => {
     updatePostDraft(draftIdx, cast)
+    if (!cast.text) {
+      updateMentionsToFids(draftIdx, {});
+    }
   };
 
   const neynarSearchEndpoint = getNeynarUserSearchEndpoint(account?.platformAccountId);
@@ -149,10 +153,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   }
 
   const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: string | Object }) => {
-    // console.log('onItemSelected', trigger, item)
-
     if (trigger === '@') {
-      // console.log('new mentionsToFids', { [item?.username]: item?.fid });
       if (!draft.mentionsToFids) {
         updateMentionsToFids(draftIdx, { [item?.username]: item?.fid })
       } else {
@@ -179,7 +180,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   }
 
   if (!draft) return null;
-
+  const numNewlines = draft?.text ? draft.text.split('\n').length : 0;
 
   return (
     <div className="flex flex-col items-start">
@@ -205,7 +206,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                 loadingComponent={() => <Loading />}
                 placeholder={isReply ? 'your reply...' : `say something nice${channel ? ` in the ${channel.name} channel` : ''}, ${account?.name}`}
                 minChar={2}
-                rows={5}
+                rows={Math.max(numNewlines + 2, hideChannel ? 4 : 6)}
                 trigger={characterToTrigger}
                 dropdownClassName="absolute z-10 mt-1 max-h-56 w-full overflow-show rounded-sm bg-gray-700 text-base shadow-md ring-1 ring-gray-200 ring-opacity-5 focus:outline-none sm:text-sm"
                 onItemSelected={({ currentTrigger, item }) => onItemSelected({ trigger: currentTrigger, draft, item })}
@@ -215,11 +216,9 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
 
           {/* Spacer element to match the height of the toolbar */}
           <div aria-hidden="true" className="ring-0 ring-gray-800">
-            {showToolbar && (
-              <div className="py-2">
-                <div className="h-8" />
-              </div>
-            )}
+            <div className="py-2">
+              <div className="h-8" />
+            </div>
             <div className="h-px" />
             <div className="py-2">
               <div className="py-px">
@@ -340,7 +339,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
               )}
             </Listbox> */}
           </div>)}
-          <div className="flex items-center justify-between space-x-3 mt-4">
+          <div className="flex items-center justify-between space-x-3 mt-2">
             <div className="flex-shrink-0">
               <button
                 type="submit"
@@ -380,22 +379,22 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
               </div>
             </div>
           )} */}
-          {/* {draft.mentionsToFids && (
+          {draft.mentionsToFids && (
             <div className="mt-4 border-l-4 border-gray-200 bg-gray-300/50 p-2 pr-3">
               <div className="flex">
                 <div className="">
                   <p className="ml-1 text-sm text-gray-200">
                     mentions:
-                    {Object.entries(draft.mentionsToFids).map(([mention, fid]) => (
+                    {Object.entries(draft.mentionsToFids).map(([mention, fid]) => includes(draft.text, mention) ? (
                       <span key={fid} className="ml-2">
                         @{mention}
                       </span>
-                    ))}
+                    ) : null)}
                   </p>
                 </div>
               </div>
             </div>
-          )} */}
+          )}
         </div>
       </form >
     </div >

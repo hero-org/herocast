@@ -30,12 +30,18 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
     mentionsPositions: [],
   }
 
-  const mentionRegex = /@(\S+)/g;
+  const mentionRegex = /\s?@(\S+)/g;
   let match;
   while ((match = mentionRegex.exec(text)) != null) {
     // match contains [@username, username]
-
+    // console.log('match input', match, match.input)
+    //
     const casterUsername = match[1];
+    const isStartingCastWithMention = match.index === 0;
+    if (!isStartingCastWithMention && !casterUsername.startsWith(' ')) {
+      continue;
+    }
+
     const fid = get(draft.mentionsToFids, casterUsername)
 
     if (!fid) {
