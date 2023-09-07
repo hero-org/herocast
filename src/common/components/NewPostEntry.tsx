@@ -385,7 +385,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                 <div className="">
                   <p className="ml-1 text-sm text-gray-200">
                     mentions:
-                    {Object.entries(draft.mentionsToFids).map(([mention, fid]) => includes(draft.text, mention) ? (
+                    {Object.entries(draft.mentionsToFids).map(([mention, fid]) => includes(draft.text, `@${mention}`) ? (
                       <span key={fid} className="ml-2">
                         @{mention}
                       </span>
