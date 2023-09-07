@@ -70,7 +70,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
 
     return () => {
-      console.log('exit thread view')
+      // console.log('exit thread view')
       removePostDraft(draftIdx, true)
     }
   }, [cast.hash])

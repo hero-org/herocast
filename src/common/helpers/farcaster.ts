@@ -32,6 +32,8 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
 
   const mentionRegex = /\s?@(\S+)/g;
   let match;
+  let idxReducedByPreviousMentions = 0;
+
   while ((match = mentionRegex.exec(text)) != null) {
     // match contains [@username, username]
     const casterUsername = match[1];
@@ -47,13 +49,13 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
       console.log(err);
       continue;
     }
-
     cast = {
       ...cast,
       text: cast.text.replace(match[0], ''),
       mentions: [...cast.mentions, Number(fid)],
-      mentionsPositions: [...cast.mentionsPositions, match.index]
+      mentionsPositions: [...cast.mentionsPositions, match.index - idxReducedByPreviousMentions]
     }
+    idxReducedByPreviousMentions += match[0].length;
   }
 
   if (!isEmpty(draft.parentCastId)) {

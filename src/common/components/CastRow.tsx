@@ -29,7 +29,7 @@ interface CastRowProps {
 }
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
-  if (isSelected) console.log(cast);
+  // if (isSelected) console.log(cast);
 
   const { accounts, selectedAccountIdx } = useAccountStore();
   const [didLike, setDidLike] = useState(false)
