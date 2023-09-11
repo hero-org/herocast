@@ -9,7 +9,6 @@ import { useNewPostStore } from "@/stores/useNewPostStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { openWindow } from "../helpers/navigation";
-import { useIsMounted } from "../helpers/hooks";
 
 type CastThreadViewProps = {
   cast: { hash: string, author: { fid: string } };
@@ -66,14 +65,15 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
         })
     }
 
+    if (!cast) return;
+
     loadData();
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
 
     return () => {
-      // console.log('exit thread view')
       removePostDraft(draftIdx, true)
     }
-  }, [cast.hash])
+  }, [cast?.hash])
 
   const onOpenLinkInCast = () => {
     const castInThread = casts[selectedCastIdx];
@@ -131,7 +131,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const renderThread = () => (
     <div className="flow-root">
       {renderFeed()}
-      {draftIdx !== -1 && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast.hash}`}>
+      {draftIdx !== -1 && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast?.hash}`}>
         <NewPostEntry draftIdx={draftIdx} onPost={() => onBack && onBack()} hideChannel />
       </div>}
     </div>
