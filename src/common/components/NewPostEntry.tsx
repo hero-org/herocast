@@ -23,7 +23,7 @@ const MentionDropdownItem = ({ entity, selected }) => {
     className={({ active }) =>
       classNames(
         'relative cursor-default select-none py-2 pl-3 pr-9',
-        active ? 'bg-gray-600 text-gray-100' : 'text-gray-300'
+        active ? 'bg-gray-600 text-gray-100' : 'bg-gray-700 text-gray-300'
       )
     }
   >
