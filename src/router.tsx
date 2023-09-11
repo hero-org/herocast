@@ -11,9 +11,35 @@ import ErrorPage from '@/pages/ErrorPage';
 import Login from '@/pages/Login';
 import { Notifications } from '@/pages/Notifications';
 import { Theme } from '@radix-ui/themes';
+import * as Sentry from "@sentry/react";
+import {
+  useLocation,
+  useNavigationType,
+  createRoutesFromChildren,
+  matchRoutes,
+} from "react-router-dom";
 
+const VITE_SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 
-export const router = createBrowserRouter([
+Sentry.init({
+  dsn: VITE_SENTRY_DSN,
+  integrations: [
+    new Sentry.BrowserTracing({
+      routingInstrumentation: Sentry.reactRouterV6Instrumentation(
+        React.useEffect,
+        useLocation,
+        useNavigationType,
+        createRoutesFromChildren,
+        matchRoutes
+      ),
+    }),
+  ],
+  tracesSampleRate: 1.0,
+});
+
+const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouter(createBrowserRouter);
+
+export const router = sentryCreateBrowserRouter([
   {
     path: "/",
     element: <>
