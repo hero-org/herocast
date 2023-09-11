@@ -93,3 +93,5 @@ build/
 
 # Sentry Auth Token
 .env.sentry-build-plugin
+
+edgefunctions/supabase/.temp
