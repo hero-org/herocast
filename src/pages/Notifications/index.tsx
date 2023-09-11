@@ -90,6 +90,7 @@ export const Notifications = () => {
     { name: 'Mentions & Replies', onClick: () => setNavigation(NotificationNavigationEnum.mentions), current: navigation == NotificationNavigationEnum.mentions },
     { name: 'Reactions', onClick: () => setNavigation(NotificationNavigationEnum.reactions), current: navigation == NotificationNavigationEnum.reactions },
   ]
+
   const renderHeader = () => (
     <>
       <nav className="min-w-full flex items-center justify-between lg:space-x-8 lg:py-2" aria-label="Global">
@@ -176,6 +177,7 @@ export const Notifications = () => {
             renderRow={(item: NotificationType, idx: number) => renderNotificationRow(item, idx)}
             onSelect={(idx) => setSelectedNotificationIdx(idx)}
             onExpand={() => null}
+            disableScroll
           />
         </div>
       </div>
@@ -184,11 +186,13 @@ export const Notifications = () => {
 
   const renderMainContent = () => {
     return !isEmpty(selectedParentCast) ?
-      <CastThreadView
-        cast={{ hash: selectedParentCast.hash, author: selectedParentCast.author }}
-        fid={currentAccountFid}
-        isActive={false}
-      /> : null;
+      <div className="">
+        <CastThreadView
+          cast={{ hash: selectedParentCast.hash, author: selectedParentCast.author }}
+          fid={currentAccountFid}
+          isActive={false}
+        />
+      </div> : null;
   }
 
   useEffect(() => {

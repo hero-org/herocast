@@ -13,7 +13,6 @@ import { Loading } from "@/common/components/Loading";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-import { useNewPostStore } from "@/stores/useNewPostStore";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
 
@@ -27,7 +26,7 @@ export default function Feed() {
 
   const [feeds, setFeeds] = useState<FeedType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
-  const [nextFeedOffset, setNextFeedOffset] = useState("");
+  const [nextFeedCursor, setNextFeedCursor] = useState("");
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const {
@@ -72,12 +71,13 @@ export default function Feed() {
   }
 
   useEffect(() => {
+    console.log('feed', feed.length, 'isEmpty(feed)', isEmpty(feed), 'isLoadingFeed', isLoadingFeed, 'selectedCastIdx', selectedCastIdx)
     if (isLoadingFeed || isEmpty(feed) || showCastThreadView) return;
 
     if (selectedCastIdx >= feed.length - 5) {
-      const cursor = feed[feed.length - 1].timestamp;
+      // const cursor = // feed[feed.length - 1]?.timestamp;
       // unbounce this call to getFeed
-      getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor });
+      getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor: nextFeedCursor });
     }
   }, [selectedCastIdx, feed, account, selectedChannelParentUrl])
 
@@ -112,7 +112,7 @@ export default function Feed() {
           [feedKey]: uniqBy(feed.concat(data.casts), 'hash')
         });
         if (data.next) {
-          setNextFeedOffset(data.next.cursor);
+          setNextFeedCursor(data.next.cursor);
         }
       }).catch((err) => {
         console.log('err', err);
@@ -130,7 +130,7 @@ export default function Feed() {
   }, [account, selectedChannelParentUrl]);
 
   const renderRow = (item: any, idx: number) => (
-    <li key={item.hash}
+    <li key={item?.hash}
       className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
       <CastRow
         cast={item as CastType}

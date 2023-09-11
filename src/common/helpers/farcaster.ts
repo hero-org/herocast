@@ -67,18 +67,6 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
     idxReducedByPreviousMentions = idxReducedByPreviousMentions + matchLength;
   }
 
-  // console.log('mentions', cast.mentions, 'mentionsPositions', cast.mentionsPositions)
-
-  // let testText = cast.text;
-  // let idxAddedByPreviousMentions = 0;
-  // for (let i = 0; i < cast.mentions.length; i++) {
-  //   const addedMention = `@${Object.fromEntries(Object.entries(draft.mentionsToFids).map(a => a.reverse()))[cast.mentions[i]]}`;
-  //   testText = insert(testText, cast.mentionsPositions[i] + idxAddedByPreviousMentions, addedMention);
-  //   console.log('addedMention', addedMention, 'testText', testText)
-  //   idxAddedByPreviousMentions += addedMention.length;
-  // }
-  // console.log('testText', testText);
-
   if (!isEmpty(draft.parentCastId)) {
     cast = {
       ...cast,

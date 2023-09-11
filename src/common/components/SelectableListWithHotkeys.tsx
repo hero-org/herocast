@@ -12,10 +12,11 @@ type SelectableListWithHotkeysProps = {
   setSelectedIdx: (idx: number) => void,
   onSelect: (idx: number) => void,
   onExpand: (idx: number) => void,
+  disableScroll?: boolean,
   isActive?: boolean,
 }
 
-export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSelectedIdx, onSelect, onExpand, isActive = true }: SelectableListWithHotkeysProps) => {
+export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSelectedIdx, onSelect, onExpand, disableScroll, isActive = true }: SelectableListWithHotkeysProps) => {
   // console.log('rendering list', data, selectedIdx)
   const { ref, inView } = useInView({
     threshold: 0,
@@ -25,9 +26,9 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
   const scollToRef = useRef();
   // scroll to selected cast when selectedCastIdx changes
   useEffect(() => {
-    if (scollToRef.current) {
+    if (!disableScroll && scollToRef.current) {
       // @ts-ignore
-      scollToRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      scollToRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [selectedIdx]);
 
@@ -61,10 +62,14 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
   })
 
   return <ul role="list" className="">
-    {data.map((cast: CastType, idx: number) =>
-      <div ref={(selectedIdx === idx - 2) ? scollToRef : null}>
-        {renderRow(cast, idx)}
-      </div>
+    {data.map((cast: any, idx: number) =>
+      cast ? (
+        <div
+          key={`row-id-${cast?.hash || cast?.id}`}
+          ref={(selectedIdx === idx + 1) ? scollToRef : null}>
+          {renderRow(cast, idx)}
+        </div>
+      ) : null
     )}
     <li ref={ref} className="" />
   </ul>

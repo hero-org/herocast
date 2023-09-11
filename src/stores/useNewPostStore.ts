@@ -3,7 +3,6 @@ import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CommandType } from "@/common/constants/commands";
 import { PlusCircleIcon, TagIcon } from "@heroicons/react/24/outline";
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
 import { trackEventWithProperties } from "@/common/helpers/analytics";
@@ -118,11 +117,11 @@ const store = (set: StoreSet) => ({
   },
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => {
     set((state) => {
-      if (draftIdx < 0 || draftIdx > state.drafts.length) {
+      if (draftIdx < 0 || draftIdx >= state.drafts.length) {
         return;
       }
 
-      if (onlyIfEmpty && state.drafts[draftIdx].text) {
+      if (onlyIfEmpty && state.drafts[draftIdx]?.text) {
         return;
       }
 

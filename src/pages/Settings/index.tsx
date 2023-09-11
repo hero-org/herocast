@@ -27,6 +27,10 @@ export default function Settings() {
     getUser();
   }, [])
 
+  const onUpdateAccountStatus = () => {
+    console.log('onUpdateAccountStatus')
+  }
+
   const onLogout = async () => {
     const {
       data: { session },
@@ -83,11 +87,18 @@ export default function Settings() {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col space-y-4">
       <div className="flex flex-row mb-4">
         <span className="text-sm font-semibold text-gray-400 mr-2">User</span>
         <span className="text-sm font-semibold text-white">{displayEmail}</span>
       </div>
+      <button
+        type="button"
+        onClick={() => onUpdateAccountStatus()}
+        className="w-48 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+      >
+        Update Account Status
+      </button>
       <button
         type="button"
         onClick={() => onLogout()}

@@ -9,7 +9,7 @@ export function timeDiff(date1: Date, date2: Date): [number, string] {
     throw new RangeError('Invalid date arguments');
 
   const timeIntervals = [31536000, 2628000, 604800, 86400, 3600, 60, 1];
-  const intervalNames = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
+  const intervalNames = ['year', 'month', 'week', 'day', 'h', 'm', 's'];
 
   const diff = Math.abs(date2.getTime() - date1.getTime()) / 1000;
   const index = timeIntervals.findIndex(i => (diff / i) >= 1);
@@ -26,8 +26,8 @@ export function timeDiff(date1: Date, date2: Date): [number, string] {
  * @return {string} value and unit, taking plurals into account
  */
 export function localize(value: number, str: string): string {
-  if (value != 1)
+  if (value != 1 && str.length > 1)
     str += 's';
 
-  return `${value} ${str} ago`
+  return `${value}${str}`
 }

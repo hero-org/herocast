@@ -5,7 +5,6 @@ import { castTextStyle, classNames } from "@/common/helpers/css";
 import { CastType, CastReactionType } from "@/common/constants/farcaster";
 import { ChannelType } from "@/common/constants/channels";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { ArrowUturnUpIcon } from "@heroicons/react/20/solid";
 import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
 import { ImgurImage } from "@/common/components/PostEmbeddedContent";
@@ -113,7 +112,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     }
     const linksCount = cast.embeds.length;
     const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;
-    return (<div className="flex space-x-6">
+    return (<div className="-ml-1 flex space-x-6">
       {Object.entries(reactions).map(([key, reactionInfo]) => {
         const reaction = renderReaction(key, reactionInfo.count, getIconForCastReactionType(key as CastReactionType, reactionInfo?.isActive));
         if (key === 'likes' && isSelected) {
@@ -154,40 +153,41 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
         isSelected ? "border-l border-gray-200 bg-gray-600" : "border-l border-gray-800 hover:bg-gray-700",
         "px-3 py-2 grow rounded-r-md cursor-pointer"
       )}>
-      <div className="flex justify-between gap-x-4">
-        <div className="flex flex-row py-1 leading-5 text-gray-300">
-          {!isThreadView && (
-            <img
-              src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
-              alt=""
-              className="relative mt-0.5 mr-1.5 h-4 w-4 flex-none rounded-full bg-gray-50"
-              referrerPolicy="no-referrer"
-            />
-          )}
-          {cast.parent_hash && <ArrowUturnUpIcon className="w-4 h-4 text-gray-400" />}
-          <span className="flex font-bold text-gray-100 truncate">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name || cast.author.displayName})</span></span>
-          {showChannel && channel && (
+      <div className="flex items-top gap-x-4">
+        {!isThreadView && (
+          <img
+            src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
+            alt=""
+            className="relative h-10 w-10 flex-none rounded-full bg-gray-50"
+            referrerPolicy="no-referrer"
+          />
+        )}
+        <div className="flex flex-col w-full">
+          <div className="flex flex-row justify-between gap-x-4 leading-5 text-gray-300">
             <div className="flex flex-row">
-              <span className="ml-2 inline-flex items-center rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
-                {channel.name}
-              </span>
+              <span className="flex font-semibold text-gray-300 truncate">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name || cast.author.displayName})</span></span>
+              {showChannel && channel && (
+                <span className="h-5 ml-2 inline-flex items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
+                  {channel.name}
+                </span>
+              )}
             </div>
-          )}
+            {cast.timestamp && (
+              <div className="flex flex-row">
+                <span className="text-sm leading-5 text-gray-300">
+                  {timeAgoStr}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className={classNames(isThreadView ? "ml-0.5" : "")}>
+            <p className="mt-2 w-full max-w-lg xl:max-w-2xl text-md text-gray-100 break-words lg:break-normal" style={castTextStyle}>
+              {cast.text}
+            </p>
+            {embedImageUrl && <ImgurImage url={embedImageUrl} />}
+          </div>
+          {renderCastReactions(cast)}
         </div>
-        {cast.timestamp && (
-          <span className="flex-none py-0.5 text-sm leading-5 text-gray-500">
-            {timeAgoStr}
-          </span>
-        )}
-      </div>
-      <div className={classNames(isThreadView ? "ml-0.5" : "ml-6")}>
-        <p className="text-sm text-gray-300 break-words lg:break-normal" style={castTextStyle}>
-          {cast.text}
-        </p>
-        {embedImageUrl && (
-          (isSelected || showEmbed) ? <ImgurImage url={embedImageUrl} /> : <span>🖼️</span>
-        )}
-        {renderCastReactions(cast)}
       </div>
     </div>
   </div>)

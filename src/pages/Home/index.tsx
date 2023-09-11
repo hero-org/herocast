@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { supabaseClient } from '@/common/helpers/supabase';
 import {
-  Cog6ToothIcon, PlusCircleIcon, SignalIcon,
+  Cog6ToothIcon, PlusCircleIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Bars3Icon, UserPlusIcon } from '@heroicons/react/20/solid';
@@ -71,7 +71,7 @@ export default function Home() {
       case '/accounts':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
       case '/notifications':
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
+        return RIGHT_SIDEBAR_ENUM.NONE;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
     }
@@ -114,7 +114,10 @@ export default function Home() {
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />
       default:
-        return <EmptyRightSidebar />;
+        return <aside className="bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
+          <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+          </header>
+        </aside>;
     }
   }
 
@@ -256,7 +259,7 @@ export default function Home() {
           </Transition.Root>
 
           {/* Static sidebar for desktop */}
-          <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-40 lg:flex-col">
+          <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col">
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 ring-1 ring-white/5">
               <div className="flex h-16 shrink-0 items-center">
@@ -314,8 +317,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="lg:pl-40">
-            <main className="lg:pr-64">
+          <div className="lg:pl-48">
+            <main className={"lg:pr-24"}>
               <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">
                 <button type="button" className="-m-2.5 p-2.5 text-white lg:hidden" onClick={() => setSidebarOpen(true)}>
                   <span className="sr-only">Open sidebar</span>
@@ -324,7 +327,7 @@ export default function Home() {
                 <h1 className="text-2xl font-semibold leading-7 text-white">{title}</h1>
                 <h1 className="text-base font-semibold leading-7 text-white"></h1>
               </header>
-              <div className="flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-6">
+              <div className="w-full max-w-full flex items-center justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-6">
                 <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
                   <Outlet />
                 </Suspense>

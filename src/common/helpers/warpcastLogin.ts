@@ -102,7 +102,7 @@ const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
 
 const getWarpcastSignerStatus = async (signerToken: string): Promise<{ status: WarpcastLoginStatus, data: any }> => {
   const data = await getSignerRequestStatus(signerToken);
-  const status = data && data.state === 'completed' ? WarpcastLoginStatus.success : WarpcastLoginStatus.pending;
+  const status = data && (data.state === 'approved' || data.state === 'completed') ? WarpcastLoginStatus.success : WarpcastLoginStatus.pending;
   return { status, data: data }
 }
 
