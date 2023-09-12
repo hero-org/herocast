@@ -1,6 +1,8 @@
+import AlertDialogDemo from "@/common/components/AlertDialog";
 import { getNavigationCommands } from "@/common/components/CommandPalette";
+import { classNames } from "@/common/helpers/css";
 import { supabaseClient } from "@/common/helpers/supabase";
-import { accountCommands, channelCommands, useAccountStore } from "@/stores/useAccountStore";
+import { AccountObjectType, accountCommands, channelCommands, useAccountStore } from "@/stores/useAccountStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { User } from "@supabase/supabase-js";
 import React, { useEffect, useState } from "react";
@@ -16,8 +18,12 @@ export default function Settings() {
   const [user, setUser] = useState<User | null>(null)
 
   const {
-    resetStore
+    accounts,
+    resetStore,
+    removeAccount
   } = useAccountStore();
+
+
 
   useEffect(() => {
     const getUser = async () => {
@@ -60,7 +66,10 @@ export default function Settings() {
       ...channelCommands,
     ];
 
-    return (<div className="overflow-hidden shadow sm:rounded-lg">
+    return (<div className="mt-20 overflow-hidden">
+      <div className="border-b border-gray-200">
+        <h1 className="text-xl font-semibold leading-7 text-gray-100">Hotkeys / Keyboard Shortcuts</h1>
+      </div>
       <div className="px-2 py-4">
         <h3 className="text-base font-semibold leading-7 text-gray-100">hotkeys overview</h3>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-400">list of all hotkeys in herocast</p>
@@ -88,24 +97,51 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col space-y-4">
-      <div className="flex flex-row mb-4">
-        <span className="text-sm font-semibold text-gray-400 mr-2">User</span>
-        <span className="text-sm font-semibold text-white">{displayEmail}</span>
+      <div className="border-b border-gray-200">
+        <h1 className="text-xl font-semibold leading-7 text-gray-100">Herocast account</h1>
+      </div>
+      <div className="flex flex-row mt-4 px-2">
+        <span className="text-sm font-semibold text-gray-100 mr-2">Email</span>
+        <span className="text-sm font-semibold text-gray-400 ">{displayEmail}</span>
       </div>
       <button
+        type="button"
+        onClick={() => onLogout()}
+        className="w-20 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+      >
+        Logout
+      </button>
+      {/* <button
         type="button"
         onClick={() => onUpdateAccountStatus()}
         className="w-48 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
       >
         Update Account Status
-      </button>
-      <button
-        type="button"
-        onClick={() => onLogout()}
-        className="w-48 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-      >
-        Logout
-      </button>
+      </button> */}
+      <div className="border-b border-gray-200">
+        <h1 className="text-xl font-semibold leading-7 text-gray-100">Farcaster accounts</h1>
+      </div>
+      <ul role="list" className="divide-y divide-white/5">
+        {accounts.map((item: AccountObjectType, idx: number) => (
+          <li key={item.id} className="px-2 py-2">
+            <div
+              className="flex items-center gap-x-3"
+            >
+              {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
+              <h3 className={classNames(
+                "text-gray-100",
+                "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
+              <span className="text-gray-400">{item.status}</span>
+              {item.platformAccountId && item.status === 'active' && (
+                <p className="truncate text-sm text-gray-500">
+                  fid {item.platformAccountId}
+                </p>
+              )}
+              <AlertDialogDemo buttonText={`Disconnect`} onClick={() => removeAccount(idx)} />
+            </div>
+          </li>
+        ))}
+      </ul>
       {renderInfoSection()}
     </div>
   )

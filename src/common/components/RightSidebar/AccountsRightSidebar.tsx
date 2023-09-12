@@ -26,10 +26,10 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
   const renderEmptyState = () => (
     <div className="ml-6">
       <EmptyStateWithAction
-        title="No accounts"
-        description="Add an account to get started"
+        title="Connect Farcaster accounts"
+        description="Get started with herocast"
         onClick={() => navigate('/accounts')}
-        submitText="Add account"
+        submitText="Connect account"
         icon={UserPlusIcon}
       />
     </div>

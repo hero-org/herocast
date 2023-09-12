@@ -6,7 +6,7 @@ export default function Accounts() {
     <div className="flex min-w-full flex-col">
       <div>
         <h1 className="mb-4 text-lg font-bold tracking-tight text-gray-200 sm:text-4xl">
-          Add Farcaster account
+          Connect Farcaster accounts
         </h1>
         <FarcasterLogin />
         {/*

@@ -26,7 +26,7 @@ interface AccountStoreProps {
   selectedChannelIdx: number | null;
   accounts: AccountObjectType[];
   channels: ChannelType[];
-  _hydrated: boolean;
+  hydrated: boolean;
 }
 
 interface AccountStoreActions {
@@ -47,7 +47,7 @@ const initialState: AccountStoreProps = {
   channels: [],
   selectedAccountIdx: 0,
   selectedChannelIdx: null,
-  _hydrated: false,
+  hydrated: false,
 };
 
 export const mutative = (config) =>
@@ -108,7 +108,7 @@ const store = (set: StoreSet) => ({
     set((state) => {
       supabaseClient
         .from('accounts')
-        .delete()
+        .update({ status: AccountStatusType.removed })
         .eq('id', state.accounts[idx].id)
         .select()
         .then(({ error, data }) => {
@@ -155,19 +155,20 @@ export const hydrate = async () => {
 
   const { data: accountData, error: accountError } = await supabaseClient
     .from('decrypted_accounts')
-    // .from('accounts')
     .select('*')
     .eq('user_id', user?.id)
+    .neq('status', AccountStatusType.removed)
 
   if (accountError) {
     console.error('error hydrating account store', accountError);
     return;
   }
 
+  let accountsForState: AccountObjectType[] = [];
   if (accountData.length === 0) {
     console.log('no accounts found');
   } else {
-    const accountsForState: AccountObjectType[] = accountData.map((account) => ({
+    accountsForState = accountData.map((account) => ({
       id: account.id,
       name: account.name,
       status: account.status,
@@ -179,17 +180,16 @@ export const hydrate = async () => {
       privateKey: account.decrypted_private_key,
     }))
 
-    useAccountStore.setState({
-      accounts: accountsForState,
-      channels: channels,
-      selectedAccountIdx: 0,
-      _hydrated: true
-    });
   }
+
+  useAccountStore.setState({
+    accounts: accountsForState,
+    channels: channels,
+    selectedAccountIdx: 0,
+    hydrated: true
+  });
   console.log('done hydrating account store')
 }
-
-hydrate();
 
 const switchAccountTo = (idx: number) => {
   if (idx < 0) return;
@@ -295,3 +295,5 @@ const getChannelCommands = () => {
 
 export const accountCommands = getAccountCommands();
 export const channelCommands = getChannelCommands();
+
+hydrate();

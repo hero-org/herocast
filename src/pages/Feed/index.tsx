@@ -11,7 +11,7 @@ import { CastThreadView } from "@/common/components/CastThreadView";
 import { getNeynarFeedEndpoint } from "@/common/helpers/neynar";
 import { Loading } from "@/common/components/Loading";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
+import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
@@ -33,10 +33,13 @@ export default function Feed() {
     accounts,
     channels,
     selectedAccountIdx,
-    selectedChannelIdx
+    selectedChannelIdx,
+    hydrated
   } = useAccountStore();
 
-  const isHydrated = useAccountStore(state => state._hydrated);
+  // const isHydrated = useAccountStore(state => state._hydrated);
+
+  console.log('hydrated', hydrated, 'accountStoreState', useAccountStore(state => state));
 
   const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
   const account: AccountObjectType = accounts[selectedAccountIdx];
@@ -163,16 +166,64 @@ export default function Feed() {
 
 
   const renderEmptyState = () => (
-    <EmptyStateWithAction
-      title="No accounts"
-      description="Add an account to get started"
-      onClick={() => navigate('/accounts')}
-      submitText="Add account"
-      icon={UserPlusIcon}
-    />
+    <>
+      <div className="max-w-7xl px-6 pb-24 sm:pb-32 lg:flex lg:px-8">
+        <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
+          <div className="mt-12">
+            <a href="https://paragraph.xyz/@hellno/herocast-log-nr2" target="_blank" rel="noreferrer"
+              className="inline-flex space-x-6">
+              <span className="rounded-full bg-green-700/10 px-3 py-1 text-sm font-semibold leading-6 text-green-400 ring-1 ring-inset ring-green-700/20">
+                What&apos;s new
+              </span>
+              <span className="inline-flex items-center space-x-2 text-sm font-medium leading-6 text-gray-300">
+                <span>Just shipped an update for you</span>
+                <ChevronRightIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+              </span>
+            </a>
+          </div>
+          <h1 className="mt-10 text-4xl font-bold tracking-tight text-white sm:text-6xl">
+            Welcome to herocast
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-gray-300">
+            herocast is a desktop Farcaster client for power users aka superhuman for Farcaster. <br /><br />
+            It has support for multiple accounts and can switch channels faster than you can say &apos;Memes&apos;. It supports{' '}
+            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+              Cmd + K
+            </kbd> (command palette) to control everything.
+            You can navigate with <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+              j
+            </kbd> and <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+              k
+            </kbd>through all lists, <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+              l
+            </kbd> to like (lowercase L) and <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+              r
+            </kbd> to recast. Switch channels on Feed page with <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+              Shift + 1 to 9
+            </kbd>. Open external links in a cast with <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+              Shift + o
+            </kbd>.
+          </p>
+          <div className="mt-10 flex items-center gap-x-6">
+            <button
+              onClick={() => navigate('/accounts')}
+              className="flex rounded-sm bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+            >
+              Get started <UserPlusIcon className="ml-2 h-5 w-5 text-gray-100" aria-hidden="true" />
+            </button>
+            <a href="https://paragraph.xyz/@hellno/herocast-log-nr2" target="_blank" rel="noreferrer"
+              className="rounded-sm px-3.5 py-2 text-sm font-semibold leading-6 text-white outline outline-gray-500">
+              Learn more <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </>
   )
 
-  return isHydrated && isEmpty(accounts) ? renderEmptyState() : (
+
+  console.log('hydrated', hydrated, 'isEmpty', isEmpty(accounts))
+  return hydrated && isEmpty(accounts) ? renderEmptyState() : (
     <div className="min-w-full mr-4">
       {showCastThreadView ? renderThread() : renderFeed()}
       {isLoadingFeed && <Loading />}

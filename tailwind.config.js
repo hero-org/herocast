@@ -35,7 +35,7 @@ module.exports = {
   plugins: [
     require('@tailwindcss/forms'),
     require('radix-colors-for-tailwind')({
-      colors: ["slate", "blue"],
+      colors: ["slate", "blue", "red", "mauve",],
     }),
   ],
 };

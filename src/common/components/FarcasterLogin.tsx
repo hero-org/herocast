@@ -176,7 +176,7 @@ const FarcasterLogin = () => {
             onClick={() => onCreateNewAccount()}
             className="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-sm px-3 py-2 text-sm bg-gray-700 font-semibold text-gray-200 ring-1 ring-inset ring-gray-500 hover:bg-gray-600"
           >
-            Add account
+            Connect account
           </button>
         </div>
       </div>
