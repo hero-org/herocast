@@ -39,7 +39,6 @@ export default function Feed() {
 
   // const isHydrated = useAccountStore(state => state._hydrated);
 
-  console.log('hydrated', hydrated, 'accountStoreState', useAccountStore(state => state));
 
   const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
   const account: AccountObjectType = accounts[selectedAccountIdx];
@@ -55,10 +54,6 @@ export default function Feed() {
 
   const feedKey = getFeedKey({ selectedChannelParentUrl, account });
   const feed = feedKey ? get(feeds, feedKey, []) : [];
-
-  // const cast = feed[selectedCastIdx];
-  // const postDrafts = useNewPostStore(state => state.drafts);
-  // const draftIdx = postDrafts.findIndex(draft => draft.parentHash === cast?.hash);
 
   const onOpenLinkInCast = (idx: number) => {
     const cast = feed[idx];
@@ -134,7 +129,7 @@ export default function Feed() {
 
   const renderRow = (item: any, idx: number) => (
     <li key={item?.hash}
-      className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
+      className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-3xl">
       <CastRow
         cast={item as CastType}
         channels={channels}
@@ -146,14 +141,21 @@ export default function Feed() {
   )
 
   const renderFeed = () => (
-    <SelectableListWithHotkeys
-      data={feed}
-      selectedIdx={selectedCastIdx}
-      setSelectedIdx={setSelectedCastIdx}
-      renderRow={(item: any, idx: number) => renderRow(item, idx)}
-      onExpand={onOpenLinkInCast}
-      onSelect={onSelectCast}
-    />
+    <>
+      <SelectableListWithHotkeys
+        data={feed}
+        selectedIdx={selectedCastIdx}
+        setSelectedIdx={setSelectedCastIdx}
+        renderRow={(item: any, idx: number) => renderRow(item, idx)}
+        onExpand={onOpenLinkInCast}
+        onSelect={onSelectCast}
+      />
+      <button
+        onClick={() => getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor: nextFeedCursor })}
+        className="mt-4 text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500">
+        {isLoadingFeed ? "Loading..." : "Load more"}
+      </button>
+    </>
   )
 
   const renderThread = () => (
@@ -222,11 +224,9 @@ export default function Feed() {
   )
 
 
-  console.log('hydrated', hydrated, 'isEmpty', isEmpty(accounts))
   return hydrated && isEmpty(accounts) ? renderEmptyState() : (
     <div className="min-w-full mr-4">
       {showCastThreadView ? renderThread() : renderFeed()}
-      {isLoadingFeed && <Loading />}
     </div >
   )
 }

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import { CastType } from "@/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from 'ts-key-enum';
 import { useInView } from 'react-intersection-observer';

@@ -146,7 +146,7 @@ const store = (set: StoreSet) => ({
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody = await Promise.resolve(convertEditorCastToPublishableCast(draft));
-        console.log('publishPostdraft castBody', castBody)
+        // console.log('publishPostdraft castBody', castBody)
         await Promise.resolve(
           publishCast({
             castBody,
