@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabaseClient } from '@/common/helpers/supabase';
-import { Session } from '@supabase/supabase-js';
 import { hydrate } from '@/stores/useAccountStore';
 import { useNavigate, useLocation } from "react-router-dom";
 import get from 'lodash.get';
@@ -85,20 +84,25 @@ export default function Login() {
   return (
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white font-semibold">
-            Sign in
-          </h2>
+        <div className="mx-auto">
+          <h1 className="text-center text-4xl font-bold tracking-tight text-white sm:text-6xl">
+            Welcome to herocast
+          </h1>
+          <p className="mt-6 text-center text-lg leading-8 text-gray-300">
+            Sign up or login to get started
+          </p>
+          {isLoading && (<span className="my-4 font-semibold text-gray-200">Loading...</span>)}
+          <div className="text-white text-lg mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+            <Auth
+              supabaseClient={supabaseClient}
+              providers={[]}
+              appearance={appearance}
+              queryParams={queryParams}
+              dark
+            />
+          </div>
         </div>
-        {isLoading && (<span className="my-4 font-semibold text-gray-200">Loading...</span>)}
-        <div className="text-white text-lg mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <Auth
-            supabaseClient={supabaseClient}
-            providers={[]}
-            appearance={appearance}
-            queryParams={queryParams}
-          />
-        </div>
+
       </div>
     </>
   )

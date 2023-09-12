@@ -77,7 +77,7 @@ export default function Home() {
     }
   }
 
-  const navItem = navigation.find((item) => item.router === pathname) || { name: 'herocast', getTitle: null }
+  const navItem = navigation.find((item) => item.router === pathname) || { name: '', getTitle: null }
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
 
   useEffect(() => {
