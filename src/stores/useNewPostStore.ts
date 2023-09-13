@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CommandType } from "@/common/constants/commands";
-import { PlusCircleIcon, TagIcon } from "@heroicons/react/24/outline";
+import { PlusCircleIcon, TagIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
 import { trackEventWithProperties } from "@/common/helpers/analytics";
@@ -136,7 +136,7 @@ const store = (set: StoreSet) => ({
   },
   removeAllPostDrafts: () => {
     set((state) => {
-      state.drafts = [NewPostDraft];
+      state.drafts = [];
     });
   },
   publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost: () => null): Promise<string | null> => {
@@ -194,15 +194,20 @@ export const newPostCommands: CommandType[] = [
   },
   {
     name: 'New Post',
-    aliases: ['new cast', 'write', 'create', 'compose',],
+    aliases: ['new cast', 'write', 'create', 'compose', 'new draft'],
     icon: PlusCircleIcon,
     shortcut: 'c',
     action: () => useNewPostStore.getState().addNewPostDraft({}),
     enableOnFormTags: false,
     navigateTo: '/post'
-  }
-];
+  },
+  {
+    name: 'Remove all drafts',
+    aliases: ['cleanup'],
+    icon: TrashIcon,
+    action: () => useNewPostStore.getState().removeAllPostDrafts(),
+    enableOnFormTags: false,
+    navigateTo: '/post'
+  },
 
-function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+];

@@ -9,6 +9,7 @@ import { useNewPostStore } from "@/stores/useNewPostStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { openWindow } from "../helpers/navigation";
+import { classNames } from "../helpers/css";
 
 type CastThreadViewProps = {
   cast: { hash: string, author: { fid: string } };
@@ -84,11 +85,12 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   }
 
   const renderRow = (cast: CastType, idx: number) => (
-    <li key={`cast-thread-${cast.hash}`}>
-      <div className="relative py-2 px-2">
+    <li key={`cast-thread-${cast.hash}`}
+      className={classNames(idx === selectedCastIdx ? "" : "")}>
+      <div className="relative py-2 px-4">
         {/* this is the left line */}
         {idx !== casts.length - 1 ? (
-          <span className="rounded-lg absolute left-7 top-12 -ml-px h-[calc(100%-46px)] w-px bg-radix-slate10" aria-hidden="true" />
+          <span className="rounded-lg absolute left-9 top-12 -ml-px h-[calc(100%-46px)] w-px bg-radix-slate10" aria-hidden="true" />
         ) : null}
         <div className="relative flex items-start space-x-3">
           <>

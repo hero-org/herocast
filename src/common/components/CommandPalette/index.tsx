@@ -92,6 +92,10 @@ export default function CommandPalette() {
   ];
 
   for (const command of commands) {
+    if (!command.shortcut) {
+      continue;
+    }
+
     useHotkeys(command.shortcut.replace('cmd', 'meta'), () => {
       if (command.navigateTo) {
         navigate(command.navigateTo);
