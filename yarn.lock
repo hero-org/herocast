@@ -37,10 +37,10 @@
   dependencies:
     "@tauri-apps/api" "^1.0.0"
 
-"@aptabase/web@^0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@aptabase/web/-/web-0.1.3.tgz#4274e94934fe8f68fb59d1b411201af5762ac7c0"
-  integrity sha512-eTuWYtpTNanvOWUafTV0UChKRzoHRxi7L2BSpfd6U+YQQtYU7cwGzTcM4tYwqca6VEMfj32haTAwEnSn6OTsaA==
+"@aptabase/web@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@aptabase/web/-/web-0.2.0.tgz#c7feaae56947446f52995f6454d446493b619c2a"
+  integrity sha512-Ju9JeP3zfFv7TbYzZ/Nj1BfEknzZ8a3AtpKq78HI2nNqOalBIqyaDlluPt3mwhzij7hvZbZHW1ZpO0a8sKR7Yg==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.22.13":
   version "7.22.13"
