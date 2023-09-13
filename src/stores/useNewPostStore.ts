@@ -61,7 +61,7 @@ export const mutative = (config) =>
 type StoreSet = (fn: (draft: Draft<NewPostStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
-  drafts: [NewPostDraft],
+  drafts: [],
   isToastOpen: false,
   addNewPostDraft: ({ text, parentUrl, parentCastId }: addNewPostDraftProps) => {
     set((state) => {

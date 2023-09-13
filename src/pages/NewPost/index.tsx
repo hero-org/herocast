@@ -4,6 +4,8 @@ import { useNewPostStore } from "@/stores/useNewPostStore";
 import React, { useState } from "react";
 import CustomToast from "@/common/components/CustomToast";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import * as Tooltip from '@radix-ui/react-tooltip';
+import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 
 export default function NewPost() {
   const [showToast, setShowToast] = useState(false)
@@ -20,16 +22,23 @@ export default function NewPost() {
         <div className="w-full flex items-center justify-between">
           <div className="text-gray-100 font-semibold">You have {postDrafts.length} {postDrafts.length !== 1 ? 'drafts' : 'draft'}</div>
           <div className="flex ml-8 lg:ml-0">
-            <button
-              onClick={() => addNewPostDraft({})}
-              className={classNames(
-                "cursor-pointer hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600",
-                "mr-2 inline-flex items-center rounded-sm bg-gray-700 px-3 py-2 text-sm font-semibold text-white shadow-sm "
-              )}
-            >
-              New draft
-              <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
-            </button>
+            <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
+              <HotkeyTooltipWrapper hotkey={`c`} side="bottom">
+                <button
+                  onClick={() => addNewPostDraft({})}
+                  className={classNames(
+                    "cursor-pointer hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600",
+                    "mr-2 inline-flex items-center rounded-sm bg-gray-700 px-3 py-2 text-sm font-semibold text-white shadow-sm "
+                  )}
+                >
+                  New draft
+                  <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+                </button>
+
+              </HotkeyTooltipWrapper>
+            </Tooltip.Provider >
+
+
             <button
               disabled={postDrafts.length === 0}
               onClick={() => removeAllPostDrafts()}

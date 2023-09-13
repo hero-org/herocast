@@ -79,7 +79,7 @@ export default function Settings() {
           {commands.map((command) => (
             <div key={`command-${command.name}`} className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
               <dt className="text-sm font-medium text-gray-100">{command.name}</dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-200 sm:col-span-1 sm:mt-0">{command.shortcut.replace(/\+/g, ' + ')}</dd>
+              {command.shortcut && <dd className="mt-1 text-sm leading-6 text-gray-200 sm:col-span-1 sm:mt-0">{command.shortcut.replace(/\+/g, ' + ')}</dd>}
             </div>
           ))}
           {/* <div className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
