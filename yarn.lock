@@ -1737,10 +1737,10 @@
   resolved "https://registry.yarnpkg.com/@stitches/core/-/core-1.2.8.tgz#dce3b8fdc764fbc6dbea30c83b73bfb52cf96173"
   integrity sha512-Gfkvwk9o9kE9r9XNBmJRfV8zONvXThnm1tcuojL04Uy5uRyqg93DC83lDebl0rocZCfKSjUv+fWYtMQmEDJldg==
 
-"@supabase/auth-ui-react@^0.4.2":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@supabase/auth-ui-react/-/auth-ui-react-0.4.3.tgz#afdf909edc20c4d3f14339851300766f6db3282a"
-  integrity sha512-wlpMJhgVZqo8CcQYqn6hX/qajHHhcQ9/bl923W6Cfg0l0H6WIeKQr7cxJ+oPQu42jXoDxEuVyWrkHgDMO0bgSQ==
+"@supabase/auth-ui-react@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@supabase/auth-ui-react/-/auth-ui-react-0.4.4.tgz#76faa9fdfc73cc398db2f71748d591cdfe5df68c"
+  integrity sha512-/RytHgXKQapzzXCFBAp4Q+G8tvXATl1pWa5wJHUnK154HF9yZw13OvjypueyW3Mh0AcQaSk5E3jaubQPnjfaaw==
   dependencies:
     "@stitches/core" "^1.2.8"
     "@supabase/auth-ui-shared" "0.1.6"
