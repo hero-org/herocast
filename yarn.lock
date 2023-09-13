@@ -37,10 +37,10 @@
   dependencies:
     "@tauri-apps/api" "^1.0.0"
 
-"@aptabase/web@^0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@aptabase/web/-/web-0.1.3.tgz#4274e94934fe8f68fb59d1b411201af5762ac7c0"
-  integrity sha512-eTuWYtpTNanvOWUafTV0UChKRzoHRxi7L2BSpfd6U+YQQtYU7cwGzTcM4tYwqca6VEMfj32haTAwEnSn6OTsaA==
+"@aptabase/web@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@aptabase/web/-/web-0.2.0.tgz#c7feaae56947446f52995f6454d446493b619c2a"
+  integrity sha512-Ju9JeP3zfFv7TbYzZ/Nj1BfEknzZ8a3AtpKq78HI2nNqOalBIqyaDlluPt3mwhzij7hvZbZHW1ZpO0a8sKR7Yg==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.22.13":
   version "7.22.13"
@@ -1621,10 +1621,10 @@
     "@sentry/utils" "7.68.0"
     tslib "^2.4.1 || ^1.9.3"
 
-"@sentry/bundler-plugin-core@2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@sentry/bundler-plugin-core/-/bundler-plugin-core-2.7.0.tgz#6a6e2ac14646b92c932dfa46a7ea9a719782c6a3"
-  integrity sha512-ZxJG/DsRXJ9BMaKv+butL3TaiHsuuUy1bNkl56/FCbCt1rYuzltEPT2cBuuveieg66ZWtzerSF17QX3v6svtJQ==
+"@sentry/bundler-plugin-core@2.7.1":
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/@sentry/bundler-plugin-core/-/bundler-plugin-core-2.7.1.tgz#60ca41f79393263911ae6bc5530f387cb1e48e47"
+  integrity sha512-ZC/B/7FzzgGpux2t54B2ioXudlq60MHMVPaUeuFzWwxmxiArrV4uBXcp18RMW5ns4biik5WBAD72vbsoloBfIQ==
   dependencies:
     "@sentry/cli" "^2.20.1"
     "@sentry/node" "^7.60.0"
@@ -1724,12 +1724,12 @@
     "@sentry/types" "7.68.0"
     tslib "^2.4.1 || ^1.9.3"
 
-"@sentry/vite-plugin@^2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@sentry/vite-plugin/-/vite-plugin-2.7.0.tgz#b219f2a1d8e52f0737a0083a0a2302b60d409654"
-  integrity sha512-VDkKneqIV5ESg41iz0ODsTl4BXsd4C/PhLgkjES9TFzDcG9VcnbECCxosXZd7nDZB9EQZDIsKSEc29PzLl1JUQ==
+"@sentry/vite-plugin@^2.7.1":
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/@sentry/vite-plugin/-/vite-plugin-2.7.1.tgz#23fa4c95079c3f2ba10b851dce7452c16adc82c8"
+  integrity sha512-bZrM06Z+QP/TvPyTYFxpQVugT5rzaFW1jzTnHzUHICz5tgyarY8bhhmYXnI37f6mngkVwDZNAftczbVF2IuFWQ==
   dependencies:
-    "@sentry/bundler-plugin-core" "2.7.0"
+    "@sentry/bundler-plugin-core" "2.7.1"
     unplugin "1.0.1"
 
 "@stitches/core@^1.2.8":
@@ -1737,10 +1737,10 @@
   resolved "https://registry.yarnpkg.com/@stitches/core/-/core-1.2.8.tgz#dce3b8fdc764fbc6dbea30c83b73bfb52cf96173"
   integrity sha512-Gfkvwk9o9kE9r9XNBmJRfV8zONvXThnm1tcuojL04Uy5uRyqg93DC83lDebl0rocZCfKSjUv+fWYtMQmEDJldg==
 
-"@supabase/auth-ui-react@^0.4.2":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@supabase/auth-ui-react/-/auth-ui-react-0.4.3.tgz#afdf909edc20c4d3f14339851300766f6db3282a"
-  integrity sha512-wlpMJhgVZqo8CcQYqn6hX/qajHHhcQ9/bl923W6Cfg0l0H6WIeKQr7cxJ+oPQu42jXoDxEuVyWrkHgDMO0bgSQ==
+"@supabase/auth-ui-react@^0.4.4":
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/@supabase/auth-ui-react/-/auth-ui-react-0.4.4.tgz#76faa9fdfc73cc398db2f71748d591cdfe5df68c"
+  integrity sha512-/RytHgXKQapzzXCFBAp4Q+G8tvXATl1pWa5wJHUnK154HF9yZw13OvjypueyW3Mh0AcQaSk5E3jaubQPnjfaaw==
   dependencies:
     "@stitches/core" "^1.2.8"
     "@supabase/auth-ui-shared" "0.1.6"
