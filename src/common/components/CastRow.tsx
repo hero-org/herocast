@@ -149,9 +149,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     <div
       onClick={() => onSelect && onSelect()}
       className={classNames(
-        isThreadView ? "" : "",
-        isSelected ? "border-l border-gray-200 bg-gray-600" : "border-l border-gray-800 hover:bg-gray-700",
-        "px-3 py-2 grow rounded-r-md cursor-pointer"
+        isSelected ? "bg-gray-900/20" : "hover:bg-gray-900/30",
+        isThreadView ? "rounded-sm" : (isSelected ? "border-l border-gray-200 " : "border-l border-gray-800 "),
+        "px-5 py-4 grow rounded-r-md cursor-pointer"
       )}>
       <div className="flex items-top gap-x-4">
         {!isThreadView && (

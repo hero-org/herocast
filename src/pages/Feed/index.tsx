@@ -9,8 +9,6 @@ import { openWindow } from "@/common/helpers/navigation";
 import isEmpty from "lodash.isempty";
 import { CastThreadView } from "@/common/components/CastThreadView";
 import { getNeynarFeedEndpoint } from "@/common/helpers/neynar";
-import { Loading } from "@/common/components/Loading";
-import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
@@ -69,7 +67,7 @@ export default function Feed() {
   }
 
   useEffect(() => {
-    console.log('feed', feed.length, 'isEmpty(feed)', isEmpty(feed), 'isLoadingFeed', isLoadingFeed, 'selectedCastIdx', selectedCastIdx)
+    // console.log('feed', feed.length, 'isEmpty(feed)', isEmpty(feed), 'isLoadingFeed', isLoadingFeed, 'selectedCastIdx', selectedCastIdx)
     if (isLoadingFeed || isEmpty(feed) || showCastThreadView) return;
 
     if (selectedCastIdx >= feed.length - 5) {
@@ -129,7 +127,7 @@ export default function Feed() {
 
   const renderRow = (item: any, idx: number) => (
     <li key={item?.hash}
-      className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-3xl">
+      className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl xl:max-w-3xl">
       <CastRow
         cast={item as CastType}
         channels={channels}

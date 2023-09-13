@@ -85,16 +85,16 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
 
   const renderRow = (cast: CastType, idx: number) => (
     <li key={`cast-thread-${cast.hash}`}>
-      <div className="relative py-2">
+      <div className="relative py-2 px-2">
         {/* this is the left line */}
         {idx !== casts.length - 1 ? (
-          <span className="rounded-lg absolute left-3 top-12 -ml-px h-[calc(100%-46px)] w-px bg-radix-slate10" aria-hidden="true" />
+          <span className="rounded-lg absolute left-7 top-12 -ml-px h-[calc(100%-46px)] w-px bg-radix-slate10" aria-hidden="true" />
         ) : null}
         <div className="relative flex items-start space-x-3">
           <>
             <div className="relative">
               <img
-                className="flex mt-3 h-5 w-5 items-center justify-center rounded-full bg-gray-400 ring-1 ring-radix-slate5"
+                className="flex mt-3 h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-1 ring-radix-slate5"
                 src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author?.pfp?.url}`}
                 alt=""
               />
@@ -112,7 +112,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
           </>
         </div>
       </div>
-    </li>
+    </li >
   )
 
 
