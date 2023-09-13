@@ -16,10 +16,10 @@ export default function NewPost() {
 
   return (
     <>
-      <div className="flex flex-col w-full max-w-md lg:max-w-2xl xl:max-w-4xl">
+      <div className="flex flex-col md:w-full lg:max-w-md lg:max-w-2xl xl:max-w-4xl">
         <div className="w-full flex items-center justify-between">
           <div className="text-gray-100 font-semibold">You have {postDrafts.length} {postDrafts.length !== 1 ? 'drafts' : 'draft'}</div>
-          <div>
+          <div className="flex ml-8 lg:ml-0">
             <button
               onClick={() => addNewPostDraft({})}
               className={classNames(
