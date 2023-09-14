@@ -3,21 +3,27 @@ import { ChannelType } from "@/common/constants/channels";
 import { classNames } from "@/common/helpers/css";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { SidebarHeader } from "./SidebarHeader";
+import isEmpty from "lodash.isempty";
 
 const ChannelsOverview = () => {
   const [showAll, setShowAll] = useState(false);
   const MAX_SIDEBAR_CHANNELS = 9;
   const {
-    channels,
     selectedChannelIdx,
-    setCurrentChannelIdx
+    setCurrentChannelIdx,
+    allChannels
   } = useAccountStore();
+
+  let channels: ChannelType[] = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels);
+  if (isEmpty(channels)) {
+    channels = allChannels;
+  }
 
   const onToggleShowAll = () => {
     setShowAll(!showAll);
   }
 
-  const sidebarChannels = showAll ? channels : channels.slice(0, MAX_SIDEBAR_CHANNELS);
+  const sidebarChannels = showAll ? allChannels : channels.slice(0, MAX_SIDEBAR_CHANNELS);
   if (!showAll && selectedChannelIdx && selectedChannelIdx >= MAX_SIDEBAR_CHANNELS) {
     sidebarChannels.push(channels[selectedChannelIdx]);
   }

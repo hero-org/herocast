@@ -26,7 +26,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === cast?.hash));
 
   const {
-    channels,
+    allChannels: channels,
     selectedChannelIdx
   } = useAccountStore();
 
@@ -108,7 +108,6 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
                 showChannel={selectedChannelIdx === null}
                 isSelected={selectedCastIdx === idx}
                 isThreadView
-                showEmbed
               />
             </div>
           </>

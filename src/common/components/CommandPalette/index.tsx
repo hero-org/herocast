@@ -1,5 +1,4 @@
 import React, { Fragment, useState } from 'react';
-import { channels } from "@/common/constants/channels";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
 import { accountCommands, channelCommands, useAccountStore } from '@/stores/useAccountStore';
@@ -7,7 +6,7 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
-import { BellIcon, FaceSmileIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { BellIcon, FaceSmileIcon } from '@heroicons/react/24/outline';
 import commandScore from "command-score";
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useNavigate } from "react-router-dom";
@@ -72,7 +71,8 @@ export default function CommandPalette() {
   } = useNavigationStore();
 
   const {
-    setCurrentChannelIdx
+    setCurrentChannelIdx,
+    allChannels
   } = useAccountStore();
 
   useHotkeys(['meta+k'], () => {
@@ -109,7 +109,7 @@ export default function CommandPalette() {
   }
 
   const nonHotkeyCommands: CommandType[] = [];
-  channels.map((c) => c.name).map((channelName: string, idx: number) => {
+  allChannels.map((c) => c.name).map((channelName: string, idx: number) => {
     nonHotkeyCommands.push({
       name: channelName,
       action: () => {

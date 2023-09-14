@@ -29,16 +29,17 @@ export default function Feed() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const {
     accounts,
-    channels,
+    allChannels: channels,
     selectedAccountIdx,
     selectedChannelIdx,
     hydrated
   } = useAccountStore();
 
+  // const channels = accounts[selectedAccountIdx]?.channels || [];
   // const isHydrated = useAccountStore(state => state._hydrated);
 
 
-  const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
+  const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].url : undefined;
   const account: AccountObjectType = accounts[selectedAccountIdx];
   const getFeedKey = ({ selectedChannelParentUrl, account }: { selectedChannelParentUrl: string | undefined, account: AccountObjectType }) => {
     if (selectedChannelParentUrl) {

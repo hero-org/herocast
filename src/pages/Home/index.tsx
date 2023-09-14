@@ -14,7 +14,6 @@ import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRight
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { trackPageView } from "@/common/helpers/analytics";
-import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
 import { findParamInHashUrlPath } from "@/common/helpers/navigation";
 import { BellIcon, MagnifyingGlassIcon, NewspaperIcon } from "@heroicons/react/24/solid";
 import * as Toast from '@radix-ui/react-toast';
@@ -33,7 +32,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { pathname, hash: locationHash } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
+  const feedTitle = useAccountStore((state) => state.allChannels.length > 0 && state.selectedChannelIdx !== null ? `${state.allChannels[state.selectedChannelIdx].name} channel` : 'Feed')
 
   const {
     accounts,
