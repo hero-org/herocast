@@ -9,13 +9,14 @@ import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIc
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
 import { ImgurImage } from "@/common/components/PostEmbeddedContent";
 import { localize, timeDiff } from "../helpers/date";
-import { publishReaction } from '../helpers/farcaster';
+import { publishReaction, removeReaction } from '../helpers/farcaster';
 import { ReactionType } from '@farcaster/hub-web';
 import includes from 'lodash.includes';
 import map from 'lodash.map';
 import { useHotkeys } from 'react-hotkeys-hook';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
+import get from 'lodash.get';
 
 interface CastRowProps {
   cast: CastType;
@@ -43,25 +44,39 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
   const embedImageUrl = isImageUrl ? embedUrl : null;
   const now = new Date();
 
+  const getCastReactionsObj = () => {
+    const repliesCount = cast.replies?.count || 0;
+    const recastsCount = cast.reactions?.recasts?.length || cast.recasts?.count || 0;
+    const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;
+
+    const likeFids = cast.reactions?.fids || map(cast.reactions.likes, 'fid') || [];
+    const recastFids = cast.recasts?.fids || map(cast.reactions.recasts, 'fid') || [];
+    return {
+      [CastReactionType.replies]: { count: repliesCount },
+      [CastReactionType.recasts]: { count: recastsCount + Number(didRecast), isActive: didRecast || includes(recastFids, userFid) },
+      [CastReactionType.likes]: { count: likesCount + Number(didLike), isActive: didLike || includes(likeFids, userFid) },
+    }
+  }
+  const reactions = getCastReactionsObj();
+
   useHotkeys('l', () => {
     if (isSelected) {
-      publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody: { type: ReactionType.LIKE, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
-      setDidLike(true)
+      onClickReaction(CastReactionType.likes, reactions[CastReactionType.likes].isActive)
     }
-  }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash]);
+  }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.likes]);
 
   useHotkeys('r', () => {
     if (isSelected) {
-      publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody: { type: ReactionType.RECAST, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
-      setDidRecast(true);
+      onClickReaction(CastReactionType.recasts, reactions[CastReactionType.recasts].isActive)
     }
-  }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash]);
+  }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.recasts]);
 
   const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined => parentUrl ?
     channels.find((channel) => channel.parent_url === parentUrl) : undefined;
 
   const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
     const className = classNames(isActive ? "text-gray-300" : "", "mt-0.5 w-4 h-4");
+
     switch (reactionType) {
       case CastReactionType.likes:
         return isActive ? <HeartFilledIcon className={className} aria-hidden="true" /> : <HeartIcon className={className} aria-hidden="true" />
@@ -76,54 +91,64 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     }
   }
 
-  const renderReaction = (key: string, count?: number | string, icon?: JSX.Element, isActive?: boolean) => {
+  const onClickReaction = async (key: CastReactionType, isActive: boolean) => {
+    if (key !== CastReactionType.recasts && key !== CastReactionType.likes) {
+      return;
+    }
+
+    try {
+      const reactionBodyType = key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST;
+      const reactionBody = { type: reactionBodyType, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } }
+      if (isActive) {
+        await removeReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody });
+      } else {
+        await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody });
+      }
+    } catch (error) {
+      console.error(`Error in onClickReaction: ${error}`);
+    }
+
+    if (key === CastReactionType.likes) {
+      setDidLike(!isActive)
+    } else {
+      setDidRecast(!isActive)
+    }
+  }
+
+  const renderReaction = (key: CastReactionType, isActive: boolean, count?: number | string, icon?: JSX.Element) => {
     return (<div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-md"
       onClick={async (event) => {
         event.stopPropagation()
-        if (key === 'recasts' || key === 'likes') {
-          try {
-            await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody: { type: key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } } });
-            if (key === 'likes') {
-              setDidLike(true)
-            } else {
-              setDidRecast(true)
-            }
-          } catch (error) {
-            console.error(`Error in publishReaction: ${error}`);
-          }
-        }
+        onClickReaction(key, isActive);
       }}>
       {icon || <span>{key}</span>}
       {count !== null && <span className="ml-1.5">{count}</span>}
     </div>)
   }
 
-  const renderCastReactions = (cast: CastType) => {
-    const repliesCount = cast.replies?.count || 0;
-    const recastsCount = cast.reactions?.recasts?.length || cast.recasts?.count || 0;
-    const likesCount = cast.reactions?.likes?.length || cast.reactions?.count || 0;
 
-    const likeFids = cast.reactions?.fids || map(cast.reactions.likes, 'fid') || [];
-    const recastFids = cast.recasts?.fids || map(cast.reactions.recasts, 'fid') || [];
-    const reactions = {
-      replies: { count: repliesCount },
-      recasts: { count: recastsCount + Number(didRecast), isActive: didRecast || includes(recastFids, userFid) },
-      likes: { count: likesCount + Number(didLike), isActive: didLike || includes(likeFids, userFid) },
-    }
+  const renderCastReactions = (cast: CastType) => {
+
     const linksCount = cast.embeds.length;
     const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;
+
+    if (isSelected) console.log('renderCastReactions reactions', reactions)
+
     return (<div className="-ml-1 flex space-x-6">
       {Object.entries(reactions).map(([key, reactionInfo]) => {
-        const reaction = renderReaction(key, reactionInfo.count, getIconForCastReactionType(key as CastReactionType, reactionInfo?.isActive));
+        const isActive = get(reactionInfo, 'isActive', false);
+        const icon = getIconForCastReactionType(key as CastReactionType, isActive);
+        const reaction = renderReaction(key as CastReactionType, isActive, reactionInfo.count, icon);
+
         if (key === 'likes' && isSelected) {
           return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
-            <HotkeyTooltipWrapper hotkey="l (lowercase L)" side="bottom">
+            <HotkeyTooltipWrapper hotkey="L" side="bottom">
               {reaction}
             </HotkeyTooltipWrapper>
           </Tooltip.Provider>
         } else if (key === 'recasts' && isSelected) {
           return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
-            <HotkeyTooltipWrapper hotkey="r" side="bottom">
+            <HotkeyTooltipWrapper hotkey="R" side="bottom">
               {reaction}
             </HotkeyTooltipWrapper>
           </Tooltip.Provider>
