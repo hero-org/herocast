@@ -84,7 +84,7 @@ const store = (set: StoreSet) => ({
         }
       }
 
-      state.drafts.push(newDraft);
+      state.drafts = [...state.drafts, newDraft];
     });
   },
   addFeedbackDraft: () => {
