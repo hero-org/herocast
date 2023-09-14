@@ -75,7 +75,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
     channels.find((channel) => channel.parent_url === parentUrl) : undefined;
 
   const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
-    const className = classNames(isActive ? "text-gray-300" : "", "mt-0.5 w-4 h-4");
+    const className = classNames(isActive ? "text-gray-300" : "", "mt-0.5 w-4 h-4 mr-1");
 
     switch (reactionType) {
       case CastReactionType.likes:
@@ -121,20 +121,17 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
         event.stopPropagation()
         onClickReaction(key, isActive);
       }}>
-      {icon || <span>{key}</span>}
-      {count !== null && <span className="ml-1.5">{count}</span>}
+      {icon}
+      {count !== null && <span className="">{count}</span>}
     </div>)
   }
 
 
   const renderCastReactions = (cast: CastType) => {
-
     const linksCount = cast.embeds.length;
     const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;
 
-    if (isSelected) console.log('renderCastReactions reactions', reactions)
-
-    return (<div className="-ml-1 flex space-x-6">
+    return (<div className="-ml-1.5 flex space-x-3">
       {Object.entries(reactions).map(([key, reactionInfo]) => {
         const isActive = get(reactionInfo, 'isActive', false);
         const icon = getIconForCastReactionType(key as CastReactionType, isActive);
@@ -159,7 +156,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
       })}
       {linksCount && !isOnchainLink ? (
         <a href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
-          {renderReaction('links', linksCount > 1 ? linksCount : undefined, getIconForCastReactionType(CastReactionType.links))}
+          {renderReaction(CastReactionType.links, linksCount > 1 ? linksCount : undefined, getIconForCastReactionType(CastReactionType.links))}
         </a>) : null
       }
     </div>)
