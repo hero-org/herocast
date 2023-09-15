@@ -17,6 +17,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import get from 'lodash.get';
+import Linkify from "linkify-react";
 
 interface CastRowProps {
   cast: CastType;
@@ -24,12 +25,31 @@ interface CastRowProps {
   channels: ChannelType[];
   onSelect?: () => void;
   isSelected?: boolean;
-  showEmbed?: boolean;
   isThreadView?: boolean;
 }
 
-export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, showEmbed, isThreadView = false }: CastRowProps) => {
-  // if (isSelected) console.log(cast);
+const linkProps = {
+  onClick: (event) => {
+    event.stopPropagation();
+  }
+};
+
+const renderLink = ({ attributes, content }) => {
+  const { href } = attributes;
+  return (
+    <a
+      className="text-blue-400/80 underline hover:text-blue-400/90"
+      href={href}
+      target='_blank'
+      rel='noopener noreferrer'>
+      {content}
+    </a>
+  );
+};
+
+
+export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isThreadView = false }: CastRowProps) => {
+  // if (isSelected) console.log(cast.embeds);
 
   const { accounts, selectedAccountIdx } = useAccountStore();
   const [didLike, setDidLike] = useState(false)
@@ -161,6 +181,13 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
       }
     </div>)
   }
+
+  const getText = () => (
+    <Linkify as="span" options={{ render: renderLink, attributes: linkProps }}>
+      {cast.text}
+    </Linkify>
+  )
+
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
 
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
@@ -203,9 +230,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, sho
             )}
           </div>
           <div className={classNames(isThreadView ? "ml-0.5" : "")}>
-            <p className="mt-2 w-full max-w-lg xl:max-w-2xl text-md text-gray-100 break-words lg:break-normal" style={castTextStyle}>
-              {cast.text}
-            </p>
+            <div className="mt-2 w-full max-w-lg xl:max-w-2xl text-md text-gray-100 break-words lg:break-normal" style={castTextStyle}>
+              {getText()}
+            </div>
             {embedImageUrl && <ImgurImage url={embedImageUrl} />}
           </div>
           {renderCastReactions(cast)}
