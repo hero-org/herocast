@@ -1,24 +1,69 @@
-import React from "react";
+import React, { Fragment } from "react";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { ChevronRightIcon, EllipsisVerticalIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { classNames } from "@/common/helpers/css";
+import { ChannelType } from "@/common/constants/channels";
+import Toggle from "@/common/components/Toggle";
+import includes from "lodash.includes";
+import findIndex from "lodash.findindex";
 
 export default function Channels() {
   const navigate = useNavigate();
 
   const {
+    addPinnedChannel,
+    removePinnedChannel,
     accounts,
     selectedAccountIdx,
-    hydrated
+    hydrated,
+    allChannels,
   } = useAccountStore();
 
-  // const isHydrated = useAccountStore(state => state._hydrated);
-
   const account: AccountObjectType = accounts[selectedAccountIdx];
-  const channels = account.channels;
+  const channels = account?.channels || [];
+
+  const renderChannelCard = (channel: ChannelType, idx?: number) => {
+    const index = findIndex(channels, ['url', channel.url]);
+    const enabled = index !== -1;
+
+    return (
+      <div className="flex flex-row w-full max-w-xs">
+        {enabled && idx !== undefined && (<div
+          className={classNames(
+            'border border-gray-200 bg-green-600/80 flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-lg font-medium text-white'
+          )}
+        >
+          {idx + 1}
+        </div>)}
+        <div className={classNames(
+          enabled && idx !== undefined ? 'rounded-r-md border-b border-r border-t' : 'rounded-md border',
+          "flex flex-1 items-center justify-between truncate border-gray-200 bg-gray-600 pr-4"
+        )}>
+          <div className="flex-1 truncate px-4 py-2 text-sm">
+            <a href={channel.url} className="font-medium text-gray-100 hover:text-gray-200">
+              {channel.name}
+            </a>
+            <p className="text-gray-200 truncate">{channel.url}</p>
+          </div>
+          <Toggle
+            enabled={enabled}
+            setEnabled={() => enabled ? removePinnedChannel(channel) : addPinnedChannel(channel)}
+          />
+          {/* <div className="flex-shrink-0 pr-2">
+            <button
+              type="button"
+              className="ml-2 inline-flex h-8 w-4 items-center justify-center rounded-sm bg-transparent bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <span className="sr-only">Open options</span>
+              <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div> */}
+        </div>
+      </div>
+    )
+  };
 
   const renderEmptyState = () => (
     <>
@@ -75,43 +120,32 @@ export default function Channels() {
       </div>
     </>
   )
-  const projects = [
-    { name: 'Graph API', initials: 'GA', href: '#', members: 16, bgColor: 'bg-pink-600' },
-    { name: 'Component Design', initials: 'CD', href: '#', members: 12, bgColor: 'bg-purple-600' },
-    { name: 'Templates', initials: 'T', href: '#', members: 16, bgColor: 'bg-yellow-500' },
-    { name: 'React Components', initials: 'RC', href: '#', members: 8, bgColor: 'bg-green-500' },
-  ]
-  const renderChannels = () => {
+
+  const renderPinnedChannels = () => {
     return (
       <div>
-        <h2 className="text-sm font-medium text-gray-500">Pinned channels</h2>
-        <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-          {channels.map((channel) => (
+        <h2 className="text-md font-medium text-gray-100">Pinned channels</h2>
+        <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+          {isEmpty(channels) ? <div className="mt-0.5 h-14">
+            <p>Start pinning channels and they will appear up here</p>
+          </div> : channels.map((channel, idx) => (
             <li key={`channel-pinned-${channel.name}`} className="col-span-1 flex rounded-md shadow-sm">
-              <div
-                className={classNames(
-                  'flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white'
-                )}
-              >
-                {channel.name}
-              </div>
-              <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
-                <div className="flex-1 truncate px-4 py-2 text-sm">
-                  <a href={channel.url} className="font-medium text-gray-900 hover:text-gray-600">
-                    {channel.name}
-                  </a>
-                  <p className="text-gray-500">{channel.url} url</p>
-                </div>
-                <div className="flex-shrink-0 pr-2">
-                  <button
-                    type="button"
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-transparent bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  >
-                    <span className="sr-only">Open options</span>
-                    <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
+              {renderChannelCard(channel, idx)}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  const renderAllChannels = () => {
+    return (
+      <div className="mt-8">
+        <h2 className="text-md font-medium text-gray-100">All channels</h2>
+        <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+          {allChannels.map((channel) => (
+            <li key={`channel-${channel.name}`} className="col-span-1 flex rounded-md shadow-sm">
+              {renderChannelCard(channel)}
             </li>
           ))}
         </ul>
@@ -120,8 +154,9 @@ export default function Channels() {
   }
 
   return hydrated && isEmpty(accounts) ? renderEmptyState() : (
-    <div className="min-w-full mr-4">
-      {renderChannels()}
+    <div className="w-full max-w-screen-lg mr-4">
+      {renderPinnedChannels()}
+      {renderAllChannels()}
     </div >
   )
 }

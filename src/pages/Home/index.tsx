@@ -15,7 +15,7 @@ import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { trackPageView } from "@/common/helpers/analytics";
 import { findParamInHashUrlPath } from "@/common/helpers/navigation";
-import { BellIcon, MagnifyingGlassIcon, NewspaperIcon } from "@heroicons/react/24/solid";
+import { BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
 import * as Toast from '@radix-ui/react-toast';
 import CustomToast from "@/common/components/CustomToast";
 import { useNewPostStore } from "@/stores/useNewPostStore";
@@ -54,7 +54,7 @@ export default function Home() {
     },
     { name: 'New Post', router: '/post', icon: PlusCircleIcon },
     { name: 'Search', router: '/search', icon: MagnifyingGlassIcon },
-    { name: 'Channels', router: '/channels', icon: BellIcon },
+    { name: 'Channels', router: '/channels', icon: RectangleGroupIcon },
     { name: 'Accounts', router: '/accounts', icon: UserPlusIcon },
     {
       name: 'Notifications', router: '/notifications', icon: BellIcon, getTitle: () => 'Your notifications'
@@ -67,6 +67,8 @@ export default function Home() {
       case '/feed':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
       case '/post':
+        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
+      case '/channels':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
       case '/accounts':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS;

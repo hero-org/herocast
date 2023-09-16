@@ -7,10 +7,11 @@ import isEmpty from "lodash.isempty";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { createJSONStorage, devtools } from "zustand/middleware";
+import findIndex from 'lodash.findindex';
 
 type AccountChannelType = ChannelType & {
   idx: number;
-  lastRead: string; // can be a timestamp
+  lastRead?: string; // can be a timestamp
 }
 
 export type AccountObjectType = {
@@ -43,6 +44,8 @@ interface AccountStoreActions {
   setCurrentChannelIdx: (idx: number | null) => void;
   resetCurrentChannel: () => void;
   resetStore: () => void;
+  addPinnedChannel: (channel: ChannelType) => void;
+  removePinnedChannel: (channel: ChannelType) => void;
 }
 
 
@@ -148,6 +151,30 @@ const store = (set: StoreSet) => ({
       });
     })
   },
+  addPinnedChannel: (channel: ChannelType) => {
+    // connect this and remove to supabase
+    set((state) => {
+      const account = state.accounts[state.selectedAccountIdx];
+      const newChannel = { ...channel, idx: account.channels.length };
+      account.channels = [...account.channels, newChannel]
+      state.accounts[state.selectedAccountIdx] = account;
+    })
+  },
+  removePinnedChannel: (channel: ChannelType) => {
+    set((state) => {
+      const account = state.accounts[state.selectedAccountIdx];
+      const index = findIndex(account.channels, ['url', channel.url]);
+      const copy = [...account.channels];
+      copy.splice(index, 1);
+      account.channels = copy;
+      state.accounts[state.selectedAccountIdx] = account;
+    })
+  },
+  updatedPinnedChannels: () => {
+    // add function to shuffle order of pinned channels
+    // what are the parameters though?
+    // connect to supabase
+  }
 });
 export const useAccountStore = create<AccountStore>()(devtools(mutative(store)));
 
