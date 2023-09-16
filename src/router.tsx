@@ -18,6 +18,7 @@ import {
   createRoutesFromChildren,
   matchRoutes,
 } from "react-router-dom";
+import Channels from './pages/Channels';
 
 const VITE_SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 
@@ -65,6 +66,10 @@ export const router = sentryCreateBrowserRouter([
       {
         path: "post",
         element: <NewPost />,
+      },
+      {
+        path: "channels",
+        element: <Channels />,
       },
       {
         path: "notifications",

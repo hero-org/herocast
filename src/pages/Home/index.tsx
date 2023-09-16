@@ -54,6 +54,7 @@ export default function Home() {
     },
     { name: 'New Post', router: '/post', icon: PlusCircleIcon },
     { name: 'Search', router: '/search', icon: MagnifyingGlassIcon },
+    { name: 'Channels', router: '/channels', icon: BellIcon },
     { name: 'Accounts', router: '/accounts', icon: UserPlusIcon },
     {
       name: 'Notifications', router: '/notifications', icon: BellIcon, getTitle: () => 'Your notifications'
