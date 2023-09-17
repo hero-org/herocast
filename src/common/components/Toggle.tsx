@@ -15,10 +15,10 @@ export default function Toggle({ enabled, setEnabled }: ToggleProps) {
       onChange={setEnabled}
       className={classNames(
         enabled ? 'bg-green-600' : 'bg-gray-200',
-        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2'
+        'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none'
       )}
     >
-      <span className="sr-only">Use setting</span>
+      <span className="sr-only">Activate</span>
       <span
         className={classNames(
           enabled ? 'translate-x-5' : 'translate-x-0',
@@ -32,7 +32,7 @@ export default function Toggle({ enabled, setEnabled }: ToggleProps) {
           )}
           aria-hidden="true"
         >
-          <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 12 12">
+          {/* <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 12 12">
             <path
               d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
               stroke="currentColor"
@@ -40,7 +40,7 @@ export default function Toggle({ enabled, setEnabled }: ToggleProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-          </svg>
+          </svg> */}
         </span>
         <span
           className={classNames(

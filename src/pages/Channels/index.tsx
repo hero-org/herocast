@@ -42,10 +42,10 @@ export default function Channels() {
           "flex flex-1 items-center justify-between truncate border-gray-200 bg-gray-600 pr-4"
         )}>
           <div className="flex-1 truncate px-4 py-2 text-sm">
-            <a href={channel.url} className="font-medium text-gray-100 hover:text-gray-200">
+            <p className="font-medium text-gray-100 hover:text-gray-200">
               {channel.name}
-            </a>
-            <p className="text-gray-200 truncate">{channel.url}</p>
+            </p>
+            <p className="text-gray-300 truncate">{channel.url}</p>
           </div>
           <Toggle
             enabled={enabled}
@@ -124,10 +124,10 @@ export default function Channels() {
   const renderPinnedChannels = () => {
     return (
       <div>
-        <h2 className="text-md font-medium text-gray-100">Pinned channels</h2>
+        <h2 className="text-lg font-medium text-gray-100">Pinned channels</h2>
         <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-          {isEmpty(channels) ? <div className="mt-0.5 h-14">
-            <p>Start pinning channels and they will appear up here</p>
+          {isEmpty(channels) ? <div className="mt-0.5 h-14 col-span-2 flex rounded-sm">
+            <p className="text-gray-200 ">Start pinning channels and they will appear up here</p>
           </div> : channels.map((channel, idx) => (
             <li key={`channel-pinned-${channel.name}`} className="col-span-1 flex rounded-md shadow-sm">
               {renderChannelCard(channel, idx)}
@@ -141,7 +141,7 @@ export default function Channels() {
   const renderAllChannels = () => {
     return (
       <div className="mt-8">
-        <h2 className="text-md font-medium text-gray-100">All channels</h2>
+        <h2 className="text-lg font-medium text-gray-100">All channels</h2>
         <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           {allChannels.map((channel) => (
             <li key={`channel-${channel.name}`} className="col-span-1 flex rounded-md shadow-sm">
@@ -154,7 +154,7 @@ export default function Channels() {
   }
 
   return hydrated && isEmpty(accounts) ? renderEmptyState() : (
-    <div className="w-full max-w-screen-lg mr-4">
+    <div className="w-full md:max-w-screen-sm xl:max-w-screen-lg mr-4">
       {renderPinnedChannels()}
       {renderAllChannels()}
     </div >

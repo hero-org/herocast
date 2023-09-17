@@ -155,19 +155,47 @@ const store = (set: StoreSet) => ({
     // connect this and remove to supabase
     set((state) => {
       const account = state.accounts[state.selectedAccountIdx];
-      const newChannel = { ...channel, idx: account.channels.length };
+      const idx = account.channels.length
+      const newChannel = { ...channel, idx };
       account.channels = [...account.channels, newChannel]
       state.accounts[state.selectedAccountIdx] = account;
+
+      console.log('addPinnedChannel', account.id, channel.id, idx)
+      supabaseClient
+        .from('accounts_to_channel')
+        .insert({
+          account_id: account.id,
+          channel_id: channel.id,
+          index: idx,
+        })
+        .select('*')
+        .then(({ error, data }) => {
+          console.log('response - data', data, 'error', error);
+        });
     })
   },
   removePinnedChannel: (channel: ChannelType) => {
     set((state) => {
       const account = state.accounts[state.selectedAccountIdx];
+
+      if (!channel.id || !account.id) {
+        console.log('no channel or account id', channel,)
+        return;
+      }
       const index = findIndex(account.channels, ['url', channel.url]);
       const copy = [...account.channels];
       copy.splice(index, 1);
       account.channels = copy;
       state.accounts[state.selectedAccountIdx] = account;
+
+      supabaseClient
+        .from('accounts_to_channel')
+        .delete()
+        .eq('account_id', account.id)
+        .eq('channel_id', channel.id)
+        .then(({ error, data }) => {
+          console.log('response - data', data, 'error', error);
+        });
     })
   },
   updatedPinnedChannels: () => {
@@ -219,7 +247,7 @@ export const hydrate = async () => {
       const channels: AccountChannelType[] = account.accounts_to_channel.map((accountToChannel) => ({
         idx: accountToChannel.index,
         lastRead: accountToChannel.last_read,
-        channelId: accountToChannel.channel_id,
+        id: accountToChannel.channel_id,
         name: accountToChannel.channel.name,
         url: accountToChannel.channel.url,
         icon_url: accountToChannel.channel.icon_url,

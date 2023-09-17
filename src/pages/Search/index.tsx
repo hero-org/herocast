@@ -61,9 +61,12 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
 
   const {
-    channels,
+    accounts,
+    selectedAccountIdx,
     selectedChannelIdx
   } = useAccountStore();
+
+  const channels = accounts[selectedAccountIdx].channels;
 
   const onChange = async (text: string) => {
     setSearch(text)
