@@ -1,35 +1,22 @@
-import React, { useState } from "react";
+import React from "react";
 import { ChannelType } from "@/common/constants/channels";
 import { classNames } from "@/common/helpers/css";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { SidebarHeader } from "./SidebarHeader";
-import isEmpty from "lodash.isempty";
+import { useNavigate } from "react-router-dom";
 
 const ChannelsOverview = () => {
-  const [showAll, setShowAll] = useState(false);
-  const MAX_SIDEBAR_CHANNELS = 9;
+  const navigate = useNavigate();
   const {
     selectedChannelIdx,
-    setCurrentChannelIdx,
-    allChannels
+    setCurrentChannelIdx
   } = useAccountStore();
 
   let channels: ChannelType[] = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels);
-  if (isEmpty(channels)) {
-    channels = allChannels;
-  }
-
-  const onToggleShowAll = () => {
-    setShowAll(!showAll);
-  }
-
-  const sidebarChannels = showAll ? allChannels : channels.slice(0, MAX_SIDEBAR_CHANNELS);
-  if (!showAll && selectedChannelIdx && selectedChannelIdx >= MAX_SIDEBAR_CHANNELS) {
-    sidebarChannels.push(channels[selectedChannelIdx]);
-  }
+  if (!channels) channels = [];
 
   return (<>
-    <SidebarHeader title="Channels" actionTitle={showAll ? 'Show less' : 'Show all'} onClick={onToggleShowAll} />
+    <SidebarHeader title="Channels" actionTitle={'Manage'} onClick={() => navigate('/channels')} />
     <ul role="list" className="mx-4 m-4">
       <li key="follow-feed" className="px-2 sm:px-3 lg:px-4">
         <span
@@ -47,7 +34,7 @@ const ChannelsOverview = () => {
           </kbd>
         </span>
       </li>
-      {(sidebarChannels).map((channel: ChannelType, idx: number) => (
+      {channels.map((channel: ChannelType, idx: number) => (
         <li key={channel.name} className="px-2 sm:px-3 lg:px-4">
           <div
             onClick={() => setCurrentChannelIdx(idx)}

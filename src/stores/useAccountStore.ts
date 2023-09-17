@@ -320,19 +320,26 @@ const getChannelCommands = () => {
     },
   });
 
-  for (let i = 0; i < 9; i++) {
-    channelCommands.push({
-      name: `Switch to channel ${i + 1}`,
-      aliases: [],
-      shortcut: `shift+${i + 1}`,
-      enableOnFormTags: false,
-      action: () => {
-        const state = useAccountStore.getState();
-        if (isEmpty(state.channels)) return;
+  const { accounts, selectedAccountIdx } = useAccountStore.getState();
+  const channels = accounts[selectedAccountIdx]?.channels;
+  console.log('useAccountStore channels', channels);
+  // todo: this needs to happen when the account is setup
+  if (!isEmpty(channels)) {
+    for (let i = 0; i < 9; i++) {
+      channelCommands.push({
+        name: `Switch to channel ${i + 1}`,
+        aliases: [],
+        shortcut: `shift+${i + 1}`,
+        enableOnFormTags: false,
+        action: () => {
+          console.log('switching to channel', i);
+          if (isEmpty(channels)) return;
 
-        state.setCurrentChannelIdx(i);
-      },
-    });
+          const state = useAccountStore.getState();
+          state.setCurrentChannelIdx(i);
+        },
+      });
+    }
   }
 
   channelCommands.push({

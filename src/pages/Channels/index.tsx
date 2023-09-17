@@ -1,12 +1,11 @@
 import React, { Fragment } from "react";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import { ChevronRightIcon, EllipsisVerticalIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { classNames } from "@/common/helpers/css";
 import { ChannelType } from "@/common/constants/channels";
 import Toggle from "@/common/components/Toggle";
-import includes from "lodash.includes";
 import findIndex from "lodash.findindex";
 
 export default function Channels() {
@@ -42,7 +41,7 @@ export default function Channels() {
           "flex flex-1 items-center justify-between truncate border-gray-200 bg-gray-600 pr-4"
         )}>
           <div className="flex-1 truncate px-4 py-2 text-sm">
-            <p className="font-medium text-gray-100 hover:text-gray-200">
+            <p className="truncate font-medium text-gray-100 hover:text-gray-200">
               {channel.name}
             </p>
             <p className="text-gray-300 truncate">{channel.url}</p>

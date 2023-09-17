@@ -139,7 +139,6 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
     </div>)
   }
 
-  console.log('cast.parent_url', cast.parent_url, channels)
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
 
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;

@@ -32,13 +32,15 @@ export default function Home() {
   const navigate = useNavigate();
   const { pathname, hash: locationHash } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const feedTitle = useAccountStore((state) => state.allChannels.length > 0 && state.selectedChannelIdx !== null ? `${state.allChannels[state.selectedChannelIdx].name} channel` : 'Feed')
-
   const {
     accounts,
     selectedAccountIdx,
+    selectedChannelIdx,
     setCurrentAccountIdx
   } = useAccountStore();
+
+  const channels = accounts[selectedAccountIdx]?.channels;
+  const feedTitle = channels && selectedChannelIdx !== null ? `${channels[selectedChannelIdx]?.name} channel` : 'Feed';
 
   const {
     isToastOpen,

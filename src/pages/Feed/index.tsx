@@ -21,7 +21,6 @@ type FeedType = {
 export default function Feed() {
   const navigate = useNavigate();
 
-
   const [feeds, setFeeds] = useState<FeedType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedCursor, setNextFeedCursor] = useState("");
@@ -29,18 +28,15 @@ export default function Feed() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const {
     accounts,
-    allChannels: channels,
     selectedAccountIdx,
     selectedChannelIdx,
     hydrated
   } = useAccountStore();
 
-  // const channels = accounts[selectedAccountIdx]?.channels || [];
-  // const isHydrated = useAccountStore(state => state._hydrated);
-
-
+  const channels = accounts[selectedAccountIdx]?.channels || [];
   const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].url : undefined;
   const account: AccountObjectType = accounts[selectedAccountIdx];
+
   const getFeedKey = ({ selectedChannelParentUrl, account }: { selectedChannelParentUrl: string | undefined, account: AccountObjectType }) => {
     if (selectedChannelParentUrl) {
       return selectedChannelParentUrl;
