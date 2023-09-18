@@ -4,7 +4,7 @@ import { classNames } from "@/common/helpers/css";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Listbox, Transition, Combobox } from '@headlessui/react'
-import { ChannelType, channels } from "@/common/constants/channels";
+import { ChannelType } from "@/common/constants/channels";
 import isEmpty from "lodash.isempty";
 import { DraftStatus, DraftType } from "../constants/farcaster";
 import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
@@ -69,12 +69,14 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textareaElement = textareaRef.current;
   const {
-    selectedChannelIdx
+    selectedChannelUrl,
+    allChannels: channels,
   } = useAccountStore();
+
 
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const hasMultipleAccounts = useAccountStore((state) => state.accounts.length > 1);
-  const channel = channels.find((channel: ChannelType) => channel.parent_url === draft?.parentUrl);
+  const channel = channels.find((channel: ChannelType) => channel.url === draft?.parentUrl);
   const isReply = draft?.parentCastId !== undefined;
 
   const onChange = (cast: DraftType) => {
@@ -114,8 +116,8 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   };
 
   useEffect(() => {
-    onChange({ ...draft, parentUrl: selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined });
-  }, [selectedChannelIdx])
+    onChange({ ...draft, parentUrl: selectedChannelUrl || undefined });
+  }, [selectedChannelUrl])
 
   useEffect(() => {
     if (textareaElement) {
@@ -141,7 +143,6 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
     "@": {
       dataProvider: (token: string) => {
         return findUsername(token.toLowerCase());
-        // return await findUsername(token.toLowerCase()).slice(0, 7)
       },
       component: MentionDropdownItem,
       output: (item, trigger) => `@${item.username}`
@@ -149,7 +150,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   }
 
   const onUpdateParentUrl = (channel: ChannelType) => {
-    const newParentUrl = (channel.parent_url === draft.parentUrl) ? undefined : channel.parent_url;
+    const newParentUrl = (channel.url === draft.parentUrl) ? undefined : channel.url;
     onChange({ ...draft, parentUrl: newParentUrl })
   }
 
@@ -264,7 +265,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
                         <Listbox.Options className="absolute left-0 z-100 mt-1 max-h-56 w-42 overflow-auto rounded-sm bg-radix-slate10 text-base shadow ring-1 ring-gray-900 focus:outline-none sm:text-sm">
                           {channels.map((channel) => (
                             <Listbox.Option
-                              key={channel.parent_url}
+                              key={channel.url}
                               className={({ active }) =>
                                 classNames(
                                   active ? 'text-gray-200 bg-gray-600' : 'text-gray-300 bg-gray-700',

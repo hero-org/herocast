@@ -49,7 +49,7 @@ const renderLink = ({ attributes, content }) => {
 
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isThreadView = false }: CastRowProps) => {
-  // if (isSelected) console.log(cast.embeds);
+  // if (isSelected) console.log(cast);
 
   const { accounts, selectedAccountIdx } = useAccountStore();
   const [didLike, setDidLike] = useState(false)
@@ -92,7 +92,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
   }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.recasts]);
 
   const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined => parentUrl ?
-    channels.find((channel) => channel.parent_url === parentUrl) : undefined;
+    channels.find((channel) => channel.url === parentUrl) : undefined;
 
   const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
     const className = classNames(isActive ? "text-gray-300" : "", "mt-0.5 w-4 h-4 mr-1");

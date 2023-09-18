@@ -14,9 +14,8 @@ import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRight
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { trackPageView } from "@/common/helpers/analytics";
-import EmptyRightSidebar from "@/common/components/RightSidebar/EmptyRightSidebar";
 import { findParamInHashUrlPath } from "@/common/helpers/navigation";
-import { BellIcon, MagnifyingGlassIcon, NewspaperIcon } from "@heroicons/react/24/solid";
+import { BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
 import * as Toast from '@radix-ui/react-toast';
 import CustomToast from "@/common/components/CustomToast";
 import { useNewPostStore } from "@/stores/useNewPostStore";
@@ -33,13 +32,16 @@ export default function Home() {
   const navigate = useNavigate();
   const { pathname, hash: locationHash } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const feedTitle = useAccountStore((state) => state.channels.length > 0 && state.selectedChannelIdx !== null ? `${state.channels[state.selectedChannelIdx].name} channel` : 'Feed')
-
   const {
     accounts,
+    allChannels,
     selectedAccountIdx,
+    selectedChannelUrl,
     setCurrentAccountIdx
   } = useAccountStore();
+
+  const selectedChannelIdx = allChannels?.findIndex((channel) => channel.url === selectedChannelUrl);
+  const feedTitle = selectedChannelIdx !== -1 ? `${allChannels[selectedChannelIdx]?.name} channel` : 'Feed';
 
   const {
     isToastOpen,
@@ -55,6 +57,7 @@ export default function Home() {
     },
     { name: 'New Post', router: '/post', icon: PlusCircleIcon },
     { name: 'Search', router: '/search', icon: MagnifyingGlassIcon },
+    { name: 'Channels', router: '/channels', icon: RectangleGroupIcon },
     { name: 'Accounts', router: '/accounts', icon: UserPlusIcon },
     {
       name: 'Notifications', router: '/notifications', icon: BellIcon, getTitle: () => 'Your notifications'
@@ -67,6 +70,8 @@ export default function Home() {
       case '/feed':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
       case '/post':
+        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
+      case '/channels':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
       case '/accounts':
         return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
@@ -318,7 +323,7 @@ export default function Home() {
           </div>
 
           <div className="lg:pl-48">
-            <main className={"lg:pr-24"}>
+            <main className={"lg:pr-64"}>
               <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">
                 <button type="button" className="-m-2.5 p-2.5 text-white lg:hidden" onClick={() => setSidebarOpen(true)}>
                   <span className="sr-only">Open sidebar</span>

@@ -21,7 +21,6 @@ type FeedType = {
 export default function Feed() {
   const navigate = useNavigate();
 
-
   const [feeds, setFeeds] = useState<FeedType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedCursor, setNextFeedCursor] = useState("");
@@ -29,20 +28,19 @@ export default function Feed() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const {
     accounts,
-    channels,
     selectedAccountIdx,
-    selectedChannelIdx,
+    selectedChannelUrl,
     hydrated
   } = useAccountStore();
 
-  // const isHydrated = useAccountStore(state => state._hydrated);
-
-
-  const selectedChannelParentUrl = channels && selectedChannelIdx !== null ? channels[selectedChannelIdx].parent_url : undefined;
+  const channels = accounts[selectedAccountIdx]?.channels || [];
+  console.log('selectedChannelUrl', selectedChannelUrl)
+  // this breaks if selected channel is not in pinned channels of current account -> still has to work though
   const account: AccountObjectType = accounts[selectedAccountIdx];
-  const getFeedKey = ({ selectedChannelParentUrl, account }: { selectedChannelParentUrl: string | undefined, account: AccountObjectType }) => {
-    if (selectedChannelParentUrl) {
-      return selectedChannelParentUrl;
+
+  const getFeedKey = ({ selectedChannelUrl, account }: { selectedChannelUrl: string | null, account: AccountObjectType }) => {
+    if (selectedChannelUrl) {
+      return selectedChannelUrl;
     } else if (account) {
       return account.platformAccountId;
     } else {
@@ -50,7 +48,7 @@ export default function Feed() {
     }
   };
 
-  const feedKey = getFeedKey({ selectedChannelParentUrl, account });
+  const feedKey = getFeedKey({ selectedChannelUrl, account });
   const feed = feedKey ? get(feeds, feedKey, []) : [];
 
   const onOpenLinkInCast = (idx: number) => {
@@ -73,9 +71,9 @@ export default function Feed() {
     if (selectedCastIdx >= feed.length - 5) {
       // const cursor = // feed[feed.length - 1]?.timestamp;
       // unbounce this call to getFeed
-      getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor: nextFeedCursor });
+      getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelUrl, cursor: nextFeedCursor });
     }
-  }, [selectedCastIdx, feed, account, selectedChannelParentUrl])
+  }, [selectedCastIdx, feed, account, selectedChannelUrl])
 
   useHotkeys([Key.Escape, '§'], () => {
     setShowCastThreadView(false);
@@ -92,10 +90,10 @@ export default function Feed() {
   // }, [showCastThreadView, draftIdx]);
 
   const getFeed = async ({ fid, parentUrl, cursor }: { fid: string, parentUrl?: string, cursor?: string }) => {
-    if (isLoadingFeed) {
-      return;
-    }
-    setIsLoadingFeed(true);
+    // if (isLoadingFeed) {
+    //   return;
+    // }
+    // setIsLoadingFeed(true);
 
     const neynarEndpoint = getNeynarFeedEndpoint({ fid, parentUrl, cursor });
     await fetch(neynarEndpoint)
@@ -121,9 +119,9 @@ export default function Feed() {
       setShowCastThreadView(false);
 
       const fid = account.platformAccountId;
-      getFeed({ parentUrl: selectedChannelParentUrl, fid });
+      getFeed({ parentUrl: selectedChannelUrl, fid });
     }
-  }, [account, selectedChannelParentUrl]);
+  }, [account, selectedChannelUrl]);
 
   const renderRow = (item: any, idx: number) => (
     <li key={item?.hash}
@@ -131,7 +129,7 @@ export default function Feed() {
       <CastRow
         cast={item as CastType}
         channels={channels}
-        showChannel={selectedChannelIdx === null}
+        showChannel={!selectedChannelUrl}
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
       />
@@ -158,14 +156,21 @@ export default function Feed() {
   );
 
   const renderFeed = () => (
-    <SelectableListWithHotkeys
-      data={feed}
-      selectedIdx={selectedCastIdx}
-      setSelectedIdx={setSelectedCastIdx}
-      renderRow={(item: any, idx: number) => renderRow(item, idx)}
-      onExpand={onOpenLinkInCast}
-      onSelect={onSelectCast}
-    />
+    <>
+      <SelectableListWithHotkeys
+        data={feed}
+        selectedIdx={selectedCastIdx}
+        setSelectedIdx={setSelectedCastIdx}
+        renderRow={(item: any, idx: number) => renderRow(item, idx)}
+        onExpand={onOpenLinkInCast}
+        onSelect={onSelectCast}
+      />
+      <button
+        onClick={() => getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelUrl, cursor: nextFeedCursor })}
+        className="mt-4 text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500">
+        {isLoadingFeed ? "Loading..." : "Load more"}
+      </button>
+    </>
   )
 
   const renderThread = () => (
