@@ -84,7 +84,7 @@ const store = (set: StoreSet) => ({
         }
       }
 
-      state.drafts.push(newDraft);
+      state.drafts = [...state.drafts, newDraft];
     });
   },
   addFeedbackDraft: () => {
@@ -159,7 +159,7 @@ const store = (set: StoreSet) => ({
             return `Error when posting ${res.error}`;
           }
 
-          await new Promise(f => setTimeout(f, 700));
+          await new Promise(f => setTimeout(f, 100));
           trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
           state.removePostDraft(draftIdx);
           state.setIsToastOpen(true);

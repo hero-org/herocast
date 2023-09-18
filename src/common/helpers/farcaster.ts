@@ -5,6 +5,7 @@ import {
   getHubRpcClient,
   makeCastAdd,
   makeReactionAdd,
+  makeReactionRemove,
 } from "@farcaster/hub-web";
 import { toBytes } from 'viem';
 import { DraftType } from "@/common/constants/farcaster";
@@ -97,6 +98,12 @@ type PublishReactionParams = {
   reactionBody: ReactionBody;
 };
 
+type RemoveReactionParams = {
+  authorFid: string;
+  privateKey: string;
+  reactionBody: ReactionBody;
+}
+
 export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCastParams) => {
   if (!VITE_NEYNAR_HUB_URL) {
     throw new Error('hub url is not defined');
@@ -141,15 +148,53 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
   // client.close();
 };
 
+export const removeReaction = async ({ authorFid, privateKey, reactionBody }: RemoveReactionParams) => {
+  if (!VITE_NEYNAR_HUB_URL) {
+    throw new Error('hub url is not defined');
+  }
+
+  try {
+    // Create an EIP712 Signer with the wallet that holds the custody address of the user
+    const signer = getEIP712Signer(privateKey);
+
+    const dataOptions = {
+      fid: Number(authorFid),
+      network: NETWORK,
+    };
+
+    // Step 2: create message
+    const reaction = await makeReactionRemove(
+      reactionBody,
+      dataOptions,
+      signer,
+    );
+
+    // Step 3: publish message to network
+    const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
+    const res = await Promise.resolve(reaction.map(async (reactionRemove) => {
+      return await Promise.resolve(await client.submitMessage(reactionRemove));
+    }));
+
+    console.log(`Submitted removing reaction to Farcaster network, res:`, res);
+    return res;
+  } catch (error) {
+    console.error(`Error in submitMessage: ${error}`);
+    throw error;
+  }
+};
+
+
+const getEIP712Signer = (privateKey: string): NobleEd25519Signer => {
+  return new NobleEd25519Signer(toBytes(privateKey));
+}
 export const publishReaction = async ({ authorFid, privateKey, reactionBody }: PublishReactionParams) => {
   if (!VITE_NEYNAR_HUB_URL) {
     throw new Error('hub url is not defined');
   }
 
   try {
-    // console.log(`reactionBody`, reactionBody)
     // Create an EIP712 Signer with the wallet that holds the custody address of the user
-    const ed25519Signer = new NobleEd25519Signer(toBytes(privateKey));
+    const signer = getEIP712Signer(privateKey);
 
     const dataOptions = {
       fid: Number(authorFid),
@@ -161,7 +206,7 @@ export const publishReaction = async ({ authorFid, privateKey, reactionBody }: P
     const reaction = await makeReactionAdd(
       reactionBody,
       dataOptions,
-      ed25519Signer,
+      signer,
     );
 
     // Step 3: publish message to network
@@ -173,7 +218,7 @@ export const publishReaction = async ({ authorFid, privateKey, reactionBody }: P
     console.log(`Submitted reaction to Farcaster network, res:`, res);
     return res;
   } catch (error) {
-    console.error(`Error in publishReaction: ${error}`);
+    console.error(`Error in submitMessage: ${error}`);
     throw error;
   }
 };

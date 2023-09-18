@@ -136,6 +136,25 @@ export default function Feed() {
     </li>
   )
 
+  const getButtonText = (): string => {
+    if (isLoadingFeed) {
+      return "Loading..."
+    } else if (feed.length === 0) {
+      return "Load feed"
+    } else {
+      return "Load more"
+    }
+  };
+
+  const renderLoadMoreButton = () => (
+    <button
+      onClick={() => getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor: nextFeedCursor })}
+      className="mt-4 text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500"
+    >
+      {getButtonText()}
+    </button>
+  );
+
   const renderFeed = () => (
     <>
       <SelectableListWithHotkeys
@@ -222,7 +241,13 @@ export default function Feed() {
 
   return hydrated && isEmpty(accounts) ? renderEmptyState() : (
     <div className="min-w-full mr-4">
-      {showCastThreadView ? renderThread() : renderFeed()}
+      {showCastThreadView ?
+        renderThread()
+        : <>
+          {renderFeed()}
+          {renderLoadMoreButton()}
+        </>
+      }
     </div >
   )
 }
