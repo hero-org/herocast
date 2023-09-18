@@ -93,7 +93,7 @@ export default function Feed() {
     // if (isLoadingFeed) {
     //   return;
     // }
-    // setIsLoadingFeed(true);
+    setIsLoadingFeed(true);
 
     const neynarEndpoint = getNeynarFeedEndpoint({ fid, parentUrl, cursor });
     await fetch(neynarEndpoint)
@@ -156,21 +156,14 @@ export default function Feed() {
   );
 
   const renderFeed = () => (
-    <>
-      <SelectableListWithHotkeys
-        data={feed}
-        selectedIdx={selectedCastIdx}
-        setSelectedIdx={setSelectedCastIdx}
-        renderRow={(item: any, idx: number) => renderRow(item, idx)}
-        onExpand={onOpenLinkInCast}
-        onSelect={onSelectCast}
-      />
-      <button
-        onClick={() => getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelUrl, cursor: nextFeedCursor })}
-        className="mt-4 text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500">
-        {isLoadingFeed ? "Loading..." : "Load more"}
-      </button>
-    </>
+    <SelectableListWithHotkeys
+      data={feed}
+      selectedIdx={selectedCastIdx}
+      setSelectedIdx={setSelectedCastIdx}
+      renderRow={(item: any, idx: number) => renderRow(item, idx)}
+      onExpand={onOpenLinkInCast}
+      onSelect={onSelectCast}
+    />
   )
 
   const renderThread = () => (
