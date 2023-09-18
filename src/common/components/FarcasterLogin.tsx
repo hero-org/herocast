@@ -8,7 +8,7 @@ import usePollingUpdate from "../hooks/usePollingUpdate";
 import { QrCode } from "./QrCode";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
-import { CheckCircleIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
 import { NewspaperIcon } from "@heroicons/react/24/solid";
 import { JoinedHerocastPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 
@@ -185,7 +185,7 @@ const FarcasterLogin = () => {
           {errorMessage}
         </p>
       )}
-      {hasActiveAccounts && (<div className="mt-10 max-w-md rounded-sm bg-green-800/50 px-4 py-6">
+      {hasActiveAccounts && (<div className="mt-10 max-w-xl rounded-sm bg-green-800/50 px-4 py-6">
         <div className="flex">
           <div className="flex-shrink-0">
             <CheckCircleIcon className="h-5 w-5 text-gray-100" aria-hidden="true" />
@@ -212,6 +212,14 @@ const FarcasterLogin = () => {
                 >
                   Scroll your feed
                   <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+                </button>
+                <button
+                  onClick={() => navigate('/channels')}
+                  type="button"
+                  className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+                >
+                  Pin your favourite channels
+                  <RectangleGroupIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
                 </button>
               </div>
             </div>

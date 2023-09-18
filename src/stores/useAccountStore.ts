@@ -216,7 +216,6 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
     console.error('error fetching all channels', channelError);
     return []
   }
-  console.log('fetchAllChannels channelData', channelData?.length)
   return channelData || [];
 }
 

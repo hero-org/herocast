@@ -23,11 +23,11 @@ export type CasterType = {
   fid: number
   username?: string
   display_name?: string
+
 }
+export const DEFAULT_FEED_PAGE_SIZE = 15;
 
 const VITE_NEYNAR_API_KEY = import.meta.env.VITE_NEYNAR_API_KEY;
-const DEFAULT_FEED_PAGE_SIZE = 15;
-
 const NEYNAR_API_URL = 'https://api.neynar.com';
 
 export const getNeynarFeedEndpoint = ({ fid, parentUrl, cursor, limit }: FeedEndpointProps): string => {

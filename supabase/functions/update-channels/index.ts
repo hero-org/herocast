@@ -49,13 +49,15 @@ serve(async (req) => {
         })
 
       if (!hasChannelInSupabase) {
+        const icon_url = newChannel.token_metadata?.image && newChannel.token_metadata?.itemMediaType == 2 ? newChannel.token_metadata?.image : null;
+
         await supabaseClient
           .from('channel')
           .insert({
             name: newChannel.channel_name,
             url: newChannel.parent,
-            icon_url: newChannel.token_metadata?.image || null,
-            source: 'Hypeshot'
+            source: 'Hypeshot',
+            icon_url,
           })
           .select()
           .then(({ error, data }) => {
@@ -66,9 +68,10 @@ serve(async (req) => {
       }
     }
 
-    console.log(`done adding ${insertCount} channels`);
+    const message = `found ${data?.count} NFTs, added ${insertCount} channels`;
+    console.log(message);
     const returnData = {
-      message: `done adding ${insertCount} channels`,
+      message,
     }
 
     return new Response(JSON.stringify(returnData), {

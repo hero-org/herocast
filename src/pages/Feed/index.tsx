@@ -8,7 +8,7 @@ import { CastRow } from "@/common/components/CastRow";
 import { openWindow } from "@/common/helpers/navigation";
 import isEmpty from "lodash.isempty";
 import { CastThreadView } from "@/common/components/CastThreadView";
-import { getNeynarFeedEndpoint } from "@/common/helpers/neynar";
+import { DEFAULT_FEED_PAGE_SIZE, getNeynarFeedEndpoint } from "@/common/helpers/neynar";
 import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
@@ -34,8 +34,6 @@ export default function Feed() {
   } = useAccountStore();
 
   const channels = accounts[selectedAccountIdx]?.channels || [];
-  console.log('selectedChannelUrl', selectedChannelUrl)
-  // this breaks if selected channel is not in pinned channels of current account -> still has to work though
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
   const getFeedKey = ({ selectedChannelUrl, account }: { selectedChannelUrl: string | null, account: AccountObjectType }) => {
@@ -65,12 +63,9 @@ export default function Feed() {
   }
 
   useEffect(() => {
-    // console.log('feed', feed.length, 'isEmpty(feed)', isEmpty(feed), 'isLoadingFeed', isLoadingFeed, 'selectedCastIdx', selectedCastIdx)
-    if (isLoadingFeed || isEmpty(feed) || showCastThreadView) return;
+    if (isLoadingFeed || isEmpty(feed) || showCastThreadView || feed.length < DEFAULT_FEED_PAGE_SIZE) return;
 
     if (selectedCastIdx >= feed.length - 5) {
-      // const cursor = // feed[feed.length - 1]?.timestamp;
-      // unbounce this call to getFeed
       getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelUrl, cursor: nextFeedCursor });
     }
   }, [selectedCastIdx, feed, account, selectedChannelUrl])
@@ -90,9 +85,9 @@ export default function Feed() {
   // }, [showCastThreadView, draftIdx]);
 
   const getFeed = async ({ fid, parentUrl, cursor }: { fid: string, parentUrl?: string, cursor?: string }) => {
-    // if (isLoadingFeed) {
-    //   return;
-    // }
+    if (isLoadingFeed) {
+      return;
+    }
     setIsLoadingFeed(true);
 
     const neynarEndpoint = getNeynarFeedEndpoint({ fid, parentUrl, cursor });
@@ -148,7 +143,7 @@ export default function Feed() {
 
   const renderLoadMoreButton = () => (
     <button
-      onClick={() => getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelParentUrl, cursor: nextFeedCursor })}
+      onClick={() => getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelUrl, cursor: nextFeedCursor })}
       className="mt-4 text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500"
     >
       {getButtonText()}
@@ -238,7 +233,7 @@ export default function Feed() {
         renderThread()
         : <>
           {renderFeed()}
-          {renderLoadMoreButton()}
+          {feed.length > 0 && feed.length >= DEFAULT_FEED_PAGE_SIZE && renderLoadMoreButton()}
         </>
       }
     </div >
