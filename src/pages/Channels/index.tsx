@@ -31,7 +31,7 @@ export default function Channels() {
       <div className="flex flex-row w-full max-w-xs">
         {enabled && idx !== undefined && (<div
           className={classNames(
-            'border border-gray-200 bg-green-600/80 flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-lg font-medium text-white'
+            'bg-green-600/80 border-gray-200 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-md text-lg font-medium text-white'
           )}
         >
           {idx + 1}
@@ -44,7 +44,7 @@ export default function Channels() {
             <p className="truncate font-medium text-gray-100 hover:text-gray-200">
               {channel.name}
             </p>
-            <p className="text-gray-300 truncate">{channel.url}</p>
+            {channel.source && (<p className="text-gray-300 truncate">Added by {channel.source}</p>)}
           </div>
           <Toggle
             enabled={enabled}

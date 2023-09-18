@@ -30,7 +30,7 @@ export type AccountObjectType = {
 
 interface AccountStoreProps {
   selectedAccountIdx: number;
-  selectedChannelIdx: number | null;
+  selectedChannelUrl: string | null;
   accounts: AccountObjectType[];
   allChannels: ChannelType[];
   hydrated: boolean;
@@ -41,8 +41,8 @@ interface AccountStoreActions {
   setAccountActive: (accountId: number, data: { platform_account_id: string, data: object }) => void;
   removeAccount: (idx: number) => void;
   setCurrentAccountIdx: (idx: number) => void;
-  setCurrentChannelIdx: (idx: number | null) => void;
-  resetCurrentChannel: () => void;
+  setSelectedChannelUrl: (url: string | null) => void;
+  resetSelectedChannel: () => void;
   resetStore: () => void;
   addPinnedChannel: (channel: ChannelType) => void;
   removePinnedChannel: (channel: ChannelType) => void;
@@ -55,7 +55,7 @@ const initialState: AccountStoreProps = {
   accounts: [],
   allChannels: [],
   selectedAccountIdx: 0,
-  selectedChannelIdx: null,
+  selectedChannelUrl: '',
   hydrated: false,
 };
 
@@ -134,14 +134,14 @@ const store = (set: StoreSet) => ({
       state.selectedAccountIdx = idx;
     });
   },
-  setCurrentChannelIdx: (idx: number) => {
+  setSelectedChannelUrl: (url: string) => {
     set((state) => {
-      state.selectedChannelIdx = idx;
+      state.selectedChannelUrl = url;
     });
   },
-  resetCurrentChannel: () => {
+  resetSelectedChannel: () => {
     set((state) => {
-      state.selectedChannelIdx = null;
+      state.selectedChannelUrl = '';
     })
   },
   resetStore: () => {
@@ -251,6 +251,7 @@ export const hydrate = async () => {
         name: accountToChannel.channel.name,
         url: accountToChannel.channel.url,
         icon_url: accountToChannel.channel.icon_url,
+        source: accountToChannel.channel.source,
       }));
       return {
         id: account.id,
@@ -316,30 +317,28 @@ const getChannelCommands = () => {
     shortcut: 'shift+0',
     enableOnFormTags: true,
     action: () => {
-      useAccountStore.getState().resetCurrentChannel();
+      useAccountStore.getState().resetSelectedChannel();
     },
   });
 
-  const { accounts, selectedAccountIdx } = useAccountStore.getState();
-  const channels = accounts[selectedAccountIdx]?.channels;
-  console.log('useAccountStore channels', channels);
   // todo: this needs to happen when the account is setup
-  if (!isEmpty(channels)) {
-    for (let i = 0; i < 9; i++) {
-      channelCommands.push({
-        name: `Switch to channel ${i + 1}`,
-        aliases: [],
-        shortcut: `shift+${i + 1}`,
-        enableOnFormTags: false,
-        action: () => {
-          console.log('switching to channel', i);
-          if (isEmpty(channels)) return;
+  for (let i = 0; i < 9; i++) {
+    channelCommands.push({
+      name: `Switch to channel ${i + 1}`,
+      aliases: [],
+      shortcut: `shift+${i + 1}`,
+      enableOnFormTags: false,
+      action: () => {
+        console.log('switching to channel', i);
+        const { accounts, selectedAccountIdx } = useAccountStore.getState();
+        const channels = accounts[selectedAccountIdx]?.channels;
 
-          const state = useAccountStore.getState();
-          state.setCurrentChannelIdx(i);
-        },
-      });
-    }
+        if (isEmpty(channels) || channels.length <= i) return;
+
+        const state = useAccountStore.getState();
+        state.setSelectedChannelUrl(channels[i].url);
+      },
+    });
   }
 
   channelCommands.push({
@@ -350,9 +349,9 @@ const getChannelCommands = () => {
     navigateTo: '/feed',
     action: () => {
       const state = useAccountStore.getState();
-      if (isEmpty(state.channels)) return;
-
-      state.setCurrentChannelIdx(randomNumberBetween(0, state.channels.length - 1));
+      if (isEmpty(state.allChannels)) return;
+      const randomIndex = randomNumberBetween(0, state.allChannels.length - 1);
+      state.setSelectedChannelUrl(state.allChannels[randomIndex].url);
     },
   });
 

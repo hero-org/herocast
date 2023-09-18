@@ -27,7 +27,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
 
   const {
     allChannels: channels,
-    selectedChannelIdx
+    selectedChannelUrl
   } = useAccountStore();
 
   const {
@@ -105,7 +105,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
               <CastRow
                 cast={cast}
                 channels={channels}
-                showChannel={selectedChannelIdx === null}
+                showChannel={selectedChannelUrl === null}
                 isSelected={selectedCastIdx === idx}
                 isThreadView
               />

@@ -69,7 +69,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textareaElement = textareaRef.current;
   const {
-    selectedChannelIdx,
+    selectedChannelUrl,
     allChannels: channels,
   } = useAccountStore();
 
@@ -116,8 +116,8 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   };
 
   useEffect(() => {
-    onChange({ ...draft, parentUrl: selectedChannelIdx !== null ? channels[selectedChannelIdx].url : undefined });
-  }, [selectedChannelIdx])
+    onChange({ ...draft, parentUrl: selectedChannelUrl || undefined });
+  }, [selectedChannelUrl])
 
   useEffect(() => {
     if (textareaElement) {

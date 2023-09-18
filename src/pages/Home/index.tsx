@@ -34,13 +34,14 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const {
     accounts,
+    allChannels,
     selectedAccountIdx,
-    selectedChannelIdx,
+    selectedChannelUrl,
     setCurrentAccountIdx
   } = useAccountStore();
 
-  const channels = accounts[selectedAccountIdx]?.channels;
-  const feedTitle = channels && selectedChannelIdx !== null ? `${channels[selectedChannelIdx]?.name} channel` : 'Feed';
+  const selectedChannelIdx = allChannels?.findIndex((channel) => channel.url === selectedChannelUrl);
+  const feedTitle = selectedChannelIdx !== -1 ? `${allChannels[selectedChannelIdx]?.name} channel` : 'Feed';
 
   const {
     isToastOpen,
@@ -322,7 +323,7 @@ export default function Home() {
           </div>
 
           <div className="lg:pl-48">
-            <main className={"lg:pr-24"}>
+            <main className={"lg:pr-64"}>
               <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">
                 <button type="button" className="-m-2.5 p-2.5 text-white lg:hidden" onClick={() => setSidebarOpen(true)}>
                   <span className="sr-only">Open sidebar</span>
