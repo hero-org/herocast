@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
@@ -7,8 +7,11 @@ import { classNames } from "@/common/helpers/css";
 import { ChannelType } from "@/common/constants/channels";
 import Toggle from "@/common/components/Toggle";
 import findIndex from "lodash.findindex";
+import { BarsArrowUpIcon, ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import includes from "lodash.includes";
 
 export default function Channels() {
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   const {
@@ -23,12 +26,16 @@ export default function Channels() {
   const account: AccountObjectType = accounts[selectedAccountIdx];
   const channels = account?.channels || [];
 
+  const handleSearchChange = (e: event) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
+
   const renderChannelCard = (channel: ChannelType, idx?: number) => {
     const index = findIndex(channels, ['url', channel.url]);
     const enabled = index !== -1;
 
     return (
-      <div className="flex flex-row w-full max-w-xs">
+      <div className="flex flex-row w-full max-w-md">
         {enabled && idx !== undefined && (<div
           className={classNames(
             'bg-green-600/80 border-gray-200 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-md text-lg font-medium text-white'
@@ -53,7 +60,7 @@ export default function Channels() {
           {/* <div className="flex-shrink-0 pr-2">
             <button
               type="button"
-              className="ml-2 inline-flex h-8 w-4 items-center justify-center rounded-sm bg-transparent bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="ml-2 inline-flex h-8 w-4 items-center justify-center rounded-sm bg-transparent bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
               <span className="sr-only">Open options</span>
               <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
@@ -140,9 +147,47 @@ export default function Channels() {
   const renderAllChannels = () => {
     return (
       <div className="mt-8">
-        <h2 className="text-lg font-medium text-gray-100">All channels</h2>
-        <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-          {allChannels.map((channel) => (
+        <div className="border-b border-gray-500 sm:flex sm:items-center sm:justify-between">
+          <div className="flex flex-col">
+            <h2 className="text-lg font-medium text-gray-100 leading-6">All channels</h2>
+            <h3 className="text-sm font-medium text-gray-300">Search and pin new channels</h3>
+          </div>
+          <div className="pb-3 mt-3 sm:ml-4 sm:mt-0">
+            <label htmlFor="mobile-search-channel" className="sr-only">
+              Search
+            </label>
+            <label htmlFor="desktop-search-channel" className="sr-only">
+              Search
+            </label>
+            <div className="flex rounded-md shadow-sm max-w-md">
+              <div className="relative flex-grow focus-within:z-10">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+                <input
+                  onChange={handleSearchChange}
+                  value={searchTerm}
+                  type="text"
+                  name="mobile-search-channel"
+                  id="mobile-search-channel"
+                  className="block w-full rounded-md border-0 py-2.5 pl-10 bg-white/20 pr-3 text-gray-300 placeholder:text-white focus:bg-white/10 focus:text-white ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 sm:hidden"
+                  placeholder="Search"
+                />
+                <input
+                  onChange={handleSearchChange}
+                  value={searchTerm}
+                  type="text"
+                  name="desktop-search-channel"
+                  id="desktop-search-channel"
+                  className="hidden w-full rounded-md border-0 py-2 pl-10 bg-white/20 pr-3 text-gray-300 placeholder:text-white focus:bg-white/10 focus:text-white ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 sm:block"
+                  placeholder="Search channels"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
+          {(searchTerm ? allChannels.filter((channel) => includes((channel.name + channel.source).toLowerCase(), searchTerm)) : allChannels).map((channel) => (
             <li key={`channel-${channel.name}`} className="col-span-1 flex rounded-md shadow-sm">
               {renderChannelCard(channel)}
             </li>

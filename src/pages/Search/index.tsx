@@ -119,14 +119,14 @@ export default function Search() {
           <input
             onChange={(e) => onChange(e.target.value)}
             id="search"
-            className="block w-full rounded-sm border-0 bg-white/20 py-2.5 pl-10 pr-3 text-gray-300 placeholder:text-white focus:bg-white/30 focus:text-white focus:ring-0 focus:placeholder:text-gray-200 sm:text-sm sm:leading-6"
+            className="block w-full rounded-md border-0 bg-white/20 py-2.5 pl-10 pr-3 text-gray-300 placeholder:text-white focus:bg-white/30 focus:text-white focus:ring-0 focus:placeholder:text-gray-200 sm:text-sm sm:leading-6"
             placeholder="Search"
             type="search"
             name="search"
           />
         </div>
       </div>
-      <div className="mb-8 w-full max-w-2xl rounded-sm bg-blue-800 p-3">
+      <div className="mt-8 mb-8 w-full max-w-2xl rounded-sm bg-blue-800 p-3">
         <div className="flex">
           <div className="flex-shrink-0">
             <InformationCircleIcon className="h-5 w-5 text-blue-300" aria-hidden="true" />
