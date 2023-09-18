@@ -52,7 +52,7 @@
     "@sentry/react": "^7.68.0",
     "@sentry/vite-plugin": "^2.7.1",
     "@supabase/auth-ui-react": "^0.4.4",
-    "@supabase/supabase-js": "^2.32.0",
+    "@supabase/supabase-js": "^2.33.2",
     "@tailwindcss/forms": "^0.5.4",
     "@tauri-apps/api": "^1.4",
     "@webscopeio/react-textarea-autocomplete": "^4.9.2",
