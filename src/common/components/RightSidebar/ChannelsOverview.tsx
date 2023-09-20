@@ -52,7 +52,7 @@ const ChannelsOverview = () => {
             </div>
             {idx < 9 && (
               <kbd className="px-1.5 py-0.5 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
-                {idx + 1}
+                Shift + {idx + 1}
               </kbd>
             )}
           </div>
