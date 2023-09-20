@@ -22,7 +22,7 @@ type Inputs = {
 
 export default function Channels() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showNewChannelModal, setShowNewChannelModal] = useState(true);
+  const [showNewChannelModal, setShowNewChannelModal] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const navigate = useNavigate();
 
@@ -242,7 +242,7 @@ export default function Channels() {
   }
 
   console.log(errors)
-  const renderTextField = (displayName: string, name: keyof Inputs, placeholder?: string, description?: string, registerArgs?: any) => (
+  const renderTextField = (displayName: string, name: keyof Inputs, placeholder?: string, description?: JSX.Element | string, registerArgs?: any) => (
     <fieldset className="mb-[10px] flex items-start gap-5" >
       <label className="text-gray-100 w-[90px] text-left text-[15px]" htmlFor={name}>
         {displayName}
