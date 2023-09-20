@@ -237,7 +237,7 @@ const store = (set: StoreSet) => ({
 export const useAccountStore = create<AccountStore>()(devtools(mutative(store)));
 
 const fetchAllChannels = async (): Promise<ChannelType[]> => {
-  console.log('fetchAllChannels start');
+  // console.log('fetchAllChannels start');
   const { data: channelData, error: channelError }: { data: ChannelType[] | null, error: any } = await supabaseClient
     .from('channel')
     .select('*')

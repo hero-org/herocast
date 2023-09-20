@@ -48,13 +48,8 @@ export default function Channels() {
   });
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    console.log('data', data);
     setIsPending(true);
-    console.log('addChannel 1')
-    const res = await Promise.resolve(addChannel(data));
-    console.log('res', res)
-    console.log('addChannel 2')
-
+    await Promise.resolve(addChannel(data));
     setShowNewChannelModal(false);
     setIsPending(false);
   };
@@ -241,7 +236,6 @@ export default function Channels() {
     )
   }
 
-  console.log(errors)
   const renderTextField = (displayName: string, name: keyof Inputs, placeholder?: string, description?: JSX.Element | string, registerArgs?: any) => (
     <fieldset className="mb-[10px] flex items-start gap-5" >
       <label className="text-gray-100 w-[90px] text-left text-[15px]" htmlFor={name}>
