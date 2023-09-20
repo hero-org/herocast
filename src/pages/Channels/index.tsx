@@ -7,11 +7,23 @@ import { classNames } from "@/common/helpers/css";
 import { ChannelType } from "@/common/constants/channels";
 import Toggle from "@/common/components/Toggle";
 import findIndex from "lodash.findindex";
-import { BarsArrowUpIcon, ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import includes from "lodash.includes";
+import Modal from "@/common/components/Modal";
+import { useForm, SubmitHandler } from "react-hook-form"
+import get from "lodash.get";
+
+type Inputs = {
+  name: string
+  url: string
+  iconUrl: string
+  account: string
+}
 
 export default function Channels() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showNewChannelModal, setShowNewChannelModal] = useState(true);
+  const [isPending, setIsPending] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -21,10 +33,31 @@ export default function Channels() {
     selectedAccountIdx,
     hydrated,
     allChannels,
+    addChannel,
   } = useAccountStore();
 
   const account: AccountObjectType = accounts[selectedAccountIdx];
   const channels = account?.channels || [];
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Inputs>({
+    values: { account: account?.name || '' }
+  });
+
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    console.log('data', data);
+    setIsPending(true);
+    console.log('addChannel 1')
+    const res = await Promise.resolve(addChannel(data));
+    console.log('res', res)
+    console.log('addChannel 2')
+
+    setShowNewChannelModal(false);
+    setIsPending(false);
+  };
 
   const handleSearchChange = (e: event) => {
     setSearchTerm(e.target.value.toLowerCase());
@@ -130,7 +163,18 @@ export default function Channels() {
   const renderPinnedChannels = () => {
     return (
       <div>
-        <h2 className="text-lg font-medium text-gray-100">Pinned channels</h2>
+        <div className="border-b border-gray-500 sm:flex sm:items-center sm:justify-between">
+          <div className="flex flex-col">
+            <h2 className="text-lg font-medium text-gray-100 leading-6">Pinned channels</h2>
+          </div>
+          <div className="pb-3 mt-3 sm:ml-4 sm:mt-0">
+            <button
+              onClick={() => setShowNewChannelModal(true)}
+              className="text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500">
+              Add channel
+            </button>
+          </div>
+        </div>
         <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           {isEmpty(channels) ? <div className="mt-0.5 h-14 col-span-2 flex rounded-sm">
             <p className="text-gray-200 ">Start pinning channels and they will appear up here</p>
@@ -197,10 +241,67 @@ export default function Channels() {
     )
   }
 
+  console.log(errors)
+  const renderTextField = (displayName: string, name: keyof Inputs, placeholder?: string, description?: string, registerArgs?: any) => (
+    <fieldset className="mb-[10px] flex items-start gap-5" >
+      <label className="text-gray-100 w-[90px] text-left text-[15px]" htmlFor={name}>
+        {displayName}
+      </label>
+      <div className="flex flex-col w-full">
+        <input
+          {...register(name, registerArgs)}
+          className="bg-gray-600 text-gray-100 shadow-gray-600 placeholder-gray-500 focus:shadow-gray-800 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
+          id={name}
+          placeholder={placeholder}
+        />
+        {get(errors, name) ? (<p className="mt-2 h-8 text-sm text-red-600" id={`${name}-error`}>
+          {get(errors, name)?.message} {get(errors, name)?.type}
+        </p>) : (<div className="my-2 h-8 text-sm text-gray-400">
+          {description}
+        </div>)}
+      </div>
+    </fieldset>
+  )
+
   return hydrated && isEmpty(accounts) ? renderEmptyState() : (
-    <div className="w-full md:max-w-screen-sm xl:max-w-screen-lg mr-4">
-      {renderPinnedChannels()}
-      {renderAllChannels()}
-    </div >
+    <>
+      <div className="w-full md:max-w-screen-sm xl:max-w-screen-lg mr-4">
+        {renderPinnedChannels()}
+        {renderAllChannels()}
+      </div >
+      <Modal
+        open={showNewChannelModal}
+        setOpen={setShowNewChannelModal}
+        title='Add channel to herocast'
+        description='Custom channel for you and others to follow and pin in herocast. Casts are visible in Warpcast and other clients. Herocast channels are not visible in Warpcast, but casts appear in all clients.'
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-12">
+          {renderTextField("Channel Name", "name", "Satochi_Conspiracies", "", { required: true, maxLength: 40 })}
+          {renderTextField("URL", "url", "https://satochi.com", <p>any URL or <a className="underline font-semibold" href="https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-19.md"> onchain format CAIP-19</a></p>, { required: true, minLength: 5 })}
+          {/* {renderTextField("Icon Url", "iconUrl", "https://satochi.com/")} */}
+          <fieldset className="mb-[10px] flex items-start gap-5" >
+            <label className="text-gray-100 w-[90px] text-left text-[15px]" htmlFor="account">
+              Account
+            </label>
+            <div className="flex flex-col w-full">
+              <input
+                {...register("account", { required: true })}
+                className="bg-gray-600 text-gray-100 shadow-gray-600 placeholder-gray-500 focus:shadow-gray-800 inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
+                id="account"
+                value={account?.name || ''}
+                disabled
+              />
+            </div>
+          </fieldset>
+          <div className="mt-[25px] flex justify-end">
+            <input
+              type='submit'
+              value={isPending ? '...' : 'Add Channel'}
+              className="cursor-pointer bg-green-200 text-green-800 hover:bg-green-300 focus:shadow-green-700 inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none"
+            />
+          </div>
+        </form>
+      </Modal >
+    </>
   )
 }

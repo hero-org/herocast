@@ -14,6 +14,14 @@ type AccountChannelType = ChannelType & {
   lastRead?: string; // can be a timestamp
 }
 
+type AddChannelProps = {
+  name: string;
+  url: string;
+  iconUrl?: string;
+  account: string;
+}
+
+
 export type AccountObjectType = {
   id: number | null;
   userId?: string;
@@ -38,6 +46,7 @@ interface AccountStoreProps {
 
 interface AccountStoreActions {
   addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => void;
+  addChannel: (props: AddChannelProps) => void;
   setAccountActive: (accountId: number, data: { platform_account_id: string, data: object }) => void;
   removeAccount: (idx: number) => void;
   setCurrentAccountIdx: (idx: number) => void;
@@ -152,7 +161,6 @@ const store = (set: StoreSet) => ({
     })
   },
   addPinnedChannel: (channel: ChannelType) => {
-    // connect this and remove to supabase
     set((state) => {
       const account = state.accounts[state.selectedAccountIdx];
       const idx = account.channels.length
@@ -160,7 +168,6 @@ const store = (set: StoreSet) => ({
       account.channels = [...account.channels, newChannel]
       state.accounts[state.selectedAccountIdx] = account;
 
-      console.log('addPinnedChannel', account.id, channel.id, idx)
       supabaseClient
         .from('accounts_to_channel')
         .insert({
@@ -197,6 +204,29 @@ const store = (set: StoreSet) => ({
           console.log('response - data', data, 'error', error);
         });
     })
+  },
+  addChannel: ({ name, url, iconUrl, account }: AddChannelProps) => {
+    set(async (state) => {
+      return await supabaseClient
+        .from('channel')
+        .insert({
+          name,
+          url,
+          icon_url: iconUrl,
+          source: `${account} via herocast`,
+        })
+        .select()
+        .then(({ error, data }) => {
+          console.log('response - data', data, 'error', error);
+          if (!data || error) return;
+
+          state.allChannels = [...state.allChannels, data[0]];
+
+          const account = state.accounts[state.selectedAccountIdx];
+          const idx = account.channels.length
+          state.addPinnedChannel({ ...data[0], idx });
+        });
+    });
   },
   updatedPinnedChannels: () => {
     // add function to shuffle order of pinned channels

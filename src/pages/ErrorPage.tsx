@@ -1,5 +1,6 @@
 import React from "react";
 import { useRouteError } from "react-router-dom";
+import herocastImgUrl from '/images/herocast.png'
 
 export default function ErrorPage() {
   const error: unknown = useRouteError();
@@ -12,7 +13,7 @@ export default function ErrorPage() {
           <span className="sr-only">herocast</span>
           <img
             className="h-10 w-auto sm:h-12"
-            src="./src/assets/images/herocast.png"
+            src={herocastImgUrl}
             alt=""
           />
         </a>
@@ -32,7 +33,7 @@ export default function ErrorPage() {
       </main>
       <div className="hidden lg:relative lg:col-start-2 lg:row-start-1 lg:row-end-4 lg:block">
         <img
-          src="./src/assets/images/bw-background.png"
+          src="/images/bw-background.png"
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />

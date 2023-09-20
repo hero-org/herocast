@@ -79,7 +79,7 @@ export default function CommandPalette() {
   } = useNavigationStore();
 
   const {
-    setCurrentChannelIdx,
+    setSelectedChannelUrl,
     allChannels
   } = useAccountStore();
 
@@ -117,11 +117,11 @@ export default function CommandPalette() {
   }
 
   const nonHotkeyCommands: CommandType[] = [];
-  allChannels.map((c) => c.name).map((channelName: string, idx: number) => {
+  allChannels.map((channel) => {
     nonHotkeyCommands.push({
-      name: channelName,
+      name: channel.name,
       action: () => {
-        setCurrentChannelIdx(idx);
+        setSelectedChannelUrl(channel.url);
       },
       shortcut: '',
       aliases: [],
@@ -255,9 +255,9 @@ export default function CommandPalette() {
                                 <span className="ml-3 flex-auto truncate">
                                   {action.name}
                                 </span>
-                                <span className="ml-3 flex-none text-xs text-gray-200 bg-gray-600 px-2 py-1 rounded-md">
+                                {action.shortcut && (<span className="ml-3 flex-none text-xs text-gray-200 bg-gray-600 px-2 py-1 rounded-md">
                                   <kbd className="font-mono">{action.shortcut}</kbd>
-                                </span>
+                                </span>)}
                               </>
                             )}
                           </Combobox.Option>
