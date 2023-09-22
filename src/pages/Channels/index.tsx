@@ -52,11 +52,8 @@ export default function Channels() {
   });
 
   const onSortEnd = (oldIndex: number, newIndex: number) => {
-    console.log('onSortEnd', oldIndex, newIndex);
     updatedPinnedChannelIndices({ oldIndex, newIndex });
   }
-
-  console.log('Channels in index.tsx', channels.slice(0, 3).map(c => c.name))
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setIsPending(true);
