@@ -12,6 +12,8 @@ import includes from "lodash.includes";
 import Modal from "@/common/components/Modal";
 import { useForm, SubmitHandler } from "react-hook-form"
 import get from "lodash.get";
+import SortableList, { SortableItem } from 'react-easy-sort'
+
 
 type Inputs = {
   name: string
@@ -34,10 +36,12 @@ export default function Channels() {
     hydrated,
     allChannels,
     addChannel,
+    updatedPinnedChannelIndices,
   } = useAccountStore();
 
   const account: AccountObjectType = accounts[selectedAccountIdx];
-  const channels = account?.channels || [];
+  // const channels = account?.channels || [];
+  const channels = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels || [])
 
   const {
     register,
@@ -46,6 +50,13 @@ export default function Channels() {
   } = useForm<Inputs>({
     values: { account: account?.name || '' }
   });
+
+  const onSortEnd = (oldIndex: number, newIndex: number) => {
+    console.log('onSortEnd', oldIndex, newIndex);
+    updatedPinnedChannelIndices({ oldIndex, newIndex });
+  }
+
+  console.log('Channels in index.tsx', channels.slice(0, 3).map(c => c.name))
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setIsPending(true);
@@ -63,7 +74,7 @@ export default function Channels() {
     const enabled = index !== -1;
 
     return (
-      <div className="flex flex-row w-full max-w-md">
+      <div className={classNames(enabled ? "cursor-move" : "", "flex flex-row w-full max-w-md")}>
         {enabled && idx !== undefined && (<div
           className={classNames(
             'bg-green-600/80 border-gray-200 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-md text-lg font-medium text-white'
@@ -170,14 +181,20 @@ export default function Channels() {
             </button>
           </div>
         </div>
-        <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+        <ul role="list" className="mt-3 ">
           {isEmpty(channels) ? <div className="mt-0.5 h-14 col-span-2 flex rounded-sm">
             <p className="text-gray-200 ">Start pinning channels and they will appear up here</p>
-          </div> : channels.map((channel, idx) => (
-            <li key={`channel-pinned-${channel.name}`} className="col-span-1 flex rounded-md shadow-sm">
-              {renderChannelCard(channel, idx)}
-            </li>
-          ))}
+          </div> : (
+            <SortableList onSortEnd={onSortEnd} className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+              {channels.map((channel, idx) => (
+                <SortableItem key={`channel-pinned-${channel.name}`}>
+                  <li className="col-span-1 flex rounded-md shadow-sm">
+                    {renderChannelCard(channel, idx)}
+                  </li>
+                </SortableItem>
+              ))}
+            </SortableList>
+          )}
         </ul>
       </div>
     )

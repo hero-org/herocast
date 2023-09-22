@@ -8,6 +8,8 @@ import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { createJSONStorage, devtools } from "zustand/middleware";
 import findIndex from 'lodash.findindex';
+import sortBy from "lodash.sortby";
+import cloneDeep from "lodash.clonedeep";
 
 type AccountChannelType = ChannelType & {
   idx: number;
@@ -21,6 +23,10 @@ type AddChannelProps = {
   account: string;
 }
 
+type UpdatedPinnedChannelIndicesProps = {
+  oldIndex: number;
+  newIndex: number;
+}
 
 export type AccountObjectType = {
   id: number | null;
@@ -47,6 +53,7 @@ interface AccountStoreProps {
 interface AccountStoreActions {
   addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => void;
   addChannel: (props: AddChannelProps) => void;
+  updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: number, data: { platform_account_id: string, data: object }) => void;
   removeAccount: (idx: number) => void;
   setCurrentAccountIdx: (idx: number) => void;
@@ -228,10 +235,58 @@ const store = (set: StoreSet) => ({
         });
     });
   },
-  updatedPinnedChannels: () => {
-    // add function to shuffle order of pinned channels
-    // what are the parameters though?
-    // connect to supabase
+  updatedPinnedChannelIndices: async ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => {
+    set((state) => {
+      const account = state.accounts[state.selectedAccountIdx];
+      const accountId = account.id;
+      const channels = account.channels;
+      const newChannels = cloneDeep(account.channels);
+      // console.log('channels', [...channels.slice(0, 3).map((c) => `${c.name}: index: ${c.idx}`)])
+      // console.log('newChannels before', newChannels.slice(0, 3).map((c) => `${c.name}: index: ${c.idx}`))
+
+      console.log(`moving channel ${channels[oldIndex].name} to index ${newIndex}`);
+
+      supabaseClient
+        .from('accounts_to_channel')
+        .update({ index: newIndex })
+        .eq('account_id', accountId)
+        .eq('channel_id', channels[oldIndex].id)
+        .select('*, channel(*)')
+        .then(({ error }) => {
+          if (error) {
+            console.log('failed to update channel', channels[oldIndex].id)
+            return;
+          }
+        });
+      newChannels[newIndex] = cloneDeep(channels[oldIndex]);
+      newChannels[newIndex].idx = newIndex;
+      const nrUpdates = Math.abs(oldIndex - newIndex);
+
+      for (let i = 0; i < nrUpdates; i++) {
+        const from = oldIndex > newIndex ? newIndex + i : oldIndex + i + 1;
+        const to = oldIndex > newIndex ? newIndex + i + 1 : oldIndex + i;
+        console.log(`moving channel ${channels[from].name} to index ${to}`);
+
+        newChannels[to] = cloneDeep(channels[from]);
+        newChannels[to].idx = to;
+
+        supabaseClient
+          .from('accounts_to_channel')
+          .update({ index: to })
+          .eq('account_id', accountId)
+          .eq('channel_id', channels[from].id)
+          .select('*, channel(*)')
+          .then(({ error }) => {
+            if (error) {
+              console.log('failed to update channel', channels[oldIndex].id)
+              return;
+            }
+          });
+      }
+      // console.log('newChannels after', newChannels.slice(0, 3).map((c) => `${c.name}: index: ${c.idx}`))
+      // console.log('new account obj', { ...account, ...{ channels: newChannels } });
+      state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
+    });
   }
 });
 export const useAccountStore = create<AccountStore>()(devtools(mutative(store)));
@@ -273,7 +328,8 @@ export const hydrate = async () => {
     console.log('no accounts found');
   } else {
     accountsForState = accountData.map((account) => {
-      const channels: AccountChannelType[] = account.accounts_to_channel.map((accountToChannel) => ({
+      // console.log('channels for account', account.name, account.accounts_to_channel);
+      const channels: AccountChannelType[] = sortBy(account.accounts_to_channel, 'index').map((accountToChannel) => ({
         idx: accountToChannel.index,
         lastRead: accountToChannel.last_read,
         id: accountToChannel.channel_id,

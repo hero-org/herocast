@@ -47,7 +47,7 @@ const ChannelsOverview = () => {
             )}
           >
             <div className="flex">
-              {channel.icon_url && (<img src={channel.icon_url} alt="" className="-ml-7 mt-0.5 border border-gray-400 h-5 w-5 flex-none rounded-full bg-gray-800" />)}
+              {/* {channel.icon_url && (<img src={channel.icon_url} alt="" className="-ml-7 mt-0.5 border border-gray-400 h-5 w-5 flex-none rounded-full bg-gray-800" />)} */}
               <span className="font-normal truncate">{channel.name}</span>
             </div>
             {idx < 9 && (
