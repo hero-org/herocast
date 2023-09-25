@@ -163,7 +163,7 @@ export default function Feed() {
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
       onExpand={onOpenLinkInCast}
       onSelect={onSelectCast}
-      disableScroll={showCastThreadView || showReplyModal || showEmbedsModal}
+      isActive={!(showCastThreadView || showReplyModal || showEmbedsModal)}
     />
   )
 

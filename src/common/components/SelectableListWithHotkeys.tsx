@@ -35,12 +35,13 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
   useHotkeys(['o', Key.Enter], () => {
     onSelect(selectedIdx);
   }, [selectedIdx], {
+    enabled: isActive
   })
 
   useHotkeys('shift+o', () => {
     onExpand(selectedIdx);
   }, [selectedIdx], {
-    enabled: onExpand !== undefined
+    enabled: onExpand !== undefined && isActive
   })
 
   useHotkeys(['j', Key.ArrowDown], () => {

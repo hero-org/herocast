@@ -105,7 +105,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
     }
   }
 
-  const ref = useHotkeys('meta+enter', onSubmitPost, [draft]);
+  const ref = useHotkeys('meta+enter', onSubmitPost, [draft], { enableOnFormTags: true });
 
   // const listener = (event: KeyboardEvent) => {
   //   if (event.key === "Enter" && event.metaKey) {
