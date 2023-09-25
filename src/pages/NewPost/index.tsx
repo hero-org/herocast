@@ -52,7 +52,7 @@ export default function NewPost() {
             </button>
           </div>
         </div>
-        <div className="w-1/2 divide-y">
+        <div className="divide-y">
           {postDrafts.map((draft, draftIdx) =>
             <div key={draftIdx} className="pt-4 pb-6">
               {draft.parentCastId?.hash && (

@@ -381,9 +381,11 @@ const getAccountCommands = () => {
       name: `Switch to account ${i + 1}`,
       aliases: [`account ${i + 1}`],
       shortcut: `ctrl+${i + 1}`,
-      enableOnFormTags: true,
       action: () => {
         switchAccountTo(i);
+      },
+      options: {
+        enableOnFormTags: true,
       },
       enabled: () => useAccountStore.getState().accounts.length > i &&
         useAccountStore.getState().accounts[i].status === AccountStatusType.active,
@@ -400,7 +402,9 @@ const getChannelCommands = () => {
     name: `Switch to follow feed`,
     aliases: ['follow feed', 'following', 'feed', 'home'],
     shortcut: 'shift+0',
-    enableOnFormTags: true,
+    options: {
+      enableOnFormTags: false,
+    },
     action: () => {
       useAccountStore.getState().resetSelectedChannel();
     },
@@ -412,7 +416,9 @@ const getChannelCommands = () => {
       name: `Switch to channel ${i + 1}`,
       aliases: [],
       shortcut: `shift+${i + 1}`,
-      enableOnFormTags: false,
+      options: {
+        enableOnFormTags: false,
+      },
       action: () => {
         console.log('switching to channel', i);
         const { accounts, selectedAccountIdx } = useAccountStore.getState();
@@ -429,8 +435,6 @@ const getChannelCommands = () => {
   channelCommands.push({
     name: `Switch to random channel`,
     aliases: ['random', 'lucky'],
-    shortcut: '',
-    enableOnFormTags: false,
     navigateTo: '/feed',
     action: () => {
       const state = useAccountStore.getState();

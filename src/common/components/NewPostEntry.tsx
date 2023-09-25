@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useRef } from "react";
+import React, { Fragment } from "react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
@@ -6,15 +6,15 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { Listbox, Transition, Combobox } from '@headlessui/react'
 import { ChannelType } from "@/common/constants/channels";
 import isEmpty from "lodash.isempty";
-import { DraftStatus, DraftType } from "../constants/farcaster";
+import { AuthorType, DraftStatus, DraftType } from "../constants/farcaster";
 import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
-import includes from 'lodash.includes';
+import { useHotkeys } from "react-hotkeys-hook";
+import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 
+// const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
 
-const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
-
-const MentionDropdownItem = ({ entity, selected }) => {
+const MentionDropdownItem = ({ entity, selected }: { entity: AuthorType, selected: boolean }) => {
   const { username, display_name, pfp: { url: pfpUrl } } = entity;
   return (<Combobox.Option
     as="div"
@@ -50,7 +50,7 @@ const MentionDropdownItem = ({ entity, selected }) => {
 
 type NewPostEntryProps = {
   draftIdx: number;
-  onPost: () => void;
+  onPost?: () => void;
   hideChannel?: boolean;
 }
 
@@ -62,17 +62,13 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
     updateMentionsToFids,
   } = useNewPostStore();
 
+  const {
+    allChannels: channels
+  } = useAccountStore();
+
   const draft = draftIdx !== null ? drafts[draftIdx] : NewPostDraft;
   const isWritingDraft = draft && (draft.status === DraftStatus.writing);
   const isPendingPublish = draft && (draft.status === DraftStatus.publishing);
-
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const textareaElement = textareaRef.current;
-  const {
-    selectedChannelUrl,
-    allChannels: channels,
-  } = useAccountStore();
-
 
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const hasMultipleAccounts = useAccountStore((state) => state.accounts.length > 1);
@@ -80,6 +76,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   const isReply = draft?.parentCastId !== undefined;
 
   const onChange = (cast: DraftType) => {
+    // console.log('onChange', draftIdx, cast, isHotkeyPressed('r'));
     updatePostDraft(draftIdx, cast)
     if (!cast.text) {
       updateMentionsToFids(draftIdx, {});
@@ -108,27 +105,29 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
     }
   }
 
-  const listener = (event: KeyboardEvent) => {
-    if (event.key === "Enter" && event.metaKey) {
-      event.preventDefault();
-      onSubmitPost();
-    }
-  };
+  const ref = useHotkeys('meta+enter', onSubmitPost, [draft]);
 
-  useEffect(() => {
-    onChange({ ...draft, parentUrl: selectedChannelUrl || undefined });
-  }, [selectedChannelUrl])
+  // const listener = (event: KeyboardEvent) => {
+  //   if (event.key === "Enter" && event.metaKey) {
+  //     event.preventDefault();
+  //     onSubmitPost();
+  //   }
+  // };
 
-  useEffect(() => {
-    if (textareaElement) {
-      textareaElement.addEventListener("keydown", listener);
-    }
-    return () => {
-      if (textareaElement) {
-        textareaElement.removeEventListener("keydown", listener);
-      }
-    };
-  }, [textareaElement, draft]);
+  // useEffect(() => {
+  //   onChange({ ...draft, parentUrl: selectedChannelUrl || undefined });
+  // }, [selectedChannelUrl])
+
+  // useEffect(() => {
+  //   if (textareaElement) {
+  //     textareaElement.addEventListener("keydown", listener);
+  //   }
+  //   return () => {
+  //     if (textareaElement) {
+  //       textareaElement.removeEventListener("keydown", listener);
+  //     }
+  //   };
+  // }, [textareaElement, draft]);
 
   const characterToTrigger = {
     // ":": {
@@ -185,30 +184,34 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   const numNewlines = draft?.text ? draft.text.split('\n').length : 0;
 
   return (
-    <div className="flex flex-col items-start">
-      <form onSubmit={(event) => {
-        event.preventDefault();
-        onSubmitPost();
-      }} className="relative min-w-full">
-        <div className="rounded-sm ">
+    <div className="flex flex-col items-start" ref={ref} tabIndex={-1}>
+      <form
+        className="relative min-w-full"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmitPost();
+        }}
+      >
+        <div className="">
           <label htmlFor="new-post" className="sr-only">
             Your new post
           </label>
-          <div ref={textareaRef}>
+          <div>
             <Combobox as="div">
               <ReactTextareaAutocomplete
+                autoFocus
                 value={draft?.text || ''}
                 onChange={(e) => onChange({ ...draft, text: e.target.value })}
                 containerClassName="relative rounded-sm"
                 className={classNames(
-                  showToolbar ? 'rounded-sm' : 'rounded=t-sm',
-                  "block w-full border-0 px-3 py-2 bg-gray-700 ring-0 ring-gray-800 focus:ring-0 resize-none text-radix-slate2 placeholder:text-gray-400 sm:text-sm sm:leading-6"
+                  showToolbar ? 'rounded-t-md' : 'rounded-b-md',
+                  "block border-1 border-gray-600 w-full px-3 py-2 bg-gray-700 ring-0 ring-gray-800 resize-none text-radix-slate2 placeholder:text-gray-400 sm:text-sm sm:leading-6 focus:outline-none focus:ring-0 focus:border-gray-500"
                 )}
                 style={{ minHeight: '100px' }}
                 loadingComponent={() => <Loading />}
                 placeholder={isReply ? 'your reply...' : `say something nice${channel ? ` in the ${channel.name} channel` : ''}, ${account?.name}`}
                 minChar={2}
-                rows={Math.max(numNewlines + 2, hideChannel ? 4 : 6)}
+                rows={Math.max(numNewlines, hideChannel ? 2 : 4)}
                 trigger={characterToTrigger}
                 dropdownClassName="absolute z-10 mt-1 max-h-56 w-full overflow-show rounded-sm bg-gray-700 text-base shadow-md ring-1 ring-gray-200 ring-opacity-5 focus:outline-none sm:text-sm"
                 onItemSelected={({ currentTrigger, item }) => onItemSelected({ trigger: currentTrigger, draft, item })}
@@ -218,9 +221,9 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
 
           {/* Spacer element to match the height of the toolbar */}
           <div aria-hidden="true" className="ring-0 ring-gray-800">
-            <div className="py-2">
+            {showToolbar && (<div className="py-0">
               <div className="h-8" />
-            </div>
+            </div>)}
             <div className="h-px" />
             <div className="py-2">
               <div className="py-px">
@@ -232,7 +235,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
 
         <div className="absolute inset-x-0 bottom-0">
           {/* Actions: These are just examples to demonstrate the concept, replace/wire these up however makes sense for your project. */}
-          {showToolbar && (<div className="flex flex-nowrap justify-start space-x-2 px-2 py-2 sm:px-3 bg-gray-700 rounded-b-sm">
+          {showToolbar && (<div className="flex flex-nowrap justify-start space-x-2 px-2 py-2 sm:px-3 bg-gray-700 rounded-b-md border border-gray-600">
             {!hideChannel && (
               <Listbox as="div" value={channel} onChange={(value) => onUpdateParentUrl(value)} className="flex-shrink-0">
                 {({ open }) => (
@@ -343,16 +346,18 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
           </div>)}
           <div className="flex items-center justify-between space-x-3 mt-2">
             <div className="flex-shrink-0">
-              <button
-                type="submit"
-                disabled={!isWritingDraft}
-                className={classNames(
-                  // isPendingPublish ? 'bg-gray-700 cursor-not-allowed' : 'cursor-pointer',
-                  "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                )}
-              >
-                {renderButtonText()}
-              </button>
+              <HotkeyTooltipWrapper hotkey="Cmd + Enter" side="right">
+                <button
+                  type="submit"
+                  disabled={!isWritingDraft}
+                  className={classNames(
+                    // isPendingPublish ? 'bg-gray-700 cursor-not-allowed' : 'cursor-pointer',
+                    "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                  )}
+                >
+                  {renderButtonText()}
+                </button>
+              </HotkeyTooltipWrapper>
             </div>
             <div className="flex">
               {draft.text !== "" && (
@@ -381,22 +386,6 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
               </div>
             </div>
           )} */}
-          {draft.mentionsToFids && (
-            <div className="mt-4 border-l-4 border-gray-200 bg-gray-300/50 p-2 pr-3">
-              <div className="flex">
-                <div className="">
-                  <p className="ml-1 text-sm text-gray-200">
-                    mentions:
-                    {Object.entries(draft.mentionsToFids).map(([mention, fid]) => includes(draft.text, `@${mention}`) ? (
-                      <span key={fid} className="ml-2">
-                        @{mention}
-                      </span>
-                    ) : null)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </form >
     </div >

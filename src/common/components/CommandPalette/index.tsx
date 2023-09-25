@@ -22,48 +22,60 @@ export const getNavigationCommands = (navigate?: (path: string) => void | null):
       aliases: ['new account', 'sign up'],
       icon: UserPlusIcon,
       shortcut: 'cmd+shift+a',
-      enableOnFormTags: true,
       action: () => navigate && navigate('/accounts'),
+      options: {
+        enableOnFormTags: true,
+      },
     },
     {
       name: 'Switch to Feed',
       aliases: ['scroll',],
       icon: Bars3BottomLeftIcon,
       shortcut: 'shift+f',
-      enableOnFormTags: false,
       action: () => navigate && navigate('/feed'),
+      options: {
+        enableOnFormTags: true,
+      },
     },
     {
       name: 'Switch to Search',
       aliases: ['search',],
       icon: MagnifyingGlassIcon,
       shortcut: '/',
-      enableOnFormTags: false,
       action: () => navigate && navigate('/search'),
+      options: {
+        enableOnFormTags: true,
+      },
     },
     {
       name: 'Switch to Channels',
       aliases: ['channels',],
       icon: RectangleGroupIcon,
       shortcut: 'shift+c',
-      enableOnFormTags: false,
       action: () => navigate && navigate('/channels'),
+      options: {
+        enableOnFormTags: true,
+      },
     },
     {
       name: 'Notifications',
       aliases: ['notify', 'alert', 'mentions', 'replies', 'messages', 'inbox',],
       icon: BellIcon,
       shortcut: 'shift+n',
-      enableOnFormTags: false,
       action: () => navigate && navigate('/notifications'),
+      options: {
+        enableOnFormTags: true,
+      },
     },
     {
       name: 'Settings',
       aliases: ['preferences', 'options', 'config',],
       icon: Cog6ToothIcon,
       shortcut: 'cmd+shift+,',
-      enableOnFormTags: true,
       action: () => navigate && navigate('/settings'),
+      options: {
+        enableOnFormTags: true,
+      },
     },
   ]
 )
@@ -110,7 +122,7 @@ export default function CommandPalette() {
       }
       command.action();
     }, [], {
-      enableOnFormTags: command.enableOnFormTags,
+      ...(command.options ? command.options : {}),
       splitKey: '-',
       enabled: command.enabled || true, // this obv doesn't work
     })

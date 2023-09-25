@@ -13,6 +13,9 @@ import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
+import ReplyModal from "@/common/components/ReplyModal";
+import { isImageUrl } from "@/common/helpers/text";
+import EmbedsModal from "@/common/components/EmbedsModal";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -26,6 +29,9 @@ export default function Feed() {
   const [nextFeedCursor, setNextFeedCursor] = useState("");
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [showEmbedsModal, setShowEmbedsModal] = useState(false);
+
   const {
     accounts,
     selectedAccountIdx,
@@ -53,8 +59,7 @@ export default function Feed() {
     const cast = feed[idx];
     if (cast?.embeds?.length === 0) return;
 
-    const url = cast.embeds[0].url;
-    openWindow(url);
+    setShowEmbedsModal(true);
   }
 
   const onSelectCast = (idx: number) => {
@@ -76,13 +81,13 @@ export default function Feed() {
     enableOnFormTags: true,
   })
 
-  // useEffect(() => {
-  //   if (!showCastThreadView && draftIdx) {
-  //     if (draftIdx !== -1 && postDrafts[draftIdx].text == "") {
-  //       removePostDraft(draftIdx);
-  //     }
-  //   }
-  // }, [showCastThreadView, draftIdx]);
+  useHotkeys('r', () => {
+    setShowReplyModal(true);
+  }, [showReplyModal], {
+    enabled: !showReplyModal,
+    enableOnFormTags: false,
+    preventDefault: true,
+  })
 
   const getFeed = async ({ fid, parentUrl, cursor }: { fid: string, parentUrl?: string, cursor?: string }) => {
     if (isLoadingFeed) {
@@ -158,6 +163,7 @@ export default function Feed() {
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
       onExpand={onOpenLinkInCast}
       onSelect={onSelectCast}
+      disableScroll={showCastThreadView || showReplyModal || showEmbedsModal}
     />
   )
 
@@ -226,16 +232,37 @@ export default function Feed() {
     </>
   )
 
+  const renderReplyModal = () => (
+    <ReplyModal
+      open={showReplyModal}
+      setOpen={() => setShowReplyModal(false)}
+      parentCast={feed[selectedCastIdx]}
+    />
+  )
+
+  const renderEmbedsModal = () => {
+    return (
+      <EmbedsModal
+        open={showEmbedsModal}
+        setOpen={() => setShowEmbedsModal(false)}
+        cast={feed[selectedCastIdx]}
+      />
+    )
+  }
 
   return hydrated && isEmpty(accounts) ? renderEmptyState() : (
-    <div className="min-w-full mr-4">
-      {showCastThreadView ?
-        renderThread()
-        : <>
-          {renderFeed()}
-          {feed.length > 0 && feed.length >= DEFAULT_FEED_PAGE_SIZE && renderLoadMoreButton()}
-        </>
-      }
-    </div >
+    <>
+      <div className="min-w-full">
+        {showCastThreadView ?
+          renderThread()
+          : <>
+            {renderFeed()}
+            {feed.length > 0 && feed.length >= DEFAULT_FEED_PAGE_SIZE && renderLoadMoreButton()}
+          </>
+        }
+      </div>
+      {renderReplyModal()}
+      {renderEmbedsModal()}
+    </>
   )
 }

@@ -18,32 +18,29 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import get from 'lodash.get';
 import Linkify from "linkify-react";
+import { isImageUrl } from '../helpers/text';
 
 interface CastRowProps {
   cast: CastType;
-  showChannel: boolean;
   channels: ChannelType[];
+  showChannel?: boolean;
   onSelect?: () => void;
   isSelected?: boolean;
   isThreadView?: boolean;
 }
 
-const linkProps = {
-  onClick: (event) => {
-    event.stopPropagation();
-  }
-};
-
 const renderLink = ({ attributes, content }) => {
   const { href } = attributes;
   return (
-    <a
-      className="text-blue-400/80 underline hover:text-blue-400/90"
-      href={href}
-      target='_blank'
+    <span
+      className="cursor-pointer text-blue-400/80 underline hover:text-blue-400/90"
+      onClick={(event) => {
+        event.stopPropagation();
+        window.open(href, '_blank');
+      }}
       rel='noopener noreferrer'>
       {content}
-    </a>
+    </span>
   );
 };
 
@@ -60,8 +57,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
   const authorFid = cast.author.fid;
 
   const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
-  const isImageUrl = embedUrl ? embedUrl.endsWith('.gif') || embedUrl.endsWith('.png') || embedUrl.endsWith('.jpg') : false;
-  const embedImageUrl = isImageUrl ? embedUrl : null;
+  const embedImageUrl = embedUrl && isImageUrl(embedUrl) ? embedUrl : null;
   const now = new Date();
 
   const getCastReactionsObj = () => {
@@ -85,7 +81,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
     }
   }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.likes]);
 
-  useHotkeys('r', () => {
+  useHotkeys('shift+r', () => {
     if (isSelected) {
       onClickReaction(CastReactionType.recasts, reactions[CastReactionType.recasts].isActive)
     }
@@ -165,7 +161,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
           </Tooltip.Provider>
         } else if (key === 'recasts' && isSelected) {
           return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
-            <HotkeyTooltipWrapper hotkey="R" side="bottom">
+            <HotkeyTooltipWrapper hotkey="Shift + R" side="bottom">
               {reaction}
             </HotkeyTooltipWrapper>
           </Tooltip.Provider>
@@ -183,7 +179,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
   }
 
   const getText = () => (
-    <Linkify as="span" options={{ render: renderLink, attributes: linkProps }}>
+    <Linkify as="span" options={{ render: renderLink }}>
       {cast.text}
     </Linkify>
   )
@@ -198,9 +194,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
     <div
       onClick={() => onSelect && onSelect()}
       className={classNames(
-        isSelected ? "bg-gray-900/20" : "hover:bg-gray-900/30",
+        isSelected ? "bg-gray-900/20" : "hover:bg-gray-900/30 cursor-pointer",
         isThreadView ? "" : (isSelected ? "border-l-2 border-gray-100/80" : "border-l-2 border-transparent"),
-        "px-5 py-4 grow rounded-r-sm cursor-pointer"
+        "px-5 py-4 grow rounded-r-sm"
       )}>
       <div className="flex items-top gap-x-4">
         {!isThreadView && (

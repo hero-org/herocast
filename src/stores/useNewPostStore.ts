@@ -50,7 +50,7 @@ interface NewPostStoreActions {
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number, onlyIfEmpty?: boolean) => void;
   removeAllPostDrafts: () => void;
-  publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost: () => void) => Promise<string | null>;
+  publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost?: () => void) => Promise<string | null>;
 }
 
 export interface NewPostStore extends NewPostStoreProps, NewPostStoreActions { }
@@ -94,6 +94,7 @@ const store = (set: StoreSet) => ({
   },
   updatePostDraft: (draftIdx: number, draft: DraftType) => {
     set((state) => {
+      console.log(`updatePostDraft ${draftIdx}`)
       state.drafts = [
         ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
         draft,
@@ -139,7 +140,7 @@ const store = (set: StoreSet) => ({
       state.drafts = [];
     });
   },
-  publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost: () => null): Promise<string | null> => {
+  publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost?: () => null): Promise<string | null> => {
     set(async (state) => {
       const draft = state.drafts[draftIdx];
 
@@ -163,7 +164,8 @@ const store = (set: StoreSet) => ({
           trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
           state.removePostDraft(draftIdx);
           state.setIsToastOpen(true);
-          onPost();
+
+          if (onPost) onPost();
         }).catch((err) => {
           console.log('publishPostdraft caught error:', err);
         })
@@ -189,8 +191,10 @@ export const newPostCommands: CommandType[] = [
     icon: TagIcon,
     shortcut: 'cmd+shift+f',
     action: () => useNewPostStore.getState().addFeedbackDraft(),
-    enableOnFormTags: true,
-    navigateTo: '/post'
+    navigateTo: '/post',
+    options: {
+      enableOnFormTags: true,
+    },
   },
   {
     name: 'New Post',
@@ -198,16 +202,19 @@ export const newPostCommands: CommandType[] = [
     icon: PlusCircleIcon,
     shortcut: 'c',
     action: () => useNewPostStore.getState().addNewPostDraft({}),
-    enableOnFormTags: false,
-    navigateTo: '/post'
+    preventDefault: true,
+    navigateTo: '/post',
+    options: {
+      enableOnFormTags: false,
+      preventDefault: true,
+    },
   },
   {
     name: 'Remove all drafts',
     aliases: ['cleanup'],
     icon: TrashIcon,
     action: () => useNewPostStore.getState().removeAllPostDrafts(),
-    enableOnFormTags: false,
-    navigateTo: '/post'
+    navigateTo: '/post',
   },
 
 ];

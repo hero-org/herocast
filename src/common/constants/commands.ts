@@ -1,13 +1,15 @@
 import React from "react";
-import { HotkeysEvent } from "react-hotkeys-hook/dist/types";
+import { HotkeysEvent, Options } from "react-hotkeys-hook/dist/types";
+
+
 
 export type CommandType = {
   name: string
-  shortcut: string
+  shortcut?: string
   action: () => void
   aliases: string[]
   enabled?: boolean | ((keyboardEvent: KeyboardEvent, hotkeysEvent: HotkeysEvent) => boolean)
   icon?: React.ComponentType<{ className: string }>
-  enableOnFormTags?: boolean
+  options?: Options,
   navigateTo?: string
 }

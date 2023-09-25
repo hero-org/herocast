@@ -10,8 +10,8 @@ type SelectableListWithHotkeysProps = {
   selectedIdx: number,
   setSelectedIdx: (idx: number) => void,
   onSelect: (idx: number) => void,
-  onExpand: (idx: number) => void,
   disableScroll?: boolean,
+  onExpand?: (idx: number) => void,
   isActive?: boolean,
 }
 
@@ -27,7 +27,7 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
   useEffect(() => {
     if (!disableScroll && scollToRef.current) {
       // @ts-ignore
-      scollToRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scollToRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
     }
   }, [selectedIdx]);
 
@@ -40,6 +40,7 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
   useHotkeys('shift+o', () => {
     onExpand(selectedIdx);
   }, [selectedIdx], {
+    enabled: onExpand !== undefined
   })
 
   useHotkeys(['j', Key.ArrowDown], () => {
@@ -48,7 +49,7 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
     }
   }
     , [data, selectedIdx, setSelectedIdx], {
-    enabled: isActive && !isEmpty(data)
+    enabled: !disableScroll && isActive && !isEmpty(data)
   })
 
   useHotkeys(['k', Key.ArrowUp], () => {
@@ -57,14 +58,14 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
     }
     setSelectedIdx(selectedIdx - 1);
   }, [data, selectedIdx, setSelectedIdx], {
-    enabled: isActive && !isEmpty(data)
+    enabled: !disableScroll && isActive && !isEmpty(data)
   })
 
   return <ul role="list" className="">
     {data.map((cast: any, idx: number) =>
       cast ? (
         <div
-          key={`row-id-${cast?.hash || cast?.id}`}
+          key={`row-id-${cast?.hash || cast?.id || cast?.url || cast?.name}`}
           ref={(selectedIdx === idx + 1) ? scollToRef : null}>
           {renderRow(cast, idx)}
         </div>
