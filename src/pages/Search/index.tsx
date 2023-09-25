@@ -98,7 +98,6 @@ export default function Search() {
       className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
       <CastRow
         cast={row}
-        channels={channels}
         showChannel={selectedChannelIdx === null}
         isSelected={selectedIdx === idx}
         onSelect={() => null}

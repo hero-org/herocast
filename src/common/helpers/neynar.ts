@@ -46,6 +46,28 @@ export const getNeynarFeedEndpoint = ({ fid, parentUrl, cursor, limit }: FeedEnd
   return neynarEndpoint;
 }
 
+
+export const resolveWarpcastUrl = async (url: string): Promise<CastType> => {
+  const options = {
+    method: 'GET',
+    url: `${NEYNAR_API_URL}/v2/farcaster/cast`,
+    params: { type: 'url', identifier: url },
+    headers: { accept: 'application/json', api_key: VITE_NEYNAR_API_KEY }
+  };
+
+  return axios
+    .request(options)
+    .then(function(response) {
+      console.log(response.data);
+      return response.data.cast;
+    })
+    .catch(function(error) {
+      console.error(error);
+      return null;
+    });
+}
+
+
 export const getNeynarCastThreadEndpoint = ({ castHash, fid }: CastThreadEndpointProps): string => {
   let neynarEndpoint = `${NEYNAR_API_URL}/v1/farcaster/all-casts-in-thread/?api_key=${VITE_NEYNAR_API_KEY}&threadHash=${castHash}`;
 
@@ -66,7 +88,6 @@ export const getNeynarNotificationsEndpoint = ({ fid, cursor, limit }: Notificat
   return neynarEndpoint;
 }
 
-// https://invented-crayfish-e70.notion.site/GET-v2-farcaster-user-search-744565be2d2444bcbcbb2748be437998
 // needs search with: &q=${query} to work
 export const getNeynarUserSearchEndpoint = (viewerFid?: string): string => {
   let neynarEndpoint = `${NEYNAR_API_URL}/v2/farcaster/user/search?api_key=${VITE_NEYNAR_API_KEY}`

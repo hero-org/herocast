@@ -128,7 +128,6 @@ export default function Feed() {
       className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl xl:max-w-3xl">
       <CastRow
         cast={item as CastType}
-        channels={channels}
         showChannel={!selectedChannelUrl}
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}

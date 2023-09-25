@@ -19,10 +19,11 @@ import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import get from 'lodash.get';
 import Linkify from "linkify-react";
 import { isImageUrl } from '../helpers/text';
+import OnchainEmbed from './Embeds/OnchainEmbed';
+import WarpcastEmbed from './Embeds/WarpcastEmbed';
 
 interface CastRowProps {
   cast: CastType;
-  channels: ChannelType[];
   showChannel?: boolean;
   onSelect?: () => void;
   isSelected?: boolean;
@@ -45,10 +46,15 @@ const renderLink = ({ attributes, content }) => {
 };
 
 
-export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isThreadView = false }: CastRowProps) => {
+export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView = false }: CastRowProps) => {
   // if (isSelected) console.log(cast);
 
-  const { accounts, selectedAccountIdx } = useAccountStore();
+  const {
+    accounts,
+    selectedAccountIdx,
+    allChannels: channels,
+  } = useAccountStore();
+
   const [didLike, setDidLike] = useState(false)
   const [didRecast, setDidRecast] = useState(false)
 
@@ -56,7 +62,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
   const userFid = Number(selectedAccount.platformAccountId);
   const authorFid = cast.author.fid;
 
-  const embedUrl = cast.embeds.length > 0 ? cast.embeds[0].url : null;
+  const hasEmbeds = cast.embeds.length > 0;
+  const embedUrl = hasEmbeds ? cast.embeds[0].url : null;
   const embedImageUrl = embedUrl && isImageUrl(embedUrl) ? embedUrl : null;
   const now = new Date();
 
@@ -75,17 +82,25 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
   }
   const reactions = getCastReactionsObj();
 
-  useHotkeys('l', () => {
-    if (isSelected) {
-      onClickReaction(CastReactionType.likes, reactions[CastReactionType.likes].isActive)
-    }
-  }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.likes]);
+  useHotkeys('l',
+    () => {
+      if (isSelected) {
+        onClickReaction(CastReactionType.likes, reactions[CastReactionType.likes].isActive)
+      }
+    },
+    { enabled: isSelected },
+    [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.likes]
+  );
 
-  useHotkeys('shift+r', () => {
-    if (isSelected) {
-      onClickReaction(CastReactionType.recasts, reactions[CastReactionType.recasts].isActive)
-    }
-  }, { enabled: isSelected }, [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.recasts]);
+  useHotkeys('shift+r',
+    () => {
+      if (isSelected) {
+        onClickReaction(CastReactionType.recasts, reactions[CastReactionType.recasts].isActive)
+      }
+    },
+    { enabled: isSelected },
+    [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.recasts]
+  );
 
   const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined => parentUrl ?
     channels.find((channel) => channel.url === parentUrl) : undefined;
@@ -184,6 +199,21 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
     </Linkify>
   )
 
+  // this can be images, open-graph links
+  // in future: twitter, youtube videos, spotify embeds, etc
+  const renderEmbeds = () => (
+    <div className="mt-4">
+      {map(cast.embeds, (embed) => {
+        if (embed.url.startsWith('"chain:')) {
+          return <OnchainEmbed url={embed.url} />
+        } else if (embed.url.startsWith('https://warpcast.com')) {
+          return <WarpcastEmbed url={embed.url} />
+        } else {
+          return null;
+        }
+      })}
+    </div>);
+
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
 
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
@@ -232,6 +262,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, channels, isT
             {embedImageUrl && <ImgurImage url={embedImageUrl} />}
           </div>
           {renderCastReactions(cast)}
+          {renderEmbeds()}
         </div>
       </div>
     </div>

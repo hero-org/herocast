@@ -51,7 +51,6 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
           >
             <CastRow
               cast={parentCast}
-              channels={channels}
               isSelected
             />
             <NewPostEntry
