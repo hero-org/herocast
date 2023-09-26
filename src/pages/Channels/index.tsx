@@ -264,11 +264,21 @@ export default function Channels() {
         />
         {get(errors, name) ? (<p className="mt-2 h-8 text-sm text-red-600" id={`${name}-error`}>
           {get(errors, name)?.message} {get(errors, name)?.type}
-        </p>) : (<div className="my-2 h-8 text-sm text-gray-400">
+        </p>) : (<div className="my-2 text-sm text-gray-400">
           {description}
         </div>)}
       </div>
     </fieldset>
+  )
+
+  const getUrlExplainer = () => (
+    <div className="flex flex-col">
+      <p>fill with any URL or <a className="underline font-semibold" href="https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-19.md"> onchain format CAIP-19</a></p>
+      <p className="mt-2 text-gray-400 break-words">
+        Music channel has URL: <span className="font-mono tracking-tighter">chain://eip155:7777777/erc721:0xe96c...634</span><br />
+        Bitcoin channel has URL: <span className="font-mono tracking-tighter">https://bitcoin.org</span>
+      </p>
+    </div>
   )
 
   return hydrated && isEmpty(accounts) ? renderEmptyState() : (
@@ -285,7 +295,7 @@ export default function Channels() {
       >
         <form onSubmit={handleSubmit(onSubmit)} className="mt-12">
           {renderTextField("Channel Name", "name", "Satochi_Conspiracies", "", { required: true, maxLength: 40 })}
-          {renderTextField("URL", "url", "https://satochi.com", <p>any URL or <a className="underline font-semibold" href="https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-19.md"> onchain format CAIP-19</a></p>, { required: true, minLength: 5 })}
+          {renderTextField("URL", "url", "https://satochi.com", getUrlExplainer(), { required: true, minLength: 5 })}
           {/* {renderTextField("Icon Url", "iconUrl", "https://satochi.com/")} */}
           <fieldset className="mb-[10px] flex items-start gap-5" >
             <label className="text-gray-100 w-[90px] text-left text-[15px]" htmlFor="account">
