@@ -1,12 +1,16 @@
 import React from 'react';
-import Tweet from 'react-tweet';
+import { Tweet } from 'react-tweet'
 
 interface TweetEmbedProps {
   tweetId: string;
 }
 
 const TweetEmbed: React.FC<TweetEmbedProps> = ({ tweetId }) => {
-  return <Tweet id={tweetId} />;
+  return (
+    <div className="dark">
+      <Tweet id={tweetId} />
+    </div>
+  );
 };
 
 export default TweetEmbed;

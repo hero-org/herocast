@@ -22,6 +22,7 @@ import { isImageUrl } from '../helpers/text';
 import OnchainEmbed from './Embeds/OnchainEmbed';
 import WarpcastEmbed from './Embeds/WarpcastEmbed';
 import TweetEmbed from './Embeds/TweetEmbed';
+import { ErrorBoundary } from '@sentry/react';
 
 interface CastRowProps {
   cast: CastType;
@@ -204,18 +205,21 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   // in future: twitter, youtube videos, spotify embeds, etc
   const renderEmbeds = () => (
     <div className="mt-4">
-      {map(cast.embeds, (embed) => {
-        if (embed.url.startsWith('"chain:')) {
-          return <OnchainEmbed url={embed.url} />
-        } else if (embed.url.startsWith('https://warpcast.com')) {
-          return <WarpcastEmbed url={embed.url} />
-        } else if (embed.url.includes('twitter.com')) {
-          const tweetId = embed.url.split('/').pop();
-          return <TweetEmbed tweetId={tweetId} />
-        } else {
-          return null;
-        }
-      })}
+      <ErrorBoundary>
+        {map(cast.embeds, (embed) => {
+          const url = embed.url
+          if (url.startsWith('"chain:')) {
+            return <OnchainEmbed url={url} />
+          } else if (url.startsWith('https://warpcast.com')) {
+            return <WarpcastEmbed url={url} />
+          } else if ((url.includes('twitter.com') || url.startsWith('https://x.com')) && url.includes('status/')) {
+            const tweetId = url.split('/').pop();
+            return tweetId ? <TweetEmbed tweetId={tweetId} /> : null;
+          } else {
+            return null;
+          }
+        })}
+      </ErrorBoundary>
     </div>);
 
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
@@ -230,7 +234,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       className={classNames(
         isSelected ? "bg-gray-900/20" : "hover:bg-gray-900/30 cursor-pointer",
         isThreadView ? "" : (isSelected ? "border-l-2 border-gray-100/80" : "border-l-2 border-transparent"),
-        "px-5 py-4 grow rounded-r-sm"
+        "lg:px-5 py-4 grow rounded-r-sm"
       )}>
       <div className="flex items-top gap-x-4">
         {!isThreadView && (
