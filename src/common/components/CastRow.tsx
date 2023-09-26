@@ -21,6 +21,7 @@ import Linkify from "linkify-react";
 import { isImageUrl } from '../helpers/text';
 import OnchainEmbed from './Embeds/OnchainEmbed';
 import WarpcastEmbed from './Embeds/WarpcastEmbed';
+import TweetEmbed from './Embeds/TweetEmbed';
 
 interface CastRowProps {
   cast: CastType;
@@ -208,6 +209,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
           return <OnchainEmbed url={embed.url} />
         } else if (embed.url.startsWith('https://warpcast.com')) {
           return <WarpcastEmbed url={embed.url} />
+        } else if (embed.url.includes('twitter.com')) {
+          const tweetId = embed.url.split('/').pop();
+          return <TweetEmbed tweetId={tweetId} />
         } else {
           return null;
         }
