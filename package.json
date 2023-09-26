@@ -89,7 +89,7 @@
     "react-qr-code": "^2.0.11",
     "react-router-dom": "^6.16.0",
     "react-tweet": "^3.1.1",
-    "rollup": "^2.0.0",
+    "rollup": "^3.29.3",
     "squire-rte": "^2.0.3",
     "tailwindcss": "^3.3.3",
     "tauri-plugin-sql-api": "https://github.com/tauri-apps/tauri-plugin-sql#v1",
