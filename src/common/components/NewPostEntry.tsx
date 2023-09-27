@@ -54,9 +54,10 @@ type NewPostEntryProps = {
   draftIdx: number;
   onPost?: () => void;
   hideChannel?: boolean;
+  disableAutofocus?: boolean;
 }
 
-export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostEntryProps) {
+export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAutofocus }: NewPostEntryProps) {
   const {
     drafts,
     updatePostDraft,
@@ -202,7 +203,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
           <div>
             <Combobox as="div">
               <ReactTextareaAutocomplete
-                autoFocus
+                autoFocus={!disableAutofocus}
                 value={draft?.text || ''}
                 onChange={(e) => onChange({ ...draft, text: e.target.value })}
                 containerClassName="relative rounded-sm"

@@ -69,7 +69,7 @@ export default function Channels() {
   const renderChannelCard = (channel: ChannelType, idx?: number) => {
     const index = findIndex(channels, ['url', channel.url]);
     const enabled = index !== -1;
-    console.log(channel)
+
     return (
       <div className={classNames(enabled ? "cursor-move" : "", "flex flex-row w-full max-w-md")}>
         {enabled && idx !== undefined && (<div

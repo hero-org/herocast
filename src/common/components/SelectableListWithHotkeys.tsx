@@ -50,7 +50,7 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
     }
   }
     , [data, selectedIdx, setSelectedIdx], {
-    enabled: !disableScroll && isActive && !isEmpty(data)
+    enabled: isActive && !isEmpty(data)
   })
 
   useHotkeys(['k', Key.ArrowUp], () => {
@@ -59,7 +59,7 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
     }
     setSelectedIdx(selectedIdx - 1);
   }, [data, selectedIdx, setSelectedIdx], {
-    enabled: !disableScroll && isActive && !isEmpty(data)
+    enabled: isActive && !isEmpty(data)
   })
 
   return <ul role="list" className="">

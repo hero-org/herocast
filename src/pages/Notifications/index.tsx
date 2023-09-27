@@ -141,7 +141,7 @@ export const Notifications = () => {
         onClick={() => setSelectedNotificationIdx(idx)}
         className={classNames(
           idx === selectedNotificationIdx ? 'bg-gray-600' : 'cursor-pointer bg-gray-800 hover:bg-gray-700',
-          "flex gap-x-4 px-5 py-4"
+          "flex gap-x-4 px-5 py-4 rounded-sm"
         )}>
         <img className="mt-1.5 h-10 w-10 flex-none rounded-full bg-gray-50" src={item.author.pfp.url} alt="" />
         <div className="flex-auto">
@@ -164,7 +164,7 @@ export const Notifications = () => {
   }
 
   const renderLeftColumn = () => {
-    return <div className="block w-full md:w-6/12 shrink-0">
+    return <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
       <div className={classNames(
         "overflow-hidden rounded-l-sm border bg-gray-800",
         isLeftColumnSelected ? "border-gray-600" : "border-gray-800"
@@ -211,7 +211,7 @@ export const Notifications = () => {
       // getParentCast(hash)
 
       const author = notification?.author;
-      console.log('setting selected parent cast', hash, author);
+      // console.log('setting selected parent cast', hash, author);
       if (!hash) return;
       setSelectedParentCast({ hash, author })
 
@@ -238,106 +238,3 @@ export const Notifications = () => {
     </div>}
   </div>
 }
-
-
-// transform this into a type
-// {
-// 	result: {
-// 	notifications: [
-// 		{
-// 			hash: "0x1661c3687633ae6104be62256d85d3a27ec1ceae",
-// 			parentHash: "0xce5c6310d1164d80452fe3388d5f2b9d7eeedb20",
-// 			parentUrl: "chain://eipchain://eip155:7777777/erc721:0x47163feb5c3b97f90671b1e1a1359b8240edbdbe"
-// 			parentAuthor: {
-// 				fid: "194"
-// 			},
-// 			author: {
-// 				fid: "834",
-// 				username: "gabrielayuso.eth",
-// 				displayName: "GabrielAyuso.eth ⌐◨-◨",
-// 				pfp: {
-// 					url: "https://openseauserdata.com/files/b508b2a34a0295f220bffbab3d775472.svg"
-// 				}
-// 			},
-// 			text: "Not very well.
-// 				At least on Android I have to download a gif to my phone and then upload it on the app which not always works, Jam works better when uploading gifs.
-
-// 				I'd love to be able to post gifts directly from my keyboard.",
-// 			timestamp: "2023-08-05T20:25:08.907Z",
-// 			embeds: [ ],
-// 			type: "cast-reply",
-// 			reactions: {
-// 				count: 3,
-// 				fids: [
-// 					194,
-// 					4877,
-// 					7540
-// 				]
-// 			},
-// 			recasts: {
-// 				count: 0,
-// 				fids: [ ]
-// 			},
-// 			recasters: [ ],
-// 			recast: true,
-// 			replies: {
-// 			count: "3"
-// 		}
-// 		},
-// 		{
-// 			hash: "0xdffdb1adf3f60bcca7480e5619bfbd087cf220aa",
-// 			threadHash: "0xbde39822c3474649f3583537423ebb2a6cb59cc9",
-// 			parentAuthor: {
-// 				fid: "373"
-// 			},
-// 			author: {
-// 				fid: "373",
-// 				username: "jayme",
-// 				displayName: "Jayme ",
-// 					pfp: {
-// 						url: "https://lh3.googleusercontent.com/kXfYD6XCiZZz5I2lHu_00NfDS-TAzJ700i_pK7RfJiPoyR7LQLJe0S1AfHLAHUgrO4tZtDSn-XpHttdWz5YYt-Ok5E9jai6_wA6gP3Q"
-// 					}
-// 				},
-// 				text: "Also, the weekly digest now includes
-// 					- launch title + body h/t @rish
-// 					- Trending apps section
-// 					- Share via cast or x-ing 😅
-// 					-  s@ybhoutout",
-// 				timestamp: "2023-08-04T23:13:36.256Z",
-// 				embeds: [
-// 					{
-// 						url: "https://i.imgur.com/gWjNOmc.jpg"
-// 					}
-// 				],
-// 				type: "cast-mention",
-// 				reactions: {
-// 					count: 6,
-// 					fids: [
-// 						616,
-// 						3206,
-// 						3115,
-// 						9391,
-// 						13752,
-// 						194
-// 					]
-// 					},
-// 				recasts: {
-// 					count: 2,
-// 					fids: [
-// 						3206,
-// 						13752
-// 					]
-// 					},
-// 				recasters: [
-// 				"yb",
-// 				"hosein778"
-// 				],
-// 				recast: true,
-// 				replies: {
-// 				count: "1"
-// 				}
-// 			},
-// 		]
-// 	}
-// }
-//

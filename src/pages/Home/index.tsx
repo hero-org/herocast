@@ -110,14 +110,18 @@ export default function Home() {
     }
   }, [locationHash]);
 
+  const sidebarType = getSidebarForPathname(pathname);
+
   const renderRightSidebar = () => {
-    switch (getSidebarForPathname(pathname)) {
+    switch (sidebarType) {
       case RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS:
         return <AccountsRightSidebar showChannels />
       case RIGHT_SIDEBAR_ENUM.ACCOUNTS:
         return <AccountsRightSidebar />
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />
+      case RIGHT_SIDEBAR_ENUM.NONE:
+        return null;
       default:
         return <aside className="bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
           <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
@@ -321,9 +325,8 @@ export default function Home() {
               </nav>
             </div>
           </div>
-
           <div className="lg:pl-48">
-            <main className={"lg:pr-64"}>
+            <main className={classNames(sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "lg:pr-64")}>
               <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">
                 <button type="button" className="-m-2.5 p-2.5 text-white lg:hidden" onClick={() => setSidebarOpen(true)}>
                   <span className="sr-only">Open sidebar</span>

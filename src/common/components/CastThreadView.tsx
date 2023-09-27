@@ -95,7 +95,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
           <>
             <div className="relative">
               <img
-                className="flex mt-3 h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-1 ring-radix-slate5"
+                className="flex mt-1 h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-1 ring-radix-slate5"
                 src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author?.pfp?.url}`}
                 alt=""
               />
@@ -130,8 +130,13 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const renderThread = () => (
     <div className="flow-root">
       {renderFeed()}
-      {draftIdx !== -1 && <div className="mt-8 pl-8 max-w-xl" key={`new-post-parentHash-${cast?.hash}`}>
-        <NewPostEntry draftIdx={draftIdx} onPost={() => onBack && onBack()} hideChannel />
+      {draftIdx !== -1 && <div className="ml-20 max-w-xl" key={`new-post-parentHash-${cast?.hash}`}>
+        <NewPostEntry
+          draftIdx={draftIdx}
+          onPost={() => onBack && onBack()}
+          hideChannel
+          disableAutofocus
+        />
       </div>}
     </div>
   );
