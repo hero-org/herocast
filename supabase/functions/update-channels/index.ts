@@ -65,20 +65,22 @@ serve(async (req) => {
 
     let insertCount = 0;
     for (const newChannel of newChannels) {
-      const hasChannelInSupabase = await supabaseClient
+      const newChannelHasIcon = newChannel.icon_url && newChannel.icon_url.length > 0;
+      const existingChannelData = await supabaseClient
         .from('channel')
         .select('*')
         .eq('url', newChannel.url)
         .then(({ data, error }) => {
           if (error) throw error
           console.log('checking for existing channel', newChannel.url, 'data', data, error)
-          return data.length > 0;
+          return data;
         })
-
-      if (!hasChannelInSupabase) {
+      const hasExistingChannel = existingChannelData.length > 0;
+      const shouldUpdateChannelInSupabase = !hasExistingChannel || (newChannelHasIcon && existingChannelData[0].icon_url !== newChannel.icon_url);
+      if (shouldUpdateChannelInSupabase) {
         await supabaseClient
           .from('channel')
-          .insert(newChannel)
+          .upsert({ ...(hasExistingChannel ? existingChannelData[0] : null), ...newChannel })
           .select()
           .then(({ error, data }) => {
             console.log('insert response - data', data, 'error', error);
@@ -88,7 +90,7 @@ serve(async (req) => {
       }
     }
 
-    const message = `from ${newChannels.length} results, added ${insertCount} new channels`;
+    const message = `from ${newChannels.length} results, added or updated ${insertCount} new channels`;
     console.log(message);
     const returnData = {
       message,

@@ -332,7 +332,7 @@ export default function Home() {
                 <h1 className="text-2xl font-semibold leading-7 text-white">{title}</h1>
                 <h1 className="text-base font-semibold leading-7 text-white"></h1>
               </header>
-              <div className="w-full max-w-full min-h-screen flex justify-between px-4 py-4 border-t border-white/5 sm:px-6 sm:py-2 lg:px-6">
+              <div className="w-full max-w-full min-h-screen flex justify-between pl-2 py-4 border-t border-white/5 sm:py-2 md:px-4 lg:px-6">
                 <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
                   <Outlet />
                 </Suspense>

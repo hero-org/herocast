@@ -18,7 +18,7 @@ export default function NewPost() {
 
   return (
     <>
-      <div className="flex flex-col md:w-full lg:max-w-md lg:max-w-2xl xl:max-w-4xl">
+      <div className="flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
         <div className="w-full flex items-center justify-between">
           <div className="text-gray-100 font-semibold">You have {postDrafts.length} {postDrafts.length !== 1 ? 'drafts' : 'draft'}</div>
           <div className="flex ml-8 lg:ml-0">
@@ -32,7 +32,7 @@ export default function NewPost() {
                   )}
                 >
                   New draft
-                  <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+                  <PlusCircleIcon className="hidden md:block ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
                 </button>
 
               </HotkeyTooltipWrapper>
@@ -48,7 +48,7 @@ export default function NewPost() {
               )}
             >
               Remove all drafts
-              <TrashIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+              <TrashIcon className="hidden md:block ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
             </button>
           </div>
         </div>

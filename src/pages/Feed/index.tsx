@@ -115,6 +115,7 @@ export default function Feed() {
 
   useEffect(() => {
     if (account && !showCastThreadView) {
+      setShowReplyModal(false);
       setSelectedCastIdx(0);
       setShowCastThreadView(false);
 

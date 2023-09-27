@@ -62,9 +62,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
 
   const selectedAccount = accounts[selectedAccountIdx];
   const userFid = Number(selectedAccount.platformAccountId);
-  const authorFid = cast.author.fid;
+  const authorFid = cast?.author.fid;
 
-  const hasEmbeds = cast.embeds.length > 0;
+  const hasEmbeds = cast?.embeds.length > 0;
   const embedUrl = hasEmbeds ? cast.embeds[0].url : null;
   const embedImageUrl = embedUrl && isImageUrl(embedUrl) ? embedUrl : null;
   const now = new Date();
@@ -82,6 +82,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       [CastReactionType.likes]: { count: likesCount + Number(didLike), isActive: didLike || includes(likeFids, userFid) },
     }
   }
+
   const reactions = getCastReactionsObj();
 
   useHotkeys('l',
@@ -234,7 +235,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       className={classNames(
         isSelected ? "bg-gray-900/20" : "hover:bg-gray-900/30 cursor-pointer",
         isThreadView ? "" : (isSelected ? "border-l-2 border-gray-100/80" : "border-l-2 border-transparent"),
-        "lg:px-5 py-4 grow rounded-r-sm"
+        "px-2 md:px-4 lg:px-6 py-4 grow rounded-r-sm"
       )}>
       <div className="flex items-top gap-x-4">
         {!isThreadView && (
