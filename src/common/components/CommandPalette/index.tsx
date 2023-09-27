@@ -34,7 +34,7 @@ export const getNavigationCommands = (navigate?: (path: string) => void | null):
       shortcut: 'shift+f',
       action: () => navigate && navigate('/feed'),
       options: {
-        enableOnFormTags: true,
+        enableOnFormTags: false,
       },
     },
     {
@@ -44,7 +44,7 @@ export const getNavigationCommands = (navigate?: (path: string) => void | null):
       shortcut: '/',
       action: () => navigate && navigate('/search'),
       options: {
-        enableOnFormTags: true,
+        enableOnFormTags: false,
       },
     },
     {
@@ -54,7 +54,7 @@ export const getNavigationCommands = (navigate?: (path: string) => void | null):
       shortcut: 'shift+c',
       action: () => navigate && navigate('/channels'),
       options: {
-        enableOnFormTags: true,
+        enableOnFormTags: false,
       },
     },
     {
@@ -64,7 +64,7 @@ export const getNavigationCommands = (navigate?: (path: string) => void | null):
       shortcut: 'shift+n',
       action: () => navigate && navigate('/notifications'),
       options: {
-        enableOnFormTags: true,
+        enableOnFormTags: false,
       },
     },
     {

@@ -434,7 +434,7 @@ const getChannelCommands = () => {
 
   channelCommands.push({
     name: `Switch to random channel`,
-    aliases: ['random', 'lucky'],
+    aliases: ['random', 'lucky', 'discover'],
     navigateTo: '/feed',
     action: () => {
       const state = useAccountStore.getState();
