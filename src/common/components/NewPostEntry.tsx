@@ -11,6 +11,8 @@ import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 import { useHotkeys } from "react-hotkeys-hook";
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
+import ChannelsCombobox from "./ChannelsCombobox";
+import ChannelsDropdown from "./ChannelsDropdown";
 
 // const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
 
@@ -76,8 +78,8 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   const isReply = draft?.parentCastId !== undefined;
 
   const onChange = (cast: DraftType) => {
-    // console.log('onChange', draftIdx, cast, isHotkeyPressed('r'));
-    updatePostDraft(draftIdx, cast)
+    updatePostDraft(draftIdx, cast);
+
     if (!cast.text) {
       updateMentionsToFids(draftIdx, {});
     }
@@ -149,6 +151,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
   }
 
   const onUpdateParentUrl = (channel: ChannelType) => {
+    console.log('onUpdateParentUrl', channel?.name)
     const newParentUrl = (channel.url === draft.parentUrl) ? undefined : channel.url;
     onChange({ ...draft, parentUrl: newParentUrl })
   }
@@ -235,59 +238,9 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
 
         <div className="absolute inset-x-0 bottom-0">
           {/* Actions: These are just examples to demonstrate the concept, replace/wire these up however makes sense for your project. */}
-          {showToolbar && (<div className="flex flex-nowrap justify-start space-x-2 px-2 py-2 sm:px-3 bg-gray-700 rounded-b-md border border-gray-600">
+          {showToolbar && (<div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3 bg-gray-700 rounded-b-md border border-gray-600">
             {!hideChannel && (
-              <Listbox as="div" value={channel} onChange={(value) => onUpdateParentUrl(value)} className="flex-shrink-0">
-                {({ open }) => (
-                  <>
-                    <Listbox.Label className="sr-only">Channel</Listbox.Label>
-                    <div className="relative w-96">
-                      <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-lg bg-radix-slate10 px-2 py-1.5 text-sm font-medium text-radix-slate4 hover:bg-radix-slate9 sm:px-3">
-                        {/* {assigned.value === null ? (
-                        <UserCircleIcon className="h-5 w-5 flex-shrink-0 text-gray-300 sm:-ml-1" aria-hidden="true" />
-                      ) : (
-                        <img src={assigned.avatar} alt="" className="h-5 w-5 flex-shrink-0 rounded-full" />
-                      )} */}
-                        <span
-                          className={classNames(
-                            isEmpty(channel) ? '' : 'text-radix-slate2',
-                            'truncate block'
-                          )}
-                        >
-                          {isEmpty(channel) ? 'Channel' : channel.name}
-                        </span>
-                      </Listbox.Button>
-
-                      <Transition
-                        show={open}
-                        as={Fragment}
-                        leave="transition ease-in duration-100"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                      >
-                        <Listbox.Options className="absolute left-0 z-100 mt-1 max-h-56 w-42 overflow-auto rounded-sm bg-radix-slate10 text-base shadow ring-1 ring-gray-900 focus:outline-none sm:text-sm">
-                          {channels.map((channel) => (
-                            <Listbox.Option
-                              key={channel.url}
-                              className={({ active }) =>
-                                classNames(
-                                  active ? 'text-gray-200 bg-gray-600' : 'text-gray-300 bg-gray-700',
-                                  'relative cursor-default select-none px-3 py-2 truncate'
-                                )
-                              }
-                              value={channel}
-                            >
-                              <div className="flex items-center">
-                                <span className=" block truncate font-medium">{channel.name}</span>
-                              </div>
-                            </Listbox.Option>
-                          ))}
-                        </Listbox.Options>
-                      </Transition>
-                    </div>
-                  </>
-                )}
-              </Listbox>
+              <ChannelsDropdown selectedChannel={channel} onChange={onUpdateParentUrl} />
             )}
 
             {/* <Listbox as="div" value={dated} onChange={setDated} className="flex-shrink-0">
@@ -344,7 +297,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel }: NewPostE
               )}
             </Listbox> */}
           </div>)}
-          <div className="flex items-center justify-between space-x-3 mt-2">
+          <div className="flex items-center justify-end space-x-3 mt-2">
             <div className="flex-shrink-0">
               <HotkeyTooltipWrapper hotkey="Cmd + Enter" side="right">
                 <button

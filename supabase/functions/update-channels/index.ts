@@ -9,6 +9,14 @@ import { createClient } from '@supabase/supabase-js'
 console.log("Hello from updating channels!")
 
 const HYPESHOT_API_ENDPOINT = 'https://www.hypeshot.io/api/getChannels';
+const WARPCAST_CHANNELS_JSON = 'https://raw.githubusercontent.com/neynarxyz/farcaster-channels/main/warpcast.json';
+
+type ChannelType = {
+  url: string;
+  name: string;
+  source: string;
+  icon_url: string | null;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -21,6 +29,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
+    let newChannels: ChannelType[] = [];
     const {
       data: { user },
     } = await supabaseClient.auth.getUser()
@@ -34,31 +43,42 @@ serve(async (req) => {
     })
     const data = await res.json();
     console.log('Hypeshot data', data.items);
+    newChannels = newChannels.concat(data.items.map((channel: any) => ({
+      url: channel.parent,
+      name: channel.channel_name,
+      icon_url: channel.token_metadata?.image && channel.token_metadata?.itemMediaType == 2 ? channel.token_metadata?.image : null,
+      source: `${channel.username} on Hypeshot`,
+    })));
+
+    const warpcastChannels = await (await fetch(WARPCAST_CHANNELS_JSON, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })).json();
+    newChannels = newChannels.concat(warpcastChannels.map((channel: any) => ({
+      url: channel.parent_url,
+      name: channel.name || channel.channel_description,
+      icon_url: channel.image,
+      source: 'Warpcast',
+    })));
 
     let insertCount = 0;
-
-    for (const newChannel of data.items) {
+    for (const newChannel of newChannels) {
       const hasChannelInSupabase = await supabaseClient
         .from('channel')
         .select('*')
-        .eq('url', newChannel.parent)
+        .eq('url', newChannel.url)
         .then(({ data, error }) => {
           if (error) throw error
-          console.log('checking for existing channel', newChannel.parent, 'data', data, error)
+          console.log('checking for existing channel', newChannel.url, 'data', data, error)
           return data.length > 0;
         })
 
       if (!hasChannelInSupabase) {
-        const icon_url = newChannel.token_metadata?.image && newChannel.token_metadata?.itemMediaType == 2 ? newChannel.token_metadata?.image : null;
-
         await supabaseClient
           .from('channel')
-          .insert({
-            name: newChannel.channel_name,
-            url: newChannel.parent,
-            source: 'Hypeshot',
-            icon_url,
-          })
+          .insert(newChannel)
           .select()
           .then(({ error, data }) => {
             console.log('insert response - data', data, 'error', error);
@@ -68,7 +88,7 @@ serve(async (req) => {
       }
     }
 
-    const message = `found ${data?.count} NFTs, added ${insertCount} channels`;
+    const message = `from ${newChannels.length} results, added ${insertCount} new channels`;
     console.log(message);
     const returnData = {
       message,
