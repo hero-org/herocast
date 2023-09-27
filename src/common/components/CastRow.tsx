@@ -229,13 +229,14 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const timeAgo = timeDiff(now, new Date(cast.timestamp))
   const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
 
-  return (<div className="flex grow">
+  return (<div className="flex grow max-w-xl">
     <div
       onClick={() => onSelect && onSelect()}
       className={classNames(
         isSelected ? "bg-gray-900/20" : "hover:bg-gray-900/30 cursor-pointer",
-        isThreadView ? "" : "py-4 md:px-4 lg:px-6" && (isSelected ? "border-l-2 border-gray-100/80" : "border-l-2 border-transparent"),
-        "px-2 grow rounded-r-sm"
+        isThreadView ? "" : "py-4 md:px-4 lg:px-6",
+        !isThreadView && isSelected ? "border-l-2 border-gray-200/80" : "border-l-2 border-transparent",
+        "ml-4 grow rounded-r-sm"
       )}>
       <div className="flex items-top gap-x-4">
         {!isThreadView && (
@@ -265,7 +266,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
             )}
           </div>
           <div className={classNames(isThreadView ? "ml-0.5" : "")}>
-            <div className="mt-2 w-full max-w-lg xl:max-w-2xl text-md text-gray-100 break-words lg:break-normal" style={castTextStyle}>
+            <div className="mt-2 w-full max-w-xl text-md text-gray-100 break-words lg:break-normal" style={castTextStyle}>
               {getText()}
             </div>
             {embedImageUrl && <ImgurImage url={embedImageUrl} />}

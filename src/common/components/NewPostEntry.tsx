@@ -208,7 +208,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
                 onChange={(e) => onChange({ ...draft, text: e.target.value })}
                 containerClassName="relative rounded-sm"
                 className={classNames(
-                  showToolbar ? 'rounded-t-md' : 'rounded-b-md',
+                  showToolbar ? 'rounded-t-md' : 'rounded-md',
                   "block border-1 border-gray-600 w-full px-3 py-2 bg-gray-700 ring-0 ring-gray-800 resize-none text-radix-slate2 placeholder:text-gray-400 sm:text-sm sm:leading-6 focus:outline-none focus:ring-0 focus:border-gray-500"
                 )}
                 style={{ minHeight: '100px' }}
@@ -298,7 +298,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
               )}
             </Listbox> */}
           </div>)}
-          <div className="flex items-center justify-end space-x-3 mt-2">
+          <div className="flex items-center justify-end mt-4">
             <div className="flex-shrink-0">
               <HotkeyTooltipWrapper hotkey="Cmd + Enter" side="right">
                 <button

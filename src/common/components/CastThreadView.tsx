@@ -130,7 +130,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const renderThread = () => (
     <div className="flow-root">
       {renderFeed()}
-      {draftIdx !== -1 && <div className="ml-20 max-w-xl" key={`new-post-parentHash-${cast?.hash}`}>
+      {draftIdx !== -1 && <div className="ml-16 max-w-xl" key={`new-post-parentHash-${cast?.hash}`}>
         <NewPostEntry
           draftIdx={draftIdx}
           onPost={() => onBack && onBack()}

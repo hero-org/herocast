@@ -71,7 +71,7 @@ export default function Channels() {
     const enabled = index !== -1;
 
     return (
-      <div className={classNames(enabled ? "cursor-move" : "", "flex flex-row w-full max-w-md")}>
+      <div className={classNames(enabled ? "cursor-move" : "", "flex flex-row w-full max-w-lg")}>
         {enabled && idx !== undefined && (<div
           className={classNames(
             'bg-green-600/80 border-gray-200 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-md text-lg font-medium text-white'

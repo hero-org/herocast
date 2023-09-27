@@ -47,7 +47,15 @@ const ChannelsOverview = () => {
             )}
           >
             <div className="flex">
-              {channel.icon_url && (<img src={channel.icon_url} alt="" className="mr-1 mt-0.5 border border-gray-400 h-5 w-5 flex-none rounded-full bg-gray-800" />)}
+              {channel.icon_url && (
+                <img
+                  src={channel.icon_url}
+                  alt=""
+                  className={classNames(
+                    selectedChannelUrl === channel.url ? 'border-gray-100' : 'border-gray-400 hover:border-gray-300',
+                    "mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full")}
+                />
+              )}
               <span className="font-normal truncate">{channel.name}</span>
             </div>
             {idx < 9 && (
