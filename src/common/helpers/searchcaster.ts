@@ -4,7 +4,6 @@ const SEARCHASTER_API_ENDPOINT = 'https://searchcaster.xyz/api/'
 export const searchForText = async (text: string): Promise<SearchResultCast[]> => {
   const response = await fetch(`${SEARCHASTER_API_ENDPOINT}search?count=10&text=${text}`)
   const json = await response.json()
-  console.log('json', json)
   return json?.casts || []
 }
 

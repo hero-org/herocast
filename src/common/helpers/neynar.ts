@@ -58,7 +58,7 @@ export const resolveWarpcastUrl = async (url: string): Promise<CastType> => {
   return axios
     .request(options)
     .then(function(response) {
-      console.log(response.data);
+      // console.log(response.data);
       return response.data.cast;
     })
     .catch(function(error) {
@@ -109,7 +109,7 @@ export const fetchCasts = async (castHashes: { hash: string }[]): Promise<CastTy
 
   return await axios.get(url, { headers, data: JSON.stringify({ casts: castHashes }) })
     .then(response => {
-      console.log(response.data);
+      // console.log(response.data);
       return response.data.casts;
     })
     .catch(error => {

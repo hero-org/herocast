@@ -13,9 +13,6 @@ import isEmpty from 'lodash.isempty';
 import get from "lodash.get";
 import { getUrlsInText } from "@/common/helpers/text";
 
-function insert(str, index, value) {
-  return str.substr(0, index) + value + str.substr(index);
-}
 
 export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
@@ -25,8 +22,6 @@ export const convertEditorCastToPublishableCast = async (draft: DraftType): Prom
   const text = draft.text;
   const parentUrl = draft.parentUrl;
   const embeds = getUrlsInText(text);
-
-  console.log('embeds', embeds);
 
   let cast: CastAddBody = {
     text,
