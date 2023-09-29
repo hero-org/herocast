@@ -120,15 +120,16 @@ const FarcasterLogin = () => {
     return (
       <div className="my-8 divide-y divide-gray-500">
         {pendingAccounts.map((account) => {
-          const deepLinkUrl = account.data?.deeplinkUrl;
+          const signerToken = account.data?.signerToken;
+
           return <div className="py-8" key={account.id}>
             <p className="text-xl text-gray-200">Account {account.name}</p>
-            {deepLinkUrl && (
+            {signerToken && (
               <>
                 <p className="mb-2 text-lg leading-8 text-gray-300">
                   Scan the QR code with your mobile camera app to sign in via Warpcast
                 </p>
-                <QrCode deepLink={deepLinkUrl} />
+                <QrCode deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${signerToken}`} />
               </>
             )}
           </div>

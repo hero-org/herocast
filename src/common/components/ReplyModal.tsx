@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Modal from './Modal';
 import { CastType } from '../constants/farcaster';
 import NewPostEntry from './NewPostEntry';
@@ -49,10 +49,14 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
             className="mt-4"
             key={`new-post-parentHash-${parentCast?.hash}`}
           >
-            <CastRow
-              cast={parentCast}
-              isSelected
-            />
+            <div className="-ml-4 mb-4">
+              {parentCast && (
+                <CastRow
+                  cast={parentCast}
+                  isSelected
+                />
+              )}
+            </div>
             <NewPostEntry
               draftIdx={draftIdx}
               onPost={() => setOpen(false)}

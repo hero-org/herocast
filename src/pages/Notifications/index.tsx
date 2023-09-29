@@ -10,6 +10,7 @@ import isEmpty from 'lodash.isempty'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Key } from 'ts-key-enum'
 import { CastType } from '@/common/constants/farcaster'
+import ReplyModal from '@/common/components/ReplyModal'
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
@@ -60,6 +61,8 @@ export const Notifications = () => {
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
   const [isLeftColumnSelected, setIsLeftColumnSelected] = useState<boolean>(true);
   const [selectedParentCast, setSelectedParentCast] = useState<CastType | null>(null);
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [selectedCast, setSelectedCast] = useState<CastType | null>(null);
 
   const currentAccountFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const now = new Date();
@@ -84,6 +87,10 @@ export const Notifications = () => {
     }
 
     loadData();
+
+    setShowReplyModal(false);
+    setIsLeftColumnSelected(true);
+    setSelectedNotificationIdx(0);
   }, [currentAccountFid])
 
   const navigationItems = [
@@ -124,12 +131,20 @@ export const Notifications = () => {
     </>
   )
 
-  useHotkeys(['tab', 'o', Key.Enter], () => {
-    setIsLeftColumnSelected(false)
+  useHotkeys('r', () => {
+    setShowReplyModal(true);
+  }, [showReplyModal], {
+    enabled: !showReplyModal,
+    enableOnFormTags: false,
+    preventDefault: true,
+  });
+
+  useHotkeys(['l', 'tab', 'o', Key.Enter], () => {
+    setIsLeftColumnSelected(false);
   }, [isLeftColumnSelected]);
 
-  useHotkeys(['shift+tab', Key.Escape], () => {
-    setIsLeftColumnSelected(true)
+  useHotkeys(['h', 'shift+tab', Key.Escape], () => {
+    setIsLeftColumnSelected(true);
   }, [isLeftColumnSelected]);
 
 
@@ -166,8 +181,8 @@ export const Notifications = () => {
   const renderLeftColumn = () => {
     return <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
       <div className={classNames(
-        "overflow-hidden rounded-l-sm border bg-gray-800",
-        isLeftColumnSelected ? "border-gray-600" : "border-gray-800"
+        "overflow-hidden rounded-sm border bg-gray-800",
+        isLeftColumnSelected ? "border-gray-400" : "border-gray-800"
       )}>
         <div className="divide-y divide-white/5">
           <SelectableListWithHotkeys
@@ -177,6 +192,7 @@ export const Notifications = () => {
             renderRow={(item: NotificationType, idx: number) => renderNotificationRow(item, idx)}
             onSelect={(idx) => setSelectedNotificationIdx(idx)}
             onExpand={() => null}
+            isActive={isLeftColumnSelected && !showReplyModal}
             disableScroll
           />
         </div>
@@ -186,11 +202,12 @@ export const Notifications = () => {
 
   const renderMainContent = () => {
     return !isEmpty(selectedParentCast) ?
-      <div className="">
+      <div className="mt-2">
         <CastThreadView
           cast={{ hash: selectedParentCast.hash, author: selectedParentCast.author }}
           fid={currentAccountFid}
-          isActive={false}
+          isActive={!isLeftColumnSelected}
+          setSelectedCast={setSelectedCast}
         />
       </div> : null;
   }
@@ -205,7 +222,8 @@ export const Notifications = () => {
     // }
 
     if (selectedNotificationIdx !== -1) {
-      const notification = notifications[selectedNotificationIdx]
+      const notification = notifications[selectedNotificationIdx];
+      console.log('notification', notification);
       const hash = notification?.threadHash || notification?.parentHash || notification?.hash
 
       // getParentCast(hash)
@@ -213,12 +231,22 @@ export const Notifications = () => {
       const author = notification?.author;
       // console.log('setting selected parent cast', hash, author);
       if (!hash) return;
-      setSelectedParentCast({ hash, author })
+      setSelectedParentCast({ hash, author });
 
+      // in this case we have a notification and the parent_author isn't available,
+      // but we want to have a reply modal that points to the autho
+      // todo: fix this
+      setSelectedCast(notification as CastType);
     }
   }, [selectedNotificationIdx, isLoading])
 
-  console.log('NotifcationPage render - selectedNotificationIdx', selectedNotificationIdx)
+  const renderReplyModal = () => (
+    <ReplyModal
+      open={showReplyModal}
+      setOpen={() => setShowReplyModal(false)}
+      parentCast={selectedCast}
+    />
+  );
 
   return <div className="flex min-h-screen min-w-full flex-col">
     {/* {renderHeader()} */}
@@ -227,14 +255,15 @@ export const Notifications = () => {
     </div>
     }
     {navigation === NotificationNavigationEnum.mentions ? (
-      <div className="mx-auto flex w-full max-w-7xl items-start py-5">
+      <div className="mx-auto flex w-full max-w-7xl items-start">
         {renderLeftColumn()}
-        <main className={classNames("hidden md:block flex-1 ml-4 border", !isLeftColumnSelected ? "border-gray-600" : "border-gray-800")}>
+        <main className={classNames("hidden md:block flex-1 ml-4 border", !isLeftColumnSelected ? "border-gray-400" : "border-gray-800")}>
           {renderMainContent()}
         </main>
       </div>
     ) : <div className="text-white flex-1 flex items-center justify-center">
       <div className="loader">Coming soon...</div>
     </div>}
+    {renderReplyModal()}
   </div>
 }

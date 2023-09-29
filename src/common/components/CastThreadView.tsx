@@ -16,9 +16,10 @@ type CastThreadViewProps = {
   onBack?: () => void;
   fid?: string;
   isActive?: boolean;
+  setSelectedCast?: (cast: CastType) => void;
 };
 
-export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewProps) => {
+export const CastThreadView = ({ cast, onBack, fid, isActive, setSelectedCast }: CastThreadViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
@@ -33,6 +34,12 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
     addNewPostDraft,
     removePostDraft
   } = useNewPostStore();
+
+  useEffect(() => {
+    if (!cast || !setSelectedCast) return;
+
+    setSelectedCast(casts[selectedCastIdx]);
+  }, [selectedCastIdx]);
 
   const renderGoBackButton = () => (
     <button
@@ -67,6 +74,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
 
     if (!cast) return;
 
+    setSelectedCastIdx(0);
     loadData();
     addNewPostDraft({ parentCastId: { hash: cast.hash, fid: cast.author.fid } })
 
@@ -86,12 +94,13 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
   const renderRow = (cast: CastType, idx: number) => (
     <li key={`cast-thread-${cast.hash}`}
       className={classNames(idx === selectedCastIdx ? "" : "")}>
-      <div className="relative py-2 px-4">
+      <div className="relative px-4">
         {/* this is the left line */}
         {idx !== casts.length - 1 ? (
-          <span className="rounded-lg absolute left-9 top-12 -ml-px h-[calc(100%-46px)] w-px bg-radix-slate10" aria-hidden="true" />
+          <span className="rounded-lg absolute left-12 top-10 ml-px h-[calc(100%-36px)] w-px bg-radix-slate10" aria-hidden="true" />
         ) : null}
-        <div className="relative flex items-start space-x-3">
+        <div className={classNames(isActive && selectedCastIdx === idx ? "border-l-2 border-gray-200/80" : "border-l-2 border-transparent",
+          "pl-3 relative flex items-start space-x-3")}>
           <>
             <div className="relative">
               <img
@@ -113,7 +122,6 @@ export const CastThreadView = ({ cast, onBack, fid, isActive }: CastThreadViewPr
       </div>
     </li >
   )
-
 
   const renderFeed = () => (
     <SelectableListWithHotkeys

@@ -5,7 +5,6 @@ import { useHotkeys } from "react-hotkeys-hook";
 import uniqBy from 'lodash.uniqby';
 import get from 'lodash.get';
 import { CastRow } from "@/common/components/CastRow";
-import { openWindow } from "@/common/helpers/navigation";
 import isEmpty from "lodash.isempty";
 import { CastThreadView } from "@/common/components/CastThreadView";
 import { DEFAULT_FEED_PAGE_SIZE, getNeynarFeedEndpoint } from "@/common/helpers/neynar";
@@ -14,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
 import ReplyModal from "@/common/components/ReplyModal";
-import { isImageUrl } from "@/common/helpers/text";
 import EmbedsModal from "@/common/components/EmbedsModal";
 
 type FeedType = {

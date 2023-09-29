@@ -64,7 +64,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const userFid = Number(selectedAccount.platformAccountId);
   const authorFid = cast?.author.fid;
 
-  const hasEmbeds = cast?.embeds.length > 0;
+  const hasEmbeds = cast?.embeds?.length > 0;
   const embedUrl = hasEmbeds ? cast.embeds[0].url : null;
   const embedImageUrl = embedUrl && isImageUrl(embedUrl) ? embedUrl : null;
   const now = new Date();
@@ -92,7 +92,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       }
     },
     { enabled: isSelected },
-    [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.likes]
+    [isSelected, selectedAccountIdx, authorFid, cast?.hash, reactions?.likes]
   );
 
   useHotkeys('shift+r',
@@ -102,7 +102,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       }
     },
     { enabled: isSelected },
-    [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions.recasts]
+    [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions?.recasts]
   );
 
   const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined => parentUrl ?
@@ -189,8 +189,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
 
       })}
       {linksCount && !isOnchainLink ? (
-        <a href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
-          {renderReaction(CastReactionType.links, linksCount > 1 ? linksCount : undefined, getIconForCastReactionType(CastReactionType.links))}
+        <a tabIndex={-1} href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
+          {renderReaction(CastReactionType.links, linksCount > 1, linksCount ?? undefined, getIconForCastReactionType(CastReactionType.links))}
         </a>) : null
       }
     </div>)
@@ -257,13 +257,21 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
                 </span>
               )}
             </div>
-            {cast.timestamp && (
-              <div className="flex flex-row">
+            <div className="flex flex-row">
+              {cast.timestamp && (
                 <span className="text-sm leading-5 text-gray-300">
                   {timeAgoStr}
                 </span>
-              </div>
-            )}
+              )}
+              <a
+                href={`https://warpcast.com/${cast.author.username}/${cast.hash.slice(0, 8)}`}
+                target="_blank" rel="noreferrer"
+                className="text-sm leading-5 text-gray-300"
+                tabIndex={-1}
+              >
+                <ArrowTopRightOnSquareIcon className="mt-0.5 w-4 h-4 ml-1.5" />
+              </a>
+            </div>
           </div>
           <div className={classNames(isThreadView ? "ml-0.5" : "")}>
             <div className="mt-2 w-full max-w-xl text-md text-gray-100 break-words lg:break-normal" style={castTextStyle}>

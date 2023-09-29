@@ -11,7 +11,6 @@ import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 import { useHotkeys } from "react-hotkeys-hook";
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
-import ChannelsCombobox from "./ChannelsCombobox";
 import ChannelsDropdown from "./ChannelsDropdown";
 
 // const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
@@ -109,28 +108,6 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
   }
 
   const ref = useHotkeys('meta+enter', onSubmitPost, [draft], { enableOnFormTags: true });
-
-  // const listener = (event: KeyboardEvent) => {
-  //   if (event.key === "Enter" && event.metaKey) {
-  //     event.preventDefault();
-  //     onSubmitPost();
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   onChange({ ...draft, parentUrl: selectedChannelUrl || undefined });
-  // }, [selectedChannelUrl])
-
-  // useEffect(() => {
-  //   if (textareaElement) {
-  //     textareaElement.addEventListener("keydown", listener);
-  //   }
-  //   return () => {
-  //     if (textareaElement) {
-  //       textareaElement.removeEventListener("keydown", listener);
-  //     }
-  //   };
-  // }, [textareaElement, draft]);
 
   const characterToTrigger = {
     // ":": {
