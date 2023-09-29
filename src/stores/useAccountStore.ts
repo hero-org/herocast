@@ -420,7 +420,6 @@ const getChannelCommands = () => {
         enableOnFormTags: false,
       },
       action: () => {
-        console.log('switching to channel', i);
         const { accounts, selectedAccountIdx } = useAccountStore.getState();
         const channels = accounts[selectedAccountIdx]?.channels;
 

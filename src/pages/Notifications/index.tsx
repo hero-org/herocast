@@ -139,11 +139,11 @@ export const Notifications = () => {
     preventDefault: true,
   });
 
-  useHotkeys(['l', 'tab', 'o', Key.Enter], () => {
+  useHotkeys(['l', 'tab', 'o', Key.Enter, Key.ArrowRight], () => {
     setIsLeftColumnSelected(false);
   }, [isLeftColumnSelected]);
 
-  useHotkeys(['h', 'shift+tab', Key.Escape], () => {
+  useHotkeys(['h', 'shift+tab', Key.Escape, Key.ArrowLeft], () => {
     setIsLeftColumnSelected(true);
   }, [isLeftColumnSelected]);
 
