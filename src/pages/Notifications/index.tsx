@@ -139,13 +139,26 @@ export const Notifications = () => {
     preventDefault: true,
   });
 
-  useHotkeys(['l', 'tab', 'o', Key.Enter, Key.ArrowRight], () => {
-    setIsLeftColumnSelected(false);
-  }, [isLeftColumnSelected]);
+  useHotkeys(['tab', 'shift+tab'], () => {
+    setIsLeftColumnSelected(!isLeftColumnSelected);
+  }, [isLeftColumnSelected], {
+    enabled: !showReplyModal,
+    preventDefault: true,
+  });
 
-  useHotkeys(['h', 'shift+tab', Key.Escape, Key.ArrowLeft], () => {
+  useHotkeys(['l', 'o', Key.Enter, Key.ArrowRight], () => {
+    setIsLeftColumnSelected(false);
+  }, [isLeftColumnSelected], {
+    enabled: !showReplyModal,
+    preventDefault: true,
+  });
+
+  useHotkeys(['h', Key.Escape, Key.ArrowLeft], () => {
     setIsLeftColumnSelected(true);
-  }, [isLeftColumnSelected]);
+  }, [isLeftColumnSelected], {
+    enabled: !showReplyModal,
+    preventDefault: true,
+  });
 
 
   const renderNotificationRow = (item: NotificationType, idx: number) => {
@@ -213,14 +226,6 @@ export const Notifications = () => {
   }
 
   useEffect(() => {
-    // const getParentCast = async (hash: string) => {
-    //   if (!hash) return;
-    //   console.log('getParentCast', hash);
-    //   const responseFetchCasts = await fetchCasts([{ hash }]);
-    //   console.log('responseFetchCasts', responseFetchCasts);
-    //   setSelectedParentCast(responseFetchCasts[0])
-    // }
-
     if (selectedNotificationIdx !== -1) {
       const notification = notifications[selectedNotificationIdx];
       console.log('notification', notification);
@@ -232,10 +237,6 @@ export const Notifications = () => {
       // console.log('setting selected parent cast', hash, author);
       if (!hash) return;
       setSelectedParentCast({ hash, author });
-
-      // in this case we have a notification and the parent_author isn't available,
-      // but we want to have a reply modal that points to the autho
-      // todo: fix this
       setSelectedCast(notification as CastType);
     }
   }, [selectedNotificationIdx, isLoading])

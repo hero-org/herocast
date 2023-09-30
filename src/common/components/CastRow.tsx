@@ -23,6 +23,7 @@ import OnchainEmbed from './Embeds/OnchainEmbed';
 import WarpcastEmbed from './Embeds/WarpcastEmbed';
 import TweetEmbed from './Embeds/TweetEmbed';
 import { ErrorBoundary } from '@sentry/react';
+import { renderEmbedForUrl } from './Embeds';
 
 interface CastRowProps {
   cast: CastType;
@@ -202,29 +203,14 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     </Linkify>
   )
 
-  // this can be images, open-graph links
-  // in future: twitter, youtube videos, spotify embeds, etc
   const renderEmbeds = () => (
     <div className="mt-4">
       <ErrorBoundary>
-        {map(cast.embeds, (embed) => {
-          const url = embed.url
-          if (url.startsWith('"chain:')) {
-            return <OnchainEmbed url={url} />
-          } else if (url.startsWith('https://warpcast.com')) {
-            return <WarpcastEmbed url={url} />
-          } else if ((url.includes('twitter.com') || url.startsWith('https://x.com')) && url.includes('status/')) {
-            const tweetId = url.split('/').pop();
-            return tweetId ? <TweetEmbed tweetId={tweetId} /> : null;
-          } else {
-            return null;
-          }
-        })}
+        {map(cast.embeds, renderEmbedForUrl)}
       </ErrorBoundary>
     </div>);
 
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
-
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
   const timeAgo = timeDiff(now, new Date(cast.timestamp))
   const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
@@ -234,7 +220,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       onClick={() => onSelect && onSelect()}
       className={classNames(
         isSelected ? "bg-gray-900/20" : "hover:bg-gray-900/30 cursor-pointer",
-        isThreadView ? "" : "py-4 px-2 md:px-4 lg:px-6",
+        isThreadView ? "p-2" : "py-4 px-2 md:px-4 lg:px-6",
         !isThreadView && isSelected ? "border-l-2 border-gray-200/80" : "border-l-2 border-transparent",
         "lg:ml-4 grow rounded-r-sm"
       )}>

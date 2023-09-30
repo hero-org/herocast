@@ -4,10 +4,18 @@ import { CastType } from '../constants/farcaster';
 import NewPostEntry from './NewPostEntry';
 import { useNewPostStore } from '@/stores/useNewPostStore';
 import { CastRow } from './CastRow';
-import { useAccountStore } from '@/stores/useAccountStore';
+
+type CastToReplyType = {
+  hash: string;
+  author: {
+    fid: number;
+    display_name?: string;
+    displayName?: string;
+  }
+}
 
 type ReplyModalProps = {
-  parentCast: CastType;
+  parentCast: CastToReplyType;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -17,10 +25,6 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
     addNewPostDraft,
     removePostDraft
   } = useNewPostStore();
-
-  const {
-    allChannels: channels,
-  } = useAccountStore();
 
   const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === parentCast?.hash));
 
@@ -39,7 +43,7 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
 
   return (
     <Modal
-      title={`Reply to ${parentCast?.author.display_name}`}
+      title={`Reply to ${parentCast?.author.display_name || parentCast?.author.displayName}`}
       open={open}
       setOpen={setOpen}
     >
@@ -49,7 +53,7 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
             className="mt-4"
             key={`new-post-parentHash-${parentCast?.hash}`}
           >
-            <div className="-ml-4 mb-4">
+            <div className="-ml-6 mb-4">
               {parentCast && (
                 <CastRow
                   cast={parentCast}

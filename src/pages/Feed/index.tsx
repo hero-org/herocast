@@ -14,6 +14,7 @@ import { SelectableListWithHotkeys } from "@/common/components/SelectableListWit
 import { Key } from "ts-key-enum";
 import ReplyModal from "@/common/components/ReplyModal";
 import EmbedsModal from "@/common/components/EmbedsModal";
+import { useInView } from "react-intersection-observer";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -30,6 +31,11 @@ export default function Feed() {
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
 
+  const { ref: buttonRef, inView } = useInView({
+    threshold: 0,
+    delay: 100,
+  });
+
   const {
     accounts,
     selectedAccountIdx,
@@ -37,7 +43,6 @@ export default function Feed() {
     hydrated
   } = useAccountStore();
 
-  const channels = accounts[selectedAccountIdx]?.channels || [];
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
   const getFeedKey = ({ selectedChannelUrl, account }: { selectedChannelUrl: string | null, account: AccountObjectType }) => {
@@ -68,10 +73,10 @@ export default function Feed() {
   useEffect(() => {
     if (isLoadingFeed || isEmpty(feed) || showCastThreadView || feed.length < DEFAULT_FEED_PAGE_SIZE) return;
 
-    if (selectedCastIdx >= feed.length - 5) {
+    if (inView || selectedCastIdx >= feed.length - 5) {
       getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelUrl, cursor: nextFeedCursor });
     }
-  }, [selectedCastIdx, feed, account, selectedChannelUrl])
+  }, [selectedCastIdx, feed, account, selectedChannelUrl, inView])
 
   useHotkeys([Key.Escape, '§'], () => {
     setShowCastThreadView(false);
@@ -146,8 +151,9 @@ export default function Feed() {
 
   const renderLoadMoreButton = () => (
     <button
+      ref={buttonRef}
       onClick={() => getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelUrl, cursor: nextFeedCursor })}
-      className="mt-4 text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500"
+      className="ml-4 my-4 text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500"
     >
       {getButtonText()}
     </button>

@@ -6,6 +6,7 @@ import debounce from "lodash.debounce";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { CastRow } from "@/common/components/CastRow";
 import { CastType } from "@/common/constants/farcaster";
+import { getUrlsInText } from "@/common/helpers/text";
 
 
 // export type CastType = {
@@ -24,6 +25,7 @@ import { CastType } from "@/common/constants/farcaster";
 
 // this transform isn't perfect yet
 function transformToCastType(searchCasts: SearchResultCast[]): CastType[] {
+  console.log('first searchCast', searchCasts[0]);
   return searchCasts.map((searchCast) => ({
     author: {
       fid: '',
@@ -47,7 +49,7 @@ function transformToCastType(searchCasts: SearchResultCast[]): CastType[] {
     text: searchCast.body.data.text,
     thread_hash: searchCast.body.data.threadMerkleRoot,
     timestamp: new Date(searchCast.body.publishedAt).toISOString(),
-    embeds: [],
+    embeds: getUrlsInText(searchCast.body.data.text),
     replies: { count: searchCast.meta.numReplyChildren },
   }))
 }
@@ -60,13 +62,7 @@ export default function Search() {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const {
-    accounts,
-    selectedAccountIdx,
-    selectedChannelIdx
-  } = useAccountStore();
-
-  const channels = accounts[selectedAccountIdx].channels;
+  console.log('casts', casts.length > 0 ? casts[0] : null);
 
   const onChange = async (text: string) => {
     setSearch(text)
@@ -98,7 +94,7 @@ export default function Search() {
       className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
       <CastRow
         cast={row}
-        showChannel={selectedChannelIdx === null}
+        showChannel={false}
         isSelected={selectedIdx === idx}
         onSelect={() => null}
       />

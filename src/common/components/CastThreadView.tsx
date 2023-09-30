@@ -36,14 +36,14 @@ export const CastThreadView = ({ cast, onBack, fid, isActive, setSelectedCast }:
   } = useNewPostStore();
 
   useEffect(() => {
-    if (!cast || !setSelectedCast) return;
+    if (!cast || casts.length === 0 || !setSelectedCast) return;
 
     setSelectedCast(casts[selectedCastIdx]);
-  }, [selectedCastIdx]);
+  }, [cast, selectedCastIdx, casts]);
 
   const renderGoBackButton = () => (
     <button
-      className="group md:-ml-2 flex flex-shrink inline-flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 md:bg-gray-800 focus:outline-none"
+      className="group md:-ml-2 flex items-center px-2 py-1 border border-transparent shadow-sm text-sm font-medium rounded-sm text-gray-100 bg-gray-700 md:bg-gray-800 focus:outline-none"
       onClick={() => onBack && onBack()}
     >
       <kbd className="hidden md:block mr-2 px-1.5 py-1 text-xs border rounded-md bg-gray-600 text-gray-300 border-gray-600 group-hover:bg-gray-500">
