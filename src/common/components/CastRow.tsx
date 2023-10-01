@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { toBytes } from 'viem'
+import { toBytes } from 'viem';
 
 import { castTextStyle, classNames } from "@/common/helpers/css";
 import { CastType, CastReactionType } from "@/common/constants/farcaster";
@@ -19,9 +19,6 @@ import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import get from 'lodash.get';
 import Linkify from "linkify-react";
 import { isImageUrl } from '../helpers/text';
-import OnchainEmbed from './Embeds/OnchainEmbed';
-import WarpcastEmbed from './Embeds/WarpcastEmbed';
-import TweetEmbed from './Embeds/TweetEmbed';
 import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
 

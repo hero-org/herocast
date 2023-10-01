@@ -4,6 +4,8 @@ import { CastType } from '../constants/farcaster';
 import { SelectableListWithHotkeys } from './SelectableListWithHotkeys';
 import { openWindow } from '../helpers/navigation';
 import { classNames } from '../helpers/css';
+import { getUrlsInText } from '../helpers/text';
+import uniqBy from 'lodash.uniqby';
 
 type EmbedsModalProps = {
   cast: CastType;
@@ -36,11 +38,11 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
     )
   }
 
-  const onSelect = (idx: number) => {
-    openWindow(cast.embeds[idx].url);
-  }
+  const urls = uniqBy(cast?.embeds.concat(getUrlsInText(cast.text)), 'url');
 
-  if (!cast || !cast.embeds) return;
+  const onSelect = (idx: number) => {
+    openWindow(urls[idx].url);
+  }
 
   return (
     <Modal
@@ -50,7 +52,7 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
     >
       <div className="my-4">
         <SelectableListWithHotkeys
-          data={cast?.embeds}
+          data={urls}
           renderRow={renderEmbedRow}
           selectedIdx={selectedIdx}
           setSelectedIdx={setSelectedIdx}

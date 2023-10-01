@@ -3,7 +3,6 @@ import { InformationCircleIcon, MagnifyingGlassIcon } from "@heroicons/react/24/
 import { searchForText, SearchResultCast } from "@/common/helpers/searchcaster";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import debounce from "lodash.debounce";
-import { useAccountStore } from "@/stores/useAccountStore";
 import { CastRow } from "@/common/components/CastRow";
 import { CastType } from "@/common/constants/farcaster";
 import { getUrlsInText } from "@/common/helpers/text";
@@ -25,7 +24,6 @@ import { getUrlsInText } from "@/common/helpers/text";
 
 // this transform isn't perfect yet
 function transformToCastType(searchCasts: SearchResultCast[]): CastType[] {
-  console.log('first searchCast', searchCasts[0]);
   return searchCasts.map((searchCast) => ({
     author: {
       fid: '',
@@ -62,8 +60,6 @@ export default function Search() {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  console.log('casts', casts.length > 0 ? casts[0] : null);
-
   const onChange = async (text: string) => {
     setSearch(text)
   }
@@ -94,9 +90,9 @@ export default function Search() {
       className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
       <CastRow
         cast={row}
-        showChannel={false}
         isSelected={selectedIdx === idx}
         onSelect={() => null}
+        showChannel
       />
     </li>
   )

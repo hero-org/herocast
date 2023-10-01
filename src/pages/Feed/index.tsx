@@ -59,8 +59,8 @@ export default function Feed() {
   const feed = feedKey ? get(feeds, feedKey, []) : [];
 
   const onOpenLinkInCast = (idx: number) => {
-    const cast = feed[idx];
-    if (cast?.embeds?.length === 0) return;
+    // const cast = feed[idx];
+    // if (cast?.embeds?.length === 0) return;
 
     setShowEmbedsModal(true);
   }
