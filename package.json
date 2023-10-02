@@ -50,6 +50,7 @@
     "@radix-ui/react-toast": "^1.1.4",
     "@radix-ui/react-tooltip": "^1.0.6",
     "@radix-ui/themes": "^1.1.0",
+    "@rainbow-me/rainbowkit": "^1.0.11",
     "@sentry/react": "^7.68.0",
     "@sentry/vite-plugin": "^2.7.1",
     "@supabase/auth-ui-react": "^0.4.4",
@@ -97,6 +98,8 @@
     "tauri-plugin-window-state-api": "https://github.com/tauri-apps/tauri-plugin-window-state#v1",
     "ts-key-enum": "^2.0.12",
     "typescript": "^5.1.6",
+    "viem": "^1.14.0",
+    "wagmi": "^1.4.2",
     "zustand": "^4.2.0"
   },
   "devDependencies": {
