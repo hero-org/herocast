@@ -15,7 +15,7 @@ type StatsType = {
 const NOUNS_BUILDER_GRAPHQL_ENDPOINT = {
   'mainnet': 'https://api.thegraph.com/subgraphs/name/neokry/nouns-builder-mainnet',
   'ethereum': 'https://api.thegraph.com/subgraphs/name/neokry/nouns-builder-mainnet',
-  'zora': 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-zora-mainnet/stable',
+  'zora': 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-zora-mainnet/stable/gn',
   'optimism': 'https://api.thegraph.com/subgraphs/name/neokry/noun-builder-optimism-mainnet',
 };
 

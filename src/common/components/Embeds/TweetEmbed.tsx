@@ -7,7 +7,7 @@ interface TweetEmbedProps {
 
 const TweetEmbed: React.FC<TweetEmbedProps> = ({ tweetId }) => {
   return (
-    <div className="dark">
+    <div key={`tweet-embed-${tweetId}`} className="dark">
       <Tweet id={tweetId} />
     </div>
   );
