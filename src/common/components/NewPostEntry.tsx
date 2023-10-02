@@ -151,7 +151,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
 
     switch (draft.status) {
       case DraftStatus.writing:
-        return `Post${hasMultipleAccounts ? ` as @${account.name}` : ''} ${!isEmpty(channel) && !hideChannel ? ` in ${channel.name}` : ''}`;
+        return `Post${hasMultipleAccounts ? ` as @${account.name}` : ''} ${!isEmpty(channel) && !hideChannel ? ` in ${channel.name.length > 10 ? 'channel' : channel.name}` : ''}`;
       case DraftStatus.publishing:
         return 'Posting...';
       case DraftStatus.published:

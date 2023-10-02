@@ -297,7 +297,7 @@ export default function Channels() {
         description='Custom channel for you and others to follow and pin in herocast. Casts are visible in Warpcast and other clients. Herocast channels are not visible in Warpcast, but casts appear in all clients.'
       >
         <form onSubmit={handleSubmit(onSubmit)} className="mt-12">
-          {renderTextField("Channel Name", "name", "Satochi_Conspiracies", "", { required: true, maxLength: 40 })}
+          {renderTextField("Channel Name", "name", "Satochi_Conspiracies", "", { required: true, maxLength: 80 })}
           {renderTextField("URL", "url", "https://satochi.com", getUrlExplainer(), { required: true, minLength: 5 })}
           {/* {renderTextField("Icon Url", "iconUrl", "https://satochi.com/")} */}
           <fieldset className="mb-[10px] flex items-start gap-5" >

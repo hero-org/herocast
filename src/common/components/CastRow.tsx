@@ -235,7 +235,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
             <div className="flex flex-row">
               <span className="flex font-semibold text-gray-300 truncate">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name || cast.author.displayName})</span></span>
               {showChannel && channel && (
-                <span className="h-5 ml-2 inline-flex items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
+                <span className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
                   {channel.name}
                 </span>
               )}

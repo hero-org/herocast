@@ -15,6 +15,7 @@ import { Key } from "ts-key-enum";
 import ReplyModal from "@/common/components/ReplyModal";
 import EmbedsModal from "@/common/components/EmbedsModal";
 import { useInView } from "react-intersection-observer";
+import { renderEmbedForUrl } from "@/common/components/Embeds";
 
 type FeedType = {
   [key: string]: CastType[]
@@ -26,10 +27,11 @@ export default function Feed() {
   const [feeds, setFeeds] = useState<FeedType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedCursor, setNextFeedCursor] = useState("");
-  const [selectedCastIdx, setSelectedCastIdx] = useState(0);
+  const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
+  const [selectedCast, setSelectedCast] = useState<CastType | null>(null);
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
@@ -66,22 +68,28 @@ export default function Feed() {
   }
 
   const onSelectCast = (idx: number) => {
-    setSelectedCastIdx(idx);
+    setSelectedFeedIdx(idx);
     setShowCastThreadView(true);
   }
 
   useEffect(() => {
+    if(!showCastThreadView) setSelectedCast(feed[selectedFeedIdx]);
+
+  }, [selectedFeedIdx, showCastThreadView]);
+
+  useEffect(() => {
     if (isLoadingFeed || isEmpty(feed) || showCastThreadView || feed.length < DEFAULT_FEED_PAGE_SIZE) return;
 
-    if (inView || selectedCastIdx >= feed.length - 5) {
+    if (inView || selectedFeedIdx >= feed.length - 5) {
       getFeed({ fid: account.platformAccountId, parentUrl: selectedChannelUrl, cursor: nextFeedCursor });
     }
-  }, [selectedCastIdx, feed, account, selectedChannelUrl, inView])
+  }, [selectedFeedIdx, feed, account, selectedChannelUrl, inView])
 
   useHotkeys([Key.Escape, '§'], () => {
     setShowCastThreadView(false);
-  }, [selectedCastIdx], {
+  }, [showCastThreadView, showReplyModal, showEmbedsModal], {
     enableOnFormTags: true,
+    enabled: showCastThreadView && !showReplyModal && !showEmbedsModal,
   })
 
   useHotkeys('r', () => {
@@ -119,7 +127,7 @@ export default function Feed() {
   useEffect(() => {
     if (account && !showCastThreadView) {
       setShowReplyModal(false);
-      setSelectedCastIdx(0);
+      setSelectedFeedIdx(0);
       setShowCastThreadView(false);
 
       const fid = account.platformAccountId;
@@ -133,7 +141,7 @@ export default function Feed() {
       <CastRow
         cast={item as CastType}
         showChannel={!selectedChannelUrl}
-        isSelected={selectedCastIdx === idx}
+        isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
       />
     </li>
@@ -162,8 +170,8 @@ export default function Feed() {
   const renderFeed = () => (
     <SelectableListWithHotkeys
       data={feed}
-      selectedIdx={selectedCastIdx}
-      setSelectedIdx={setSelectedCastIdx}
+      selectedIdx={selectedFeedIdx}
+      setSelectedIdx={setSelectedFeedIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
       onExpand={onOpenLinkInCast}
       onSelect={onSelectCast}
@@ -173,9 +181,10 @@ export default function Feed() {
 
   const renderThread = () => (
     <CastThreadView
-      cast={feed[selectedCastIdx]}
+      cast={feed[selectedFeedIdx]}
       fid={account.platformAccountId}
       onBack={() => setShowCastThreadView(false)}
+      setSelectedCast={setSelectedCast}
     />
   )
 
@@ -240,7 +249,7 @@ export default function Feed() {
     <ReplyModal
       open={showReplyModal}
       setOpen={() => setShowReplyModal(false)}
-      parentCast={feed[selectedCastIdx]}
+      parentCast={selectedCast}
     />
   )
 
@@ -249,14 +258,22 @@ export default function Feed() {
       <EmbedsModal
         open={showEmbedsModal}
         setOpen={() => setShowEmbedsModal(false)}
-        cast={feed[selectedCastIdx]}
+        cast={selectedCast}
       />
     )
   }
 
+  const renderChannelEmbed = () => (selectedChannelUrl ?
+    <div className="mx-4 my-8">
+      {renderEmbedForUrl({ url: selectedChannelUrl })}
+    </div>
+    : null
+  );
+
   return hydrated && isEmpty(accounts) ? renderEmptyState() : (
     <>
       <div className="min-w-full">
+        {renderChannelEmbed()}
         {showCastThreadView ?
           renderThread()
           : <>
