@@ -69,7 +69,6 @@ const WarpcastLogin = () => {
   }, [runPolling])
 
   const onCreateNewAccount = async () => {
-    // console.log('onCreateNewAccount', accountName);
     if (!accountName) {
       setErrorMessage('Account name is required');
       return;
@@ -78,7 +77,6 @@ const WarpcastLogin = () => {
     setIsLoading(true);
 
     const { publicKey, privateKey, token, deeplinkUrl } = await generateWarpcastSigner();
-    // console.log('onCreateNewAccount', publicKey, token, deeplinkUrl);
 
     try {
       addAccount({

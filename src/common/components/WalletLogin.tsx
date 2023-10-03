@@ -41,9 +41,9 @@ const WalletLogin = () => {
             borderRadius: 'small',
             fontStack: 'system',
         })}>
-            <span className="block mb-2 text-lg font-medium leading-6 text-gray-100">
+            {/* <span className="block mb-2 text-lg font-medium leading-6 text-gray-100">
                 Connected wallet
-            </span>
+            </span> */}
             <ConnectButton showBalance={false} chainStatus="none" />
         </RainbowKitProvider>
     </WagmiConfig>)

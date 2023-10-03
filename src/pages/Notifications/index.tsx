@@ -11,6 +11,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { Key } from 'ts-key-enum'
 import { CastType } from '@/common/constants/farcaster'
 import ReplyModal from '@/common/components/ReplyModal'
+import { Mask } from 'react-daisyui'
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
@@ -171,7 +172,11 @@ export const Notifications = () => {
           idx === selectedNotificationIdx ? 'bg-gray-600' : 'cursor-pointer bg-gray-800 hover:bg-gray-700',
           "flex gap-x-4 px-5 py-4 rounded-sm"
         )}>
-        <img className="mt-1.5 h-10 w-10 flex-none rounded-full bg-gray-50" src={item.author.pfp.url} alt="" />
+        <Mask
+          variant='squircle'
+          className="mt-1.5 h-10 w-10 flex-none bg-gray-50" src={item.author.pfp.url} alt="" 
+        />
+
         <div className="flex-auto">
           <div className="flex items-center justify-between gap-x-4">
             <p className="text-sm font-semibold leading-6 text-gray-100">{item.author.username}

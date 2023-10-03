@@ -3,6 +3,8 @@ module.exports = {
   content: [
     './index.html',
     './src/**/*.{js,ts,jsx,tsx,css,md,mdx,html,json,scss}',
+    'node_modules/daisyui/dist/**/*.js',
+    'node_modules/react-daisyui/dist/**/*.js',
   ],
   // darkMode: 'class', // or 'media'
   theme: {
@@ -32,10 +34,16 @@ module.exports = {
       },
     },
   },
+  daisyui: {
+    themes: [
+      "night",
+    ],
+  },
   plugins: [
     require('@tailwindcss/forms'),
     require('radix-colors-for-tailwind')({
       colors: ["slate", "blue", "red", "mauve",],
     }),
+    require('daisyui'),
   ],
 };

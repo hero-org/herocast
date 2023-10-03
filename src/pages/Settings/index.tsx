@@ -127,7 +127,6 @@ export default function Settings() {
             <div
               className="flex items-center gap-x-3"
             >
-              {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
               <h3 className={classNames(
                 "text-gray-100",
                 "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
