@@ -34,10 +34,6 @@ const WarpcastLogin = () => {
   }, [hasPendingNewAccounts])
 
   const onPollingUpdate = async () => {
-    // const accounts = useAccountStore.getState().accounts;
-    // const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
-    // const hasPendingNewAccounts = !isEmpty(pendingAccounts);
-
     if (hasPendingNewAccounts && !isSignupDone) {
       pendingAccounts.forEach(async (account, idx) => {
         if (!account.id) return;

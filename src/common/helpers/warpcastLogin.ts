@@ -18,8 +18,8 @@ type WarpcastSignerType = {
   publicKey: string,
   privateKey: string,
   signature: string,
-  requestFid: Number,
-  deadline: Number
+  requestFid: number,
+  deadline: number
 }
 
 export enum WarpcastLoginStatus {

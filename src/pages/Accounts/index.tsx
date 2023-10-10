@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import WalletLogin from "@/common/components/WalletLogin";
-import { CheckCircleIcon, PlusCircleIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon, PaperAirplaneIcon, PlusCircleIcon, RectangleGroupIcon, UserPlusIcon } from "@heroicons/react/20/solid";
 import { NewspaperIcon } from "@heroicons/react/24/solid";
 import { JoinedHerocastPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
-import { useAccountStore } from "@/stores/useAccountStore";
+import { hydrate, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
 import { useNavigate } from "react-router-dom";
@@ -19,8 +19,11 @@ import { Button } from "@/components/ui/button";
 import { QrCode } from "@/common/components/QrCode";
 import { useAccount } from "wagmi";
 import ConfirmOnchainSignerButton from "@/common/components/ConfirmOnchainSignerButton";
-import { createSignerRequest, generateWarpcastSigner } from "@/common/helpers/warpcastLogin";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WarpcastLoginStatus, createSignerRequest, generateWarpcastSigner, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
+import { getUserInfoByFid } from "@/common/helpers/neynar";
+import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/outline";
+import { openWindow } from "@/common/helpers/navigation";
+import HelpCard from "@/common/components/HelpCard";
 
 enum SignupStateEnum {
   "initial",
@@ -64,26 +67,31 @@ export default function Accounts() {
   const {
     accounts,
     addAccount,
+    setAccountActive,
   } = useAccountStore();
 
   const {
     addNewPostDraft,
   } = useNewPostStore();
 
-  
-  const hasActiveAccounts = !isEmpty(accounts.filter((account) => account.status === AccountStatusType.active));
-  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
-  const hasPendingNewAccounts = !isEmpty(pendingAccounts);
-  const [signupStateIdx, setSignupStateIdx] = useState(hasPendingNewAccounts ? 1 : 0);
-  const signupState = SignupSteps[signupStateIdx];
+  console.log('accounts', accounts, accounts.filter((account) => account.status === AccountStatusType.active))
 
-  console.log('pendingAccounts', pendingAccounts);
+  const hasActiveAccounts = accounts.filter((account) => account.status === AccountStatusType.active).length > 0;
+  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
+  const hasPendingNewAccounts = pendingAccounts.length > 0;
+  const [signupStateIdx, setSignupStateIdx] = useState(0);
+  const signupState = SignupSteps[signupStateIdx];
 
   const onStartCasting = () => {
     addNewPostDraft(JoinedHerocastPostDraft)
     navigate('/post');
   }
 
+  useEffect(() => {
+    if (hasPendingNewAccounts && signupState.state === SignupStateEnum.initial) {
+      setSignupStateIdx(1);
+    }
+  }, [signupStateIdx, hasPendingNewAccounts]);
 
   const onCreateNewAccount = async () => {
     const { publicKey, privateKey, signature, requestFid, deadline } = await generateWarpcastSigner();
@@ -109,11 +117,36 @@ export default function Accounts() {
     }
   }
 
+
+  const pollForSigner = async () => {
+    let tries = 0;
+    while (true || tries < 60) {
+      tries += 1;
+      await new Promise((r) => setTimeout(r, 2000));
+
+      const { status, data } = await getWarpcastSignerStatus(account.data.signerToken);
+      console.log('signerStatus: ', status, data);
+      if (status === WarpcastLoginStatus.success) {
+        const fid = data.userFid;
+        const userInfo = await getUserInfoByFid(fid);
+        setAccountActive(account.id, userInfo?.displayName, { platform_account_id: data.userFid, data });
+        await hydrate();
+        window.location.reload();
+      }
+    }
+  }
+
+  // useEffect(() => {
+  //   if (!isAddKeyTxSuccess) return;
+
+  //   pollForSigner();
+  // }, [isAddKeyTxSuccess]);
+
   const renderCreateSignerStep = () => (
     <Card className="bg-background text-foreground">
       <CardHeader>
         <CardTitle className="text-2xl">Connect your Farcaster account</CardTitle>
-        {/* <CardDescription>asd</CardDescription> */}
+        <CardDescription>Connect with herocast to see and publish casts</CardDescription>
       </CardHeader>
       {/* <CardContent>
         <p>Card Content</p>
@@ -124,8 +157,8 @@ export default function Accounts() {
           variant="outline"
           onClick={() => onCreateNewAccount()}
         >
-          <PlusCircleIcon className="mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
-          Connect
+          <UserPlusIcon className="mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
+          {isLoading ? 'Creating account...' : 'Connect'}
         </Button>
       </CardFooter>
     </Card>
@@ -144,7 +177,6 @@ export default function Accounts() {
               <CardDescription className="text-muted-foreground">Pay with ETH on Optimism to connect with herocast</CardDescription>
             </CardHeader>
             <CardContent>
-              
               {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount} /> : <WalletLogin />}
             </CardContent>
             <CardFooter>
@@ -209,45 +241,28 @@ export default function Accounts() {
           </Button>
         </div>
       </CardContent>
-      {/* <CardFooter>
-      </CardFooter> */}
     </Card>
   );
 
   return (
-    <div className="m-4 flex min-w-full flex-col">
+    <div className="m-4 flex flex-col">
       <div>
-        {/* <h1 className="mb-4 text-lg font-bold tracking-tight text-gray-200 sm:text-4xl">
-          Connect Farcaster accounts
-        </h1> */}
-        {/* <div className="text-gray-200 mb-8">
-          <ul className="steps steps-vertical lg:steps-horizontal">
-            {SignupSteps.map((step, idx) => (
-              <li
-                key={idx}
-                className={classNames(
-                  step.idx === signupState.idx ? 'step step-primary' : 'step',
-                  step.idx < signupState.idx ? 'step-primary' : '',
-                )}
-              >
-                {step.title}
-              </li>
-            ))}
-          </ul>
-        </div> */}
         <div className="flex w-full max-w-3xl">
           {signupState.state === SignupStateEnum.initial && renderCreateSignerStep()}
           {signupState.state === SignupStateEnum.connecting && renderConnectAccountStep()}
-          {signupState.state === SignupStateEnum.done && renderDoneStep()}
+          {hasActiveAccounts || signupState.state === SignupStateEnum.done && renderDoneStep()}
         </div>
       </div>
+      <HelpCard />
+      {/* 
       <Button className="mt-12" onClick={() => setSignupStateIdx(signupState.idx + 1)} disabled={!hasActiveAccounts}>
         next
       </Button>
       <Button onClick={() => setSignupStateIdx(0)} disabled={!hasActiveAccounts}>
         reset
       </Button>
-      <ConnectButton />
+      <ConnectButton /> 
+      */}
     </div>
   )
 }

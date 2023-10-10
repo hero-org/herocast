@@ -45,6 +45,7 @@ export const getNavigationCommands = (navigate?: (path: string) => void | null):
       action: () => navigate && navigate('/search'),
       options: {
         enableOnFormTags: false,
+        preventDefault: true,
       },
     },
     {
@@ -137,7 +138,9 @@ export default function CommandPalette() {
       },
       shortcut: '',
       aliases: [],
-      enableOnFormTags: false,
+      options: {
+        enableOnFormTags: false,
+      },
     });
   });
   commands = commands.concat(nonHotkeyCommands);

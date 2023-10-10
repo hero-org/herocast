@@ -334,10 +334,10 @@ export default function Home() {
                   <span className="sr-only">Open sidebar</span>
                   <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                 </button>
-                <h1 className="text-2xl font-semibold leading-7 text-white">{title}</h1>
-                <h1 className="text-base font-semibold leading-7 text-white"></h1>
+                <h1 className="mx-auto text-2xl font-semibold leading-7 text-white">{title}</h1>
+                {/* <h1 className="text-base font-semibold leading-7 text-white"></h1> */}
               </header>
-              <div className="w-full max-w-full min-h-screen flex justify-between px-2 py-4 sm:py-2 border-t border-white/5 ">
+              <div className="w-full max-w-full min-h-screen flex justify-between px-2 border-t border-white/5 ">
                 <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
                   <Outlet />
                 </Suspense>

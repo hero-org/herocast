@@ -1,5 +1,6 @@
 import AlertDialogDemo from "@/common/components/AlertDialog";
 import { getNavigationCommands } from "@/common/components/CommandPalette";
+import HelpCard from "@/common/components/HelpCard";
 import { classNames } from "@/common/helpers/css";
 import { supabaseClient } from "@/common/helpers/supabase";
 import { Button } from "@/components/ui/button"
@@ -143,6 +144,7 @@ export default function Settings() {
           </li>
         ))}
       </ul>
+      <HelpCard />
       {renderInfoSection()}
     </div>
   )

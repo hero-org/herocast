@@ -64,9 +64,6 @@ export default function NewPost() {
                 key={`draft-${draftIdx}`}
                 draftIdx={draftIdx}
                 onPost={() => null}
-              // draft={draft}
-              // onChange={(cast: PostType) => updatePostDraft(draftIdx, cast)}
-              // onSubmit={(e: React.FormEvent<HTMLFormElement>) => onSubmit(e, draft, draftIdx)}
               />
             </div>
           )}

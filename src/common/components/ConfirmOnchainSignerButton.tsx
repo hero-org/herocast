@@ -14,9 +14,11 @@ import { KEY_REGISTRY } from "../constants/contracts/key-registry";
 import { CheckIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { ID_REGISTRY } from "../constants/contracts/id-registry";
 import { mnemonicToAccount } from "viem/accounts";
-import { AccountObjectType } from "@/stores/useAccountStore";
+import { AccountObjectType, hydrate, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { useAccountModal } from "@rainbow-me/rainbowkit";
+import { WarpcastLoginStatus, getWarpcastSignerStatus } from "../helpers/warpcastLogin";
+import { getUserInfoByFid } from "../helpers/neynar";
 
 const VITE_APP_FID = import.meta.env.VITE_APP_FID
 const VITE_APP_MNENOMIC = import.meta.env.VITE_APP_MNENOMIC
@@ -70,6 +72,7 @@ type ConfirmOnchainSignerButtonType = {
 }
 
 const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType) => {
+    console.log('account', account);
     const { chain } = useNetwork();
     const { switchNetwork } = useSwitchNetwork();
     const [signature, setSignature] = useState('');
@@ -82,6 +85,8 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
         functionName: address ? 'idOf' : undefined,
         args: address ? [address] : undefined
     });
+
+    if (idOfUserError) console.log('idOfUserError', idOfUserError);
 
     const enabled = !isEmpty(account) && !isEmpty(account?.data) && signature !== '';
     const appAccount = mnemonicToAccount(VITE_APP_MNENOMIC);
@@ -109,7 +114,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
         getSignature();
     }, [account, deadline]);
 
-    const { config: addKeyConfig, status: prepareToAddKeyStatus, error: prepareToAddKeyError } = usePrepareContractWrite({
+    const { config: addKeyConfig, error: prepareToAddKeyError } = usePrepareContractWrite({
         ...KEY_REGISTRY,
         chainId: 10,
         functionName: enabled ? 'add' : undefined,
@@ -145,7 +150,8 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
         isLoading: isAddKeyTxLoading
     } = useWaitForTransaction({ hash: addKeySignResult?.hash });
 
-    console.log('addKeyError', addKeyError)
+    console.log('isAddKeyTxSuccess', isAddKeyTxSuccess)
+
     const onClick = () => {
         if (chain?.id !== 10) {
             switchNetwork?.(10);
@@ -176,7 +182,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
                 <p className="mb-2 text-sm text-gray-400">Connected wallet {address.slice(0, 6)}...{address.slice(-6)} is not registered on Farcaster</p>
             )}
             <Button
-                variant="outline"
+                variant="default"
                 className="w-full"
                 onClick={() => onClick()}
                 disabled={!enabled || addKeySignPending || addKeySignSuccess || isError}
