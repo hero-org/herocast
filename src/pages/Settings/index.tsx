@@ -2,6 +2,7 @@ import AlertDialogDemo from "@/common/components/AlertDialog";
 import { getNavigationCommands } from "@/common/components/CommandPalette";
 import { classNames } from "@/common/helpers/css";
 import { supabaseClient } from "@/common/helpers/supabase";
+import { Button } from "@/components/ui/button"
 import { AccountObjectType, accountCommands, channelCommands, useAccountStore } from "@/stores/useAccountStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { User } from "@supabase/supabase-js";
@@ -111,6 +112,7 @@ export default function Settings() {
       >
         Logout
       </button>
+      <Button>Button</Button>
       {/* <button
         type="button"
         onClick={() => onUpdateAccountStatus()}

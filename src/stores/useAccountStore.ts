@@ -31,7 +31,7 @@ type UpdatedPinnedChannelIndicesProps = {
 export type AccountObjectType = {
   id: number | null;
   userId?: string;
-  name: string;
+  name?: string;
   status: AccountStatusType;
   publicKey: string;
   platform: AccountPlatformType;
@@ -51,7 +51,7 @@ interface AccountStoreProps {
 }
 
 interface AccountStoreActions {
-  addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => void;
+  addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey: string, data: object }) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: number, data: { platform_account_id: string, data: object }) => void;

@@ -1,26 +1,14 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
-import './index.css';
-import '@/config/theme/globals.css';
-import '@radix-ui/themes/styles.css';
 import { router } from "@/router";
 import { disableContextMenu } from '@/common/helpers/tauri/contextMenu';
 import { init } from "@aptabase/web";
 import { RUNNING_IN_TAURI } from './common/constants/tauri';
-import { Theme } from 'react-daisyui'
+import { ThemeProvider } from './common/hooks/ThemeProvider';
 
-export default (props) => {
-  return (
-    <>
+import '@/globals.css';
 
-
-      <Theme dataTheme="light">
-        <Button color="primary">Click me, light!</Button>
-      </Theme>
-    </>
-  )
-}
 export const VITE_APTABASE_KEY = import.meta.env.VITE_APTABASE_KEY
 
 if (RUNNING_IN_TAURI) {
@@ -34,7 +22,7 @@ if (!rootElement) throw new Error('Failed to find the root element');
 const root = createRoot(rootElement);
 
 root.render(
-  <Theme dataTheme="night">
+  <ThemeProvider defaultTheme="dark" storageKey="herocast-ui-theme">
     <RouterProvider router={router} />
-  </Theme>
+  </ThemeProvider>
 );

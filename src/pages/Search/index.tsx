@@ -114,6 +114,7 @@ export default function Search() {
             placeholder="Search"
             type="search"
             name="search"
+            autoFocus
           />
         </div>
       </div>

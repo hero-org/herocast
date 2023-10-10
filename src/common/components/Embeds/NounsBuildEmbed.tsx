@@ -5,7 +5,6 @@ import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import get from "lodash.get";
 import isEmpty from "lodash.isempty";
 import { openWindow } from "../../helpers/navigation";
-import { Mask } from 'react-daisyui'
 
 type StatsType = {
   name: string;
@@ -192,7 +191,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
           <div className="border-t border-white/5 py-6 px-4 sm:px-6 lg:px-8">
             <p className="text-sm font-medium leading-6 text-gray-400">Image</p>
             <div className="mt-2 flex items-center gap-x-2">
-              <Mask variant='squircle' src={token.image} className="w-16 h-16" />
+              <img src={token.image} className="w-16 h-16 rounded-lg" />
             </div>
           </div>
         )}

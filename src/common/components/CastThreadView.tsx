@@ -10,8 +10,6 @@ import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { openWindow } from "../helpers/navigation";
 import { classNames } from "../helpers/css";
-import { Mask } from 'react-daisyui';
-
 
 type CastThreadViewProps = {
   cast: { hash: string, author: { fid: string } };
@@ -105,9 +103,8 @@ export const CastThreadView = ({ cast, onBack, fid, isActive, setSelectedCast }:
           "pl-3 relative flex items-start space-x-3")}>
           <>
             <div className="relative">
-              <Mask
-                variant='squircle'
-                className="flex mt-1 h-10 w-10 items-center justify-center bg-gray-400 ring-1 ring-radix-slate5"
+              <img
+                className="flex mt-1 h-10 w-10 items-center justify-center rounded-lg bg-gray-400 ring-1 ring-radix-slate5"
                 src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author?.pfp?.url}`}
                 alt=""
               />

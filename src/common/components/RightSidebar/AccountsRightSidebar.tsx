@@ -62,7 +62,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
               >
                 <h3 className={classNames(
                   idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
-                  "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
+                  "flex-auto truncate text-sm font-semibold leading-6")}>{item.name || 'New Account'}</h3>
                 {renderStatus(item.status)}
                 {item.platformAccountId && item.status === 'active' && (
                   <p className="truncate text-sm text-gray-500">

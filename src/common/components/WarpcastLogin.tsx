@@ -75,8 +75,9 @@ const WarpcastLogin = () => {
     }
     if (isLoading) return;
     setIsLoading(true);
-
-    const { publicKey, privateKey, token, deeplinkUrl } = await generateWarpcastSigner();
+    
+    const { publicKey, privateKey, signature, requestFid, deadline } = await generateWarpcastSigner();
+    const { token, deeplinkUrl } = await createSignerRequest(publicKey, requestFid, signature, deadline);
 
     try {
       addAccount({
@@ -174,3 +175,7 @@ const WarpcastLogin = () => {
 }
 
 export default WarpcastLogin;
+function createSignerRequest(hexStringPublicKey: any, requestFid: any, signature: any, deadline: any): { token: any; deeplinkUrl: any; } | PromiseLike<{ token: any; deeplinkUrl: any; }> {
+  throw new Error("Function not implemented.");
+}
+

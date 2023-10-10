@@ -4,7 +4,6 @@ import { Combobox } from '@headlessui/react';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { ChannelType } from '../constants/channels';
 import { classNames } from '../helpers/css';
-import { Mask } from 'react-daisyui';
 
 type ChannelsComboboxProps = {
   selectedChannel?: ChannelType;
@@ -56,11 +55,10 @@ const ChannelsDropdown = ({ selectedChannel, onChange }: ChannelsComboboxProps) 
                   <>
                     <div className="flex items-center">
                       {channel.icon_url ?
-                        <Mask
-                        variant='squircle' 
-                        src={channel.icon_url} 
-                        alt="" 
-                        className="h-6 w-6 flex-shrink-0" 
+                        <img
+                          src={channel.icon_url}
+                          alt=""
+                          className="h-6 w-6 flex-shrink-0 rounded-lg"
                         />
                         : <div className="h-6 w-6 flex-shrink-0 rounded-full bg-radix-slate8"></div>}
                       <span className={classNames('ml-3 truncate', selected && 'font-semibold')}>{channel.name}</span>

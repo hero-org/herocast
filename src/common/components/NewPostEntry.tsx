@@ -12,7 +12,6 @@ import { Loading } from "./Loading";
 import { useHotkeys } from "react-hotkeys-hook";
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import ChannelsDropdown from "./ChannelsDropdown";
-import { Mask } from 'react-daisyui';
 
 // const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
 
@@ -32,9 +31,8 @@ const MentionDropdownItem = ({ entity, selected }: { entity: AuthorType, selecte
     {({ active, selected }) => (
       <>
         <div className="flex items-center">
-          <Mask
-            variant='squircle'
-            className="h-6 w-6 flex-shrink-0 border border-gray-600"
+          <img
+            className="h-6 w-6 flex-shrink-0 border border-gray-600 rounded-lg"
             src={pfpUrl}
             alt=""
           />

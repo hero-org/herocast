@@ -1,15 +1,26 @@
 import React, { useState } from "react";
-import WarpcastLogin from "@/common/components/WarpcastLogin";
 import WalletLogin from "@/common/components/WalletLogin";
 import { CheckCircleIcon, PlusCircleIcon, RectangleGroupIcon } from "@heroicons/react/20/solid";
 import { NewspaperIcon } from "@heroicons/react/24/solid";
 import { JoinedHerocastPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import { AccountStatusType } from "@/common/constants/accounts";
+import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
 import { useNavigate } from "react-router-dom";
-import { classNames } from "@/common/helpers/css";
-import { Button } from 'react-daisyui';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { QrCode } from "@/common/components/QrCode";
+import { useAccount } from "wagmi";
+import ConfirmOnchainSignerButton from "@/common/components/ConfirmOnchainSignerButton";
+import { createSignerRequest, generateWarpcastSigner } from "@/common/helpers/warpcastLogin";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 enum SignupStateEnum {
   "initial",
@@ -47,105 +58,169 @@ const SignupSteps: SignupStepType[] = [
 
 export default function Accounts() {
   const navigate = useNavigate();
-  const [signupState, setSignupState] = useState<SignupStepType>(SignupSteps[1]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { isConnected } = useAccount();
 
   const {
     accounts,
+    addAccount,
   } = useAccountStore();
 
   const {
     addNewPostDraft,
   } = useNewPostStore();
 
+  
   const hasActiveAccounts = !isEmpty(accounts.filter((account) => account.status === AccountStatusType.active));
+  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
+  const hasPendingNewAccounts = !isEmpty(pendingAccounts);
+  const [signupStateIdx, setSignupStateIdx] = useState(hasPendingNewAccounts ? 1 : 0);
+  const signupState = SignupSteps[signupStateIdx];
+
+  console.log('pendingAccounts', pendingAccounts);
 
   const onStartCasting = () => {
     addNewPostDraft(JoinedHerocastPostDraft)
     navigate('/post');
   }
 
+
+  const onCreateNewAccount = async () => {
+    const { publicKey, privateKey, signature, requestFid, deadline } = await generateWarpcastSigner();
+    const { token, deeplinkUrl } = await createSignerRequest(publicKey, requestFid, signature, deadline);
+
+    try {
+      setIsLoading(true);
+      addAccount({
+        id: null,
+        platformAccountId: undefined,
+        status: AccountStatusType.pending,
+        platform: AccountPlatformType.farcaster,
+        publicKey,
+        privateKey,
+        data: { signerToken: token, deeplinkUrl }
+      });
+      setIsLoading(false);
+      setSignupStateIdx(1);
+
+    } catch (e) {
+      console.log('error when trying to add account', e);
+      setIsLoading(false);
+    }
+  }
+
   const renderCreateSignerStep = () => (
-    <div className="card w-96 rounded-sm bg-primary text-primary-content">
-      <div className="card-body">
-        <h2 className="card-title">Card title!</h2>
-        <p>If a dog chews shoes whose shoes does he choose?</p>
-        <div className="card-actions justify-end">
-          <button className="btn">Buy Now</button>
-        </div>
-      </div>
-    </div>
+    <Card className="bg-background text-foreground">
+      <CardHeader>
+        <CardTitle className="text-2xl">Connect your Farcaster account</CardTitle>
+        {/* <CardDescription>asd</CardDescription> */}
+      </CardHeader>
+      {/* <CardContent>
+        <p>Card Content</p>
+      </CardContent> */}
+      <CardFooter>
+        <Button
+          className="w-full"
+          variant="outline"
+          onClick={() => onCreateNewAccount()}
+        >
+          <PlusCircleIcon className="mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
+          Connect
+        </Button>
+      </CardFooter>
+    </Card>
   )
 
-  const renderConnectAccountStep = () => (
-    <>
-      <div className="grid h-20 flex-grow card rounded-sm bg-gray-600 rounded-box place-items-center">
-        <WarpcastLogin />
-      </div>
-      <div className="text-gray-100 divider divider-horizontal">OR</div>
-      <div className="grid flex-grow card rounded-sm bg-gray-600 rounded-box place-items-center">
-        <div className="card-body">
-          <h2 className="card-title">Card title!</h2>
-          <p>If a dog chews shoes whose shoes does he choose?</p>
-          <div className="card-actions justify-start">
-            {/* <button className="btn">Buy Now</button> */}
-            <WalletLogin />
+  const renderConnectAccountStep = () => {
+    if (isEmpty(pendingAccounts)) return null;
+    const pendingAccount = pendingAccounts[0];
+
+    return (
+      <div className="grid grid-cols-1 gap-4">
+        <div className="h-fit">
+          <Card className="bg-background text-foreground">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">Sign in with Ethereum wallet</CardTitle>
+              <CardDescription className="text-muted-foreground">Pay with ETH on Optimism to connect with herocast</CardDescription>
+            </CardHeader>
+            <CardContent>
+              
+              {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount} /> : <WalletLogin />}
+            </CardContent>
+            <CardFooter>
+            </CardFooter>
+          </Card>
+        </div>
+        <div className="relative mx-4">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-gray-800 px-2 text-sm text-gray-500">OR</span>
           </div>
         </div>
+        <Card className="bg-background text-foreground">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl">Sign in with Warpcast</CardTitle>
+            <CardDescription className="text-muted-foreground">Pay with Fiat in Warpcast to connect with herocast</CardDescription>
+          </CardHeader>
+          <CardContent>
+            Scan the QR code with your mobile camera app to sign in via Warpcast
+            <QrCode deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`} />
+          </CardContent>
+        </Card>
       </div>
-    </>
-  )
+    );
+  }
 
   const renderDoneStep = () => (
-    <div className="mt-10 max-w-xl rounded-sm bg-green-800/50 px-4 py-6">
-      <div className="flex">
-        <div className="flex-shrink-0">
-          <CheckCircleIcon className="h-5 w-5 text-gray-100" aria-hidden="true" />
+    <Card className="min-w-max bg-background text-foreground">
+      <CardHeader className="space-y-1">
+        <CardTitle className="flex">
+          <CheckCircleIcon className="-mt-0.5 mr-1 h-5 w-5 text-gray-500" aria-hidden="true" />
+          Account added to herocast</CardTitle>
+        <CardDescription className="text-muted-foreground">You can start casting and browsing your feed</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="-mx-2 -my-1.5 flex">
+          <Button
+            onClick={() => onStartCasting()}
+            type="button"
+            className="flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+          >
+            Start casting
+            <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+          </Button>
+          <Button
+            onClick={() => navigate('/feed')}
+            type="button"
+            className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+          >
+            Scroll your feed
+            <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+          </Button>
+          <Button
+            onClick={() => navigate('/channels')}
+            type="button"
+            className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+          >
+            Pin your favourite channels
+            <RectangleGroupIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+          </Button>
         </div>
-        <div className="ml-3">
-          <h3 className="text-sm font-medium text-gray-100">Account added to herocast</h3>
-          <div className="mt-2 text-sm text-gray-300">
-            <p>You can start casting and browsing your feed</p>
-          </div>
-          <div className="mt-4">
-            <div className="-mx-2 -my-1.5 flex">
-              <button
-                onClick={() => onStartCasting()}
-                type="button"
-                className="flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
-              >
-                Start casting
-                <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => navigate('/feed')}
-                type="button"
-                className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
-              >
-                Scroll your feed
-                <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => navigate('/channels')}
-                type="button"
-                className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
-              >
-                Pin your favourite channels
-                <RectangleGroupIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+      {/* <CardFooter>
+      </CardFooter> */}
+    </Card>
   );
 
   return (
-    <div className="ml-4 flex min-w-full flex-col">
+    <div className="m-4 flex min-w-full flex-col">
       <div>
-        <h1 className="mb-4 text-lg font-bold tracking-tight text-gray-200 sm:text-4xl">
+        {/* <h1 className="mb-4 text-lg font-bold tracking-tight text-gray-200 sm:text-4xl">
           Connect Farcaster accounts
-        </h1>
-        <div className="text-gray-200 mb-8">
+        </h1> */}
+        {/* <div className="text-gray-200 mb-8">
           <ul className="steps steps-vertical lg:steps-horizontal">
             {SignupSteps.map((step, idx) => (
               <li
@@ -159,19 +234,20 @@ export default function Accounts() {
               </li>
             ))}
           </ul>
-        </div>
-        <div className="flex w-full max-w-2xl">
+        </div> */}
+        <div className="flex w-full max-w-3xl">
           {signupState.state === SignupStateEnum.initial && renderCreateSignerStep()}
           {signupState.state === SignupStateEnum.connecting && renderConnectAccountStep()}
           {signupState.state === SignupStateEnum.done && renderDoneStep()}
         </div>
       </div>
-      <Button onClick={() => setSignupState(SignupSteps[signupState.idx + 1])} disabled={!hasActiveAccounts}>
+      <Button className="mt-12" onClick={() => setSignupStateIdx(signupState.idx + 1)} disabled={!hasActiveAccounts}>
         next
       </Button>
-      <Button onClick={() => setSignupState(SignupSteps[0])} disabled={!hasActiveAccounts}>
+      <Button onClick={() => setSignupStateIdx(0)} disabled={!hasActiveAccounts}>
         reset
       </Button>
+      <ConnectButton />
     </div>
   )
 }

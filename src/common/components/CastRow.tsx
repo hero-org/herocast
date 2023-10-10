@@ -21,7 +21,6 @@ import Linkify from "linkify-react";
 import { isImageUrl } from '../helpers/text';
 import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
-import { Mask } from 'react-daisyui';
 
 interface CastRowProps {
   cast: CastType;
@@ -224,9 +223,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       )}>
       <div className="flex items-top gap-x-4">
         {!isThreadView && (
-          <Mask
-          variant='squircle'
-            className='relative h-10 w-10 flex-none bg-gray-50'
+          <img
+            className='relative h-10 w-10 flex-none bg-gray-50 rounded-lg'
             src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
           />
         )}
