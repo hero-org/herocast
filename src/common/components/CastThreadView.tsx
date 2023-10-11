@@ -104,7 +104,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive, setSelectedCast }:
           <>
             <div className="relative">
               <img
-                className="flex mt-1 h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-1 ring-radix-slate5"
+                className="flex mt-1 h-10 w-10 items-center justify-center rounded-lg bg-gray-400 ring-1 ring-radix-slate5"
                 src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author?.pfp?.url}`}
                 alt=""
               />

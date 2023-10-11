@@ -20,6 +20,7 @@ import * as Toast from '@radix-ui/react-toast';
 import CustomToast from "@/common/components/CustomToast";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { SidebarHeader } from "@/common/components/RightSidebar/SidebarHeader";
+import { ThemeToggle } from "@/common/components/ThemeToggle";
 
 type NavigationItemType = {
   name: string;
@@ -140,7 +141,6 @@ export default function Home() {
               onClick={() => item.status === "active" && setCurrentAccountIdx(idx)}
               className="flex items-center gap-x-3 cursor-pointer"
             >
-              {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
               <h3 className={classNames(
                 idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
                 "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
@@ -244,6 +244,7 @@ export default function Home() {
                             </ul>
                           </li>
                           {renderAccountSidebar()}
+                          <ThemeToggle />
                           {/* <li className="-mx-6 mt-auto">
                             <a
                               href="#"
@@ -307,6 +308,7 @@ export default function Home() {
                       ))}
                     </ul>
                   </li>
+                  {/* <ThemeToggle /> */}
                   {/* <li className="-mx-6 mt-auto">
                   <a
                     href="#"
@@ -332,10 +334,10 @@ export default function Home() {
                   <span className="sr-only">Open sidebar</span>
                   <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                 </button>
-                <h1 className="text-2xl font-semibold leading-7 text-white">{title}</h1>
-                <h1 className="text-base font-semibold leading-7 text-white"></h1>
+                <h1 className="mx-auto text-2xl font-semibold leading-7 text-white">{title}</h1>
+                {/* <h1 className="text-base font-semibold leading-7 text-white"></h1> */}
               </header>
-              <div className="w-full max-w-full min-h-screen flex justify-between px-2 py-4 sm:py-2 border-t border-white/5 ">
+              <div className="w-full max-w-full min-h-screen flex justify-between px-2 border-t border-white/5 ">
                 <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
                   <Outlet />
                 </Suspense>

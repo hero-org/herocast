@@ -1,7 +1,9 @@
 import AlertDialogDemo from "@/common/components/AlertDialog";
 import { getNavigationCommands } from "@/common/components/CommandPalette";
+import HelpCard from "@/common/components/HelpCard";
 import { classNames } from "@/common/helpers/css";
 import { supabaseClient } from "@/common/helpers/supabase";
+import { Button } from "@/components/ui/button"
 import { AccountObjectType, accountCommands, channelCommands, useAccountStore } from "@/stores/useAccountStore";
 import { newPostCommands } from "@/stores/useNewPostStore";
 import { User } from "@supabase/supabase-js";
@@ -111,6 +113,7 @@ export default function Settings() {
       >
         Logout
       </button>
+      <Button>Button</Button>
       {/* <button
         type="button"
         onClick={() => onUpdateAccountStatus()}
@@ -127,7 +130,6 @@ export default function Settings() {
             <div
               className="flex items-center gap-x-3"
             >
-              {/* <img src={item.user.imageUrl} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-800" /> */}
               <h3 className={classNames(
                 "text-gray-100",
                 "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
@@ -142,6 +144,7 @@ export default function Settings() {
           </li>
         ))}
       </ul>
+      <HelpCard />
       {renderInfoSection()}
     </div>
   )

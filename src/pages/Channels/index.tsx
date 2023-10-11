@@ -14,7 +14,6 @@ import { useForm, SubmitHandler } from "react-hook-form"
 import get from "lodash.get";
 import SortableList, { SortableItem } from 'react-easy-sort'
 
-
 type Inputs = {
   name: string
   url: string
@@ -84,7 +83,9 @@ export default function Channels() {
           "flex flex-1 items-center justify-between truncate border-gray-200 bg-gray-600 pr-4"
         )}>
           {channel.icon_url ? (
-            <img src={channel.icon_url} alt="" className="ml-2 mt-0.5 border border-gray-600 h-8 w-8 flex-none rounded-full bg-gray-800" />
+            <img
+              src={channel.icon_url} alt="" className="ml-2 mt-0.5 rounded-lg border border-gray-600 h-8 w-8 flex-none bg-gray-800"
+            />
           ) : <div className="ml-2" />}
           <div className="flex-1 truncate pl-2 pr-4 py-2 text-sm">
             <p className="truncate font-medium text-gray-100 hover:text-gray-200">

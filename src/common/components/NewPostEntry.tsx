@@ -31,7 +31,11 @@ const MentionDropdownItem = ({ entity, selected }: { entity: AuthorType, selecte
     {({ active, selected }) => (
       <>
         <div className="flex items-center">
-          <img src={pfpUrl} alt="" className="h-6 w-6 flex-shrink-0 rounded-full border border-gray-600" />
+          <img
+            className="h-6 w-6 flex-shrink-0 border border-gray-600 rounded-lg"
+            src={pfpUrl}
+            alt=""
+          />
           <div className="ml-2 flex">
             <span className="truncate font-semibold">@{username}</span>
             <span

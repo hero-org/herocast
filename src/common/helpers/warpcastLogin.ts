@@ -1,7 +1,7 @@
 import { NobleEd25519Signer, bytesToHexString } from "@farcaster/hub-web";
 import * as ed from "@noble/ed25519"
 import { toBytes } from 'viem'
-import { mnemonicToAccount, signTypedData } from "viem/accounts";
+import { generatePrivateKey, mnemonicToAccount, privateKeyToAddress, signTypedData } from "viem/accounts";
 import axios from "axios";
 
 type KeyPairType = {
@@ -17,8 +17,9 @@ type WarpcastLoginType = {
 type WarpcastSignerType = {
   publicKey: string,
   privateKey: string,
-  token: string,
-  deeplinkUrl: string
+  signature: string,
+  requestFid: number,
+  deadline: number
 }
 
 export enum WarpcastLoginStatus {
@@ -53,8 +54,7 @@ const generateKeyPair = async (): Promise<KeyPairType> => {
   return { publicKey, privateKey };
 }
 
-
-const createSignerRequest = async (publicKey: string, requestFid: string, signature: string, deadline: number): Promise<WarpcastLoginType> => {
+export const createSignerRequest = async (publicKey: string, requestFid: Number, signature: string, deadline: number): Promise<WarpcastLoginType> => {
   const payload = {
     key: publicKey,
     requestFid,
@@ -91,13 +91,12 @@ const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
     primaryType: "SignedKeyRequest",
     message: {
       requestFid: BigInt(requestFid),
-      key: hexStringPublicKey,
+      key: hexStringPublicKey as `0x${string}`,
       deadline: BigInt(deadline),
     },
   });
 
-  const { token, deeplinkUrl } = await createSignerRequest(hexStringPublicKey, requestFid, signature, deadline);
-  return { publicKey: hexStringPublicKey, privateKey: hexStringPrivateKey, token, deeplinkUrl };
+  return { publicKey: hexStringPublicKey, privateKey: hexStringPrivateKey, signature, requestFid, deadline };
 }
 
 const getWarpcastSignerStatus = async (signerToken: string): Promise<{ status: WarpcastLoginStatus, data: any }> => {

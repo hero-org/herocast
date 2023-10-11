@@ -25,10 +25,13 @@ function renderChunks(deps) {
 export default defineConfig({
   base: "./",
   assetsInclude: ['**/*.webp', '**/*.png', '**/*.jpg'],
-  plugins: [react(), sentryVitePlugin({
-    org: "herocast-pr",
-    project: "herocast-client"
-  })],
+  plugins: [
+    react(),
+    sentryVitePlugin({
+      org: "herocast-pr",
+      project: "herocast-client"
+    })
+  ],
   server: {
     port: 4590,
     strictPort: true,
@@ -48,10 +51,10 @@ export default defineConfig({
   },
   envPrefix: ['VITE_', 'TAURI_', 'VERCEL_'],
   build: {
-    target: ['es2021'],
+    target: ['es2022'],
     optimizeDeps: {
       esbuildOptions: {
-        target: 'es2021',
+        target: 'es2022',
       },
     },
     sourcemap: !!process.env.TAURI_DEBUG,
@@ -59,7 +62,7 @@ export default defineConfig({
       plugins: [
         inject({ Buffer: ['buffer', 'Buffer'] }),
         nodePolyfills(),
-        splitVendorChunkPlugin()
+        splitVendorChunkPlugin(),
       ],
       output: {
         manualChunks: {

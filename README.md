@@ -43,3 +43,8 @@ soon: create release via github actions
 `
 console.log('VITE_VERCEL_ENV', import.meta.env.VITE_VERCEL_ENV);
 `
+
+# Data Scheme
+
+# accounts
+- key is an edcsa key not a fucking normal EVM address

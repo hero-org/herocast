@@ -55,9 +55,13 @@ const ChannelsDropdown = ({ selectedChannel, onChange }: ChannelsComboboxProps) 
                   <>
                     <div className="flex items-center">
                       {channel.icon_url ?
-                        <img src={channel.icon_url} alt="" className="h-6 w-6 flex-shrink-0 rounded-full" />
+                        <img
+                          src={channel.icon_url}
+                          alt=""
+                          className="h-6 w-6 flex-shrink-0 rounded-lg"
+                        />
                         : <div className="h-6 w-6 flex-shrink-0 rounded-full bg-radix-slate8"></div>}
-                      <span className={classNames('ml-3 truncate', selected && 'font-semibold')}>{channel.name}</span>
+                      <span className={classNames('ml-3 truncate', selected ? 'font-semibold' : '')}>{channel.name}</span>
                     </div>
 
                     {selected && (

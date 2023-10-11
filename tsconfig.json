@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es2021",
+    "target": "es2022",
     "lib": [
       "dom",
       "dom.iterable",
-      "es2021"
+      "es2022"
     ],
     "allowJs": true,
     "skipLibCheck": true,
@@ -13,12 +13,12 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "es2021",
+    "module": "ES2022",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "incremental": true,
     "types": [
       "node",
@@ -27,15 +27,15 @@
     ],
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "src",
-    "src/**/*.tsx"
+    "./**/*.ts",
+    "./**/*.tsx",
+    "./src",
+    "./src/**/*.tsx"
   ],
   "exclude": [
     "node_modules"

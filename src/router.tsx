@@ -19,6 +19,12 @@ import {
   matchRoutes,
 } from "react-router-dom";
 import Channels from './pages/Channels';
+import '@rainbow-me/rainbowkit/styles.css';
+import {
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
+import { WagmiConfig } from 'wagmi';
+import { wagmiConfig, chains, rainbowKitTheme } from "@/common/helpers/rainbowkit";
 
 const VITE_SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 
@@ -61,7 +67,11 @@ export const router = sentryCreateBrowserRouter([
       },
       {
         path: "accounts",
-        element: <Accounts />,
+        element: <WagmiConfig config={wagmiConfig}>
+          <RainbowKitProvider chains={chains} theme={rainbowKitTheme}>
+            <Accounts />
+          </RainbowKitProvider>
+        </WagmiConfig>,
       },
       {
         path: "post",

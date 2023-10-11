@@ -224,10 +224,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       <div className="flex items-top gap-x-4">
         {!isThreadView && (
           <img
+            className='relative h-10 w-10 flex-none bg-gray-50 rounded-lg'
             src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
-            alt=""
-            className="relative h-10 w-10 flex-none rounded-full bg-gray-50"
-            referrerPolicy="no-referrer"
           />
         )}
         <div className="flex flex-col w-full">
