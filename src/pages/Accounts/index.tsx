@@ -24,6 +24,7 @@ import { getUserInfoByFid } from "@/common/helpers/neynar";
 import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/outline";
 import { openWindow } from "@/common/helpers/navigation";
 import HelpCard from "@/common/components/HelpCard";
+import { useIsMounted } from "@/common/helpers/hooks";
 
 enum SignupStateEnum {
   "initial",
@@ -63,6 +64,7 @@ export default function Accounts() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const { isConnected } = useAccount();
+  const isMounted = useIsMounted();
 
   const {
     accounts,
@@ -74,11 +76,13 @@ export default function Accounts() {
     addNewPostDraft,
   } = useNewPostStore();
 
-  console.log('accounts', accounts, accounts.filter((account) => account.status === AccountStatusType.active))
+  // console.log('accounts', accounts, accounts.filter((account) => account.status === AccountStatusType.active))
 
   const hasActiveAccounts = accounts.filter((account) => account.status === AccountStatusType.active).length > 0;
   const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
   const hasPendingNewAccounts = pendingAccounts.length > 0;
+  const pendingAccount = hasPendingNewAccounts ? pendingAccounts[0] : null;
+
   const [signupStateIdx, setSignupStateIdx] = useState(0);
   const signupState = SignupSteps[signupStateIdx];
 
@@ -117,30 +121,31 @@ export default function Accounts() {
     }
   }
 
-
   const pollForSigner = async () => {
     let tries = 0;
     while (true || tries < 60) {
       tries += 1;
       await new Promise((r) => setTimeout(r, 2000));
 
-      const { status, data } = await getWarpcastSignerStatus(account.data.signerToken);
+      const { status, data } = await getWarpcastSignerStatus(pendingAccount.data.signerToken);
       console.log('signerStatus: ', status, data);
       if (status === WarpcastLoginStatus.success) {
         const fid = data.userFid;
         const userInfo = await getUserInfoByFid(fid);
-        setAccountActive(account.id, userInfo?.displayName, { platform_account_id: data.userFid, data });
+        setAccountActive(pendingAccount.id, userInfo?.displayName, { platform_account_id: data.userFid, data });
         await hydrate();
         window.location.reload();
       }
+
+      if (!isMounted()) return;
     }
   }
 
-  // useEffect(() => {
-  //   if (!isAddKeyTxSuccess) return;
-
-  //   pollForSigner();
-  // }, [isAddKeyTxSuccess]);
+  useEffect(() => {
+    if (pendingAccount && signupState.state === SignupStateEnum.connecting) {
+      pollForSigner();
+    }
+  }, [signupState, pendingAccount, isMounted]);
 
   const renderCreateSignerStep = () => (
     <Card className="bg-background text-foreground">
@@ -166,7 +171,6 @@ export default function Accounts() {
 
   const renderConnectAccountStep = () => {
     if (isEmpty(pendingAccounts)) return null;
-    const pendingAccount = pendingAccounts[0];
 
     return (
       <div className="grid grid-cols-1 gap-4">

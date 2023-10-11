@@ -72,7 +72,6 @@ type ConfirmOnchainSignerButtonType = {
 }
 
 const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType) => {
-    console.log('account', account);
     const { chain } = useNetwork();
     const { switchNetwork } = useSwitchNetwork();
     const [signature, setSignature] = useState('');
@@ -149,8 +148,6 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
         isSuccess: isAddKeyTxSuccess,
         isLoading: isAddKeyTxLoading
     } = useWaitForTransaction({ hash: addKeySignResult?.hash });
-
-    console.log('isAddKeyTxSuccess', isAddKeyTxSuccess)
 
     const onClick = () => {
         if (chain?.id !== 10) {
