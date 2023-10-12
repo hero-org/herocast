@@ -54,7 +54,7 @@ const generateKeyPair = async (): Promise<KeyPairType> => {
   return { publicKey, privateKey };
 }
 
-export const createSignerRequest = async (publicKey: string, requestFid: Number, signature: string, deadline: number): Promise<WarpcastLoginType> => {
+export const createSignerRequest = async (publicKey: string, requestFid: number, signature: string, deadline: number): Promise<WarpcastLoginType> => {
   const payload = {
     key: publicKey,
     requestFid,
