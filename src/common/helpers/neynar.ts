@@ -123,7 +123,6 @@ export const fetchUserProfile = async (userFid: string, username: string): Promi
   return axios.get(endpoint)
     .then(response => {
       const users = response.data.result.users as UserNeynarV2Type[];
-      console.log('users', users);
       return users.length > 0 ? users[0] : null;
     })
     .catch(error => {
