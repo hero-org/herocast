@@ -156,7 +156,7 @@ const store = (set: StoreSet) => ({
           })
         ).then(async (res) => {
           if (res?.error) {
-            console.log('publishPostdraft error:', res.error);
+            console.log('publishPostdraft error:', res.error, 'draft text:', draft.text);
             return `Error when posting ${res.error}`;
           }
 

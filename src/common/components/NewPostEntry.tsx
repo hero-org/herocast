@@ -1,9 +1,9 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect } from "react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { Listbox, Transition, Combobox } from '@headlessui/react'
+import { Combobox } from '@headlessui/react'
 import { ChannelType } from "@/common/constants/channels";
 import isEmpty from "lodash.isempty";
 import { AuthorType, DraftStatus, DraftType } from "../constants/farcaster";
@@ -12,8 +12,13 @@ import { Loading } from "./Loading";
 import { useHotkeys } from "react-hotkeys-hook";
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import ChannelsDropdown from "./ChannelsDropdown";
+import { Progress } from "@/components/ui/progress";
+import * as linkify from "linkifyjs";
+import "linkify-plugin-mention";
 
 // const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
+
+const MAX_CAST_LENGTH = 320; // 320 bytes
 
 const MentionDropdownItem = ({ entity, selected }: { entity: AuthorType, selected: boolean }) => {
   const { username, display_name, pfp: { url: pfpUrl } } = entity;
@@ -72,6 +77,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     allChannels: channels
   } = useAccountStore();
 
+  const [textLengthBytes, setTextLengthBytes] = React.useState(0);
   const draft = draftIdx !== null ? drafts[draftIdx] : NewPostDraft;
   const isWritingDraft = draft && (draft.status === DraftStatus.writing);
   const isPendingPublish = draft && (draft.status === DraftStatus.publishing);
@@ -90,7 +96,6 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
   };
 
   const neynarSearchEndpoint = getNeynarUserSearchEndpoint(account?.platformAccountId);
-
   const findUsername = (username: string): CasterType[] => {
     return Promise.resolve(fetch(`${neynarSearchEndpoint}&q=${username}`)
       .then((response) => response.json())
@@ -102,16 +107,32 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
       }));
   };
 
+  useEffect(() => {
+    let text = draft?.text || '';
+    const links = linkify.find(text, 'mention');
+    if (links) {
+      links.forEach((link) => {
+        text = text.replace(link.value, '  ');
+      });
+    }
+    const len = new Blob([text]).size;
+    
+    setTextLengthBytes(len)
+  }, [draft?.text]);
+
+  const numNewlines = draft?.text ? draft.text.split('\n').length : 0;
+  const ratio = (textLengthBytes / MAX_CAST_LENGTH) * 100;
+
   const onSubmitPost = async () => {
     // console.log('onSubmitPost', draft)
-    if (!draft || !account.privateKey || !account.platformAccountId) return;
+    if (!draft || !account.privateKey || !account.platformAccountId || ratio > 99) return;
 
     if (draft.text.length > 0) {
       await new Promise(() => publishPostDraft(draftIdx, account, onPost));
     }
   }
 
-  const ref = useHotkeys('meta+enter', onSubmitPost, [draft], { enableOnFormTags: true });
+  const ref = useHotkeys('meta+enter', onSubmitPost, [draft, account, ratio], { enableOnFormTags: true });
 
   const characterToTrigger = {
     // ":": {
@@ -166,7 +187,22 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
   }
 
   if (!draft) return null;
-  const numNewlines = draft?.text ? draft.text.split('\n').length : 0;
+
+  const renderCastLengthProgressBar = () => {
+    if (ratio < 60) return null;
+    if (ratio > 99) {
+      return <span className="text-md text-gray-300">Cast is too long</span>
+    }
+    return (
+      <div className="flex items-center">
+        {ratio > 90 && (<span className="mr-1.5 text-md text-gray-300">{MAX_CAST_LENGTH - textLengthBytes - 3} left</span>)}
+        <Progress
+          value={ratio}
+          className="w-16 h-2"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-start" ref={ref} tabIndex={-1}>
@@ -190,7 +226,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
                 containerClassName="relative rounded-sm"
                 className={classNames(
                   showToolbar ? 'rounded-t-md' : 'rounded-md',
-                  "block border-1 border-gray-600 w-full px-3 py-2 bg-gray-700 ring-0 ring-gray-800 resize-none text-radix-slate2 placeholder:text-gray-400 sm:text-sm sm:leading-6 focus:outline-none focus:ring-0 focus:border-gray-500"
+                  "block border-1 border-gray-600 w-full px-3 py-2 bg-gray-700 ring-0 ring-gray-800 resize-none text-gray-200 placeholder:text-gray-400 sm:text-sm sm:leading-6 focus:outline-none focus:ring-0 focus:border-gray-500"
                 )}
                 style={{ minHeight: '100px' }}
                 loadingComponent={() => <Loading />}
@@ -220,73 +256,21 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
 
         <div className="absolute inset-x-0 bottom-0">
           {/* Actions: These are just examples to demonstrate the concept, replace/wire these up however makes sense for your project. */}
-          {showToolbar && (<div className="flex flex-nowrap justify-end space-x-2 px-2 py-2 sm:px-3 bg-gray-700 rounded-b-md border border-gray-600">
-            {!hideChannel && (
-              <ChannelsDropdown selectedChannel={channel} onChange={onUpdateParentUrl} />
-            )}
-
-            {/* <Listbox as="div" value={dated} onChange={setDated} className="flex-shrink-0">
-              {({ open }) => (
-                <>
-                  <Listbox.Label className="sr-only">Add a due date</Listbox.Label>
-                  <div className="relative">
-                    <Listbox.Button className="relative inline-flex items-center whitespace-nowrap rounded-full bg-gray-50 px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 sm:px-3">
-                      <CalendarIcon
-                        className={classNames(
-                          dated.value === null ? 'text-gray-300' : 'text-gray-500',
-                          'h-5 w-5 flex-shrink-0 sm:-ml-1'
-                        )}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className={classNames(
-                          dated.value === null ? '' : 'text-gray-900',
-                          'hidden truncate sm:ml-2 sm:block'
-                        )}
-                      >
-                        {dated.value === null ? 'Due date' : dated.name}
-                      </span>
-                    </Listbox.Button>
-
-                    <Transition
-                      show={open}
-                      as={Fragment}
-                      leave="transition ease-in duration-100"
-                      leaveFrom="opacity-100"
-                      leaveTo="opacity-0"
-                    >
-                      <Listbox.Options className="absolute right-0 z-10 mt-1 max-h-56 w-52 overflow-auto rounded-lg bg-white py-3 text-base shadow ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                        {dueDates.map((dueDate) => (
-                          <Listbox.Option
-                            key={dueDate.value}
-                            className={({ active }) =>
-                              classNames(
-                                active ? 'bg-gray-100' : 'bg-white',
-                                'relative cursor-default select-none px-3 py-2'
-                              )
-                            }
-                            value={dueDate}
-                          >
-                            <div className="flex items-center">
-                              <span className="block truncate font-medium">{dueDate.name}</span>
-                            </div>
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </Transition>
-                  </div>
-                </>
+          {showToolbar && (
+            <div className="flex flex-nowrap justify-end items-center space-x-2 px-2 py-2 sm:px-3 bg-gray-700 rounded-b-md border border-gray-600">
+              {renderCastLengthProgressBar()}
+              {!hideChannel && (
+                <ChannelsDropdown selectedChannel={channel} onChange={onUpdateParentUrl} />
               )}
-            </Listbox> */}
-          </div>)}
+            </div>)}
           <div className="flex items-center justify-end mt-4">
             <div className="flex-shrink-0">
               <HotkeyTooltipWrapper hotkey="Cmd + Enter" side="right">
                 <button
                   type="submit"
-                  disabled={!isWritingDraft}
+                  disabled={!isWritingDraft || ratio > 99}
                   className={classNames(
-                    // isPendingPublish ? 'bg-gray-700 cursor-not-allowed' : 'cursor-pointer',
+                    isWritingDraft || ratio > 99 ? 'bg-gray-700 cursor-disabled' : 'cursor-pointer',
                     "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                   )}
                 >

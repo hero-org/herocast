@@ -87,6 +87,26 @@ export const getNeynarNotificationsEndpoint = ({ fid, cursor, limit }: Notificat
   return neynarEndpoint;
 }
 
+export type UserNeynarV2Type = {
+  fid: number;
+  custody_address: string;
+  username: string;
+  display_name: string;
+  pfp_url: string;
+  profile: {
+    bio: {
+      text: string;
+    };
+  };
+  follower_count: number;
+  following_count: number;
+  verifications: string[];
+  active_status: string;
+  pfp: {
+    url: string;
+  };
+};
+
 // needs search with: &q=${query} to work
 export const getNeynarUserSearchEndpoint = (viewerFid?: string): string => {
   let neynarEndpoint = `${NEYNAR_API_URL}/v2/farcaster/user/search?api_key=${VITE_NEYNAR_API_KEY}`
@@ -98,6 +118,19 @@ export const getNeynarUserSearchEndpoint = (viewerFid?: string): string => {
   return neynarEndpoint;
 }
 
+export const fetchUserProfile = async (userFid: string, username: string): Promise<UserNeynarV2Type | null> => {
+  const endpoint = getNeynarUserSearchEndpoint(userFid) + `&q=${username}`;
+  return axios.get(endpoint)
+    .then(response => {
+      const users = response.data.result.users as UserNeynarV2Type[];
+      console.log('users', users);
+      return users.length > 0 ? users[0] : null;
+    })
+    .catch(error => {
+      console.error(error);
+      return null;
+    });
+}
 
 export const fetchCasts = async (castHashes: { hash: string }[]): Promise<CastType[]> => {
   const url = `${NEYNAR_API_URL}/v2/farcaster/casts`;
