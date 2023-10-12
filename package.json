@@ -11,7 +11,7 @@
     "rls:mac-universal": "tauri build --target universal-apple-darwin",
     "rls:mac-apple": "tauri build --target aarch64-apple-darwin",
     "rls:mac-intel": "tauri build --target x86_64-apple-darwin",
-    "build": "cross-env INLINE_RUNTIME_CHUNK=true NODE_OPTIONS=--max-old-space-size=8192 yarn vite build",
+    "build": "cross-env INLINE_RUNTIME_CHUNK=true NODE_OPTIONS=--max-old-space-size=16384 yarn vite build",
     "preview": "vite preview",
     "serve": "serve -s build",
     "preinstall": "yarn global add serve",
