@@ -115,7 +115,8 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
         text = text.replace(link.value, '  ');
       });
     }
-    const len = new Blob([text]).size;
+    // const len = new Buffer([text]).size;
+    const len = new TextEncoder().encode(text).length
     
     setTextLengthBytes(len)
   }, [draft?.text]);

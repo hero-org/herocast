@@ -94,7 +94,7 @@ const store = (set: StoreSet) => ({
   },
   updatePostDraft: (draftIdx: number, draft: DraftType) => {
     set((state) => {
-      console.log(`updatePostDraft ${draftIdx} parent: ${draft.parentUrl}`);
+      // console.log(`updatePostDraft ${draftIdx} parent: ${draft.parentUrl}`);
       state.drafts = [
         ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
         draft,
