@@ -8,13 +8,11 @@ import {
     optimism,
 } from 'wagmi/chains';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
-import { publicProvider } from 'wagmi/providers/public';
 
 export const { chains, publicClient } = configureChains(
     [optimism],
     [
         alchemyProvider({ apiKey: import.meta.env.VITE_ALCHEMY_API_KEY }),
-        // publicProvider()
     ]
 );
 

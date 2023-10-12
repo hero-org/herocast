@@ -1,7 +1,7 @@
 import { NobleEd25519Signer, bytesToHexString } from "@farcaster/hub-web";
 import * as ed from "@noble/ed25519"
 import { toBytes } from 'viem'
-import { generatePrivateKey, mnemonicToAccount, privateKeyToAddress, signTypedData } from "viem/accounts";
+import { mnemonicToAccount } from "viem/accounts";
 import axios from "axios";
 
 type KeyPairType = {

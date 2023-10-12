@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import WalletLogin from "@/common/components/WalletLogin";
-import { CheckCircleIcon, PaperAirplaneIcon, PlusCircleIcon, RectangleGroupIcon, UserPlusIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon, PlusCircleIcon, RectangleGroupIcon, UserPlusIcon } from "@heroicons/react/20/solid";
 import { NewspaperIcon } from "@heroicons/react/24/solid";
 import { JoinedHerocastPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { hydrate, useAccountStore } from "@/stores/useAccountStore";
@@ -21,8 +21,6 @@ import { useAccount } from "wagmi";
 import ConfirmOnchainSignerButton from "@/common/components/ConfirmOnchainSignerButton";
 import { WarpcastLoginStatus, createSignerRequest, generateWarpcastSigner, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
 import { getUserInfoByFid } from "@/common/helpers/neynar";
-import { ChatBubbleLeftEllipsisIcon } from "@heroicons/react/24/outline";
-import { openWindow } from "@/common/helpers/navigation";
 import HelpCard from "@/common/components/HelpCard";
 import { useIsMounted } from "@/common/helpers/hooks";
 

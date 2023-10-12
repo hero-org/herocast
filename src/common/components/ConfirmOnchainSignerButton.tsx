@@ -14,11 +14,9 @@ import { KEY_REGISTRY } from "../constants/contracts/key-registry";
 import { CheckIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { ID_REGISTRY } from "../constants/contracts/id-registry";
 import { mnemonicToAccount } from "viem/accounts";
-import { AccountObjectType, hydrate, useAccountStore } from "@/stores/useAccountStore";
+import { AccountObjectType } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { useAccountModal } from "@rainbow-me/rainbowkit";
-import { WarpcastLoginStatus, getWarpcastSignerStatus } from "../helpers/warpcastLogin";
-import { getUserInfoByFid } from "../helpers/neynar";
 
 const VITE_APP_FID = import.meta.env.VITE_APP_FID
 const VITE_APP_MNENOMIC = import.meta.env.VITE_APP_MNENOMIC
@@ -144,8 +142,8 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
     } = useContractWrite(addKeyConfig);
 
     const {
-        data: addKeyTxReceipt,
-        isSuccess: isAddKeyTxSuccess,
+        // data: addKeyTxReceipt,
+        // isSuccess: isAddKeyTxSuccess,
         isLoading: isAddKeyTxLoading
     } = useWaitForTransaction({ hash: addKeySignResult?.hash });
 

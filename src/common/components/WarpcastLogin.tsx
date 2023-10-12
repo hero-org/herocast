@@ -1,9 +1,9 @@
 import React, { useEffect, useLayoutEffect, useState } from "react";
-import { WarpcastLoginStatus, generateWarpcastSigner, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
+import { WarpcastLoginStatus, createSignerRequest, generateWarpcastSigner, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
 import { hydrate, useAccountStore } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
-import { Cog6ToothIcon, ExclamationCircleIcon, PlusCircleIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, ExclamationCircleIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import usePollingUpdate from "../hooks/usePollingUpdate";
 import { QrCode } from "./QrCode";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -171,7 +171,3 @@ const WarpcastLogin = () => {
 }
 
 export default WarpcastLogin;
-function createSignerRequest(hexStringPublicKey: any, requestFid: any, signature: any, deadline: any): { token: any; deeplinkUrl: any; } | PromiseLike<{ token: any; deeplinkUrl: any; }> {
-  throw new Error("Function not implemented.");
-}
-
