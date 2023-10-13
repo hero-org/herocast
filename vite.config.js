@@ -60,8 +60,14 @@ export default defineConfig({
     sourcemap: !!process.env.TAURI_DEBUG,
     rollupOptions: {
       plugins: [
-        inject({ Buffer: ['buffer', 'Buffer'] }),
-        nodePolyfills(),
+        // inject({ Buffer: ['buffer', 'Buffer'] }),
+        nodePolyfills({
+          globals: {
+            Buffer: true,
+            global: true,
+            process: true,
+          },
+        }),
         splitVendorChunkPlugin(),
       ],
       output: {
