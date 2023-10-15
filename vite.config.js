@@ -54,12 +54,12 @@ export default defineConfig({
   },
   envPrefix: ['VITE_', 'TAURI_', 'VERCEL_'],
   build: {
-    target: ['es2022'],
-    optimizeDeps: {
-      esbuildOptions: {
-        target: 'es2022',
-      },
-    },
+    target: 'es2020',
+    // optimizeDeps: {
+    //   esbuildOptions: {
+    //     target: 'es2022',
+    //   },
+    // },
     sourcemap: !!process.env.TAURI_DEBUG,
     rollupOptions: {
       plugins: [
@@ -81,20 +81,20 @@ export default defineConfig({
     },
     outDir: 'build',
   },
-  optimizeDeps: {
-    exclude: [],
-    esbuildOptions: {
-      define: {
-        'global': "globalThis",
-        // __APP_ENV__: process.env.VITE_VERCEL_ENV,
-      },
-      plugins: [
-        // NodeGlobalsPolyfillPlugin({
-        //   process: true,
-        //   buffer: true,
-        //   global: true,
-        // }),
-      ]
-    }
-  },
+  // optimizeDeps: {
+  //   exclude: [],
+  //   esbuildOptions: {
+  //     define: {
+  //       'global': "globalThis",
+  //       // __APP_ENV__: process.env.VITE_VERCEL_ENV,
+  //     },
+  //     plugins: [
+  //       // NodeGlobalsPolyfillPlugin({
+  //       //   process: true,
+  //       //   buffer: true,
+  //       //   global: true,
+  //       // }),
+  //     ]
+  //   }
+  // },
 })
