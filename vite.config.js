@@ -4,6 +4,7 @@ import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfil
 import react from '@vitejs/plugin-react'
 import inject from '@rollup/plugin-inject';
 import nodePolyfills from "rollup-plugin-polyfill-node";
+import { resolve } from 'path';
 
 const libraries = [
   'react',
@@ -41,7 +42,9 @@ export default defineConfig({
   },
   clearScreen: false,
   resolve: {
-    alias: [{ find: '@', replacement: '/src' }],
+    alias: {
+      '@/': `${resolve(__dirname, 'src')}/`,
+    },
     process: "process/browser",
     stream: "stream-browserify",
     zlib: "browserfiy-zlib",
@@ -61,18 +64,13 @@ export default defineConfig({
     rollupOptions: {
       plugins: [
         // inject({ Buffer: ['buffer', 'Buffer'] }),
-        nodePolyfills({
-          globals: {
-            Buffer: true,
-            global: true,
-            process: true,
-          },
-        }),
+        nodePolyfills(),
         splitVendorChunkPlugin(),
       ],
       output: {
         manualChunks: {
           vendor: libraries,
+          'wagmi-vendor': ['wagmi', 'viem'],
           ...renderChunks(dependencies),
         },
       },
