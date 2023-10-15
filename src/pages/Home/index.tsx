@@ -30,7 +30,7 @@ type NavigationItemType = {
 }
 
 export default function Home() {
-  console.log('import.meta.env', import.meta.env);
+  console.log('import.meta.env', JSON.stringify(import.meta.env));
 
   const navigate = useNavigate();
   const { pathname, hash: locationHash } = useLocation();
