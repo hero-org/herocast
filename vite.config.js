@@ -86,14 +86,14 @@ export default defineConfig({
     esbuildOptions: {
       define: {
         'global': "globalThis",
-        __APP_ENV__: process.env.VITE_VERCEL_ENV,
+        // __APP_ENV__: process.env.VITE_VERCEL_ENV,
       },
       plugins: [
-        NodeGlobalsPolyfillPlugin({
-          process: true,
-          buffer: true,
-          global: true,
-        }),
+        // NodeGlobalsPolyfillPlugin({
+        //   process: true,
+        //   buffer: true,
+        //   global: true,
+        // }),
       ]
     }
   },
