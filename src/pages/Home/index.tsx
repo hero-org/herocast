@@ -30,6 +30,8 @@ type NavigationItemType = {
 }
 
 export default function Home() {
+  console.log('import.meta.env', import.meta.env);
+
   const navigate = useNavigate();
   const { pathname, hash: locationHash } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -130,6 +132,7 @@ export default function Home() {
         </aside>;
     }
   }
+
 
   const renderAccountSidebar = () => (
     <div className="flex flex-col">

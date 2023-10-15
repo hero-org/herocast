@@ -81,20 +81,20 @@ export default defineConfig({
     },
     outDir: 'build',
   },
-  // optimizeDeps: {
-  //   exclude: [],
-  //   esbuildOptions: {
-  //     define: {
-  //       'global': "globalThis",
-  //       // __APP_ENV__: process.env.VITE_VERCEL_ENV,
-  //     },
-  //     plugins: [
-  //       // NodeGlobalsPolyfillPlugin({
-  //       //   process: true,
-  //       //   buffer: true,
-  //       //   global: true,
-  //       // }),
-  //     ]
-  //   }
-  // },
+  optimizeDeps: {
+    exclude: [],
+    esbuildOptions: {
+      define: {
+        'global': "window",
+        // __APP_ENV__: process.env.VITE_VERCEL_ENV,
+      },
+      plugins: [
+        // NodeGlobalsPolyfillPlugin({
+        //   process: true,
+        //   buffer: true,
+        //   global: true,
+        // }),
+      ]
+    }
+  },
 })
