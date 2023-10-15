@@ -35,8 +35,7 @@
     ]
   },
   "dependencies": {
-    "@aptabase/tauri": "^0.4.1",
-    "@aptabase/web": "^0.2.0",
+    "@aptabase/react": "^0.1.2",
     "@emotion/react": "11",
     "@emotion/styled": "11",
     "@farcaster/hub-web": "^0.6.2",

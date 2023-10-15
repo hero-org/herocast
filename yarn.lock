@@ -30,14 +30,14 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@aptabase/tauri@^0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@aptabase/tauri/-/tauri-0.4.1.tgz#90c74bae004c9588a034ee3b7b2a8f23997091de"
-  integrity sha512-ZjCtPN1Tw0y90nxMLR64UqFjgikxfc9NZouxqXlqZFkfpF8D/tPf1xUn0Anu8nvERGND/hAkO3x7ZLyLGI1HRg==
+"@aptabase/react@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@aptabase/react/-/react-0.1.2.tgz#d0ff346bdae3879ca127af519d5c1dc807a87301"
+  integrity sha512-ecZIVCsO9URU25Rz+VxpZ9Y7B5Hux7nslefhjo+4ljC1mKA71yjjIPclzmeHYbojUnp0A+s20YU2EzybmszsvA==
   dependencies:
-    "@tauri-apps/api" "^1.0.0"
+    "@aptabase/web" "0.2.0"
 
-"@aptabase/web@^0.2.0":
+"@aptabase/web@0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@aptabase/web/-/web-0.2.0.tgz#c7feaae56947446f52995f6454d446493b619c2a"
   integrity sha512-Ju9JeP3zfFv7TbYzZ/Nj1BfEknzZ8a3AtpKq78HI2nNqOalBIqyaDlluPt3mwhzij7hvZbZHW1ZpO0a8sKR7Yg==
@@ -2288,7 +2288,7 @@
     "@tanstack/query-core" "4.36.1"
     use-sync-external-store "^1.2.0"
 
-"@tauri-apps/api@1.5.0", "@tauri-apps/api@^1.0.0", "@tauri-apps/api@^1.4":
+"@tauri-apps/api@1.5.0", "@tauri-apps/api@^1.4":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@tauri-apps/api/-/api-1.5.0.tgz#46a0f9b6edd4bfc39be32afc4ad242e0b8cca3ea"
   integrity sha512-yQY9wpVNuiYhLLuyDlu1nBpqJELT1fGp7OctN4rW9I2W1T2p7A3tqPxsEzQprEwneQRBAlPM9vC8NsnMbct+pg==
