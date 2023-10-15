@@ -70,7 +70,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: libraries,
-          'wagmi-vendor': ['wagmi', 'viem'],
+          // 'wagmi-vendor': ['wagmi', 'viem'],
           ...renderChunks(dependencies),
         },
       },
@@ -92,6 +92,7 @@ export default defineConfig({
         NodeGlobalsPolyfillPlugin({
           process: true,
           buffer: true,
+          global: true,
         }),
       ]
     }
