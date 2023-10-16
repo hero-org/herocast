@@ -7,6 +7,8 @@ import { WagmiConfig } from 'wagmi';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import CommandPalette from '../src/common/components/CommandPalette';
 import { wagmiConfig, chains, rainbowKitTheme } from "../src/common/helpers/rainbowkit";
+import '@rainbow-me/rainbowkit/styles.css';
+import Home from './home';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
     return (
@@ -15,12 +17,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
-          >
+        >
             <AptabaseProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY!}>
                 <WagmiConfig config={wagmiConfig}>
                     <RainbowKitProvider chains={chains} theme={rainbowKitTheme}>
                         <CommandPalette />
-                        <Component {...pageProps} />
+                        <Home>
+                            <Component {...pageProps} />
+                        </Home>
                     </RainbowKitProvider>
                 </WagmiConfig>,
             </AptabaseProvider>

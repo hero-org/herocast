@@ -123,7 +123,7 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
   // console.log('cast right before sending to hub', { ...cast });
 
   // Step 3: publish message to network
-  const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
+  const client = getHubRpcClient(process.env.NEXT_PUBLIC_NEYNAR_HUB_URL, { debug: true });
   const res = await Promise.resolve(cast.map(async (castAdd) => {
     return await Promise.resolve(await client.submitMessage(castAdd));
   }));
@@ -142,7 +142,7 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
 };
 
 export const removeReaction = async ({ authorFid, privateKey, reactionBody }: RemoveReactionParams) => {
-  if (!VITE_NEYNAR_HUB_URL) {
+  if (!process.env.NEXT_PUBLIC_NEYNAR_HUB_URL) {
     throw new Error('hub url is not defined');
   }
 
@@ -163,7 +163,7 @@ export const removeReaction = async ({ authorFid, privateKey, reactionBody }: Re
     );
 
     // Step 3: publish message to network
-    const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
+    const client = getHubRpcClient(process.env.NEXT_PUBLIC_NEYNAR_HUB_URL, { debug: true });
     const res = await Promise.resolve(reaction.map(async (reactionRemove) => {
       return await Promise.resolve(await client.submitMessage(reactionRemove));
     }));
@@ -181,7 +181,7 @@ const getEIP712Signer = (privateKey: string): NobleEd25519Signer => {
   return new NobleEd25519Signer(toBytes(privateKey));
 }
 export const publishReaction = async ({ authorFid, privateKey, reactionBody }: PublishReactionParams) => {
-  if (!VITE_NEYNAR_HUB_URL) {
+  if (!process.env.NEXT_PUBLIC_NEYNAR_HUB_URL) {
     throw new Error('hub url is not defined');
   }
 
@@ -203,7 +203,7 @@ export const publishReaction = async ({ authorFid, privateKey, reactionBody }: P
     );
 
     // Step 3: publish message to network
-    const client = getHubRpcClient(VITE_NEYNAR_HUB_URL, { debug: true });
+    const client = getHubRpcClient(process.env.NEXT_PUBLIC_NEYNAR_HUB_URL, { debug: true });
     const res = await Promise.resolve(reaction.map(async (reactionAdd) => {
       return await Promise.resolve(await client.submitMessage(reactionAdd));
     }));

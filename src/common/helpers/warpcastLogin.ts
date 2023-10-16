@@ -28,8 +28,8 @@ export enum WarpcastLoginStatus {
   failure = "failure"
 }
 
-const VITE_APP_FID = process.env.NEXT_PUBLIC_APP_FID
-const VITE_APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC
+const APP_FID = process.env.NEXT_PUBLIC_APP_FID
+const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC
 
 const SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN = {
   name: "Farcaster SignedKeyRequestValidator",
@@ -80,8 +80,8 @@ const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
   const hexStringPublicKey = bytesToHexString(publicKey)._unsafeUnwrap();
   const hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
 
-  const appAccount = mnemonicToAccount(VITE_APP_MNENOMIC);
-  const requestFid = VITE_APP_FID;
+  const appAccount = mnemonicToAccount(APP_MNENOMIC);
+  const requestFid = APP_FID;
   const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
   const signature = await appAccount.signTypedData({
     domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,

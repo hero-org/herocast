@@ -29,7 +29,7 @@ type NavigationItemType = {
   getTitle?: () => string;
 }
 
-export default function Home() {
+export default function Home({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { pathname, asPath } = router;
   const locationHash = asPath.split('#')[1];
@@ -341,7 +341,7 @@ export default function Home() {
               </header>
               <div className="w-full max-w-full min-h-screen flex justify-between px-2 border-t border-white/5 ">
                 <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
-                  <Outlet />
+                  {children}
                 </Suspense>
               </div>
             </main>

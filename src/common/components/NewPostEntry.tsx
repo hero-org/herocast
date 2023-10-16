@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from "react";
+import React, { useEffect } from "react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
@@ -10,6 +10,7 @@ import { AuthorType, DraftStatus, DraftType } from "../constants/farcaster";
 import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 import { useHotkeys } from "react-hotkeys-hook";
+import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import ChannelsDropdown from "./ChannelsDropdown";
 import { Progress } from "@/components/ui/progress";
@@ -117,7 +118,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     }
     // const len = new Buffer([text]).size;
     const len = new TextEncoder().encode(text).length
-    
+
     setTextLengthBytes(len)
   }, [draft?.text]);
 
@@ -266,18 +267,20 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
             </div>)}
           <div className="flex items-center justify-end mt-4">
             <div className="flex-shrink-0">
-              <HotkeyTooltipWrapper hotkey="Cmd + Enter" side="right">
-                <button
-                  type="submit"
-                  disabled={!isWritingDraft || ratio > 99}
-                  className={classNames(
-                    isWritingDraft || ratio > 99 ? 'bg-gray-700 cursor-disabled' : 'cursor-pointer',
-                    "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                  )}
-                >
-                  {renderButtonText()}
-                </button>
-              </HotkeyTooltipWrapper>
+              <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
+                <HotkeyTooltipWrapper hotkey="Cmd + Enter" side="right">
+                  <button
+                    type="submit"
+                    disabled={!isWritingDraft || ratio > 99}
+                    className={classNames(
+                      isWritingDraft || ratio > 99 ? 'bg-gray-700 cursor-disabled' : 'cursor-pointer',
+                      "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    )}
+                  >
+                    {renderButtonText()}
+                  </button>
+                </HotkeyTooltipWrapper>
+              </Tooltip.Provider>
             </div>
             <div className="flex">
               {draft.text !== "" && (
