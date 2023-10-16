@@ -54,7 +54,7 @@ export default defineConfig({
   },
   envPrefix: ['VITE_', 'TAURI_', 'VERCEL_'],
   build: {
-    target: 'es2020',
+    target: 'esnext',
     // optimizeDeps: {
     //   esbuildOptions: {
     //     target: 'es2022',
@@ -65,7 +65,7 @@ export default defineConfig({
       plugins: [
         // inject({ Buffer: ['buffer', 'Buffer'] }),
         nodePolyfills(),
-        splitVendorChunkPlugin(),
+        // splitVendorChunkPlugin(),
       ],
       output: {
         manualChunks: {
