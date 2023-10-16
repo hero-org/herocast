@@ -8,7 +8,7 @@ import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import CommandPalette from '../src/common/components/CommandPalette';
 import { wagmiConfig, chains, rainbowKitTheme } from "../src/common/helpers/rainbowkit";
 import '@rainbow-me/rainbowkit/styles.css';
-import Home from './home';
+import Home from '../pages/home/index';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
     return (
