@@ -116,6 +116,7 @@
   },
   "devDependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
+    "@next/eslint-plugin-next": "^13.5.5",
     "@rollup/plugin-inject": "^5.0.3",
     "@tauri-apps/cli": "^1.4",
     "@types/lodash.clonedeep": "^4.5.7",

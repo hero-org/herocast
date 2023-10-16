@@ -3,7 +3,7 @@ type PostEmbedType = {
 };
 
 export type ParentCastIdType = {
-  fid: number;
+  fid: string;
   hash: string;
 }
 
@@ -33,8 +33,8 @@ export type AuthorType = {
   display_name?: string,
   displayName?: string,
   pfp_url?: string,
-  pfp?: {
-    url: string,
+  pfp: {
+    url: string
   }
 }
 
@@ -51,7 +51,11 @@ export enum CastReactionType {
 }
 
 export type CastReactionsType = {
-  CastReactionType: { fid: number }[]
+  CastReactionType?: { fid: number }[]
+  recasts?: { fid: number }[]
+  likes?: { fid: number }[]
+  count?: number
+  fids?: number[]
 }
 
 export type CastType = {
@@ -65,5 +69,6 @@ export type CastType = {
   thread_hash: string | null
   timestamp: string
   embeds: EmbedType[]
-  replies: { count: number }
+  replies?: { count: number }
+  recasts?: { fids: number[], count: number }
 }

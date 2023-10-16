@@ -52,13 +52,12 @@ const query = `
 `;
 
 const NounsBuildEmbed = ({ url }: { url: string }) => {
-  const [data, setData] = useState(null);
-  // const [variables, setVariables] = useState(null);
+  const [data, setData] = useState<{dao: {name: string, proposals: any[], tokens: any[]}} | null>(null);
 
   useEffect(() => {
     const getData = async () => {
       let chain = 'mainnet';
-      let tokenAddress = '', proposalNumber = null, proposalId = null, tokenId = null;
+      let tokenAddress = '', proposalNumber: number | null = null, proposalId = '', tokenId: number | null = null;
       const firstParam = url.split('https://nouns.build/dao/')[1].split('/')[0];
       if (firstParam.startsWith('0x')) {
         tokenAddress = firstParam;

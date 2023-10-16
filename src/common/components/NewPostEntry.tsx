@@ -97,15 +97,16 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
   };
 
   const neynarSearchEndpoint = getNeynarUserSearchEndpoint(account?.platformAccountId);
-  const findUsername = (username: string): CasterType[] => {
-    return Promise.resolve(fetch(`${neynarSearchEndpoint}&q=${username}`)
+  const findUsername = async (username: string): Promise<CasterType[]> => {
+    const res: CasterType[] = await fetch(`${neynarSearchEndpoint}&q=${username}`)
       .then((response) => response.json())
       .then((data) => {
         return data.result.users as CasterType[];
       }).catch((err) => {
         console.log('error fetching usernames', err);
         return [];
-      }));
+      });
+      return res;
   };
 
   useEffect(() => {
@@ -147,8 +148,8 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     //   output: (item, trigger) => item.char
     // },
     "@": {
-      dataProvider: (token: string) => {
-        return findUsername(token.toLowerCase());
+      dataProvider: async (token: string) => {
+        return await findUsername(token.toLowerCase());
       },
       component: MentionDropdownItem,
       output: (item, trigger) => `@${item.username}`
@@ -161,7 +162,9 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     onChange({ ...draft, parentUrl: newParentUrl })
   }
 
-  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: string | unknown }) => {
+  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: {username: string, fid: string} }) => {
+    if (!item) return;
+
     if (trigger === '@') {
       if (!draft.mentionsToFids) {
         updateMentionsToFids(draftIdx, { [item?.username]: item?.fid })

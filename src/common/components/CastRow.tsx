@@ -156,9 +156,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       const reactionBodyType = key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST;
       const reactionBody = { type: reactionBodyType, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } }
       if (isActive) {
-        await removeReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody });
+        await removeReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey!, reactionBody });
       } else {
-        await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody });
+        await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey!, reactionBody });
       }
     } catch (error) {
       console.error(`Error in onClickReaction: ${error}`);

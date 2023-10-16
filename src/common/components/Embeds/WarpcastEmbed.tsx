@@ -5,7 +5,7 @@ import { CastRow } from "../CastRow";
 import isEmpty from "lodash.isempty";
 
 const WarpcastEmbed = ({ url }: { url: string }) => {
-  const [cast, setCast] = useState<CastType>(null);
+  const [cast, setCast] = useState<CastType | null>(null);
 
   useEffect(() => {
     const getData = async () => {

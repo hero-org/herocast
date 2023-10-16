@@ -86,13 +86,13 @@ type PublishCastParams = {
 };
 
 type PublishReactionParams = {
-  authorFid: string;
+  authorFid: number;
   privateKey: string;
   reactionBody: ReactionBody;
 };
 
 type RemoveReactionParams = {
-  authorFid: string;
+  authorFid: number;
   privateKey: string;
   reactionBody: ReactionBody;
 }
