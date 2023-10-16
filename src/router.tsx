@@ -26,10 +26,8 @@ import {
 import { WagmiConfig } from 'wagmi';
 import { wagmiConfig, chains, rainbowKitTheme } from "@/common/helpers/rainbowkit";
 
-const VITE_SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
-
 Sentry.init({
-  dsn: VITE_SENTRY_DSN,
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   integrations: [
     new Sentry.BrowserTracing({
       routingInstrumentation: Sentry.reactRouterV6Instrumentation(

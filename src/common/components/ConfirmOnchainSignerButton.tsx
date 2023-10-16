@@ -18,8 +18,8 @@ import { AccountObjectType } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { useAccountModal } from "@rainbow-me/rainbowkit";
 
-const VITE_APP_FID = import.meta.env.VITE_APP_FID
-const VITE_APP_MNENOMIC = import.meta.env.VITE_APP_MNENOMIC
+const VITE_APP_FID = process.env.NEXT_PUBLIC_APP_FID
+const VITE_APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC
 
 const SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN = {
     name: 'Farcaster SignedKeyRequestValidator',

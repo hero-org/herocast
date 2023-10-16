@@ -5,6 +5,7 @@ import { supabaseClient } from '@/common/helpers/supabase';
 import { hydrate } from '@/stores/useAccountStore';
 import { useNavigate, useLocation } from "react-router-dom";
 import get from 'lodash.get';
+import { useRouter } from 'next/router';
 
 const appearance = {
   extend: true,
@@ -35,7 +36,7 @@ const appearance = {
 };
 
 export default function Login() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
 
@@ -72,7 +73,7 @@ export default function Login() {
         setIsLoading(true);
         hydrate();
         setIsLoading(false);
-        navigate('/feed');
+        router.push('/feed');
       } else if (event === 'SIGNED_OUT') {
         console.log('Login onAuthStateChange signed out');
       }

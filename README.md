@@ -40,9 +40,6 @@ soon: create release via github actions
 - for autocomplete in new posts:  https://github.com/webscopeio/react-textarea-autocomplete
 - ...
 
-`
-console.log('VITE_VERCEL_ENV', import.meta.env.VITE_VERCEL_ENV);
-`
 
 # Data Scheme
 

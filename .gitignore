@@ -95,3 +95,5 @@ build/
 .env.sentry-build-plugin
 
 edgefunctions/supabase/.temp
+
+dist/

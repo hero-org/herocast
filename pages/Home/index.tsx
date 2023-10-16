@@ -21,6 +21,7 @@ import CustomToast from "@/common/components/CustomToast";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { SidebarHeader } from "@/common/components/RightSidebar/SidebarHeader";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
+import { useRouter } from "next/router";
 
 type NavigationItemType = {
   name: string;
@@ -30,8 +31,9 @@ type NavigationItemType = {
 }
 
 export default function Home() {
-  const navigate = useNavigate();
-  const { pathname, hash: locationHash } = useLocation();
+  const router = useRouter();
+  const { pathname, asPath } = router;
+  const locationHash = asPath.split('#')[1];
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const {
     accounts,
@@ -105,7 +107,7 @@ export default function Home() {
     } else {
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
         if (!session) {
-          navigate('/login');
+          router.push('/login');
         }
       })
     }

@@ -8,14 +8,14 @@ import ChannelsOverview from "./ChannelsOverview";
 import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from 'next/router';
 
 type AccountsRightSidebarProps = {
   showChannels?: boolean;
 }
 
 const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
-  const navigate = useNavigate();
+    const router = useRouter()
 
   const {
     accounts,
@@ -28,7 +28,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
       <EmptyStateWithAction
         title="Connect Farcaster accounts"
         description="Get started with herocast"
-        onClick={() => navigate('/accounts')}
+        onClick={() => router.push('/accounts')}
         submitText="Connect account"
         icon={UserPlusIcon}
       />

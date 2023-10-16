@@ -10,20 +10,28 @@ import { AptabaseProvider } from '@aptabase/react';
 
 import '@/globals.css';
 
-export const VITE_APTABASE_KEY = import.meta.env.VITE_APTABASE_KEY
-
 if (RUNNING_IN_TAURI) {
   disableContextMenu();
 }
 
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Failed to find the root element');
-const root = createRoot(rootElement);
+// const rootElement = document.getElementById('root');
+// if (!rootElement) throw new Error('Failed to find the root element');
+// const root = createRoot(rootElement);
 
-root.render(
+// root.render(
+//   <ThemeProvider defaultTheme="dark" storageKey="herocast-ui-theme">
+//     <AptabaseProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY}>
+//       <RouterProvider router={router} />
+//     </AptabaseProvider>
+//   </ThemeProvider>
+// );
+
+const App = () => (
   <ThemeProvider defaultTheme="dark" storageKey="herocast-ui-theme">
-    <AptabaseProvider appKey={VITE_APTABASE_KEY}>
+    <AptabaseProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY!}>
       <RouterProvider router={router} />
     </AptabaseProvider>
   </ThemeProvider>
-);
+)
+
+export default App;

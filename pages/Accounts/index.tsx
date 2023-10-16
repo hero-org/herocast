@@ -23,6 +23,7 @@ import { WarpcastLoginStatus, createSignerRequest, generateWarpcastSigner, getWa
 import { getUserInfoByFid } from "@/common/helpers/neynar";
 import HelpCard from "@/common/components/HelpCard";
 import { useIsMounted } from "@/common/helpers/hooks";
+import { useRouter } from "next/router";
 
 enum SignupStateEnum {
   "initial",
@@ -59,7 +60,7 @@ const SignupSteps: SignupStepType[] = [
 ]
 
 export default function Accounts() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const { isConnected } = useAccount();
   const isMounted = useIsMounted();
@@ -86,7 +87,7 @@ export default function Accounts() {
 
   const onStartCasting = () => {
     addNewPostDraft(JoinedHerocastPostDraft)
-    navigate('/post');
+    router.push('/post');
   }
 
   useEffect(() => {
@@ -226,7 +227,7 @@ export default function Accounts() {
             <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
           </Button>
           <Button
-            onClick={() => navigate('/feed')}
+            onClick={() => router.push('/feed')}
             type="button"
             className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
           >
@@ -234,7 +235,7 @@ export default function Accounts() {
             <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
           </Button>
           <Button
-            onClick={() => navigate('/channels')}
+            onClick={() => router.push('/channels')}
             type="button"
             className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
           >

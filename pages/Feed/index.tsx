@@ -1,28 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import { CastType } from "@/common/constants/farcaster";
+import { AccountObjectType, useAccountStore } from "../../src/stores/useAccountStore";
+import { CastType } from "../../src/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import uniqBy from 'lodash.uniqby';
 import get from 'lodash.get';
-import { CastRow } from "@/common/components/CastRow";
+import { CastRow } from "../../src/common/components/CastRow";
 import isEmpty from "lodash.isempty";
-import { CastThreadView } from "@/common/components/CastThreadView";
-import { DEFAULT_FEED_PAGE_SIZE, getNeynarFeedEndpoint } from "@/common/helpers/neynar";
+import { CastThreadView } from "../../src/common/components/CastThreadView";
+import { DEFAULT_FEED_PAGE_SIZE, getNeynarFeedEndpoint } from "../../src/common/helpers/neynar";
 import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
+import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
-import ReplyModal from "@/common/components/ReplyModal";
-import EmbedsModal from "@/common/components/EmbedsModal";
+import ReplyModal from "../../src/common/components/ReplyModal";
+import EmbedsModal from "../../src/common/components/EmbedsModal";
 import { useInView } from "react-intersection-observer";
-import { renderEmbedForUrl } from "@/common/components/Embeds";
+import { renderEmbedForUrl } from "../../src/common/components/Embeds";
+import { useRouter } from "next/router";
 
 type FeedType = {
   [key: string]: CastType[]
 }
 
 export default function Feed() {
-  const navigate = useNavigate();
+    const router = useRouter()
 
   const [feeds, setFeeds] = useState<FeedType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
@@ -230,7 +231,7 @@ export default function Feed() {
           </p>
           <div className="mt-10 flex items-center gap-x-6">
             <button
-              onClick={() => navigate('/accounts')}
+              onClick={() => router.push('/accounts')}
               className="flex rounded-sm bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
             >
               Get started <UserPlusIcon className="ml-2 h-5 w-5 text-gray-100" aria-hidden="true" />

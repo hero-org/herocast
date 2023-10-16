@@ -13,8 +13,6 @@ import isEmpty from 'lodash.isempty';
 import get from "lodash.get";
 import { getUrlsInText } from "@/common/helpers/text";
 
-
-export const VITE_NEYNAR_HUB_URL = import.meta.env.VITE_NEYNAR_HUB_URL;
 const NETWORK = FarcasterNetwork.MAINNET;
 
 export const convertEditorCastToPublishableCast = async (draft: DraftType): Promise<CastAddBody> => {
@@ -100,7 +98,7 @@ type RemoveReactionParams = {
 }
 
 export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCastParams) => {
-  if (!VITE_NEYNAR_HUB_URL) {
+  if (!process.env.NEXT_PUBLIC_NEYNAR_HUB_URL) {
     throw new Error('hub url is not defined');
   }
 
