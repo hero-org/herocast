@@ -3,7 +3,6 @@ import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { supabaseClient } from '@/common/helpers/supabase';
 import { hydrate } from '@/stores/useAccountStore';
-import { useNavigate, useLocation } from "react-router-dom";
 import get from 'lodash.get';
 import { useRouter } from 'next/router';
 
@@ -38,9 +37,8 @@ const appearance = {
 export default function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-
-
-  const { hash } = useLocation();
+  const {asPath} = router;
+  const hash = asPath.split('#')[1] || '';
   const queryParams = hash
     .substring(1)
     .split('&')

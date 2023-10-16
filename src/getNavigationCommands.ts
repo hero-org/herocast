@@ -9,7 +9,7 @@ interface WithRouterProps {
     router: NextRouter
 }
 
-export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[] => (
+const getNavigationCommands = ({ router }: WithRouterProps): CommandType[] => (
     [
         {
             name: 'Accounts',
@@ -74,3 +74,6 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
         },
     ]
 )
+
+
+export default withRouter(getNavigationCommands);

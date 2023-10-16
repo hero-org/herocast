@@ -13,7 +13,6 @@ import { Notifications } from '@/pages/Notifications';
 import { Theme } from '@radix-ui/themes';
 import * as Sentry from "@sentry/react";
 import {
-  useLocation,
   useNavigationType,
   createRoutesFromChildren,
   matchRoutes,
@@ -26,25 +25,9 @@ import {
 import { WagmiConfig } from 'wagmi';
 import { wagmiConfig, chains, rainbowKitTheme } from "@/common/helpers/rainbowkit";
 
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  integrations: [
-    new Sentry.BrowserTracing({
-      routingInstrumentation: Sentry.reactRouterV6Instrumentation(
-        React.useEffect,
-        useLocation,
-        useNavigationType,
-        createRoutesFromChildren,
-        matchRoutes
-      ),
-    }),
-  ],
-  tracesSampleRate: 1.0,
-});
-
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouter(createBrowserRouter);
 
-export const router = sentryCreateBrowserRouter([
+export const router = [
   {
     path: "/",
     element: <>
@@ -101,4 +84,4 @@ export const router = sentryCreateBrowserRouter([
       },
     ]
   }
-]);
+];

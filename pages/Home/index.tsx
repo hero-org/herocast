@@ -12,7 +12,6 @@ import { RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
 import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { trackPageView } from "@/common/helpers/analytics";
 import { findParamInHashUrlPath } from "@/common/helpers/navigation";
 import { BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
@@ -93,15 +92,15 @@ export default function Home() {
   }, [pathname])
 
   useEffect(() => {
-    if (locationHash.startsWith('#error')) {
+    if (locationHash && locationHash.startsWith('#error')) {
       // example location hash with error: #error=unauthorized_client&error_code=401&error_description=Email+link+is+invalid+or+has+expired
       const errorCode = findParamInHashUrlPath(locationHash, 'error_code') || '500';
       const description = findParamInHashUrlPath(locationHash, 'error_description')?.replace(/\+/g, ' ');
       console.log('throwing error', errorCode, description);
       throw new Response(description, { status: Number(errorCode), statusText: description });
-    } else if (locationHash.startsWith('#access_token')) {
+    } else if (locationHash && locationHash.startsWith('#access_token')) {
       console.log('locationhash', locationHash);
-      navigate(`/login${locationHash}`);
+      router.push(`/login${locationHash}`);
     } else if (locationHash) {
       console.log('unknown locationHash', locationHash);
     } else {
@@ -229,7 +228,7 @@ export default function Home() {
                                   <p
                                     onClick={() => {
                                       if (pathname === '/login') return;
-                                      navigate(item.router);
+                                      router.push(item.router);
                                       setSidebarOpen(false);
                                     }}
                                     className={classNames(
@@ -294,7 +293,7 @@ export default function Home() {
                           <p
                             onClick={() => {
                               if (pathname === '/login') return;
-                              navigate(item.router);
+                              router.push(item.router);
                               setSidebarOpen(false);
                             }}
                             className={classNames(

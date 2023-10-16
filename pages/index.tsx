@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
-import Home from '../pages/Home';
+import Home from './home';
 import CommandPalette from '../src/common/components/CommandPalette';
 import { Theme } from '@radix-ui/themes';
 import '@rainbow-me/rainbowkit/styles.css';

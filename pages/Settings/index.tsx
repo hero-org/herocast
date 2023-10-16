@@ -62,7 +62,7 @@ export default function Settings() {
       { name: 'Feed: go to next cast in list', shortcut: 'j' },
       { name: 'Feed: Open thread view for cast', shortcut: 'Enter or o' },
       { name: 'Feed: Open embedded link in new tab', shortcut: 'shift+o' },
-      ...getNavigationCommands(),
+      ...getNavigationCommands({ router }),
       ...newPostCommands,
       ...accountCommands,
       ...channelCommands,

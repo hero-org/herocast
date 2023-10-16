@@ -37,7 +37,7 @@ export default function CommandPalette() {
   })
 
 
-  const navigationCommands = getNavigationCommands({router});
+  const navigationCommands = getNavigationCommands();
 
   let commands: CommandType[] = [
     ...navigationCommands,
@@ -53,7 +53,7 @@ export default function CommandPalette() {
 
     useHotkeys(command.shortcut.replace('cmd', 'meta'), () => {
       if (command.navigateTo) {
-        navigate(command.navigateTo);
+        router.push(command.navigateTo);
       }
       command.action();
     }, [], {
@@ -85,7 +85,7 @@ export default function CommandPalette() {
       return;
     }
     if (command.navigateTo) {
-      navigate(command.navigateTo);
+      router.push(command.navigateTo);
     }
     command.action();
     closeCommandPallete();
