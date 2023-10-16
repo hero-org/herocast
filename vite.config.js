@@ -70,8 +70,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: libraries,
-          'wagmi-vendor': ['wagmi', 'viem'],
-          // ...renderChunks(dependencies),
+          // 'wagmi-vendor': ['wagmi', 'viem'],
+          ...renderChunks(dependencies),
         },
       },
     },
