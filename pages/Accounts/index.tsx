@@ -121,7 +121,7 @@ export default function Accounts() {
 
   const pollForSigner = async () => {
     let tries = 0;
-    while (true || tries < 60) {
+    while (tries < 60) {
       tries += 1;
       await new Promise((r) => setTimeout(r, 2000));
 
