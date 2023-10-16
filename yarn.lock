@@ -713,10 +713,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@farcaster/core@^0.12.11":
-  version "0.12.11"
-  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.12.11.tgz#a7f8c5783da376200c6148253f605cd7bc80f7e0"
-  integrity sha512-u61lqKbqIk/pplcFL/lf8QjL7kWHYRITb9jPCqPHV7P6ZVIh/UR0PAkKRlM4BPfk2GgDY/lIFP2PyaOcrp89/Q==
+"@farcaster/core@^0.12.14":
+  version "0.12.14"
+  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.12.14.tgz#468ffb14077b3fbcf8eb2309b0c87f9ca7ca2a78"
+  integrity sha512-Ttgv/Yz5qTSjhbzBSpGReJpz77j8U68C3sjvH5UlDgh0aINH2sJwnK0uflwijzeJKico/pl6x6dWMVm9PGf0tQ==
   dependencies:
     "@noble/curves" "^1.0.0"
     "@noble/hashes" "^1.3.0"
@@ -747,12 +747,12 @@
     "@improbable-eng/grpc-web-node-http-transport" "^0.15.0"
     rxjs "^7.8.0"
 
-"@farcaster/hub-web@^0.6.2":
-  version "0.6.6"
-  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.6.6.tgz#725d045d6b326f76479bb4503cccdc71e6c160be"
-  integrity sha512-kqhBtZkK033Tt4IVffgiUrK6p+ePLq4UWPqBiKLZasMYgqWW5Eowq421xr58KPK2uYKMqd00tMfLKO914uv8Qg==
+"@farcaster/hub-web@^0.6.9":
+  version "0.6.9"
+  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.6.9.tgz#1e5f0b01666183167b352ace0f065d57bd41910f"
+  integrity sha512-4Q5pE+DH3UVDohZ+WZqvniI6TExDksDVRJ/jmHrpVMxDEjFDY9CBcOaqXl4eHCvCEegQTGgwwoMm6uuNlJAw5Q==
   dependencies:
-    "@farcaster/core" "^0.12.11"
+    "@farcaster/core" "^0.12.14"
     "@improbable-eng/grpc-web" "^0.15.0"
     rxjs "^7.8.0"
 
