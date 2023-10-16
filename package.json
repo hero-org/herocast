@@ -15,7 +15,7 @@
     "preview": "vite preview",
     "serve": "serve -s build",
     "preinstall": "yarn global add serve",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx src",
+    "lint": "next lint",
     "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx src"
   },
   "eslintConfig": {

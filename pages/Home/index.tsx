@@ -19,7 +19,6 @@ import * as Toast from '@radix-ui/react-toast';
 import CustomToast from "@/common/components/CustomToast";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { SidebarHeader } from "@/common/components/RightSidebar/SidebarHeader";
-import { ThemeToggle } from "@/common/components/ThemeToggle";
 import { useRouter } from "next/router";
 
 type NavigationItemType = {
@@ -246,7 +245,6 @@ export default function Home({ children }: { children: React.ReactNode }) {
                             </ul>
                           </li>
                           {renderAccountSidebar()}
-                          <ThemeToggle />
                           {/* <li className="-mx-6 mt-auto">
                             <a
                               href="#"
@@ -310,7 +308,6 @@ export default function Home({ children }: { children: React.ReactNode }) {
                       ))}
                     </ul>
                   </li>
-                  {/* <ThemeToggle /> */}
                   {/* <li className="-mx-6 mt-auto">
                   <a
                     href="#"

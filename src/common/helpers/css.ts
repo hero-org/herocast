@@ -1,3 +1,4 @@
+import { Properties } from 'csstype';
 
 export function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
