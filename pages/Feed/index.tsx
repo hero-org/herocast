@@ -9,7 +9,6 @@ import isEmpty from "lodash.isempty";
 import { CastThreadView } from "../../src/common/components/CastThreadView";
 import { DEFAULT_FEED_PAGE_SIZE, getNeynarFeedEndpoint } from "../../src/common/helpers/neynar";
 import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
 import ReplyModal from "../../src/common/components/ReplyModal";

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import AlertDialogDemo from "../../src/common/components/AlertDialog";
-import { getNavigationCommands } from "../../src/common/components/CommandPalette";
 import HelpCard from "../../src/common/components/HelpCard";
 import { classNames } from "../../src/common/helpers/css";
 import { supabaseClient } from "../../src/common/helpers/supabase";
@@ -9,6 +8,7 @@ import { AccountObjectType, accountCommands, channelCommands, useAccountStore } 
 import { newPostCommands } from "../../src/stores/useNewPostStore";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
+import { getNavigationCommands } from '@/getNavigationCommands';
 
 type SimpleCommand = {
   name: string;
@@ -16,8 +16,8 @@ type SimpleCommand = {
 }
 
 export default function Settings() {
-  const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
 
   const {
     accounts,
@@ -113,7 +113,6 @@ export default function Settings() {
       >
         Logout
       </button>
-      <Button>Button</Button>
       {/* <button
         type="button"
         onClick={() => onUpdateAccountStatus()}

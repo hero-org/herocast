@@ -37,7 +37,7 @@ export default function CommandPalette() {
   })
 
 
-  const navigationCommands = getNavigationCommands();
+  const navigationCommands = getNavigationCommands({ router });
 
   let commands: CommandType[] = [
     ...navigationCommands,

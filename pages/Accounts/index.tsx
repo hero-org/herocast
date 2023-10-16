@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import WalletLogin from "@/common/components/WalletLogin";
+import WalletLogin from "../../src/common/components/WalletLogin";
 import { CheckCircleIcon, PlusCircleIcon, RectangleGroupIcon, UserPlusIcon } from "@heroicons/react/20/solid";
 import { NewspaperIcon } from "@heroicons/react/24/solid";
-import { JoinedHerocastPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
-import { hydrate, useAccountStore } from "@/stores/useAccountStore";
+import { JoinedHerocastPostDraft, useNewPostStore } from "../../src/stores/useNewPostStore";
+import { hydrate, useAccountStore } from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
-import { useNavigate } from "react-router-dom";
+import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
 import {
   Card,
   CardContent,
@@ -14,15 +13,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { QrCode } from "@/common/components/QrCode";
+} from "../../src/components/ui/card";
+import { Button } from "../../src/components/ui/button";
+import { QrCode } from "../../src/common/components/QrCode";
 import { useAccount } from "wagmi";
-import ConfirmOnchainSignerButton from "@/common/components/ConfirmOnchainSignerButton";
-import { WarpcastLoginStatus, createSignerRequest, generateWarpcastSigner, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
-import { getUserInfoByFid } from "@/common/helpers/neynar";
-import HelpCard from "@/common/components/HelpCard";
-import { useIsMounted } from "@/common/helpers/hooks";
+import ConfirmOnchainSignerButton from "../../src//common/components/ConfirmOnchainSignerButton";
+import { WarpcastLoginStatus, createSignerRequest, generateWarpcastSigner, getWarpcastSignerStatus } from "../../src/common/helpers/warpcastLogin";
+import { getUserInfoByFid } from "../../src/common/helpers/neynar";
+import HelpCard from "../../src/common/components/HelpCard";
+import { useIsMounted } from "../../src/common/helpers/hooks";
 import { useRouter } from "next/router";
 
 enum SignupStateEnum {

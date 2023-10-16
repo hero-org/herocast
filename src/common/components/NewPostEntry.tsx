@@ -160,7 +160,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     onChange({ ...draft, parentUrl: newParentUrl })
   }
 
-  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: string | Object }) => {
+  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: string | unknown }) => {
     if (trigger === '@') {
       if (!draft.mentionsToFids) {
         updateMentionsToFids(draftIdx, { [item?.username]: item?.fid })

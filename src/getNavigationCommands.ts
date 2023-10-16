@@ -1,4 +1,4 @@
-import { withRouter, NextRouter } from 'next/router'
+import { NextRouter } from 'next/router'
 import { CommandType } from './common/constants/commands';
 import { MagnifyingGlassIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { BellIcon } from '@heroicons/react/24/outline';
@@ -9,7 +9,7 @@ interface WithRouterProps {
     router: NextRouter
 }
 
-const getNavigationCommands = ({ router }: WithRouterProps): CommandType[] => (
+export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[] => (
     [
         {
             name: 'Accounts',
@@ -74,6 +74,3 @@ const getNavigationCommands = ({ router }: WithRouterProps): CommandType[] => (
         },
     ]
 )
-
-
-export default withRouter(getNavigationCommands);
