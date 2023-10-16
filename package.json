@@ -56,7 +56,7 @@
     "@radix-ui/react-tooltip": "^1.0.6",
     "@radix-ui/themes": "^1.1.0",
     "@rainbow-me/rainbowkit": "^1.0.11",
-    "@sentry/react": "^7.68.0",
+    "@sentry/react": "^7.74.0",
     "@sentry/vite-plugin": "^2.7.1",
     "@supabase/auth-ui-react": "^0.4.4",
     "@supabase/supabase-js": "^2.36.0",
