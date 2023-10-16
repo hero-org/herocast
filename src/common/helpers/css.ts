@@ -22,4 +22,4 @@ export const castTextStyle = {
   'MozHyphens': 'auto',
   'WebkitHyphens': 'auto',
   'hyphens': 'auto',
-} as Properties<string | number, string & {}>;
+} as Properties<string | number, string & any>;
