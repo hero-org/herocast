@@ -10,7 +10,6 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  productionBrowserSourceMaps: true,
 }
 
 export default nextConfig
