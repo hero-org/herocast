@@ -91,6 +91,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   }, [pathname])
 
   useEffect(() => {
+    console.log('useEffect router', router);
     if (locationHash && locationHash.startsWith('#error')) {
       // example location hash with error: #error=unauthorized_client&error_code=401&error_description=Email+link+is+invalid+or+has+expired
       const errorCode = findParamInHashUrlPath(locationHash, 'error_code') || '500';
