@@ -112,6 +112,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   //   }
   // }, [locationHash]);
 
+  console.log('supabase config', process.env.NEXT_PUBLIC_SUPABASE_URL);
+
   const sidebarType = getSidebarForPathname(pathname);
 
   const renderRightSidebar = () => {
