@@ -19,7 +19,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             enableSystem
             disableTransitionOnChange
         >
-            <AptabaseProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY!}>
+            {/* <AptabaseProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY!}> */}
                 <WagmiConfig config={wagmiConfig}>
                     <RainbowKitProvider chains={chains} theme={rainbowKitTheme}>
                         <CommandPalette />
@@ -28,7 +28,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
                         </Home>
                     </RainbowKitProvider>
                 </WagmiConfig>,
-            </AptabaseProvider>
+            {/* </AptabaseProvider> */}
         </ThemeProvider>
     )
 }
