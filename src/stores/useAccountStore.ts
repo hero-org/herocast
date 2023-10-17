@@ -411,7 +411,6 @@ const getChannelCommands = () => {
     },
   });
 
-  // todo: this needs to happen when the account is setup
   for (let i = 0; i < 9; i++) {
     channelCommands.push({
       name: `Switch to channel ${i + 1}`,
