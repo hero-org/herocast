@@ -11,7 +11,6 @@ import Home from './home/index';
 import '../src/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 
-
 export default function MyApp({ Component, pageProps }: AppProps) {
     return (
         <ThemeProvider
