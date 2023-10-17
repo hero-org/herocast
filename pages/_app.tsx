@@ -6,7 +6,7 @@ import { WagmiConfig } from 'wagmi';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import CommandPalette from '../src/common/components/CommandPalette';
 import { wagmiConfig, chains, rainbowKitTheme } from "../src/common/helpers/rainbowkit";
-import Home from './home/index';
+import Home from '../src/home';
 
 import '../src/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
