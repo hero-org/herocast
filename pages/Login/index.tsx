@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { supabaseClient } from '@/common/helpers/supabase';
-import { hydrate } from '@/stores/useAccountStore';
+import { supabaseClient } from '../../src/common/helpers/supabase';
+import { hydrate } from '../../src/stores/useAccountStore';
 import get from 'lodash.get';
 import { useRouter } from 'next/router';
 

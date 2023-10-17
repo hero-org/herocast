@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { toBytes } from 'viem';
 
-import { castTextStyle, classNames } from "@/common/helpers/css";
-import { CastType, CastReactionType } from "@/common/constants/farcaster";
-import { ChannelType } from "@/common/constants/channels";
-import { useAccountStore } from "@/stores/useAccountStore";
+import { castTextStyle, classNames } from "../../../src/common/helpers/css";
+import { CastType, CastReactionType } from "../../../src/common/constants/farcaster";
+import { ChannelType } from "../../../src/common/constants/channels";
+import { useAccountStore } from "../../../src/stores/useAccountStore";
 import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
-import { ImgurImage } from "@/common/components/PostEmbeddedContent";
+import { ImgurImage } from "../../../src/common/components/PostEmbeddedContent";
 import { localize, timeDiff } from "../helpers/date";
 import { publishReaction, removeReaction } from '../helpers/farcaster';
 import { ReactionType } from '@farcaster/hub-web';

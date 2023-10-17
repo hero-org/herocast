@@ -8,7 +8,7 @@ import { AccountObjectType, accountCommands, channelCommands, useAccountStore } 
 import { newPostCommands } from "../../src/stores/useNewPostStore";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
-import { getNavigationCommands } from '@/getNavigationCommands';
+import { getNavigationCommands } from '../../src/getNavigationCommands';
 
 type SimpleCommand = {
   name: string;

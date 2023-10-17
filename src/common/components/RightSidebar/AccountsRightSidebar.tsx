@@ -1,8 +1,8 @@
 import React from "react";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
+import { AccountObjectType, useAccountStore } from "../../../../src/stores/useAccountStore";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
-import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
-import { classNames } from "@/common/helpers/css";
+import EmptyStateWithAction from "../../../../src/common/components/EmptyStateWithAction";
+import { classNames } from "../../../../src/common/helpers/css";
 import isEmpty from "lodash.isempty";
 import ChannelsOverview from "./ChannelsOverview";
 import { SidebarHeader } from "./SidebarHeader";
