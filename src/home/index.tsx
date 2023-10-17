@@ -86,9 +86,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const navItem = navigation.find((item) => item.router === pathname) || { name: '', getTitle: null }
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
 
-  useEffect(() => {
-    trackPageView(pathname.slice(1));
-  }, [pathname])
+  // useEffect(() => {
+  //   trackPageView(pathname.slice(1));
+  // }, [pathname])
 
   // useEffect(() => {
   //   console.log('useEffect router', router);
