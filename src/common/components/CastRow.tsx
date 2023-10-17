@@ -187,35 +187,37 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     const linksCount = cast.embeds.length;
     const isOnchainLink = linksCount > 0 && cast.embeds[0].url ? cast.embeds[0].url.startsWith('"chain:') : false;
 
-    return (<div className="-ml-1.5 flex space-x-3">
-      {Object.entries(reactions).map(([key, reactionInfo]) => {
-        const isActive = get(reactionInfo, 'isActive', false);
-        const icon = getIconForCastReactionType(key as CastReactionType, isActive);
-        const reaction = renderReaction(key as CastReactionType, isActive, reactionInfo.count, icon);
+    return (
+      <div className="-ml-1.5 flex space-x-3">
+        {Object.entries(reactions).map(([key, reactionInfo]) => {
+          const isActive = get(reactionInfo, 'isActive', false);
+          const icon = getIconForCastReactionType(key as CastReactionType, isActive);
+          const reaction = renderReaction(key as CastReactionType, isActive, reactionInfo.count, icon);
 
-        if (key === 'likes' && isSelected) {
-          return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
-            <HotkeyTooltipWrapper hotkey="L" side="bottom">
-              {reaction}
-            </HotkeyTooltipWrapper>
-          </Tooltip.Provider>
-        } else if (key === 'recasts' && isSelected) {
-          return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
-            <HotkeyTooltipWrapper hotkey="Shift + R" side="bottom">
-              {reaction}
-            </HotkeyTooltipWrapper>
-          </Tooltip.Provider>
-        } else {
-          return reaction;
+          if (key === 'likes' && isSelected) {
+            return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+              <HotkeyTooltipWrapper hotkey="L" side="bottom">
+                {reaction}
+              </HotkeyTooltipWrapper>
+            </Tooltip.Provider>
+          } else if (key === 'recasts' && isSelected) {
+            return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+              <HotkeyTooltipWrapper hotkey="Shift + R" side="bottom">
+                {reaction}
+              </HotkeyTooltipWrapper>
+            </Tooltip.Provider>
+          } else {
+            return reaction;
+          }
+
+        })}
+        {linksCount && !isOnchainLink ? (
+          <a tabIndex={-1} href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
+            {renderReaction(CastReactionType.links, linksCount > 1, linksCount ?? undefined, getIconForCastReactionType(CastReactionType.links))}
+          </a>) : null
         }
-
-      })}
-      {linksCount && !isOnchainLink ? (
-        <a tabIndex={-1} href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
-          {renderReaction(CastReactionType.links, linksCount > 1, linksCount ?? undefined, getIconForCastReactionType(CastReactionType.links))}
-        </a>) : null
-      }
-    </div>)
+      </div>
+    )
   }
 
   const getText = () => (

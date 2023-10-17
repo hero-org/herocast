@@ -5,6 +5,8 @@ import TweetEmbed from './TweetEmbed';
 import NounsBuildEmbed from './NounsBuildEmbed';
 
 export const renderEmbedForUrl = ({ url }: { url: string }) => {
+  if (!url) return null;
+
   if (url.startsWith('"chain:')) {
     return <OnchainEmbed url={url} />
   } else if (url.startsWith('https://warpcast.com')) {
