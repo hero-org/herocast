@@ -306,7 +306,6 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
 
 export const hydrate = async () => {
   console.log('hydrating 💦');
-  return;
   
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (isEmpty(user)) {
