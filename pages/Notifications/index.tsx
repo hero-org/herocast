@@ -54,7 +54,7 @@ enum NotificationNavigationEnum {
 
 
 
-export const Notifications = () => {
+const Notifications = () => {
   const [navigation, setNavigation] = useState<NotificationNavigationEnum>(NotificationNavigationEnum.mentions);
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -271,3 +271,6 @@ export const Notifications = () => {
     {renderReplyModal()}
   </div>
 }
+
+
+export default Notifications;

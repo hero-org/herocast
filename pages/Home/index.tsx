@@ -28,7 +28,7 @@ type NavigationItemType = {
   getTitle?: () => string;
 }
 
-export default function Home({ children }: { children: React.ReactNode }) {
+const Home = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { pathname, asPath } = router;
   const locationHash = asPath.split('#')[1];
@@ -353,3 +353,5 @@ export default function Home({ children }: { children: React.ReactNode }) {
     </>
   )
 }
+
+export default Home;
