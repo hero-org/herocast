@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { supabaseClient } from '@/common/helpers/supabase';
@@ -337,9 +337,7 @@ export default function Home({ children }: { children: React.ReactNode }) {
                 {/* <h1 className="text-base font-semibold leading-7 text-white"></h1> */}
               </header>
               <div className="w-full max-w-full min-h-screen flex justify-between px-2 border-t border-white/5 ">
-                <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
-                  {children}
-                </Suspense>
+                {children}
               </div>
             </main>
             {renderRightSidebar()}
