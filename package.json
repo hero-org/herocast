@@ -13,15 +13,8 @@
     "rls:mac-apple": "tauri build --target aarch64-apple-darwin",
     "rls:mac-intel": "tauri build --target x86_64-apple-darwin",
     "serve": "serve -s build",
-    "preinstall": "yarn global add serve",
     "lint": "next lint",
     "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx src"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [
