@@ -185,7 +185,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
 
   const renderCastReactions = (cast: CastType) => {
     const linksCount = cast.embeds.length;
-    const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;
+    const isOnchainLink = linksCount > 0 && cast.embeds[0].url ? cast.embeds[0].url.startsWith('"chain:') : false;
 
     return (<div className="-ml-1.5 flex space-x-3">
       {Object.entries(reactions).map(([key, reactionInfo]) => {
