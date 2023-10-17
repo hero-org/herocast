@@ -1,14 +1,16 @@
 import React from 'react';
 import type { AppProps } from 'next/app'
-import '@/globals.css';
 import { AptabaseProvider } from '@aptabase/react';
 import { ThemeProvider } from '../src/common/hooks/ThemeProvider';
 import { WagmiConfig } from 'wagmi';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import CommandPalette from '../src/common/components/CommandPalette';
 import { wagmiConfig, chains, rainbowKitTheme } from "../src/common/helpers/rainbowkit";
+import Home from './home/index';
+
+import '../../src/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
-import Home from '../pages/home';
+
 
 export default function MyApp({ Component, pageProps }: AppProps) {
     return (

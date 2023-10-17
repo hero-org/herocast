@@ -1,24 +1,24 @@
 import React, { useEffect } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { supabaseClient } from '@/common/helpers/supabase';
+import { supabaseClient } from '../../src/common/helpers/supabase';
 import {
   Cog6ToothIcon, PlusCircleIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Bars3Icon, UserPlusIcon } from '@heroicons/react/20/solid';
-import { classNames } from "@/common/helpers/css";
-import { RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
-import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
-import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import { trackPageView } from "@/common/helpers/analytics";
-import { findParamInHashUrlPath } from "@/common/helpers/navigation";
+import { classNames } from "../../src/common/helpers/css";
+import { RIGHT_SIDEBAR_ENUM } from "../../src/common/constants/navigation";
+import AccountsRightSidebar from "../../src/common/components/RightSidebar/AccountsRightSidebar";
+import ChannelsRightSidebar from "../../src/common/components/RightSidebar/ChannelsRightSidebar";
+import { AccountObjectType, useAccountStore } from "../../src/stores/useAccountStore";
+import { trackPageView } from "../../src/common/helpers/analytics";
+import { findParamInHashUrlPath } from "../../src/common/helpers/navigation";
 import { BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
 import * as Toast from '@radix-ui/react-toast';
-import CustomToast from "@/common/components/CustomToast";
-import { useNewPostStore } from "@/stores/useNewPostStore";
-import { SidebarHeader } from "@/common/components/RightSidebar/SidebarHeader";
+import CustomToast from "../../src/common/components/CustomToast";
+import { useNewPostStore } from "../../src/stores/useNewPostStore";
+import { SidebarHeader } from "../../src/common/components/RightSidebar/SidebarHeader";
 import { useRouter } from "next/router";
 
 type NavigationItemType = {
