@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { PhotoIcon } from "@heroicons/react/24/solid";
 
-// export const VITE_IMGUR_CLIENT_ID = import.meta.env.VITE_IMGUR_CLIENT_ID
 
 const getImageViaCdnUrl = (imgUrl: string) => {
   const fileSuffix = imgUrl.split('.').slice(-1)[0]
@@ -11,7 +10,7 @@ const getImageViaCdnUrl = (imgUrl: string) => {
 export const ImgurImage = ({ url }: { url: string }) => {
   // const [image, setImage] = useState<string | null>(null)
   // var myHeaders = new Headers();
-  // myHeaders.append("Authorization", `Client-ID ${VITE_IMGUR_CLIENT_ID}`);
+  // myHeaders.append("Authorization", `Client-ID ${process.env.NEXT_PUBLIC_IMGUR_CLIENT_ID}`);
 
   // var formdata = new FormData();
 

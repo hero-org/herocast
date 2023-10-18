@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react'
 
-import { castTextStyle, classNames } from '@/common/helpers/css'
-import { getNeynarNotificationsEndpoint } from '@/common/helpers/neynar'
-import { useAccountStore } from '@/stores/useAccountStore'
-import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys'
-import { localize, timeDiff } from '@/common/helpers/date'
-import { CastThreadView } from '@/common/components/CastThreadView'
+import { castTextStyle, classNames } from '../../src/common/helpers/css'
+import { getNeynarNotificationsEndpoint } from '../../src/common/helpers/neynar'
+import { useAccountStore } from '../../src/stores/useAccountStore'
+import { SelectableListWithHotkeys } from '../../src/common/components/SelectableListWithHotkeys'
+import { localize, timeDiff } from '../../src/common/helpers/date'
+import { CastThreadView } from '../../src/common/components/CastThreadView'
 import isEmpty from 'lodash.isempty'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Key } from 'ts-key-enum'
-import { CastType } from '@/common/constants/farcaster'
-import ReplyModal from '@/common/components/ReplyModal'
+import { CastType } from '../../src/common/constants/farcaster'
+import ReplyModal from '../../src/common/components/ReplyModal'
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
@@ -54,7 +54,7 @@ enum NotificationNavigationEnum {
 
 
 
-export const Notifications = () => {
+const Notifications = () => {
   const [navigation, setNavigation] = useState<NotificationNavigationEnum>(NotificationNavigationEnum.mentions);
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -271,3 +271,6 @@ export const Notifications = () => {
     {renderReplyModal()}
   </div>
 }
+
+
+export default Notifications;

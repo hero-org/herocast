@@ -3,11 +3,11 @@ import { ChannelType } from "@/common/constants/channels";
 import { classNames } from "@/common/helpers/css";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { SidebarHeader } from "./SidebarHeader";
-import { useNavigate } from "react-router-dom";
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { useRouter } from "next/router";
 
 const ChannelsOverview = () => {
-  const navigate = useNavigate();
+    const router = useRouter()
   const {
     selectedChannelUrl,
     setSelectedChannelUrl,
@@ -18,7 +18,7 @@ const ChannelsOverview = () => {
   if (!channels) channels = [];
 
   return (<div className="mt-4">
-    <SidebarHeader title="Channels" actionTitle={'Manage'} onClick={() => navigate('/channels')} />
+    <SidebarHeader title="Channels" actionTitle={'Manage'} onClick={() => router.push('/channels')} />
     <ul role="list" className="my-2 overflow-y-scroll">
       <li key="follow-feed" className="px-2 sm:px-3 lg:px-4">
         <div

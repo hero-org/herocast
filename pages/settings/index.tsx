@@ -1,14 +1,14 @@
-import AlertDialogDemo from "@/common/components/AlertDialog";
-import { getNavigationCommands } from "@/common/components/CommandPalette";
-import HelpCard from "@/common/components/HelpCard";
-import { classNames } from "@/common/helpers/css";
-import { supabaseClient } from "@/common/helpers/supabase";
-import { Button } from "@/components/ui/button"
-import { AccountObjectType, accountCommands, channelCommands, useAccountStore } from "@/stores/useAccountStore";
-import { newPostCommands } from "@/stores/useNewPostStore";
-import { User } from "@supabase/supabase-js";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import AlertDialogDemo from "../../src/common/components/AlertDialog";
+import HelpCard from "../../src/common/components/HelpCard";
+import { classNames } from "../../src/common/helpers/css";
+import { supabaseClient } from "../../src/common/helpers/supabase";
+import { Button } from "../../src/components/ui/button"
+import { AccountObjectType, accountCommands, channelCommands, useAccountStore } from "../../src/stores/useAccountStore";
+import { newPostCommands } from "../../src/stores/useNewPostStore";
+import { User } from "@supabase/supabase-js";
+import { useRouter } from "next/router";
+import { getNavigationCommands } from '../../src/getNavigationCommands';
 
 type SimpleCommand = {
   name: string;
@@ -16,8 +16,8 @@ type SimpleCommand = {
 }
 
 export default function Settings() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
 
   const {
     accounts,
@@ -50,7 +50,7 @@ export default function Settings() {
       await supabaseClient.auth.signOut();
     }
 
-    navigate('/login');
+    router.push('/login');
   }
 
   const displayEmail = user?.email ? `${user?.email.slice(0, 5)}...@${user?.email.split('@')[1]}` : '';
@@ -62,7 +62,7 @@ export default function Settings() {
       { name: 'Feed: go to next cast in list', shortcut: 'j' },
       { name: 'Feed: Open thread view for cast', shortcut: 'Enter or o' },
       { name: 'Feed: Open embedded link in new tab', shortcut: 'shift+o' },
-      ...getNavigationCommands(),
+      ...getNavigationCommands({ router }),
       ...newPostCommands,
       ...accountCommands,
       ...channelCommands,
@@ -113,7 +113,6 @@ export default function Settings() {
       >
         Logout
       </button>
-      <Button>Button</Button>
       {/* <button
         type="button"
         onClick={() => onUpdateAccountStatus()}

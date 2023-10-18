@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { toBytes } from 'viem';
 
-import { castTextStyle, classNames } from "@/common/helpers/css";
-import { CastType, CastReactionType } from "@/common/constants/farcaster";
-import { ChannelType } from "@/common/constants/channels";
-import { useAccountStore } from "@/stores/useAccountStore";
+import { castTextStyle, classNames } from "../../../src/common/helpers/css";
+import { CastType, CastReactionType } from "../../../src/common/constants/farcaster";
+import { ChannelType } from "../../../src/common/constants/channels";
+import { useAccountStore } from "../../../src/stores/useAccountStore";
 import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
-import { ImgurImage } from "@/common/components/PostEmbeddedContent";
+import { ImgurImage } from "../../../src/common/components/PostEmbeddedContent";
 import { localize, timeDiff } from "../helpers/date";
 import { publishReaction, removeReaction } from '../helpers/farcaster';
 import { ReactionType } from '@farcaster/hub-web';
@@ -156,9 +156,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       const reactionBodyType = key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST;
       const reactionBody = { type: reactionBodyType, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } }
       if (isActive) {
-        await removeReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody });
+        await removeReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey!, reactionBody });
       } else {
-        await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey, reactionBody });
+        await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey!, reactionBody });
       }
     } catch (error) {
       console.error(`Error in onClickReaction: ${error}`);
@@ -185,37 +185,39 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
 
   const renderCastReactions = (cast: CastType) => {
     const linksCount = cast.embeds.length;
-    const isOnchainLink = linksCount ? cast.embeds[0].url.startsWith('"chain:') : false;
+    const isOnchainLink = linksCount > 0 && cast.embeds[0].url ? cast.embeds[0].url.startsWith('"chain:') : false;
 
-    return (<div className="-ml-1.5 flex space-x-3">
-      {Object.entries(reactions).map(([key, reactionInfo]) => {
-        const isActive = get(reactionInfo, 'isActive', false);
-        const icon = getIconForCastReactionType(key as CastReactionType, isActive);
-        const reaction = renderReaction(key as CastReactionType, isActive, reactionInfo.count, icon);
+    return (
+      <div className="-ml-1.5 flex space-x-3">
+        {Object.entries(reactions).map(([key, reactionInfo]) => {
+          const isActive = get(reactionInfo, 'isActive', false);
+          const icon = getIconForCastReactionType(key as CastReactionType, isActive);
+          const reaction = renderReaction(key as CastReactionType, isActive, reactionInfo.count, icon);
 
-        if (key === 'likes' && isSelected) {
-          return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
-            <HotkeyTooltipWrapper hotkey="L" side="bottom">
-              {reaction}
-            </HotkeyTooltipWrapper>
-          </Tooltip.Provider>
-        } else if (key === 'recasts' && isSelected) {
-          return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
-            <HotkeyTooltipWrapper hotkey="Shift + R" side="bottom">
-              {reaction}
-            </HotkeyTooltipWrapper>
-          </Tooltip.Provider>
-        } else {
-          return reaction;
+          if (key === 'likes' && isSelected) {
+            return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+              <HotkeyTooltipWrapper hotkey="L" side="bottom">
+                {reaction}
+              </HotkeyTooltipWrapper>
+            </Tooltip.Provider>
+          } else if (key === 'recasts' && isSelected) {
+            return <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+              <HotkeyTooltipWrapper hotkey="Shift + R" side="bottom">
+                {reaction}
+              </HotkeyTooltipWrapper>
+            </Tooltip.Provider>
+          } else {
+            return reaction;
+          }
+
+        })}
+        {linksCount && !isOnchainLink ? (
+          <a tabIndex={-1} href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
+            {renderReaction(CastReactionType.links, linksCount > 1, linksCount ?? undefined, getIconForCastReactionType(CastReactionType.links))}
+          </a>) : null
         }
-
-      })}
-      {linksCount && !isOnchainLink ? (
-        <a tabIndex={-1} href={cast.embeds[0].url} target="_blank" rel="noreferrer" className="cursor-pointer">
-          {renderReaction(CastReactionType.links, linksCount > 1, linksCount ?? undefined, getIconForCastReactionType(CastReactionType.links))}
-        </a>) : null
-      }
-    </div>)
+      </div>
+    )
   }
 
   const getText = () => (

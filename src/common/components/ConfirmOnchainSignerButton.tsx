@@ -18,8 +18,8 @@ import { AccountObjectType } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { useAccountModal } from "@rainbow-me/rainbowkit";
 
-const VITE_APP_FID = import.meta.env.VITE_APP_FID
-const VITE_APP_MNENOMIC = import.meta.env.VITE_APP_MNENOMIC
+const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC!;
 
 const SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN = {
     name: 'Farcaster SignedKeyRequestValidator',
@@ -86,7 +86,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
     if (idOfUserError) console.log('idOfUserError', idOfUserError);
 
     const enabled = !isEmpty(account) && !isEmpty(account?.data) && signature !== '';
-    const appAccount = mnemonicToAccount(VITE_APP_MNENOMIC);
+    const appAccount = mnemonicToAccount(APP_MNENOMIC);
     const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
 
     useEffect(() => {
@@ -98,7 +98,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
                 },
                 primaryType: "SignedKeyRequest",
                 message: {
-                    requestFid: BigInt(VITE_APP_FID),
+                    requestFid: BigInt(APP_FID),
                     key: account.publicKey as `0x${string}`,
                     deadline: BigInt(deadline),
                 },
@@ -122,7 +122,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
             enabled
                 ? encodeAbiParameters(SIGNED_KEY_REQUEST_TYPE_V2, [
                     {
-                        requestFid: BigInt(VITE_APP_FID),
+                        requestFid: BigInt(APP_FID),
                         requestSigner: appAccount.address,
                         signature: signature as `0x${string}`,
                         deadline: BigInt(deadline),

@@ -1,21 +1,19 @@
 import React from "react";
-import { useRouteError } from "react-router-dom";
-import herocastImgUrl from '/images/herocast.png'
+// import herocastImg from '../public/images/herocast.png';
 
 export default function ErrorPage() {
-  const error: unknown = useRouteError();
-  console.error('ErrorPage', error);
-
+  const error = {};
+  
   return (
     <div className="grid min-h-screen grid-cols-1 grid-rows-[1fr,auto,1fr] bg-black lg:grid-cols-[max(50%,36rem),1fr]">
       <header className="mx-auto w-full max-w-7xl px-6 pt-6 sm:pt-10 lg:col-span-2 lg:col-start-1 lg:row-start-1 lg:px-8">
         <a href="#">
           <span className="sr-only">herocast</span>
-          <img
+          {/* <img
             className="h-10 w-auto sm:h-12"
-            src={herocastImgUrl}
+            src={herocastImg.src}
             alt=""
-          />
+          /> */}
         </a>
       </header>
       <main className="select-text mx-auto w-full max-w-7xl px-6 py-24 sm:py-32 lg:col-span-2 lg:col-start-1 lg:row-start-2 lg:px-8">

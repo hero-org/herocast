@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { supabaseClient } from '@/common/helpers/supabase';
-import { hydrate } from '@/stores/useAccountStore';
-import { useNavigate, useLocation } from "react-router-dom";
+import { supabaseClient } from '../../src/common/helpers/supabase';
+import { hydrate } from '../../src/stores/useAccountStore';
 import get from 'lodash.get';
+import { useRouter } from 'next/router';
 
 const appearance = {
   extend: true,
@@ -35,11 +35,10 @@ const appearance = {
 };
 
 export default function Login() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-
-
-  const { hash } = useLocation();
+  const {asPath} = router;
+  const hash = asPath.split('#')[1] || '';
   const queryParams = hash
     .substring(1)
     .split('&')
@@ -72,7 +71,7 @@ export default function Login() {
         setIsLoading(true);
         hydrate();
         setIsLoading(false);
-        navigate('/feed');
+        router.push('/feed');
       } else if (event === 'SIGNED_OUT') {
         console.log('Login onAuthStateChange signed out');
       }

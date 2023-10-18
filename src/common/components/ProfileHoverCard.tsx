@@ -12,6 +12,7 @@ import {
 import { UserNeynarV2Type, fetchUserProfile } from '../helpers/neynar';
 //   import { Button } from '@/components/ui/button';
 import { openWindow } from '../helpers/navigation';
+import { Loading } from './Loading';
 
 const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: string }) => {
     const [profile, setProfile] = useState<UserNeynarV2Type | null>(null);
@@ -44,21 +45,25 @@ const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: st
                         <h2 className="text-md font-semibold">{profile?.display_name}</h2>
                         <h3 className="text-sm font-regular">{username}</h3>
                     </div>
-                    <p className="flex pt-2 text-sm break-words">
-                        {profile?.profile?.bio?.text}
-                    </p>
-                    <div className="flex items-center pt-2 text-sm text-muted-foreground">
-                        <span className="font-semibold text-foreground">
-                            {profile?.following_count}
-                            &nbsp;
-                        </span>
-                        following
-                        <span className="ml-2 font-semibold text-foreground">
-                            {profile?.follower_count}
-                            &nbsp;
-                        </span>
-                        followers
-                    </div>
+                    {profile ? (
+                        <>
+                            <p className="flex pt-2 text-sm break-words">
+                                {profile?.profile?.bio?.text}
+                            </p>
+                            <div className="flex items-center pt-2 text-sm text-muted-foreground">
+                                <span className="font-semibold text-foreground">
+                                    {profile?.following_count}
+                                    &nbsp;
+                                </span>
+                                following
+                                <span className="ml-2 font-semibold text-foreground">
+                                    {profile?.follower_count}
+                                    &nbsp;
+                                </span>
+                                followers
+                            </div>
+                        </>
+                    ): <Loading />}
                 </div>
             </HoverCardContent>
         </HoverCard>

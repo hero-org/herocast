@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from "react";
+import React, { useEffect } from "react";
 import ReactTextareaAutocomplete from "@webscopeio/react-textarea-autocomplete";
 import { classNames } from "@/common/helpers/css";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
@@ -10,11 +10,16 @@ import { AuthorType, DraftStatus, DraftType } from "../constants/farcaster";
 import { CasterType, getNeynarUserSearchEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 import { useHotkeys } from "react-hotkeys-hook";
+import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import ChannelsDropdown from "./ChannelsDropdown";
 import { Progress } from "@/components/ui/progress";
 import * as linkify from "linkifyjs";
-import "linkify-plugin-mention";
+import { registerPlugin } from 'linkifyjs';
+import mention from "../helpers/linkify";
+
+registerPlugin('mention', mention);
+
 
 // const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
 
@@ -96,15 +101,16 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
   };
 
   const neynarSearchEndpoint = getNeynarUserSearchEndpoint(account?.platformAccountId);
-  const findUsername = (username: string): CasterType[] => {
-    return Promise.resolve(fetch(`${neynarSearchEndpoint}&q=${username}`)
+  const findUsername = async (username: string): Promise<CasterType[]> => {
+    const res: CasterType[] = await fetch(`${neynarSearchEndpoint}&q=${username}`)
       .then((response) => response.json())
       .then((data) => {
         return data.result.users as CasterType[];
       }).catch((err) => {
         console.log('error fetching usernames', err);
         return [];
-      }));
+      });
+    return res;
   };
 
   useEffect(() => {
@@ -117,7 +123,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     }
     // const len = new Buffer([text]).size;
     const len = new TextEncoder().encode(text).length
-    
+
     setTextLengthBytes(len)
   }, [draft?.text]);
 
@@ -146,8 +152,8 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     //   output: (item, trigger) => item.char
     // },
     "@": {
-      dataProvider: (token: string) => {
-        return findUsername(token.toLowerCase());
+      dataProvider: async (token: string) => {
+        return await findUsername(token.toLowerCase());
       },
       component: MentionDropdownItem,
       output: (item, trigger) => `@${item.username}`
@@ -160,7 +166,9 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     onChange({ ...draft, parentUrl: newParentUrl })
   }
 
-  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: string | Object }) => {
+  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: { username: string, fid: string } }) => {
+    if (!item) return;
+
     if (trigger === '@') {
       if (!draft.mentionsToFids) {
         updateMentionsToFids(draftIdx, { [item?.username]: item?.fid })
@@ -266,18 +274,20 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
             </div>)}
           <div className="flex items-center justify-end mt-4">
             <div className="flex-shrink-0">
-              <HotkeyTooltipWrapper hotkey="Cmd + Enter" side="right">
-                <button
-                  type="submit"
-                  disabled={!isWritingDraft || ratio > 99}
-                  className={classNames(
-                    isWritingDraft || ratio > 99 ? 'bg-gray-700 cursor-disabled' : 'cursor-pointer',
-                    "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                  )}
-                >
-                  {renderButtonText()}
-                </button>
-              </HotkeyTooltipWrapper>
+              <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
+                <HotkeyTooltipWrapper hotkey="Cmd + Enter" side="right">
+                  <button
+                    type="submit"
+                    disabled={!isWritingDraft || ratio > 99}
+                    className={classNames(
+                      isWritingDraft || ratio > 99 ? 'bg-gray-700 cursor-disabled' : 'cursor-pointer',
+                      "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    )}
+                  >
+                    {renderButtonText()}
+                  </button>
+                </HotkeyTooltipWrapper>
+              </Tooltip.Provider>
             </div>
             <div className="flex">
               {draft.text !== "" && (

@@ -26,8 +26,7 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
   // scroll to selected cast when selectedCastIdx changes
   useEffect(() => {
     if (!disableScroll && scollToRef.current) {
-      // @ts-ignore
-      scollToRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
+      (scollToRef.current as HTMLElement).scrollIntoView({ behavior: 'auto', block: 'start' });
     }
   }, [selectedIdx]);
 

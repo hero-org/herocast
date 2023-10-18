@@ -1,21 +1,21 @@
 import React from "react";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
+import { AccountObjectType, useAccountStore } from "../../../../src/stores/useAccountStore";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
-import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
-import { classNames } from "@/common/helpers/css";
+import EmptyStateWithAction from "../../../../src/common/components/EmptyStateWithAction";
+import { classNames } from "../../../../src/common/helpers/css";
 import isEmpty from "lodash.isempty";
 import ChannelsOverview from "./ChannelsOverview";
 import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from 'next/router';
 
 type AccountsRightSidebarProps = {
   showChannels?: boolean;
 }
 
 const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
-  const navigate = useNavigate();
+    const router = useRouter()
 
   const {
     accounts,
@@ -28,7 +28,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
       <EmptyStateWithAction
         title="Connect Farcaster accounts"
         description="Get started with herocast"
-        onClick={() => navigate('/accounts')}
+        onClick={() => router.push('/accounts')}
         submitText="Connect account"
         icon={UserPlusIcon}
       />

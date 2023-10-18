@@ -1,26 +1,25 @@
-import React, { Suspense, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { supabaseClient } from '@/common/helpers/supabase';
+import { supabaseClient } from '../common/helpers/supabase';
 import {
   Cog6ToothIcon, PlusCircleIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Bars3Icon, UserPlusIcon } from '@heroicons/react/20/solid';
-import { classNames } from "@/common/helpers/css";
-import { RIGHT_SIDEBAR_ENUM } from "@/common/constants/navigation";
-import AccountsRightSidebar from "@/common/components/RightSidebar/AccountsRightSidebar";
-import ChannelsRightSidebar from "@/common/components/RightSidebar/ChannelsRightSidebar";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { trackPageView } from "@/common/helpers/analytics";
-import { findParamInHashUrlPath } from "@/common/helpers/navigation";
+import { classNames } from "../common/helpers/css";
+import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
+import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
+import ChannelsRightSidebar from "../common/components/RightSidebar/ChannelsRightSidebar";
+import { AccountObjectType, useAccountStore } from "../stores/useAccountStore";
+import { trackPageView } from "../common/helpers/analytics";
+import { findParamInHashUrlPath } from "../common/helpers/navigation";
 import { BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
 import * as Toast from '@radix-ui/react-toast';
-import CustomToast from "@/common/components/CustomToast";
-import { useNewPostStore } from "@/stores/useNewPostStore";
-import { SidebarHeader } from "@/common/components/RightSidebar/SidebarHeader";
-import { ThemeToggle } from "@/common/components/ThemeToggle";
+import CustomToast from "../common/components/CustomToast";
+import { useNewPostStore } from "../stores/useNewPostStore";
+import { SidebarHeader } from "../common/components/RightSidebar/SidebarHeader";
+import { useRouter } from "next/router";
 
 type NavigationItemType = {
   name: string;
@@ -29,9 +28,10 @@ type NavigationItemType = {
   getTitle?: () => string;
 }
 
-export default function Home() {
-  const navigate = useNavigate();
-  const { pathname, hash: locationHash } = useLocation();
+const Home = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
+  const { pathname, asPath } = router;
+  const locationHash = asPath.split('#')[1];
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const {
     accounts,
@@ -86,26 +86,26 @@ export default function Home() {
   const navItem = navigation.find((item) => item.router === pathname) || { name: '', getTitle: null }
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
 
-  useEffect(() => {
-    trackPageView(pathname.slice(1));
-  }, [pathname])
+  // useEffect(() => {
+  //   trackPageView(pathname.slice(1));
+  // }, [pathname])
 
   useEffect(() => {
-    if (locationHash.startsWith('#error')) {
+    if (locationHash && locationHash.startsWith('#error')) {
       // example location hash with error: #error=unauthorized_client&error_code=401&error_description=Email+link+is+invalid+or+has+expired
       const errorCode = findParamInHashUrlPath(locationHash, 'error_code') || '500';
       const description = findParamInHashUrlPath(locationHash, 'error_description')?.replace(/\+/g, ' ');
       console.log('throwing error', errorCode, description);
       throw new Response(description, { status: Number(errorCode), statusText: description });
-    } else if (locationHash.startsWith('#access_token')) {
+    } else if (locationHash && locationHash.startsWith('#access_token')) {
       console.log('locationhash', locationHash);
-      navigate(`/login${locationHash}`);
+      router.push(`/login${locationHash}`);
     } else if (locationHash) {
       console.log('unknown locationHash', locationHash);
     } else {
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
         if (!session) {
-          navigate('/login');
+          router.push('/login');
         }
       })
     }
@@ -226,7 +226,7 @@ export default function Home() {
                                   <p
                                     onClick={() => {
                                       if (pathname === '/login') return;
-                                      navigate(item.router);
+                                      router.push(item.router);
                                       setSidebarOpen(false);
                                     }}
                                     className={classNames(
@@ -244,7 +244,6 @@ export default function Home() {
                             </ul>
                           </li>
                           {renderAccountSidebar()}
-                          <ThemeToggle />
                           {/* <li className="-mx-6 mt-auto">
                             <a
                               href="#"
@@ -291,7 +290,7 @@ export default function Home() {
                           <p
                             onClick={() => {
                               if (pathname === '/login') return;
-                              navigate(item.router);
+                              router.push(item.router);
                               setSidebarOpen(false);
                             }}
                             className={classNames(
@@ -308,7 +307,6 @@ export default function Home() {
                       ))}
                     </ul>
                   </li>
-                  {/* <ThemeToggle /> */}
                   {/* <li className="-mx-6 mt-auto">
                   <a
                     href="#"
@@ -338,9 +336,7 @@ export default function Home() {
                 {/* <h1 className="text-base font-semibold leading-7 text-white"></h1> */}
               </header>
               <div className="w-full max-w-full min-h-screen flex justify-between px-2 border-t border-white/5 ">
-                <Suspense fallback={<span className="mt-6 font-semibold text-gray-200">Loading...</span>}>
-                  <Outlet />
-                </Suspense>
+                {children}
               </div>
             </main>
             {renderRightSidebar()}
@@ -356,3 +352,5 @@ export default function Home() {
     </>
   )
 }
+
+export default Home;

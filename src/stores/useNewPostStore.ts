@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
-import { CommandType } from "@/common/constants/commands";
+import { CommandType } from "../../src/common/constants/commands";
 import { PlusCircleIcon, TagIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { convertEditorCastToPublishableCast, publishCast } from "@/common/helpers/farcaster";
+import { convertEditorCastToPublishableCast, publishCast } from "../../src/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
-import { trackEventWithProperties } from "@/common/helpers/analytics";
-import { DraftStatus, DraftType, ParentCastIdType } from "@/common/constants/farcaster";
+import { trackEventWithProperties } from "../../src/common/helpers/analytics";
+import { DraftStatus, DraftType, ParentCastIdType } from "../../src/common/constants/farcaster";
 
 export const NewPostDraft: DraftType = {
   text: "",

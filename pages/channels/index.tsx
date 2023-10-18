@@ -1,18 +1,18 @@
-import React, { Fragment, useState } from "react";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
+import React, { useState } from "react";
+import { AccountObjectType, useAccountStore } from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom";
-import { classNames } from "@/common/helpers/css";
-import { ChannelType } from "@/common/constants/channels";
-import Toggle from "@/common/components/Toggle";
+import { classNames } from "../../src/common/helpers/css";
+import { ChannelType } from "../../src/common/constants/channels";
+import Toggle from "../../src/common/components/Toggle";
 import findIndex from "lodash.findindex";
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import includes from "lodash.includes";
-import Modal from "@/common/components/Modal";
+import Modal from "../../src/common/components/Modal";
 import { useForm, SubmitHandler } from "react-hook-form"
 import get from "lodash.get";
 import SortableList, { SortableItem } from 'react-easy-sort'
+import { useRouter } from "next/router";
 
 type Inputs = {
   name: string
@@ -25,7 +25,7 @@ export default function Channels() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewChannelModal, setShowNewChannelModal] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const {
     addPinnedChannel,
@@ -152,7 +152,7 @@ export default function Channels() {
           </p>
           <div className="mt-10 flex items-center gap-x-6">
             <button
-              onClick={() => navigate('/accounts')}
+              onClick={() => router.push('/accounts')}
               className="flex rounded-sm bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
             >
               Get started <UserPlusIcon className="ml-2 h-5 w-5 text-gray-100" aria-hidden="true" />

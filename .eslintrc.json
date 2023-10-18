@@ -6,7 +6,8 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:react/recommended"
+    "plugin:react/recommended",
+    "plugin:@next/next/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -17,7 +18,11 @@
     "@typescript-eslint",
     "react"
   ],
-  "rules": {},
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "react/prop-types": "off"
+  },
   "settings": {
     "react": {
       "version": "detect"

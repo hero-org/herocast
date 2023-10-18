@@ -1,12 +1,12 @@
-import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
-import { ChannelType } from "@/common/constants/channels";
-import { CommandType } from "@/common/constants/commands";
-import { randomNumberBetween } from "@/common/helpers/math";
-import { supabaseClient } from "@/common/helpers/supabase";
-import isEmpty from "lodash.isempty";
+import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
+import { ChannelType } from "../../src/common/constants/channels";
+import { CommandType } from "../../src/common/constants/commands";
+import { randomNumberBetween } from "../../src/common/helpers/math";
+import { supabaseClient } from "../../src/common/helpers/supabase";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { createJSONStorage, devtools } from "zustand/middleware";
+import isEmpty from "lodash.isempty";
 import findIndex from 'lodash.findindex';
 import sortBy from "lodash.sortby";
 import cloneDeep from "lodash.clonedeep";
@@ -306,6 +306,7 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
 
 export const hydrate = async () => {
   console.log('hydrating 💦');
+  
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (isEmpty(user)) {
     console.log('no account to hydrate');
@@ -405,12 +406,12 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
+    navigateTo: '/feed',
     action: () => {
       useAccountStore.getState().resetSelectedChannel();
     },
   });
-
-  // todo: this needs to happen when the account is setup
+  
   for (let i = 0; i < 9; i++) {
     channelCommands.push({
       name: `Switch to channel ${i + 1}`,
@@ -419,6 +420,7 @@ const getChannelCommands = () => {
       options: {
         enableOnFormTags: false,
       },
+      navigateTo: '/feed',
       action: () => {
         const { accounts, selectedAccountIdx } = useAccountStore.getState();
         const channels = accounts[selectedAccountIdx]?.channels;
