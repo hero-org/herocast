@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import * as linkify from "linkifyjs";
 import { registerPlugin } from 'linkifyjs';
 import mention from "../helpers/linkify";
-// import "linkify-plugin-mention";
+
 registerPlugin('mention', mention);
 
 

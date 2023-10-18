@@ -1,9 +1,23 @@
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { supabaseClient } from '../src/common/helpers/supabase';
 
-import React from 'react';
+const Index = () => {
+    const router = useRouter()
 
-// todo: this needs to auto-forward somewhere, but where?!
-const Index = () => (
-    <div></div>
-);
+    useEffect(() => {
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                router.push('/login');
+            } else {
+                router.push('/feed');
+            }
+        })
+    }, []);
+
+    return (
+        <p className="m-4 text-gray-200 text-md">Redirecting...</p>
+    );
+};
 
 export default Index;

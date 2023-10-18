@@ -131,7 +131,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
-
   const renderAccountSidebar = () => (
     <div className="flex flex-col">
       <SidebarHeader title="Accounts" />
