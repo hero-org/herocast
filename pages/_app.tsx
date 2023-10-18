@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import type { AppProps } from 'next/app'
 import { AptabaseProvider } from '@aptabase/react';
 import { ThemeProvider } from '../src/common/hooks/ThemeProvider';
@@ -11,6 +11,8 @@ import Home from '../src/home';
 import '../src/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 
+const AnalyticsWrapper = process.env.NEXT_PUBLIC_APTABASE_KEY ? AptabaseProvider : Fragment;
+    
 export default function MyApp({ Component, pageProps }: AppProps) {
     return (
         <ThemeProvider
@@ -19,7 +21,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             enableSystem
             disableTransitionOnChange
         >
-            {/* <AptabaseProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY!}> */}
+            <AnalyticsWrapper appKey={process.env.NEXT_PUBLIC_APTABASE_KEY}>
                 <WagmiConfig config={wagmiConfig}>
                     <RainbowKitProvider chains={chains} theme={rainbowKitTheme}>
                         <CommandPalette />
@@ -28,7 +30,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
                         </Home>
                     </RainbowKitProvider>
                 </WagmiConfig>,
-            {/* </AptabaseProvider> */}
+            </AnalyticsWrapper>
         </ThemeProvider>
     )
 }
