@@ -406,11 +406,12 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
+    navigateTo: '/feed',
     action: () => {
       useAccountStore.getState().resetSelectedChannel();
     },
   });
-
+  
   for (let i = 0; i < 9; i++) {
     channelCommands.push({
       name: `Switch to channel ${i + 1}`,
@@ -419,6 +420,7 @@ const getChannelCommands = () => {
       options: {
         enableOnFormTags: false,
       },
+      navigateTo: '/feed',
       action: () => {
         const { accounts, selectedAccountIdx } = useAccountStore.getState();
         const channels = accounts[selectedAccountIdx]?.channels;

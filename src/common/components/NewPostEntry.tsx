@@ -15,7 +15,11 @@ import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import ChannelsDropdown from "./ChannelsDropdown";
 import { Progress } from "@/components/ui/progress";
 import * as linkify from "linkifyjs";
-import "linkify-plugin-mention";
+import { registerPlugin } from 'linkifyjs';
+import mention from "../helpers/linkify";
+// import "linkify-plugin-mention";
+registerPlugin('mention', mention);
+
 
 // const Item = ({ entity: { name, char } }) => <span className="bg-gray-100">{`${name}: ${char}`}</span>;
 
@@ -106,7 +110,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
         console.log('error fetching usernames', err);
         return [];
       });
-      return res;
+    return res;
   };
 
   useEffect(() => {
@@ -162,7 +166,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
     onChange({ ...draft, parentUrl: newParentUrl })
   }
 
-  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: {username: string, fid: string} }) => {
+  const onItemSelected = ({ draft, trigger, item }: { draft: DraftType, trigger: string, item: { username: string, fid: string } }) => {
     if (!item) return;
 
     if (trigger === '@') {
