@@ -102,7 +102,7 @@
     "typescript": "^5.1.6",
     "viem": "^1.14.0",
     "wagmi": "^1.4.2",
-    "zustand": "^4.2.0"
+    "zustand": "^4.4.4"
   },
   "devDependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
