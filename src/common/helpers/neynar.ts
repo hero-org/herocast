@@ -118,12 +118,17 @@ export const getNeynarUserSearchEndpoint = (viewerFid?: string): string => {
   return neynarEndpoint;
 }
 
-export const fetchUserProfile = async (userFid: string, username: string): Promise<UserNeynarV2Type | null> => {
-  const endpoint = getNeynarUserSearchEndpoint(userFid) + `&q=${username}`;
-  return axios.get(endpoint)
+export const fetchUserProfile = async (userFid: string, username: string): Promise<UserNeynarV1Type | null> => {
+  const options = {
+    method: 'GET',
+    url: 'https://api.neynar.com/v1/farcaster/user-by-username',
+    params: { username, viewerFid: userFid },
+    headers: { accept: 'application/json', api_key: 'NEYNAR_API_DOCS' }
+  };
+  // const endpoint = getNeynarUserSearchEndpoint(userFid) + `&q=${username}`;
+  return axios.request(options)
     .then(response => {
-      const users = response.data.result.users as UserNeynarV2Type[];
-      return users.length > 0 ? users[0] : null;
+      return response.data.result.user as UserNeynarV1Type;
     })
     .catch(error => {
       console.error(error);
@@ -148,7 +153,7 @@ export const fetchCasts = async (castHashes: { hash: string }[]): Promise<CastTy
     });
 }
 
-type UserNeynarV1Type = {
+export type UserNeynarV1Type = {
   fid: number;
   custodyAddress: string;
   username: string;

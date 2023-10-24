@@ -9,13 +9,14 @@ import {
     AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar";
-import { UserNeynarV2Type, fetchUserProfile } from '../helpers/neynar';
+import { UserNeynarV1Type, fetchUserProfile } from '../helpers/neynar';
 //   import { Button } from '@/components/ui/button';
 import { openWindow } from '../helpers/navigation';
 import { Loading } from './Loading';
+import { Button } from '@/components/ui/button';
 
 const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: string }) => {
-    const [profile, setProfile] = useState<UserNeynarV2Type | null>(null);
+    const [profile, setProfile] = useState<UserNeynarV1Type | null>(null);
 
     useEffect(() => {
         const getData = async () => {
@@ -29,6 +30,13 @@ const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: st
         openWindow(`https://warpcast.com/${profile?.username || username}`);
     }
 
+    const updateFollowStatus = (following: boolean | undefined) => async () => {
+        if (following === undefined) return;
+        
+    }
+
+    // console.log('profile', profile);
+
     return (
         <HoverCard openDelay={0.1}>
             <HoverCardTrigger onClick={onClick}>{username}</HoverCardTrigger>
@@ -36,13 +44,19 @@ const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: st
                 <div className="space-y-2">
                     <div className="flex flex-row justify-between">
                         <Avatar>
-                            <AvatarImage src={profile?.pfp_url} />
+                            <AvatarImage src={profile?.pfp.url} />
                             <AvatarFallback>{username.slice(1, 2)}</AvatarFallback>
                         </Avatar>
-                        {/* <Button className="rounded-sm">Follow</Button> */}
+                        {/* <Button
+                            className="rounded-sm group"
+                            onClick={(e) => {e.stopPropagation(); updateFollowStatus(profile?.viewerContext.following)}}
+                        >
+                            <span className="block group-hover:hidden">{profile?.viewerContext.following ? "Following" : "Follow"}</span>
+                            <span className="hidden group-hover:block group-hover:text-red-600">Unfollow</span>
+                        </Button> */}
                     </div>
                     <div>
-                        <h2 className="text-md font-semibold">{profile?.display_name}</h2>
+                        <h2 className="text-md font-semibold">{profile?.displayName}</h2>
                         <h3 className="text-sm font-regular">{username}</h3>
                     </div>
                     {profile ? (
@@ -52,18 +66,18 @@ const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: st
                             </p>
                             <div className="flex items-center pt-2 text-sm text-muted-foreground">
                                 <span className="font-semibold text-foreground">
-                                    {profile?.following_count}
+                                    {profile?.followingCount}
                                     &nbsp;
                                 </span>
                                 following
                                 <span className="ml-2 font-semibold text-foreground">
-                                    {profile?.follower_count}
+                                    {profile?.followerCount}
                                     &nbsp;
                                 </span>
                                 followers
                             </div>
                         </>
-                    ): <Loading />}
+                    ) : <Loading />}
                 </div>
             </HoverCardContent>
         </HoverCard>
