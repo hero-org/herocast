@@ -118,7 +118,7 @@ export const getNeynarUserSearchEndpoint = (viewerFid?: string): string => {
   return neynarEndpoint;
 }
 
-export const fetchUserProfile = async (userFid: string, username: string): Promise<UserNeynarV1Type | null> => {
+export const fetchUserProfile = async (userFid: string | number, username: string): Promise<UserNeynarV1Type | null> => {
   const options = {
     method: 'GET',
     url: 'https://api.neynar.com/v1/farcaster/user-by-username',

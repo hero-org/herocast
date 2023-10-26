@@ -206,7 +206,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
     </div>)
   }
 
-  return <div className="text-white" key={`nouns-build-embed-${url}`}>
+  return <div className="text-white rounded-lg border border-gray-500" key={`nouns-build-embed-${url}`}>
     {!isEmpty(data) && renderContent()}
   </div>;
 }

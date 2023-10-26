@@ -20,7 +20,7 @@ const WarpcastEmbed = ({ url }: { url: string }) => {
       key={`onchain-embed-${url}`}
       className="border border-gray-600 rounded-sm"
     >
-      {!isEmpty(cast) && <CastRow cast={cast} />}
+      {!isEmpty(cast) && <CastRow cast={cast} showChannel />}
     </div>
   );
 }

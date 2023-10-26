@@ -14,17 +14,40 @@ import { UserNeynarV1Type, fetchUserProfile } from '../helpers/neynar';
 import { openWindow } from '../helpers/navigation';
 import { Loading } from './Loading';
 import { Button } from '@/components/ui/button';
+import { useInView } from "react-intersection-observer";
+import { useDataStore } from '@/stores/useDataStore';
+import get from 'lodash.get';
 
-const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: string }) => {
-    const [profile, setProfile] = useState<UserNeynarV1Type | null>(null);
+type ProfileHoverCardProps = {
+    username: string;
+    userFid: string | number;
+    children: React.ReactNode;
+}
+
+const ProfileHoverCard = ({ userFid, username, children }: ProfileHoverCardProps) => {
+    const {
+        addUserProfile
+    } = useDataStore();
+
+    const profile = useDataStore((state) => get(state.usernameToData, username))
+
+    const { ref, inView } = useInView({
+        threshold: 0,
+        delay: 0,
+    });
 
     useEffect(() => {
+        if (!inView || profile) return;
+
         const getData = async () => {
-            setProfile(await fetchUserProfile(userFid, username.slice(1)));
+            const data = await fetchUserProfile(userFid, username);
+            if (data) {
+                addUserProfile({ username, data });
+            }
         }
 
         getData();
-    }, []);
+    }, [inView, profile]);
 
     const onClick = () => {
         openWindow(`https://warpcast.com/${profile?.username || username}`);
@@ -32,20 +55,20 @@ const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: st
 
     const updateFollowStatus = (following: boolean | undefined) => async () => {
         if (following === undefined) return;
-        
+
     }
 
     // console.log('profile', profile);
 
     return (
         <HoverCard openDelay={0.1}>
-            <HoverCardTrigger onClick={onClick}>{username}</HoverCardTrigger>
-            <HoverCardContent onClick={onClick} className="overflow-hidden">
+            <HoverCardTrigger onClick={onClick} ref={ref}>{children}</HoverCardTrigger>
+            <HoverCardContent onClick={onClick} side="right" className="overflow-hidden">
                 <div className="space-y-2">
                     <div className="flex flex-row justify-between">
                         <Avatar>
                             <AvatarImage src={profile?.pfp.url} />
-                            <AvatarFallback>{username.slice(1, 2)}</AvatarFallback>
+                            <AvatarFallback>{username.slice(0, 2)}</AvatarFallback>
                         </Avatar>
                         {/* <Button
                             className="rounded-sm group"
@@ -57,7 +80,7 @@ const ProfileHoverCard = ({ userFid, username }: { userFid: string, username: st
                     </div>
                     <div>
                         <h2 className="text-md font-semibold">{profile?.displayName}</h2>
-                        <h3 className="text-sm font-regular">{username}</h3>
+                        <h3 className="text-sm font-regular">@{username}</h3>
                     </div>
                     {profile ? (
                         <>
