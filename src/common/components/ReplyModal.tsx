@@ -53,19 +53,22 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
             className="mt-4"
             key={`new-post-parentHash-${parentCast?.hash}`}
           >
-            <div className="-ml-6 mb-4">
+            <div className="mb-4">
               {parentCast && (
                 <CastRow
                   cast={parentCast}
                   isSelected
+                  disableEmbeds
                 />
               )}
             </div>
+            <div className="-ml-1">
             <NewPostEntry
               draftIdx={draftIdx}
               onPost={() => setOpen(false)}
               hideChannel
             />
+            </div>
           </div>
         )}
       </div>

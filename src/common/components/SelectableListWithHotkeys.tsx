@@ -13,10 +13,22 @@ type SelectableListWithHotkeysProps = {
   disableScroll?: boolean,
   onExpand?: (idx: number) => void,
   isActive?: boolean,
+  onDown?: () => void,
+  onUp?: () => void,
 }
 
-export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSelectedIdx, onSelect, onExpand, disableScroll, isActive = true }: SelectableListWithHotkeysProps) => {
-  // console.log('rendering list', data, selectedIdx)
+export const SelectableListWithHotkeys = ({
+  data,
+  renderRow,
+  selectedIdx,
+  setSelectedIdx,
+  onSelect,
+  onExpand,
+  disableScroll,
+  onDown,
+  onUp,
+  isActive = true
+}: SelectableListWithHotkeysProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 100,
@@ -38,24 +50,31 @@ export const SelectableListWithHotkeys = ({ data, renderRow, selectedIdx, setSel
   })
 
   useHotkeys('shift+o', () => {
-    onExpand(selectedIdx);
+    onExpand && onExpand(selectedIdx);
   }, [selectedIdx], {
     enabled: onExpand !== undefined && isActive
   })
 
+  // todo: add onDown and onUp
+  // what will they do? replace everything? yeah I don't need to manage separately?
+  // or keep updating selectedIdx but ON TOP be allowed to change things?
   useHotkeys(['j', Key.ArrowDown], () => {
+    onDown?.();
+    
     if (selectedIdx < data.length - 1) {
       setSelectedIdx(selectedIdx + 1);
     }
-  }
-    , [data, selectedIdx, setSelectedIdx], {
+  }, [data, selectedIdx, setSelectedIdx], {
     enabled: isActive && !isEmpty(data)
   })
 
   useHotkeys(['k', Key.ArrowUp], () => {
+    onUp?.();
+
     if (selectedIdx === 0) {
       return;
     }
+
     setSelectedIdx(selectedIdx - 1);
   }, [data, selectedIdx, setSelectedIdx], {
     enabled: isActive && !isEmpty(data)

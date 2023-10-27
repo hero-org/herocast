@@ -63,7 +63,7 @@ const ProfileHoverCard = ({ userFid, username, children }: ProfileHoverCardProps
     return (
         <HoverCard openDelay={0.1}>
             <HoverCardTrigger onClick={onClick} ref={ref}>{children}</HoverCardTrigger>
-            <HoverCardContent onClick={onClick} side="right" className="overflow-hidden">
+            <HoverCardContent onClick={onClick} side="right" className="border border-gray-400 overflow-hidden">
                 <div className="space-y-2">
                     <div className="flex flex-row justify-between">
                         <Avatar>

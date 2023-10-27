@@ -137,7 +137,7 @@ export default function Feed() {
 
   const renderRow = (item: any, idx: number) => (
     <li key={item?.hash}
-      className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl xl:max-w-3xl">
+      className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl">
       <CastRow
         cast={item as CastType}
         showChannel={!selectedChannelUrl}
@@ -264,7 +264,7 @@ export default function Feed() {
   }
 
   const renderChannelEmbed = () => (selectedChannelUrl ?
-    <div className="mx-4 my-8">
+    <div className="mx-4 mt-2">
       {renderEmbedForUrl({ url: selectedChannelUrl })}
     </div>
     : null
