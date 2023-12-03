@@ -1,4 +1,5 @@
-# herocast
+# herocast 
+[![build](https://github.com/hellno/herocast/actions/workflows/build.yaml/badge.svg)](https://github.com/hellno/herocast/actions/workflows/build.yaml)
 
 ## 🏗️ Dev Setup
 
