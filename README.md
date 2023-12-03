@@ -1,5 +1,13 @@
 # herocast 
 [![build](https://github.com/hellno/herocast/actions/workflows/build.yaml/badge.svg)](https://github.com/hellno/herocast/actions/workflows/build.yaml)
+![herocast_cartridge_landscape](https://github.com/hellno/herocast/assets/686075/f6925730-6e41-4729-93c0-4ce617b15aee)
+
+
+'Superhuman for Farcaster'
+= keyboard-first. support for multiple accounts and switching channels. cmd + k (command palette) to control everything.
+
+## What is Farcaster?
+a protocol for decentralized social apps: https://www.farcaster.xyz
 
 ## 🏗️ Dev Setup
 
