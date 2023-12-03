@@ -29,8 +29,6 @@ yarn dev
 
 ...coming back soon via [tauri](https://tauri.app/)...
 
-# Data Scheme
 
-# accounts
-
-- key is an edcsa key not a 'normal' EVM address
+### DB scheme: accounts
+reminder: key is an edcsa key not a 'normal' EVM address

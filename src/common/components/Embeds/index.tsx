@@ -17,7 +17,7 @@ export const renderEmbedForUrl = ({ url }: { url: string }) => {
     return tweetId ? <TweetEmbed tweetId={tweetId} /> : null;
   } else if (url.startsWith('https://nouns.build')) {
     return <NounsBuildEmbed url={url} />
-  } else if (url.startsWith('https://paragraph.xyz')) {
+  } else if (url.includes('paragraph.xyz') || url.includes('pgrph.xyz')) {
     return <ParagraphXyzEmbed url={url} />
   } else {
     return null;
