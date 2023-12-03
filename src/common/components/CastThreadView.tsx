@@ -132,8 +132,7 @@ export const CastThreadView = ({ cast, onBack, fid, isActive, setSelectedCast }:
           ) : null} */}
           <div className={classNames(
             "border-l-2",
-            // isActive && isRowSelected ? "border-gray-200/80" : "border-transparent cursor-pointer",
-            isActive && isRowSelected ? "border-transparent" : "border-transparent cursor-pointer",
+            isActive && isRowSelected ? "border-transparent" : "border-transparent",
             "pl-3.5 relative flex items-start space-x-3"
           )}>
             <>

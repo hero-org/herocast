@@ -64,7 +64,7 @@ const ParagraphXyzEmbed: React.FC<ParagraphXyzEmbedProps> = ({ url }) => {
         <p className="max-w-lg">{data.post.post_preview}</p>
       </CardContent>
       <CardFooter onClick={() => openWindow(url)}>
-        <p>Read more on Pargraph</p>
+        <p>Read more on Pargraph →</p>
       </CardFooter>
     </Card>
   );
