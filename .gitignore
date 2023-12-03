@@ -98,3 +98,4 @@ build/
 edgefunctions/supabase/.temp
 
 dist/
+.vercel
