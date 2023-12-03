@@ -3,6 +3,7 @@ import OnchainEmbed from './OnchainEmbed';
 import WarpcastEmbed from './WarpcastEmbed';
 import TweetEmbed from './TweetEmbed';
 import NounsBuildEmbed from './NounsBuildEmbed';
+import ParagraphXyzEmbed from './ParagraphXyzEmbed';
 
 export const renderEmbedForUrl = ({ url }: { url: string }) => {
   if (!url) return null;
@@ -16,6 +17,8 @@ export const renderEmbedForUrl = ({ url }: { url: string }) => {
     return tweetId ? <TweetEmbed tweetId={tweetId} /> : null;
   } else if (url.startsWith('https://nouns.build')) {
     return <NounsBuildEmbed url={url} />
+  } else if (url.startsWith('https://paragraph.xyz')) {
+    return <ParagraphXyzEmbed url={url} />
   } else {
     return null;
   }

@@ -1,47 +1,35 @@
-# Herocast
+# herocast
 
-# ⚙️ Development
+## 🏗️ Dev Setup
 
-## install dependencies
+- register with Supabase and create a new project https://supabase.com
+- get a Neynar API key https://docs.neynar.com/docs
+- get an Alchemy API key https://www.alchemy.com
+- get your Farcaster account FID and mnemoic
+
+## Local setup
+
+- Install Supabase CLI `https://github.com/supabase/cli`
+  - e.g. for MacOS with `brew install supabase/tap/supabase` 
+
+### install dependencies
+
 ```bash
-yarn
+yarn install
 ```
 
-## run as website
-```bash
-yarn start
-```
+### run as website
 
-## run as app
 ```bash
 yarn dev
 ```
 
-# 🚀 Release
+### run as native app
 
-How to make a release for mac:
-```
-export TAURI_PRIVATE_KEY=xyz
-yarn rls:mac-intel && yarn rls:mac-apple
-```
-`
-aws s3 cp ./src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/herocast_0.0.1_x64.dmg s3://herocast-releases/darwin/x86_64/v0.0.1/`
-
-` aws s3 cp ./src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/herocast_0.0.1_aarch64.dmg aws s3 cp s3://herocast-releases/darwin/aarch64/v0.0.1/`
-
-
-Then copy the two .dmg files to S3
-
-# 📦 TODO
-soon: create release via github actions
-
-# Resources
-- originally based on https://github.com/michyaraque/tauri-boilerplate
-- for autocomplete in new posts:  https://github.com/webscopeio/react-textarea-autocomplete
-- ...
-
+...coming back soon via [tauri](https://tauri.app/)...
 
 # Data Scheme
 
 # accounts
-- key is an edcsa key not a fucking normal EVM address
+
+- key is an edcsa key not a 'normal' EVM address

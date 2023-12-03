@@ -229,7 +229,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   )
 
   const renderEmbeds = () => cast.embeds.length > 0 && (
-    <div className="mt-0">
+    <div className="mt-4">
       <ErrorBoundary>
         {map(cast.embeds, renderEmbedForUrl)}
       </ErrorBoundary>
@@ -240,7 +240,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const timeAgo = timeDiff(now, new Date(cast.timestamp))
   const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
 
-  return (<div className="flex min-w-max max-w-2xl">
+  return (<div className="flex min-w-full w-full max-w-2xl">
     <div
       onClick={() => onSelect && onSelect()}
       className={classNames(
