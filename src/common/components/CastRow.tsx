@@ -18,7 +18,6 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import get from 'lodash.get';
 import Linkify from "linkify-react";
-import "linkify-plugin-mention";
 import { isImageUrl } from '../helpers/text';
 import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
@@ -30,6 +29,7 @@ interface CastRowProps {
   onSelect?: () => void;
   isSelected?: boolean;
   isThreadView?: boolean;
+  disableEmbeds?: boolean;
 }
 
 
@@ -72,7 +72,7 @@ const linkifyOptions = {
 };
 
 
-export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView = false }: CastRowProps) => {
+export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView = false, disableEmbeds = false }: CastRowProps) => {
   // if (isSelected) console.log(cast);
 
   const {
@@ -229,7 +229,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   )
 
   const renderEmbeds = () => cast.embeds.length > 0 && (
-    <div className="mt-0">
+    <div className="mt-4">
       <ErrorBoundary>
         {map(cast.embeds, renderEmbedForUrl)}
       </ErrorBoundary>
@@ -240,27 +240,29 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const timeAgo = timeDiff(now, new Date(cast.timestamp))
   const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
 
-  return (<div className="flex grow max-w-xl">
+  return (<div className="flex min-w-full w-full max-w-2xl">
     <div
       onClick={() => onSelect && onSelect()}
       className={classNames(
-        isSelected ? "bg-gray-900/20" : "hover:bg-gray-900/30 cursor-pointer",
-        isThreadView ? "p-2" : "py-4 px-2 md:px-4 lg:px-6",
-        !isThreadView && isSelected ? "border-l-2 border-gray-200/80" : "border-l-2 border-transparent",
+        "py-4 px-2 md:pl-4 lg:pl-6",
+        isSelected ? "bg-gray-700/20" : "hover:bg-gray-700/30 cursor-pointer",
+        isSelected ? "border-l-2 border-gray-200/80" : "border-l-2 border-transparent",
         "lg:ml-0 grow rounded-r-sm"
       )}>
       <div className="flex items-top gap-x-4">
-        {!isThreadView && (
-            <img
-              className='relative h-10 w-10 flex-none bg-gray-50 rounded-lg'
-              src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
-            />
-        )}
+        <img
+          className='relative h-10 w-10 flex-none bg-gray-50 rounded-lg'
+          src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
+        />
         <div className="flex flex-col w-full">
           <div className="flex flex-row justify-between gap-x-4 leading-5 text-gray-300">
             <div className="flex flex-row">
               <ProfileHoverCard username={cast.author.username} userFid={userFid}>
-                <span className="flex font-semibold text-gray-300 truncate">@{cast.author.username} <span className="hidden md:ml-1 md:block">({cast.author.display_name || cast.author.displayName})</span></span>
+                <span className="flex font-semibold text-gray-300 truncate">
+                  {cast.author.display_name || cast.author.displayName}
+                  <span className="hidden lg:ml-1 lg:block">(@{cast.author.username})
+                  </span>
+                </span>
               </ProfileHoverCard>
               {showChannel && channel && (
                 <span className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
@@ -284,16 +286,17 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
               </a>
             </div>
           </div>
-          <div className={classNames(isThreadView ? "ml-0.5" : "")}>
+          <div className="">
             <div className="mt-2 w-full max-w-xl text-md text-gray-100 break-words lg:break-normal" style={castTextStyle}>
               {getText()}
             </div>
             {embedImageUrl && <ImgurImage url={embedImageUrl} />}
           </div>
           {renderCastReactions(cast)}
-          {renderEmbeds()}
+          {!disableEmbeds && renderEmbeds()}
         </div>
       </div>
     </div>
-  </div >)
+  </div>
+  )
 }

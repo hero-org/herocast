@@ -8,33 +8,6 @@ const getImageViaCdnUrl = (imgUrl: string) => {
 }
 
 export const ImgurImage = ({ url }: { url: string }) => {
-  // const [image, setImage] = useState<string | null>(null)
-  // var myHeaders = new Headers();
-  // myHeaders.append("Authorization", `Client-ID ${process.env.NEXT_PUBLIC_IMGUR_CLIENT_ID}`);
-
-  // var formdata = new FormData();
-
-  // var requestOptions = {
-  //   method: 'POST',
-  //   headers: myHeaders,
-  //   body: formdata,
-  //   redirect: 'follow' as RequestRedirect
-  // };
-
-  // const getImage = async (url: string) => {
-  //   const imageHash = url.split('/').slice(-1)[0]
-  //   const res: string = await fetch(`https://api.imgur.com/3/image/${imageHash}`, requestOptions)
-  //     .then(response => response.json())
-  //     .then(result => { console.log('res when fetching imgur image', result); return result; })
-  //     .catch(error => console.log('error when fetching imgur image', error));
-  //   console.log('res', res);
-  //   setImage(res);
-  // }
-
-  // useEffect(() => {
-  //   getImage(url)
-  // }, [url])
-  //
   const [isLoading, setIsLoading] = useState(true);
 
   const onImageLoad = (e: any) => {

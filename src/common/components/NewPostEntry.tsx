@@ -216,7 +216,7 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
   return (
     <div className="flex flex-col items-start" ref={ref} tabIndex={-1}>
       <form
-        className="relative min-w-full"
+        className="relative min-w-full rounded-lg m-1 border border-gray-500"
         onSubmit={(event) => {
           event.preventDefault();
           onSubmitPost();
@@ -281,25 +281,13 @@ export default function NewPostEntry({ draftIdx, onPost, hideChannel, disableAut
                     disabled={!isWritingDraft || ratio > 99}
                     className={classNames(
                       isWritingDraft || ratio > 99 ? 'bg-gray-700 cursor-disabled' : 'cursor-pointer',
-                      "inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                      "m-1 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm shadow-gray-700 hover:bg-gray-500 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                     )}
                   >
                     {renderButtonText()}
                   </button>
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
-            </div>
-            <div className="flex">
-              {draft.text !== "" && (
-                <button
-                  disabled={isPendingPublish}
-                  onClick={() => onChange({ ...draft, text: '' })}
-                  type="button"
-                  className="group inline-flex items-center rounded-sm px-2 py-1.5 text-left text-gray-400 hover:bg-gray-700"
-                >
-                  <span className="text-sm text-gray-500 group-hover:text-gray-400">Remove</span>
-                </button>
-              )}
             </div>
           </div>
           {/* {draft.text && (

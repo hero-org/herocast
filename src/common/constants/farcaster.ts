@@ -62,6 +62,7 @@ export type CastType = {
   author: AuthorType
   hash: string
   parent_author: AuthorType | { fid?: string } | null
+  parentHash: string | null
   parent_hash: string | null
   parent_url: string | null
   reactions: CastReactionsType

@@ -64,7 +64,7 @@ serve(async (req) => {
 
     console.log('done checking accounts')
     const returnData = {
-      message: 'Hello world!',
+      message: 'done checking accounts',
     }
 
     return new Response(JSON.stringify(returnData), {

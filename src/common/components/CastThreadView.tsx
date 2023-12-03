@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { CastType } from "@/common/constants/farcaster"
 import { getNeynarCastThreadEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
@@ -23,8 +23,36 @@ export const CastThreadView = ({ cast, onBack, fid, isActive, setSelectedCast }:
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastType[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
+  const [selectedCastDepth, setSelectedCastDepth] = useState(0);
 
   const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === cast?.hash));
+
+  // upgrade this component
+  // - simple iterate with j,k along the full data, maybe I flatten the tree and just have a list with depth of cast?
+  // - make sure setSelectedCast works, because this opens up the reply modal
+
+  const castTree = useMemo(() => {
+    if (casts.length === 0) return [];
+
+    const castTree = casts.reduce((acc, cast) => {
+      if (!cast?.parentHash) {
+        acc.push(cast);
+      } else {
+        const parentCast = casts.find(c => c.hash === cast.parentHash);
+        // console.log('found parentCast', parentCast);
+        if (parentCast) {
+          if (!parentCast.children) {
+            parentCast.children = [];
+          }
+          parentCast.children.push(cast);
+        }
+      }
+      return acc;
+    }, [] as CastType[]);
+
+    return castTree;
+  }, [casts])
+
 
   const {
     selectedChannelUrl
@@ -91,41 +119,62 @@ export const CastThreadView = ({ cast, onBack, fid, isActive, setSelectedCast }:
     openWindow(url);
   }
 
-  const renderRow = (cast: CastType, idx: number) => (
-    <li key={`cast-thread-${cast.hash}`}
-      className={classNames(idx === selectedCastIdx ? "" : "")}>
-      <div className="relative px-4">
-        {/* this is the left line */}
-        {idx !== casts.length - 1 ? (
-          <span className="rounded-lg absolute left-12 top-10 ml-px h-[calc(100%-36px)] w-px bg-radix-slate10" aria-hidden="true" />
-        ) : null}
-        <div className={classNames(isActive && selectedCastIdx === idx ? "border-l-2 border-gray-200/80" : "border-l-2 border-transparent",
-          "pl-3 relative flex items-start space-x-3")}>
-          <>
-            <div className="relative">
-              <img
-                className="flex mt-1 h-10 w-10 items-center justify-center rounded-lg bg-gray-400 ring-1 ring-radix-slate5"
-                src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author?.pfp?.url}`}
-                alt=""
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <CastRow
-                cast={cast}
-                showChannel={selectedChannelUrl === null}
-                isSelected={selectedCastIdx === idx}
-                isThreadView
-              />
-            </div>
-          </>
+  const renderRow = (cast: CastType & { children: CastType[] }, idx: number, depth: number = 0) => {
+    const isRowSelected = selectedCastIdx === idx && selectedCastDepth === depth;
+
+    return (
+      <li key={`cast-thread-${cast.hash}`}
+        className={classNames(idx === selectedCastIdx ? "" : "")}>
+        <div className="relative px-4">
+          {/* this is the left line */}
+          {/* {idx !== casts.length - 1 ? (
+            <span className="rounded-lg absolute left-12 top-10 ml-px h-[calc(100%-36px)] w-px" aria-hidden="true" />
+          ) : null} */}
+          <div className={classNames(
+            "border-l-2",
+            // isActive && isRowSelected ? "border-gray-200/80" : "border-transparent cursor-pointer",
+            isActive && isRowSelected ? "border-transparent" : "border-transparent cursor-pointer",
+            "pl-3.5 relative flex items-start space-x-3"
+          )}>
+            <>
+              <div className={classNames(
+                "absolute left-16 top-4 ml-1.5 w-0.5 h-[calc(100%-30px)]",
+                cast.children ? "bg-gray-600/50" : "bg-transparent"
+              )} />
+              <div className="min-w-0 flex-1">
+                <CastRow
+                  cast={cast}
+                  showChannel={selectedChannelUrl === null}
+                  isSelected={selectedCastIdx === idx && selectedCastDepth === depth}
+                />
+                {cast?.children && cast.children.length > 0 && depth < 2 && (
+                  <SelectableListWithHotkeys
+                    data={cast.children}
+                    selectedIdx={selectedCastIdx}
+                    setSelectedIdx={setSelectedCastIdx}
+                    renderRow={(item: any, idx: number) => renderRow(item, idx, depth + 1)}
+                    onSelect={() => onOpenLinkInCast()}
+                    onExpand={() => null}
+                    isActive={isActive && selectedCastDepth === depth}
+                    onDown={() => {
+                      // if cast has children, increase depth and set select index to 0
+                      // what is the current cast? we dont know
+                      console.log('onDown', selectedCastIdx, selectedCastDepth, depth)
+                    }}
+                    onUp={() => console.log('onUp')}
+                  />
+                )}
+              </div>
+            </>
+          </div>
         </div>
-      </div>
-    </li >
-  )
+      </li>
+    );
+  }
 
   const renderFeed = () => (
     <SelectableListWithHotkeys
-      data={casts}
+      data={castTree}
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
@@ -138,14 +187,16 @@ export const CastThreadView = ({ cast, onBack, fid, isActive, setSelectedCast }:
   const renderThread = () => (
     <div className="flow-root">
       {renderFeed()}
-      {draftIdx !== -1 && <div className="ml-16 max-w-xl" key={`new-post-parentHash-${cast?.hash}`}>
-        <NewPostEntry
-          draftIdx={draftIdx}
-          onPost={() => onBack && onBack()}
-          hideChannel
-          disableAutofocus
-        />
-      </div>}
+      {draftIdx !== -1 && (
+        <div className="mt-4 ml-6 mr-6 min-w-max max-w-2xl" key={`new-post-parentHash-${cast?.hash}`}>
+          <NewPostEntry
+            draftIdx={draftIdx}
+            onPost={() => onBack && onBack()}
+            hideChannel
+            disableAutofocus
+          />
+        </div>
+      )}
     </div>
   );
 

@@ -100,7 +100,7 @@ export default function Channels() {
           {/* <div className="flex-shrink-0 pr-2">
             <button
               type="button"
-              className="ml-2 inline-flex h-8 w-4 items-center justify-center rounded-sm bg-transparent bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              className="ml-2 inline-flex h-8 w-4 items-center justify-center rounded-sm bg-transparent text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
               <span className="sr-only">Open options</span>
               <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
