@@ -2177,10 +2177,10 @@
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash.sortby@^4.7.7":
-  version "4.7.7"
-  resolved "https://registry.npmjs.org/@types/lodash.sortby/-/lodash.sortby-4.7.7.tgz"
-  integrity sha512-J/4IS+jQopGBrrRetBXDCX0KnSeXJZ0rOTmGAxR9MWGV24YdHxX8IRi9LCGAU9GKWlBov9KRSfQpuup9PReqrw==
+"@types/lodash.sortby@^4.7.9":
+  version "4.7.9"
+  resolved "https://registry.yarnpkg.com/@types/lodash.sortby/-/lodash.sortby-4.7.9.tgz#e4af00e03daece7a939378ff64f0d44e638d7db6"
+  integrity sha512-PDmjHnOlndLS59GofH0pnxIs+n9i4CWeXGErSB5JyNFHu2cmvW6mQOaUKjG8EDPkni14IgF8NsRW8bKvFzTm9A==
   dependencies:
     "@types/lodash" "*"
 
