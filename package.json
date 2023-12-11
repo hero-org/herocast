@@ -129,6 +129,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "madge": "^6.1.0",
     "postcss": "^8.4.27",
-    "supabase": "^1.115.4"
+    "supabase": "^1.123.0"
   }
 }
