@@ -2155,10 +2155,10 @@
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash.includes@^4.3.7":
-  version "4.3.7"
-  resolved "https://registry.npmjs.org/@types/lodash.includes/-/lodash.includes-4.3.7.tgz"
-  integrity sha512-irrCqhsS91qsv2rWN+nJsFScy5X4nG3kByWKpxV/NbUSu/dp8WTqujN5KknsgxcQiAjJ3q2LmNwV8NPlVUpGJA==
+"@types/lodash.includes@^4.3.9":
+  version "4.3.9"
+  resolved "https://registry.yarnpkg.com/@types/lodash.includes/-/lodash.includes-4.3.9.tgz#bf29b69c92968edbd26fba45b3cf4923d6234451"
+  integrity sha512-7C8iSjgrmEb2O1FDIjGELp8vsaK0LI+PpkaG/wS+j7AXUYJEX2/KSLYZFBsrSnET5atv9wUHBHn9WQv0FcIjLA==
   dependencies:
     "@types/lodash" "*"
 
