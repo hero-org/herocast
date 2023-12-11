@@ -17,7 +17,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import get from "lodash.get";
 import SortableList, { SortableItem } from "react-easy-sort";
 import { useRouter } from "next/router";
-import { Input } from "../../src/components/ui/Input";
+import { Input } from "../../src/components/ui/input";
 
 type Inputs = {
   name: string;
