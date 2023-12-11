@@ -22,17 +22,17 @@
   resolved "https://registry.npmjs.org/@alloc/quick-lru/-/quick-lru-5.2.0.tgz"
   integrity sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==
 
-"@aptabase/react@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.npmjs.org/@aptabase/react/-/react-0.1.2.tgz"
-  integrity sha512-ecZIVCsO9URU25Rz+VxpZ9Y7B5Hux7nslefhjo+4ljC1mKA71yjjIPclzmeHYbojUnp0A+s20YU2EzybmszsvA==
+"@aptabase/react@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@aptabase/react/-/react-0.2.2.tgz#9ec314f97a8b11f0b3ab87704ba4b4edd047e068"
+  integrity sha512-uFfofesYZWfEovGTl34w86bI0Ly/sNvyl9oU8VVKiHbHaKv5ufKEvuuINLU6lHkkXbmOQ+OzciVZX/FcldstGQ==
   dependencies:
-    "@aptabase/web" "0.2.0"
+    "@aptabase/web" "^0.3.0"
 
-"@aptabase/web@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@aptabase/web/-/web-0.2.0.tgz"
-  integrity sha512-Ju9JeP3zfFv7TbYzZ/Nj1BfEknzZ8a3AtpKq78HI2nNqOalBIqyaDlluPt3mwhzij7hvZbZHW1ZpO0a8sKR7Yg==
+"@aptabase/web@^0.3.0":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@aptabase/web/-/web-0.3.2.tgz#e905e91e58e124208d3406789e93a34bae0f4a50"
+  integrity sha512-Prl2Fu5hnzHaOcOet5s3OhEvT8dymqhQ/K02ziZVzq8suhcW9TOde8mUf5Sp1YrAxIMjKioBpTC/7HNYXvirSw==
 
 "@babel/code-frame@^7.0.0":
   version "7.22.13"
