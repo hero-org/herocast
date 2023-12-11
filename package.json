@@ -57,7 +57,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "command-score": "^0.1.2",
-    "esbuild": "^0.19.2",
+    "esbuild": "^0.19.8",
     "focus-trap-react": "^10.2.1",
     "google-protobuf": "^3.21.2",
     "javascript-time-ago": "^2.5.9",
