@@ -1579,10 +1579,10 @@
     "@radix-ui/react-visually-hidden" "^1.0.3"
     classnames "^2.3.2"
 
-"@rainbow-me/rainbowkit@^1.0.11":
-  version "1.1.2"
-  resolved "https://registry.npmjs.org/@rainbow-me/rainbowkit/-/rainbowkit-1.1.2.tgz"
-  integrity sha512-yWxKDfHL4xDZJW34APGkmO2SkxjHwrEeAfvx6+137hWLttQwHcalG9nj4II8roYV2/2XJPmQsbEs7TM0rC0fOg==
+"@rainbow-me/rainbowkit@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@rainbow-me/rainbowkit/-/rainbowkit-1.3.0.tgz#b5546a6b530bbe1dac13b88708ab17d4164327fa"
+  integrity sha512-y5/JZIdYjqc84QFqKc1AhOHctnFC7quaDE3K8bueGfa0TgyrXcA6XgN3Dko530b3sxJJiTgvu2LxWlNUg8Felg==
   dependencies:
     "@vanilla-extract/css" "1.9.1"
     "@vanilla-extract/dynamic" "2.0.2"
@@ -1591,6 +1591,7 @@
     i18n-js "^4.3.2"
     qrcode "1.5.0"
     react-remove-scroll "2.5.4"
+    ua-parser-js "^1.0.35"
 
 "@remix-run/router@1.10.0":
   version "1.10.0"
@@ -7422,6 +7423,11 @@ typescript@^5.1.6:
   version "5.3.2"
   resolved "https://registry.npmjs.org/typescript/-/typescript-5.3.2.tgz"
   integrity sha512-6l+RyNy7oAHDfxC4FzSJcz9vnjTKxrLpDG5M2Vu4SHRVNg6xzqZp6LYSR9zjqQTu8DU/f5xwxUdADOkbrIX2gQ==
+
+ua-parser-js@^1.0.35:
+  version "1.0.37"
+  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.37.tgz#b5dc7b163a5c1f0c510b08446aed4da92c46373f"
+  integrity sha512-bhTyI94tZofjo+Dn8SN6Zv8nBDvyXTymAdM3LDI/0IboIUwTu1rEhW7v2TfiVsoYWgkQ4kOVqnI8APUFbIQIFQ==
 
 uint8arrays@^3.0.0, uint8arrays@^3.1.0:
   version "3.1.1"
