@@ -46,7 +46,7 @@ const ProfileHoverCard = ({
   }, [inView, profile]);
 
   const onClick = () => {
-    openWindow(`https://warpcast.com/${profile?.username || username}`);
+    openWindow(`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`);
   };
 
   const updateFollowStatus = (following: boolean | undefined) => async () => {

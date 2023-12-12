@@ -2,25 +2,37 @@ import React, { useEffect, useState } from "react";
 
 import { NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
 import { GetStaticPaths } from "next/types";
-import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
+import {
+  AvatarImage,
+  AvatarFallback,
+  Avatar,
+} from "../../src/components/ui/avatar";
 import {
   CardHeader,
   CardContent,
-  CardFooter,
   Card,
-} from "@/components/ui/card";
+} from "../../src/components/ui/card";
 import { Button } from "../../src/components/ui/button";
-
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { CastRow } from "../../src/common/components/CastRow";
-import { CastType } from "../../src/common/constants/farcaster";
-import clsx from "clsx";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "../../src/components/ui/tabs";
+import uniqBy from "lodash.uniqby";
 
 export async function getStaticProps({ params: { slug } }) {
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
   let user: any = {};
   try {
-    user = await client.lookupUserByUsername(slug);
+    if (slug.startsWith('fid:')) {
+      const fid = slug.split(':')[1]
+      user = await client.lookupUserByFid(fid);
+    } else {
+      user = await client.lookupUserByUsername(slug);
+    }
 
     console.log("resp in getStaticProps", JSON.stringify(user));
   } catch (error) {
@@ -45,28 +57,36 @@ export async function getStaticProps({ params: { slug } }) {
 }
 
 export const getStaticPaths = (async () => {
+  const client = new NeynarAPIClient(
+    process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+  );
+
+  const globalFeed = await client.fetchFeed("filter", {
+    filterType: "global_trending",
+    limit: 100,
+  });
+
+  const paths = uniqBy(globalFeed.casts.map(({ author }) => ({
+    params: {
+      slug: author.username,
+    },
+  })), "params.slug");
+
+  console.log(`paths: ${paths.length}`)
   return {
-    paths: [
-      {
-        params: {
-          slug: "dwr.eth",
-        },
-      },
-    ],
+    paths,
     fallback: true,
   };
 }) satisfies GetStaticPaths;
 
 enum FeedTypeEnum {
   "casts" = "Casts",
-  "casts_and_replies" = "Casts + Replies",
   "likes" = "Likes",
 }
 
 export default function Profile({ profile }) {
-  console.log("profile", profile);
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
-  const [feed, setFeed] = useState([]);
+  const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
 
   const onSelectCast = (idx: number) => {
@@ -80,34 +100,50 @@ export default function Profile({ profile }) {
       const client = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      client.fetchAllCastsCreatedByUser(profile.fid).then((resp) => {
-        console.log("resp", resp);
-        setFeed(resp.result.casts);
-      });
+
+      if (feedType === FeedTypeEnum.casts) {
+        client
+          .fetchFeed("filter", {
+            filterType: "fids",
+            fids: [profile.fid],
+            withRecasts: true,
+            limit: 25,
+          })
+          .then(({ casts }) => {
+            setCasts(casts);
+          })
+          .catch((err) => console.log(`failed to fetch ${err}`));
+      } else if (feedType === FeedTypeEnum.likes) {
+        client
+          .fetchUserReactions(profile.fid, "likes", {
+            limit: 25,
+          })
+          .then(({ reactions }) => {
+            setCasts(reactions.map(({ cast }) => cast));
+          });
+      }
     };
 
     loadFeed();
   }, [profile, feedType]);
 
   const renderEmptyState = () => (
-    <>
-      <div className="max-w-7xl px-6 pb-24 sm:pb-32 lg:flex lg:px-8">
-        <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
-          <div className="mt-2">
-            <h2>Loading...</h2>
-          </div>
+    <div className="max-w-7xl px-6 pb-24 sm:pb-32 lg:flex lg:px-8">
+      <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
+        <div className="mt-2">
+          <h2>Loading...</h2>
         </div>
       </div>
-    </>
+    </div>
   );
 
-  const renderRow = (item: any, idx: number) => (
+  const renderRow = (item: CastWithInteractions, idx: number) => (
     <li
       key={item?.hash}
       className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl"
     >
       <CastRow
-        cast={item as CastType}
+        cast={item}
         showChannel
         isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
@@ -117,32 +153,24 @@ export default function Profile({ profile }) {
 
   const renderFeed = () => (
     <>
-      <div className="flex-row border-b flex h-14 items-center justify-around">
-        {Object.keys(FeedTypeEnum).map((key) => {
-          return (
-            <div
-              key={key}
-              className="flex h-full w-full items-center justify-center text-inherit"
-              onClick={() => setFeedType(FeedTypeEnum[key])}
-            >
-              <div className="relative flex h-full w-full flex-col items-center justify-center">
-                <div
-                  className={clsx(
-                    FeedTypeEnum[key] === feedType
-                      ? "text-white"
-                      : "text-gray-400",
-                    "font-semibold flex items-center justify-center text-base h-full relative hover:text-white cursor-pointer"
-                  )}
-                >
-                  {FeedTypeEnum[key]}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <Tabs defaultValue={FeedTypeEnum.casts} className="p-5 w-full max-w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          {Object.keys(FeedTypeEnum).map((key) => {
+            return (
+              <TabsTrigger
+                key={key}
+                value={FeedTypeEnum[key]}
+                className="text-center"
+                onClick={() => setFeedType(FeedTypeEnum[key])}
+              >
+                {FeedTypeEnum[key]}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </Tabs>
       <SelectableListWithHotkeys
-        data={feed}
+        data={casts}
         selectedIdx={selectedFeedIdx}
         setSelectedIdx={setSelectedFeedIdx}
         renderRow={(item: any, idx: number) => renderRow(item, idx)}
@@ -163,8 +191,10 @@ export default function Profile({ profile }) {
               <AvatarFallback>{profile.username}</AvatarFallback>
             </Avatar>
             <div className="text-left">
-              <h2 className="text-xl font-bold">{profile.displayName}</h2>
-              <span className="text-sm text-gray-400">{profile.username}</span>
+              <h2 className="text-xl font-bold text-gray-200">
+                {profile.displayName}
+              </h2>
+              <span className="text-sm text-gray-300">@{profile.username}</span>
             </div>
           </div>
           <div className="flex mt-4 text-sm text-gray-300">

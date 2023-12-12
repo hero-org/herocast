@@ -22,9 +22,10 @@ import { isImageUrl } from '../helpers/text';
 import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
 import ProfileHoverCard from './ProfileHoverCard';
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/openapi/models/cast-with-interactions";
 
 interface CastRowProps {
-  cast: CastType;
+  cast: CastWithInteractions;
   showChannel?: boolean;
   onSelect?: () => void;
   isSelected?: boolean;
@@ -73,8 +74,6 @@ const linkifyOptions = {
 
 
 export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView = false, disableEmbeds = false }: CastRowProps) => {
-  // if (isSelected) console.log(cast);
-
   const {
     accounts,
     selectedAccountIdx,
@@ -85,7 +84,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const [didRecast, setDidRecast] = useState(false)
 
   const selectedAccount = accounts[selectedAccountIdx];
-  const userFid = Number(selectedAccount.platformAccountId);
+  const userFid = Number(selectedAccount?.platformAccountId);
   const authorFid = cast?.author.fid;
 
   const hasEmbeds = cast?.embeds?.length > 0;
@@ -258,7 +257,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
           <div className="flex flex-row justify-between gap-x-4 leading-5 text-gray-300">
             <div className="flex flex-row">
               <ProfileHoverCard username={cast.author.username} userFid={userFid}>
-                <span className="flex font-semibold text-gray-300 truncate">
+                <span className="flex font-semibold text-gray-300 truncate cursor-pointer">
                   {cast.author.display_name || cast.author.displayName}
                   <span className="hidden lg:ml-1 lg:block">(@{cast.author.username})
                   </span>

@@ -104,7 +104,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       console.log('unknown locationHash', locationHash);
     } else {
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        if (!session) {
+        if (!session && pathname !== '/login' && !pathname.startsWith('/profile')) {
           router.push('/login');
         }
       })
