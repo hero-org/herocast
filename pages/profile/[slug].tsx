@@ -7,28 +7,22 @@ import {
   AvatarFallback,
   Avatar,
 } from "../../src/components/ui/avatar";
-import {
-  CardHeader,
-  CardContent,
-  Card,
-} from "../../src/components/ui/card";
+import { CardHeader, CardContent, Card } from "../../src/components/ui/card";
 import { Button } from "../../src/components/ui/button";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { CastRow } from "../../src/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "../../src/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "../../src/components/ui/tabs";
 import uniqBy from "lodash.uniqby";
+import { useHotkeys } from "react-hotkeys-hook";
+import FollowButton from "../../src/common/components/FollowButton";
 
 export async function getStaticProps({ params: { slug } }) {
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
   let user: any = {};
   try {
-    if (slug.startsWith('fid:')) {
-      const fid = slug.split(':')[1]
+    if (slug.startsWith("fid:")) {
+      const fid = slug.split(":")[1];
       user = await client.lookupUserByFid(fid);
     } else {
       user = await client.lookupUserByUsername(slug);
@@ -57,22 +51,23 @@ export async function getStaticProps({ params: { slug } }) {
 }
 
 export const getStaticPaths = (async () => {
-  const client = new NeynarAPIClient(
-    process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-  );
-
+  const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+  
   const globalFeed = await client.fetchFeed("filter", {
     filterType: "global_trending",
     limit: 100,
   });
 
-  const paths = uniqBy(globalFeed.casts.map(({ author }) => ({
-    params: {
-      slug: author.username,
-    },
-  })), "params.slug");
+  const paths = uniqBy(
+    globalFeed.casts.map(({ author }) => ({
+      params: {
+        slug: author.username,
+      },
+    })),
+    "params.slug"
+  );
 
-  console.log(`paths: ${paths.length}`)
+  console.log(`preparing static profiles: ${paths.length}`);
   return {
     paths,
     fallback: true,
@@ -92,6 +87,23 @@ export default function Profile({ profile }) {
   const onSelectCast = (idx: number) => {
     setSelectedFeedIdx(idx);
   };
+
+  useHotkeys(
+    ["tab", "shift+tab"],
+    () => {
+      setFeedType(
+        feedType === FeedTypeEnum.casts
+          ? FeedTypeEnum.likes
+          : FeedTypeEnum.casts
+      );
+      setSelectedFeedIdx(0);
+      window.scrollTo(0, 0);
+    },
+    [feedType],
+    {
+      preventDefault: true,
+    }
+  );
 
   useEffect(() => {
     if (!profile) return;
@@ -153,17 +165,25 @@ export default function Profile({ profile }) {
 
   const renderFeed = () => (
     <>
-      <Tabs defaultValue={FeedTypeEnum.casts} className="p-5 w-full max-w-full">
+      <Tabs value={feedType} className="p-5 w-full max-w-full">
         <TabsList className="grid w-full grid-cols-2">
           {Object.keys(FeedTypeEnum).map((key) => {
             return (
               <TabsTrigger
                 key={key}
                 value={FeedTypeEnum[key]}
-                className="text-center"
+                className="text-gray-300 text-center"
                 onClick={() => setFeedType(FeedTypeEnum[key])}
               >
                 {FeedTypeEnum[key]}
+                {feedType !== FeedTypeEnum[key] && (
+                  <div className="ml-4 text-gray-500 hidden md:block">
+                    Switch with &nbsp;
+                    <kbd className="px-1 py-0.5 text-xs border rounded-md bg-gray-700 text-gray-500 border-gray-600">
+                      Tab
+                    </kbd>
+                  </div>
+                )}
               </TabsTrigger>
             );
           })}
@@ -184,7 +204,7 @@ export default function Profile({ profile }) {
   const renderProfile = () => (
     <div>
       <Card className="max-w-2xl mx-auto bg-transparent border-none shadow-none">
-        <CardHeader className="flex">
+        <CardHeader className="flex space-y-0">
           <div className="flex space-x-4">
             <Avatar className="h-14 w-14">
               <AvatarImage alt="User avatar" src={profile.pfp.url} />
@@ -197,7 +217,7 @@ export default function Profile({ profile }) {
               <span className="text-sm text-gray-300">@{profile.username}</span>
             </div>
           </div>
-          <div className="flex mt-4 text-sm text-gray-300">
+          <div className="flex pt-4 text-sm text-gray-300">
             <span className="mr-4">
               <strong>{profile.followingCount}</strong> Following
             </span>
@@ -207,16 +227,6 @@ export default function Profile({ profile }) {
           </div>
           <p className="text-gray-200">{profile.profile.bio.text}</p>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <Button variant="default" className="w-full">
-              Follow
-            </Button>
-            <Button variant="secondary" disabled className="w-full">
-              Message (coming soon)
-            </Button>
-          </div>
-        </CardContent>
       </Card>
       {renderFeed()}
     </div>

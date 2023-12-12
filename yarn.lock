@@ -538,6 +538,18 @@
     ref-napi "^3.0.3"
     viem "^1.12.2"
 
+"@farcaster/core@^0.13.1":
+  version "0.13.3"
+  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.13.3.tgz#8830d6b70f4d3c7a1dc4ea1bbfa7cf2ad92e9c6a"
+  integrity sha512-OI2ml+QKst9fwvpqJsmSqgK3goPsXkFU6AGmeuFuNAyGPQaRRB4MBS2YHQLkFpSZZ5bS82ENcx2CKAwTfh5Rwg==
+  dependencies:
+    "@noble/curves" "^1.0.0"
+    "@noble/hashes" "^1.3.0"
+    ffi-napi "^4.0.3"
+    neverthrow "^6.0.0"
+    ref-napi "^3.0.3"
+    viem "^1.12.2"
+
 "@farcaster/core@^0.9.1":
   version "0.9.1"
   resolved "https://registry.npmjs.org/@farcaster/core/-/core-0.9.1.tgz"
@@ -1964,6 +1976,14 @@
     "@stablelib/keyagreement" "^1.0.1"
     "@stablelib/random" "^1.0.2"
     "@stablelib/wipe" "^1.0.1"
+
+"@standard-crypto/farcaster-js-hub-rest@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@standard-crypto/farcaster-js-hub-rest/-/farcaster-js-hub-rest-1.1.0.tgz#cc8846e727562583bee2b9d5e052538503e88ea7"
+  integrity sha512-TQtUS9lCI7Vw0aPDgF2PmJUSPYQ3STCq5cNpKF8md1ZXcvyNEEhyVdRCHBkOldayrgfpkMZlUTLc+Zoz775IJw==
+  dependencies:
+    "@farcaster/core" "^0.13.1"
+    viem "^1.12.2"
 
 "@stitches/core@^1.2.8":
   version "1.2.8"

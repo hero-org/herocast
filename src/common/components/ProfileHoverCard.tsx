@@ -11,6 +11,8 @@ import { Loading } from "./Loading";
 import { useInView } from "react-intersection-observer";
 import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
+import { render } from "node_modules/@headlessui/react/dist/utils/render";
+import FollowButton from "./FollowButton";
 
 type ProfileHoverCardProps = {
   username: string;
@@ -26,7 +28,6 @@ const ProfileHoverCard = ({
   const { addUserProfile } = useDataStore();
 
   const profile = useDataStore((state) => get(state.usernameToData, username));
-
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
@@ -46,11 +47,9 @@ const ProfileHoverCard = ({
   }, [inView, profile]);
 
   const onClick = () => {
-    openWindow(`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`);
-  };
-
-  const updateFollowStatus = (following: boolean | undefined) => async () => {
-    if (following === undefined) return;
+    openWindow(
+      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`
+    );
   };
 
   return (
@@ -69,13 +68,10 @@ const ProfileHoverCard = ({
               <AvatarImage src={profile?.pfp.url} />
               <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>
             </Avatar>
-            {/* <Button
-                            className="rounded-sm group"
-                            onClick={(e) => {e.stopPropagation(); updateFollowStatus(profile?.viewerContext.following)}}
-                        >
-                            <span className="block group-hover:hidden">{profile?.viewerContext.following ? "Following" : "Follow"}</span>
-                            <span className="hidden group-hover:block group-hover:text-red-600">Unfollow</span>
-                        </Button> */}
+            <FollowButton
+              following={profile?.viewerContext?.following || false}
+              targetFid={String(userFid)}
+            />
           </div>
           <div>
             <h2 className="text-md font-semibold">{profile?.displayName}</h2>
