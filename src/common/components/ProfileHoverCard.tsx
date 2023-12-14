@@ -5,13 +5,11 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { fetchUserProfile } from "../helpers/neynar";
 import { openWindow } from "../helpers/navigation";
 import { Loading } from "./Loading";
 import { useInView } from "react-intersection-observer";
 import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
-import { render } from "node_modules/@headlessui/react/dist/utils/render";
 import FollowButton from "./FollowButton";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 

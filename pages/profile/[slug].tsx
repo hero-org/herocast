@@ -71,7 +71,7 @@ export const getStaticPaths = (async () => {
   console.log(`preparing static profiles: ${paths.length}`);
   return {
     paths,
-    fallback: true,
+    fallback: 'blocking',
   };
 }) satisfies GetStaticPaths;
 
