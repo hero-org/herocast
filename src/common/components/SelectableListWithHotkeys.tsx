@@ -80,6 +80,8 @@ export const SelectableListWithHotkeys = ({
     enabled: isActive && !isEmpty(data)
   })
 
+  if (isEmpty(data)) return null;
+
   return <ul role="list" className="">
     {data.map((cast: any, idx: number) =>
       cast ? (

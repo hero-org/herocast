@@ -11,6 +11,9 @@ import { Loading } from "./Loading";
 import { useInView } from "react-intersection-observer";
 import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
+import { render } from "node_modules/@headlessui/react/dist/utils/render";
+import FollowButton from "./FollowButton";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 
 type ProfileHoverCardProps = {
   username: string;
@@ -24,9 +27,7 @@ const ProfileHoverCard = ({
   children,
 }: ProfileHoverCardProps) => {
   const { addUserProfile } = useDataStore();
-
   const profile = useDataStore((state) => get(state.usernameToData, username));
-
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
@@ -36,9 +37,15 @@ const ProfileHoverCard = ({
     if (!inView || profile) return;
 
     const getData = async () => {
-      const data = await fetchUserProfile(userFid, username);
-      if (data) {
-        addUserProfile({ username, data });
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const resp = await neynarClient.lookupUserByUsername(
+        username,
+        userFid! as number
+      );
+      if (resp.result.user) {
+        addUserProfile({ username, data: resp.result.user });
       }
     };
 
@@ -46,11 +53,9 @@ const ProfileHoverCard = ({
   }, [inView, profile]);
 
   const onClick = () => {
-    openWindow(`https://warpcast.com/${profile?.username || username}`);
-  };
-
-  const updateFollowStatus = (following: boolean | undefined) => async () => {
-    if (following === undefined) return;
+    openWindow(
+      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`
+    );
   };
 
   return (
@@ -69,13 +74,7 @@ const ProfileHoverCard = ({
               <AvatarImage src={profile?.pfp.url} />
               <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>
             </Avatar>
-            {/* <Button
-                            className="rounded-sm group"
-                            onClick={(e) => {e.stopPropagation(); updateFollowStatus(profile?.viewerContext.following)}}
-                        >
-                            <span className="block group-hover:hidden">{profile?.viewerContext.following ? "Following" : "Follow"}</span>
-                            <span className="hidden group-hover:block group-hover:text-red-600">Unfollow</span>
-                        </Button> */}
+            <FollowButton username={profile?.username} />
           </div>
           <div>
             <h2 className="text-md font-semibold">{profile?.displayName}</h2>

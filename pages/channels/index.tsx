@@ -43,8 +43,6 @@ export default function Channels() {
     updatedPinnedChannelIndices,
   } = useAccountStore();
 
-  console.log('channels', allChannels);
-
   const account: AccountObjectType = accounts[selectedAccountIdx];
   // const channels = account?.channels || [];
   const channels = useAccountStore(

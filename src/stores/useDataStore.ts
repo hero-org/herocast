@@ -1,16 +1,16 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
-import { UserNeynarV1Type } from "@/common/helpers/neynar";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v1";
 
 
 type addUserProfileProps = {
   username: string;
-  data: UserNeynarV1Type;
+  data: User;
 };
 
 interface DataStoreProps {
-  usernameToData: Record<string, UserNeynarV1Type>;
+  usernameToData: Record<string, User>;
 }
 
 interface DataStoreActions {
