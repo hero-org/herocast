@@ -50,7 +50,7 @@ const ProfileHoverCard = ({
     };
 
     getData();
-  }, [inView, profile]);
+  }, [inView, profile, userFid]);
 
   const onClick = () => {
     openWindow(

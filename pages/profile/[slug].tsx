@@ -7,7 +7,7 @@ import {
   AvatarFallback,
   Avatar,
 } from "../../src/components/ui/avatar";
-import { CardHeader, CardContent, Card } from "../../src/components/ui/card";
+import { CardHeader, Card } from "../../src/components/ui/card";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { CastRow } from "../../src/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
@@ -15,6 +15,8 @@ import { Tabs, TabsList, TabsTrigger } from "../../src/components/ui/tabs";
 import uniqBy from "lodash.uniqby";
 import { useHotkeys } from "react-hotkeys-hook";
 import FollowButton from "../../src/common/components/FollowButton";
+import { useAccountStore } from "../../src/stores/useAccountStore";
+import { useDataStore } from "../../src/stores/useDataStore";
 
 export async function getStaticProps({ params: { slug } }) {
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
@@ -51,7 +53,7 @@ export async function getStaticProps({ params: { slug } }) {
 
 export const getStaticPaths = (async () => {
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-  
+
   const globalFeed = await client.fetchFeed("filter", {
     filterType: "global_trending",
     limit: 100,
@@ -83,9 +85,34 @@ export default function Profile({ profile }) {
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
 
+  const { addUserProfile } = useDataStore();
+  const { accounts, selectedAccountIdx } = useAccountStore();
+
+  const selectedAccount = accounts[selectedAccountIdx];
+  const userFid = Number(selectedAccount?.platformAccountId);
+
   const onSelectCast = (idx: number) => {
     setSelectedFeedIdx(idx);
   };
+
+  useEffect(() => {
+    if (!profile) return;
+
+    const getData = async () => {
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const resp = await neynarClient.lookupUserByUsername(
+        profile.username,
+        userFid! as number
+      );
+      if (resp.result.user) {
+        addUserProfile({ username: profile.username, data: resp.result.user });
+      }
+    };
+
+    getData();
+  }, [profile, userFid]);
 
   useHotkeys(
     ["tab", "shift+tab"],
@@ -204,18 +231,24 @@ export default function Profile({ profile }) {
     <div>
       <Card className="max-w-2xl mx-auto bg-transparent border-none shadow-none">
         <CardHeader className="flex space-y-0">
-          <div className="flex space-x-4">
-            <Avatar className="h-14 w-14">
-              <AvatarImage alt="User avatar" src={profile.pfp.url} />
-              <AvatarFallback>{profile.username}</AvatarFallback>
-            </Avatar>
-            <div className="text-left">
-              <h2 className="text-xl font-bold text-gray-200">
-                {profile.displayName}
-              </h2>
-              <span className="text-sm text-gray-300">@{profile.username}</span>
+          <div className="flex space-x-4 grid grid-cols-2 lg:grid-cols-3">
+            <div className="col-span-1 lg:col-span-2">
+              <Avatar className="h-14 w-14">
+                <AvatarImage alt="User avatar" src={profile.pfp.url} />
+                <AvatarFallback>{profile.username}</AvatarFallback>
+              </Avatar>
+              <div className="text-left">
+                <h2 className="text-xl font-bold text-gray-200">
+                  {profile.displayName}
+                </h2>
+                <span className="text-sm text-gray-300">
+                  @{profile.username}
+                </span>
+              </div>
             </div>
-            {profile && <FollowButton username={profile.username} />}
+            {userFid !== profile.fid && (
+              <FollowButton username={profile.username} />
+            )}
           </div>
           <div className="flex pt-4 text-sm text-gray-300">
             <span className="mr-4">

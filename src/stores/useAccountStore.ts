@@ -451,4 +451,7 @@ const getChannelCommands = () => {
 export const accountCommands = getAccountCommands();
 export const channelCommands = getChannelCommands();
 
-hydrate();
+// client-side-only
+if (typeof window !== 'undefined') {
+  hydrate();
+}

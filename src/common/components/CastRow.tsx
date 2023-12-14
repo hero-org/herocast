@@ -257,9 +257,9 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
           <div className="flex flex-row justify-between gap-x-4 leading-5 text-gray-300">
             <div className="flex flex-row">
               <ProfileHoverCard username={cast.author.username} userFid={userFid}>
-                <span className="flex font-semibold text-gray-300 truncate cursor-pointer">
+                <span className="flex font-semibold text-gray-300 truncate cursor-pointer w-24 lg:w-full">
                   {cast.author.display_name || cast.author.displayName}
-                  <span className="hidden lg:ml-1 lg:block">(@{cast.author.username})
+                  <span className="hidden font-normal lg:ml-1 lg:block">(@{cast.author.username})
                   </span>
                 </span>
               </ProfileHoverCard>
