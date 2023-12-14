@@ -219,13 +219,13 @@ export const publishReaction = async ({ authorFid, privateKey, reactionBody }: P
 import { HubRestAPIClient } from '@standard-crypto/farcaster-js-hub-rest';
 
 export const followUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {
-  const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_NEYNAR_HUB_URL });
+  const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
   const followResponse = await client.followUser(targetFid, fid, signerPrivateKey);
   console.log(`follow hash: ${followResponse?.hash}`);
 }
 
 export const unfollowUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {
-  const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_NEYNAR_HUB_URL });
+  const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
   const unfollowResponse = await client.unfollowUser(targetFid, fid, signerPrivateKey);
   console.log(`unfollow hash: ${unfollowResponse?.hash}`);
 }

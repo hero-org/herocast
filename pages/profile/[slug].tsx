@@ -8,7 +8,6 @@ import {
   Avatar,
 } from "../../src/components/ui/avatar";
 import { CardHeader, CardContent, Card } from "../../src/components/ui/card";
-import { Button } from "../../src/components/ui/button";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { CastRow } from "../../src/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
@@ -216,6 +215,7 @@ export default function Profile({ profile }) {
               </h2>
               <span className="text-sm text-gray-300">@{profile.username}</span>
             </div>
+            {profile && <FollowButton username={profile.username} />}
           </div>
           <div className="flex pt-4 text-sm text-gray-300">
             <span className="mr-4">
