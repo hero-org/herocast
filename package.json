@@ -64,7 +64,7 @@
     "focus-trap-react": "^10.2.1",
     "google-protobuf": "^3.21.2",
     "javascript-time-ago": "^2.5.9",
-    "linkify-plugin-mention": "^4.1.1",
+    "linkify-plugin-mention": "^4.1.3",
     "linkify-react": "^4.1.1",
     "linkifyjs": "^4.1.3",
     "lodash.clonedeep": "^4.5.0",
