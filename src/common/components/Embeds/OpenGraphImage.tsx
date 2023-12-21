@@ -13,7 +13,7 @@ const OpenGraphImage = ({ url }: { url: string }) => {
         }
       });
       const metadata = await request.json();
-      setMetadata(metadata);
+      setMetadata(metadata[url]);
     };
 
     fetchMetadata();
