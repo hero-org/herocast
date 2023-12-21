@@ -55,9 +55,6 @@ export const SelectableListWithHotkeys = ({
     enabled: onExpand !== undefined && isActive
   })
 
-  // todo: add onDown and onUp
-  // what will they do? replace everything? yeah I don't need to manage separately?
-  // or keep updating selectedIdx but ON TOP be allowed to change things?
   useHotkeys(['j', Key.ArrowDown], () => {
     onDown?.();
     

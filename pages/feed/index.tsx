@@ -110,6 +110,7 @@ export default function Feed() {
     [showCastThreadView, showReplyModal, showEmbedsModal],
     {
       enableOnFormTags: true,
+      enableOnContentEditable: true,
       enabled: showCastThreadView && !showReplyModal && !showEmbedsModal,
     }
   );

@@ -1,7 +1,7 @@
 import NewPostEntry from "../../src/common/components/NewPostEntry";
 import { classNames } from "../../src/common/helpers/css";
 import { useNewPostStore } from "../../src/stores/useNewPostStore";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CustomToast from "../../src/common/components/CustomToast";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";
@@ -13,10 +13,16 @@ export default function NewPost() {
   const { addNewPostDraft, removeAllPostDrafts } = useNewPostStore();
   const postDrafts = useNewPostStore((state) => state.drafts);
 
+  useEffect(() => {
+    if (postDrafts.length === 0) {
+      addNewPostDraft({});
+    }
+  }, []);
+
   return (
     <>
-      <div className="flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
-        <div className="w-full flex items-center justify-between">
+      <div className="ml-3 flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
+        <div className="ml-1 mt-2 w-full flex items-center justify-between">
           <div className="text-gray-100 font-semibold">
             You have {postDrafts.length}{" "}
             {postDrafts.length !== 1 ? "drafts" : "draft"}

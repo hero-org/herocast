@@ -1,5 +1,5 @@
 import {
-  CastAddBody, FarcasterNetwork,
+  CastAddBody, Embed, FarcasterNetwork,
   NobleEd25519Signer,
   ReactionBody,
   getHubRpcClient,
@@ -128,17 +128,8 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
     return await Promise.resolve(await client.submitMessage(castAdd));
   }));
 
-
-  // const res2 = await Promise.resolve(res).then((res) => {
-  //   console.log('res', res)
-  //   return res
-  // }).catch((err) => {
-  //   console.log('err', err)
-  // });
-
   console.log(`Submitted cast to Farcaster network, res:`, res);
   return res;
-  // client.close();
 };
 
 export const removeReaction = async ({ authorFid, privateKey, reactionBody }: RemoveReactionParams) => {
@@ -228,4 +219,27 @@ export const unfollowUser = async (targetFid: number, fid: number, signerPrivate
   const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
   const unfollowResponse = await client.unfollowUser(targetFid, fid, signerPrivateKey);
   console.log(`unfollow hash: ${unfollowResponse?.hash}`);
+}
+
+type SubmitCastParams = {
+  text: string;
+  embeds?: Embed[];
+  mentions?: number[];
+  mentionsPositions?: number[];
+  fid: number;
+  signerPrivateKey: string;
+}
+
+export const submitCast = async ({
+  text,
+  embeds,
+  mentions,
+  mentionsPositions,
+  signerPrivateKey,
+  fid,
+}: SubmitCastParams) => {
+  console.log('submitCast', { text, embeds, mentions, mentionsPositions, fid })
+  const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
+  const castResponse = await client.submitCast({ text, embeds, mentions, mentionsPositions }, fid, signerPrivateKey);
+  // console.log(`cast hash: ${castResponse?.hash}`);
 }
