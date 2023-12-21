@@ -8,9 +8,9 @@ description: 'herocast is a web and desktop app built with NextJS and Tauri as a
 # Default Values: https://github.com/sweepai/sweep/blob/main/sweep.yaml
 
 docs:
-  hub-nodejs: ["https://github.com/farcasterxyz/hub-monorepo/blob/main/packages/hub-nodejs/docs/README.md", "We use hub monorepo nodejs web to interact with the Farcaster protocol"]
-  react-js: ["https://react.dev/reference/react", "We use react js as our frontend framework"]
-  next-js: ["https://nextjs.org/docs", "We use nextjs on top of react js"]
+  - hub-nodejs: ["https://github.com/farcasterxyz/hub-monorepo/blob/main/packages/hub-nodejs/docs/README.md", "We use hub monorepo nodejs web to interact with the Farcaster protocol"]
+  - react-js: ["https://react.dev/reference/react", "We use react js as our frontend framework"]
+  - next-js: ["https://nextjs.org/docs", "We use nextjs on top of react js"]
 
 sandbox:
   install:
@@ -18,3 +18,7 @@ sandbox:
   check:
     - yarn run prettier --write {file_path}
     - yarn run eslint {file_path}
+
+rules:
+  - "Any clearly inefficient or repeated code should be optimized or refactored."
+  - "Leftover TODOs in the code should be handled."
