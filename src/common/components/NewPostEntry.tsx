@@ -7,7 +7,7 @@ import { DraftStatus, DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent, Editor } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
-import { fetchUrlMetadata } from "@mod-protocol/core";
+import { fetchMetadataFromCache } from "@mod-protocol/core";
 import {
   Channel,
   getFarcasterChannels,
@@ -22,7 +22,7 @@ import uniqBy from "lodash.uniqby";
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getResults = getFarcasterMentions(API_URL);
 const getModChannels = getFarcasterChannels(API_URL);
-const getUrlMetadata = fetchUrlMetadata(API_URL);
+const getUrlMetadata = fetchMetadataFromCache(API_URL);
 
 const onError = (err) => {
   console.error(err);
@@ -106,7 +106,7 @@ export default function NewPostEntry({
     getChannel,
     handleSubmit,
   } = useEditor({
-    fetchUrlMetadata: getUrlMetadata,
+    fetchUrlMetadata: fetchMetadataFromCache,
     onError,
     onSubmit: onSubmitPost,
     linkClassName: "text-blue-300",
