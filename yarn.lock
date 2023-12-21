@@ -381,19 +381,7 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.51.0.tgz"
   integrity sha512-HxjQ8Qn+4SI3/AFv6sOrDB+g6PpUTDwSJiQqOrnneEk8L71161srI9gjzzZvYVbzHiVg/BvcH95+cK/zfIt4pg==
 
-"@farcaster/core@^0.12.15":
-  version "0.12.15"
-  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.12.15.tgz#69dc03e8c8f6b7b415ea2169be5e13cb9ca74eea"
-  integrity sha512-hbnPSEWZEpNw//yLaObzVbjtuU67o1BUkMlucwAzxmoYA8DjV4sMtSlIu34ClN2U5fcGV5RqRrNoeGOvRt73hQ==
-  dependencies:
-    "@noble/curves" "^1.0.0"
-    "@noble/hashes" "^1.3.0"
-    ffi-napi "^4.0.3"
-    neverthrow "^6.0.0"
-    ref-napi "^3.0.3"
-    viem "^1.12.2"
-
-"@farcaster/core@^0.13.1":
+"@farcaster/core@^0.13.1", "@farcaster/core@^0.13.2":
   version "0.13.3"
   resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.13.3.tgz#8830d6b70f4d3c7a1dc4ea1bbfa7cf2ad92e9c6a"
   integrity sha512-OI2ml+QKst9fwvpqJsmSqgK3goPsXkFU6AGmeuFuNAyGPQaRRB4MBS2YHQLkFpSZZ5bS82ENcx2CKAwTfh5Rwg==
@@ -405,12 +393,12 @@
     ref-napi "^3.0.3"
     viem "^1.12.2"
 
-"@farcaster/hub-web@^0.6.2":
-  version "0.6.10"
-  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.6.10.tgz#cb6f68e78d2f505bcefd82dba3103406b71ad76d"
-  integrity sha512-79XD3sR0e9pgT2S2Ofo1D+DKMr9maXyDFyG53V7QDr/LSCeJDJLzU3vpGNL8KL6NstQmMeD5oGvmtNaWdXTdcA==
+"@farcaster/hub-web@^0.7.1":
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.7.1.tgz#cf1fe6a8f40a91f459311951a503c854d23a2a0f"
+  integrity sha512-cBcbfdWlM00tXxcKnoSVGiqvjqt/AEC9yQYDmbZnE6PoP1TzdA2ez/rrRuKswC90KB5JQVJLbPt+lb+azGmFyw==
   dependencies:
-    "@farcaster/core" "^0.12.15"
+    "@farcaster/core" "^0.13.2"
     "@improbable-eng/grpc-web" "^0.15.0"
     rxjs "^7.8.0"
 
