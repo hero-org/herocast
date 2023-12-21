@@ -146,11 +146,13 @@ export default function NewPostEntry({
         </div>
         <div className="flex flex-row pt-2 gap-1">
           {!isReply && !hideChannel && (
+            <div className="text-gray-200">
             <ChannelPicker
               getChannels={getChannels}
               onSelect={setChannel}
               value={getChannel()}
             />
+            </div>
           )}
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>

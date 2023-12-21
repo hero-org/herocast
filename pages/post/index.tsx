@@ -1,7 +1,7 @@
 import NewPostEntry from "../../src/common/components/NewPostEntry";
 import { classNames } from "../../src/common/helpers/css";
 import { useNewPostStore } from "../../src/stores/useNewPostStore";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CustomToast from "../../src/common/components/CustomToast";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";
@@ -12,6 +12,12 @@ export default function NewPost() {
 
   const { addNewPostDraft, removeAllPostDrafts } = useNewPostStore();
   const postDrafts = useNewPostStore((state) => state.drafts);
+
+  useEffect(() => {
+    if (postDrafts.length === 0) {
+      addNewPostDraft({});
+    }
+  }, []);
 
   return (
     <>
