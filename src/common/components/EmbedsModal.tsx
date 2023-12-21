@@ -6,6 +6,7 @@ import { openWindow } from '../helpers/navigation';
 import { classNames } from '../helpers/css';
 import { getUrlsInText } from '../helpers/text';
 import uniqBy from 'lodash.uniqby';
+import OpenGraphImage from './Embeds/OpenGraphImage';
 
 type EmbedsModalProps = {
   cast: CastType;
@@ -25,12 +26,13 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
   const renderEmbedRow = (item: any, idx: number) => {
     return (
       <li key={item?.url}
-        className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl xl:max-w-3xl">
+        className="flex flex-col border-b border-gray-700/40 relative max-w-full md:max-w-2xl xl:max-w-3xl">
+        <OpenGraphImage url={item?.url} />
         <span
           onClick={() => onSelect(idx)}
           className={classNames(
             idx === selectedIdx ? "bg-gray-500 text-gray-300" : "text-gray-400",
-            "cursor-pointer mt-1.5 flex align-center text-sm hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-md"
+            "cursor-pointer flex text-sm hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5"
           )}>
           {item.url}
         </span>

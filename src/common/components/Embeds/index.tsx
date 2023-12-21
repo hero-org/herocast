@@ -4,6 +4,8 @@ import WarpcastEmbed from './WarpcastEmbed';
 import TweetEmbed from './TweetEmbed';
 import NounsBuildEmbed from './NounsBuildEmbed';
 import ParagraphXyzEmbed from './ParagraphXyzEmbed';
+import OpenGraphImage from './OpenGraphImage';
+import { isImageUrl } from '@/common/helpers/text';
 
 export const renderEmbedForUrl = ({ url }: { url: string }) => {
   if (!url) return null;
@@ -19,6 +21,8 @@ export const renderEmbedForUrl = ({ url }: { url: string }) => {
     return <NounsBuildEmbed url={url} />
   } else if (url.includes('paragraph.xyz') || url.includes('pgrph.xyz')) {
     return <ParagraphXyzEmbed url={url} />
+  } else if (!isImageUrl(url)) {
+    return <OpenGraphImage url={url} />;
   } else {
     return null;
   }

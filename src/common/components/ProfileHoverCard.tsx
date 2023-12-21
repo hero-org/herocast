@@ -35,15 +35,19 @@ const ProfileHoverCard = ({
     if (!inView || profile) return;
 
     const getData = async () => {
-      const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
-      const resp = await neynarClient.lookupUserByUsername(
-        username,
-        userFid! as number
-      );
-      if (resp.result.user) {
-        addUserProfile({ username, data: resp.result.user });
+      try {
+        const neynarClient = new NeynarAPIClient(
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        );
+        const resp = await neynarClient.lookupUserByUsername(
+          username,
+          userFid! as number
+        );
+        if (resp.result.user) {
+          addUserProfile({ username, data: resp.result.user });
+        }
+      } catch (err) {
+        console.log("ProfileHoverCard: err getting data", err);
       }
     };
 
