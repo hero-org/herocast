@@ -20,9 +20,7 @@ export const renderEmbedForUrl = ({ url }: { url: string }) => {
     return <NounsBuildEmbed url={url} />
   } else if (url.includes('paragraph.xyz') || url.includes('pgrph.xyz')) {
     return <ParagraphXyzEmbed url={url} />
-  } else if (url.startsWith('https://modprotocol.org')) {
-    return <OpenGraphImage url={url} />
   } else {
-    return null;
+    return <OpenGraphImage url={url} />;
   }
 }
