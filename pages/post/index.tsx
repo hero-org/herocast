@@ -15,8 +15,8 @@ export default function NewPost() {
 
   return (
     <>
-      <div className="flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
-        <div className="w-full flex items-center justify-between">
+      <div className="ml-3 flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
+        <div className="ml-1 mt-2 w-full flex items-center justify-between">
           <div className="text-gray-100 font-semibold">
             You have {postDrafts.length}{" "}
             {postDrafts.length !== 1 ? "drafts" : "draft"}

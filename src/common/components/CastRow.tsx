@@ -250,14 +250,14 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       )}>
       <div className="flex items-top gap-x-4">
         <img
-          className='relative h-10 w-10 flex-none bg-gray-50 rounded-lg'
+          className='relative h-10 w-10 flex-none bg-gray-50 rounded-full'
           src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
         />
         <div className="flex flex-col w-full">
           <div className="flex flex-row justify-between gap-x-4 leading-5 text-gray-300">
             <div className="flex flex-row">
               <ProfileHoverCard username={cast.author.username} userFid={userFid}>
-                <span className="flex font-semibold text-gray-300 truncate cursor-pointer w-24 lg:w-full">
+                <span className="flex font-semibold text-gray-300 truncate cursor-pointer w-full max-w-48 lg:max-w-full">
                   {cast.author.display_name || cast.author.displayName}
                   <span className="hidden font-normal lg:ml-1 lg:block">(@{cast.author.username})
                   </span>

@@ -6,6 +6,7 @@ module.exports = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
+    "./node_modules/@mod-protocol/react-ui-shadcn/dist/**/*.{ts,tsx,css,js}",
   ],
   theme: {
     container: {
@@ -75,6 +76,7 @@ module.exports = {
     },
   },
   plugins: [
-    require("tailwindcss-animate")
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
   ],
 }

@@ -1,12 +1,9 @@
-type PostEmbedType = {
-  url: string;
-};
+import { Embed } from "@farcaster/hub-web";
 
 export type ParentCastIdType = {
   fid: string;
   hash: string;
 }
-
 
 export enum DraftStatus {
   writing = "writing",
@@ -19,10 +16,9 @@ export type DraftType = PostType & {
   mentionsToFids?: { [key: string]: string }
 };
 
-
 export type PostType = {
   text: string;
-  embeds?: PostEmbedType[];
+  embeds?: Embed[];
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
 }

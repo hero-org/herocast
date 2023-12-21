@@ -3,10 +3,16 @@ import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CommandType } from "../../src/common/constants/commands";
 import { PlusCircleIcon, TagIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { convertEditorCastToPublishableCast, publishCast } from "../../src/common/helpers/farcaster";
 import { AccountObjectType } from "./useAccountStore";
 import { trackEventWithProperties } from "../../src/common/helpers/analytics";
 import { DraftStatus, DraftType, ParentCastIdType } from "../../src/common/constants/farcaster";
+import {
+  getMentionFidsByUsernames,
+  formatPlaintextToHubCastMessage,
+} from '@mod-protocol/farcaster';
+import { publishCast } from "@/common/helpers/farcaster";
+
+const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 
 export const NewPostDraft: DraftType = {
   text: "",
@@ -94,7 +100,6 @@ const store = (set: StoreSet) => ({
   },
   updatePostDraft: (draftIdx: number, draft: DraftType) => {
     set((state) => {
-      // console.log(`updatePostDraft ${draftIdx} parent: ${draft.parentUrl}`);
       state.drafts = [
         ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
         draft,
@@ -140,35 +145,39 @@ const store = (set: StoreSet) => ({
       state.drafts = [];
     });
   },
-  publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost?: () => null): Promise<string | null> => {
+  publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost?: () => null): Promise<void> => {
     set(async (state) => {
       const draft = state.drafts[draftIdx];
 
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
-        const castBody = await Promise.resolve(convertEditorCastToPublishableCast(draft));
+        const castBody = await formatPlaintextToHubCastMessage({
+          text: draft.text,
+          embeds: draft.embeds,
+          getMentionFidsByUsernames: getMentionFids,
+          parentUrl: draft.parentUrl,
+          parentCastFid: Number(draft.parentCastId?.fid),
+          parentCastHash: draft.parentCastId?.hash,
+        });
+
+        if (!castBody) {
+          throw new Error('Failed to prepare cast');
+        }
+
         await Promise.resolve(
           publishCast({
             castBody,
             privateKey: account.privateKey,
             authorFid: account.platformAccountId,
           })
-        ).then(async (res) => {
-          if (res?.error) {
-            console.log('publishPostdraft error:', res.error, 'draft text:', draft.text);
-            return `Error when posting ${res.error}`;
-          }
+        )
 
-          await new Promise(f => setTimeout(f, 100));
-          trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
-          state.removePostDraft(draftIdx);
-          state.setIsToastOpen(true);
+        await new Promise(f => setTimeout(f, 100));
+        trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
+        state.removePostDraft(draftIdx);
+        state.setIsToastOpen(true);
 
-          if (onPost) onPost();
-        }).catch((err) => {
-          console.log('publishPostdraft caught error:', err);
-        })
-
+        if (onPost) onPost();
       } catch (error) {
         console.log('caught error in newPostStore', error)
         return `Error when posting ${error}`;

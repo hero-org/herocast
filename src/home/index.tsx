@@ -244,20 +244,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                             </ul>
                           </li>
                           {renderAccountSidebar()}
-                          {/* <li className="-mx-6 mt-auto">
-                            <a
-                              href="#"
-                              className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
-                            >
-                              <img
-                                className="h-8 w-8 rounded-full bg-gray-800"
-                                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                                alt=""
-                              />
-                              <span className="sr-only">Your profile</span>
-                              <span aria-hidden="true">Tom Cook</span>
-                            </a>
-                          </li> */}
                         </ul>
                       </nav>
                     </div>
@@ -272,11 +258,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 ring-1 ring-white/5">
               <div className="flex h-16 shrink-0 items-center">
-                {/* <img
-                className="h-8 w-auto"
-                src="./src/assets/images/herocast.png"
-                alt="herocast"
-              /> */}
                 <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
                   herocast
                 </h2>
@@ -307,20 +288,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                       ))}
                     </ul>
                   </li>
-                  {/* <li className="-mx-6 mt-auto">
-                  <a
-                    href="#"
-                    className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
-                  >
-                    <img
-                      className="h-8 w-8 rounded-full bg-gray-800"
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                      alt=""
-                    />
-                    <span className="sr-only">Your profile</span>
-                    <span aria-hidden="true">Tom Cook</span>
-                  </a>
-                </li> */}
                 </ul>
               </nav>
             </div>
@@ -333,7 +300,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                 </button>
                 <h1 className="mx-auto text-2xl font-semibold leading-7 text-white">{title}</h1>
-                {/* <h1 className="text-base font-semibold leading-7 text-white"></h1> */}
               </header>
               <div className="w-full max-w-full min-h-screen flex justify-between px-2 border-t border-white/5 ">
                 {children}
