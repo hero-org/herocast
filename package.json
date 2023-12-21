@@ -31,7 +31,6 @@
     "@emotion/react": "11",
     "@emotion/styled": "11",
     "@farcaster/hub-web": "^0.6.2",
-    "@farsign/hooks": "^1.2.1",
     "@headlessui/react": "^1.7.16",
     "@heroicons/react": "^2.0.18",
     "@mod-protocol/mod-registry": "^0.1.0",
