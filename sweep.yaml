@@ -1,21 +1,24 @@
 # Sweep AI turns bug fixes & feature requests into code changes (https://sweep.dev)
 # For details on our config file, check out our docs at https://docs.sweep.dev
 
-# If you use this be sure to frequently sync your default branch(main, master) to dev.
 branch: 'main'
 blocked_dirs: [".github/"]
-# By default Sweep will read the logs and outputs from your existing Github Actions. To disable this, set this to false.
 gha_enabled: True
-# This is the description of your project. It will be used by sweep when creating PRs. You can tell Sweep what's unique about your project, what frameworks you use, or anything else you want.
-# Here's an example: sweepai/sweep is a python project. The main api endpoints are in sweepai/api.py. Write code that adheres to PEP8.
-description: 'herocast is a web and desktop app built with React and Tauri as a power-user client for the Farcaster protocol (a sufficiently decentralized social media platform)'
+description: 'herocast is a web and desktop app built with NextJS and Tauri as a power-user client for the Farcaster protocol (a sufficiently decentralized social media platform)'
 # Default Values: https://github.com/sweepai/sweep/blob/main/sweep.yaml
 
 docs:
-  hub-nodejs: ["https://github.com/farcasterxyz/hub-monorepo/blob/main/packages/hub-nodejs/docs/README.md", "We use hub monorepo nodejs web to interact with the Farcaster protocol"]
-  react-js: ["https://react.dev/reference/react", "We use react js as our frontend framework"]
+  - hub-nodejs: ["https://github.com/farcasterxyz/hub-monorepo/blob/main/packages/hub-nodejs/docs/README.md", "We use hub monorepo nodejs web to interact with the Farcaster protocol"]
+  - react-js: ["https://react.dev/reference/react", "We use react js as our frontend framework"]
+  - next-js: ["https://nextjs.org/docs", "We use nextjs on top of react js"]
+
 sandbox:
-  enabled: true
-  image: "Nodejs"
-  install: "yarn install"
-  formatter: "yarn run lint:fix"
+  install:
+    - yarn install --ignore-engines
+  check:
+    - yarn run prettier --write {file_path}
+    - yarn run eslint {file_path}
+
+rules:
+  - "Any clearly inefficient or repeated code should be optimized or refactored."
+  - "Leftover TODOs in the code should be handled."
