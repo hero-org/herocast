@@ -374,10 +374,10 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.51.0.tgz"
   integrity sha512-HxjQ8Qn+4SI3/AFv6sOrDB+g6PpUTDwSJiQqOrnneEk8L71161srI9gjzzZvYVbzHiVg/BvcH95+cK/zfIt4pg==
 
-"@farcaster/core@^0.12.15":
-  version "0.12.15"
-  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.12.15.tgz#69dc03e8c8f6b7b415ea2169be5e13cb9ca74eea"
-  integrity sha512-hbnPSEWZEpNw//yLaObzVbjtuU67o1BUkMlucwAzxmoYA8DjV4sMtSlIu34ClN2U5fcGV5RqRrNoeGOvRt73hQ==
+"@farcaster/core@^0.13.1", "@farcaster/core@^0.13.4":
+  version "0.13.4"
+  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.13.4.tgz#18df168e024186f084f0cd7c5f29fd051964a7f5"
+  integrity sha512-cvQLzD+r4/1kI763jox0ZtU5BkmYQjOvvabcYVvJAfIJUsQfwpcVJOEliLuO94a2pyZSp7/CLQN0In0RUIVKlQ==
   dependencies:
     "@noble/curves" "^1.0.0"
     "@noble/hashes" "^1.3.0"
@@ -386,24 +386,12 @@
     ref-napi "^3.0.3"
     viem "^1.12.2"
 
-"@farcaster/core@^0.13.1":
-  version "0.13.3"
-  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.13.3.tgz#8830d6b70f4d3c7a1dc4ea1bbfa7cf2ad92e9c6a"
-  integrity sha512-OI2ml+QKst9fwvpqJsmSqgK3goPsXkFU6AGmeuFuNAyGPQaRRB4MBS2YHQLkFpSZZ5bS82ENcx2CKAwTfh5Rwg==
+"@farcaster/hub-web@^0.7.2":
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.7.2.tgz#910a76ce140cc5baf83e65d96dd36cf39aaa9ec6"
+  integrity sha512-p7aHBOeYMarQ4g+OY9Gf2GE/5xc4s2o0YcGL5yOU9qg5xbNWX6OWtFQ1luh9P91tdtwAnwMbbXt1nGJoJf+WeA==
   dependencies:
-    "@noble/curves" "^1.0.0"
-    "@noble/hashes" "^1.3.0"
-    ffi-napi "^4.0.3"
-    neverthrow "^6.0.0"
-    ref-napi "^3.0.3"
-    viem "^1.12.2"
-
-"@farcaster/hub-web@^0.6.2":
-  version "0.6.10"
-  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.6.10.tgz#cb6f68e78d2f505bcefd82dba3103406b71ad76d"
-  integrity sha512-79XD3sR0e9pgT2S2Ofo1D+DKMr9maXyDFyG53V7QDr/LSCeJDJLzU3vpGNL8KL6NstQmMeD5oGvmtNaWdXTdcA==
-  dependencies:
-    "@farcaster/core" "^0.12.15"
+    "@farcaster/core" "^0.13.4"
     "@improbable-eng/grpc-web" "^0.15.0"
     rxjs "^7.8.0"
 
