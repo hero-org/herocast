@@ -529,12 +529,12 @@
     semver "^7.3.8"
     superstruct "^1.0.3"
 
-"@mod-protocol/core@*", "@mod-protocol/core@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/core/-/core-0.1.0.tgz#e01da8e4640c7936a26bea5d57166d9eb1e660d3"
-  integrity sha512-JplszBmWwx6rFTF2Uj0TqEhrEhgQ80aY5UD0+Gnlnl8UL35YX1a/g3BcUVsElyhyr+9O/RAerRqXgK/7uBKL/A==
+"@mod-protocol/core@*", "@mod-protocol/core@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@mod-protocol/core/-/core-0.1.1.tgz#3b6946da9b26fa3f3a04e51a6aeb14a2d16424b8"
+  integrity sha512-JAQ23G7BkxPG1gTda6cbpMeyLZkhyRcI+jIKj18krVbX9kZ82C2m4lzfqBNEetOAvXpo6pyhcRRin8Xaz+mX0w==
   dependencies:
-    "@mod-protocol/farcaster" "^0.0.1"
+    "@mod-protocol/farcaster" "^0.1.0"
     json-schema "^0.4.0"
     lodash.get "^4.4.2"
     lodash.isarray "^4.0.0"
@@ -544,10 +544,10 @@
     lodash.tonumber "^4.0.3"
     lodash.tostring "^4.1.4"
 
-"@mod-protocol/farcaster@*", "@mod-protocol/farcaster@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/farcaster/-/farcaster-0.0.1.tgz#39d9360ce34fa27fe483c7544041f8beb0cd97c2"
-  integrity sha512-RRb74j9uNJSOiF7HqCJSFWz8TOXVb6a/+kYMemb4tq04y6LfY9Wi36qc4wIaS01wnlFmf0RMZ8RX4sAto4CesQ==
+"@mod-protocol/farcaster@*", "@mod-protocol/farcaster@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@mod-protocol/farcaster/-/farcaster-0.1.0.tgz#12046c90ec106a87c00ea2575aeaf2b898433242"
+  integrity sha512-2egWNw/3HeaA33nLYFJWe678ANIa49vaoaO0d/h8vpVYEhsIbv+mKGcQyGuvKLpfpJ97OHdnhWCfeYb5aNaI0Q==
 
 "@mod-protocol/mod-registry@*", "@mod-protocol/mod-registry@^0.1.0":
   version "0.1.0"
@@ -577,16 +577,37 @@
     "@tiptap/suggestion" "^2.0.4"
     prosemirror-model "^1.19.3"
 
-"@mod-protocol/react-ui-shadcn@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/react-ui-shadcn/-/react-ui-shadcn-0.2.0.tgz#5e2976686493749c286788a1a8a95580e982fd31"
-  integrity sha512-H3Iw+ZYm1xM6CIbpqdybnK8HLAg0ypBrlvuIvkEc+vBTjbpltQz0ZTa64KZ26u7GDUs56fFIoVqn8v30Evl9vw==
+"@mod-protocol/react-editor@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@mod-protocol/react-editor/-/react-editor-0.1.0.tgz#81216947754508e2cc94ebc5038e90a9016fde0b"
+  integrity sha512-1mGRZD9dcYTiDQXyTTUfFKwXqvDQQnrdWlWxAfGq8F4SGS02/NflQVE14AkdVA/YUL+GrLqmRK0QKZaxrc7Xbg==
   dependencies:
-    "@mod-protocol/core" "^0.1.0"
-    "@mod-protocol/farcaster" "^0.0.1"
+    "@mod-protocol/core" "*"
+    "@mod-protocol/farcaster" "*"
+    "@tiptap/core" "^2.0.4"
+    "@tiptap/extension-document" "^2.0.4"
+    "@tiptap/extension-hard-break" "^2.0.4"
+    "@tiptap/extension-history" "^2.0.4"
+    "@tiptap/extension-link" "^2.0.4"
+    "@tiptap/extension-mention" "^2.0.4"
+    "@tiptap/extension-paragraph" "^2.0.4"
+    "@tiptap/extension-placeholder" "^2.0.4"
+    "@tiptap/extension-text" "^2.0.4"
+    "@tiptap/pm" "^2.0.4"
+    "@tiptap/react" "^2.0.4"
+    "@tiptap/suggestion" "^2.0.4"
+    prosemirror-model "^1.19.3"
+
+"@mod-protocol/react-ui-shadcn@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@mod-protocol/react-ui-shadcn/-/react-ui-shadcn-0.3.0.tgz#40cb22ff9771806cd7b2f71319997d05741cb130"
+  integrity sha512-+V84D56SQ9AR//eVsUAunKQjikE933jcB3Plpoy/i09EgxzQAImpLBNkGcERJzkTpPxAH0LhnXOdPhheBsdcNQ==
+  dependencies:
+    "@mod-protocol/core" "^0.1.1"
+    "@mod-protocol/farcaster" "^0.1.0"
     "@mod-protocol/mod-registry" "*"
-    "@mod-protocol/react" "^0.1.0"
-    "@mod-protocol/react-editor" "^0.0.3"
+    "@mod-protocol/react" "^0.1.1"
+    "@mod-protocol/react-editor" "^0.1.0"
     "@primer/octicons-react" "^19.5.0"
     "@radix-ui/react-aspect-ratio" "^1.0.3"
     "@radix-ui/react-avatar" "^1.0.4"
@@ -604,10 +625,10 @@
     tailwindcss-animate "^1.0.6"
     video.js "^8.0.4"
 
-"@mod-protocol/react@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/react/-/react-0.1.0.tgz#927c274b10158167337ca78ce5413df191a1df4d"
-  integrity sha512-jaJfRiF0Y3SWeOuOmdrUNf3/v7AdeitiCTBA7Sb02NqPkxDYiUdw1wcEFhMrKfHCV1GGF1IcU6JeSz8GdAybvA==
+"@mod-protocol/react@^0.1.0", "@mod-protocol/react@^0.1.1":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@mod-protocol/react/-/react-0.1.2.tgz#38076cee44d2ff095a11233b37fe7ab07d67b576"
+  integrity sha512-hUpepN39UlDcGEb7Ph4u/DGDyazfZ+QJcYomy+sftgLtcax0vbtLgm9FQvo2YSifs5YJ37BkgxXNzHrfYEKuIQ==
   dependencies:
     "@mod-protocol/core" "*"
 
