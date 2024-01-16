@@ -81,7 +81,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     return <div className="mt-4"><ChannelsOverview /></div>;
   }
 
-  return <aside className="min-h-full bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-64 lg:overflow-y-auto lg:border-l lg:border-white/5">
+  return <aside className="min-h-full bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-64 lg:border-l lg:border-white/5">
     <div className="lg:border-t lg:border-white/5">
       <SidebarHeader title="Accounts" />
       {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
