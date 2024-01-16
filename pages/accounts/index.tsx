@@ -13,7 +13,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../../src/components/ui/card";
+} from "@/components/ui/card";
 import { Button } from "../../src/components/ui/button";
 import { QrCode } from "../../src/common/components/QrCode";
 import { useAccount } from "wagmi";
@@ -23,6 +23,7 @@ import { getUserInfoByFid } from "../../src/common/helpers/neynar";
 import HelpCard from "../../src/common/components/HelpCard";
 import { useIsMounted } from "../../src/common/helpers/hooks";
 import { useRouter } from "next/router";
+import ConnectFarcasterAccountViaHatsProtocol from "../../src/common/components/HatsProtocol/ConnectFarcasterAccountViaHatsProtocol";
 
 enum SignupStateEnum {
   "initial",
@@ -73,8 +74,6 @@ export default function Accounts() {
   const {
     addNewPostDraft,
   } = useNewPostStore();
-
-  // console.log('accounts', accounts, accounts.filter((account) => account.status === AccountStatusType.active))
 
   const hasActiveAccounts = accounts.filter((account) => account.status === AccountStatusType.active).length > 0;
   const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
@@ -247,7 +246,7 @@ export default function Accounts() {
   );
 
   return (
-    <div className="m-4 flex flex-col">
+    <div className="m-4 flex flex-col gap-5">
       <div>
         <div className="flex w-full max-w-3xl">
           {signupState.state === SignupStateEnum.initial && renderCreateSignerStep()}
@@ -255,6 +254,7 @@ export default function Accounts() {
           {hasActiveAccounts || signupState.state === SignupStateEnum.done && renderDoneStep()}
         </div>
       </div>
+      <ConnectFarcasterAccountViaHatsProtocol />
       <HelpCard />
       {/* 
       <Button className="mt-12" onClick={() => setSignupStateIdx(signupState.idx + 1)} disabled={!hasActiveAccounts}>
