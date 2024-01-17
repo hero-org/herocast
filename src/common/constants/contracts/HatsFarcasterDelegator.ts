@@ -1,5 +1,5 @@
 
-export const HatsFarcasterDelegatorContractAddress = '0x0000000' as `0x${string}`;
+export const HatsFarcasterDelegatorContractAddress = '0x2564F40382aEDb5dd849E792911B28AaE52a4ACf' as `0x${string}`;
 
 export const HatsFarcasterDelegatorAbi = 
 [

@@ -10,23 +10,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccount, useReadContract, useSignTypedData } from "wagmi";
+import { readContract } from "@wagmi/core";
 import { Input } from "@/components/ui/input";
 import {
   HatsFarcasterDelegatorAbi,
   HatsFarcasterDelegatorContractAddress,
 } from "@/common/constants/contracts/HatsFarcasterDelegator";
-import { encodeAbiParameters } from "viem";
 import {
-  SIGNED_KEY_REQUEST_TYPE,
-  SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
-} from "@farcaster/hub-web";
-import { mnemonicToAccount } from "viem/accounts";
-import { C } from "node_modules/@tauri-apps/api/shell-efff51a2";
+  concat,
+  encodeAbiParameters,
+  hashTypedData,
+  hexToBytes,
+  keccak256,
+  toHex,
+} from "viem";
+import { SIGNED_KEY_REQUEST_TYPE } from "@farcaster/hub-web";
+import { mnemonicToAccount, signTypedData } from "viem/accounts";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import {
-  Cog6ToothIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/20/solid";
+import { Cog6ToothIcon } from "@heroicons/react/20/solid";
+import { config } from "@/common/helpers/rainbowkit";
 
 enum SignupStateEnum {
   "CONNECT_WALLET",
@@ -47,7 +49,8 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
   {
     state: SignupStateEnum.CONNECT_WALLET,
     title: "Connect your wallet",
-    description: "Connect your wallet and use Farcaster with a Hats Protocol hat",
+    description:
+      "Connect your wallet and use Farcaster with a Hats Protocol hat",
     idx: 0,
   },
   {
@@ -83,6 +86,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     HatsProtocolSignupSteps[0]
   );
   const [signature, setSignature] = useState<`0x${string}`>("0x");
+  const [requestFid, setRequestFid] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [accountName, setAccountName] = useState("");
 
@@ -94,71 +98,72 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
 
   const onSignData = async () => {
+    if (!address) return;
+
     const neynarClient = new NeynarAPIClient(
       process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
     );
 
-    let requestFid: number | undefined;
+    let fid: number | undefined;
     try {
       const resp = await neynarClient.lookupUserByUsername(
         accountName,
         parseInt(APP_FID)
       );
-      console.log("got user result", resp.result.user);
-      requestFid = resp.result.user?.fid;
+      fid = resp.result.user?.fid;
     } catch (err) {
       console.log(
         "ConnectFarcasterAccountViaHatsProtocol: error getting data",
         err
       );
     }
-    if (!requestFid) {
+    if (!fid) {
       setErrorMessage(`User ${accountName} not found`);
       return;
     }
 
-    const newSignature = await signTypedDataAsync({
+    setRequestFid(fid);
+    const typedData = {
       types: {
         SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
       },
-      primaryType: "SignedKeyRequest",
+      primaryType: "SignedKeyRequest" as const,
       message: {
-        requestFid: BigInt(requestFid),
+        requestFid: BigInt(fid),
         key: address as `0x${string}`,
         deadline: BigInt(deadline),
       },
+    };
+    const hash = hashTypedData(typedData);
+    const newSignature = await signTypedDataAsync(typedData);
+    const typeHash = keccak256(toHex("SignedKeyRequest(uint256 requestFid,bytes key,uint256 deadline)"));
+    
+    setSignature(`${newSignature}`);
+    
+    // const canRead = address && signature !== "0x" && fid !== 0;
+    const sig = concat([
+      newSignature,
+      typeHash,
+      toHex(fid.toString()),
+      address,
+      toHex(deadline.toString()),
+    ]);
+    const result = await readContract(config, {
+      address: HatsFarcasterDelegatorContractAddress,
+      abi: HatsFarcasterDelegatorAbi,
+      functionName: "isValidSignature",
+      args: [
+        hash,
+        sig,
+      ],
     });
-
-    console.log("signTypedDataAsync signature", newSignature);
-    setSignature(newSignature);
-  };
-
-  const canRead = address && signature !== "0x";
-  const {
-    data: readDelegatorContractData,
-    status: readDelegatorContractStatus,
-    error: readDelegatorContractError,
-  } = useReadContract({
-    address: HatsFarcasterDelegatorContractAddress,
-    abi: HatsFarcasterDelegatorAbi,
-    functionName: canRead ? "isValidSignature" : undefined,
-    args: canRead ? [signature, address] : undefined,
-  });
-
-  console.log(
-    "readDelegatorContractData",
-    readDelegatorContractData,
-    "readDelegatorContractStatus",
-    readDelegatorContractStatus,
-    "readDelegatorContractError",
-    readDelegatorContractError
-  );
-
-  useEffect(() => {
-    if (readDelegatorContractError) {
-      setErrorMessage(readDelegatorContractError.message);
+   
+    if (result) {
+      setState(HatsProtocolSignupSteps[3]);
+    } else {
+      setState(HatsProtocolSignupSteps[4]);
     }
-  }, [readDelegatorContractError]);
+  };
 
   const getButtonLabel = () => {
     switch (state.state) {
@@ -183,17 +188,11 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   };
 
   useEffect(() => {
-    console.log("address", address, "status", status);
     if (state.state === SignupStateEnum.CONNECT_WALLET && address) {
       setState(HatsProtocolSignupSteps[1]);
     }
   }, [address]);
 
-  // TODO:
-  // - sign request so that Farcaster
-  // - check with HatsProtocol if the account is valid
-  // - if yes, create account with type hats_protocol and set state to CONFIRMED
-  // - if no, set state to ERROR and show error message
   const onClick = () => {
     switch (state.state) {
       case SignupStateEnum.CONNECT_WALLET:
@@ -206,7 +205,6 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         onSignData();
         break;
       case SignupStateEnum.PENDING_CONFIRMATION:
-        // setState(HatsProtocolSignupSteps[3]);
         break;
       case SignupStateEnum.CONFIRMED:
         setState(HatsProtocolSignupSteps[4]);
