@@ -22,9 +22,12 @@ import {
   hashTypedData,
   hexToBytes,
   keccak256,
+  numberToHex,
+  slice,
+  toBytes,
   toHex,
 } from "viem";
-import { SIGNED_KEY_REQUEST_TYPE } from "@farcaster/hub-web";
+import { SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN } from "@farcaster/hub-web";
 import { mnemonicToAccount, signTypedData } from "viem/accounts";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
@@ -85,10 +88,8 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const [state, setState] = useState<SignupStepType>(
     HatsProtocolSignupSteps[0]
   );
-  const [signature, setSignature] = useState<`0x${string}`>("0x");
-  const [requestFid, setRequestFid] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState("");
-  const [accountName, setAccountName] = useState("");
+  const [accountName, setAccountName] = useState("herocast-test");
 
   const { address, status } = useAccount();
   const { openConnectModal } = useConnectModal();
@@ -122,8 +123,8 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       return;
     }
 
-    setRequestFid(fid);
     const typedData = {
+      domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
       types: {
         SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
       },
@@ -137,17 +138,19 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     const hash = hashTypedData(typedData);
     const newSignature = await signTypedDataAsync(typedData);
     const typeHash = keccak256(toHex("SignedKeyRequest(uint256 requestFid,bytes key,uint256 deadline)"));
-    
-    setSignature(`${newSignature}`);
-    
-    // const canRead = address && signature !== "0x" && fid !== 0;
+
     const sig = concat([
       newSignature,
       typeHash,
-      toHex(fid.toString()),
+      numberToHex(BigInt(fid), { size: 32}), // or should it be toHex or fid.toString()?
       address,
-      toHex(deadline.toString()),
+      numberToHex(BigInt(deadline), { size: 32}),
     ]);
+
+    // reverse checking the signature, how the contract does it
+    console.log('rawSignature', sig.slice(0, 65))
+    console.log('typeHash', slice(sig, 65, 97), typeHash)
+    console.log('fid', slice(sig, 97, 129), numberToHex(BigInt(fid), { size: 32}))    
     const result = await readContract(config, {
       address: HatsFarcasterDelegatorContractAddress,
       abi: HatsFarcasterDelegatorAbi,
@@ -157,8 +160,14 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         sig,
       ],
     });
+
+    console.log("signTypedDataAsync signature", newSignature);
+    console.log(`address: ${address}, fid: ${fid}, typehash: ${typeHash}`);
+    console.log("hash", hash);
+    console.log("signature concat", sig);
+    console.log("readContract result", result);
    
-    if (result) {
+    if (result != '0x00000000') {
       setState(HatsProtocolSignupSteps[3]);
     } else {
       setState(HatsProtocolSignupSteps[4]);

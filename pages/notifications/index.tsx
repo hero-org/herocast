@@ -231,14 +231,13 @@ const Notifications = () => {
   useEffect(() => {
     if (selectedNotificationIdx !== -1) {
       const notification = notifications[selectedNotificationIdx];
-      console.log('notification', notification);
       const hash = notification?.threadHash || notification?.parentHash || notification?.hash
 
       // getParentCast(hash)
 
       const author = notification?.author;
-      // console.log('setting selected parent cast', hash, author);
       if (!hash) return;
+      
       setSelectedParentCast({ hash, author });
       setSelectedCast(notification as CastType);
     }
