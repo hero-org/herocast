@@ -1,9 +1,9 @@
 import "@rainbow-me/rainbowkit/styles.css";
-import { getDefaultConfig, getDefaultWallets, midnightTheme } from "@rainbow-me/rainbowkit";
+import { getDefaultConfig, midnightTheme } from "@rainbow-me/rainbowkit";
 import { optimism } from "@wagmi/core/chains";
 import { http, createConfig } from "@wagmi/core";
 
-export const { chains } = createConfig({
+export const wagmiConfig = createConfig({
   chains: [optimism],
   transports: {
     [optimism.id]: http(
@@ -17,12 +17,6 @@ export const config = getDefaultConfig({
   projectId: "b34f1019e33e832831871e41741f13fc",
   chains: [optimism],
 });
-
-// export const wagmiConfig = createConfig({
-//   autoConnect: true,
-//   connectors,
-//   publicClient,
-// });
 
 export const rainbowKitTheme = midnightTheme({
   accentColorForeground: "white",

@@ -2,6 +2,8 @@ import {
   CastAddBody, Embed, FarcasterNetwork,
   NobleEd25519Signer,
   ReactionBody,
+  ViemLocalEip712Signer,
+  ViemWalletEip712Signer,
   getHubRpcClient,
   makeCastAdd,
   makeReactionAdd,
@@ -123,6 +125,35 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
   // console.log('cast right before sending to hub', { ...cast });
 
   // Step 3: publish message to network
+  const client = getHubRpcClient(process.env.NEXT_PUBLIC_NEYNAR_HUB_URL, { debug: true });
+  const res = await Promise.resolve(cast.map(async (castAdd) => {
+    return await Promise.resolve(await client.submitMessage(castAdd));
+  }));
+
+  console.log(`Submitted cast to Farcaster network, res:`, res);
+  return res;
+};
+
+export const publishCastWithLocalWallet = async ({ authorFid, wallet, castBody }: {
+  authorFid: string;
+  wallet: ViemWalletEip712Signer;
+  castBody: CastAddBody;
+}) => {
+  if (!process.env.NEXT_PUBLIC_NEYNAR_HUB_URL) {
+    throw new Error('hub url is not defined');
+  }
+
+  const dataOptions = {
+    fid: Number(authorFid),
+    network: NETWORK,
+  };
+
+  const cast = await makeCastAdd(
+    castBody,
+    dataOptions,
+    wallet,
+  );
+
   const client = getHubRpcClient(process.env.NEXT_PUBLIC_NEYNAR_HUB_URL, { debug: true });
   const res = await Promise.resolve(cast.map(async (castAdd) => {
     return await Promise.resolve(await client.submitMessage(castAdd));

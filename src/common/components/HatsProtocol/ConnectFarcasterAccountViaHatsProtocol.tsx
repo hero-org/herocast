@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { useAccount, useReadContract, useSignTypedData } from "wagmi";
+import { useAccount, useSignTypedData } from "wagmi";
 import { readContract } from "@wagmi/core";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,21 +17,27 @@ import {
   HatsFarcasterDelegatorContractAddress,
 } from "@/common/constants/contracts/HatsFarcasterDelegator";
 import {
-  concat,
-  encodeAbiParameters,
+  WalletClient,
+  createWalletClient,
+  custom,
+  encodePacked,
   hashTypedData,
-  hexToBytes,
   keccak256,
-  numberToHex,
-  slice,
-  toBytes,
   toHex,
 } from "viem";
-import { SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN } from "@farcaster/hub-web";
-import { mnemonicToAccount, signTypedData } from "viem/accounts";
+import {
+  SIGNED_KEY_REQUEST_TYPE,
+  SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
+  ViemWalletEip712Signer,
+} from "@farcaster/hub-web";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { config } from "@/common/helpers/rainbowkit";
+import { config, wagmiConfig } from "@/common/helpers/rainbowkit";
+import { publishCastWithLocalWallet } from "@/common/helpers/farcaster";
+import {
+  formatPlaintextToHubCastMessage,
+} from '@mod-protocol/farcaster';
+import { getWalletClient, getConnectorClient } from '@wagmi/core';
 
 enum SignupStateEnum {
   "CONNECT_WALLET",
@@ -91,11 +97,11 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [accountName, setAccountName] = useState("herocast-test");
 
-  const { address, status } = useAccount();
+  const { address, status, connector } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
   const { signTypedDataAsync } = useSignTypedData();
-
+  
   const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
 
   const onSignData = async () => {
@@ -123,6 +129,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       return;
     }
 
+    const key = toHex(address);
     const typedData = {
       domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
       types: {
@@ -131,44 +138,50 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       primaryType: "SignedKeyRequest" as const,
       message: {
         requestFid: BigInt(fid),
-        key: address as `0x${string}`,
+        key: key,
         deadline: BigInt(deadline),
       },
     };
     const hash = hashTypedData(typedData);
     const newSignature = await signTypedDataAsync(typedData);
-    const typeHash = keccak256(toHex("SignedKeyRequest(uint256 requestFid,bytes key,uint256 deadline)"));
+    const typeHash = keccak256(
+      toHex("SignedKeyRequest(uint256 requestFid,bytes key,uint256 deadline)")
+    );
 
-    const sig = concat([
-      newSignature,
-      typeHash,
-      numberToHex(BigInt(fid), { size: 32}), // or should it be toHex or fid.toString()?
-      address,
-      numberToHex(BigInt(deadline), { size: 32}),
-    ]);
+    const sig = encodePacked(
+      ["bytes", "bytes32", "uint256", "bytes", "uint256"],
+      [newSignature, typeHash, BigInt(fid), keccak256(key), BigInt(deadline)]
+    );
 
-    // reverse checking the signature, how the contract does it
-    console.log('rawSignature', sig.slice(0, 65))
-    console.log('typeHash', slice(sig, 65, 97), typeHash)
-    console.log('fid', slice(sig, 97, 129), numberToHex(BigInt(fid), { size: 32}))    
     const result = await readContract(config, {
       address: HatsFarcasterDelegatorContractAddress,
       abi: HatsFarcasterDelegatorAbi,
       functionName: "isValidSignature",
-      args: [
-        hash,
-        sig,
-      ],
+      args: [hash, sig],
     });
 
-    console.log("signTypedDataAsync signature", newSignature);
-    console.log(`address: ${address}, fid: ${fid}, typehash: ${typeHash}`);
-    console.log("hash", hash);
-    console.log("signature concat", sig);
     console.log("readContract result", result);
-   
-    if (result != '0x00000000') {
+
+    if (result === "0x1626ba7e") {
       setState(HatsProtocolSignupSteps[3]);
+      // do a little test cast when this works
+      const castBody = await formatPlaintextToHubCastMessage({
+        text: "this is a little test cast",
+        embeds: [],
+        getMentionFidsByUsernames: async () => [],
+      });
+
+      if (!castBody) {
+        console.log("ConnectFarcasterAccountViaHatsProtocol: error formatting cast body");
+        return;
+      }
+
+      const client = await getWalletClient(config, {
+        account: address
+      });
+      const wallet = new ViemWalletEip712Signer(client);
+      publishCastWithLocalWallet({authorFid: fid.toString(), wallet, castBody});
+
     } else {
       setState(HatsProtocolSignupSteps[4]);
     }
