@@ -2,14 +2,22 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultConfig, midnightTheme } from "@rainbow-me/rainbowkit";
 import { optimism } from "@wagmi/core/chains";
 import { http, createConfig } from "@wagmi/core";
+import { createPublicClient } from "viem";
+
+const optimismHttp = http(
+  `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+);
 
 export const wagmiConfig = createConfig({
   chains: [optimism],
   transports: {
-    [optimism.id]: http(
-      `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
-    ),
+    [optimism.id]: optimismHttp,
   },
+});
+
+export const publicClient = createPublicClient({
+  chain: optimism,
+  transport: optimismHttp,
 });
 
 export const config = getDefaultConfig({
