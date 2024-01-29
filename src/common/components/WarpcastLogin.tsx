@@ -22,7 +22,7 @@ const WarpcastLogin = () => {
     setAccountActive,
   } = useAccountStore();
 
-  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
+  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending && account.platform === AccountPlatformType.farcaster);
   const hasPendingNewAccounts = !isEmpty(pendingAccounts);
 
   useEffect(() => {

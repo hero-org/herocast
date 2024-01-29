@@ -9,6 +9,7 @@ import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
 import { useRouter } from 'next/router';
+import { AccountPlatformType } from "@/common/constants/accounts";
 
 type AccountsRightSidebarProps = {
   showChannels?: boolean;
@@ -64,6 +65,11 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
                   idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
                   "flex-auto truncate text-sm font-semibold leading-6")}>{item.name || 'New Account'}</h3>
                 {renderStatus(item.status)}
+                {item.platform === AccountPlatformType.farcaster_hats_protocol && (
+                  <p className="truncate text-sm text-gray-500">
+                    🧢
+                  </p>
+                )}
                 {item.platformAccountId && item.status === 'active' && (
                   <p className="truncate text-sm text-gray-500">
                     fid {item.platformAccountId}

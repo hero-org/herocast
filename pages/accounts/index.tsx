@@ -77,7 +77,7 @@ export default function Accounts() {
   } = useNewPostStore();
 
   const hasActiveAccounts = accounts.filter((account) => account.status === AccountStatusType.active).length > 0;
-  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending);
+  const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending && account.platform === AccountPlatformType.farcaster);
   const hasPendingNewAccounts = pendingAccounts.length > 0;
   const pendingAccount = hasPendingNewAccounts ? pendingAccounts[0] : null;
 
@@ -124,7 +124,6 @@ export default function Accounts() {
     while (tries < 60) {
       tries += 1;
       await new Promise((r) => setTimeout(r, 2000));
-
       const { status, data } = await getWarpcastSignerStatus(pendingAccount.data.signerToken);
       console.log('signerStatus: ', status, data);
       if (status === WarpcastLoginStatus.success) {
@@ -179,7 +178,8 @@ export default function Accounts() {
               <CardDescription className="text-muted-foreground">Pay with ETH on Optimism to connect with herocast</CardDescription>
             </CardHeader>
             <CardContent>
-              {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount} /> : <WalletLogin />}
+              <p>temporarily inactive - coming back soon</p>
+              {/* {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount} /> : <WalletLogin />} */}
             </CardContent>
             <CardFooter>
             </CardFooter>

@@ -9,20 +9,21 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { useAccount, useSignTypedData } from "wagmi";
 import { Input } from "@/components/ui/input";
-import { ViemWalletEip712Signer, idRegistryABI } from "@farcaster/hub-web";
+import {
+  ID_REGISTRY_EIP_712_DOMAIN,
+  ID_REGISTRY_TRANSFER_TYPE,
+  ViemWalletEip712Signer,
+  idRegistryABI,
+} from "@farcaster/hub-web";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { ID_REGISTRY_ADDRESS } from "@farcaster/hub-web";
 import { writeContract, getWalletClient } from "@wagmi/core";
 import { config, publicClient, wagmiConfig } from "@/common/helpers/rainbowkit";
 import { encodePacked, keccak256, toHex } from "viem";
-
-const getDeadline = () => {
-  const now = Math.floor(Date.now() / 1000);
-  const oneHour = 60 * 60;
-  return now + oneHour;
-};
+import { useWaitForTransactionReceipt } from 'wagmi'
+import { getDeadline } from "@/common/helpers/farcaster";
 
 const readNonces = async (account: `0x${string}`) => {
   return await publicClient.readContract({
@@ -75,7 +76,7 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
     state: GENERATE_SIGNATURE_STEPS_ENUM.EXECUTE_ONCHAIN,
     title: "Connected",
     description:
-      "Signature generated, please confirm onchain transfer of your Farcaster account",
+      "Signature generated, please execute the onchain transfer of your Farcaster account",
     idx: 3,
   },
   {
@@ -103,73 +104,87 @@ const GenerateHatsProtocolTransferSignature = () => {
     HatsProtocolSignupSteps[0]
   );
   const [errorMessage, setErrorMessage] = useState("");
-  const [toAddress, setToAddress] = useState<`0x${string}`>("0x");
-  const [fid, setFid] = useState<bigint>(BigInt(0));
+  const [toAddress, setToAddress] = useState<`0x${string}`>("0x2564F40382aEDb5dd849E792911B28AaE52a4ACf");
+  const [fid, setFid] = useState<bigint>(BigInt(232233));
   const [signature, setSignature] = useState<`0x${string}`>("0x");
   const [deadline, setDeadline] = useState<number>(0);
   const [nonce, setNonce] = useState<bigint>(BigInt(0));
-
-  const recoveryAddress = "";
+  const [onchainTransactionHash, setOnchainTransactionHash] = useState<`0x${string}`>("0x");
+ 
+  const { signTypedDataAsync } = useSignTypedData();
 
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
-  console.log("address:", address);
-  
+
+  const transactionResult = useWaitForTransactionReceipt({
+    hash: onchainTransactionHash
+  });
+
+  useEffect(() => {
+    if (onchainTransactionHash === "0x") return;
+
+    if (transactionResult) {
+      setState(HatsProtocolSignupSteps[5]);
+    }
+  }, [onchainTransactionHash, transactionResult])
+
   const onSignData = async () => {
     if (!address) return;
 
-    const nonces = await readNonces(address);
-    setNonce(nonces);
+    const newNonce = await readNonces(address);
+    setNonce(newNonce);
     const newDeadline = getDeadline();
     setDeadline(newDeadline);
     console.log(
-      `fid: ${fid}, nonces: ${nonces}, deadline: ${newDeadline} toAddress: ${toAddress}`
+      `fid: ${fid}, nonces: ${newNonce}, deadline: ${newDeadline} toAddress: ${toAddress}`
     );
 
-    const client = await getWalletClient(config, {
-      account: address,
-    });
-    const wallet = new ViemWalletEip712Signer(client);
-    const sigResult = await wallet.signTransfer({
-      fid: BigInt(fid),
-      to: toAddress,
-      // recovery: recoveryAddress,
-      nonce: nonces,
-      deadline: BigInt(newDeadline),
-    });
-    if (!sigResult || sigResult.isErr()) {
+    const typedData = {
+      domain: ID_REGISTRY_EIP_712_DOMAIN,
+      types: {
+        Transfer: ID_REGISTRY_TRANSFER_TYPE,
+      },
+      primaryType: "Transfer" as const,
+      message: {
+        fid: BigInt(fid),
+        to: toAddress,
+        nonce: newNonce,
+        deadline: BigInt(newDeadline),
+      },
+    };
+    const newSignature = await signTypedDataAsync(typedData);
+    console.log("newSignature", newSignature);
+    if (!newSignature) {
       setErrorMessage("Error generating signature");
       setState(HatsProtocolSignupSteps[6]);
       return;
     }
-    console.log(
-      "sig",
-      sigResult._unsafeUnwrap(),
-      toHex(sigResult._unsafeUnwrap())
-    );
-    setSignature(toHex(sigResult._unsafeUnwrap()));
+    setSignature(newSignature);
     setState(HatsProtocolSignupSteps[3]);
   };
 
   const onExecuteTransfer = async () => {
     if (signature === "0x") return;
-    // const typeHash = keccak256(
-    //   toHex("Transfer(uint256 fid,address to,uint256 nonce,uint256 deadline)")
-    // );
-    // const sig = encodePacked(
-    //   ["bytes", "bytes32", "uint256", "address", "uint256", "uint256"],
-    //   [signature, typeHash, BigInt(fid), toAddress, nonce, BigInt(deadline)]
-    // );
-    
-    console.log("writeContract args", [toAddress, BigInt(deadline), signature]);
-    const result = await writeContract(config, {
+
+    const typeHash = keccak256(
+      toHex("Transfer(uint256 fid,address to,uint256 nonce,uint256 deadline)")
+    );
+    const sig = encodePacked(
+      ["bytes", "bytes32", "uint256", "address", "uint256", "uint256"],
+      [signature, typeHash, BigInt(fid), toAddress, nonce, BigInt(deadline)]
+    );
+
+    console.log("writeContract args", [toAddress, BigInt(deadline), sig]);
+    const tx = await writeContract(config, {
       abi: idRegistryABI,
       address: ID_REGISTRY_ADDRESS,
       functionName: "transfer",
-      args: [toAddress, BigInt(deadline), signature],
+      args: [toAddress, BigInt(deadline), sig],
     });
-    console.log("result", result);
+    console.log("result", tx);
+    setOnchainTransactionHash(tx);
+    setState(HatsProtocolSignupSteps[4]);
   };
 
   const getButtonLabel = () => {
@@ -225,7 +240,7 @@ const GenerateHatsProtocolTransferSignature = () => {
       case GENERATE_SIGNATURE_STEPS_ENUM.PENDING_ONCHAIN_CONFIRMATION:
         break;
       case GENERATE_SIGNATURE_STEPS_ENUM.CONFIRMED:
-        setState(HatsProtocolSignupSteps[4]);
+        // setState(HatsProtocolSignupSteps[4]);
         break;
       case GENERATE_SIGNATURE_STEPS_ENUM.ERROR:
         setState(HatsProtocolSignupSteps[0]);
@@ -238,6 +253,18 @@ const GenerateHatsProtocolTransferSignature = () => {
       case GENERATE_SIGNATURE_STEPS_ENUM.GENERATE_SIGNATURE:
         return (
           <div className="flex flex-col">
+            <p>
+              Before starting this you have to call
+              {' '}
+              <a
+                className="font-mono underline mr-1"
+                href="https://github.com/Hats-Protocol/farcaster-delegator/blob/84dbaad5d6055bb606d6968418d949a815f03df2/src/FarcasterDelegator.sol#L147"
+              >
+                prepareToReceive(fid)
+              </a>
+              on your Hats Protocol Delegator contract instance.
+            </p>
+            <br />
             <div className="w-2/3">
               <p className="mb-1">What is the FID of the Farcaster account?</p>
               <Input
@@ -265,7 +292,7 @@ const GenerateHatsProtocolTransferSignature = () => {
         return (
           <div className="flex flex-col">
             <div className="w-2/3">
-              <p className="">Signature generated:</p>
+              <p className="">Signature:</p>
               <p className="p-2 rounded-md bg-gray-200 text-gray-700 text-wrap break-all">
                 {signature}
               </p>
