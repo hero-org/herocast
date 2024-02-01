@@ -36,6 +36,12 @@ export const JoinedHerocastPostDraft: DraftType = {
   mentionsToFids: { 'herocast': '18665' }
 }
 
+export const JoinedHerocastViaHatsProtocolDraft: DraftType = {
+  text: "I just joined @herocast via @hatsprotocol",
+  status: DraftStatus.writing,
+  mentionsToFids: { 'herocast': '18665', 'hatsprotocol': '18484'}
+}
+
 type addNewPostDraftProps = {
   text?: string
   parentUrl?: string

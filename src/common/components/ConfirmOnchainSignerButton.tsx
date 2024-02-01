@@ -6,8 +6,10 @@ import {
     useContractWrite,
     useNetwork,
     usePrepareContractWrite,
+    useReadContract,
     useSwitchNetwork,
-    useWaitForTransaction
+    useWaitForTransaction,
+    useWriteContract
 } from 'wagmi';
 import { Button } from "@/components/ui/button";
 import { KEY_REGISTRY } from "../constants/contracts/key-registry";
@@ -76,7 +78,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
     const { openAccountModal } = useAccountModal();
 
     const { address } = useAccount();
-    const { data: idOfUser, error: idOfUserError } = useContractRead({
+    const { data: idOfUser, error: idOfUserError } = useReadContract({
         ...ID_REGISTRY,
         chainId: 10,
         functionName: address ? 'idOf' : undefined,
@@ -139,7 +141,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
         isLoading: addKeySignPending,
         isSuccess: addKeySignSuccess,
         error: addKeyError
-    } = useContractWrite(addKeyConfig);
+    } = useWriteContract(addKeyConfig);
 
     const {
         // data: addKeyTxReceipt,

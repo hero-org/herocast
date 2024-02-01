@@ -9,6 +9,7 @@ import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
 import { useRouter } from 'next/router';
+import { AccountPlatformType } from "@/common/constants/accounts";
 
 type AccountsRightSidebarProps = {
   showChannels?: boolean;
@@ -64,6 +65,11 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
                   idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
                   "flex-auto truncate text-sm font-semibold leading-6")}>{item.name || 'New Account'}</h3>
                 {renderStatus(item.status)}
+                {item.platform === AccountPlatformType.farcaster_hats_protocol && (
+                  <p className="truncate text-sm text-gray-500">
+                    🧢
+                  </p>
+                )}
                 {item.platformAccountId && item.status === 'active' && (
                   <p className="truncate text-sm text-gray-500">
                     fid {item.platformAccountId}
@@ -81,7 +87,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     return <div className="mt-4"><ChannelsOverview /></div>;
   }
 
-  return <aside className="min-h-full bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-64 lg:overflow-y-auto lg:border-l lg:border-white/5">
+  return <aside className="min-h-full bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-64 lg:border-l lg:border-white/5">
     <div className="lg:border-t lg:border-white/5">
       <SidebarHeader title="Accounts" />
       {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}

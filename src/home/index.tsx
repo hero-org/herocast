@@ -163,7 +163,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <Toast.Provider swipeDirection="right">
-        <div className="h-full bg-gray-800 overflow-y-scroll">
+        <div className="h-full bg-gray-800">
           <Transition.Root show={sidebarOpen} as={Fragment}>
             <Dialog as="div" className="relative z-5 lg:hidden" onClose={setSidebarOpen}>
               <Transition.Child

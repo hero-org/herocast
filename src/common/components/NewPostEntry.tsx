@@ -1,9 +1,7 @@
 import React, { useEffect } from "react";
 import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { ChannelType } from "@/common/constants/channels";
-import isEmpty from "lodash.isempty";
-import { DraftStatus, DraftType } from "../constants/farcaster";
+import { DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent, Editor } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";

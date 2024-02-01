@@ -1,7 +1,11 @@
 import {
   CastAddBody, Embed, FarcasterNetwork,
+  HubAsyncResult,
+  Message,
   NobleEd25519Signer,
   ReactionBody,
+  ViemLocalEip712Signer,
+  ViemWalletEip712Signer,
   getHubRpcClient,
   makeCastAdd,
   makeReactionAdd,
@@ -243,3 +247,11 @@ export const submitCast = async ({
   const castResponse = await client.submitCast({ text, embeds, mentions, mentionsPositions }, fid, signerPrivateKey);
   // console.log(`cast hash: ${castResponse?.hash}`);
 }
+
+
+export const getDeadline = () => {
+  const now = Math.floor(Date.now() / 1000);
+  const oneHour = 60 * 60;
+  return now + oneHour;
+};
+

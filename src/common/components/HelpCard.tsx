@@ -12,11 +12,11 @@ import { openWindow } from "@/common/helpers/navigation";
 import { Button } from '@/components/ui/button';
 
 const HelpCard = () => (
-    <Card className="mt-12">
+    <Card className="">
         <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Need help?</CardTitle>
             <CardDescription>
-                Did anythin break? Need support? Want to chat about Farcaster apps?
+                Did anything break? Need support? Want to chat about Farcaster apps?
             </CardDescription>
         </CardHeader>
         <CardContent className="grid">
