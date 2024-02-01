@@ -18,9 +18,9 @@ import { readContract } from "@wagmi/core";
 import { Input } from "@/components/ui/input";
 import {
   HatsFarcasterDelegatorAbi,
-  HatsFarcasterDelegatorContractAddress,
 } from "@/common/constants/contracts/HatsFarcasterDelegator";
 import {
+  concat,
   encodeAbiParameters,
   encodePacked,
   hashTypedData,
@@ -33,31 +33,29 @@ import {
   KEY_GATEWAY_ADD_TYPE,
   KEY_GATEWAY_EIP_712_DOMAIN,
   SIGNED_KEY_REQUEST_TYPE,
+  SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
   SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
-  ViemWalletEip712Signer,
   bytesToHexString,
   idRegistryABI,
   keyGatewayABI,
+  signedKeyRequestValidatorABI,
 } from "@farcaster/hub-web";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { config, publicClient } from "@/common/helpers/rainbowkit";
 import {
   getDeadline,
-  publishCastWithLocalWallet,
 } from "@/common/helpers/farcaster";
-import { formatPlaintextToHubCastMessage } from "@mod-protocol/farcaster";
-import {
-  writeContract,
-  getWalletClient,
-} from "@wagmi/core";
-import {
-  generateKeyPair,
-} from "@/common/helpers/warpcastLogin";
+import { writeContract, getWalletClient } from "@wagmi/core";
+import { generateKeyPair } from "@/common/helpers/warpcastLogin";
 import {
   AccountPlatformType,
   AccountStatusType,
 } from "@/common/constants/accounts";
 import { useAccountStore } from "@/stores/useAccountStore";
+import { mnemonicToAccount } from "viem/accounts";
+import { JoinedHerocastViaHatsProtocolDraft, useNewPostStore } from "@/stores/useNewPostStore";
+import { useRouter } from "next/router";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 
 enum SignupStateEnum {
   "CONNECT_WALLET",
@@ -164,10 +162,27 @@ const readNoncesFromKeyGateway = async (account: `0x${string}`) => {
   });
 };
 
+async function isValidSignedKeyRequest(
+  fid: bigint,
+  key: `0x${string}`,
+  signedKeyRequest: `0x${string}`
+): Promise<boolean> {
+  const res = await readContract(config, {
+    address: SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
+    abi: signedKeyRequestValidatorABI,
+    functionName: "validate",
+    args: [fid, key, signedKeyRequest],
+  });
+  console.log("isValidSignedKeyRequest result", res);
+  return res;
+}
+
 async function isValidSignature(
   hash: `0x${string}`,
   sig: `0x${string}`
 ): Promise<boolean> {
+  const HatsFarcasterDelegatorContractAddress =
+    "0x2564F40382aEDb5dd849E792911B28AaE52a4ACf" as `0x${string}`;
   const res = await readContract(config, {
     address: HatsFarcasterDelegatorContractAddress,
     abi: HatsFarcasterDelegatorAbi,
@@ -188,19 +203,27 @@ const ADD_TYPEHASH = keccak256(
   )
 );
 
+const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+
 const ConnectFarcasterAccountViaHatsProtocol = () => {
+  const router = useRouter();
+
   const [state, setState] = useState<SignupStepType>(
-    HatsProtocolSignupSteps[1]
+    HatsProtocolSignupSteps[4]
   );
   const [errorMessage, setErrorMessage] = useState("");
   const [accountName, setAccountName] = useState("");
   const [deadline, setDeadline] = useState<bigint>(BigInt(0));
   const [signature, setSignature] = useState<`0x${string}`>("0x");
-  const [delegatorContractAddress, setDelegatorContractAddress] =
-    useState<`0x${string}`>("0x2564F40382aEDb5dd849E792911B28AaE52a4ACf");
-  const [fid, setFid] = useState(232233);
+  const [delegatorContractAddress, setDelegatorContractAddress] = useState<`0x${string}`>("");
+  const [fid, setFid] = useState<bigint>(BigInt(0));
   const [onchainTransactionHash, setOnchainTransactionHash] =
     useState<`0x${string}`>("0x");
+
+  const {
+    addNewPostDraft,
+  } = useNewPostStore();
+  
 
   const { address, status, connector } = useAccount();
   const { openConnectModal } = useConnectModal();
@@ -217,75 +240,35 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const onSignData = async () => {
     if (!address) return;
 
-    // const neynarClient = new NeynarAPIClient(
-    //   process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-    // );
-    // let fid: number | undefined;
-    // try {
-    //   const resp = await neynarClient.lookupUserByUsername(
-    //     accountName,
-    //     parseInt(APP_FID)
-    //   );
-    //   fid = resp.result.user?.fid;
-    // } catch (err) {
-    //   console.log(
-    //     "ConnectFarcasterAccountViaHatsProtocol: error getting data",
-    //     err
-    //   );
-    // }
-    // if (!fid) {
-    //   setErrorMessage(`User ${accountName} not found`);
-    //   return;
-    // }
+    const neynarClient = new NeynarAPIClient(
+      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+    );
+    let fid: number | undefined;
+    try {
+      const resp = await neynarClient.lookupUserByUsername(
+        accountName,
+        parseInt(APP_FID)
+      );
+      fid = resp.result.user?.fid;
+    } catch (err) {
+      console.log(
+        "ConnectFarcasterAccountViaHatsProtocol: error getting data",
+        err
+      );
+    }
+    if (!fid) {
+      setErrorMessage(`User ${accountName} not found`);
+      return;
+    }
     const newDeadline = BigInt(getDeadline());
     setDeadline(newDeadline);
     setState(HatsProtocolSignupSteps[3]);
-    return;
-
-    const key = toHex(address);
-    const typedData = {
-      domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
-      types: {
-        SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
-      },
-      primaryType: "SignedKeyRequest" as const,
-      message: {
-        requestFid: BigInt(fid),
-        key: key,
-        deadline: newDeadline,
-      },
-    };
-    const hash = hashTypedData(typedData);
-    const newSignature = await signTypedDataAsync(typedData);
-    const typeHash = keccak256(
-      toHex("SignedKeyRequest(uint256 requestFid,bytes key,uint256 deadline)")
-    );
-
-    const sig = encodePacked(
-      ["bytes", "bytes32", "uint256", "bytes", "uint256"],
-      [newSignature, typeHash, BigInt(fid), keccak256(key), newDeadline]
-    );
-
-    const result = await readContract(config, {
-      address: HatsFarcasterDelegatorContractAddress,
-      abi: HatsFarcasterDelegatorAbi,
-      functionName: "isValidSignature",
-      args: [hash, sig],
-    });
-
-    console.log("readContract result", result);
-    if (result === "0x1626ba7e") {
-      setSignature(newSignature);
-      setState(HatsProtocolSignupSteps[3]);
-    } else {
-      setState(HatsProtocolSignupSteps[5]);
-    }
   };
 
   const onAddHerocastSignerToHatsProtocol = async () => {
     if (!address) return;
 
-    let hexStringPublicKey, hexStringPrivateKey;
+    let hexStringPublicKey: `0x${string}`, hexStringPrivateKey: `0x${string}`;
     if (
       !hatsProtocolPendingAccounts ||
       hatsProtocolPendingAccounts.length === 0
@@ -311,12 +294,9 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       }
     } else {
       hexStringPublicKey = hatsProtocolPendingAccounts[0].publicKey;
-      hexStringPrivateKey = hatsProtocolPendingAccounts[0].privateKey;
+      hexStringPrivateKey = hatsProtocolPendingAccounts[0].privateKey!;
     }
 
-    // const addressNounce = await readNoncesFromKeyGateway(address)
-    // console.log('KeyGateway: wallet nonce', addressNounce, 'delegatorContract nonce', nonce)
-    // const nonce = await readNoncesFromKeyGateway(address);
     const nonce = await readNoncesFromKeyGateway(delegatorContractAddress);
     const typedMetadataData = {
       domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
@@ -332,86 +312,70 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     };
     const metadataHash = hashTypedData(typedMetadataData);
     const metadataSignature = await signTypedDataAsync(typedMetadataData);
-    console.log('metadataSignature', metadataSignature)
 
-    const METADATA_TYPEHASH = '0x16be47f1f1f50a66a48db64eba3fd35c21439c23622e513aab5b902018aec438';
-    const metadata = encodePacked(
+    const METADATA_TYPEHASH =
+      "0x16be47f1f1f50a66a48db64eba3fd35c21439c23622e513aab5b902018aec438";
+
+    const hatsProtocolSignature = encodePacked(
       ["bytes", "bytes32", "uint256", "bytes", "uint256"],
-      [metadataSignature, METADATA_TYPEHASH, BigInt(fid), keccak256(hexStringPublicKey), deadline]
-    );
-
-    console.log('isMetadataSignatureValid', await isValidSignature(metadataHash, metadata));
-
-    const typedData = {
-      domain: KEY_GATEWAY_EIP_712_DOMAIN,
-      types: {
-        Add: KEY_GATEWAY_ADD_TYPE,
-      },
-      primaryType: "Add" as const,
-      message: {
-        owner: delegatorContractAddress,
-        keyType: 1, // only supports 1 as key type
-        key: hexStringPublicKey,
-        metadataType: 1, // only supports 1 as metadata type
-        metadata,
-        deadline,
-        nonce,
-      },
-    };
-
-    const addHash = hashTypedData(typedData);
-    const addSignature = await signTypedDataAsync(typedData);
-
-    // signature, typehash, and then all the args
-    const sig = encodePacked(
       [
-        "bytes",
-        "bytes32",
-        "address",
-        "uint32",
-        "bytes",
-        "uint8",
-        "bytes",
-        "uint256",
-        "uint256",
-      ],
-      [
-        addSignature,
-        ADD_TYPEHASH,
-        delegatorContractAddress,
-        1,
+        metadataSignature,
+        METADATA_TYPEHASH,
+        BigInt(fid),
         keccak256(hexStringPublicKey),
-        1,
-        keccak256(metadata),
-        nonce,
         deadline,
       ]
     );
 
-    const isValid = await isValidSignature(addHash, sig);
-    if (!isValid) {
-      setState(HatsProtocolSignupSteps[5]);
-      return;
-    }
+    const metadata = encodeAbiParameters(
+      [
+        {
+          components: [
+            {
+              name: "requestFid",
+              type: "uint256",
+            },
+            {
+              name: "requestSigner",
+              type: "address",
+            },
+            {
+              name: "signature",
+              type: "bytes",
+            },
+            {
+              name: "deadline",
+              type: "uint256",
+            },
+          ],
+          type: "tuple",
+        },
+      ],
+      [
+        {
+          requestFid: BigInt(fid), // BigInt(APP_FID!),
+          requestSigner: delegatorContractAddress, // appAccount.address,
+          signature: hatsProtocolSignature,
+          deadline,
+        },
+      ]
+    );
+    console.log('isMetadataSignatureValid', await isValidSignature(metadataHash, metadata));
+    const isValidSignedKeyReq = isValidSignedKeyRequest(
+      BigInt(fid),
+      hexStringPublicKey,
+      metadata
+    );
 
     const tx = await writeContract(config, {
-      abi: keyGatewayABI,
-      address: KEY_GATEWAY_ADDRESS,
-      functionName: "addFor",
-      args: [
-        delegatorContractAddress,
-        1,
-        hexStringPublicKey,
-        1,
-        metadata,
-        deadline,
-        sig,
-      ],
+      abi: HatsFarcasterDelegatorAbi,
+      address: delegatorContractAddress,
+      functionName: "addKey",
+      args: [1, hexStringPublicKey, 1, metadata],
     });
 
     console.log("result tx", tx);
     setOnchainTransactionHash(tx);
-    // add a the herocast signer to the HatsProtocol contract
   };
 
   const transactionResult = useWaitForTransactionReceipt({
@@ -421,45 +385,18 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   useEffect(() => {
     if (onchainTransactionHash === "0x") return;
 
-    if (transactionResult) {
+    if (transactionResult && hatsProtocolPendingAccounts.length > 0) {
       setState(HatsProtocolSignupSteps[4]);
+      setAccountActive(hatsProtocolPendingAccounts[0].id!, "", {
+        platform_account_id: fid.toString(),
+        data: {},
+      });
     }
   }, [onchainTransactionHash, transactionResult]);
 
-  const publishTestCast = async () => {
-    if (!address) return;
-
-    const castBody = await formatPlaintextToHubCastMessage({
-      text: "you must be the cast you wish to see in the world",
-      embeds: [],
-      getMentionFidsByUsernames: async () => [],
-    });
-
-    if (!castBody) {
-      console.log(
-        "ConnectFarcasterAccountViaHatsProtocol: error formatting cast body"
-      );
-      return;
-    }
-
-    // const accountKey = new NobleEd25519Signer(accountPrivateKey);
-    // const dataOptions = {
-    //   fid: fid,
-    //   network: FC_NETWORK,
-    // };
-    // const userDataUsernameBody = {
-    //   type: UserDataType.USERNAME,
-    //   value: fname,
-    // };
-    // // Set the username
-    // await submitMessage(
-    //   makeUserDataAdd(userDataUsernameBody, dataOptions, accountKey)
-    // );
-    const client = await getWalletClient(config, {
-      account: address,
-    });
-    const wallet = new ViemWalletEip712Signer(client);
-    publishCastWithLocalWallet({ authorFid: fid.toString(), wallet, castBody });
+  const onPublishTestCast = async () => {
+    addNewPostDraft(JoinedHerocastViaHatsProtocolDraft);
+    router.push('/post');
   };
 
   const getButtonLabel = () => {
@@ -523,12 +460,12 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         return (
           <div className="flex flex-col">
             <div className="w-2/3">
-              {/* <p className="">Which account do you want to connect?</p>
+              <p className="">Which account do you want to connect?</p>
               <Input
                 placeholder="herocast"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
-              /> */}
+              />
               <p className="mb-1">
                 What is the target Hats Protocol Delegator instance?
               </p>
@@ -569,7 +506,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
               <Button
                 className="mt-4"
                 variant="outline"
-                onClick={() => publishTestCast()}
+                onClick={() => onPublishTestCast()}
               >
                 Publish test cast
               </Button>
@@ -581,6 +518,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     }
   };
 
+  const buttonLabel = getButtonLabel();
   return (
     <div className="flex w-full max-w-xl">
       <Card className="bg-background text-foreground">
@@ -603,14 +541,18 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
           )}
         </CardContent>
         <CardFooter>
-          <Button
-            className="w-full"
-            variant="default"
-            disabled={state.state === SignupStateEnum.CHECKING_IS_VALID_SIGNER}
-            onClick={() => onClick()}
-          >
-            {getButtonLabel()}
-          </Button>
+          {buttonLabel && (
+            <Button
+              className="w-full"
+              variant="default"
+              disabled={
+                state.state === SignupStateEnum.CHECKING_IS_VALID_SIGNER
+              }
+              onClick={() => onClick()}
+            >
+              {buttonLabel}
+            </Button>
+          )}
           {state.state === SignupStateEnum.SELECT_FARCASTER_ACCOUNT && (
             <Button
               className="ml-4 w-full"
