@@ -72,8 +72,6 @@ type ConfirmOnchainSignerButtonType = {
 }
 
 const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType) => {
-    const { chain } = useNetwork();
-    const { switchNetwork } = useSwitchNetwork();
     const [signature, setSignature] = useState('');
     const { openAccountModal } = useAccountModal();
 
