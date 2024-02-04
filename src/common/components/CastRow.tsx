@@ -82,6 +82,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     selectedAccountIdx,
     allChannels: channels,
   } = useAccountStore();
+  // if (isSelected) console.log('selected cast', cast);
 
   const [didLike, setDidLike] = useState(false)
   const [didRecast, setDidRecast] = useState(false)

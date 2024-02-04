@@ -6,12 +6,15 @@ import NounsBuildEmbed from './NounsBuildEmbed';
 import ParagraphXyzEmbed from './ParagraphXyzEmbed';
 import OpenGraphImage from './OpenGraphImage';
 import { isImageUrl } from '@/common/helpers/text';
+import VideoEmbed from './VideoEmbed';
 
 export const renderEmbedForUrl = ({ url }: { url: string }) => {
   if (!url) return null;
 
   if (url.startsWith('"chain:')) {
     return <OnchainEmbed url={url} />
+  }else if (url.startsWith('https://stream.warpcast.com')) {
+    return <VideoEmbed url={url} />
   } else if (url.startsWith('https://warpcast.com')) {
     return <WarpcastEmbed url={url} />
   } else if ((url.includes('twitter.com') || url.startsWith('https://x.com')) && url.includes('status/')) {

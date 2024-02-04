@@ -469,6 +469,13 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.1.tgz#16308cea045f0fc777b6ff20a9f25474dd8293d2"
   integrity sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==
 
+"@gumlet/react-hls-player@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@gumlet/react-hls-player/-/react-hls-player-1.0.1.tgz#3cb03a88f93934c1855f7915315663b9fd4d14db"
+  integrity sha512-3dT/d7xhc8lEqNeuMnIJcu9f723JncuW19ilX9w55fV//2HgpEsr7RzWB8Fix/+TnPQF5AzVK/4l63saE5E9Pw==
+  dependencies:
+    hls.js "^1.2.7"
+
 "@headlessui/react@^1.7.16":
   version "1.7.17"
   resolved "https://registry.npmjs.org/@headlessui/react/-/react-1.7.17.tgz"
@@ -5539,6 +5546,11 @@ hey-listen@^1.0.8:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/hey-listen/-/hey-listen-1.0.8.tgz#8e59561ff724908de1aa924ed6ecc84a56a9aa68"
   integrity sha512-COpmrF2NOg4TBWUJ5UVyaCU2A88wEMkUPK4hNqyCkqHbxT92BbvfjoSozkAIIm6XhicGlJHhFdullInrdhwU8Q==
+
+hls.js@^1.2.7:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/hls.js/-/hls.js-1.5.3.tgz#548a4de3b9bdb9f12985cc2f07d206c0f2e74d12"
+  integrity sha512-gonnYpZ5bxuVdwpcbzfylUlNZ8917LjACUjpWXiaeo8zPAIDfPcMZjEQPy6CeeRSJbcg1P+aVqwxrXr2J+SeUg==
 
 hmac-drbg@^1.0.1:
   version "1.0.1"
