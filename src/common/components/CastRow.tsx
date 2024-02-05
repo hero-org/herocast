@@ -23,9 +23,36 @@ import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
 import ProfileHoverCard from './ProfileHoverCard';
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/openapi/models/cast-with-interactions";
-import OpenGraphImage from './Embeds/OpenGraphImage';
-import { Button } from '@/components/ui/button';
 import FrameEmbed from './Embeds/FrameEmbed';
+import { State, createTokenClass, registerPlugin } from 'linkifyjs';
+import CashtagHoverCard from './CashtagHoverCard';
+
+registerPlugin('cashtag', cashtagPlugin);
+
+const CashtagToken = createTokenClass('cashtag', { isLink: true });
+
+function cashtagPlugin({ scanner, parser }) {
+  const { DOLLAR, UNDERSCORE } = scanner.tokens;
+	const { alpha, numeric, alphanumeric, emoji } = scanner.tokens.groups;
+
+	// Take or create a transition from start to the '$' sign (non-accepting)
+	// Take transition from '$' to any text token to yield valid hashtag state
+	// Account for leading underscore (non-accepting unless followed by alpha)
+	const Hash = parser.start.tt(DOLLAR);
+	const HashPrefix = Hash.tt(UNDERSCORE);
+	const Hashtag = new State(CashtagToken);
+
+	Hash.ta(numeric, HashPrefix);
+	Hash.ta(alpha, Hashtag);
+	Hash.ta(emoji, Hashtag);
+	HashPrefix.ta(alpha, Hashtag);
+	HashPrefix.ta(emoji, Hashtag);
+	HashPrefix.ta(numeric, HashPrefix);
+	HashPrefix.tt(UNDERSCORE, HashPrefix);
+	Hashtag.ta(alphanumeric, Hashtag);
+	Hashtag.ta(emoji, Hashtag);
+	Hashtag.tt(UNDERSCORE, Hashtag); // Trailing underscore is okay
+}
 
 interface CastRowProps {
   cast: CastWithInteractions;
@@ -67,10 +94,29 @@ const renderLink = ({ attributes, content }) => {
   );
 };
 
+const renderCashtag = ({ attributes, content }) => {
+  const tokenSymbol = content.slice(1);
+  const { userFid } = attributes;
+
+  return (
+    <span
+      className="cursor-pointer text-blue-400/80 underline hover:text-blue-400/90"
+      onClick={(event) => {
+        event.stopPropagation();
+      }}
+      rel='noopener noreferrer'>
+        <CashtagHoverCard tokenSymbol={tokenSymbol.toUpperCase()} userFid={userFid}>
+        {content}
+      </CashtagHoverCard>
+    </span>
+  );
+};
+
 const linkifyOptions = {
   render: {
     url: renderLink,
     mention: renderMention,
+    cashtag: renderCashtag,
   },
   truncate: 42,
 };
