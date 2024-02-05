@@ -37,6 +37,11 @@ export async function getStaticProps({ params: { slug } }) {
     } else {
       console.log("Generic Error", error);
     }
+
+    return {
+      notFound: true,
+    };
+    }
   }
 
   return {
