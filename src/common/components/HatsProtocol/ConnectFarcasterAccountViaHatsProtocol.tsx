@@ -163,7 +163,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [accountName, setAccountName] = useState("");
   const [deadline, setDeadline] = useState<bigint>(BigInt(0));
-  const [delegatorContractAddress, setDelegatorContractAddress] = useState<`0x${string}`>("0x");
+  const [delegatorContractAddress, setDelegatorContractAddress] = useState<`0x${string}` | undefined>();
   const [fid, setFid] = useState<bigint>(BigInt(0));
   const [onchainTransactionHash, setOnchainTransactionHash] =
     useState<`0x${string}`>("0x");
@@ -171,9 +171,8 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const {
     addNewPostDraft,
   } = useNewPostStore();
-  
 
-  const { address, status, connector } = useAccount();
+  const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
   const { signTypedDataAsync } = useSignTypedData();
@@ -214,7 +213,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     } else {
       fid = await getFidForUsername(accountName);
     }
-    
+    console.log('fid', fid);
     if (!fid) {
       setErrorMessage(`User ${accountName} not found`);
       return;
@@ -226,7 +225,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   };
 
   const onAddHerocastSignerToHatsProtocol = async () => {
-    if (!address) return;
+    if (!address || !delegatorContractAddress) return;
 
     let hexStringPublicKey: `0x${string}`, hexStringPrivateKey: `0x${string}`;
     if (
@@ -257,7 +256,6 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       hexStringPrivateKey = hatsProtocolPendingAccounts[0].privateKey!;
     }
 
-    const nonce = await readNoncesFromKeyGateway(delegatorContractAddress);
     const typedMetadataData = {
       domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
       types: {
@@ -275,7 +273,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
 
     const METADATA_TYPEHASH =
       "0x16be47f1f1f50a66a48db64eba3fd35c21439c23622e513aab5b902018aec438";
-
+    console.log('hatsProtocolSignature input', metadataSignature, METADATA_TYPEHASH, BigInt(fid), hexStringPublicKey, deadline);
     const hatsProtocolSignature = encodePacked(
       ["bytes", "bytes32", "uint256", "bytes", "uint256"],
       [
@@ -286,6 +284,8 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         deadline,
       ]
     );
+
+    console.log('hatsProtocolSignature', hatsProtocolSignature);
 
     const metadata = encodeAbiParameters(
       [
@@ -321,12 +321,12 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       ]
     );
     console.log('isMetadataSignatureValid', await isValidSignature(delegatorContractAddress, metadataHash, metadata));
-    const isValidSignedKeyReq = isValidSignedKeyRequest(
+    const isValidSignedKeyReq = await isValidSignedKeyRequest(
       BigInt(fid),
       hexStringPublicKey,
       metadata
     );
-
+    console.log('isValidSignedKeyReq', isValidSignedKeyReq)
     const tx = await writeContract(config, {
       abi: HatsFarcasterDelegatorAbi,
       address: delegatorContractAddress,
