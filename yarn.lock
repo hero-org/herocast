@@ -729,7 +729,7 @@
     semver "^7.5.4"
     superstruct "^1.0.3"
 
-"@mod-protocol/core@*":
+"@mod-protocol/core@*", "@mod-protocol/core@^0.2.0":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@mod-protocol/core/-/core-0.2.1.tgz#b79fcbd8549eb9dcb75ec1e9b5178d3c6bbecf2a"
   integrity sha512-Xo2BwBrHiBlAM05e5Cpl4r/9cjCZJBOJlQKRkVnhmHaL6Zr5an3Z7UPcCH+FYD/V4FKn3NvANxtOogThOuvZUQ==
@@ -744,35 +744,10 @@
     lodash.tonumber "^4.0.3"
     lodash.tostring "^4.1.4"
 
-"@mod-protocol/core@^0.1.0":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/core/-/core-0.1.2.tgz#0ccefaf27e05556b4a58da63c21099e48be0d67f"
-  integrity sha512-kWqFAnjakOUXLkoxzGsN0CTWoKyItNTpS/oSg5mBvofh//HceMbTf+kB9enUZNoQNzFge+u9/ZbfII7DhjFHDg==
-  dependencies:
-    "@mod-protocol/farcaster" "^0.1.0"
-    json-schema "^0.4.0"
-    lodash.get "^4.4.2"
-    lodash.isarray "^4.0.0"
-    lodash.isstring "^4.0.1"
-    lodash.mapvalues "^4.6.0"
-    lodash.set "^4.3.2"
-    lodash.tonumber "^4.0.3"
-    lodash.tostring "^4.1.4"
-
 "@mod-protocol/farcaster@*", "@mod-protocol/farcaster@^0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@mod-protocol/farcaster/-/farcaster-0.2.0.tgz#8b12272638a10035608aaa462dc47f7213c83f05"
   integrity sha512-vYd1TTStQ3VDO1vSXlEOBpYAVpE2E71oaSZisyBLBAcL7KfJqMVz8TzfERNLD2qI7l7Q20hGP59R+4gbzHczOw==
-
-"@mod-protocol/farcaster@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/farcaster/-/farcaster-0.0.1.tgz#39d9360ce34fa27fe483c7544041f8beb0cd97c2"
-  integrity sha512-RRb74j9uNJSOiF7HqCJSFWz8TOXVb6a/+kYMemb4tq04y6LfY9Wi36qc4wIaS01wnlFmf0RMZ8RX4sAto4CesQ==
-
-"@mod-protocol/farcaster@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/farcaster/-/farcaster-0.1.0.tgz#12046c90ec106a87c00ea2575aeaf2b898433242"
-  integrity sha512-2egWNw/3HeaA33nLYFJWe678ANIa49vaoaO0d/h8vpVYEhsIbv+mKGcQyGuvKLpfpJ97OHdnhWCfeYb5aNaI0Q==
 
 "@mod-protocol/mod-registry@*":
   version "0.2.2"
@@ -809,16 +784,37 @@
     "@tiptap/suggestion" "^2.0.4"
     prosemirror-model "^1.19.3"
 
-"@mod-protocol/react-ui-shadcn@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/react-ui-shadcn/-/react-ui-shadcn-0.2.0.tgz#5e2976686493749c286788a1a8a95580e982fd31"
-  integrity sha512-H3Iw+ZYm1xM6CIbpqdybnK8HLAg0ypBrlvuIvkEc+vBTjbpltQz0ZTa64KZ26u7GDUs56fFIoVqn8v30Evl9vw==
+"@mod-protocol/react-editor@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@mod-protocol/react-editor/-/react-editor-0.1.0.tgz#81216947754508e2cc94ebc5038e90a9016fde0b"
+  integrity sha512-1mGRZD9dcYTiDQXyTTUfFKwXqvDQQnrdWlWxAfGq8F4SGS02/NflQVE14AkdVA/YUL+GrLqmRK0QKZaxrc7Xbg==
   dependencies:
-    "@mod-protocol/core" "^0.1.0"
-    "@mod-protocol/farcaster" "^0.0.1"
+    "@mod-protocol/core" "*"
+    "@mod-protocol/farcaster" "*"
+    "@tiptap/core" "^2.0.4"
+    "@tiptap/extension-document" "^2.0.4"
+    "@tiptap/extension-hard-break" "^2.0.4"
+    "@tiptap/extension-history" "^2.0.4"
+    "@tiptap/extension-link" "^2.0.4"
+    "@tiptap/extension-mention" "^2.0.4"
+    "@tiptap/extension-paragraph" "^2.0.4"
+    "@tiptap/extension-placeholder" "^2.0.4"
+    "@tiptap/extension-text" "^2.0.4"
+    "@tiptap/pm" "^2.0.4"
+    "@tiptap/react" "^2.0.4"
+    "@tiptap/suggestion" "^2.0.4"
+    prosemirror-model "^1.19.3"
+
+"@mod-protocol/react-ui-shadcn@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@mod-protocol/react-ui-shadcn/-/react-ui-shadcn-0.3.1.tgz#ce59fdc1d433cf36ae2523c6430382ccaecd1084"
+  integrity sha512-Lwe4L/ZuyNIGIbeG08F2EmDvFaRXHlsg9k5RFUyd3+19sTmI//9tzOigsXo6e6oeXoCvvKJDdhECYH1/yuUXjw==
+  dependencies:
+    "@mod-protocol/core" "^0.2.0"
+    "@mod-protocol/farcaster" "^0.2.0"
     "@mod-protocol/mod-registry" "*"
-    "@mod-protocol/react" "^0.1.0"
-    "@mod-protocol/react-editor" "^0.0.3"
+    "@mod-protocol/react" "^0.2.0"
+    "@mod-protocol/react-editor" "^0.1.0"
     "@primer/octicons-react" "^19.5.0"
     "@radix-ui/react-aspect-ratio" "^1.0.3"
     "@radix-ui/react-avatar" "^1.0.4"
@@ -840,6 +836,13 @@
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@mod-protocol/react/-/react-0.1.0.tgz#927c274b10158167337ca78ce5413df191a1df4d"
   integrity sha512-jaJfRiF0Y3SWeOuOmdrUNf3/v7AdeitiCTBA7Sb02NqPkxDYiUdw1wcEFhMrKfHCV1GGF1IcU6JeSz8GdAybvA==
+  dependencies:
+    "@mod-protocol/core" "*"
+
+"@mod-protocol/react@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@mod-protocol/react/-/react-0.2.0.tgz#5a2fa364936d50a5f704c6ecdd5a94ceb90e222e"
+  integrity sha512-fhhe4qejlkQ9G66ABQM38l/PHEoFGwa3a5UeGNUT4JGu4BwU29UqeNhiWUBa3ump9Y6N++bDiG+JP7Dgw28sbw==
   dependencies:
     "@mod-protocol/core" "*"
 
@@ -3889,12 +3892,12 @@ clone@^1.0.2:
   resolved "https://registry.npmjs.org/clone/-/clone-1.0.4.tgz"
   integrity sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==
 
-clsx@2.0.0, clsx@^2.0.0:
+clsx@2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/clsx/-/clsx-2.0.0.tgz"
   integrity sha512-rQ1+kcj+ttHG0MKVGBUXwayCCF1oh39BF5COIpRzuCEv8Mwjv0XucrI2ExNTOn9IlLifGClWQcU9BrZORvtw6Q==
 
-clsx@2.1.0:
+clsx@2.1.0, clsx@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.0.tgz#e851283bcb5c80ee7608db18487433f7b23f77cb"
   integrity sha512-m3iNNWpd9rl3jvvcBnu70ylMdrXt8Vlq4HYadnU5fwcOtvkSQWPmj7amUcDT2qYI7risszBjI5AUIUox9D16pg==
