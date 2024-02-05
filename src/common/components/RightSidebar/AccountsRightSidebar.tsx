@@ -70,11 +70,11 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
                     🧢
                   </p>
                 )}
-                {item.platformAccountId && item.status === 'active' && (
-                  <p className="truncate text-sm text-gray-500">
+                {/* {item.platformAccountId && item.status === 'active' && (
+                  <p className="text-sm text-gray-500">
                     fid {item.platformAccountId}
                   </p>
-                )}
+                )} */}
               </div>
             </HotkeyTooltipWrapper>
           </li>
