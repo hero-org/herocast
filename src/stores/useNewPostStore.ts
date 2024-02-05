@@ -138,7 +138,7 @@ const store = (set: StoreSet) => ({
       }
 
       if (state.drafts.length === 1) {
-        state.drafts = [NewPostDraft];
+        state.drafts = [];
       } else {
         const copy = [...state.drafts];
         copy.splice(draftIdx, 1);

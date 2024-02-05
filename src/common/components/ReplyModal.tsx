@@ -27,6 +27,8 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
   } = useNewPostStore();
 
   const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === parentCast?.hash));
+  const { drafts } = useNewPostStore();
+  const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 
   useEffect(() => {
     if (draftIdx === -1 && open) {
@@ -64,6 +66,7 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
             </div>
             <div className="-ml-1">
             <NewPostEntry
+              draft={draft}
               draftIdx={draftIdx}
               onPost={() => setOpen(false)}
               hideChannel
