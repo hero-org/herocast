@@ -23,6 +23,7 @@ import { config, publicClient } from "@/common/helpers/rainbowkit";
 import { encodePacked, keccak256, toHex } from "viem";
 import { useWaitForTransactionReceipt } from 'wagmi'
 import { getDeadline } from "@/common/helpers/farcaster";
+import { HatsFarcasterDelegatorAbi } from "@/common/constants/contracts/HatsFarcasterDelegator";
 
 const readNonces = async (account: `0x${string}`) => {
   return await publicClient.readContract({
@@ -103,6 +104,7 @@ const GenerateHatsProtocolTransferSignature = () => {
     HatsProtocolSignupSteps[0]
   );
   const [errorMessage, setErrorMessage] = useState("");
+  const [fromAddress, setFromAddress] = useState<`0x${string}`>("0x");
   const [toAddress, setToAddress] = useState<`0x${string}`>("0x");
   const [fid, setFid] = useState<bigint>(BigInt(0));
   const [signature, setSignature] = useState<`0x${string}`>("0x");
@@ -169,22 +171,33 @@ const GenerateHatsProtocolTransferSignature = () => {
     const typeHash = keccak256(
       toHex("Transfer(uint256 fid,address to,uint256 nonce,uint256 deadline)")
     );
-    console.log('input to signature', [signature, typeHash, fid, toAddress, nonce, deadline])
     const sig = encodePacked(
       ["bytes", "bytes32", "uint256", "address", "uint256", "uint256"],
       [signature, typeHash, BigInt(fid), toAddress, nonce, BigInt(deadline)]
     );
 
-    console.log("writeContract args", [toAddress, BigInt(deadline), sig]);
-    const tx = await writeContract(config, {
-      abi: idRegistryABI,
-      address: ID_REGISTRY_ADDRESS,
-      functionName: "transfer",
-      args: [toAddress, BigInt(deadline), sig],
-    });
-    console.log("result", tx);
-    setOnchainTransactionHash(tx);
-    setState(HatsProtocolSignupSteps[4]);
+    const isFidOwnedByWallet = fromAddress === "0x";
+    if (isFidOwnedByWallet) {
+      const tx = await writeContract(config, {
+        abi: idRegistryABI,
+        address: ID_REGISTRY_ADDRESS,
+        functionName: "transfer",
+        args: [toAddress, BigInt(deadline), sig],
+      });
+      console.log("result", tx);
+      setOnchainTransactionHash(tx);
+      setState(HatsProtocolSignupSteps[4]);
+    } else {
+      const tx = await writeContract(config, {
+        abi: HatsFarcasterDelegatorAbi,
+        address: fromAddress,
+        functionName: "transferFid",
+        args: [toAddress, BigInt(deadline), sig],
+      });
+      console.log("result", tx);
+      setOnchainTransactionHash(tx);
+      setState(HatsProtocolSignupSteps[4]);
+    }
   };
 
   const getButtonLabel = () => {
@@ -272,6 +285,19 @@ const GenerateHatsProtocolTransferSignature = () => {
                 placeholder="1"
                 value={fid.toString()}
                 onChange={(e) => setFid(BigInt(e.target.value))}
+              />
+              <p className="mt-4 mb-1">
+                What is the address of the Hats Protocol Delegator instance? (leave empty if FID is owned by your current wallet)
+              </p>
+              <Input
+              className="w-2/3"
+                placeholder="0x"
+                value={fromAddress}
+                onChange={(e) =>
+                  e.target.value.startsWith("0x")
+                    ? setFromAddress(e.target.value as `0x${string}`)
+                    : null
+                }
               />
               <p className="mt-4 mb-1">
                 What is the target Hats Protocol Delegator instance?

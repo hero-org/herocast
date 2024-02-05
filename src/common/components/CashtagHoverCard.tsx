@@ -45,9 +45,8 @@ const CashtagHoverCard = ({
           return;
         }
 
-        const tradingPairs = data.pairs.filter((pair) => pair.baseToken.symbol === tokenSymbol && pair.quoteToken.symbol === 'USDC');
+        const tradingPairs = data.pairs.filter((pair) => pair.baseToken.symbol === tokenSymbol);
         const pairsByFdv = tradingPairs.sort((a, b) => b.fdv - a.fdv);
-        console.log('pairsByFdv', pairsByFdv)
         const highestFdvPair: DexPair = pairsByFdv[0];
         
         if (highestFdvPair) {

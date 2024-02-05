@@ -121,8 +121,6 @@ export default function NewPostEntry({
   const embeds = getEmbeds();
   const channel = getChannel();
 
-  console.log('channel', channel);
-
   useEffect(() => {
     onChange({
       ...draft,

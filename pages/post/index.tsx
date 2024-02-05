@@ -13,8 +13,6 @@ export default function NewPost() {
   const { addNewPostDraft, removeAllPostDrafts } = useNewPostStore();
   const { drafts } = useNewPostStore();
 
-  console.log('drafts', drafts);
-
   useEffect(() => {
     if (drafts.length === 0) {
       addNewPostDraft({});
