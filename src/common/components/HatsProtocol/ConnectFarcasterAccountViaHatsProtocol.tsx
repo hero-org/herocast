@@ -133,13 +133,12 @@ async function isValidSignedKeyRequest(
 }
 
 async function isValidSignature(
+  contractAddress: `0x${string}`,
   hash: `0x${string}`,
   sig: `0x${string}`
 ): Promise<boolean> {
-  const HatsFarcasterDelegatorContractAddress =
-    "0x2564F40382aEDb5dd849E792911B28AaE52a4ACf" as `0x${string}`;
   const res = await readContract(config, {
-    address: HatsFarcasterDelegatorContractAddress,
+    address: contractAddress,
     abi: HatsFarcasterDelegatorAbi,
     functionName: "isValidSignature",
     args: [hash, sig],
@@ -321,7 +320,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         },
       ]
     );
-    console.log('isMetadataSignatureValid', await isValidSignature(metadataHash, metadata));
+    console.log('isMetadataSignatureValid', await isValidSignature(delegatorContractAddress, metadataHash, metadata));
     const isValidSignedKeyReq = isValidSignedKeyRequest(
       BigInt(fid),
       hexStringPublicKey,
