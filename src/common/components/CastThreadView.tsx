@@ -39,6 +39,8 @@ export const CastThreadView = ({
       state.drafts &&
       state.drafts.findIndex((draft) => draft.parentCastId?.hash === cast?.hash)
   );
+  const { drafts } = useNewPostStore();
+  const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 
   // upgrade this component
   // - simple iterate with j,k along the full data, maybe I flatten the tree and just have a list with depth of cast?
@@ -224,6 +226,7 @@ export const CastThreadView = ({
           key={`new-post-parentHash-${cast?.hash}`}
         >
           <NewPostEntry
+            draft={draft}
             draftIdx={draftIdx}
             onPost={() => onBack && onBack()}
             hideChannel

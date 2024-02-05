@@ -1,11 +1,13 @@
 import React, { useEffect } from "react";
-import { NewPostDraft, useNewPostStore } from "@/stores/useNewPostStore";
+import { useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent, Editor } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
-import { fetchUrlMetadata } from "@mod-protocol/core";
+import {
+  fetchUrlMetadata,
+} from "@mod-protocol/core";
 import {
   Channel,
   getFarcasterChannels,
@@ -14,8 +16,8 @@ import {
 import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
 import { CastLengthUIIndicator } from "@mod-protocol/react-ui-shadcn/dist/components/cast-length-ui-indicator";
 import { ChannelPicker } from "@mod-protocol/react-ui-shadcn/dist/components/channel-picker";
-import { Button } from "@mod-protocol/react-ui-shadcn/dist/components/ui/button";
 import uniqBy from "lodash.uniqby";
+import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getResults = getFarcasterMentions(API_URL);
@@ -30,6 +32,7 @@ const onError = (err) => {
 };
 
 type NewPostEntryProps = {
+  draft?: DraftType;
   draftIdx: number;
   onPost?: () => void;
   hideChannel?: boolean;
@@ -37,15 +40,16 @@ type NewPostEntryProps = {
 };
 
 export default function NewPostEntry({
+  draft,
   draftIdx,
   onPost,
   hideChannel,
 }: NewPostEntryProps) {
-  const { drafts, updatePostDraft, publishPostDraft } =
-    useNewPostStore();
+  const { 
+    updatePostDraft, publishPostDraft 
+  } = useNewPostStore();
 
   const { allChannels: channels } = useAccountStore();
-  const draft = draftIdx !== null ? drafts[draftIdx] : NewPostDraft;
 
   const getChannels = async (query: string): Promise<Channel[]> => {
     const modChannels = await getModChannels(query);
@@ -81,8 +85,7 @@ export default function NewPostEntry({
   };
 
   const onSubmitPost = async (): Promise<boolean> => {
-    console.log('onSubmitPost')
-    if (draft.text.length > 0) {
+    if (draft?.text && draft.text.length > 0) {
       await new Promise(() => publishPostDraft(draftIdx, account, onPost));
       return true;
     }
@@ -103,6 +106,7 @@ export default function NewPostEntry({
     setChannel,
     getChannel,
     handleSubmit,
+    setText,
   } = useEditor({
     fetchUrlMetadata: getUrlMetadata,
     onError,
@@ -115,13 +119,24 @@ export default function NewPostEntry({
 
   const text = getText();
   const embeds = getEmbeds();
+  const channel = getChannel();
+
+  console.log('channel', channel);
+
   useEffect(() => {
     onChange({
       ...draft,
       text,
       embeds,
+      parentUrl: channel?.parent_url || undefined,
     });
-  }, [text, embeds]);
+  }, [text, embeds, channel]);
+
+  useEffect(() => {
+    if (draft.text !== text) {
+      setText(draft.text);
+    }
+  }, [draft.text, draftIdx]);
 
   return (
     <div

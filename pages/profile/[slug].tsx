@@ -28,16 +28,18 @@ export async function getStaticProps({ params: { slug } }) {
     } else {
       user = await client.lookupUserByUsername(slug);
     }
-
-    console.log("resp in getStaticProps", JSON.stringify(user));
   } catch (error) {
     // isApiErrorResponse can be used to check for Neynar API errors
     if (isApiErrorResponse(error)) {
-      console.log("API Error", error.response.data);
+      console.log("API Error", error, error.response.data);
     } else {
       console.log("Generic Error", error);
     }
-  }
+
+    return {
+      notFound: true,
+    }
+    }
 
   return {
     props: {

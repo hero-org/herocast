@@ -11,10 +11,12 @@ export default function NewPost() {
   const [showToast, setShowToast] = useState(false);
 
   const { addNewPostDraft, removeAllPostDrafts } = useNewPostStore();
-  const postDrafts = useNewPostStore((state) => state.drafts);
+  const { drafts } = useNewPostStore();
+
+  console.log('drafts', drafts);
 
   useEffect(() => {
-    if (postDrafts.length === 0) {
+    if (drafts.length === 0) {
       addNewPostDraft({});
     }
   }, []);
@@ -24,8 +26,8 @@ export default function NewPost() {
       <div className="ml-3 flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
         <div className="ml-1 mt-2 w-full flex items-center justify-between">
           <div className="text-gray-100 font-semibold">
-            You have {postDrafts.length}{" "}
-            {postDrafts.length !== 1 ? "drafts" : "draft"}
+            You have {drafts.length}{" "}
+            {drafts.length !== 1 ? "drafts" : "draft"}
           </div>
           <div className="flex ml-8 lg:ml-0">
             <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
@@ -47,10 +49,10 @@ export default function NewPost() {
             </Tooltip.Provider>
 
             <button
-              disabled={postDrafts.length === 0}
+              disabled={drafts.length === 0}
               onClick={() => removeAllPostDrafts()}
               className={classNames(
-                postDrafts.length > 0
+                drafts.length > 0
                   ? "cursor-pointer hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600"
                   : "cursor-default",
                 "inline-flex items-center rounded-sm bg-gray-700 px-3 py-2 text-sm font-semibold text-white shadow-sm "
@@ -65,7 +67,7 @@ export default function NewPost() {
           </div>
         </div>
         <div className="divide-y">
-          {postDrafts.map((draft, draftIdx) => (
+          {drafts.map((draft, draftIdx) => (
             <div key={draftIdx} className="pt-4 pb-6">
               {draft.parentCastId?.hash && (
                 <div className="text-gray-400 text-sm mb-2">
@@ -76,6 +78,7 @@ export default function NewPost() {
                 </div>
               )}
               <NewPostEntry
+                draft={draft}
                 key={`draft-${draftIdx}`}
                 draftIdx={draftIdx}
                 onPost={() => null}

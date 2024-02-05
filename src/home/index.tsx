@@ -149,7 +149,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   {item.status}
                 </span>)}
               {item.platformAccountId && (
-                <p className="mt-1 truncate text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500">
                   fid {item.platformAccountId}
                 </p>
               )}

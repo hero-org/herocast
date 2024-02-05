@@ -33,10 +33,10 @@ export type AccountObjectType = {
   userId?: string;
   name?: string;
   status: AccountStatusType;
-  publicKey: string;
+  publicKey: `0x${string}`;
   platform: AccountPlatformType;
   platformAccountId?: string;
-  privateKey?: string;
+  privateKey?: `0x${string}`;
   createdAt?: string;
   data?: { deeplinkUrl: string, signerToken: string };
   channels: AccountChannelType[];
@@ -51,7 +51,7 @@ interface AccountStoreProps {
 }
 
 interface AccountStoreActions {
-  addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey: string, data: object }) => void;
+  addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey?: string, data?: object }) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: number, name: string, data: { platform_account_id: string, data: object }) => void;
@@ -101,7 +101,7 @@ const store = (set: StoreSet) => ({
       })
       .select()
       .then(({ error, data }) => {
-        console.log('response - data', data, 'error', error);
+        // console.log('response - data', data, 'error', error);
 
         if (!data || error) return;
         set((state) => {
@@ -184,7 +184,7 @@ const store = (set: StoreSet) => ({
         })
         .select('*')
         .then(({ error, data }) => {
-          console.log('response - data', data, 'error', error);
+          // console.log('response - data', data, 'error', error);
         });
     })
   },
@@ -208,7 +208,7 @@ const store = (set: StoreSet) => ({
         .eq('account_id', account.id)
         .eq('channel_id', channel.id)
         .then(({ error, data }) => {
-          console.log('response - data', data, 'error', error);
+          // console.log('response - data', data, 'error', error);
         });
     })
   },
@@ -224,7 +224,7 @@ const store = (set: StoreSet) => ({
         })
         .select()
         .then(({ error, data }) => {
-          console.log('response - data', data, 'error', error);
+          // console.log('response - data', data, 'error', error);
           if (!data || error) return;
 
           state.allChannels = [...state.allChannels, data[0]];
@@ -241,8 +241,6 @@ const store = (set: StoreSet) => ({
       const accountId = account.id;
       const channels = account.channels;
       const newChannels = cloneDeep(account.channels);
-      // console.log('channels', [...channels.slice(0, 3).map((c) => `${c.name}: index: ${c.idx}`)])
-      // console.log('newChannels before', newChannels.slice(0, 3).map((c) => `${c.name}: index: ${c.idx}`))
 
       console.log(`moving channel ${channels[oldIndex].name} to index ${newIndex}`);
 
@@ -283,8 +281,6 @@ const store = (set: StoreSet) => ({
             }
           });
       }
-      // console.log('newChannels after', newChannels.slice(0, 3).map((c) => `${c.name}: index: ${c.idx}`))
-      // console.log('new account obj', { ...account, ...{ channels: newChannels } });
       state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
     });
   }

@@ -14,13 +14,12 @@ import { Input } from "@/components/ui/input";
 import {
   ID_REGISTRY_EIP_712_DOMAIN,
   ID_REGISTRY_TRANSFER_TYPE,
-  ViemWalletEip712Signer,
   idRegistryABI,
 } from "@farcaster/hub-web";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { ID_REGISTRY_ADDRESS } from "@farcaster/hub-web";
-import { writeContract, getWalletClient } from "@wagmi/core";
-import { config, publicClient, wagmiConfig } from "@/common/helpers/rainbowkit";
+import { writeContract } from "@wagmi/core";
+import { config, publicClient } from "@/common/helpers/rainbowkit";
 import { encodePacked, keccak256, toHex } from "viem";
 import { useWaitForTransactionReceipt } from 'wagmi'
 import { getDeadline } from "@/common/helpers/farcaster";
@@ -104,8 +103,8 @@ const GenerateHatsProtocolTransferSignature = () => {
     HatsProtocolSignupSteps[0]
   );
   const [errorMessage, setErrorMessage] = useState("");
-  const [toAddress, setToAddress] = useState<`0x${string}`>("0x2564F40382aEDb5dd849E792911B28AaE52a4ACf");
-  const [fid, setFid] = useState<bigint>(BigInt(232233));
+  const [toAddress, setToAddress] = useState<`0x${string}`>("0x");
+  const [fid, setFid] = useState<bigint>(BigInt(0));
   const [signature, setSignature] = useState<`0x${string}`>("0x");
   const [deadline, setDeadline] = useState<number>(0);
   const [nonce, setNonce] = useState<bigint>(BigInt(0));
@@ -170,6 +169,7 @@ const GenerateHatsProtocolTransferSignature = () => {
     const typeHash = keccak256(
       toHex("Transfer(uint256 fid,address to,uint256 nonce,uint256 deadline)")
     );
+    console.log('input to signature', [signature, typeHash, fid, toAddress, nonce, deadline])
     const sig = encodePacked(
       ["bytes", "bytes32", "uint256", "address", "uint256", "uint256"],
       [signature, typeHash, BigInt(fid), toAddress, nonce, BigInt(deadline)]
@@ -265,9 +265,10 @@ const GenerateHatsProtocolTransferSignature = () => {
               on your Hats Protocol Delegator contract instance.
             </p>
             <br />
-            <div className="w-2/3">
+            <div className="">
               <p className="mb-1">What is the FID of the Farcaster account?</p>
               <Input
+              className="w-2/3"
                 placeholder="1"
                 value={fid.toString()}
                 onChange={(e) => setFid(BigInt(e.target.value))}
@@ -276,6 +277,7 @@ const GenerateHatsProtocolTransferSignature = () => {
                 What is the target Hats Protocol Delegator instance?
               </p>
               <Input
+              className="w-2/3"
                 placeholder="0x"
                 value={toAddress}
                 onChange={(e) =>

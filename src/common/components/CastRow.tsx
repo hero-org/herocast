@@ -23,6 +23,9 @@ import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
 import ProfileHoverCard from './ProfileHoverCard';
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/openapi/models/cast-with-interactions";
+import OpenGraphImage from './Embeds/OpenGraphImage';
+import { Button } from '@/components/ui/button';
+import FrameEmbed from './Embeds/FrameEmbed';
 
 interface CastRowProps {
   cast: CastWithInteractions;
@@ -79,6 +82,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     selectedAccountIdx,
     allChannels: channels,
   } = useAccountStore();
+  // if (isSelected) console.log('selected cast', cast);
 
   const [didLike, setDidLike] = useState(false)
   const [didRecast, setDidRecast] = useState(false)
@@ -91,6 +95,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const embedUrl = hasEmbeds ? cast.embeds[0].url : null;
   const embedImageUrl = embedUrl && isImageUrl(embedUrl) ? embedUrl : null;
   const now = new Date();
+  const hasFrame = cast.frames && cast.frames.length > 0;
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
@@ -234,6 +239,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       </ErrorBoundary>
     </div>);
 
+  const renderFrame = () => hasFrame ? <FrameEmbed cast={cast} isSelected={isSelected} /> : null;
+
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
   const timeAgo = timeDiff(now, new Date(cast.timestamp))
@@ -292,7 +299,8 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
             {embedImageUrl && <ImgurImage url={embedImageUrl} />}
           </div>
           {renderCastReactions(cast)}
-          {!disableEmbeds && renderEmbeds()}
+          {!disableEmbeds && !hasFrame && renderEmbeds()}
+          {renderFrame()}
         </div>
       </div>
     </div>
