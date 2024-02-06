@@ -136,23 +136,6 @@ export const fetchUserProfile = async (userFid: string | number, username: strin
     });
 }
 
-export const fetchCasts = async (castHashes: { hash: string }[]): Promise<CastType[]> => {
-  const url = `${NEYNAR_API_URL}/v2/farcaster/casts`;
-  const headers = {
-    'api_key': NEYNAR_API_KEY,
-    'Content-Type': 'application/json'
-  };
-
-  return await axios.get(url, { headers, data: JSON.stringify({ casts: castHashes }) })
-    .then(response => {
-      return response.data.casts;
-    })
-    .catch(error => {
-      console.error(error);
-      return [];
-    });
-}
-
 export type UserNeynarV1Type = {
   fid: number;
   custodyAddress: string;
