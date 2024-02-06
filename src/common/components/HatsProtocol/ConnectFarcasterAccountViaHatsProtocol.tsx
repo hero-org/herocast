@@ -24,7 +24,6 @@ import {
   encodePacked,
   hashTypedData,
   keccak256,
-  toHex,
 } from "viem";
 import {
   KEY_GATEWAY_ADDRESS,
@@ -108,6 +107,9 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
   },
 ];
 
+const SIGNED_KEY_REQUEST_TYPEHASH =
+      "0x16be47f1f1f50a66a48db64eba3fd35c21439c23622e513aab5b902018aec438";
+    
 const readNoncesFromKeyGateway = async (account: `0x${string}`) => {
   return await publicClient.readContract({
     abi: keyGatewayABI,
@@ -129,6 +131,21 @@ async function isValidSignedKeyRequest(
     args: [fid, key, signedKeyRequest],
   });
   console.log("isValidSignedKeyRequest result", res);
+  return res;
+}
+
+async function isValidSigner(
+  contractAddress: `0x${string}`,
+  typeHash: `0x${string}`,
+  signer: `0x${string}`,
+): Promise<boolean> {
+  const res = await readContract(config, {
+    address: contractAddress,
+    abi: HatsFarcasterDelegatorAbi,
+    functionName: "isValidSigner",
+    args: [typeHash, signer],
+  });
+  console.log("isValidSigner result", res);
   return res;
 }
 
@@ -204,6 +221,13 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
 
   const onSignData = async () => {
     if (!address) return;
+
+    const hasConnectedValidSignerAddress = await isValidSigner(
+      delegatorContractAddress!,
+      SIGNED_KEY_REQUEST_TYPEHASH,
+      address
+    );
+    console.log(`address ${address} is valid signer: ${hasConnectedValidSignerAddress}`);
     setState(HatsProtocolSignupSteps[2]);
 
     let fid: number | undefined;
@@ -219,6 +243,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       return;
     }
     
+    setFid(BigInt(fid));
     const newDeadline = BigInt(getDeadline());
     setDeadline(newDeadline);
     setState(HatsProtocolSignupSteps[3]);
@@ -263,29 +288,24 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       },
       primaryType: "SignedKeyRequest" as const,
       message: {
-        requestFid: BigInt(fid),
+        requestFid: fid,
         key: hexStringPublicKey,
-        deadline: BigInt(deadline),
+        deadline: deadline,
       },
     };
     const metadataHash = hashTypedData(typedMetadataData);
     const metadataSignature = await signTypedDataAsync(typedMetadataData);
 
-    const METADATA_TYPEHASH =
-      "0x16be47f1f1f50a66a48db64eba3fd35c21439c23622e513aab5b902018aec438";
-    console.log('hatsProtocolSignature input', metadataSignature, METADATA_TYPEHASH, BigInt(fid), hexStringPublicKey, deadline);
     const hatsProtocolSignature = encodePacked(
       ["bytes", "bytes32", "uint256", "bytes", "uint256"],
       [
         metadataSignature,
-        METADATA_TYPEHASH,
-        BigInt(fid),
+        SIGNED_KEY_REQUEST_TYPEHASH,
+        fid,
         keccak256(hexStringPublicKey),
         deadline,
       ]
     );
-
-    console.log('hatsProtocolSignature', hatsProtocolSignature);
 
     const metadata = encodeAbiParameters(
       [
@@ -313,29 +333,34 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       ],
       [
         {
-          requestFid: BigInt(fid), // BigInt(APP_FID!),
-          requestSigner: delegatorContractAddress, // appAccount.address,
+          requestFid: fid,
+          requestSigner: delegatorContractAddress,
           signature: hatsProtocolSignature,
           deadline,
         },
       ]
     );
-    console.log('isMetadataSignatureValid', await isValidSignature(delegatorContractAddress, metadataHash, metadata));
+    // console.log('isMetadataSignatureValid', await isValidSignature(delegatorContractAddress, metadataHash, metadata));
     const isValidSignedKeyReq = await isValidSignedKeyRequest(
-      BigInt(fid),
+      fid,
       hexStringPublicKey,
       metadata
     );
     console.log('isValidSignedKeyReq', isValidSignedKeyReq)
-    const tx = await writeContract(config, {
-      abi: HatsFarcasterDelegatorAbi,
-      address: delegatorContractAddress,
-      functionName: "addKey",
-      args: [1, hexStringPublicKey, 1, metadata],
-    });
+    try {
 
-    console.log("result tx", tx);
-    setOnchainTransactionHash(tx);
+      const tx = await writeContract(config, {
+        abi: HatsFarcasterDelegatorAbi,
+        address: delegatorContractAddress,
+        functionName: "addKey",
+        args: [1, hexStringPublicKey, 1, metadata],
+      });
+      setOnchainTransactionHash(tx);
+      console.log("result tx", tx);
+    } catch (e) {
+      setErrorMessage(`Error when trying to add key ${e}`);
+      setState(HatsProtocolSignupSteps[5]);
+    }
   };
 
   const transactionResult = useWaitForTransactionReceipt({
@@ -381,7 +406,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       case SignupStateEnum.CONFIRMED_ADD_KEY:
         return null;
       case SignupStateEnum.ERROR:
-        return "Error";
+        return "Reset";
     }
   };
 
@@ -412,6 +437,8 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         onAddHerocastSignerToHatsProtocol();
         break;
       case SignupStateEnum.ERROR:
+        setState(HatsProtocolSignupSteps[0]); 
+        setErrorMessage("")
         break;
     }
   };
@@ -501,13 +528,6 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
               <p className="text-wrap break-all	text-sm text-red-500">
                 Error: {errorMessage}
               </p>
-              <Button
-                className="ml-4"
-                variant="outline"
-                onClick={() => { setState(HatsProtocolSignupSteps[0]); setErrorMessage("")} }
-              >
-                Reset
-              </Button>
             </div>
           )}
         </CardContent>
