@@ -227,7 +227,13 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       SIGNED_KEY_REQUEST_TYPEHASH,
       address
     );
-    console.log(`address ${address} is valid signer: ${hasConnectedValidSignerAddress}`);
+
+    if (!hasConnectedValidSignerAddress) {
+      setErrorMessage(`Address ${address} is not a valid signer for contract ${delegatorContractAddress}`);
+      setState(HatsProtocolSignupSteps[5]);
+      return;
+    }
+
     setState(HatsProtocolSignupSteps[2]);
 
     let fid: number | undefined;
