@@ -1,4 +1,4 @@
-import { createTokenClass } from 'linkifyjs';
+import { State, createTokenClass } from 'linkifyjs';
 
 const MentionToken = createTokenClass('mention', {
     isLink: true,
@@ -45,3 +45,28 @@ export default function mention({ scanner, parser }) {
     MentionDot.tt(UNDERSCORE, Mention);
 
 }
+export function cashtagPlugin({ scanner, parser }) {
+  const { DOLLAR, UNDERSCORE } = scanner.tokens;
+  const { alpha, numeric, alphanumeric, emoji } = scanner.tokens.groups;
+
+  // Take or create a transition from start to the '$' sign (non-accepting)
+  // Take transition from '$' to any text token to yield valid hashtag state
+  // Account for leading underscore (non-accepting unless followed by alpha)
+  const Hash = parser.start.tt(DOLLAR);
+  const HashPrefix = Hash.tt(UNDERSCORE);
+  const Hashtag = new State(CashtagToken);
+
+  Hash.ta(numeric, HashPrefix);
+  Hash.ta(alpha, Hashtag);
+  Hash.ta(emoji, Hashtag);
+  HashPrefix.ta(alpha, Hashtag);
+  HashPrefix.ta(emoji, Hashtag);
+  HashPrefix.ta(numeric, HashPrefix);
+  HashPrefix.tt(UNDERSCORE, HashPrefix);
+  Hashtag.ta(alphanumeric, Hashtag);
+  Hashtag.ta(emoji, Hashtag);
+  Hashtag.tt(UNDERSCORE, Hashtag); // Trailing underscore is okay
+}
+
+export const CashtagToken = createTokenClass('cashtag', { isLink: true });
+

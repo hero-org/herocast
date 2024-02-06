@@ -46,11 +46,11 @@ const CashtagHoverCard = ({
         }
 
         const tradingPairs = data.pairs.filter((pair) => pair.baseToken.symbol === tokenSymbol);
-        const pairsByFdv = tradingPairs.sort((a, b) => b.fdv - a.fdv);
-        const highestFdvPair: DexPair = pairsByFdv[0];
-        
-        if (highestFdvPair) {
-          addTokenData({ tokenSymbol, data: highestFdvPair });
+        const pairsSortedByLiquidity = tradingPairs.sort((a, b) => b.liquidity.usd - a.liquidity.usd);
+        const mostLiquidityPair: DexPair = pairsSortedByLiquidity[0];
+
+        if (mostLiquidityPair) {
+          addTokenData({ tokenSymbol, data: mostLiquidityPair });
         }
       } catch (err) {
         console.log("CashtagHoverCard: err getting data", err);
