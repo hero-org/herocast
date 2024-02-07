@@ -763,27 +763,6 @@
   dependencies:
     "@mod-protocol/core" "*"
 
-"@mod-protocol/react-editor@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/react-editor/-/react-editor-0.0.3.tgz#99de54834703b86fd0ab59f2db912738c6570e0b"
-  integrity sha512-7wuhDY57MOkzKc3gzZN230WeK4zLHBd5u3V9UsCfIq1dZeZQNRCmBHNkM4SuIY2K9axJFQ2aPU/Tqtty/9SW2Q==
-  dependencies:
-    "@mod-protocol/core" "*"
-    "@mod-protocol/farcaster" "*"
-    "@tiptap/core" "^2.0.4"
-    "@tiptap/extension-document" "^2.0.4"
-    "@tiptap/extension-hard-break" "^2.0.4"
-    "@tiptap/extension-history" "^2.0.4"
-    "@tiptap/extension-link" "^2.0.4"
-    "@tiptap/extension-mention" "^2.0.4"
-    "@tiptap/extension-paragraph" "^2.0.4"
-    "@tiptap/extension-placeholder" "^2.0.4"
-    "@tiptap/extension-text" "^2.0.4"
-    "@tiptap/pm" "^2.0.4"
-    "@tiptap/react" "^2.0.4"
-    "@tiptap/suggestion" "^2.0.4"
-    prosemirror-model "^1.19.3"
-
 "@mod-protocol/react-editor@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@mod-protocol/react-editor/-/react-editor-0.1.0.tgz#81216947754508e2cc94ebc5038e90a9016fde0b"
