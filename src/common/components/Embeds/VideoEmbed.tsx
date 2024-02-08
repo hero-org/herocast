@@ -29,7 +29,6 @@ const VideoEmbed = ({ url }: { url: string }) => {
         height="auto"
         playerRef={playerRef}
       />
-      ,
     </div>
   );
 };

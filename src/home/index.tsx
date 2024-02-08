@@ -160,6 +160,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     </div>
   )
 
+  if (pathname === '/login') {
+    return children;
+  }
+
   return (
     <>
       <Toast.Provider swipeDirection="right">

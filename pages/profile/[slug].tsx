@@ -104,10 +104,10 @@ export default function Profile({ profile }) {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const resp = await neynarClient.lookupUserByUsername(
-        profile.username,
+      const resp = await neynarClient.lookupUserByFid(
+        profile.fid,
         userFid! as number
-      );
+      )
       if (resp.result.user) {
         addUserProfile({ username: profile.username, data: resp.result.user });
       }
