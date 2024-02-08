@@ -26,7 +26,7 @@ export const renderEmbedForUrl = ({ url, cast_id }: CastEmbed) => {
     return <OnchainEmbed url={url} />
   }else if (url.startsWith('https://stream.warpcast.com')) {
     return <VideoEmbed url={url} />
-  } else if (url.startsWith('https://warpcast.com')) {
+  } else if (url.startsWith('https://warpcast.com') && !url.includes('/~/')) {
     return <CastEmbed url={url} />
   } else if ((url.includes('twitter.com') || url.startsWith('https://x.com')) && url.includes('status/')) {
     const tweetId = url.split('/').pop();

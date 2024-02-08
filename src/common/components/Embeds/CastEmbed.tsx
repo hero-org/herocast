@@ -27,8 +27,12 @@ const CastEmbed = ({ url, castId }: { url?: string, castId?: { hash: string, fid
         setCast(res.cast);
       }
     };
-
-    getData();
+    
+    try {
+      getData();
+    } catch (err) {
+      console.error(`Error in CastEmbed: ${err}`);
+    }
   }, []);
 
   if ((!url && !castId) || isEmpty(cast)) return null;

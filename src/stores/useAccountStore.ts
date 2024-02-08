@@ -429,7 +429,7 @@ const getChannelCommands = () => {
     });
   }
 
-  channelCommands.push({
+  channelCommands.push(...[{
     name: `Switch to random channel`,
     aliases: ['random', 'lucky', 'discover'],
     navigateTo: '/feed',
@@ -439,7 +439,43 @@ const getChannelCommands = () => {
       const randomIndex = randomNumberBetween(0, state.allChannels.length - 1);
       state.setSelectedChannelUrl(state.allChannels[randomIndex].url);
     },
-  });
+  },
+  {
+    name: 'Switch to next channel',
+    aliases: ['next', 'forward'],
+    shortcut: 'shift+j',
+    navigateTo: '/feed',
+    action: () => {
+      const state = useAccountStore.getState();
+      const channels = state.accounts[state.selectedAccountIdx]?.channels;
+      if (isEmpty(channels)) return;
+      const currentIdx = channels.findIndex((channel) => channel.url === state.selectedChannelUrl);
+      const nextIdx = currentIdx + 1;
+      if (nextIdx >= channels.length) return;
+
+      state.setSelectedChannelUrl(channels[nextIdx].url);
+    },
+  },{
+    name: 'Switch to previous channel',
+    aliases: ['previous', 'back'],
+    shortcut: 'shift+k',
+    navigateTo: '/feed',
+    action: () => {
+      const state = useAccountStore.getState();
+      const channels = state.accounts[state.selectedAccountIdx]?.channels;
+      if (isEmpty(channels)) return;
+      const currentIdx = channels.findIndex((channel) => channel.url === state.selectedChannelUrl);
+      const previousIdx = currentIdx - 1;
+      if (previousIdx < -1) return;
+      
+      if (previousIdx === -1) {
+        state.resetSelectedChannel();
+      } else {
+        state.setSelectedChannelUrl(channels[previousIdx].url);
+      }
+    },
+  },
+  ]);
 
   return channelCommands;
 }
