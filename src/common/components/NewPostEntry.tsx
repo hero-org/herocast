@@ -17,11 +17,16 @@ import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-sha
 import { CastLengthUIIndicator } from "@mod-protocol/react-ui-shadcn/dist/components/cast-length-ui-indicator";
 import { ChannelPicker } from "@mod-protocol/react-ui-shadcn/dist/components/channel-picker";
 import uniqBy from "lodash.uniqby";
+import debounce from "lodash.debounce";
 import { Button } from "@/components/ui/button";
+import { MentionList } from "@mod-protocol/react-ui-shadcn/dist/components/mention-list";
+import { ChannelList } from "@mod-protocol/react-ui-shadcn/dist/components/channel-list";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
-const getResults = getFarcasterMentions(API_URL);
+const getMentions = getFarcasterMentions(API_URL);
+const debouncedGetMentions = debounce(getMentions, 200, {leading: true, trailing: false});
 const getModChannels = getFarcasterChannels(API_URL);
+const debouncedGetModChannels = debounce(getModChannels, 200, {leading: true, trailing: false});
 const getUrlMetadata = fetchUrlMetadata(API_URL);
 
 const onError = (err) => {
@@ -52,7 +57,7 @@ export default function NewPostEntry({
   const { allChannels: channels } = useAccountStore();
 
   const getChannels = async (query: string): Promise<Channel[]> => {
-    const modChannels = await getModChannels(query);
+    const modChannels = query && query.length > 2 ? await debouncedGetModChannels(query) : [];
     const filteredChannels = (
       query === ""
         ? channels
@@ -65,10 +70,10 @@ export default function NewPostEntry({
           channel_id: channel.id,
           parent_url: channel.url,
           name: channel.name,
-          image: channel.icon_url || "",
+          id: channel.name,
+          image_url: channel.icon_url || "",
         } as Channel)
     );
-
     return uniqBy([...filteredChannels, ...modChannels], "parent_url");
   };
 
@@ -112,8 +117,13 @@ export default function NewPostEntry({
     onError,
     onSubmit: onSubmitPost,
     linkClassName: "text-blue-300",
+    renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
+      getResults: getChannels,
+      RenderList: ChannelList,
+    }),
     renderMentionsSuggestionConfig: createRenderMentionsSuggestionConfig({
-      getResults: getResults,
+      getResults: debouncedGetMentions,
+      RenderList: MentionList,
     }),
   });
 
