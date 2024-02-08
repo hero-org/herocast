@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import Modal from './Modal';
-import { CastType } from '../constants/farcaster';
 import NewPostEntry from './NewPostEntry';
 import { useNewPostStore } from '@/stores/useNewPostStore';
 import { CastRow } from './CastRow';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 type CastToReplyType = {
   hash: string;
@@ -43,16 +43,26 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
     }
   }, [draftIdx, open])
 
+  useHotkeys(
+    'esc', 
+    () => setOpen(false), [open], 
+    {
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+      enabled: open,
+    }
+    );
+
   return (
     <Modal
       title={`Reply to ${parentCast?.author.display_name || parentCast?.author.displayName}`}
       open={open}
       setOpen={setOpen}
     >
-      <div className="mt-4">
+      <div className="mt-2 overflow-auto">
         {open && draftIdx !== -1 && (
           <div
-            className="mt-4"
+            className="flex flex-col max-w-full max-h-[calc(100vh-200px)]"
             key={`new-post-parentHash-${parentCast?.hash}`}
           >
             <div className="mb-4">
@@ -64,13 +74,13 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
                 />
               )}
             </div>
-            <div className="-ml-1">
-            <NewPostEntry
-              draft={draft}
-              draftIdx={draftIdx}
-              onPost={() => setOpen(false)}
-              hideChannel
-            />
+            <div className="flex">
+              <NewPostEntry
+                draft={draft}
+                draftIdx={draftIdx}
+                onPost={() => setOpen(false)}
+                hideChannel
+              />
             </div>
           </div>
         )}

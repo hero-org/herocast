@@ -1,8 +1,7 @@
-import React, { Fragment } from "react";
+import React from "react";
 import type { AppProps } from "next/app";
 import { AptabaseProvider } from "@aptabase/react";
 import { ThemeProvider } from "../src/common/hooks/ThemeProvider";
-import { WagmiConfig } from "wagmi";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import CommandPalette from "../src/common/components/CommandPalette";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
