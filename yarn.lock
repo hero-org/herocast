@@ -2267,7 +2267,7 @@
     "@stablelib/random" "^1.0.2"
     "@stablelib/wipe" "^1.0.1"
 
-"@standard-crypto/farcaster-js-hub-rest@^1.1.0":
+"@standard-crypto/farcaster-js-hub-rest@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@standard-crypto/farcaster-js-hub-rest/-/farcaster-js-hub-rest-1.3.0.tgz#a77915e107d134495b749290e1c1a5b8e251a18a"
   integrity sha512-xe1PmEP1uBZOn4MWuuEM0seAVyNeah9DVc54CpD9nTiwHoSe9vj3qlXsWz1c2Dv5RrE01m3zwQiXbOG7x25ZHA==
@@ -3597,7 +3597,7 @@ axios@1.6.5:
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
-axios@^1.6.2:
+axios@^1.6.2, axios@^1.6.7:
   version "1.6.7"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.7.tgz#7b48c2e27c96f9c68a2f8f31e2ab19f59b06b0a7"
   integrity sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==

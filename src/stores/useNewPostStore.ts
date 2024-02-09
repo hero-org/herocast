@@ -10,7 +10,7 @@ import {
   getMentionFidsByUsernames,
   formatPlaintextToHubCastMessage,
 } from '@mod-protocol/farcaster';
-import { publishCast } from "@/common/helpers/farcaster";
+import { publishCast, submitCast } from "@/common/helpers/farcaster";
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 
@@ -170,13 +170,11 @@ const store = (set: StoreSet) => ({
           throw new Error('Failed to prepare cast');
         }
 
-        await Promise.resolve(
-          publishCast({
-            castBody,
-            privateKey: account.privateKey,
-            authorFid: account.platformAccountId,
-          })
-        )
+        await submitCast({
+          ...castBody,
+          signerPrivateKey: account.privateKey,
+          fid: Number(account.platformAccountId),
+        });
 
         await new Promise(f => setTimeout(f, 100));
         trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });

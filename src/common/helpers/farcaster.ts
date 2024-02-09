@@ -117,21 +117,19 @@ export const publishCast = async ({ authorFid, privateKey, castBody }: PublishCa
   };
 
   // console.log('publishCast - dataOptions', { ...dataOptions }, 'castBody', { ...castBody })
-  // Step 2: create message
   const cast = await makeCastAdd(
     castBody,
     dataOptions,
     ed25519Signer,
   );
-
-  // console.log('cast right before sending to hub', { ...cast });
-
+  
   // Step 3: publish message to network
   const client = getHubRpcClient(process.env.NEXT_PUBLIC_NEYNAR_HUB_URL, { debug: true });
-  const res = await Promise.resolve(cast.map(async (castAdd) => {
-    return await Promise.resolve(await client.submitMessage(castAdd));
-  }));
-
+  const castPromises = cast.map(async (castAdd) => {
+    const hubResult = await client.submitMessage(castAdd);
+    return hubResult.unwrapOr(null);
+  });
+  const res = await Promise.resolve(castPromises);
   console.log(`Submitted cast to Farcaster network, res:`, res);
   return res;
 };
@@ -212,15 +210,21 @@ export const publishReaction = async ({ authorFid, privateKey, reactionBody }: P
 };
 
 import { HubRestAPIClient } from '@standard-crypto/farcaster-js-hub-rest';
-
+import axios from "axios";
+const axiosInstance = axios.create({
+  headers: { 
+    'Content-Type': 'application/json',
+    'api_key': process.env.NEXT_PUBLIC_NEYNAR_API_KEY 
+  }
+});
 export const followUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {
-  const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
+  const client = new HubRestAPIClient({ axiosInstance, hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
   const followResponse = await client.followUser(targetFid, fid, signerPrivateKey);
   console.log(`follow hash: ${followResponse?.hash}`);
 }
 
 export const unfollowUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {
-  const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
+  const client = new HubRestAPIClient({ axiosInstance, hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
   const unfollowResponse = await client.unfollowUser(targetFid, fid, signerPrivateKey);
   console.log(`unfollow hash: ${unfollowResponse?.hash}`);
 }
@@ -242,10 +246,20 @@ export const submitCast = async ({
   signerPrivateKey,
   fid,
 }: SubmitCastParams) => {
-  console.log('submitCast', { text, embeds, mentions, mentionsPositions, fid })
-  const client = new HubRestAPIClient({ hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
-  const castResponse = await client.submitCast({ text, embeds, mentions, mentionsPositions }, fid, signerPrivateKey);
-  // console.log(`cast hash: ${castResponse?.hash}`);
+  // const client = new HubRestAPIClient();
+  // console.log('warpcast hub', await client.getHubInfo());
+
+  const writeClient = new HubRestAPIClient({ 
+    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
+    axiosInstance 
+  });
+  
+  const publishCastResponse = await writeClient.submitCast(
+    { text, embeds, mentions, mentionsPositions }, 
+    fid, 
+    signerPrivateKey
+  );
+  console.log(`new cast hash: ${publishCastResponse.hash}`);
 }
 
 
