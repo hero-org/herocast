@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { toBytes } from 'viem';
-
 import { castTextStyle, classNames } from "../../../src/common/helpers/css";
 import { CastType, CastReactionType } from "../../../src/common/constants/farcaster";
 import { ChannelType } from "../../../src/common/constants/channels";
@@ -10,7 +8,6 @@ import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
 import { ImgurImage } from "../../../src/common/components/PostEmbeddedContent";
 import { localize, timeDiff } from "../helpers/date";
 import { publishReaction, removeReaction } from '../helpers/farcaster';
-import { ReactionType } from '@farcaster/hub-web';
 import includes from 'lodash.includes';
 import map from 'lodash.map';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -181,12 +178,12 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     }
 
     try {
-      const reactionBodyType = key === 'likes' ? ReactionType.LIKE : ReactionType.RECAST;
-      const reactionBody = { type: reactionBodyType, targetCastId: { fid: Number(authorFid), hash: toBytes(cast.hash) } }
+      const reactionBodyType: 'like' | 'recast' = key === CastReactionType.likes ? 'like' : 'recast';
+      const reaction = { type: reactionBodyType, target: { fid: Number(authorFid), hash: cast.hash } }
       if (isActive) {
-        await removeReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey!, reactionBody });
+        await removeReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey!, reaction });
       } else {
-        await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey!, reactionBody });
+        await publishReaction({ authorFid: userFid, privateKey: selectedAccount.privateKey!, reaction });
       }
     } catch (error) {
       console.error(`Error in onClickReaction: ${error}`);
@@ -257,7 +254,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const renderEmbeds = () => cast.embeds.length > 0 && (
     <div className="mt-4">
       <ErrorBoundary>
-        {map(cast.embeds, renderEmbedForUrl)}
+        {map(cast.embeds, (embed) => <div key={`${cast.hash}-embed-${embed.url}`}>{renderEmbedForUrl(embed)}</div>)}
       </ErrorBoundary>
     </div>);
 

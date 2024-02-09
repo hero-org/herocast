@@ -66,27 +66,6 @@ export const resolveWarpcastUrl = async (url: string): Promise<CastType> => {
     });
 }
 
-
-export const getNeynarCastThreadEndpoint = ({ castHash, fid }: CastThreadEndpointProps): string => {
-  let neynarEndpoint = `${NEYNAR_API_URL}/v1/farcaster/all-casts-in-thread/?api_key=${NEYNAR_API_KEY}&threadHash=${castHash}`;
-
-  if (fid) {
-    neynarEndpoint += `&viewerFid=${fid}`;
-  }
-
-  return neynarEndpoint;
-}
-
-export const getNeynarNotificationsEndpoint = ({ fid, cursor, limit }: NotificationsEndpointProps): string => {
-  let neynarEndpoint = `${NEYNAR_API_URL}/v1/farcaster/mentions-and-replies/?fid=${fid}&api_key=${NEYNAR_API_KEY}&limit=${limit || DEFAULT_FEED_PAGE_SIZE}`;
-
-  if (cursor) {
-    neynarEndpoint += `&cursor=${cursor}`;
-  }
-
-  return neynarEndpoint;
-}
-
 export type UserNeynarV2Type = {
   fid: number;
   custody_address: string;
@@ -106,35 +85,6 @@ export type UserNeynarV2Type = {
     url: string;
   };
 };
-
-// needs search with: &q=${query} to work
-export const getNeynarUserSearchEndpoint = (viewerFid?: string): string => {
-  let neynarEndpoint = `${NEYNAR_API_URL}/v2/farcaster/user/search?api_key=${NEYNAR_API_KEY}`
-
-  if (viewerFid) {
-    neynarEndpoint += `&viewer_fid=${viewerFid}`
-  }
-
-  return neynarEndpoint;
-}
-
-export const fetchUserProfile = async (userFid: string | number, username: string): Promise<UserNeynarV1Type | null> => {
-  const options = {
-    method: 'GET',
-    url: 'https://api.neynar.com/v1/farcaster/user-by-username',
-    params: { username, viewerFid: userFid },
-    headers: { accept: 'application/json', api_key: 'NEYNAR_API_DOCS' }
-  };
-  // const endpoint = getNeynarUserSearchEndpoint(userFid) + `&q=${username}`;
-  return axios.request(options)
-    .then(response => {
-      return response.data.result.user as UserNeynarV1Type;
-    })
-    .catch(error => {
-      console.error(error);
-      return null;
-    });
-}
 
 export type UserNeynarV1Type = {
   fid: number;

@@ -10,29 +10,29 @@ const CastEmbed = ({ url, castId }: { url?: string, castId?: { hash: string, fid
 
   useEffect(() => {
     const getData = async () => {
-      const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
-      
-      let res: CastResponse | null;
-      if (url) {
-        res = await neynarClient.lookUpCastByHashOrWarpcastUrl(url, CastParamType.Url);
-      } else if (castId) {
-        res = await neynarClient.lookUpCastByHashOrWarpcastUrl(castId.hash, CastParamType.Hash);
-      } else {
-        return;
-      }
-      
-      if (res && res.cast) {
-        setCast(res.cast);
+    try {
+        const neynarClient = new NeynarAPIClient(
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        );
+        
+        let res: CastResponse | null;
+        if (url) {
+          res = await neynarClient.lookUpCastByHashOrWarpcastUrl(url, CastParamType.Url);
+        } else if (castId) {
+          res = await neynarClient.lookUpCastByHashOrWarpcastUrl(castId.hash, CastParamType.Hash);
+        } else {
+          return;
+        }
+        
+        if (res && res.cast) {
+          setCast(res.cast);
+        }
+      } catch (err) {
+        console.error(`Error in CastEmbed: ${err}`);
       }
     };
-    
-    try {
+
       getData();
-    } catch (err) {
-      console.error(`Error in CastEmbed: ${err}`);
-    }
   }, []);
 
   if ((!url && !castId) || isEmpty(cast)) return null;

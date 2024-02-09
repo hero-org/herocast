@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
 import { castTextStyle, classNames } from '../../src/common/helpers/css'
-import { getNeynarNotificationsEndpoint } from '../../src/common/helpers/neynar'
 import { useAccountStore } from '../../src/stores/useAccountStore'
 import { SelectableListWithHotkeys } from '../../src/common/components/SelectableListWithHotkeys'
 import { localize, timeDiff } from '../../src/common/helpers/date'
@@ -11,6 +10,8 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { Key } from 'ts-key-enum'
 import { CastType } from '../../src/common/constants/farcaster'
 import ReplyModal from '../../src/common/components/ReplyModal'
+import { NeynarAPIClient } from '@neynar/nodejs-sdk'
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v1'
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
@@ -56,7 +57,7 @@ enum NotificationNavigationEnum {
 
 const Notifications = () => {
   const [navigation, setNavigation] = useState<NotificationNavigationEnum>(NotificationNavigationEnum.mentions);
-  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [notifications, setNotifications] = useState<CastWithInteractions[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
   const [isLeftColumnSelected, setIsLeftColumnSelected] = useState<boolean>(true);
@@ -64,26 +65,25 @@ const Notifications = () => {
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [selectedCast, setSelectedCast] = useState<CastType | null>(null);
 
-  const currentAccountFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
+  const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const now = new Date();
 
   useEffect(() => {
-    if (!currentAccountFid) return;
+    if (!viewerFid) return;
 
     const loadData = async () => {
-      const neynarEndpoint = getNeynarNotificationsEndpoint({ fid: currentAccountFid });
-      await fetch(neynarEndpoint)
-        .then((response) => response.json())
-        .then((resp) => {
-          // console.log(resp.result.notifications)
-          setNotifications(resp.result.notifications);
-        })
-        .catch((error) => {
-          console.log({ error })
-        })
-        .finally(() => {
-          setIsLoading(false)
-        })
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+
+      const resp = await neynarClient.fetchMentionAndReplyNotifications(Number(viewerFid), {
+        viewerFid: Number(viewerFid),
+        limit: 15
+      })
+      if (resp.result.notifications) {
+        setNotifications(resp.result.notifications);
+      }
+      setIsLoading(false)
     }
 
     loadData();
@@ -91,7 +91,7 @@ const Notifications = () => {
     setShowReplyModal(false);
     setIsLeftColumnSelected(true);
     setSelectedNotificationIdx(0);
-  }, [currentAccountFid])
+  }, [viewerFid])
 
   const navigationItems = [
     { name: 'Mentions & Replies', onClick: () => setNavigation(NotificationNavigationEnum.mentions), current: navigation == NotificationNavigationEnum.mentions },
@@ -221,9 +221,10 @@ const Notifications = () => {
       <div className="mt-2">
         <CastThreadView
           cast={{ hash: selectedParentCast.hash, author: selectedParentCast.author }}
-          fid={currentAccountFid}
+          fid={viewerFid}
           isActive={!isLeftColumnSelected}
           setSelectedCast={setSelectedCast}
+          setShowReplyModal={setShowReplyModal}
         />
       </div> : null;
   }

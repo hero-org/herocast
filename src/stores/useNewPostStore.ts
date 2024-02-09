@@ -10,7 +10,7 @@ import {
   getMentionFidsByUsernames,
   formatPlaintextToHubCastMessage,
 } from '@mod-protocol/farcaster';
-import { publishCast, submitCast } from "@/common/helpers/farcaster";
+import { submitCast } from "@/common/helpers/farcaster";
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { CastType } from "@/common/constants/farcaster";
-import { getNeynarCastThreadEndpoint } from "../helpers/neynar";
 import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
 import { useAccountStore } from "@/stores/useAccountStore";
@@ -13,6 +12,9 @@ import { classNames } from "../helpers/css";
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button } from "@/components/ui/button";
+import clsx from "clsx";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1";
 
 type CastThreadViewProps = {
   cast: { hash: string; author: { fid: string } };
@@ -20,6 +22,7 @@ type CastThreadViewProps = {
   fid?: string;
   isActive?: boolean;
   setSelectedCast?: (cast: CastType) => void;
+  setShowReplyModal: (show: boolean) => void;
 };
 
 export const CastThreadView = ({
@@ -28,9 +31,10 @@ export const CastThreadView = ({
   fid,
   isActive,
   setSelectedCast,
+  setShowReplyModal,
 }: CastThreadViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [casts, setCasts] = useState<CastType[]>([]);
+  const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [selectedCastDepth, setSelectedCastDepth] = useState(0);
 
@@ -99,21 +103,18 @@ export const CastThreadView = ({
 
   useEffect(() => {
     const loadData = async () => {
-      const neynarEndpoint = getNeynarCastThreadEndpoint({
-        castHash: cast.hash,
-        fid,
-      });
-      await fetch(neynarEndpoint)
-        .then((response) => response.json())
-        .then((resp) => {
-          setCasts(resp.result.casts);
-        })
-        .catch((error) => {
-          console.log({ error });
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const { result } = await neynarClient.fetchAllCastsInThread(cast.hash, Number(fid));
+      if (result.casts && result.casts.length > 0) {
+        setCasts(result.casts);
+      } else {
+        const castResponse = await neynarClient.lookUpCastByHash(cast.hash, {viewerFid: Number(fid)});
+        setCasts([castResponse.result.cast]);
+      }
+
+      setIsLoading(false);
     };
 
     if (!cast) return;
@@ -180,22 +181,23 @@ export const CastThreadView = ({
                   }
                 />
                 {cast?.children && cast.children.length > 0 && depth < 2 && (
-                  <SelectableListWithHotkeys
-                    data={cast.children}
-                    selectedIdx={selectedCastIdx}
-                    setSelectedIdx={setSelectedCastIdx}
-                    renderRow={(item: any, idx: number) =>
-                      renderRow(item, idx, depth + 1)
-                    }
-                    onSelect={() => onOpenLinkInCast()}
-                    onExpand={() => null}
-                    isActive={isActive && selectedCastDepth === depth}
-                    onDown={() => {
-                      // if cast has children, increase depth and set select index to 0
-                      // what is the current cast? we dont know
-                    }}
-                    onUp={() => console.log("onUp")}
-                  />
+                  <div className={clsx(depth === 1 ? "hidden xl:block": "")}>
+                    <SelectableListWithHotkeys
+                      data={cast.children}
+                      selectedIdx={selectedCastIdx}
+                      setSelectedIdx={setSelectedCastIdx}
+                      renderRow={(item: any, idx: number) =>
+                        renderRow(item, idx, depth + 1)
+                      }
+                      onSelect={() => onOpenLinkInCast()}
+                      onExpand={() => null}
+                      isActive={isActive && selectedCastDepth === depth}
+                      onDown={() => {
+                        // if cast has children, increase depth and set select index to 0
+                        // what is the current cast? we dont know
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             </>
@@ -217,10 +219,27 @@ export const CastThreadView = ({
     />
   );
 
+  const renderReplyButton = (cast: CastType) => {
+    if (!cast) return null;
+    const onClick = () => {
+      setSelectedCast(cast);
+      setShowReplyModal(true);
+    }
+    return (
+    <Button variant="outline" className="mt-4 ml-10 mr-4" onClick={() => onClick()}>
+      Reply
+      <span className="ml-3 flex-none text-xs text-gray-200 bg-gray-600 px-2 py-1 rounded-md">
+        <kbd className="font-mono">r</kbd>
+      </span>
+    </Button>
+  )
+    }
+
   const renderThread = () => (
     <div className="flow-root">
       {renderFeed()}
-      {draftIdx !== -1 && (
+      {renderReplyButton(casts[selectedCastIdx])}
+      {false && draftIdx !== -1 && (
         <div
           className="mt-4 ml-10 mr-4"
           key={`new-post-parentHash-${cast?.hash}`}
