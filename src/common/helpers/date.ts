@@ -26,6 +26,8 @@ export function timeDiff(date1: Date, date2: Date): [number, string] {
  * @return {string} value and unit, taking plurals into account
  */
 export function localize(value: number, str: string): string {
+  if (!value || !str) return '';
+
   if (value != 1 && str.length > 1)
     str += 's';
 

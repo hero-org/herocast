@@ -31,8 +31,8 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
         <span
           onClick={() => onSelect(idx)}
           className={classNames(
-            idx === selectedIdx ? "bg-gray-500 text-gray-300" : "text-gray-400",
-            "cursor-pointer flex text-sm hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5"
+            idx === selectedIdx ? "bg-gray-500 text-foreground/80" : "text-foreground/70",
+            "cursor-pointer flex text-sm hover:text-foreground/80 hover:bg-gray-500 py-1 px-1.5"
           )}>
           {item.url}
         </span>
@@ -62,7 +62,7 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
           isActive={open}
         />
       </div>
-      <span className="ml-1 text-sm text-gray-500">Use J and K no navigate down and up. Enter to open.</span>
+      <span className="ml-1 text-sm text-foreground/80">Use J and K no navigate down and up. Enter to open.</span>
     </Modal>
   )
 };

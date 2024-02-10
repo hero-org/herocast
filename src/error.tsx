@@ -18,12 +18,12 @@ export default function ErrorPage() {
       </header>
       <main className="select-text mx-auto w-full max-w-7xl px-6 py-24 sm:py-32 lg:col-span-2 lg:col-start-1 lg:row-start-2 lg:px-8">
         <div className="max-w-lg">
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-100 sm:text-5xl">Error</h1>
-          <p className="mt-2 text-base leading-7 text-gray-300">
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground/80 sm:text-5xl">Error</h1>
+          <p className="mt-2 text-base leading-7 text-foreground/80">
             {error?.statusText || error?.message || 'Unknown error'}
           </p>
           <div className="mt-10">
-            <a href="/" className="text-sm font-semibold leading-7 text-gray-300">
+            <a href="/" className="text-sm font-semibold leading-7 text-foreground/80">
               <span aria-hidden="true">&larr;</span> Back to home
             </a>
           </div>

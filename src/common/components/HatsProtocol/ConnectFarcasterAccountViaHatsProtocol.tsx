@@ -400,7 +400,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         return (
           <p className="flex">
             <Cog6ToothIcon
-              className="h-5 w-5 text-gray-500 animate-spin"
+              className="h-5 w-5 text-foreground/80 animate-spin"
               aria-hidden="true"
             />
           </p>

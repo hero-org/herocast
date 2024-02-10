@@ -26,13 +26,13 @@ const ChannelsOverview = () => {
             onClick={() => resetSelectedChannel()}
             className={classNames(
               selectedChannelUrl === ''
-                ? 'bg-gray-800 text-gray-100'
-                : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800',
+                ? 'bg-background text-foreground font-semibold'
+                : 'text-foreground/80 hover:text-foreground/80 hover:bg-background',
               'group align-center justify-between flex gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
             )}
           >
             <span className="font-normal truncate">Feed</span>
-            <kbd className="flex flex-nowrap md:w-24 px-1.5 py-0.5 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+            <kbd className="flex flex-nowrap md:w-24 px-1.5 py-0.5 text-xs border rounded-md bg-muted  text-primary border-gray-600">
               Shift + 0
             </kbd>
           </div>
@@ -43,8 +43,8 @@ const ChannelsOverview = () => {
               onClick={() => setSelectedChannelUrl(channel.url)}
               className={classNames(
                 selectedChannelUrl === channel.url
-                  ? 'text-white font-semibold'
-                  : 'text-gray-400 hover:text-white',
+                  ? 'text-foreground font-semibold'
+                  : 'text-foreground/70 hover:text-foreground',
                 'flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
               )}
             >
@@ -67,7 +67,7 @@ const ChannelsOverview = () => {
                   <Tooltip.Portal>
                     <Tooltip.Content
                       align={"center"}
-                      className="flex text-white data-[state=delayed-open]:data-[side=top]:animate-slideDownAndFade data-[state=delayed-open]:data-[side=right]:animate-slideLeftAndFade data-[state=delayed-open]:data-[side=left]:animate-slideRightAndFade data-[state=delayed-open]:data-[side=bottom]:animate-slideUpAndFade text-violet11 select-none rounded-[4px] bg-gray-700 px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity]"
+                      className="flex text-foreground data-[state=delayed-open]:data-[side=top]:animate-slideDownAndFade data-[state=delayed-open]:data-[side=right]:animate-slideLeftAndFade data-[state=delayed-open]:data-[side=left]:animate-slideRightAndFade data-[state=delayed-open]:data-[side=bottom]:animate-slideUpAndFade text-violet11 select-none rounded-[4px] bg-gray-700 px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity]"
                       side="left"
                       sideOffset={5}
                     >
@@ -90,7 +90,7 @@ const ChannelsOverview = () => {
                 </Tooltip.Root>
               </Tooltip.Provider>
               {idx < 9 && (
-                <kbd className="flex flex-nowrap md:w-24 px-1.5 py-0.5 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+                <kbd className="flex flex-nowrap md:w-24 px-1.5 py-0.5 text-xs border rounded-md bg-muted  text-primary border-gray-600">
                   Shift + {idx + 1}
                 </kbd>
               )}

@@ -70,23 +70,23 @@ export default function Settings() {
 
     return (<div className="mt-20 overflow-hidden">
       <div className="border-b border-gray-200">
-        <h1 className="text-xl font-semibold leading-7 text-gray-100">Hotkeys / Keyboard Shortcuts</h1>
+        <h1 className="text-xl font-semibold leading-7 text-foreground/80">Hotkeys / Keyboard Shortcuts</h1>
       </div>
       <div className="px-2 py-4">
-        <h3 className="text-base font-semibold leading-7 text-gray-100">hotkeys overview</h3>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-400">list of all hotkeys in herocast</p>
+        <h3 className="text-base font-semibold leading-7 text-foreground/80">hotkeys overview</h3>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-foreground/70">list of all hotkeys in herocast</p>
       </div>
       <div className="border-t border-gray-600">
         <dl className="divide-y divide-gray-600">
           {commands.map((command) => (
             <div key={`command-${command.name}`} className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-              <dt className="text-sm font-medium text-gray-100">{command.name}</dt>
+              <dt className="text-sm font-medium text-foreground/80">{command.name}</dt>
               {command.shortcut && <dd className="mt-1 text-sm leading-6 text-gray-200 sm:col-span-1 sm:mt-0">{command.shortcut.replace(/\+/g, ' + ')}</dd>}
             </div>
           ))}
           {/* <div className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-            <dt className="text-sm font-medium text-gray-100">About</dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-300 sm:col-span-2 sm:mt-0">
+            <dt className="text-sm font-medium text-foreground/80">About</dt>
+            <dd className="mt-1 text-sm leading-6 text-foreground/80 sm:col-span-2 sm:mt-0">
               Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat. Excepteur
               qui ipsum aliquip consequat sint. Sit id mollit nulla mollit nostrud in ea officia proident. Irure nostrud
               pariatur mollit ad adipisicing reprehenderit deserunt qui eu.
@@ -100,28 +100,28 @@ export default function Settings() {
   return (
     <div className="flex flex-col space-y-4">
       <div className="border-b border-gray-200">
-        <h1 className="text-xl font-semibold leading-7 text-gray-100">Herocast account</h1>
+        <h1 className="text-xl font-semibold leading-7 text-foreground/80">Herocast account</h1>
       </div>
       <div className="flex flex-row mt-4 px-2">
-        <span className="text-sm font-semibold text-gray-100 mr-2">Email</span>
-        <span className="text-sm font-semibold text-gray-400 ">{displayEmail}</span>
+        <span className="text-sm font-semibold text-foreground/80 mr-2">Email</span>
+        <span className="text-sm font-semibold text-foreground/70 ">{displayEmail}</span>
       </div>
       <button
         type="button"
         onClick={() => onLogout()}
-        className="w-20 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+        className="w-20 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
       >
         Logout
       </button>
       {/* <button
         type="button"
         onClick={() => onUpdateAccountStatus()}
-        className="w-48 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+        className="w-48 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
       >
         Update Account Status
       </button> */}
       <div className="border-b border-gray-200">
-        <h1 className="text-xl font-semibold leading-7 text-gray-100">Farcaster accounts</h1>
+        <h1 className="text-xl font-semibold leading-7 text-foreground/80">Farcaster accounts</h1>
       </div>
       <ul role="list" className="divide-y divide-white/5">
         {accounts.map((item: AccountObjectType, idx: number) => (
@@ -130,11 +130,11 @@ export default function Settings() {
               className="flex items-center gap-x-3"
             >
               <h3 className={classNames(
-                "text-gray-100",
+                "text-foreground/80",
                 "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
-              <span className="text-gray-400">{item.status}</span>
+              <span className="text-foreground/70">{item.status}</span>
               {item.platformAccountId && item.status === 'active' && (
-                <p className="truncate text-sm text-gray-500">
+                <p className="truncate text-sm text-foreground/80">
                   fid {item.platformAccountId}
                 </p>
               )}

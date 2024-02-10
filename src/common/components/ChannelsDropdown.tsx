@@ -35,7 +35,7 @@ const ChannelsDropdown = ({ selectedChannel, onChange }: ChannelsComboboxProps) 
           value={selectedChannel?.name}
         />
         <Combobox.Button className="absolute inset-y-0 right-0 flex items-center justify-between rounded-r-md px-2 focus:outline-none">
-          <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <ChevronUpDownIcon className="h-5 w-5 text-foreground/70" aria-hidden="true" />
         </Combobox.Button>
 
         {filteredChannels.length > 0 && (

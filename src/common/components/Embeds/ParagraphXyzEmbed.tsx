@@ -115,7 +115,7 @@ const ParagraphXyzEmbed: React.FC<ParagraphXyzEmbedProps> = ({ url }) => {
     } else if (data.publication) {
       return renderPublication();
     } else {
-      return <p className="text-sm text-gray-300">{url}</p>;
+      return <p className="text-sm text-foreground/80">{url}</p>;
     }
   };
   return <div key={`paragraph-xyz-embed-${url}`}>{renderData()}</div>;

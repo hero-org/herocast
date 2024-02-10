@@ -85,12 +85,13 @@ export default function Login() {
   }, []);
 
   const renderAuthForm = () => (
-    <div className="mt-10 text-lg text-white sm:mx-auto sm:w-full sm:max-w-sm">
+    <div className="mt-10 text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
     <Auth
       supabaseClient={supabaseClient}
       providers={[]}
       appearance={appearance}
       queryParams={queryParams}
+      magicLink
       dark
     />
   </div>
@@ -115,8 +116,8 @@ export default function Login() {
         />
       </div>
       <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <div className="relative h-full flex-col bg-muted p-10 text-white flex dark:border-r">
-          <div className="absolute inset-0 bg-zinc-900" />
+        <div className="relative h-full flex-col bg-muted p-10 text-foreground flex dark:border-r">
+          <div className="absolute inset-0 bg-background" />
           <div className="relative z-20 flex items-center text-lg font-medium">
             herocast
           </div>
@@ -132,7 +133,7 @@ export default function Login() {
         <div className="lg:p-8">
           <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
             <div className="flex flex-col space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                 Welcome to herocast
               </h1>
               <p className="px-8 text-center text-sm text-muted-foreground">
@@ -150,16 +151,16 @@ export default function Login() {
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="mx-auto">
-          <h1 className="text-center text-4xl font-bold tracking-tight text-white sm:text-6xl">
+          <h1 className="text-center text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
             Welcome to herocast
           </h1>
-          <p className="mt-6 text-center text-lg leading-8 text-gray-300">
+          <p className="mt-6 text-center text-lg leading-8 text-foreground/80">
             Sign up or login to get started
           </p>
           {isLoading && (
             <span className="my-4 font-semibold text-gray-200">Loading...</span>
           )}
-          <div className="mt-10 text-lg text-white sm:mx-auto sm:w-full sm:max-w-sm">
+          <div className="mt-10 text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
             <Auth
               supabaseClient={supabaseClient}
               providers={[]}

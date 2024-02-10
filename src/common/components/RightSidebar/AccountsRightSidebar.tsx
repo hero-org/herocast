@@ -45,7 +45,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
           pre-migration account
         </span>
       default:
-        return <span className={classNames("underline flex-none text-sm text-gray-400")}>
+        return <span className={classNames("underline flex-none text-sm text-foreground/70")}>
           {status}
         </span>
     }
@@ -62,19 +62,14 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
                 className="flex items-center gap-x-3 cursor-pointer"
               >
                 <h3 className={classNames(
-                  idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
+                  idx === selectedAccountIdx ? "text-foreground" : "text-foreground/60",
                   "flex-auto truncate text-sm font-semibold leading-6")}>{item.name || 'New Account'}</h3>
                 {renderStatus(item.status)}
                 {item.platform === AccountPlatformType.farcaster_hats_protocol && (
-                  <p className="truncate text-sm text-gray-500">
+                  <p className="truncate text-sm text-foreground">
                     🧢
                   </p>
                 )}
-                {/* {item.platformAccountId && item.status === 'active' && (
-                  <p className="text-sm text-gray-500">
-                    fid {item.platformAccountId}
-                  </p>
-                )} */}
               </div>
             </HotkeyTooltipWrapper>
           </li>
@@ -87,8 +82,8 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     return <div className="mt-4"><ChannelsOverview /></div>;
   }
 
-  return <aside className="min-h-full bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-64 lg:border-l lg:border-white/5">
-    <div className="lg:border-t lg:border-white/5">
+  return <aside className="min-h-full bg-background lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-64 lg:border-l lg:border-white/5">
+    <div className="lg:border-t lg:border-foreground/5">
       <SidebarHeader title="Accounts" />
       {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
       {showChannels && renderChannels()}

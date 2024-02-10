@@ -6,6 +6,7 @@ import CustomToast from "../../src/common/components/CustomToast";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../../src/common/components/HotkeyTooltipWrapper";
+import { Button } from "../../src/components/ui/button";
 
 export default function NewPost() {
   const [showToast, setShowToast] = useState(false);
@@ -23,54 +24,52 @@ export default function NewPost() {
     <>
       <div className="ml-3 flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
         <div className="ml-1 mt-2 w-full flex items-center justify-between">
-          <div className="text-gray-100 font-semibold">
+          <div className="text-foreground/80 font-semibold">
             You have {drafts.length}{" "}
             {drafts.length !== 1 ? "drafts" : "draft"}
           </div>
           <div className="flex ml-8 lg:ml-0">
             <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
               <HotkeyTooltipWrapper hotkey={`c`} side="bottom">
-                <button
+                <Button
                   onClick={() => addNewPostDraft({})}
-                  className={classNames(
-                    "cursor-pointer hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600",
-                    "mr-2 inline-flex items-center rounded-sm bg-gray-700 px-3 py-2 text-sm font-semibold text-white shadow-sm "
-                  )}
+                  className="mr-2 inline-flex items-center"
                 >
                   New draft
                   <PlusCircleIcon
-                    className="hidden md:block ml-1.5 mt-0.5 h-4 w-4 text-gray-100"
+                    className="hidden md:block ml-1.5 mt-0.5 h-4 w-4"
                     aria-hidden="true"
                   />
-                </button>
+                </Button>
               </HotkeyTooltipWrapper>
             </Tooltip.Provider>
 
-            <button
+            <Button
+              variant="outline"
               disabled={drafts.length === 0}
               onClick={() => removeAllPostDrafts()}
               className={classNames(
                 drafts.length > 0
-                  ? "cursor-pointer hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600"
+                  ? "cursor-pointer"
                   : "cursor-default",
-                "inline-flex items-center rounded-sm bg-gray-700 px-3 py-2 text-sm font-semibold text-white shadow-sm "
+                "inline-flex items-center"
               )}
             >
               Remove all drafts
               <TrashIcon
-                className="hidden md:block ml-1.5 mt-0.5 h-4 w-4 text-gray-100"
+                className="hidden md:block ml-1.5 mt-0.5 h-4 w-4"
                 aria-hidden="true"
               />
-            </button>
+            </Button>
           </div>
         </div>
         <div className="divide-y">
           {drafts.map((draft, draftIdx) => (
             <div key={draftIdx} className="pt-4 pb-6">
               {draft.parentCastId?.hash && (
-                <div className="text-gray-400 text-sm mb-2">
+                <div className="text-foreground/70 text-sm mb-2">
                   Replying to{" "}
-                  <span className="text-gray-100">
+                  <span className="text-foreground/80">
                     @{draft.parentCastId?.hash}
                   </span>
                 </div>

@@ -200,14 +200,14 @@ export default function Profile({ profile }) {
               <TabsTrigger
                 key={key}
                 value={FeedTypeEnum[key]}
-                className="text-gray-300 text-center"
+                className="text-foreground/80 text-center"
                 onClick={() => setFeedType(FeedTypeEnum[key])}
               >
                 {FeedTypeEnum[key]}
                 {feedType !== FeedTypeEnum[key] && (
-                  <div className="ml-4 text-gray-500 hidden md:block">
+                  <div className="ml-4 text-foreground/80 hidden md:block">
                     Switch with &nbsp;
-                    <kbd className="px-1 py-0.5 text-xs border rounded-md bg-gray-700 text-gray-500 border-gray-600">
+                    <kbd className="px-1 py-0.5 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
                       Tab
                     </kbd>
                   </div>
@@ -243,7 +243,7 @@ export default function Profile({ profile }) {
                 <h2 className="text-xl font-bold text-gray-200">
                   {profile.displayName}
                 </h2>
-                <span className="text-sm text-gray-300">
+                <span className="text-sm text-foreground/80">
                   @{profile.username}
                 </span>
               </div>
@@ -252,7 +252,7 @@ export default function Profile({ profile }) {
               <FollowButton username={profile.username} />
             )}
           </div>
-          <div className="flex pt-4 text-sm text-gray-300">
+          <div className="flex pt-4 text-sm text-foreground/80">
             <span className="mr-4">
               <strong>{profile.followingCount}</strong> Following
             </span>

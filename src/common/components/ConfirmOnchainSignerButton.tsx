@@ -174,7 +174,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
     return (
         <>
             {address && !idOfUser && (
-                <p className="mb-2 text-sm text-gray-400">Connected wallet {address.slice(0, 6)}...{address.slice(-6)} is not registered on Farcaster</p>
+                <p className="mb-2 text-sm text-foreground/70">Connected wallet {address.slice(0, 6)}...{address.slice(-6)} is not registered on Farcaster</p>
             )}
             <Button
                 variant="default"
@@ -183,10 +183,10 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
                 disabled={!enabled || addKeySignPending || addKeySignSuccess || isError}
             >
                 {isPending && (
-                    <Cog6ToothIcon className="mr-1.5 h-5 w-5 text-gray-500 animate-spin" aria-hidden="true" />
+                    <Cog6ToothIcon className="mr-1.5 h-5 w-5 text-foreground/80 animate-spin" aria-hidden="true" />
                 )}
                 {addKeySignSuccess && (
-                    <CheckIcon className="mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <CheckIcon className="mr-1.5 h-5 w-5 text-foreground/70" aria-hidden="true" />
                 )}
                 {getButtonText()}
             </Button>

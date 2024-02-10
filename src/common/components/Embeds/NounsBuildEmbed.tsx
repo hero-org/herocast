@@ -174,18 +174,18 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
               <div className="h-2 w-2 rounded-full bg-current" />
             </div> */}
               <h1 className="flex gap-x-1 text-base leading-7 ">
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-foreground">
                   {data.dao.name}
                 </span>
                 <span className="text-gray-600">/</span>
-                <span className="font-semibold text-white flex-nowrap">
+                <span className="font-semibold text-foreground flex-nowrap">
                   {proposal?.title || token?.name}
                 </span>
               </h1>
             </div>
             <div className="flex flex-row justify-between">
               {proposal?.proposalNumber && (
-                <p className="text-xs leading-6 text-gray-400">
+                <p className="text-xs leading-6 text-foreground/70">
                   Proposal {proposal.proposalNumber}
                 </p>
               )}
@@ -194,7 +194,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
           <button
             type="button"
             onClick={() => openWindow(url)}
-            className="mt-2 inline-flex items-center rounded-sm bg-gray-600 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+            className="mt-2 inline-flex items-center rounded-sm bg-gray-600 px-2.5 py-1.5 text-sm font-semibold text-foreground shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
           >
             Details
             <ArrowTopRightOnSquareIcon className="w-4 h-4 ml-1" />
@@ -215,22 +215,22 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
                 "border-t border-white/5 py-6 px-4 sm:px-3 lg:px-4"
               )}
             >
-              <p className="text-sm font-medium leading-6 text-gray-400">
+              <p className="text-sm font-medium leading-6 text-foreground/70">
                 {stat.name}
               </p>
               <p className="mt-1 flex items-baseline gap-x-2">
-                <span className="text-2xl font-semibold tracking-tight text-white">
+                <span className="text-2xl font-semibold tracking-tight text-foreground">
                   {stat.value}
                 </span>
               </p>
               {stat.unit ? (
-                <span className="text-sm text-gray-100">{stat.unit}</span>
+                <span className="text-sm text-foreground/80">{stat.unit}</span>
               ) : null}
             </div>
           ))}
           {token?.image && (
             <div className="border-t border-white/5 py-6 px-4 sm:px-6 lg:px-8">
-              <p className="text-sm font-medium leading-6 text-gray-400">
+              <p className="text-sm font-medium leading-6 text-foreground/70">
                 Image
               </p>
               <div className="mt-2 flex items-center gap-x-2">
@@ -245,7 +245,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
 
   return (
     <div
-      className="max-w-fit text-white rounded-lg border border-gray-500"
+      className="max-w-fit text-foreground rounded-lg border border-gray-500"
       key={`nouns-build-embed-${url}`}
     >
       {!isEmpty(data) && renderContent()}

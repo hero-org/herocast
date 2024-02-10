@@ -121,7 +121,7 @@ export default function CommandPalette() {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-zinc-500 bg-opacity-30 transition-opacity" />
+          <div className="fixed inset-0 bg-background/70 bg-opacity-30 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20">
@@ -134,15 +134,15 @@ export default function CommandPalette() {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-98"
           >
-            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-md bg-gray-900 shadow-none transition-all">
+            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-md bg-background shadow-none transition-all">
               <Combobox onChange={(e: any) => { onClick(e) }}>
                 <div className="relative">
                   <MagnifyingGlassIcon
-                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-500"
+                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-foreground/80"
                     aria-hidden="true"
                   />
                   <Combobox.Input
-                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white focus:outline-none focus:ring focus:border-gray-500 sm:text-sm"
+                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-foreground focus:outline-none focus:ring focus:border-gray-500 sm:text-sm"
                     placeholder="Search Herocast..."
                     onChange={(event) => setQuery(event.target.value)}
                   />
@@ -154,7 +154,7 @@ export default function CommandPalette() {
                     className="max-h-80 scroll-py-2 divide-y divide-gray-500 divide-opacity-20 overflow-y-auto"
                   >
                     {/* <li className="p-2">
-                      <ul className="text-sm text-gray-400">
+                      <ul className="text-sm text-foreground/70">
                         {(query !== '' && filteredActions.length > 0).map((action) => (
                           <Combobox.Option
                             key={action.id}
@@ -162,18 +162,18 @@ export default function CommandPalette() {
                             className={({ active }) =>
                               classNames(
                                 'flex cursor-default select-none items-center rounded-md px-3 py-2',
-                                active && 'bg-gray-800 text-white'
+                                active && 'bg-background text-foreground'
                               )
                             }
                           >
                             {({ active }) => (
                               <>
                                 <FolderIcon
-                                  className={classNames('h-6 w-6 flex-none', active ? 'text-white' : 'text-gray-500')}
+                                  className={classNames('h-6 w-6 flex-none', active ? 'text-foreground' : 'text-foreground/80')}
                                   aria-hidden="true"
                                 />
                                 <span className="ml-3 flex-auto truncate">{action.name}</span>
-                                {active && <span className="ml-3 flex-none text-gray-400">Jump to...</span>}
+                                {active && <span className="ml-3 flex-none text-foreground/70">Jump to...</span>}
                               </>
                             )}
                           </Combobox.Option>
@@ -182,7 +182,7 @@ export default function CommandPalette() {
                     </li> */}
                     <li className="p-2">
                       <h2 className="sr-only">Quick actions</h2>
-                      <ul className="text-sm text-gray-400">
+                      <ul className="text-sm text-foreground/70">
                         {(filteredCommands.length > 0 && filteredCommands || commands.slice(0, 7)).map((action) => (
                           <Combobox.Option
                             key={action.name}
@@ -191,20 +191,20 @@ export default function CommandPalette() {
                             className={({ active }) =>
                               classNames(
                                 'flex cursor-default select-none items-center rounded-sm px-3 py-2',
-                                active ? 'bg-gray-800 text-white' : ''
+                                active ? 'bg-background text-foreground' : ''
                               )
                             }
                           >
                             {({ active }) => (
                               <>
                                 {action.icon && <action.icon
-                                  className={classNames('h-6 w-6 flex-none', active ? 'text-white' : 'text-gray-500')}
+                                  className={classNames('h-6 w-6 flex-none', active ? 'text-foreground' : 'text-foreground/80')}
                                   aria-hidden="true"
                                 />}
                                 <span className="ml-3 flex-auto truncate">
                                   {action.name}
                                 </span>
-                                {action.shortcut && (<span className="ml-3 flex-none text-xs text-gray-200 bg-gray-600 px-2 py-1 rounded-md">
+                                {action.shortcut && (<span className="ml-3 flex-none text-xs text-gray-200 bg-muted px-2 py-1 rounded-md">
                                   <kbd className="font-mono">{action.shortcut}</kbd>
                                 </span>)}
                               </>
@@ -219,7 +219,7 @@ export default function CommandPalette() {
 
                 {query !== '' && filteredCommands.length === 0 && (
                   <div className="px-6 py-14 text-center sm:px-14">
-                    <FaceSmileIcon className="mx-auto h-6 w-6 text-gray-500" aria-hidden="true" />
+                    <FaceSmileIcon className="mx-auto h-6 w-6 text-foreground/80" aria-hidden="true" />
                     <p className="mt-4 text-sm text-gray-200">
                       nothing found - submit feedback if something should be here
                     </p>
