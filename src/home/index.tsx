@@ -17,8 +17,8 @@ import { BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from
 import * as Toast from '@radix-ui/react-toast';
 import CustomToast from "../common/components/CustomToast";
 import { useNewPostStore } from "../stores/useNewPostStore";
-import { SidebarHeader } from "../common/components/RightSidebar/SidebarHeader";
 import { useRouter } from "next/router";
+import { ThemeToggle } from "@/common/components/ThemeToggle";
 
 type NavigationItemType = {
   name: string;
@@ -33,11 +33,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const locationHash = asPath.split('#')[1];
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const {
-    accounts,
     allChannels,
-    selectedAccountIdx,
     selectedChannelUrl,
-    setCurrentAccountIdx
   } = useAccountStore();
 
   const selectedChannelIdx = allChannels?.findIndex((channel) => channel.url === selectedChannelUrl);
@@ -221,6 +218,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                               ))}
                             </ul>
                           </li>
+                          <ThemeToggle />
                           {renderAccountSidebar()}
                         </ul>
                       </nav>
@@ -268,6 +266,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   </li>
                 </ul>
               </nav>
+              <ThemeToggle />
             </div>
           </div>
           <div className="lg:pl-48">
