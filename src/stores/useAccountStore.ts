@@ -314,6 +314,7 @@ export const hydrate = async () => {
     .select('*, accounts_to_channel(*, channel(*))')
     .eq('user_id', user?.id)
     .neq('status', AccountStatusType.removed)
+    .order('created_at', { ascending: true });
 
   if (accountError) {
     console.error('error hydrating account store', accountError);

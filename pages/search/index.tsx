@@ -103,14 +103,14 @@ export default function Search() {
         <label htmlFor="desktop-search" className="sr-only">
           Search
         </label>
-        <div className="relative text-gray-300 focus-within:text-gray-100">
+        <div className="relative text-foreground/80 focus-within:text-foreground/80">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <MagnifyingGlassIcon className="h-5 w-5" aria-hidden="true" />
           </div>
           <input
             onChange={(e) => onChange(e.target.value)}
             id="search"
-            className="block w-full rounded-md border-0 bg-white/20 py-2.5 pl-10 pr-3 text-gray-300 placeholder:text-white focus:bg-white/30 focus:text-white focus:ring-0 focus:placeholder:text-gray-200 sm:text-sm sm:leading-6"
+            className="block w-full rounded-md border-0 bg-white/20 py-2.5 pl-10 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/30 focus:text-foreground focus:ring-0 focus:placeholder:text-gray-200 sm:text-sm sm:leading-6"
             placeholder="Search"
             type="search"
             name="search"

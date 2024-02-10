@@ -98,39 +98,6 @@ const Notifications = () => {
     { name: 'Reactions', onClick: () => setNavigation(NotificationNavigationEnum.reactions), current: navigation == NotificationNavigationEnum.reactions },
   ]
 
-  const renderHeader = () => (
-    <>
-      <nav className="min-w-full flex items-center justify-between lg:space-x-8 lg:py-2" aria-label="Global">
-        <div>
-          {navigationItems.map((item) => (
-            <div
-              key={item.name}
-              onClick={() => item.onClick()}
-              className={classNames(
-                item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                'cursor-pointer inline-flex items-center rounded-sm py-2 px-3 text-sm font-medium'
-              )}
-              aria-current={item.current ? 'page' : undefined}
-            >
-              {item.name}
-            </div>
-          ))}
-        </div>
-        <div className="mt-5 flex lg:ml-4 lg:mt-0">
-          {/* <span className="hidden sm:block">
-            <button
-              type="button"
-              className="inline-flex items-center rounded-sm bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-            >
-              <PencilIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
-              Edit
-            </button>
-          </span> */}
-        </div>
-      </nav>
-    </>
-  )
-
   useHotkeys('r', () => {
     setShowReplyModal(true);
   }, [showReplyModal], {
@@ -168,25 +135,25 @@ const Notifications = () => {
       <li key={`notification-${item.hash}-${item.timestamp}`}
         onClick={() => setSelectedNotificationIdx(idx)}
         className={classNames(
-          idx === selectedNotificationIdx ? 'bg-gray-600' : 'cursor-pointer bg-gray-800 hover:bg-gray-700',
+          idx === selectedNotificationIdx ? 'bg-muted' : 'cursor-pointer bg-background/80',
           "flex gap-x-4 px-5 py-4 rounded-sm"
         )}>
         <img
-          className="mt-1.5 rounded-lg h-10 w-10 flex-none bg-gray-50" src={item.author.pfp.url} alt=""
+          className="mt-1.5 rounded-lg h-10 w-10 flex-none bg-background" src={item.author.pfp.url} alt=""
         />
 
         <div className="flex-auto">
           <div className="flex items-center justify-between gap-x-4">
-            <p className="text-sm font-semibold leading-6 text-gray-100">{item.author.username}
-              <span className="ml-1 text-gray-400">
+            <p className="text-sm font-semibold leading-6 text-foreground/80">{item.author.username}
+              <span className="ml-1 text-foreground/70">
                 {item.type === NotificationTypeEnum['cast-reply'] ? 'replied' : 'mentioned you'}
               </span>
             </p>
-            <p className="flex-none text-xs text-gray-400">
+            <p className="flex-none text-xs text-foreground/70">
               <time dateTime={item.timestamp}>{timeAgoStr}</time>
             </p>
           </div>
-          <p className="mt-1 line-clamp-3 text-sm text-gray-300 break-words lg:break-normal" style={castTextStyle}>
+          <p className="mt-1 line-clamp-3 text-sm text-foreground/80 break-words lg:break-normal" style={castTextStyle}>
             {item.text}
           </p>
         </div>
@@ -197,7 +164,7 @@ const Notifications = () => {
   const renderLeftColumn = () => {
     return <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
       <div className={classNames(
-        "overflow-hidden rounded-sm border bg-gray-800",
+        "overflow-hidden rounded-sm border bg-background",
         isLeftColumnSelected ? "border-gray-400" : "border-gray-800"
       )}>
         <div className="divide-y divide-white/5">
@@ -254,7 +221,7 @@ const Notifications = () => {
 
   return <div className="flex min-h-screen min-w-full flex-col">
     {/* {renderHeader()} */}
-    {isLoading && <div className="text-white flex-1 flex items-center justify-center">
+    {isLoading && <div className="text-foreground flex-1 flex items-center justify-center">
       <div className="loader">Loading...</div>
     </div>
     }
@@ -265,7 +232,7 @@ const Notifications = () => {
           {renderMainContent()}
         </main>
       </div>
-    ) : <div className="text-white flex-1 flex items-center justify-center">
+    ) : <div className="text-foreground flex-1 flex items-center justify-center">
       <div className="loader">Coming soon...</div>
     </div>}
     {renderReplyModal()}

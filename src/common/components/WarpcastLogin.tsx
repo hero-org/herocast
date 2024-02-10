@@ -105,7 +105,7 @@ const WarpcastLogin = () => {
             <p className="text-xl text-gray-200">Account {account.name}</p>
             {signerToken && (
               <>
-                <p className="mb-2 text-lg leading-8 text-gray-300">
+                <p className="mb-2 text-lg leading-8 text-foreground/80">
                   Scan the QR code with your mobile camera app to sign in via Warpcast
                 </p>
                 <QrCode deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${signerToken}`} />
@@ -119,13 +119,13 @@ const WarpcastLogin = () => {
   return (
     <div>
       <div className="max-w-md">
-        <label htmlFor="accountName" className="block text-lg font-medium leading-6 text-gray-100">
+        <label htmlFor="accountName" className="block text-lg font-medium leading-6 text-foreground/80">
           Display name
         </label>
         <div className="mt-2 flex rounded-sm shadow-sm">
           <div className="relative flex flex-grow items-stretch focus-within:z-10">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <UserPlusIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              <UserPlusIcon className="h-5 w-5 text-foreground/70" aria-hidden="true" />
             </div>
             <input
               name="accountName"
@@ -137,7 +137,7 @@ const WarpcastLogin = () => {
                 }
                 setAccountName(e.target.value)
               }}
-              className="block w-full rounded-none rounded-l-sm border-0 py-1.5 pl-10 bg-white/5 text-gray-200 ring-1 ring-inset ring-gray-600 placeholder:text-gray-500 focus:ring-1 focus:ring-inset focus:ring-gray-400 sm:text-sm sm:leading-6"
+              className="block w-full rounded-none rounded-l-sm border-0 py-1.5 pl-10 bg-white/5 text-gray-200 ring-1 ring-inset ring-gray-600 placeholder:text-foreground/80 focus:ring-1 focus:ring-inset focus:ring-gray-400 sm:text-sm sm:leading-6"
               placeholder="dwr.eth"
             />
             {errorMessage && (
@@ -147,7 +147,7 @@ const WarpcastLogin = () => {
             )}
             {isLoading && (
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <Cog6ToothIcon className="h-5 w-5 text-gray-500 animate-spin" aria-hidden="true" />
+                <Cog6ToothIcon className="h-5 w-5 text-foreground/80 animate-spin" aria-hidden="true" />
               </div>
             )}
           </div>

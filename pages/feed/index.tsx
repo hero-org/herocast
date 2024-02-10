@@ -207,7 +207,7 @@ export default function Feed() {
           cursor: nextFeedCursor,
         })
       }
-      className="ml-4 my-4 text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500"
+      className="ml-4 my-4 text-foreground/80 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500"
     >
       {getButtonText()}
     </button>
@@ -248,49 +248,49 @@ export default function Feed() {
               <span className="rounded-full bg-green-700/10 px-3 py-1 text-sm font-semibold leading-6 text-green-400 ring-1 ring-inset ring-green-700/20">
                 What&apos;s new
               </span>
-              <span className="inline-flex items-center space-x-2 text-sm font-medium leading-6 text-gray-300">
+              <span className="inline-flex items-center space-x-2 text-sm font-medium leading-6 text-foreground/80">
                 <span>Just shipped an update for you</span>
                 <ChevronRightIcon
-                  className="h-5 w-5 text-gray-500"
+                  className="h-5 w-5 text-foreground/80"
                   aria-hidden="true"
                 />
               </span>
             </a>
           </div>
-          <h1 className="mt-10 text-4xl font-bold tracking-tight text-white sm:text-6xl">
+          <h1 className="mt-10 text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
             Welcome to herocast
           </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-300">
+          <p className="mt-6 text-lg leading-8 text-foreground/80">
             herocast is a desktop Farcaster client for power users aka
             superhuman for Farcaster. <br />
             <br />
             It has support for multiple accounts and can switch channels faster
             than you can say &apos;Memes&apos;. It supports{" "}
-            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
               Cmd + K
             </kbd>{" "}
             (command palette) to control everything. You can navigate with{" "}
-            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
               j
             </kbd>{" "}
             and{" "}
-            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
               k
             </kbd>
             through all lists,{" "}
-            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
               l
             </kbd>{" "}
             to like (lowercase L) and{" "}
-            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
               r
             </kbd>{" "}
             to recast. Switch channels on Feed page with{" "}
-            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
               Shift + 1 to 9
             </kbd>
             . Open external links in a cast with{" "}
-            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+            <kbd className="px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
               Shift + o
             </kbd>
             .
@@ -298,11 +298,11 @@ export default function Feed() {
           <div className="mt-10 flex items-center gap-x-6">
             <button
               onClick={() => router.push("/accounts")}
-              className="flex rounded-sm bg-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+              className="flex rounded-sm bg-green-700 px-5 py-2.5 text-sm font-semibold text-foreground shadow-sm hover:bg-green-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
             >
               Get started{" "}
               <UserPlusIcon
-                className="ml-2 h-5 w-5 text-gray-100"
+                className="ml-2 h-5 w-5 text-foreground/80"
                 aria-hidden="true"
               />
             </button>
@@ -310,7 +310,7 @@ export default function Feed() {
               href="https://paragraph.xyz/@hellno/herocast-log-nr2"
               target="_blank"
               rel="noreferrer"
-              className="rounded-sm px-3.5 py-2 text-sm font-semibold leading-6 text-white outline outline-gray-500"
+              className="rounded-sm px-3.5 py-2 text-sm font-semibold leading-6 text-foreground outline outline-gray-500"
             >
               Learn more <span aria-hidden="true">→</span>
             </a>

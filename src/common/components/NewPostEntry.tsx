@@ -157,7 +157,7 @@ export default function NewPostEntry({
           <EditorContent
             editor={editor}
             autoFocus
-            className="w-full h-full min-h-[150px] text-gray-100"
+            className="w-full h-full min-h-[150px] text-foreground/80"
           />
           <EmbedsEditor
             embeds={[]}
@@ -167,7 +167,7 @@ export default function NewPostEntry({
         </div>
         <div className="flex flex-row pt-2 gap-1">
           {!isReply && !hideChannel && (
-            <div className="text-gray-200">
+            <div className="text-foreground/80">
             <ChannelPicker
               getChannels={getChannels}
               onSelect={setChannel}

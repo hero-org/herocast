@@ -11,15 +11,14 @@ import { classNames } from "../common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "../common/components/RightSidebar/ChannelsRightSidebar";
-import { AccountObjectType, useAccountStore } from "../stores/useAccountStore";
-import { trackPageView } from "../common/helpers/analytics";
+import { useAccountStore } from "../stores/useAccountStore";
 import { findParamInHashUrlPath } from "../common/helpers/navigation";
 import { BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
 import * as Toast from '@radix-ui/react-toast';
 import CustomToast from "../common/components/CustomToast";
 import { useNewPostStore } from "../stores/useNewPostStore";
-import { SidebarHeader } from "../common/components/RightSidebar/SidebarHeader";
 import { useRouter } from "next/router";
+import { ThemeToggle } from "@/common/components/ThemeToggle";
 
 type NavigationItemType = {
   name: string;
@@ -34,11 +33,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const locationHash = asPath.split('#')[1];
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const {
-    accounts,
     allChannels,
-    selectedAccountIdx,
     selectedChannelUrl,
-    setCurrentAccountIdx
   } = useAccountStore();
 
   const selectedChannelIdx = allChannels?.findIndex((channel) => channel.url === selectedChannelUrl);
@@ -124,7 +120,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case RIGHT_SIDEBAR_ENUM.NONE:
         return null;
       default:
-        return <aside className="bg-gray-800 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
+        return <aside className="bg-background lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
           <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
           </header>
         </aside>;
@@ -132,32 +128,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   }
 
   const renderAccountSidebar = () => (
-    <div className="flex flex-col">
-      <SidebarHeader title="Accounts" />
-      <ul role="list" className="mx-4 divide-y divide-white/5">
-        {accounts.map((item: AccountObjectType, idx: number) => (
-          <li key={item.id} className="px-2 py-2 sm:px-3 lg:px-4">
-            <div
-              onClick={() => item.status === "active" && setCurrentAccountIdx(idx)}
-              className="flex items-center gap-x-3 cursor-pointer"
-            >
-              <h3 className={classNames(
-                idx === selectedAccountIdx ? "text-gray-100" : "text-gray-400",
-                "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
-              {item.status !== "active" && (
-                <span className={classNames("underline flex-none text-sm text-gray-400")}>
-                  {item.status}
-                </span>)}
-              {item.platformAccountId && (
-                <p className="mt-1 text-sm text-gray-500">
-                  fid {item.platformAccountId}
-                </p>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <AccountsRightSidebar />
   )
 
   if (pathname === '/login') {
@@ -167,7 +138,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <Toast.Provider swipeDirection="right">
-        <div className="h-full bg-gray-800">
+        <div className="h-full bg-background">
           <Transition.Root show={sidebarOpen} as={Fragment}>
             <Dialog as="div" className="relative z-5 lg:hidden" onClose={setSidebarOpen}>
               <Transition.Child
@@ -179,7 +150,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 leaveFrom="opacity-100"
                 leaveTo="opacity-0"
               >
-                <div className="fixed inset-0 bg-gray-900/80" />
+                <div className="fixed inset-0 bg-background/80" />
               </Transition.Child>
 
               <div className="fixed inset-0 flex">
@@ -205,19 +176,19 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                       <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
                         <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
                           <span className="sr-only">Close sidebar</span>
-                          <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                          <XMarkIcon className="h-6 w-6 text-foreground" aria-hidden="true" />
                         </button>
                       </div>
                     </Transition.Child>
                     {/* Sidebar component, swap this element with another sidebar if you like */}
-                    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 ring-1 ring-gray-700/10">
+                    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
                       <div className="flex h-16 shrink-0 items-center">
                         {/* <img
                         className="h-8 w-auto"
                         src="./src/assets/images/herocast.png"
                         alt="herocast"
                       /> */}
-                        <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
+                        <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
                           herocast
                         </h2>
                       </div>
@@ -235,8 +206,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                                     }}
                                     className={classNames(
                                       item.router === pathname
-                                        ? 'bg-gray-800 text-white'
-                                        : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                        ? 'text-foreground bg-foreground/10'
+                                        : 'text-foreground/70 hover:text-foreground hover:bg-foreground/30',
                                       'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
                                     )}
                                   >
@@ -247,6 +218,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                               ))}
                             </ul>
                           </li>
+                          <ThemeToggle />
                           {renderAccountSidebar()}
                         </ul>
                       </nav>
@@ -262,7 +234,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 ring-1 ring-white/5">
               <div className="flex h-16 shrink-0 items-center">
-                <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
+                <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
                   herocast
                 </h2>
               </div>
@@ -280,8 +252,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                             }}
                             className={classNames(
                               item.router === pathname
-                                ? 'bg-gray-800 text-white'
-                                : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                ? 'bg-foreground/5 text-foreground'
+                                : 'text-foreground/70 hover:text-foreground hover:bg-foreground/10',
                               'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
                             )}
                           >
@@ -294,18 +266,19 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   </li>
                 </ul>
               </nav>
+              <ThemeToggle />
             </div>
           </div>
           <div className="lg:pl-48">
             <main className={classNames(sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "lg:pr-64")}>
               <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">
-                <button type="button" className="-m-2.5 p-2.5 text-white lg:hidden" onClick={() => setSidebarOpen(true)}>
+                <button type="button" className="-m-2.5 p-2.5 text-foreground lg:hidden" onClick={() => setSidebarOpen(true)}>
                   <span className="sr-only">Open sidebar</span>
                   <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                 </button>
-                <h1 className="mx-auto text-2xl font-semibold leading-7 text-white">{title}</h1>
+                <h1 className="mx-auto text-2xl font-semibold leading-7 text-foreground">{title}</h1>
               </header>
-              <div className="w-full max-w-full min-h-screen flex justify-between px-2 border-t border-white/5 ">
+              <div className="w-full max-w-full min-h-screen flex justify-between pr-2 border-t border-white/5 ">
                 {children}
               </div>
             </main>

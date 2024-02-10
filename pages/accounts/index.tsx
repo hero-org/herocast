@@ -159,7 +159,7 @@ export default function Accounts() {
           variant="outline"
           onClick={() => onCreateNewAccount()}
         >
-          <UserPlusIcon className="mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
+          <UserPlusIcon className="mr-1.5 h-5 w-5 text-foreground/70" aria-hidden="true" />
           {isLoading ? 'Creating account...' : 'Connect'}
         </Button>
       </CardFooter>
@@ -190,7 +190,7 @@ export default function Accounts() {
             <div className="w-full border-t border-gray-300" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-gray-800 px-2 text-sm text-gray-500">OR</span>
+            <span className="bg-background px-2 text-sm text-foreground/80">OR</span>
           </div>
         </div>
         <Card className="bg-background text-foreground">
@@ -211,7 +211,7 @@ export default function Accounts() {
     <Card className="min-w-max bg-background text-foreground">
       <CardHeader className="space-y-1">
         <CardTitle className="flex">
-          <CheckCircleIcon className="-mt-0.5 mr-1 h-5 w-5 text-gray-500" aria-hidden="true" />
+          <CheckCircleIcon className="-mt-0.5 mr-1 h-5 w-5 text-foreground/80" aria-hidden="true" />
           Account added to herocast</CardTitle>
         <CardDescription className="text-muted-foreground">You can start casting and browsing your feed</CardDescription>
       </CardHeader>
@@ -220,26 +220,26 @@ export default function Accounts() {
           <Button
             onClick={() => onStartCasting()}
             type="button"
-            className="flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+            className="flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-foreground/80 bg-background/90 focus:outline-none focus:ring-2 focus:ring-gray-600"
           >
             Start casting
-            <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+            <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-foreground/80" aria-hidden="true" />
           </Button>
           <Button
             onClick={() => router.push('/feed')}
             type="button"
-            className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+            className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-foreground/80 bg-background/90 focus:outline-none focus:ring-2 focus:ring-gray-600"
           >
             Scroll your feed
-            <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+            <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4 text-foreground/80" aria-hidden="true" />
           </Button>
           <Button
             onClick={() => router.push('/channels')}
             type="button"
-            className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+            className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-foreground/80 bg-background/90 focus:outline-none focus:ring-2 focus:ring-gray-600"
           >
             Pin your favourite channels
-            <RectangleGroupIcon className="ml-1.5 mt-0.5 h-4 w-4 text-gray-100" aria-hidden="true" />
+            <RectangleGroupIcon className="ml-1.5 mt-0.5 h-4 w-4 text-foreground/80" aria-hidden="true" />
           </Button>
         </div>
       </CardContent>

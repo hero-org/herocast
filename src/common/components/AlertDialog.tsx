@@ -9,7 +9,7 @@ type AlertDialogProps = {
 const AlertDialogDemo = ({ buttonText, onClick }: AlertDialogProps) => (
   <AlertDialog.Root>
     <AlertDialog.Trigger asChild>
-      <button className="text-gray-100 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500">
+      <button className="text-foreground/80 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500">
         {buttonText}
       </button>
     </AlertDialog.Trigger>

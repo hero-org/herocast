@@ -80,7 +80,7 @@ const renderFrame = (
         className="mt-2 h-48 w-48 object-left relative block rounded-sm border-1 border-dashed border-gray-700 py-12 text-center"
       >
         🖼️
-        <span className="mt-2 block text-sm font-semibold text-gray-400">
+        <span className="mt-2 block text-sm font-semibold text-foreground/70">
           Loading Farcaster frame...
         </span>
       </button>
@@ -88,7 +88,7 @@ const renderFrame = (
   };
 
   return (
-    <div className="text-xl text-gray-400">
+    <div className="text-xl text-foreground/70">
       <img
         className="h-full object-cover max-h-48"
         style={{ display: "none" }}
@@ -110,7 +110,7 @@ const renderFrame = (
               >
                 {button.title}
                 {hasHotkeys && (
-                  <kbd className="ml-2 px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-gray-300 border-gray-600">
+                  <kbd className="ml-2 px-1.5 py-1 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
                     {index + 1}
                   </kbd>
                 )}

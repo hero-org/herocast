@@ -156,7 +156,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     channels.find((channel) => channel.url === parentUrl) : undefined;
 
   const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
-    const className = classNames(isActive ? "text-gray-300" : "", "mt-0.5 w-4 h-4 mr-1");
+    const className = classNames(isActive ? "text-foreground/70" : "", "mt-0.5 w-4 h-4 mr-1");
 
     switch (reactionType) {
       case CastReactionType.likes:
@@ -197,7 +197,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   }
 
   const renderReaction = (key: CastReactionType, isActive: boolean, count?: number | string, icon?: JSX.Element) => {
-    return (<div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-gray-400 hover:text-gray-300 hover:bg-gray-500 py-1 px-1.5 rounded-md"
+    return (<div key={`cast-${cast.hash}-${key}`} className="mt-1.5 flex align-center text-sm text-foreground/40 hover:text-foreground hover:bg-background/50 py-1 px-1.5 rounded-md"
       onClick={async (event) => {
         event.stopPropagation()
         onClickReaction(key, isActive);
@@ -270,20 +270,20 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       onClick={() => onSelect && onSelect()}
       className={classNames(
         "py-4 px-2 md:pl-4 lg:pl-6",
-        isSelected ? "bg-gray-700/20" : "hover:bg-gray-700/30 cursor-pointer",
-        isSelected ? "border-l-2 border-gray-200/80" : "border-l-2 border-transparent",
+        isSelected ? "bg-foreground/5" : "cursor-pointer",
+        isSelected ? "border-l-1 border-foreground/10" : "border-l-1 border-transparent",
         "lg:ml-0 grow rounded-r-sm"
       )}>
       <div className="flex items-top gap-x-4">
         <img
-          className='relative h-10 w-10 flex-none bg-gray-50 rounded-full'
+          className='relative h-10 w-10 flex-none bg-background rounded-full'
           src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
         />
         <div className="flex flex-col w-full">
-          <div className="flex flex-row justify-between gap-x-4 leading-5 text-gray-300">
+          <div className="flex flex-row justify-between gap-x-4 leading-5">
             <div className="flex flex-row">
               <ProfileHoverCard username={cast.author.username} userFid={userFid}>
-                <span className="flex font-semibold text-gray-300 truncate cursor-pointer w-full max-w-48 lg:max-w-full">
+                <span className="flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-48 lg:max-w-full">
                   {cast.author.display_name || cast.author.displayName}
                   <span className="hidden font-normal lg:ml-1 lg:block">(@{cast.author.username})
                   </span>
@@ -297,14 +297,14 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
             </div>
             <div className="flex flex-row">
               {cast.timestamp && (
-                <span className="text-sm leading-5 text-gray-300">
+                <span className="text-sm leading-5 text-foreground/50">
                   {timeAgoStr}
                 </span>
               )}
               <a
                 href={`https://warpcast.com/${cast.author.username}/${cast.hash.slice(0, 8)}`}
                 target="_blank" rel="noreferrer"
-                className="text-sm leading-5 text-gray-300"
+                className="text-sm leading-5 text-foreground/50"
                 tabIndex={-1}
               >
                 <ArrowTopRightOnSquareIcon className="mt-0.5 w-4 h-4 ml-1.5" />
@@ -312,7 +312,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
             </div>
           </div>
           <div className="">
-            <div className="mt-2 w-full max-w-xl text-md text-gray-100 break-words lg:break-normal" style={castTextStyle}>
+            <div className="mt-2 w-full max-w-xl text-md text-foreground break-words lg:break-normal" style={castTextStyle}>
               {getText()}
             </div>
             {embedImageUrl && <ImgurImage url={embedImageUrl} />}
