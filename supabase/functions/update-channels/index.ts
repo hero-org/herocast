@@ -3,13 +3,15 @@
 // This enables autocomplete, go to definition, etc.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { findSingle } from "https://deno.land/std@0.168.0/collections/find_single.ts"
 import { corsHeaders } from '../_shared/cors.ts'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from 'npm:@supabase/supabase-js@2'
+
 
 console.log("Hello from updating channels!")
 
 const HYPESHOT_API_ENDPOINT = 'https://www.hypeshot.io/api/getChannels';
-const WARPCAST_CHANNELS_JSON = 'https://raw.githubusercontent.com/neynarxyz/farcaster-channels/main/warpcast.json';
+const WARPCAST_CHANNELS_ENDPOINT = 'https://api.warpcast.com/v2/all-channels';
 
 type ChannelType = {
   url: string;
@@ -42,7 +44,7 @@ serve(async (req) => {
       },
     })
     const data = await res.json();
-    console.log('Hypeshot data', data.items);
+    console.log('Total nr. of Hypeshot channels from API:', data.items.length);
     newChannels = newChannels.concat(data.items.map((channel: any) => ({
       url: channel.parent,
       name: channel.channel_name,
@@ -50,38 +52,57 @@ serve(async (req) => {
       source: `${channel.username} on Hypeshot`,
     })));
 
-    const warpcastChannels = await (await fetch(WARPCAST_CHANNELS_JSON, {
+    const resWarpcast = await (await fetch(WARPCAST_CHANNELS_ENDPOINT, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       }
     })).json();
+    const warpcastChannels = resWarpcast?.result?.channels || [];
+    console.log('Total nr. of Warpcast channels from API:', warpcastChannels.length);
+    
     newChannels = newChannels.concat(warpcastChannels.map((channel: any) => ({
-      url: channel.parent_url,
-      name: channel.name || channel.channel_description,
-      icon_url: channel.image,
+      url: channel.url,
+      name: channel.name,
+      icon_url: channel.imageUrl,
       source: 'Warpcast',
     })));
 
+    let existingChannels = [];
+    let hasMoreChannels = false;
+    console.log('fetching existing channels in DB');
+    do {
+      const start = existingChannels.length;
+      const end = start + 999;
+      const { data, error, count } = await supabaseClient
+        .from('channel')
+        .select('*', { count: 'exact' })
+        .range(start, end);
+      
+      console.log(`existing channels request (${start}, ${end}), got ${count} rows, error ${error}`);
+      if (error) throw error;
+      existingChannels = existingChannels.concat(data);
+      hasMoreChannels = data.length > 0;
+    } while (hasMoreChannels);
+    console.log('existingChannels in DB:', existingChannels.length);
+
     let insertCount = 0;
     for (const newChannel of newChannels) {
-      const newChannelHasIcon = newChannel.icon_url && newChannel.icon_url.length > 0;
-      const existingChannelData = await supabaseClient
-        .from('channel')
-        .select('*')
-        .eq('url', newChannel.url)
-        .then(({ data, error }) => {
-          if (error) throw error
-          console.log('checking for existing channel', newChannel.url, 'data', data, error)
-          return data;
-        })
-      const hasExistingChannel = existingChannelData.length > 0;
-      const shouldUpdateChannelInSupabase = !hasExistingChannel || (newChannelHasIcon && existingChannelData[0].icon_url !== newChannel.icon_url);
-      if (shouldUpdateChannelInSupabase) {
+      const hasExistingChannel = findSingle(existingChannels, (channel) => channel.url === newChannel.url);
+      // const existingChannelData = await supabaseClient
+      //   .from('channel')
+      //   .select('*')
+      //   .eq('url', newChannel.url)
+      //   .then(({ data, error }) => {
+      //     if (error) throw error
+      //     console.log('checking for existing channel', newChannel.url, 'data', data, error)
+      //     return data;
+      //   })
+      // const hasExistingChannel = existingChannelData.length > 0;
+      if (!hasExistingChannel) {
         await supabaseClient
           .from('channel')
-          .upsert({ ...(hasExistingChannel ? existingChannelData[0] : null), ...newChannel })
-          .select()
+          .insert(newChannel)
           .then(({ error, data }) => {
             console.log('insert response - data', data, 'error', error);
             if (error) throw error

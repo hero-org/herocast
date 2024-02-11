@@ -32,7 +32,7 @@ const ChannelsOverview = () => {
             )}
           >
             <span className="font-normal truncate">Feed</span>
-            <kbd className="flex flex-nowrap md:w-24 px-1.5 py-0.5 text-xs border rounded-md bg-muted  text-primary border-gray-600">
+            <kbd className="flex flex-nowrap md:w-24 px-1.5 py-0.5 text-xs border rounded-md bg-muted text-primary border-foreground/60">
               Shift + 0
             </kbd>
           </div>
@@ -90,7 +90,7 @@ const ChannelsOverview = () => {
                 </Tooltip.Root>
               </Tooltip.Provider>
               {idx < 9 && (
-                <kbd className="flex flex-nowrap md:w-24 px-1.5 py-0.5 text-xs border rounded-md bg-muted  text-primary border-gray-600">
+                <kbd className="flex flex-nowrap md:w-24 px-1.5 py-0.5 text-xs border rounded-md bg-muted text-primary border-foreground/60">
                   Shift + {idx + 1}
                 </kbd>
               )}

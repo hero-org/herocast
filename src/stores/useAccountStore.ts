@@ -288,15 +288,22 @@ const store = (set: StoreSet) => ({
 export const useAccountStore = create<AccountStore>()(devtools(mutative(store)));
 
 const fetchAllChannels = async (): Promise<ChannelType[]> => {
-  // console.log('fetchAllChannels start');
-  const { data: channelData, error: channelError }: { data: ChannelType[] | null, error: any } = await supabaseClient
-    .from('channel')
-    .select('*')
-
-  if (channelError) {
-    console.error('error fetching all channels', channelError);
-    return []
-  }
+  let channelData = [];
+  let hasMoreChannels = false;
+  console.log('fetching existing channels in DB');
+  do {
+    const start = channelData.length;
+    const end = start + 999;
+    const { data, error, count } = await supabaseClient
+      .from('channel')
+      .select('*', { count: 'exact' })
+      .range(start, end);
+    
+    console.log(`existing channels request (${start}, ${end}), got ${count} rows, error ${error}`);
+    if (error) throw error;
+    channelData = channelData.concat(data);
+    hasMoreChannels = data.length > 0;
+  } while (hasMoreChannels);
   return channelData || [];
 }
 

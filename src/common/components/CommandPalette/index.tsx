@@ -11,6 +11,8 @@ import commandScore from "command-score";
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useRouter } from 'next/router';
 import { getNavigationCommands } from '@/getNavigationCommands';
+import { useTheme } from 'next-themes';
+import { getThemeCommands } from '@/getThemeCommands';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -36,7 +38,8 @@ export default function CommandPalette() {
     enableOnFormTags: true,
   })
 
-
+  const { setTheme } = useTheme()
+  const themeCommands = getThemeCommands(setTheme);
   const navigationCommands = getNavigationCommands({ router });
 
   let commands: CommandType[] = [
@@ -44,6 +47,7 @@ export default function CommandPalette() {
     ...newPostCommands,
     ...accountCommands,
     ...channelCommands,
+    ...themeCommands,
   ];
 
   for (const command of commands) {
@@ -191,7 +195,7 @@ export default function CommandPalette() {
                             className={({ active }) =>
                               classNames(
                                 'flex cursor-default select-none items-center rounded-sm px-3 py-2',
-                                active ? 'bg-background text-foreground' : ''
+                                active ? 'bg-foreground/5 text-foreground' : 'text-foreground/80'
                               )
                             }
                           >
@@ -204,7 +208,7 @@ export default function CommandPalette() {
                                 <span className="ml-3 flex-auto truncate">
                                   {action.name}
                                 </span>
-                                {action.shortcut && (<span className="ml-3 flex-none text-xs text-gray-200 bg-muted px-2 py-1 rounded-md">
+                                {action.shortcut && (<span className="ml-3 flex-none text-xs px-2 py-1 rounded-md bg-muted text-primary border-foreground/60">
                                   <kbd className="font-mono">{action.shortcut}</kbd>
                                 </span>)}
                               </>

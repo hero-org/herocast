@@ -11,6 +11,8 @@ import {
   formatPlaintextToHubCastMessage,
 } from '@mod-protocol/farcaster';
 import { submitCast } from "@/common/helpers/farcaster";
+import { toHex } from "viem";
+import { CastId, Embed } from "@farcaster/hub-web";
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 
@@ -157,7 +159,14 @@ const store = (set: StoreSet) => ({
 
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
-        const castBody = await formatPlaintextToHubCastMessage({
+        const castBody: {
+            text: string;
+            embeds?: Embed[] | undefined;
+            embedsDeprecated?: string[];
+            mentions?: number[];
+            mentionsPositions?: number[];
+            parentCastId?: CastId | { fid: number, hash: string };
+        } | false = await formatPlaintextToHubCastMessage({
           text: draft.text,
           embeds: draft.embeds,
           getMentionFidsByUsernames: getMentionFids,
@@ -168,6 +177,12 @@ const store = (set: StoreSet) => ({
 
         if (!castBody) {
           throw new Error('Failed to prepare cast');
+        }
+        if (castBody.parentCastId) {
+          castBody.parentCastId = {
+            fid: Number(castBody.parentCastId.fid),
+            hash: toHex(castBody.parentCastId.hash)
+          }
         }
 
         await submitCast({

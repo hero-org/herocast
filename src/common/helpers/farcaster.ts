@@ -76,6 +76,7 @@ type SubmitCastParams = {
   embeds?: Embed[];
   mentions?: number[];
   mentionsPositions?: number[];
+  parentCastId?: CastId;
   fid: number;
   signerPrivateKey: string;
 }
@@ -85,6 +86,7 @@ export const submitCast = async ({
   embeds,
   mentions,
   mentionsPositions,
+  parentCastId,
   signerPrivateKey,
   fid,
 }: SubmitCastParams) => {
@@ -94,7 +96,7 @@ export const submitCast = async ({
   });
   
   const publishCastResponse = await writeClient.submitCast(
-    { text, embeds, mentions, mentionsPositions }, 
+    { text, embeds, mentions, mentionsPositions, parentCastId }, 
     fid, 
     signerPrivateKey
   );

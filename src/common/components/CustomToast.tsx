@@ -28,11 +28,11 @@ const CustomToast = ({ title, description, showToast, setShowToast }: ToastProps
 
   return (
     <Toast.Root
-      className="bg-gray-600 rounded-md shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] p-[15px] grid [grid-template-areas:_'title_action'_'description_action'] grid-cols-[auto_max-content] gap-x-[10px] items-center data-[state=open]:animate-slideIn data-[state=closed]:animate-hide data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-[transform_200ms_ease-out] data-[swipe=end]:animate-swipeOut"
+      className="bg-background rounded-md shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] p-[15px] grid [grid-template-areas:_'title_action'_'description_action'] grid-cols-[auto_max-content] gap-x-[10px] items-center data-[state=open]:animate-slideIn data-[state=closed]:animate-hide data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-[transform_200ms_ease-out] data-[swipe=end]:animate-swipeOut"
       open={showToast}
       onOpenChange={setShowToast}
     >
-      <Toast.Title className="flex [grid-area:_title] font-medium text-radix-slate3 text-[15px]">
+      <Toast.Title className="flex [grid-area:_title] font-medium text-foreground text-[15px]">
         <div className="flex-shrink-0 mr-2">
           <CheckCircleIcon className="h-6 w-6 text-green-400" aria-hidden="true" />
         </div>
@@ -40,7 +40,7 @@ const CustomToast = ({ title, description, showToast, setShowToast }: ToastProps
       </Toast.Title>
       {description && (
         <Toast.Description asChild>
-          <div className="[grid-area:_description] mt-[5px]  text-radix-slate2 text-[13px] leading-[1.3] truncate">
+          <div className="[grid-area:_description] mt-[5px]  text-foreground/80 text-[13px] leading-[1.3] truncate">
             {description}
           </div>
         </Toast.Description>
