@@ -21,7 +21,7 @@ export default function Document() {
         <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
         <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
       </Head>
-      <body style={{backgroundColor: '#1f2937'}}>
+      <body>
         <Main />
         <NextScript />
       </body>
