@@ -79,7 +79,7 @@ serve(async (req) => {
         .select('*', { count: 'exact' })
         .range(start, end);
       
-      console.log(`existing channels request (${start}, ${end}), got ${count} rows, error ${error}`);
+      // console.log(`existing channels request (${start}, ${end}), got ${count} rows, error ${error}`);
       if (error) throw error;
       existingChannels = existingChannels.concat(data);
       hasMoreChannels = data.length > 0;

@@ -32,39 +32,9 @@ const store = (set: StoreSet) => ({
   },
   toggleCommandPalette: () => {
     set((state) => {
-      console.log('useNavStore: toggleCommandPalette');
+      // console.log('useNavStore: toggleCommandPalette');
       state.isCommandPaletteOpen = !state.isCommandPaletteOpen;
     });
   },
-  // toAccounts: () => {
-  //   set((state) => {
-  //     console.log('useNavStore: toAccounts');
-  //     // state.mainNavigation = MAIN_NAVIGATION_ENUM.ACCOUNTS;
-  //     redirect(`/${MAIN_NAVIGATION_ENUM.ACCOUNTS}`)
-  //   });
-  // },
-  // toFeed: () => {
-  //   set((state) => {
-  //     // state.mainNavigation = MAIN_NAVIGATION_ENUM.FEED;
-  //     redirect(`/${MAIN_NAVIGATION_ENUM.FEED}`)
-  //   });
-  // },
-  // toNewPost: () => {
-  //   set((state) => {
-  //     state.mainNavigation = MAIN_NAVIGATION_ENUM.NEW_POST;
-  //   });
-  // },
-  // toReplies: () => {
-  //   set((state) => {
-  //     state.mainNavigation = MAIN_NAVIGATION_ENUM.REPLIES;
-  //   });
-  // },
-  // toSettings: () => {
-  //   set((state) => {
-  //     console.log('useNavStore: toSettings')
-  //     // state.mainNavigation = MAIN_NAVIGATION_ENUM.SETTINGS;
-  //     redirect(`/${MAIN_NAVIGATION_ENUM.FEED}`)
-  //   });
-  // },
 });
 export const useNavigationStore = create<NavigationStore>()(devtools(mutative(store)));
