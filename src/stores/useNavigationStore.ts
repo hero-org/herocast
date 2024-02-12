@@ -32,7 +32,7 @@ const store = (set: StoreSet) => ({
   },
   toggleCommandPalette: () => {
     set((state) => {
-      // console.log('useNavStore: toggleCommandPalette');
+      
       state.isCommandPaletteOpen = !state.isCommandPaletteOpen;
     });
   },
