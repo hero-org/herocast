@@ -1,6 +1,7 @@
 import axios from "axios";
-import { Embed } from "@farcaster/hub-web";
-import { CastId, HubRestAPIClient } from '@standard-crypto/farcaster-js-hub-rest';
+import { CastAddBody, Embed, Message, NobleEd25519Signer, hexStringToBytes, makeCastAdd } from "@farcaster/hub-web";
+import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
+import { toBytes } from "viem";
 
 const axiosInstance = axios.create({
   headers: { 
@@ -77,6 +78,7 @@ type SubmitCastParams = {
   mentions?: number[];
   mentionsPositions?: number[];
   parentCastId?: CastId;
+  parentUrl?: string;
   fid: number;
   signerPrivateKey: string;
 }
@@ -87,6 +89,7 @@ export const submitCast = async ({
   mentions,
   mentionsPositions,
   parentCastId,
+  parentUrl,
   signerPrivateKey,
   fid,
 }: SubmitCastParams) => {
@@ -94,12 +97,54 @@ export const submitCast = async ({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
     axiosInstance 
   });
-  
-  const publishCastResponse = await writeClient.submitCast(
-    { text, embeds, mentions, mentionsPositions, parentCastId }, 
-    fid, 
-    signerPrivateKey
+
+  // const publishCastResponse = await writeClient.submitCast(
+  //   { text, embeds, mentions, mentionsPositions, parentCastId }, 
+  //   fid, 
+  //   signerPrivateKey
+  // );
+
+  // below is copy and adapted from farcaster-js, because the package is missing parentUrl parameter
+  // https://github.com/standard-crypto/farcaster-js/blob/be57dedec70ebadbb55118d3a64143457102adb4/packages/farcaster-js-hub-rest/src/hubRestApiClient.ts#L173
+
+  const dataOptions = {
+    fid: fid,
+    network: 1,
+  };
+  const castAdd: CastAddBody = {
+    text,
+    embeds: embeds ?? [],
+    embedsDeprecated: [],
+    mentions: mentions ?? [],
+    mentionsPositions: mentionsPositions ?? [],
+    parentUrl,
+  };
+  if (parentCastId !== undefined) {
+    const parentHashBytes = hexStringToBytes(parentCastId.hash);
+    const parentFid = parentCastId.fid;
+    parentHashBytes.match(bytes => {
+      castAdd.parentCastId = {
+        fid: parentFid,
+        hash: bytes,
+      };
+    }, (err) => {
+      throw err;
+    });
+  }
+  const msg = await makeCastAdd(
+    castAdd,
+    dataOptions,
+    new NobleEd25519Signer(toBytes(signerPrivateKey))
   );
+  if (msg.isErr()) {
+    throw msg.error;
+  }
+  const messageBytes = Buffer.from(Message.encode(msg.value).finish());
+
+  const response = await writeClient.apis.submitMessage.submitMessage({
+    body: messageBytes,
+  });
+  const publishCastResponse  = response.data as CastAdd;
   console.log(`new cast hash: ${publishCastResponse.hash}`);
 }
 

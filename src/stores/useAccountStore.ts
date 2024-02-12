@@ -299,7 +299,6 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
       .select('*', { count: 'exact' })
       .range(start, end);
     
-    console.log(`existing channels request (${start}, ${end}), got ${count} rows, error ${error}`);
     if (error) throw error;
     channelData = channelData.concat(data);
     hasMoreChannels = data.length > 0;
@@ -367,7 +366,7 @@ export const hydrate = async () => {
     selectedAccountIdx: 0,
     hydrated: true
   });
-  console.log('done hydrating account store')
+  console.log('done hydrating 🌊 happy casting')
 }
 
 const switchAccountTo = (idx: number) => {
