@@ -398,7 +398,7 @@
     ethereum-cryptography "^2.0.0"
     micro-ftch "^0.3.1"
 
-"@farcaster/core@^0.13.5", "@farcaster/core@^0.13.7":
+"@farcaster/core@^0.13.5":
   version "0.13.7"
   resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.13.7.tgz#b27ed3486292bff304029b99ad7048f8561c5205"
   integrity sha512-TMvVrlnGAWdHWCe36doFIMT7oj7HdN94rxdME5MDM+EKQyj4E9bgMghh/3il0waMr6PPG5ZlE4rJrhnTYqaIAw==
@@ -410,12 +410,24 @@
     ref-napi "^3.0.3"
     viem "^1.12.2"
 
-"@farcaster/hub-web@^0.7.2":
-  version "0.7.5"
-  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.7.5.tgz#2dda40e438471d291f2b27262a1d2ea4782b4878"
-  integrity sha512-dcm4RI8LEjG38oybbqYnimERg1s7NirHXbRgN4ZEoLkBC2agMM3sk36ACzyn7NqB5AFhL/lBVCTKp1XelDKbfA==
+"@farcaster/core@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.14.0.tgz#cd75058d24e95cc0640c77756e10692c72a52365"
+  integrity sha512-2K0hxvToytt37NGC0yrOOS09FC4FSZjdqmdr4/2ZGGTVaG0VXGOUxZGOMZSsm9wkBIvGHQ3s/nCFYiQrH2ZhZQ==
   dependencies:
-    "@farcaster/core" "^0.13.7"
+    "@noble/curves" "^1.0.0"
+    "@noble/hashes" "^1.3.0"
+    ffi-napi "^4.0.3"
+    neverthrow "^6.0.0"
+    ref-napi "^3.0.3"
+    viem "^1.12.2"
+
+"@farcaster/hub-web@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.8.0.tgz#eddfc3b97aa7e317caf04ae9a11b2f56b6623eda"
+  integrity sha512-bVSXvCAtcxCIVtrtlrTs2IAHiiSj2SAVgwFO4+VQFAW0kKJu67fke9trPn9v8/MR8Tn7JcNTUNYHgkp+Zr9khA==
+  dependencies:
+    "@farcaster/core" "^0.14.0"
     "@improbable-eng/grpc-web" "^0.15.0"
     rxjs "^7.8.0"
 
