@@ -801,13 +801,6 @@
     tailwindcss-animate "^1.0.6"
     video.js "^8.0.4"
 
-"@mod-protocol/react@^0.1.0":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/react/-/react-0.1.3.tgz#084232937306b774ddea3ae4f0e1c149a9b7b392"
-  integrity sha512-wzbRuzF/h0RFJM39Hp0mj2xLKBPP43jAVyFEiCeWqe0Lvl7+5Bns4h3ZebZ4JzsqM+9XqwucuOPxFv8MI07Utw==
-  dependencies:
-    "@mod-protocol/core" "*"
-
 "@mod-protocol/react@^0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@mod-protocol/react/-/react-0.2.0.tgz#5a2fa364936d50a5f704c6ecdd5a94ceb90e222e"
