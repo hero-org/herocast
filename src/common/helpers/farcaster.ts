@@ -1,12 +1,17 @@
 import axios from "axios";
-import { CastAddBody, Embed, Message, NobleEd25519Signer, hexStringToBytes, makeCastAdd } from "@farcaster/hub-web";
+import { CastAddBody, Embed, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, ViemLocalEip712Signer, hexStringToBytes, keyGatewayABI, makeCastAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
 import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
-import { toBytes } from "viem";
+import { encodeAbiParameters, toBytes } from "viem";
+import { publicClient } from "./rainbowkit";
+import { mnemonicToAccount } from "viem/accounts";
+import { readContract } from "viem/actions";
+
+export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 
 const axiosInstance = axios.create({
-  headers: { 
+  headers: {
     'Content-Type': 'application/json',
-    'api_key': process.env.NEXT_PUBLIC_NEYNAR_API_KEY 
+    'api_key': process.env.NEXT_PUBLIC_NEYNAR_API_KEY
   }
 });
 
@@ -16,7 +21,7 @@ type PublishReactionParams = {
   reaction: {
     type: 'like' | 'recast';
     target: CastId | {
-        url: string;
+      url: string;
     };
   };
 };
@@ -27,34 +32,34 @@ type RemoveReactionParams = {
   reaction: {
     type: 'like' | 'recast';
     target: CastId | {
-        url: string;
+      url: string;
     };
   };
 }
 
 export const removeReaction = async ({ authorFid, privateKey, reaction }: RemoveReactionParams) => {
-  const writeClient = new HubRestAPIClient({ 
+  const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance 
+    axiosInstance
   });
-  
+
   const submitReactionResponse = await writeClient.removeReaction(
-    reaction, 
-    authorFid, 
+    reaction,
+    authorFid,
     privateKey
   );
   console.log(`new reaction hash: ${submitReactionResponse.hash}`)
 };
 
 export const publishReaction = async ({ authorFid, privateKey, reaction }: PublishReactionParams) => {
-  const writeClient = new HubRestAPIClient({ 
+  const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance 
+    axiosInstance
   });
-  
+
   const submitReactionResponse = await writeClient.submitReaction(
-    reaction, 
-    authorFid, 
+    reaction,
+    authorFid,
     privateKey
   );
   console.log(`new reaction hash: ${submitReactionResponse.hash}`);
@@ -93,9 +98,9 @@ export const submitCast = async ({
   signerPrivateKey,
   fid,
 }: SubmitCastParams) => {
-  const writeClient = new HubRestAPIClient({ 
+  const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance 
+    axiosInstance
   });
 
   // const publishCastResponse = await writeClient.submitCast(
@@ -144,14 +149,91 @@ export const submitCast = async ({
   const response = await writeClient.apis.submitMessage.submitMessage({
     body: messageBytes,
   });
-  const publishCastResponse  = response.data as CastAdd;
+  const publishCastResponse = response.data as CastAdd;
   console.log(`new cast hash: ${publishCastResponse.hash}`);
 }
 
 
-export const getDeadline = () => {
+export const getDeadline = (): bigint => {
   const now = Math.floor(Date.now() / 1000);
   const oneHour = 60 * 60;
-  return now + oneHour;
+  return BigInt(now + oneHour);
 };
 
+
+export const readNoncesFromKeyGateway = async (account: `0x${string}`) => {
+  return await publicClient.readContract({
+    abi: keyGatewayABI,
+    address: KEY_GATEWAY_ADDRESS,
+    functionName: "nonces",
+    args: [account],
+  });
+};
+
+
+export async function isValidSignedKeyRequest(
+  config,
+  fid: bigint,
+  key: `0x${string}`,
+  signedKeyRequest: `0x${string}`
+): Promise<boolean> {
+  const res = await readContract(config, {
+    address: SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
+    abi: signedKeyRequestValidatorABI,
+    functionName: "validate",
+    args: [fid, key, signedKeyRequest],
+  });
+  return res;
+}
+
+export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey: `0x${string}`, deadline: bigint) => {
+  const appAccount = mnemonicToAccount(process.env.NEXT_PUBLIC_APP_MNENOMIC!);
+  const fid = BigInt(process.env.NEXT_PUBLIC_APP_FID!);
+
+  const signature = await appAccount.signTypedData({
+    domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
+    types: {
+      SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
+    },
+    primaryType: "SignedKeyRequest",
+    message: {
+      requestFid: fid,
+      key: signerPublicKey,
+      deadline,
+    },
+  });
+
+  return encodeAbiParameters(
+    [
+      {
+        components: [
+          {
+            name: "requestFid",
+            type: "uint256",
+          },
+          {
+            name: "requestSigner",
+            type: "address",
+          },
+          {
+            name: "signature",
+            type: "bytes",
+          },
+          {
+            name: "deadline",
+            type: "uint256",
+          },
+        ],
+        type: "tuple",
+      },
+    ],
+    [
+      {
+        requestFid: fid,
+        requestSigner: appAccount.address,
+        signature,
+        deadline,
+      },
+    ]
+  );
+}

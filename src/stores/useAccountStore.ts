@@ -38,7 +38,7 @@ export type AccountObjectType = {
   platformAccountId?: string;
   privateKey?: `0x${string}`;
   createdAt?: string;
-  data?: { deeplinkUrl: string, signerToken: string };
+  data?: { deeplinkUrl?: string, signerToken?: string };
   channels: AccountChannelType[];
 }
 
@@ -51,7 +51,7 @@ interface AccountStoreProps {
 }
 
 interface AccountStoreActions {
-  addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey?: string, data?: object }) => void;
+  addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey?: string }) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: number, name: string, data: { platform_account_id: string, data: object }) => void;
@@ -88,7 +88,7 @@ type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   ...initialState,
-  addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => {
+  addAccount: (account: AccountObjectType & { privateKey: string }) => {
     supabaseClient
       .from('accounts')
       .insert({
@@ -96,7 +96,7 @@ const store = (set: StoreSet) => ({
         status: account.status,
         public_key: account.publicKey,
         platform: account.platform,
-        data: account.data,
+        data: account.data || {},
         private_key: account.privateKey,
       })
       .select()
