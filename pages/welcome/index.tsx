@@ -1,9 +1,13 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
 import StepSequence from "@/common/components/Steps/StepSequence";
 import WalletLogin from "@/common/components/WalletLogin";
 import CreateFarcasterAccountForm from "@/common/components/CreateFarcasterAccountForm";
 import { useAccount } from "wagmi";
+import Image from "next/image";
+import { useRouter } from "next/router";
 
 enum OnboardingNav {
   login = "LOGIN",
@@ -37,8 +41,9 @@ const onboardingNavItems = [
 
 export default function Welcome() {
   const { isConnected } = useAccount();
-  const [step, setStep] = useState<string>(onboardingNavItems[0].key);
-
+  const [step, setStep] = useState<string>(onboardingNavItems[1].key);
+  const router = useRouter();
+  
   useEffect(() => {
     if (isConnected && step === OnboardingNav.connect_wallet) {
       setStep(OnboardingNav.create_account);
@@ -57,6 +62,25 @@ export default function Welcome() {
       </div>
       <Separator />
       {children}
+    </div>
+  );
+
+  const renderExplainer = () => (
+    <div>
+      <h3 className="mb-4 text-lg font-medium">
+        You are fully onboarded to herocast 🥳
+      </h3>
+      <div className="flex items-center space-x-2">
+        <Button variant="default" onClick={() => router.push('/feed')}>Start exploring your feed</Button>
+        <Button variant="outline" onClick={() => router.push('/post')}>Post your first cast</Button>
+        </div>
+      <div className="mt-12 space-y-4">
+        <div className="w-[800px]">
+          <AspectRatio ratio={16 / 9}>
+            <Image width="1000" height="1000" src="https://images.unsplash.com/photo-1494523374364-46c364c83b60?q=80&w=2532&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Image" className="rounded-md object-cover" />
+          </AspectRatio>
+        </div>
+      </div>
     </div>
   );
 
@@ -85,7 +109,7 @@ export default function Welcome() {
         return getStepContent(
           "Let's go 🤩",
           "You just created your Farcaster account",
-          <div></div>
+          renderExplainer()
         );
       default:
         return <></>;

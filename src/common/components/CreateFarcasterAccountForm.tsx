@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
   Form,
@@ -31,6 +31,7 @@ import {
   getDeadline,
   getSignedKeyRequestMetadataFromAppAccount,
   readNoncesFromKeyGateway,
+  validateUsernameIsAvailable,
 } from "../helpers/farcaster";
 import { toBytes, toHex } from "viem";
 import { useAccountStore } from "@/stores/useAccountStore";
@@ -38,6 +39,7 @@ import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { generateKeyPair } from "../helpers/warpcastLogin";
 import { writeContract } from "@wagmi/core";
 import ShowLinkCard from "./ShowLinkCard";
+import debounce from "lodash.debounce";
 
 export type FarcasterAccountSetupFormValues = z.infer<
   typeof FarcasterAccountSetupFormSchema
@@ -52,10 +54,10 @@ const FarcasterAccountSetupFormSchema = z.object({
     .max(30, {
       message: "Username must not be longer than 30 characters.",
     }),
-  //   displayName: z.string().min(5, {
-  //     message: "Display name must be at least 5 characters",
-  //   }),
-  //   bio: z.string().max(160).min(4),
+    displayName: z.string().min(5, {
+      message: "Display name must be at least 5 characters",
+    }),
+    bio: z.string().max(160).min(4),
 });
 
 const CreateFarcasterAccountForm = ({
@@ -72,7 +74,9 @@ const CreateFarcasterAccountForm = ({
     resolver: zodResolver(FarcasterAccountSetupFormSchema),
     defaultValues: { username: "hellyes" },
     mode: "onChange",
+    // validate: () => null,
   });
+  const username = useWatch({ name: "username", control: form.control });
   const canSubmitForm = !isPending && isConnected;
   const { accounts, addAccount, setAccountActive } = useAccountStore();
 
@@ -97,10 +101,37 @@ const CreateFarcasterAccountForm = ({
     }
   }, [transactionHash, transactionResult]);
 
+  useEffect(() => {
+    const checkIfUsernameIsAvailable = async () => {
+      // console.log('useEffect checkIfUsernameIsAvailable', username);
+      const isValid = await validateUsernameIsAvailable(username);
+      if (!isValid) {
+        // this setting form error doesn't work for some reason
+        form.setError("username", {
+          type: "manual",
+          message: `Username ${username} is already taken`,
+        });
+      }
+    }
+
+    checkIfUsernameIsAvailable();
+  }, [username]);
+
   const createFarcasterAccount = async (data) => {
     if (!address) return;
 
     setIsPending(true);
+    
+    const isValidNewUsername = await validateUsernameIsAvailable(data.username);
+    if (!isValidNewUsername) {
+      form.setError("username", {
+        type: "manual",
+        message: "Username is already taken",
+      });
+      setIsPending(false);
+      return;
+    }
+    
     console.log("createFarcasterAccount", data);
     let hexStringPublicKey: `0x${string}`, hexStringPrivateKey: `0x${string}`;
 

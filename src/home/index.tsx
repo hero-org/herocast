@@ -183,11 +183,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     {/* Sidebar component, swap this element with another sidebar if you like */}
                     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
                       <div className="flex h-16 shrink-0 items-center">
-                        {/* <img
+                        <img
                         className="h-8 w-auto"
                         src="./src/assets/images/herocast.png"
                         alt="herocast"
-                      /> */}
+                      />
                         <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
                           herocast
                         </h2>

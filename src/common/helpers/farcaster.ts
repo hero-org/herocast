@@ -237,3 +237,35 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey:
     ]
   );
 }
+
+const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';
+
+
+// example implementation here:
+// https://github.com/us3r-network/u3/blob/a6910b01fa0cf5cdba384f935544c6ba94dc7d64/apps/u3/src/components/social/farcaster/signupv2/FnameRegister.tsx
+
+export const validateUsernameIsAvailable = async (username: string) => {
+  console.log('validateUsernameIsAvailable', username);
+  return false;
+
+  const response = await axios.get(`${FARCASTER_FNAME_ENDPOINT}?name=${username}`);
+  return response.data;
+};
+
+export const updateUsername = async (fid: number, privateKey: string, username: string) => {
+  // To register a new fid, e.g. hubble, first make sure the fname is not already registered.
+  // Then make a POST request to /transfers with the following body:
+
+  // {
+  //   "name": "hubble", // Name to register
+  //   "from": 0,  // Fid to transfer from (0 for a new registration)
+  //   "to": 123, // Fid to transfer to (0 to unregister)
+  //   "fid": 123, // Fid making the request (must match from or to)
+  //   "owner": "0x...", // Custody address of fid making the request
+  //   "timestamp": 1641234567,  // Current timestamp in seconds
+  //   "signature": "0x..."  // EIP-712 signature signed by the custody address of the fid
+  // }
+
+  const timestamp = Math.floor(Date.now() / 1000);
+
+};
