@@ -1935,10 +1935,10 @@
     "@radix-ui/react-visually-hidden" "^1.0.3"
     classnames "^2.3.2"
 
-"@rainbow-me/rainbowkit@^2.0.0-beta.1":
-  version "2.0.0-beta.4"
-  resolved "https://registry.yarnpkg.com/@rainbow-me/rainbowkit/-/rainbowkit-2.0.0-beta.4.tgz#47535abc6b33bca736c28823ec9d55670fc388eb"
-  integrity sha512-1hfyZlxVcPqybfB5nPsINGIGu1vvK2uXnkBgwbEOyaWXO52giVGPZ2Nillq0kdXn3lFircWTPNF9TnIcqdgCgw==
+"@rainbow-me/rainbowkit@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@rainbow-me/rainbowkit/-/rainbowkit-2.0.0.tgz#5ff8487b0f25b159963ee8750396b2db86491c79"
+  integrity sha512-M25y8twG7iL5P5I5Zml/dyl9ISZQYjODpxdstyMxb5pOl7qPg+sl4f/b18ZEPjdcgJ7751HMSirt25WtfPFSMQ==
   dependencies:
     "@vanilla-extract/css" "1.14.0"
     "@vanilla-extract/dynamic" "2.1.0"
