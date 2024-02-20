@@ -30,9 +30,7 @@ import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>();
-  const [transactionHash, setTransactionHash] = useState<`0x${string}`>(
-    "0xca81ef45354227be7dccec4938e2ba6f2f413a11d4720c441e87b8656d379d3d"
-  );
+  const [transactionHash, setTransactionHash] = useState<`0x${string}`>("");
   const { address, isConnected } = useAccount();
   const walletClient = useWalletClient();
 
