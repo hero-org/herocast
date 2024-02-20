@@ -7,8 +7,6 @@ import get from "lodash.get";
 import { useRouter } from "next/router";
 import Image from "next/image"
 import Link from "next/link"
-import { classNames } from "../../src/common/helpers/css";
-import { buttonVariants } from "@/components/ui/button";
 
 const appearance = {
   extend: true,
@@ -99,22 +97,6 @@ export default function Login() {
 
   return (
     <div className="w-full max-w-full min-h-screen">
-      <div className="md:hidden">
-        <Image
-          src="/examples/authentication-light.png"
-          width={1280}
-          height={843}
-          alt="Authentication"
-          className="block dark:hidden"
-        />
-        <Image
-          src="/examples/authentication-dark.png"
-          width={1280}
-          height={843}
-          alt="Authentication"
-          className="hidden dark:block"
-        />
-      </div>
       <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
         <div className="relative h-full flex-col bg-muted p-10 text-foreground flex dark:border-r">
           <div className="absolute inset-0 bg-background" />
@@ -130,10 +112,10 @@ export default function Login() {
             </blockquote>
           </div>
         </div>
-        <div className="lg:p-8">
+        <div className="bg-gray-900 h-full w-full p-8 lg:pt-24">
           <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
             <div className="flex flex-col space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              <h1 className="text-2xl font-semibold tracking-tight text-gray-100">
                 Welcome to herocast
               </h1>
               <p className="px-8 text-center text-sm text-muted-foreground">
@@ -146,31 +128,4 @@ export default function Login() {
       </div>
     </div>
   )
-
-  return (
-    <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="mx-auto">
-          <h1 className="text-center text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
-            Welcome to herocast
-          </h1>
-          <p className="mt-6 text-center text-lg leading-8 text-foreground/80">
-            Sign up or login to get started
-          </p>
-          {isLoading && (
-            <span className="my-4 font-semibold text-gray-200">Loading...</span>
-          )}
-          <div className="mt-10 text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
-            <Auth
-              supabaseClient={supabaseClient}
-              providers={[]}
-              appearance={appearance}
-              queryParams={queryParams}
-              dark
-            />
-          </div>
-        </div>
-      </div>
-    </>
-  );
 }

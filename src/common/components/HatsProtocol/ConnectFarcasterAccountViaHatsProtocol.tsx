@@ -37,7 +37,7 @@ import {
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { config, publicClient } from "@/common/helpers/rainbowkit";
 import {
-  getDeadline,
+  getDeadline, isValidSignedKeyRequest,
 } from "@/common/helpers/farcaster";
 import { writeContract } from "@wagmi/core";
 import { generateKeyPair } from "@/common/helpers/warpcastLogin";
@@ -109,30 +109,6 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
 
 const SIGNED_KEY_REQUEST_TYPEHASH =
       "0x16be47f1f1f50a66a48db64eba3fd35c21439c23622e513aab5b902018aec438";
-    
-const readNoncesFromKeyGateway = async (account: `0x${string}`) => {
-  return await publicClient.readContract({
-    abi: keyGatewayABI,
-    address: KEY_GATEWAY_ADDRESS,
-    functionName: "nonces",
-    args: [account],
-  });
-};
-
-async function isValidSignedKeyRequest(
-  fid: bigint,
-  key: `0x${string}`,
-  signedKeyRequest: `0x${string}`
-): Promise<boolean> {
-  const res = await readContract(config, {
-    address: SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
-    abi: signedKeyRequestValidatorABI,
-    functionName: "validate",
-    args: [fid, key, signedKeyRequest],
-  });
-  console.log("isValidSignedKeyRequest result", res);
-  return res;
-}
 
 async function isValidSigner(
   contractAddress: `0x${string}`,
@@ -348,6 +324,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     );
     // console.log('isMetadataSignatureValid', await isValidSignature(delegatorContractAddress, metadataHash, metadata));
     const isValidSignedKeyReq = await isValidSignedKeyRequest(
+      config,
       fid,
       hexStringPublicKey,
       metadata
@@ -518,7 +495,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const buttonLabel = getButtonLabel();
   return (
     <div className="flex w-full max-w-xl">
-      <Card className="bg-background text-foreground">
+      <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
             Connect your Farcaster Account with Hats Protocol 🧢 (beta)

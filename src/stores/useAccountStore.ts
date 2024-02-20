@@ -11,6 +11,8 @@ import findIndex from 'lodash.findindex';
 import sortBy from "lodash.sortby";
 import cloneDeep from "lodash.clonedeep";
 
+export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
+
 type AccountChannelType = ChannelType & {
   idx: number;
   lastRead?: string; // can be a timestamp
@@ -38,7 +40,7 @@ export type AccountObjectType = {
   platformAccountId?: string;
   privateKey?: `0x${string}`;
   createdAt?: string;
-  data?: { deeplinkUrl: string, signerToken: string };
+  data?: { deeplinkUrl?: string, signerToken?: string };
   channels: AccountChannelType[];
 }
 
@@ -51,10 +53,10 @@ interface AccountStoreProps {
 }
 
 interface AccountStoreActions {
-  addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey?: string, data?: object }) => void;
+  addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey?: string }) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
-  setAccountActive: (accountId: number, name: string, data: { platform_account_id: string, data: object }) => void;
+  setAccountActive: (accountId: number, name: string, data: { platform_account_id: string, data?: object }) => void;
   removeAccount: (idx: number) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setSelectedChannelUrl: (url: string | null) => void;
@@ -88,7 +90,7 @@ type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   ...initialState,
-  addAccount: (account: AccountObjectType & { privateKey: string, data: object }) => {
+  addAccount: (account: AccountObjectType & { privateKey: string }) => {
     supabaseClient
       .from('accounts')
       .insert({
@@ -96,7 +98,7 @@ const store = (set: StoreSet) => ({
         status: account.status,
         public_key: account.publicKey,
         platform: account.platform,
-        data: account.data,
+        data: account.data || {},
         private_key: account.privateKey,
       })
       .select()
@@ -109,7 +111,7 @@ const store = (set: StoreSet) => ({
         });
       })
   },
-  setAccountActive: (accountId: number, name: string, data: { platform_account_id: string, data: object }) => {
+  setAccountActive: (accountId: number, name: string, data: { platform_account_id: string, data?: object }) => {
     set((state) => {
       supabaseClient
         .from('accounts')
@@ -120,11 +122,10 @@ const store = (set: StoreSet) => ({
           console.log('response setAccountActive - data', data, 'error', error);
           if (!error) {
             // I don't think this loop works ¯\_(ツ)_/¯
-            state.accounts.forEach((account) => {
-              if (account.id === accountId) {
-                account.status = AccountStatusType.active;
-              }
-            });
+            const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
+            const account = state.accounts[accountIndex];
+            account.status = AccountStatusType.active;
+            state.accounts[accountIndex] = account;
           }
         });
     });
@@ -358,7 +359,7 @@ export const hydrate = async () => {
   }
 
   const allChannels = await fetchAllChannels();
-  console.log('hydrating with allChannels', allChannels.length)
+  console.log('loaded all channels: ', allChannels.length)
   useAccountStore.setState({
     ...useAccountStore.getState(),
     allChannels,
@@ -389,6 +390,7 @@ const getAccountCommands = () => {
         switchAccountTo(i);
       },
       options: {
+        enableOnContentEditable: true,
         enableOnFormTags: true,
       },
       enabled: () => useAccountStore.getState().accounts.length > i &&

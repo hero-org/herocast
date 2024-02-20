@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import React from "react";
 
 type EmptyStateWithActionProps = {
@@ -15,14 +16,13 @@ export default function EmptyStateWithAction({ title, description, icon, hideBut
       <h3 className="mt-2 text-sm font-semibold text-foreground/80">{title}</h3>
       <p className="mt-1 text-sm text-foreground/80">{description}</p>
       {!hideButton && <div className="mt-6">
-        <button
+        <Button
           type="button"
           onClick={() => onClick()}
-          className="inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
         >
           {/* {icon && <icon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />} */}
           {submitText}
-        </button>
+        </Button>
       </div>}
     </div>
   )

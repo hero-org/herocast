@@ -76,11 +76,13 @@ export default function Accounts() {
     addNewPostDraft,
   } = useNewPostStore();
 
+
   const hasActiveAccounts = accounts.filter((account) => account.status === AccountStatusType.active).length > 0;
   const pendingAccounts = accounts.filter((account) => account.status === AccountStatusType.pending && account.platform === AccountPlatformType.farcaster);
   const hasPendingNewAccounts = pendingAccounts.length > 0;
   const pendingAccount = hasPendingNewAccounts ? pendingAccounts[0] : null;
-
+  
+  console.log('accounts', accounts, hasActiveAccounts)
   const [signupStateIdx, setSignupStateIdx] = useState(0);
   const signupState = SignupSteps[signupStateIdx];
 
@@ -145,18 +147,15 @@ export default function Accounts() {
   }, [signupState, pendingAccount, isMounted]);
 
   const renderCreateSignerStep = () => (
-    <Card className="bg-background text-foreground">
+    <Card>
       <CardHeader>
         <CardTitle className="text-2xl">Connect your Farcaster account</CardTitle>
         <CardDescription>Connect with herocast to see and publish casts</CardDescription>
       </CardHeader>
-      {/* <CardContent>
-        <p>Card Content</p>
-      </CardContent> */}
       <CardFooter>
         <Button
           className="w-full"
-          variant="outline"
+          variant="default"
           onClick={() => onCreateNewAccount()}
         >
           <UserPlusIcon className="mr-1.5 h-5 w-5 text-foreground/70" aria-hidden="true" />
@@ -218,28 +217,30 @@ export default function Accounts() {
       <CardContent>
         <div className="-mx-2 -my-1.5 flex">
           <Button
-            onClick={() => onStartCasting()}
-            type="button"
-            className="flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-foreground/80 bg-background/90 focus:outline-none focus:ring-2 focus:ring-gray-600"
-          >
-            Start casting
-            <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4 text-foreground/80" aria-hidden="true" />
-          </Button>
-          <Button
             onClick={() => router.push('/feed')}
             type="button"
-            className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-foreground/80 bg-background/90 focus:outline-none focus:ring-2 focus:ring-gray-600"
+            variant="default"
           >
             Scroll your feed
-            <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4 text-foreground/80" aria-hidden="true" />
+            <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+          </Button>
+          <Button
+            onClick={() => onStartCasting()}
+            type="button"
+            variant="outline"
+            className="ml-4"
+          >
+            Start casting
+            <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
           </Button>
           <Button
             onClick={() => router.push('/channels')}
             type="button"
-            className="ml-4 flex rounded-sm bg-gray-600 px-2 py-1.5 text-sm font-medium text-foreground/80 bg-background/90 focus:outline-none focus:ring-2 focus:ring-gray-600"
+            className="ml-4"
+            variant="outline"
           >
             Pin your favourite channels
-            <RectangleGroupIcon className="ml-1.5 mt-0.5 h-4 w-4 text-foreground/80" aria-hidden="true" />
+            <RectangleGroupIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </CardContent>
@@ -248,11 +249,11 @@ export default function Accounts() {
 
   return (
     <div className="m-4 flex flex-col gap-5">
+      {(hasActiveAccounts || signupState.state === SignupStateEnum.done) && renderDoneStep()}
       <div>
-        <div className="flex w-full max-w-3xl">
+        <div className="flex w-full">
           {signupState.state === SignupStateEnum.initial && renderCreateSignerStep()}
           {signupState.state === SignupStateEnum.connecting && renderConnectAccountStep()}
-          {hasActiveAccounts || signupState.state === SignupStateEnum.done && renderDoneStep()}
         </div>
       </div>
       <ConnectFarcasterAccountViaHatsProtocol />
