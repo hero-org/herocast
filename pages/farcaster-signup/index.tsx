@@ -112,10 +112,11 @@ export default function Welcome() {
           "Create your Farcaster account",
           "Let's get you onchain",
           <CreateFarcasterAccount
-            onSuccess={() => setStep(FarcasterSignupNav.register_username)}
+            onSuccess={() => setStep(FarcasterSignupNav.explainer)}
           />
         );
       case FarcasterSignupNav.register_username:
+        // skipped for now
         return getStepContent(
           "Register your username",
           "Choose a username for your Farcaster account",
