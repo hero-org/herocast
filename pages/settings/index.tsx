@@ -9,6 +9,9 @@ import { newPostCommands } from "../../src/stores/useNewPostStore";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { getNavigationCommands } from '../../src/getNavigationCommands';
+import AccountSettingsModal from "../../src/common/components/AccountSettingsModal";
+import { useAccount } from "wagmi";
+import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 
 type SimpleCommand = {
   name: string;
@@ -18,14 +21,17 @@ type SimpleCommand = {
 export default function Settings() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [open, setOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<AccountObjectType | null>(null);
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
 
   const {
     accounts,
     resetStore,
     removeAccount
   } = useAccountStore();
-
-
 
   useEffect(() => {
     const getUser = async () => {
@@ -34,10 +40,6 @@ export default function Settings() {
     }
     getUser();
   }, [])
-
-  const onUpdateAccountStatus = () => {
-    console.log('onUpdateAccountStatus')
-  }
 
   const onLogout = async () => {
     const {
@@ -55,8 +57,13 @@ export default function Settings() {
 
   const displayEmail = user?.email ? `${user?.email.slice(0, 5)}...@${user?.email.split('@')[1]}` : '';
 
+  const onClickManageAccount = (account: AccountObjectType) => {
+    setSelectedAccount(account);
+    setOpen(true);
+  }
+
   const renderInfoSection = () => {
-    const commands: SimpleCommand[] = [
+    const allCommands= [
       { name: 'Command Palette', shortcut: 'cmd+k' },
       { name: 'Feed: go to previous cast in list', shortcut: 'k' },
       { name: 'Feed: go to next cast in list', shortcut: 'j' },
@@ -68,8 +75,10 @@ export default function Settings() {
       ...channelCommands,
     ];
 
+    const commandsWithShortcuts: SimpleCommand[] = allCommands.filter((command) => command.shortcut!==undefined);
+
     return (<div className="mt-20 overflow-hidden">
-      <div className="border-b border-gray-200">
+      <div className="border-b border-border">
         <h1 className="text-xl font-semibold leading-7 text-foreground/80">Hotkeys / Keyboard Shortcuts</h1>
       </div>
       <div className="px-2 py-4">
@@ -78,27 +87,20 @@ export default function Settings() {
       </div>
       <div className="border-t border-gray-600">
         <dl className="divide-y divide-gray-600">
-          {commands.map((command) => (
+          {commandsWithShortcuts.map((command) => (
             <div key={`command-${command.name}`} className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-              <dt className="text-sm font-medium text-foreground/80">{command.name}</dt>
-              {command.shortcut && <dd className="mt-1 text-sm leading-6 text-gray-200 sm:col-span-1 sm:mt-0">{command.shortcut.replace(/\+/g, ' + ')}</dd>}
+              <dt className="text-sm text-foreground/60">{command.name}</dt>
+              {command.shortcut && <dd className="mt-1 text-sm leading-6 font-semibold text-foreground sm:col-span-1 sm:mt-0">{command.shortcut.replace(/\+/g, ' + ')}</dd>}
             </div>
           ))}
-          {/* <div className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-            <dt className="text-sm font-medium text-foreground/80">About</dt>
-            <dd className="mt-1 text-sm leading-6 text-foreground/80 sm:col-span-2 sm:mt-0">
-              Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat. Excepteur
-              qui ipsum aliquip consequat sint. Sit id mollit nulla mollit nostrud in ea officia proident. Irure nostrud
-              pariatur mollit ad adipisicing reprehenderit deserunt qui eu.
-            </dd>
-          </div> */}
         </dl>
       </div>
     </div>);
   }
 
+
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="ml-10 mt-10 flex flex-col space-y-4">
       <div className="border-b border-gray-200">
         <h1 className="text-xl font-semibold leading-7 text-foreground/80">Herocast account</h1>
       </div>
@@ -106,20 +108,25 @@ export default function Settings() {
         <span className="text-sm font-semibold text-foreground/80 mr-2">Email</span>
         <span className="text-sm font-semibold text-foreground/70 ">{displayEmail}</span>
       </div>
-      <button
-        type="button"
-        onClick={() => onLogout()}
-        className="w-20 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-      >
-        Logout
-      </button>
-      {/* <button
-        type="button"
-        onClick={() => onUpdateAccountStatus()}
-        className="w-48 inline-flex items-center rounded-sm bg-gray-600 px-3 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-      >
-        Update Account Status
-      </button> */}
+      <div className="flex flex-row gap-4">
+        <Button
+          variant="outline"
+          className="w-72"
+          onClick={() =>
+            isConnected ? openAccountModal?.() : openConnectModal?.()
+          }
+        >
+          Switch your connected wallet
+        </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => onLogout()}
+            className="w-20"
+          >
+            Logout
+          </Button>
+      </div>
       <div className="border-b border-gray-200">
         <h1 className="text-xl font-semibold leading-7 text-foreground/80">Farcaster accounts</h1>
       </div>
@@ -132,12 +139,17 @@ export default function Settings() {
               <h3 className={classNames(
                 "text-foreground/80",
                 "flex-auto truncate text-sm font-semibold leading-6")}>{item.name}</h3>
-              <span className="text-foreground/70">{item.status}</span>
-              {item.platformAccountId && item.status === 'active' && (
+              {item.platformAccountId && item.status !== 'active' && (
                 <p className="truncate text-sm text-foreground/80">
-                  fid {item.platformAccountId}
+                  {item.status}
                 </p>
               )}
+              {item.platformAccountId && item.status === 'active' && (
+                <p className="font-mono truncate text-sm text-foreground/80">
+                  fid: {item.platformAccountId}
+                </p>
+              )}
+              <Button variant="secondary" onClick={() => onClickManageAccount(item)}>Manage</Button>
               <AlertDialogDemo buttonText={`Disconnect`} onClick={() => removeAccount(idx)} />
             </div>
           </li>
@@ -145,6 +157,7 @@ export default function Settings() {
       </ul>
       <HelpCard />
       {renderInfoSection()}
+      <AccountSettingsModal account={selectedAccount} open={open} setOpen={setOpen} />
     </div>
   )
 }

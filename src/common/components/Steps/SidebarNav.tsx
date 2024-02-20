@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { classNames } from "@/common/helpers/css";
-import { CheckCircleIcon, CheckIcon } from "@heroicons/react/20/solid";
+import { ArrowLongRightIcon, ArrowRightIcon, CheckCircleIcon, CheckIcon } from "@heroicons/react/20/solid";
 import findIndex from "lodash.findindex";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -37,21 +37,26 @@ export function SidebarNav({
           key={item.key}
           variant="ghost"
           className={classNames(
-              item.key === step
+            item.key === step
               ? "bg-muted hover:bg-muted"
               : "text-foreground/40 hover:bg-transparent hover:underline",
-              "justify-start",
+            "justify-start truncate"
           )}
         >
           {item.title}
-          {item.idx < currentStepIdx && (
-            <div className="flex-shrink-0 ml-2">
+          <div className="flex-shrink-0 ml-2">
+            {item.idx < currentStepIdx ? (
               <CheckCircleIcon
                 className="h-6 w-6 text-green-600"
                 aria-hidden="true"
               />
-            </div>
-          )}
+            ) : (
+              <ArrowRightIcon
+                className="mx-1 h-4 w-4 text-foreground/40"
+                aria-hidden="true"
+              />
+            )}
+          </div>
         </Button>
       ))}
     </nav>

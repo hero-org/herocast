@@ -9,7 +9,7 @@ export default function Document() {
         <meta property="og:site_name" content="herocast" />
         <meta property="og:title" content="herocast" />
         <meta property="og:type" content="website" />
-        <meta property="og:description" content="herocast" />
+        <meta property="og:description" content="herocast is a client for Farcaster. it's focused on keyboard-first desktop experience for power users and teams" />
         <meta property="og:image" content="/images/herocast_og.png" />
         <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:width" content="1200" />

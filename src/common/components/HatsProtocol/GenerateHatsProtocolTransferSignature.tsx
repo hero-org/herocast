@@ -334,7 +334,7 @@ const GenerateHatsProtocolTransferSignature = () => {
 
   return (
     <div className="flex w-full max-w-xl">
-      <Card className="bg-background text-foreground">
+      <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
             Move your Farcaster account to Hats Protocol 🧢 (beta)

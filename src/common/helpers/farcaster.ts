@@ -1,10 +1,11 @@
 import axios from "axios";
-import { CastAddBody, Embed, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, ViemLocalEip712Signer, hexStringToBytes, keyGatewayABI, makeCastAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
+import { CastAddBody, Embed, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, ViemLocalEip712Signer, hexStringToBytes, idRegistryABI, keyGatewayABI, makeCastAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
 import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
 import { encodeAbiParameters, toBytes } from "viem";
 import { publicClient } from "./rainbowkit";
 import { mnemonicToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
+import { optimism } from "viem/chains";
 
 export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 
@@ -238,21 +239,42 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey:
   );
 }
 
-const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';
+const IdContract = {
+  abi: idRegistryABI,
+  address: ID_REGISTRY_ADDRESS,
+  chain: optimism,
+};
 
+export const getFidForWallet = async (address: `0x${string}`) => {
+  const existingFid = (await publicClient.readContract({
+    ...IdContract,
+    functionName: 'idOf',
+    args: [address],
+  })) as bigint;
+
+  if (existingFid > 0n) {
+    return parseInt(existingFid.toString());
+  }
+};
+
+const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';
 
 // example implementation here:
 // https://github.com/us3r-network/u3/blob/a6910b01fa0cf5cdba384f935544c6ba94dc7d64/apps/u3/src/components/social/farcaster/signupv2/FnameRegister.tsx
 
 export const validateUsernameIsAvailable = async (username: string) => {
   console.log('validateUsernameIsAvailable', username);
-  return false;
 
   const response = await axios.get(`${FARCASTER_FNAME_ENDPOINT}?name=${username}`);
-  return response.data;
+  if (response.status !== 200) {
+    throw new Error('Failed to validate username');
+  }
+
+  const transfers = response.data.transfers;
+  return transfers.length === 0;
 };
 
-export const updateUsername = async (fid: number, privateKey: string, username: string) => {
+export const updateUsername = async (fid: string, username: string, address: `0x${string}`, signature: `0x${string}`) => {
   // To register a new fid, e.g. hubble, first make sure the fname is not already registered.
   // Then make a POST request to /transfers with the following body:
 
@@ -266,6 +288,14 @@ export const updateUsername = async (fid: number, privateKey: string, username: 
   //   "signature": "0x..."  // EIP-712 signature signed by the custody address of the fid
   // }
 
-  const timestamp = Math.floor(Date.now() / 1000);
-
+  const res = await axios.post(`${FARCASTER_FNAME_ENDPOINT}`, {
+    name: username,
+    to: fid,
+    fid,
+    owner: address,
+    timestamp: Math.floor(Date.now() / 1000),
+    signature,
+  });
+  console.log('res updateUsername', res);
+  return res.data;
 };

@@ -8,7 +8,7 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
+    --card: 0 0% 98%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
@@ -31,7 +31,7 @@
   .dark {
     --background: 0deg, 0%, 9%;
     --foreground: 0 0% 98%;
-    --card: 230, 33%, 15%;
+    --card: 0deg, 0%, 15%;
     --card-foreground: 220, 14%, 96%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
@@ -46,7 +46,7 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --input: 240 3.7% 23%;
     --ring: 240 4.9% 83.9%;
   }
 }

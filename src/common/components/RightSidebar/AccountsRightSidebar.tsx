@@ -1,5 +1,5 @@
 import React from "react";
-import { AccountObjectType, useAccountStore } from "../../../../src/stores/useAccountStore";
+import { AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from "../../../../src/stores/useAccountStore";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import EmptyStateWithAction from "../../../../src/common/components/EmptyStateWithAction";
 import { classNames } from "../../../../src/common/helpers/css";
@@ -63,7 +63,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
               >
                 <h3 className={classNames(
                   idx === selectedAccountIdx ? "text-foreground" : "text-foreground/60",
-                  "flex-auto truncate text-sm font-semibold leading-6")}>{item.name || 'New Account'}</h3>
+                  "flex-auto truncate text-sm font-semibold leading-6")}>{item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}</h3>
                 {renderStatus(item.status)}
                 {item.platform === AccountPlatformType.farcaster_hats_protocol && (
                   <p className="truncate text-sm text-foreground">

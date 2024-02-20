@@ -1,5 +1,6 @@
 import React from 'react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
+import { Button } from '@/components/ui/button';
 
 type AlertDialogProps = {
   buttonText: string;
@@ -9,9 +10,9 @@ type AlertDialogProps = {
 const AlertDialogDemo = ({ buttonText, onClick }: AlertDialogProps) => (
   <AlertDialog.Root>
     <AlertDialog.Trigger asChild>
-      <button className="text-foreground/80 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500">
+      <Button variant="outline">
         {buttonText}
-      </button>
+      </Button>        
     </AlertDialog.Trigger>
     <AlertDialog.Portal>
       <AlertDialog.Overlay className="bg-[#FFFFFFAF] data-[state=open]:animate-overlayShow fixed inset-0" />
@@ -24,14 +25,14 @@ const AlertDialogDemo = ({ buttonText, onClick }: AlertDialogProps) => (
         </AlertDialog.Description>
         <div className="flex justify-end gap-[25px]">
           <AlertDialog.Cancel asChild>
-            <button className="text-radix-mauve11 bg-radix-mauve7 hover:bg-radix-mauve6 focus:shadow-radix-mauve9 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:shadow-[0_0_0_2px]">
+            <Button variant="outline">
               Cancel
-            </button>
+            </Button>
           </AlertDialog.Cancel>
           <AlertDialog.Action asChild onClick={() => onClick()}>
-            <button className="text-radix-red3 bg-radix-red9 hover:bg-radix-red10 focus:shadow-radix-red7 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:shadow-[0_0_0_2px]">
+            <Button variant="destructive">
               Yes, disconnect account
-            </button>
+            </Button>
           </AlertDialog.Action>
         </div>
       </AlertDialog.Content>

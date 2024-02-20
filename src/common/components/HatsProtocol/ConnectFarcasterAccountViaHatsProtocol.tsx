@@ -495,7 +495,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const buttonLabel = getButtonLabel();
   return (
     <div className="flex w-full max-w-xl">
-      <Card className="bg-background text-foreground">
+      <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
             Connect your Farcaster Account with Hats Protocol 🧢 (beta)
