@@ -21,42 +21,32 @@ import {
 } from "@farcaster/hub-web";
 import { wagmiConfig } from "@/common/helpers/rainbowkit";
 import { validateUsernameIsAvailable } from "../helpers/farcaster";
-import { toHex } from "viem";
+import { createWalletClient, http, toHex } from "viem";
 import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
+import { mainnet } from "wagmi/chains";
 
 export type FarcasterAccountSetupFormValues = z.infer<
   typeof FarcasterAccountSetupFormSchema
 >;
 
-const USERNAME_PROOF_EIP_712_TYPES = {
-  domain: {
-    name: "Farcaster name verification",
-    version: "1",
-    chainId: 1,
-    verifyingContract:
-      "0xe3be01d99baa8db9905b33a3ca391238234b79d1" as `0x${string}`,
-  },
-  types: {
-    UserNameProof: [
-      {
-        name: "name",
-        type: "string",
-      },
-      {
-        name: "timestamp",
-        type: "uint256",
-      },
-      {
-        name: "owner",
-        type: "address",
-      },
-    ],
-  },
-};
+const FARCASTER_USERNAME_DOMAIN = {
+  name: "Farcaster name verification",
+  version: "1",
+  chainId: 1,
+  verifyingContract: "0xe3be01d99baa8db9905b33a3ca391238234b79d1",
+} as const;
+
+const FARCASTER_USERNAME_TYPE = {
+  UserNameProof: [
+      { name: "name", type: "string" },
+      { name: "timestamp", type: "uint256" },
+      { name: "owner", type: "address" },
+  ],
+} as const;
 
 const FarcasterAccountSetupFormSchema = z.object({
   username: z
@@ -149,39 +139,19 @@ const RegisterFarcasterUsernameForm = ({
       owner: address,
       timestamp: BigInt(timestamp),
     };
-    // console.log("userSigner", userSigner);
-    console.log("claim", claim);
-    // const rawSignature = await userSigner.signUserNameProofClaim(claim);
-
-    const result = await signTypedDataAsync({
-      domain: {
-        name: "Farcaster name verification",
-        version: "1",
-        chainId: 1,
-        verifyingContract:
-          "0xe3be01d99baa8db9905b33a3ca391238234b79d1" as `0x${string}`,
-      },
-      types: {
-        UserNameProof: [
-          {
-            name: "name",
-            type: "string",
-          },
-          {
-            name: "timestamp",
-            type: "uint256",
-          },
-          {
-            name: "owner",
-            type: "address",
-          },
-        ],
-      },
+    const walletClient = createWalletClient({
+      account: address,
+      chain: mainnet,
+      transport: http(),
+  });
+    const signature = await walletClient.signTypedData({
+      domain: FARCASTER_USERNAME_DOMAIN,
+      types: FARCASTER_USERNAME_TYPE,
       primaryType: "UserNameProof" as const,
       message: claim,
     });
-    console.log("res", result);
-    const signature = toHex(result);
+    console.log("res", signature);
+    // const signature = toHex(result);
     // const signature = toHex(rawSignature._unsafeUnwrap());
 
     // updateUsername(fid, data.username, address, signature);

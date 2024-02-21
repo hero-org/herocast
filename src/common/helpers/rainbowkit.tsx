@@ -13,10 +13,10 @@ const mainnetHttp = http(
 );
 
 export const wagmiConfig = createConfig({
-  chains: [optimism, mainnet],
+  chains: [optimism],
   transports: {
     [optimism.id]: optimismHttp,
-    [mainnet.id]: mainnetHttp,
+    // [mainnet.id]: mainnetHttp,
   },
 });
 

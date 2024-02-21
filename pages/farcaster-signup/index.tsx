@@ -33,21 +33,21 @@ const onboardingNavItems = [
     idx: 2,
     key: FarcasterSignupNav.create_account_onchain,
   },
-  // {
-  //   title: "Register username",
-  //   idx: 3,
-  //   key: FarcasterSignupNav.register_username,
-  // },
+  {
+    title: "Register username",
+    idx: 3,
+    key: FarcasterSignupNav.register_username,
+  },
   {
     title: "Let's go",
-    idx: 3,
+    idx: 4,
     key: FarcasterSignupNav.explainer,
   },
 ];
 
 export default function Welcome() {
   const { isConnected } = useAccount();
-  const [step, setStep] = useState<string>(onboardingNavItems[1].key);
+  const [step, setStep] = useState<string>(onboardingNavItems[3].key);
   const router = useRouter();
 
   useEffect(() => {
@@ -112,11 +112,10 @@ export default function Welcome() {
           "Create your Farcaster account",
           "Let's get you onchain",
           <CreateFarcasterAccount
-            onSuccess={() => setStep(FarcasterSignupNav.explainer)}
+            onSuccess={() => setStep(FarcasterSignupNav.register_username)}
           />
         );
       case FarcasterSignupNav.register_username:
-        // skipped for now
         return getStepContent(
           "Register your username",
           "Choose a username for your Farcaster account",
