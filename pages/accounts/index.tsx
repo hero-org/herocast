@@ -23,8 +23,6 @@ import { getUserInfoByFid } from "../../src/common/helpers/neynar";
 import HelpCard from "../../src/common/components/HelpCard";
 import { useIsMounted } from "../../src/common/helpers/hooks";
 import { useRouter } from "next/router";
-import ConnectFarcasterAccountViaHatsProtocol from "../../src/common/components/HatsProtocol/ConnectFarcasterAccountViaHatsProtocol";
-import GenerateHatsProtocolTransferSignature from "../../src/common/components/HatsProtocol/GenerateHatsProtocolTransferSignature";
 
 enum SignupStateEnum {
   "initial",
@@ -256,8 +254,6 @@ export default function Accounts() {
           {signupState.state === SignupStateEnum.connecting && renderConnectAccountStep()}
         </div>
       </div>
-      <ConnectFarcasterAccountViaHatsProtocol />
-      <GenerateHatsProtocolTransferSignature />
       <HelpCard />
       {/* 
       <Button className="mt-12" onClick={() => setSignupStateIdx(signupState.idx + 1)} disabled={!hasActiveAccounts}>

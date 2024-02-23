@@ -13,6 +13,7 @@ type OptionSelectorType = {
   title: string;
   description: string;
   buttonText: string;
+  content?: React.ReactNode;
   onClick: () => void;
 };
 
@@ -28,11 +29,14 @@ const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
           <CardTitle>{option.title}</CardTitle>
           <CardDescription>{option.description}</CardDescription>
         </CardHeader>
-        <CardFooter>
-          <Button className="w-full" onClick={() => option.onClick()}>
-            {option.buttonText}
-        </Button>
-        </CardFooter>
+        {option.content ? <CardContent>{option.content}</CardContent> : null}
+        {option.buttonText ? (
+          <CardFooter>
+            <Button className="w-full" onClick={() => option.onClick()}>
+              {option.buttonText}
+            </Button>
+          </CardFooter>
+        ) : null}
       </Card>
     );
   };
