@@ -19,6 +19,7 @@ import SortableList, { SortableItem } from "react-easy-sort";
 import { useRouter } from "next/router";
 import { Input } from "../../src/components/ui/input";
 import { Button } from "../../src/components/ui/button";
+import { take } from "lodash";
 
 type Inputs = {
   name: string;
@@ -50,24 +51,8 @@ export default function Channels() {
     (state) => state.accounts[state.selectedAccountIdx]?.channels || []
   );
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<Inputs>({
-    values: { account: account?.name || "" },
-  });
-
   const onSortEnd = (oldIndex: number, newIndex: number) => {
     updatedPinnedChannelIndices({ oldIndex, newIndex });
-  };
-
-  const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    setIsPending(true);
-    await Promise.resolve(addChannel(data));
-    setShowNewChannelModal(false);
-    setIsPending(false);
-    hydrate();
   };
 
   const handleSearchChange = (e: event) => {
@@ -88,7 +73,7 @@ export default function Channels() {
         {enabled && idx !== undefined && (
           <div
             className={classNames(
-              "bg-green-600/80 border-gray-200 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-md text-lg font-medium text-foreground"
+              "text-background bg-green-600/80 border-foreground/60 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-lg text-lg font-medium"
             )}
           >
             {idx + 1}
@@ -97,9 +82,9 @@ export default function Channels() {
         <div
           className={classNames(
             enabled && idx !== undefined
-              ? "rounded-r-md border-b border-r border-t"
-              : "rounded-md border",
-            "flex flex-1 items-center justify-between truncate border-gray-200 bg-gray-600 pr-4"
+              ? "rounded-r-lg border-b border-r border-t"
+              : "rounded-lg border",
+            "flex flex-1 items-center justify-between truncate border-foreground/60 bg-muted-background pr-4"
           )}
         >
           {channel.icon_url ? (
@@ -112,11 +97,11 @@ export default function Channels() {
             <div className="ml-2" />
           )}
           <div className="flex-1 truncate pl-2 pr-4 py-2 text-sm">
-            <p className="truncate font-medium text-background/80">
+            <p className="truncate font-medium text-foreground/80">
               {channel.name}
             </p>
             {channel.source && (
-              <p className="text-background/70 truncate">
+              <p className="text-foreground/70 truncate">
                 Added by {channel.source}
               </p>
             )}
@@ -236,13 +221,6 @@ export default function Channels() {
               Pinned channels
             </h2>
           </div>
-          <div className="pb-3 mt-3 sm:ml-4 sm:mt-2">
-            <Button
-              onClick={() => setShowNewChannelModal(true)}
-            >
-              Add channel
-            </Button>
-          </div>
         </div>
         <ul role="list" className="mt-3 ">
           {isEmpty(channels) ? (
@@ -257,10 +235,10 @@ export default function Channels() {
               className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
             >
               {channels.map((channel, idx) => (
-                <SortableItem key={`channel-pinned-${channel.name}`}>
-                  <li className="col-span-1 flex rounded-md shadow-sm">
+                <SortableItem key={`channel-pinned-${channel.id}`}>
+                  <div className="col-span-1 flex rounded-md shadow-sm">
                     {renderChannelCard(channel, idx)}
-                  </li>
+                  </div>
                 </SortableItem>
               ))}
             </SortableList>
@@ -272,7 +250,7 @@ export default function Channels() {
 
   const renderAllChannels = () => {
     return (
-      <div className="mt-8">
+      <div className="mt-8 min-h-full">
         <div className="border-b border-gray-500 sm:flex sm:items-center sm:justify-between">
           <div className="flex flex-col">
             <h2 className="text-lg font-medium text-foreground/80 leading-6">
@@ -321,19 +299,19 @@ export default function Channels() {
         </div>
         <ul
           role="list"
-          className="mt-3 mb-48 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6"
+          className="mt-3 mb-48 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6"
         >
           {(searchTerm
             ? allChannels.filter((channel) =>
                 includes(
-                  (channel.name + channel.source + channel.url).toLowerCase(),
+                  (channel.name).toLowerCase(),
                   searchTerm
                 )
               )
-            : allChannels
+            : take(allChannels, 50)
           ).map((channel) => (
             <li
-              key={`channel-${channel.name}`}
+              key={`all-channels-${channel.id}`}
               className="col-span-1 flex rounded-md shadow-sm"
             >
               {renderChannelCard(channel)}
@@ -344,97 +322,14 @@ export default function Channels() {
     );
   };
 
-  const renderTextField = (
-    displayName: string,
-    name: keyof Inputs,
-    placeholder?: string,
-    description?: JSX.Element | string,
-    registerArgs?: any
-  ) => (
-    <fieldset className="mb-[10px] flex items-start gap-5">
-      <label
-        className="text-foreground/80 w-[90px] text-left text-[15px]"
-        htmlFor={name}
-      >
-        {displayName}
-      </label>
-      <div className="flex flex-col w-full">
-        <Input
-          {...register(name, registerArgs)}
-          className="bg-gray-600 text-foreground/80 shadow-gray-600 placeholder-gray-500 focus:shadow-gray-800"
-          id={name}
-          placeholder={placeholder}
-        />
-        {get(errors, name) && (
-          <p className="mt-2 h-8 text-sm text-red-600" id={`${name}-error`}>
-            {get(errors, name)?.message} {get(errors, name)?.type}
-          </p>
-        )}
-        <div className="my-2 text-sm text-foreground/70">{description}</div>
-      </div>
-    </fieldset>
-  );
-
-  const getUrlExplainer = () => (
-    <div className="flex flex-col">
-      <p>
-        fill with any URL or{" "}
-        <a
-          className="underline font-semibold"
-          href="https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-19.md"
-        >
-          {" "}
-          onchain format CAIP-19
-        </a>
-      </p>
-      <p className="mt-2 text-foreground/70 break-words">
-        Music channel has URL:{" "}
-        <span className="font-mono tracking-tighter">
-          chain://eip155:7777777/erc721:0xe96c...634
-        </span>
-        <br />
-        Bitcoin channel has URL:{" "}
-        <span className="font-mono tracking-tighter">https://bitcoin.org</span>
-      </p>
-    </div>
-  );
-
   return hydrated && isEmpty(accounts) ? (
     renderEmptyState()
   ) : (
     <>
-      <div className="w-full md:max-w-screen-sm xl:max-w-screen-lg mr-4">
+      <div className="w-full md:max-w-screen-sm xl:max-w-screen-lg m-4">
         {renderPinnedChannels()}
         {renderAllChannels()}
       </div>
-      <Modal
-        open={showNewChannelModal}
-        setOpen={setShowNewChannelModal}
-        title="Add channel to herocast"
-        description="Custom channel for you and others to follow and pin in herocast. Casts are visible in Warpcast and other clients. Herocast channels are not visible in Warpcast, but casts appear in all clients."
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-12">
-          {renderTextField("Channel Name", "name", "Vitalik Test Channel", "", {
-            required: true,
-            maxLength: 80,
-          })}
-          {renderTextField(
-            "URL",
-            "url",
-            "vitalik.eth",
-            getUrlExplainer(),
-            { required: true, minLength: 5 }
-          )}
-          {/* {renderTextField("Icon Url", "iconUrl", "xyz/test.png")} */}
-          <div className="mt-[25px] flex justify-end">
-            <input
-              type="submit"
-              value={isPending ? "..." : "Add Channel"}
-              className="cursor-pointer bg-green-200 text-green-800 hover:bg-green-300 focus:shadow-green-700 inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-medium leading-none focus:shadow-[0_0_0_2px] focus:outline-none"
-            />
-          </div>
-        </form>
-      </Modal>
     </>
   );
 }
