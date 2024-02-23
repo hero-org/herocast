@@ -23,8 +23,9 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/ope
 import FrameEmbed from './Embeds/FrameEmbed';
 import { registerPlugin } from 'linkifyjs';
 import CashtagHoverCard from './CashtagHoverCard';
-import { cashtagPlugin } from '../helpers/linkify';
+import mentionPlugin, { cashtagPlugin } from '../helpers/linkify';
 
+registerPlugin('mention', mentionPlugin);
 registerPlugin('cashtag', cashtagPlugin);
 
 interface CastRowProps {
@@ -39,9 +40,8 @@ interface CastRowProps {
 
 const renderMention = ({ attributes, content }) => {
   const { userFid } = attributes;
-
   return <span
-    className="cursor-pointer text-blue-400 underline"
+    className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
     onClick={(event) => {
       event.stopPropagation();
     }}
@@ -56,7 +56,7 @@ const renderLink = ({ attributes, content }) => {
   const { href } = attributes;
   return (
     <span
-      className="cursor-pointer text-blue-400/80 underline hover:text-blue-400/90"
+      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
       onClick={(event) => {
         event.stopPropagation();
         window.open(href, '_blank');
@@ -73,7 +73,7 @@ const renderCashtag = ({ attributes, content }) => {
 
   return (
     <span
-      className="cursor-pointer text-blue-400/80 underline hover:text-blue-400/90"
+      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
       onClick={(event) => {
         event.stopPropagation();
       }}

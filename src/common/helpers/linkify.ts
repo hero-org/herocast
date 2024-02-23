@@ -7,7 +7,7 @@ const MentionToken = createTokenClass('mention', {
     }
 });
 
-export default function mention({ scanner, parser }) {
+export default function mentionPlugin({ scanner, parser }) {
     const { DOT, HYPHEN, SLASH, UNDERSCORE, AT } = scanner.tokens;
     const { domain } = scanner.tokens.groups;
 
