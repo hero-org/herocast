@@ -7,7 +7,7 @@ import {
   PlusCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
+import { AcademicCapIcon, Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
 import { classNames } from "../common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
@@ -68,6 +68,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       icon: BellIcon,
       getTitle: () => "Your notifications",
     },
+    // {
+    //   name: "Hats Protocol", router: "/hats", icon: AcademicCapIcon,
+    // },
     { name: "Settings", router: "/settings", icon: Cog6ToothIcon },
   ];
 
