@@ -12,7 +12,7 @@ enum OwnershipSetupSteps {
   delegator_contract = "DELEGATOR_CONTRACT",
 }
 
-export const SharedAccountOwnershipSetup = ({
+const SharedAccountOwnershipSetup = ({
   onSuccess,
   delegatorContractAddress,
   setDelegatorContractAddress,
@@ -112,3 +112,5 @@ export const SharedAccountOwnershipSetup = ({
     </div>
   );
 };
+
+export default SharedAccountOwnershipSetup;

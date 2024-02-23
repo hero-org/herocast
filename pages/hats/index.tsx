@@ -5,7 +5,7 @@ import StepSequence from "@/common/components/Steps/StepSequence";
 import WalletLogin from "@/common/components/WalletLogin";
 import GenerateHatsProtocolTransferSignature from "./GenerateHatsProtocolTransferSignature";
 import { Button } from "@/components/ui/button";
-import { SharedAccountOwnershipSetup } from "./SharedAccountOwnershipSetup";
+import SharedAccountOwnershipSetup from "./SharedAccountOwnershipSetup";
 import {
   ClipboardDocumentIcon,
   PaperAirplaneIcon,
