@@ -40,7 +40,7 @@ export const SharedAccountOwnershipSetup = ({
   const renderUnpreparedStep = () => (
     <div>
       Current not supported, you can go to Hats Protocol at{" "}
-      <a href="https://app.hatsprotocol.xyz" target="_blank" className="underline">
+      <a href="https://app.hatsprotocol.xyz" target="_blank" className="underline" rel="noreferrer">
         https://app.hatsprotocol.xyz
       </a>{" "}
       to create a tree.
