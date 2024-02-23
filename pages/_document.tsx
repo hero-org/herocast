@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-title-in-document-head */
 import React from 'react';
 import { Html, Head, Main, NextScript } from 'next/document';
  
@@ -5,6 +6,7 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
+        <title>herocast</title>
         <meta name="description" content="herocast" />
         <meta property="og:site_name" content="herocast" />
         <meta property="og:title" content="herocast" />
