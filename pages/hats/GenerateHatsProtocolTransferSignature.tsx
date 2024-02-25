@@ -116,10 +116,10 @@ const GenerateHatsProtocolTransferSignature = ({
   fid: bigint;
   fromAddress: `0x${string}`;
   toAddress: `0x${string}`;
-  onSuccess: () => null;
+  onSuccess: () => void;
 }) => {
   const [state, setState] = useState<SignupStepType>(
-    HatsProtocolSignupSteps[0]
+    HatsProtocolSignupSteps[2]
   );
   const [errorMessage, setErrorMessage] = useState("");
   // const [fromAddress, setFromAddress] = useState<`0x${string}`>("0x");

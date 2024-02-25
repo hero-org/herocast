@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { useAccount, useSignTypedData } from "wagmi";
+import { useAccount, useSignTypedData, useWalletClient } from "wagmi";
 import { Input } from "@/components/ui/input";
 import { idRegistryABI } from "@farcaster/hub-web";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
@@ -29,6 +29,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { HatsModulesClient, Registry } from "@hatsprotocol/modules-sdk";
+import { HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS } from "./const";
+import { switchChain } from "@wagmi/core";
+import { optimism } from "wagmi/chains";
+import { getCustomRegistry } from "./utils";
 
 enum DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS {
   "CONNECT_WALLET",
@@ -51,39 +56,38 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
     title: "Connected",
     description:
       "Enter Hats tree details to deploy your delegator contract onchain",
-    idx: 1,
+    idx: 0,
   },
   {
     state: DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.PENDING_ONCHAIN_CONFIRMATION,
     title: "",
     description: "Pending onchain deployment",
-    idx: 2,
+    idx: 1,
   },
   {
     state: DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.CONFIRMED,
     title: "",
     description: "You have successfully deployed the contract",
-    idx: 3,
+    idx: 2,
   },
   {
     state: DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.ERROR,
     title: "Error",
     description: "Something went wrong",
-    idx: 4,
+    idx: 3,
   },
 ];
 
-const Address = z.custom<string>(
-  (data) => isAddress(String(data)),
-  "Invalid Address"
-);
+const Address = z.custom<string>((data) => {
+  return isAddress(String(data));
+}, "Invalid Address");
 
 export type DeployHatsDelegatorContractFormValues = z.infer<
   typeof DeployHatsDelegatorContractFormSchema
 >;
 
 const DeployHatsDelegatorContractFormSchema = z.object({
-  hatsTreeAddress: z.object({ address: Address }),
+  casterHatId: z.string(), // Address,
 });
 
 const DeployHatsDelegatorContract = ({
@@ -99,9 +103,14 @@ const DeployHatsDelegatorContract = ({
     useState<`0x${string}`>("0x");
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
+    defaultValues: {
+      casterHatId: "0x0000003a00010001000100000000000000000000000000000000000000000000",
+    },
   });
   const { signTypedDataAsync } = useSignTypedData();
-
+  const walletClient = useWalletClient({
+    chainId: optimism.id,
+  });
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
@@ -118,7 +127,43 @@ const DeployHatsDelegatorContract = ({
     }
   }, [onchainTransactionHash, transactionResult]);
 
-  const onExecuteTransfer = async () => {};
+  const onExecuteDeploy = async () => {
+    if (!address) return;
+
+    // switch walletCLient to chainId
+    const casterHatId = form.getValues().casterHatId;
+    const immutableArgs = [];
+    const mutableArgs = [];
+
+    console.log("publicClient", publicClient);
+    console.log("walletClient", walletClient.data);
+    
+    const hatsModulesClient = new HatsModulesClient({
+      publicClient,
+      walletClient: walletClient.data!,
+    });
+    try {
+      await hatsModulesClient.prepare(getCustomRegistry());
+
+      // console.log(
+      //   "res",
+      //   await hatsModulesClient.getModulesByInstances([
+      //     HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS,
+      //   ])
+      // );
+      const createInstanceResult = await hatsModulesClient.createNewInstance({
+        account: address,
+        moduleId: HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS,
+        hatId: casterHatId,
+        immutableArgs,
+        mutableArgs,
+      });
+    } catch (e) {
+      console.error(e);
+      setErrorMessage(e.message);
+      setState(HatsProtocolSignupSteps[3]);
+    }
+  };
 
   const getButtonLabel = () => {
     switch (state.state) {
@@ -153,13 +198,10 @@ const DeployHatsDelegatorContract = ({
 
   const renderForm = () => (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onExecuteTransfer)}
-        className="space-y-8"
-      >
-        <FormField
+      <form onSubmit={form.handleSubmit(onExecuteDeploy)} className="space-y-8">
+        {/* <FormField
           control={form.control}
-          name="hatsTreeAddress"
+          name="adminHatId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Admin Hat ID</FormLabel>
@@ -170,10 +212,10 @@ const DeployHatsDelegatorContract = ({
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <FormField
           control={form.control}
-          name="hatsTreeAddress"
+          name="casterHatId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Caster Hat ID</FormLabel>
@@ -185,12 +227,9 @@ const DeployHatsDelegatorContract = ({
             </FormItem>
           )}
         />
-        <Button variant="default" onClick={() => onSuccess()}>
+        <Button variant="default" type="submit">
           Deploy contract
         </Button>
-        {/* <Button variant="default" type="submit">
-          Deploy contract
-        </Button> */}
       </form>
     </Form>
   );
@@ -198,7 +237,7 @@ const DeployHatsDelegatorContract = ({
   const onClick = () => {
     switch (state.state) {
       case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.EXECUTE_ONCHAIN:
-        onExecuteTransfer();
+        onExecuteDeploy();
         break;
       case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.PENDING_ONCHAIN_CONFIRMATION:
         break;
@@ -234,6 +273,11 @@ const DeployHatsDelegatorContract = ({
     }
   };
 
+  const onResetError = () => {
+    setErrorMessage("");
+    setState(HatsProtocolSignupSteps[0]);
+  };
+
   return (
     <div className="flex w-full max-w-xl">
       <Card>
@@ -248,10 +292,17 @@ const DeployHatsDelegatorContract = ({
         <CardContent className="w-full max-w-lg">
           {getCardContent()}
           {errorMessage && (
-            <div className="flex flex-start items-center mt-2">
+            <div className="flex flex-col flex-start mt-2">
               <p className="text-wrap break-all	text-sm text-red-500">
                 Error: {errorMessage}
               </p>
+              <Button
+                className="w-1/2 mt-4"
+                variant="outline"
+                onClick={() => onResetError()}
+              >
+                Retry
+              </Button>
             </div>
           )}
         </CardContent>

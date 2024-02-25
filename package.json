@@ -32,6 +32,7 @@
     "@emotion/styled": "11",
     "@farcaster/hub-web": "^0.8.0",
     "@gumlet/react-hls-player": "^1.0.1",
+    "@hatsprotocol/modules-sdk": "^0.15.2",
     "@headlessui/react": "^1.7.16",
     "@heroicons/react": "^2.0.18",
     "@hookform/resolvers": "^3.3.4",

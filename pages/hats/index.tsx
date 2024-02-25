@@ -1,6 +1,5 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
-import { useRouter } from "next/router";
 import StepSequence from "@/common/components/Steps/StepSequence";
 import WalletLogin from "@/common/components/WalletLogin";
 import GenerateHatsProtocolTransferSignature from "./GenerateHatsProtocolTransferSignature";
@@ -14,9 +13,12 @@ import { useAccount } from "wagmi";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import BigOptionSelector from "@/common/components/BigOptionSelector";
+import { openWindow } from "@/common/helpers/navigation";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
+  hats_protocol_setup = "HATS_PROTOCOL_SETUP",
   hats_tree = "HATS_TREE",
   account_ownership = "ACCOUNT_OWNERSHIP",
   transfer_ownership = "TRANSFER_OWNERSHIP",
@@ -28,6 +30,11 @@ const hatsSignupSteps = [
     title: "Select account",
     idx: 0,
     key: HatsSignupNav.select_account,
+  },
+  {
+    title: "Hats Protocol setup",
+    idx: 1,
+    key: HatsSignupNav.hats_protocol_setup,
   },
   {
     title: "Account ownership",
@@ -47,8 +54,7 @@ const hatsSignupSteps = [
 ];
 
 export default function HatsProtocolPage() {
-  const router = useRouter();
-  const [step, setStep] = useState<string>(hatsSignupSteps[1].key);
+  const [step, setStep] = useState<string>(hatsSignupSteps[2].key);
   const [user, setUser] = useState<User | null>();
   const [delegatorContractAddress, setDelegatorContractAddress] = useState<
     `0x${string}` | null
@@ -126,6 +132,28 @@ export default function HatsProtocolPage() {
     switch (step) {
       case HatsSignupNav.select_account:
         return renderSelectAccount();
+      case HatsSignupNav.hats_protocol_setup:
+        return getStepContent(
+          "Hats Protocol setup",
+          "Setup your Hats tree and deploy a delegator contract",
+          <BigOptionSelector
+            options={[
+              {
+                title: "I have a Hats tree",
+                description:
+                  "Let's deploy your own Farcaster delegator contract",
+                buttonText: "Start deplyoment",
+                onClick: () => setStep(HatsSignupNav.account_ownership),
+              },
+              {
+                title: "I need a new Hats tree",
+                description: "Let's get you setup with Hats Protocol",
+                buttonText: "Get started ↗️",
+                onClick: () => openWindow(' https://app.hatsprotocol.xyz/trees/new'),
+              },
+            ]}
+          />
+        );
       case HatsSignupNav.account_ownership:
         return getStepContent(
           "Account ownership",
@@ -140,7 +168,7 @@ export default function HatsProtocolPage() {
         return getStepContent(
           "Transfer ownership",
           "Send your Farcaster account to the delegator contract",
-          <GenerateHatsProtocolTransferSignature 
+          <GenerateHatsProtocolTransferSignature
             onSuccess={() => setStep(HatsSignupNav.invite)}
             fid={BigInt(user?.fid || 0)}
             fromAddress={address!}

@@ -9,7 +9,6 @@ enum OwnershipSetupSteps {
   unknown = "UNKNOWN",
   unprepared = "UNPREPARED",
   existing_tree = "EXISTING_TREE",
-  delegator_contract = "DELEGATOR_CONTRACT",
 }
 
 const SharedAccountOwnershipSetup = ({
@@ -30,8 +29,8 @@ const SharedAccountOwnershipSetup = ({
         return renderUnpreparedStep();
       case OwnershipSetupSteps.existing_tree:
         return renderExistingTreeStep();
-      case OwnershipSetupSteps.delegator_contract:
-        return renderDelegatorContractStep();
+      // case OwnershipSetupSteps.delegator_contract:
+        // return renderDelegatorContractStep();
       default:
         return null;
     }
@@ -39,17 +38,24 @@ const SharedAccountOwnershipSetup = ({
 
   const renderUnpreparedStep = () => (
     <div>
-      Current not supported, you can go to Hats Protocol at{" "}
-      <a href="https://app.hatsprotocol.xyz" target="_blank" className="underline" rel="noreferrer">
+      Go to Hats Protocol to create a Hats tree and then come back here to
+      continue <br />
+      Visit{" "}
+      <a
+        href=" https://app.hatsprotocol.xyz/trees/new"
+        target="_blank"
+        className="underline"
+        rel="noreferrer"
+      >
         https://app.hatsprotocol.xyz
       </a>{" "}
       to create a tree.
     </div>
   );
+
   const renderExistingTreeStep = () => (
     <DeployHatsDelegatorContract onSuccess={onSuccess} />
   );
-  const renderDelegatorContractStep = () => <div></div>;
 
   const renderGoBack = () =>
     state !== OwnershipSetupSteps.unknown && (
@@ -66,14 +72,7 @@ const SharedAccountOwnershipSetup = ({
     <BigOptionSelector
       options={[
         {
-          title: "I don't have a Hats tree yet",
-          description:
-            "Let's setup a Hats tree and deploy a delegator contract",
-          buttonText: "Start setup",
-          onClick: () => setState(OwnershipSetupSteps.unprepared),
-        },
-        {
-          title: "I have an existing Hats tree",
+          title: "I have no delegator contract",
           description: "Let's deploy your own Farcaster delegator contract",
           buttonText: "Start deplyoment",
           onClick: () => setState(OwnershipSetupSteps.existing_tree),
