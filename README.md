@@ -33,6 +33,12 @@ yarn install
 yarn dev
 ```
 
+run local DB in Docker
+```bash
+supabase db start
+```
+
+
 ### run as native app
 
 ...coming back soon via [tauri](https://tauri.app/)...
