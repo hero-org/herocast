@@ -111,9 +111,7 @@ const DeployHatsDelegatorContract = ({
   );
   const [errorMessage, setErrorMessage] = useState("");
   const [onchainTransactionHash, setOnchainTransactionHash] =
-    useState<`0x${string}`>(
-      "0x87abb82438d868f5c5b2654842a1a469cda9f6c8f4c50b1b0e0f88770c1aa47e"
-    );
+    useState<`0x${string}`>("0x");
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
     defaultValues: {
