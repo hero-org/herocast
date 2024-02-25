@@ -19,7 +19,6 @@ const SharedAccountOwnershipSetup = ({
   const [state, setState] = useState<OwnershipSetupSteps>(
     OwnershipSetupSteps.unknown
   );
-  const [hatsTreeAddress, setHatsTreeAddress] = useState<string>("");
 
   const renderStep = () => {
     switch (state) {
@@ -30,7 +29,7 @@ const SharedAccountOwnershipSetup = ({
       case OwnershipSetupSteps.existing_tree:
         return renderExistingTreeStep();
       // case OwnershipSetupSteps.delegator_contract:
-        // return renderDelegatorContractStep();
+      // return renderDelegatorContractStep();
       default:
         return null;
     }
@@ -54,7 +53,11 @@ const SharedAccountOwnershipSetup = ({
   );
 
   const renderExistingTreeStep = () => (
-    <DeployHatsDelegatorContract onSuccess={onSuccess} />
+    <DeployHatsDelegatorContract
+      onSuccess={onSuccess}
+      delegatorContractAddress={delegatorContractAddress}
+      setDelegatorContractAddress={setDelegatorContractAddress}
+    />
   );
 
   const renderGoBack = () =>

@@ -33,8 +33,9 @@ import { HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS } from "./const";
 import { optimism } from "wagmi/chains";
 import { getCustomRegistry } from "./utils";
 import { openWindow } from "@/common/helpers/navigation";
-import { HatsFarcasterDelegatorAbi } from "@/common/constants/contracts/HatsFarcasterDelegator";
+import { HatsModuleFactoryAbi } from "@/common/constants/contracts/HatsModuleFactory";
 import isEmpty from "lodash.isempty";
+import { on } from "events";
 
 enum DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS {
   "CONNECT_WALLET",
@@ -68,7 +69,7 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
   {
     state: DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.CONFIRMED,
     title: "",
-    description: "You have successfully deployed the contract",
+    description: "You have successfully deployed the contract onchain ✅",
     idx: 2,
   },
   {
@@ -89,6 +90,8 @@ export type DeployHatsDelegatorContractFormValues = z.infer<
 
 const toNumber = z.number().or(z.string()).pipe(z.coerce.number());
 
+// todo: those are not bigints, they are hex numbers, e.g.
+// 0x0000003a00010001000100000000000000000000000000000000000000000000
 const DeployHatsDelegatorContractFormSchema = z.object({
   casterHatId: z.bigint().or(toNumber).pipe(z.coerce.bigint()),
   adminHatId: z.bigint().or(toNumber).pipe(z.coerce.bigint()),
@@ -96,8 +99,12 @@ const DeployHatsDelegatorContractFormSchema = z.object({
 
 const DeployHatsDelegatorContract = ({
   onSuccess,
+  delegatorContractAddress,
+  setDelegatorContractAddress,
 }: {
   onSuccess: () => null;
+  delegatorContractAddress: `0x${string}`;
+  setDelegatorContractAddress: (address: `0x${string}`) => void;
 }) => {
   const [state, setState] = useState<SignupStepType>(
     HatsProtocolSignupSteps[0]
@@ -123,17 +130,18 @@ const DeployHatsDelegatorContract = ({
     hash: onchainTransactionHash,
   });
 
-  const logs = isEmpty(transactionResult?.data) ? [] : parseEventLogs({
-    abi: HatsFarcasterDelegatorAbi,
-    logs: transactionResult?.data?.logs,
-  });
-
-
   useEffect(() => {
     if (onchainTransactionHash === "0x") return;
 
-    if (transactionResult) {
+    if (transactionResult?.data) {
       setState(HatsProtocolSignupSteps[2]);
+
+      const logs = parseEventLogs({
+        abi: HatsModuleFactoryAbi,
+        logs: transactionResult?.data?.logs,
+      });
+      const instance = logs[0].args.instance;
+      setDelegatorContractAddress(instance);
       console.log("transactionResult", transactionResult.data);
     }
   }, [onchainTransactionHash, transactionResult]);
@@ -263,20 +271,41 @@ const DeployHatsDelegatorContract = ({
           </div>
         );
       case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.CONFIRMED:
-        console.log("logs", logs);
         return (
           <div className="flex flex-col">
             <div className="w-2/3">
-              <p className="">Delegator contract address:</p>
+              {delegatorContractAddress ? (
+                <p className="text-foreground/70">
+                  Your deployed contract is live at
+                  <p
+                    className="cursor-pointer text-foreground/90"
+                    onClick={() =>
+                      openWindow(
+                        `https://optimistic.etherscan.io/address/${delegatorContractAddress}#code`
+                      )
+                    }
+                  >
+                    {delegatorContractAddress}
+                  </p>
+                </p>
+              ) : (
+                <p className="text-red-500">
+                  No logs found for the transaction hash, something is off
+                </p>
+              )}
               <Button
                 variant="outline"
+                className="mt-4"
                 onClick={() =>
                   openWindow(
                     `https://optimistic.etherscan.io/tx/${onchainTransactionHash}`
                   )
                 }
               >
-                Etherscan ↗️
+                See transaction on Etherscan ↗️
+              </Button>
+              <Button className="mt-4" onClick={() => onSuccess()}>
+                Continue
               </Button>
             </div>
           </div>
