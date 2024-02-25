@@ -60,6 +60,7 @@ interface AccountStoreActions {
   removeAccount: (idx: number) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setSelectedChannelUrl: (url: string | null) => void;
+  setSelectedChannelByName: (name: string) => void;
   resetSelectedChannel: () => void;
   resetStore: () => void;
   addPinnedChannel: (channel: ChannelType) => void;
@@ -154,6 +155,15 @@ const store = (set: StoreSet) => ({
   setSelectedChannelUrl: (url: string) => {
     set((state) => {
       state.selectedChannelUrl = url;
+    });
+  },
+  setSelectedChannelByName: (name: string) => {
+    set((state) => {
+      name = (name.startsWith('/') ? name.slice(1) : name).toLowerCase();
+      const channel = state.allChannels.find((channel) => channel.name === name);
+      if (channel) {
+        state.selectedChannelUrl = channel.url;
+      }
     });
   },
   resetSelectedChannel: () => {

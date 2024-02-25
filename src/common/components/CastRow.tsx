@@ -69,14 +69,13 @@ const renderLink = ({ attributes, content }) => {
 };
 
 const renderChannel = ({ attributes, content }) => {
-  console.log('renderChannel', { attributes, content })
-  const { href } = attributes;
+  const { href, setSelectedChannelByName } = attributes;
   return (
     <span
       className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
       onClick={(event) => {
         event.stopPropagation();
-        setSelectedChannelUrl(href);
+        setSelectedChannelByName(href);
       }}
       rel='noopener noreferrer'>
       {content}
@@ -122,7 +121,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     accounts,
     selectedAccountIdx,
     allChannels: channels,
-    setSelectedChannelUrl,
+    setSelectedChannelByName,
   } = useAccountStore();
   // if (isSelected) console.log('selected cast', cast);
 
@@ -269,7 +268,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   }
 
   const getText = () => (
-    <Linkify as="span" options={{ ...linkifyOptions, attributes: { userFid } }}>
+    <Linkify as="span" options={{ ...linkifyOptions, attributes: { userFid, setSelectedChannelByName } }}>
       {cast.text}
     </Linkify>
   )
