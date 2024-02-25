@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccount, useSignTypedData, useWalletClient } from "wagmi";
 import { Input } from "@/components/ui/input";
 import { idRegistryABI } from "@farcaster/hub-web";
@@ -17,7 +16,7 @@ import { ID_REGISTRY_ADDRESS } from "@farcaster/hub-web";
 import { publicClient } from "@/common/helpers/rainbowkit";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { z } from "zod";
-import { isAddress } from "viem";
+import { isAddress, parseEventLogs } from "viem";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -31,9 +30,11 @@ import {
 } from "@/components/ui/form";
 import { HatsModulesClient, Registry } from "@hatsprotocol/modules-sdk";
 import { HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS } from "./const";
-import { switchChain } from "@wagmi/core";
 import { optimism } from "wagmi/chains";
 import { getCustomRegistry } from "./utils";
+import { openWindow } from "@/common/helpers/navigation";
+import { HatsFarcasterDelegatorAbi } from "@/common/constants/contracts/HatsFarcasterDelegator";
+import isEmpty from "lodash.isempty";
 
 enum DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS {
   "CONNECT_WALLET",
@@ -86,8 +87,11 @@ export type DeployHatsDelegatorContractFormValues = z.infer<
   typeof DeployHatsDelegatorContractFormSchema
 >;
 
+const toNumber = z.number().or(z.string()).pipe(z.coerce.number());
+
 const DeployHatsDelegatorContractFormSchema = z.object({
-  casterHatId: z.string(), // Address,
+  casterHatId: z.bigint().or(toNumber).pipe(z.coerce.bigint()),
+  adminHatId: z.bigint().or(toNumber).pipe(z.coerce.bigint()),
 });
 
 const DeployHatsDelegatorContract = ({
@@ -100,30 +104,37 @@ const DeployHatsDelegatorContract = ({
   );
   const [errorMessage, setErrorMessage] = useState("");
   const [onchainTransactionHash, setOnchainTransactionHash] =
-    useState<`0x${string}`>("0x");
+    useState<`0x${string}`>(
+      "0x87abb82438d868f5c5b2654842a1a469cda9f6c8f4c50b1b0e0f88770c1aa47e"
+    );
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
     defaultValues: {
-      casterHatId: "0x0000003a00010001000100000000000000000000000000000000000000000000",
+      adminHatId: 23n,
+      casterHatId: 58n,
     },
   });
-  const { signTypedDataAsync } = useSignTypedData();
   const walletClient = useWalletClient({
     chainId: optimism.id,
   });
   const { address } = useAccount();
-  const { openConnectModal } = useConnectModal();
-  const { openAccountModal } = useAccountModal();
 
   const transactionResult = useWaitForTransactionReceipt({
     hash: onchainTransactionHash,
   });
 
+  const logs = isEmpty(transactionResult?.data) ? [] : parseEventLogs({
+    abi: HatsFarcasterDelegatorAbi,
+    logs: transactionResult?.data?.logs,
+  });
+
+
   useEffect(() => {
     if (onchainTransactionHash === "0x") return;
 
     if (transactionResult) {
-      setState(HatsProtocolSignupSteps[5]);
+      setState(HatsProtocolSignupSteps[2]);
+      console.log("transactionResult", transactionResult.data);
     }
   }, [onchainTransactionHash, transactionResult]);
 
@@ -131,13 +142,10 @@ const DeployHatsDelegatorContract = ({
     if (!address) return;
 
     // switch walletCLient to chainId
-    const casterHatId = form.getValues().casterHatId;
-    const immutableArgs = [];
+    const { casterHatId, adminHatId } = form.getValues();
+    const immutableArgs = [BigInt(adminHatId), BigInt(casterHatId)];
     const mutableArgs = [];
 
-    console.log("publicClient", publicClient);
-    console.log("walletClient", walletClient.data);
-    
     const hatsModulesClient = new HatsModulesClient({
       publicClient,
       walletClient: walletClient.data!,
@@ -145,19 +153,16 @@ const DeployHatsDelegatorContract = ({
     try {
       await hatsModulesClient.prepare(getCustomRegistry());
 
-      // console.log(
-      //   "res",
-      //   await hatsModulesClient.getModulesByInstances([
-      //     HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS,
-      //   ])
-      // );
+      console.log("immutableArgs", immutableArgs, "mutableArgs", mutableArgs);
       const createInstanceResult = await hatsModulesClient.createNewInstance({
         account: address,
         moduleId: HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS,
-        hatId: casterHatId,
+        hatId: BigInt(casterHatId),
         immutableArgs,
         mutableArgs,
       });
+      console.log("createInstanceResult", createInstanceResult);
+      setOnchainTransactionHash(createInstanceResult.transactionHash);
     } catch (e) {
       console.error(e);
       setErrorMessage(e.message);
@@ -199,20 +204,20 @@ const DeployHatsDelegatorContract = ({
   const renderForm = () => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onExecuteDeploy)} className="space-y-8">
-        {/* <FormField
+        <FormField
           control={form.control}
           name="adminHatId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Admin Hat ID</FormLabel>
               <FormControl>
-                <Input placeholder="0x1234..." {...field} />
+                <Input placeholder="23" {...field} />
               </FormControl>
               <FormDescription></FormDescription>
               <FormMessage />
             </FormItem>
           )}
-        /> */}
+        />
         <FormField
           control={form.control}
           name="casterHatId"
@@ -220,7 +225,7 @@ const DeployHatsDelegatorContract = ({
             <FormItem>
               <FormLabel>Caster Hat ID</FormLabel>
               <FormControl>
-                <Input placeholder="0x1234..." {...field} />
+                <Input placeholder="42" {...field} />
               </FormControl>
               <FormDescription></FormDescription>
               <FormMessage />
@@ -258,13 +263,21 @@ const DeployHatsDelegatorContract = ({
           </div>
         );
       case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.CONFIRMED:
+        console.log("logs", logs);
         return (
           <div className="flex flex-col">
             <div className="w-2/3">
               <p className="">Delegator contract address:</p>
-              <p className="p-2 rounded-md bg-gray-200 text-gray-700 text-wrap break-all">
-                {address}
-              </p>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  openWindow(
+                    `https://optimistic.etherscan.io/tx/${onchainTransactionHash}`
+                  )
+                }
+              >
+                Etherscan ↗️
+              </Button>
             </div>
           </div>
         );
@@ -294,7 +307,7 @@ const DeployHatsDelegatorContract = ({
           {errorMessage && (
             <div className="flex flex-col flex-start mt-2">
               <p className="text-wrap break-all	text-sm text-red-500">
-                Error: {errorMessage}
+                {errorMessage}
               </p>
               <Button
                 className="w-1/2 mt-4"
