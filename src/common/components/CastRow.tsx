@@ -23,10 +23,11 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/ope
 import FrameEmbed from './Embeds/FrameEmbed';
 import { registerPlugin } from 'linkifyjs';
 import CashtagHoverCard from './CashtagHoverCard';
-import mentionPlugin, { cashtagPlugin } from '../helpers/linkify';
+import mentionPlugin, { cashtagPlugin, channelPlugin } from '../helpers/linkify';
 
 registerPlugin('mention', mentionPlugin);
 registerPlugin('cashtag', cashtagPlugin);
+registerPlugin('channel', channelPlugin);
 
 interface CastRowProps {
   cast: CastWithInteractions | CastType;
@@ -67,7 +68,27 @@ const renderLink = ({ attributes, content }) => {
   );
 };
 
+const renderChannel = ({ attributes, content }) => {
+  console.log('renderChannel', { attributes, content })
+  const { href } = attributes;
+  return (
+    <span
+      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+      onClick={(event) => {
+        event.stopPropagation();
+        setSelectedChannelUrl(href);
+      }}
+      rel='noopener noreferrer'>
+      {content}
+    </span>
+  );
+};
+
 const renderCashtag = ({ attributes, content }) => {
+  if (!content || content.length < 3) {
+    return content;
+  }
+
   const tokenSymbol = content.slice(1);
   const { userFid } = attributes;
 
@@ -90,6 +111,7 @@ const linkifyOptions = {
     url: renderLink,
     mention: renderMention,
     cashtag: renderCashtag,
+    channel: renderChannel,
   },
   truncate: 42,
 };
@@ -100,6 +122,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     accounts,
     selectedAccountIdx,
     allChannels: channels,
+    setSelectedChannelUrl,
   } = useAccountStore();
   // if (isSelected) console.log('selected cast', cast);
 

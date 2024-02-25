@@ -70,3 +70,28 @@ export function cashtagPlugin({ scanner, parser }) {
 
 export const CashtagToken = createTokenClass('cashtag', { isLink: true });
 
+export function channelPlugin({ scanner, parser }) {
+  const { SLASH, UNDERSCORE } = scanner.tokens;
+  const { alpha, numeric, alphanumeric, emoji } = scanner.tokens.groups;
+
+  // Take or create a transition from start to the '$' sign (non-accepting)
+  // Take transition from '$' to any text token to yield valid hashtag state
+  // Account for leading underscore (non-accepting unless followed by alpha)
+  const Hash = parser.start.tt(SLASH);
+  const HashPrefix = Hash.tt(UNDERSCORE);
+  const Channel = new State(ChannelToken);
+
+  Hash.ta(numeric, HashPrefix);
+  Hash.ta(alpha, Channel);
+  Hash.ta(emoji, Channel);
+  HashPrefix.ta(alpha, Channel);
+  HashPrefix.ta(emoji, Channel);
+  HashPrefix.ta(numeric, HashPrefix);
+  HashPrefix.tt(UNDERSCORE, HashPrefix);
+  Channel.ta(alphanumeric, Channel);
+  Channel.ta(emoji, Channel);
+//   Hashtag.tt(UNDERSCORE, Hashtag); // Trailing underscore is okay
+}
+
+export const ChannelToken = createTokenClass('channel', { isLink: true });
+
