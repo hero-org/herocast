@@ -756,17 +756,10 @@
   resolved "https://registry.yarnpkg.com/@mod-protocol/farcaster/-/farcaster-0.2.0.tgz#8b12272638a10035608aaa462dc47f7213c83f05"
   integrity sha512-vYd1TTStQ3VDO1vSXlEOBpYAVpE2E71oaSZisyBLBAcL7KfJqMVz8TzfERNLD2qI7l7Q20hGP59R+4gbzHczOw==
 
-"@mod-protocol/mod-registry@*":
+"@mod-protocol/mod-registry@*", "@mod-protocol/mod-registry@^0.2.2":
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/@mod-protocol/mod-registry/-/mod-registry-0.2.2.tgz#13980827252c5138ea73f4306575d145834a79be"
   integrity sha512-iiprU3xAw2QtRcEA7BJDagYDBjuNdd7pdEQdOaKCWW5u9b1d4x+9j8CoiwSSgcsgZRLX2gNRIPK7ARb9MEuvWA==
-  dependencies:
-    "@mod-protocol/core" "*"
-
-"@mod-protocol/mod-registry@^0.1.0":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@mod-protocol/mod-registry/-/mod-registry-0.1.1.tgz#07a47cfd531bd4e9cee9561a68281e4e602a6204"
-  integrity sha512-5V70QaxHK5fgBxmNMYvZ0FRvqC81Q5A10KuGxnPLsnfq1kAf1ZKktOg4ZIOxgfl2aAqng7vLOCz/K13oqsRfOw==
   dependencies:
     "@mod-protocol/core" "*"
 
