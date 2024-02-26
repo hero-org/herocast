@@ -1,5 +1,5 @@
 const ID_REGISTRY_ADDRESS =
-  '0x00000000fcaf86937e41ba038b4fa40baa4b780a' as `0x${string}`
+  '0x00000000fc6c5f01fc30151999387bb99a9f489b' as `0x${string}`
 
 const ID_REGISTRY_ABI = [
   {
@@ -466,4 +466,5 @@ const ID_REGISTRY_ABI = [
 export const ID_REGISTRY = {
   address: ID_REGISTRY_ADDRESS,
   abi: ID_REGISTRY_ABI,
+  chainId: 10,
 }

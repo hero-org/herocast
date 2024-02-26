@@ -60,9 +60,11 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
       "getFidAndUpdateAccount",
       address,
       "pending accounts",
-      pendingAccounts.length
+      pendingAccounts.length,
+      "transactionResult",
+      transactionResult?.data
     );
-    if (transactionResult && pendingAccounts.length > 0) return false;
+    if (!(transactionResult && pendingAccounts.length > 0)) return false;
 
     return getFidForWallet(address!)
       .then((fid) => {
@@ -227,9 +229,9 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
         This will require two wallet signatures and one on-chain transaction.{" "}
         <br />
         You need to have ETH on Optimism to pay gas for the transaction and the
-        Farcaster platform fee. Farcaster platform fee (yearly) in ETH right
-        now:{" "}
-        {price ? `~${parseFloat(formatEther(price)).toFixed(5)}` : "loading..."}
+        Farcaster platform fee. Farcaster platform fee (yearly) right
+        now is {" "}
+        {price ? `~${parseFloat(formatEther(price)).toFixed(5)} ETH.` : "loading..."}
       </p>
       <p className="text-sm text-red-500">
         Currently no way to set a username for this new account yet. This will

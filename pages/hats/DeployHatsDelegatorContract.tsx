@@ -88,13 +88,9 @@ export type DeployHatsDelegatorContractFormValues = z.infer<
   typeof DeployHatsDelegatorContractFormSchema
 >;
 
-const toNumber = z.number().or(z.string()).pipe(z.coerce.number());
-
-// todo: those are not bigints, they are hex numbers, e.g.
-// 0x0000003a00010001000100000000000000000000000000000000000000000000
 const DeployHatsDelegatorContractFormSchema = z.object({
-  casterHatId: z.bigint().or(toNumber).pipe(z.coerce.bigint()),
-  adminHatId: z.bigint().or(toNumber).pipe(z.coerce.bigint()),
+  casterHatId: z.string().startsWith("0x"),
+  adminHatId: z.string().startsWith("0x"),
 });
 
 const DeployHatsDelegatorContract = ({
@@ -114,10 +110,6 @@ const DeployHatsDelegatorContract = ({
     useState<`0x${string}`>("0x");
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
-    defaultValues: {
-      adminHatId: 23n,
-      casterHatId: 58n,
-    },
   });
   const walletClient = useWalletClient({
     chainId: optimism.id,
@@ -149,7 +141,7 @@ const DeployHatsDelegatorContract = ({
 
     // switch walletCLient to chainId
     const { casterHatId, adminHatId } = form.getValues();
-    const immutableArgs = [BigInt(adminHatId), BigInt(casterHatId)];
+    const immutableArgs = [adminHatId, casterHatId];
     const mutableArgs = [];
 
     const hatsModulesClient = new HatsModulesClient({
@@ -163,7 +155,7 @@ const DeployHatsDelegatorContract = ({
       const createInstanceResult = await hatsModulesClient.createNewInstance({
         account: address,
         moduleId: HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS,
-        hatId: BigInt(casterHatId),
+        hatId: casterHatId,
         immutableArgs,
         mutableArgs,
       });
@@ -173,28 +165,6 @@ const DeployHatsDelegatorContract = ({
       console.error(e);
       setErrorMessage(e.message);
       setState(HatsProtocolSignupSteps[3]);
-    }
-  };
-
-  const getButtonLabel = () => {
-    switch (state.state) {
-      case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.CONNECT_WALLET:
-        return "Connect wallet";
-      case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.EXECUTE_ONCHAIN:
-        return "Deploy contract";
-      case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.PENDING_ONCHAIN_CONFIRMATION:
-        return (
-          <p className="flex">
-            <Cog6ToothIcon
-              className="h-5 w-5 animate-spin"
-              aria-hidden="true"
-            />
-          </p>
-        );
-      case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.CONFIRMED:
-        return "Done";
-      case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.ERROR:
-        return "Error";
     }
   };
 
@@ -217,7 +187,7 @@ const DeployHatsDelegatorContract = ({
             <FormItem>
               <FormLabel>Admin Hat ID</FormLabel>
               <FormControl>
-                <Input placeholder="23" {...field} />
+                <Input placeholder="0x..." {...field} />
               </FormControl>
               <FormDescription></FormDescription>
               <FormMessage />
@@ -231,7 +201,7 @@ const DeployHatsDelegatorContract = ({
             <FormItem>
               <FormLabel>Caster Hat ID</FormLabel>
               <FormControl>
-                <Input placeholder="42" {...field} />
+                <Input placeholder="0x..." {...field} />
               </FormControl>
               <FormDescription></FormDescription>
               <FormMessage />

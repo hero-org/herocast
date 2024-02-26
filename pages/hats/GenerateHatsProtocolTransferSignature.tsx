@@ -317,42 +317,7 @@ const GenerateHatsProtocolTransferSignature = ({
       case GENERATE_SIGNATURE_STEPS_ENUM.GENERATE_SIGNATURE:
         return (
           <div className="flex flex-col">
-            <div className="">
-              {/* <p className="mb-1">What is the FID of the Farcaster account?</p>
-              <Input
-                className="w-2/3"
-                placeholder="1"
-                value={fid.toString()}
-                onChange={(e) => setFid(BigInt(e.target.value))}
-              /> */}
-              {/* <p className="mt-4 mb-1">
-                What is the address of the Hats Protocol Delegator instance?
-                (leave empty if FID is owned by your current wallet)
-              </p>
-              <Input
-                className="w-2/3"
-                placeholder="0x"
-                value={fromAddress}
-                onChange={(e) =>
-                  e.target.value.startsWith("0x")
-                    ? setFromAddress(e.target.value as `0x${string}`)
-                    : null
-                }
-              /> */}
-              {/* <p className="mt-4 mb-1">
-                What is the target Hats Protocol Delegator instance?
-              </p>
-              <Input
-                className="w-2/3"
-                placeholder="0x"
-                value={toAddress}
-                onChange={(e) =>
-                  e.target.value.startsWith("0x")
-                    ? setToAddress(e.target.value as `0x${string}`)
-                    : null
-                }
-              /> */}
-            </div>
+           
           </div>
         );
       case GENERATE_SIGNATURE_STEPS_ENUM.EXECUTE_ONCHAIN:
@@ -360,6 +325,7 @@ const GenerateHatsProtocolTransferSignature = ({
         return (
           <div className="flex flex-col">
             <div className="w-2/3">
+              FID: {fid.toString()}
               <p className="">Signature:</p>
               <p className="p-2 rounded-md bg-gray-200 text-gray-700 text-wrap break-all">
                 {signature}

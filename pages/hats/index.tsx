@@ -9,12 +9,17 @@ import {
   ClipboardDocumentIcon,
   PaperAirplaneIcon,
 } from "@heroicons/react/20/solid";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
 import { openWindow } from "@/common/helpers/navigation";
+import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
+import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
+import isEmpty from "lodash.isempty";
+import get from "lodash.get";
+import { filter } from "lodash";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
@@ -53,30 +58,73 @@ const hatsSignupSteps = [
   },
 ];
 
+const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+
 export default function HatsProtocolPage() {
-  const [step, setStep] = useState<string>(hatsSignupSteps[2].key);
+  const [step, setStep] = useState<string>(hatsSignupSteps[0].key);
   const [user, setUser] = useState<User | null>();
   const [delegatorContractAddress, setDelegatorContractAddress] = useState<
     `0x${string}` | null
   >();
+  const [infoMessage, setInfoMessage] = useState<string | null>();
 
   const { address, isConnected } = useAccount();
+  const { openAccountModal } = useAccountModal();
+  const { data: idOfUser, error: idOfUserError } = useReadContract({
+    ...ID_REGISTRY,
+    functionName: address ? "idOf" : undefined,
+    args: address ? [address] : undefined,
+  });
 
   useEffect(() => {
-    if (!address) return;
-    if (!isConnected) {
+    if (!address || !isConnected) {
       setUser(null);
       return;
     }
 
-    const neynarClient = new NeynarAPIClient(
-      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-    );
+    const fetchUser = async () => {
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
 
-    neynarClient.lookupUserByCustodyAddress(address).then((result) => {
-      setUser(result?.user);
-    });
-  }, [address, isConnected]);
+      neynarClient
+        .fetchBulkUsersByEthereumAddress([address])
+        .then((result) => {
+          console.log("HatsProtocolPage: result", result);
+          if (isEmpty(result)) {
+            // fallback to idOf value from contract
+            if (idOfUser) {
+              neynarClient
+                .fetchBulkUsers([Number(idOfUser)], {
+                  viewerFid: Number(APP_FID),
+                })
+                .then((result) => {
+                  setUser(result?.users?.[0] || null);
+                });
+            }
+          } else {
+            const user = get(result, address.toLowerCase())?.[0] || get(result, address)?.[0] || null; 
+            console.log('user res:', user)
+            setUser(user);
+          }
+        })
+        .catch((err) => {
+          console.log("HatsProtocolPage: err getting user", err);
+        });
+    };
+
+    fetchUser();
+  }, [address, isConnected, idOfUser]);
+
+  useEffect(() => {
+    if (isConnected && !user) {
+      setInfoMessage(
+        "You are connected with wallet , but we couldn't find a Farcaster account connected to it. If you recently created a Farcaster account, it may take a few minutes for it to be indexed."
+      );
+    } else if (isConnected && user) {
+      setInfoMessage(null);
+    }
+  }, [isConnected, user]);
 
   const getStepContent = (
     title: string,
@@ -98,29 +146,44 @@ export default function HatsProtocolPage() {
       "Select account",
       "You need to connect your wallet to select a Farcaster account to share",
       <div className="flex flex-col space-y-8">
-        <WalletLogin />
-        {user ? (
+        <div className="flex flex-row">
+          <WalletLogin />
+          {/* {isConnected && (
+            <Button
+              variant="outline"
+              className="ml-4"
+              onClick={() => openAccountModal?.()}
+            >
+              Switch connected account
+            </Button>
+          )} */}
+        </div>
+        {infoMessage && (
+          <p className="text-sm text-foreground/70">{infoMessage}</p>
+        )}
+        {user && (
           <div className="space-x-4 grid grid-cols-2 lg:grid-cols-3">
             <div className="col-span-1 lg:col-span-2">
               <Avatar className="h-14 w-14">
                 <AvatarImage alt="User avatar" src={user.pfp_url} />
-                <AvatarFallback>{user.username}</AvatarFallback>
+                <AvatarFallback>{user.username || user.fid}</AvatarFallback>
               </Avatar>
               <div className="text-left">
                 <h2 className="text-xl font-bold text-gray-200">
                   {user?.display_name}
                 </h2>
                 <span className="text-sm text-foreground/80">
-                  @{user?.username}
+                  @{user?.username || user?.fid}
                 </span>
               </div>
             </div>
           </div>
-        ) : null}
+        )}
         <Button
           className="w-1/3"
           variant="default"
-          onClick={() => setStep(HatsSignupNav.account_ownership)}
+          disabled={!isConnected || !user}
+          onClick={() => setStep(HatsSignupNav.hats_protocol_setup)}
         >
           Continue
         </Button>
@@ -143,13 +206,16 @@ export default function HatsProtocolPage() {
                 description:
                   "Let's deploy your own Farcaster delegator contract",
                 buttonText: "Start deplyoment",
+                disabled: isEmpty(user),
                 onClick: () => setStep(HatsSignupNav.account_ownership),
               },
               {
                 title: "I need a new Hats tree",
-                description: "Let's get you setup with Hats Protocol",
+                description:
+                  "Let's get you setup with Hats Protocol in the Hats app",
                 buttonText: "Get started ↗️",
-                onClick: () => openWindow(' https://app.hatsprotocol.xyz/trees/new'),
+                onClick: () =>
+                  openWindow(" https://app.hatsprotocol.xyz/trees/new"),
               },
             ]}
           />
@@ -197,19 +263,6 @@ export default function HatsProtocolPage() {
         );
       default:
         return null;
-    }
-  };
-
-  const renderNextButton = (step: string) => {
-    // based on step index in the array, render the next button
-    const stepIdx = hatsSignupSteps.findIndex((s) => s.key === step);
-    const nextStep = hatsSignupSteps[stepIdx + 1];
-    if (nextStep) {
-      return (
-        <Button variant="default" onClick={() => setStep(nextStep.key)}>
-          Next
-        </Button>
-      );
     }
   };
 
