@@ -156,7 +156,7 @@ export default function Accounts() {
           variant="default"
           onClick={() => onCreateNewAccount()}
         >
-          <UserPlusIcon className="mr-1.5 h-5 w-5 text-foreground/70" aria-hidden="true" />
+          <UserPlusIcon className="mr-1.5 h-5 w-5" aria-hidden="true" />
           {isLoading ? 'Creating account...' : 'Connect'}
         </Button>
       </CardFooter>

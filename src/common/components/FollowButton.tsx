@@ -24,7 +24,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   useEffect(() => {
     if (!profile) return;
 
-    if (profile.viewerContext?.following) {
+    if (profile.viewer_context?.following) {
       setIsFollowing(true);
     }
   }, [profile]);

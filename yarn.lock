@@ -986,9 +986,9 @@
   integrity sha512-9WEbVRRAqJ3YFVqEZIxUqkiO8l1nool1LmNxygr5HWF8AcSYsEpneUDhmjUVJEzO2A04+oPtZdombzzPPkTtgg==
 
 "@neynar/nodejs-sdk@^1.9.6":
-  version "1.9.6"
-  resolved "https://registry.yarnpkg.com/@neynar/nodejs-sdk/-/nodejs-sdk-1.9.6.tgz#b76f67dd3d4e6ae60ac155c1e11e58221882f06f"
-  integrity sha512-yk2V+RY5BWlIdNC0sFsqjkJefiZtqHg4X5nuiAWA0pHvSERCl6XqiqCeyCb2xMDoHmXKRz3DqueFibS4mAK7xw==
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@neynar/nodejs-sdk/-/nodejs-sdk-1.10.0.tgz#65bf69ea2c769a90a79bd1a9982358720d614e3c"
+  integrity sha512-pbpgtwhTl7gYpUVQR6wHq1q073nB6qORWdBsimRO0wMDxgXXoKIvcWvTHjkl2u6WqRbqIl5OxBu/MQWurRNd2Q==
   dependencies:
     "@openapitools/openapi-generator-cli" "^2.7.0"
     axios "^1.6.2"
@@ -9378,7 +9378,6 @@ which@^2.0.1:
     isexe "^2.0.0"
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
-  name wrap-ansi-cjs
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
