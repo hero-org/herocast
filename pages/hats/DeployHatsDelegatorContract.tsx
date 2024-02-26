@@ -16,7 +16,7 @@ import { ID_REGISTRY_ADDRESS } from "@farcaster/hub-web";
 import { publicClient } from "@/common/helpers/rainbowkit";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { z } from "zod";
-import { isAddress, parseEventLogs } from "viem";
+import { hexToBigInt, isAddress, parseEventLogs } from "viem";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -80,17 +80,17 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
   },
 ];
 
-const Address = z.custom<string>((data) => {
-  return isAddress(String(data));
-}, "Invalid Address");
+const HatId = z.custom<string>((data) => {
+  return String(data).startsWith("0x");
+}, "Invalid Hat ID");
 
 export type DeployHatsDelegatorContractFormValues = z.infer<
   typeof DeployHatsDelegatorContractFormSchema
 >;
 
 const DeployHatsDelegatorContractFormSchema = z.object({
-  casterHatId: z.string().startsWith("0x"),
-  adminHatId: z.string().startsWith("0x"),
+  casterHatId: HatId,
+  adminHatId: HatId,
 });
 
 const DeployHatsDelegatorContract = ({
@@ -110,6 +110,10 @@ const DeployHatsDelegatorContract = ({
     useState<`0x${string}`>("0x");
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
+    defaultValues: {
+      adminHatId: "0x0000004700010001000000000000000000000000000000000000000000000000",
+      casterHatId: "0x0000004700010001000100000000000000000000000000000000000000000000",
+    },
   });
   const walletClient = useWalletClient({
     chainId: optimism.id,
@@ -139,8 +143,8 @@ const DeployHatsDelegatorContract = ({
   const onExecuteDeploy = async () => {
     if (!address) return;
 
-    // switch walletCLient to chainId
-    const { casterHatId, adminHatId } = form.getValues();
+    const casterHatId = hexToBigInt(form.getValues().casterHatId as `0x${string}`);
+    const adminHatId = hexToBigInt(form.getValues().adminHatId as `0x${string}`);
     const immutableArgs = [adminHatId, casterHatId];
     const mutableArgs = [];
 
@@ -151,7 +155,6 @@ const DeployHatsDelegatorContract = ({
     try {
       await hatsModulesClient.prepare(getCustomRegistry());
 
-      console.log("immutableArgs", immutableArgs, "mutableArgs", mutableArgs);
       const createInstanceResult = await hatsModulesClient.createNewInstance({
         account: address,
         moduleId: HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS,
