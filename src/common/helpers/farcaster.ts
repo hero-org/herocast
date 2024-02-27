@@ -173,12 +173,11 @@ export const readNoncesFromKeyGateway = async (account: `0x${string}`) => {
 
 
 export async function isValidSignedKeyRequest(
-  config,
   fid: bigint,
   key: `0x${string}`,
   signedKeyRequest: `0x${string}`
 ): Promise<boolean> {
-  const res = await readContract(config, {
+  const res = await publicClient.readContract({
     address: SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
     abi: signedKeyRequestValidatorABI,
     functionName: "validate",

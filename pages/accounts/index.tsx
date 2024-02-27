@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import WalletLogin from "../../src/common/components/WalletLogin";
 import { CheckCircleIcon, PlusCircleIcon, RectangleGroupIcon, UserPlusIcon } from "@heroicons/react/20/solid";
 import { NewspaperIcon } from "@heroicons/react/24/solid";
 import { JoinedHerocastPostDraft, useNewPostStore } from "../../src/stores/useNewPostStore";
@@ -16,8 +15,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "../../src/components/ui/button";
 import { QrCode } from "../../src/common/components/QrCode";
+import ConnectFarcasterAccountViaHatsProtocol from "../../src/common/components/ConnectFarcasterAccountViaHatsProtocol";
 import { useAccount } from "wagmi";
-import ConfirmOnchainSignerButton from "../../src/common/components/ConfirmOnchainSignerButton";
 import { WarpcastLoginStatus, createSignerRequest, generateWarpcastSigner, getWarpcastSignerStatus } from "../../src/common/helpers/warpcastLogin";
 import { getUserInfoByFid } from "../../src/common/helpers/neynar";
 import HelpCard from "../../src/common/components/HelpCard";
@@ -254,6 +253,7 @@ export default function Accounts() {
           {signupState.state === SignupStateEnum.connecting && renderConnectAccountStep()}
         </div>
       </div>
+      <ConnectFarcasterAccountViaHatsProtocol />
       <HelpCard />
       {/* 
       <Button className="mt-12" onClick={() => setSignupStateIdx(signupState.idx + 1)} disabled={!hasActiveAccounts}>

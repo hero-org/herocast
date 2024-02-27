@@ -1,4 +1,7 @@
+import { HatsFarcasterDelegatorAbi } from "@/common/constants/contracts/HatsFarcasterDelegator";
+import { config } from "@/common/helpers/rainbowkit";
 import { Registry } from "@hatsprotocol/modules-sdk";
+import { readContract } from "@wagmi/core";
 
 export const getCustomRegistry = (): Registry => {
     return {
@@ -670,17 +673,58 @@ export const getCustomRegistry = (): Registry => {
                                 "example": "26959946667150639794667015087019630673637144422540572481103610249216",
                                 "displayType": "hat"
                             },
+                            // {
+                            //     "name": "Caster Hat",
+                            //     "description": "The hat ID for the caster hat. The wearer(s) of this hat are authorized to publish casts from the Farcaster account.",
+                            //     "type": "uint256",
+                            //     "example": "26959946667150639794667015087019630673637144422540572481103610249216",
+                            //     "displayType": "hat"
+                            // }
                             {
-                                "name": "Caster Hat",
-                                "description": "The hat ID for the caster hat. The wearer(s) of this hat are authorized to publish casts from the Farcaster account.",
-                                "type": "uint256",
-                                "example": "26959946667150639794667015087019630673637144422540572481103610249216",
-                                "displayType": "hat"
+                                "name": "ID Gateway Address",
+                                "description": "The address of the ID Gateway contract.",
+                                "type": "address",
+                                "example": "0x",
+                                "displayType": "address"
+                            },
+                            {
+                                "name": "ID Registry Address",
+                                "description": "The address of the ID Registry contract.",
+                                "type": "address",
+                                "example": "0x",
+                                "displayType": "address"
+                            },
+                            {
+                                "name": "Key Gateway Address",
+                                "description": "The address of the Key Gateway contract.",
+                                "type": "address",
+                                "example": "0x",
+                                "displayType": "address"
+                            },
+                            {
+                                "name": "Key Registry Address",
+                                "description": "The address of the Key Registry contract.",
+                                "type": "address",
+                                "example": "0x",
+                                "displayType": "address"
+                            },
+                            {
+                                "name": "Signed Key Request Validator Address",
+                                "description": "The address of the Signed Key Request Validator contract.",
+                                "type": "address",
+                                "example": "0x",
+                                "displayType": "address"
                             }
                         ],
                     "mutable":
                         [
-
+                            {
+                                "name": "_version",
+                                "description": "The version of the module.",
+                                "displayType": "string",
+                                "type": "string",
+                                "example": "0"
+                            }
                         ]
                 },
                 "customRoles":
@@ -1291,3 +1335,41 @@ export const getCustomRegistry = (): Registry => {
         ]
     }
 };
+
+export async function isValidSigner(
+    contractAddress: `0x${string}`,
+    typeHash: `0x${string}`,
+    signer: `0x${string}`
+): Promise<boolean> {
+    const res = await readContract(config, {
+        address: contractAddress,
+        abi: HatsFarcasterDelegatorAbi,
+        functionName: "isValidSigner",
+        args: [typeHash, signer],
+    });
+    console.log("isValidSigner result", res);
+    return res;
+}
+
+export async function isValidSignature(
+    contractAddress: `0x${string}`,
+    hash: `0x${string}`,
+    sig: `0x${string}`
+): Promise<boolean> {
+    const res = await readContract(config, {
+        address: contractAddress,
+        abi: HatsFarcasterDelegatorAbi,
+        functionName: "isValidSignature",
+        args: [hash, sig],
+    });
+    console.log(
+        "isValidSignature result",
+        res,
+        "isValid: ",
+        res === "0x1626ba7e"
+    );
+    return res === "0x1626ba7e";
+}
+
+export const SIGNED_KEY_REQUEST_TYPEHASH = "0x16be47f1f1f50a66a48db64eba3fd35c21439c23622e513aab5b902018aec438";
+

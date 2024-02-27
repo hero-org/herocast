@@ -68,9 +68,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       icon: BellIcon,
       getTitle: () => "Your notifications",
     },
-    // {
-    //   name: "Hats Protocol", router: "/hats", icon: AcademicCapIcon,
-    // },
+    {
+      name: "Hats Protocol", router: "/hats", icon: AcademicCapIcon,
+    },
     { name: "Settings", router: "/settings", icon: Cog6ToothIcon },
   ];
 

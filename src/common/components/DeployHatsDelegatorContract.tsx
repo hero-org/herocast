@@ -10,13 +10,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAccount, useSignTypedData, useWalletClient } from "wagmi";
 import { Input } from "@/components/ui/input";
-import { idRegistryABI } from "@farcaster/hub-web";
+import { ID_GATEWAY_ADDRESS, KEY_GATEWAY_ADDRESS, KEY_REGISTRY_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, idRegistryABI } from "@farcaster/hub-web";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { ID_REGISTRY_ADDRESS } from "@farcaster/hub-web";
 import { publicClient } from "@/common/helpers/rainbowkit";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { z } from "zod";
-import { hexToBigInt, isAddress, parseEventLogs } from "viem";
+import { Address, getAddress, hexToBigInt, parseEventLogs, toHex, zeroAddress } from "viem";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -28,14 +28,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { HatsModulesClient, Registry } from "@hatsprotocol/modules-sdk";
-import { HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS } from "./const";
+import {
+  HatsModulesClient,
+  Registry,
+  checkAndEncodeArgs,
+} from "@hatsprotocol/modules-sdk";
 import { optimism } from "wagmi/chains";
-import { getCustomRegistry } from "./utils";
+import { getCustomRegistry } from "../../lib/hats";
 import { openWindow } from "@/common/helpers/navigation";
 import { HatsModuleFactoryAbi } from "@/common/constants/contracts/HatsModuleFactory";
-import isEmpty from "lodash.isempty";
-import { on } from "events";
+import { AddressSchema } from "@hatsprotocol/modules-sdk/dist/schemas";
+
+const HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS: `0x${string}` = '0xa947334c33dadca4bcbb396395ecfd66601bb38c';
+// const HATS_MODULE_FACTORY_ADDRESS: `0x${string}` = '0xfE661c01891172046feE16D3a57c3Cf456729efA';
+
 
 enum DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS {
   "CONNECT_WALLET",
@@ -81,7 +87,7 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
 ];
 
 const HatId = z.custom<string>((data) => {
-  return String(data).startsWith("0x");
+  return String(data); //.startsWith("0x");
 }, "Invalid Hat ID");
 
 export type DeployHatsDelegatorContractFormValues = z.infer<
@@ -111,8 +117,12 @@ const DeployHatsDelegatorContract = ({
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
     defaultValues: {
-      adminHatId: "0x0000004700010001000000000000000000000000000000000000000000000000",
-      casterHatId: "0x0000004700010001000100000000000000000000000000000000000000000000",
+      // adminHatId: "71.1.1",
+      // casterHatId: "71.1.1.1",
+      adminHatId:
+        "0x0000004700010001000000000000000000000000000000000000000000000000",
+      casterHatId:
+        "0x0000004700010001000100000000000000000000000000000000000000000000",
     },
   });
   const walletClient = useWalletClient({
@@ -143,22 +153,36 @@ const DeployHatsDelegatorContract = ({
   const onExecuteDeploy = async () => {
     if (!address) return;
 
-    const casterHatId = hexToBigInt(form.getValues().casterHatId as `0x${string}`);
-    const adminHatId = hexToBigInt(form.getValues().adminHatId as `0x${string}`);
-    const immutableArgs = [adminHatId, casterHatId];
-    const mutableArgs = [];
+    // const casterHatId = hexToBigInt(form.getValues().casterHatId as `0x${string}`);
+    // const adminHatId = hexToBigInt(form.getValues().adminHatId as `0x${string}`);
+    const { casterHatId, adminHatId } = form.getValues();
+    const immutableArgs = [BigInt(adminHatId), ID_GATEWAY_ADDRESS, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, KEY_REGISTRY_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS];
+    const mutableArgs = [zeroAddress];
+
+    console.log("form.getValues()", form.getValues());
+    console.log("immutableArgs", immutableArgs);
+
 
     const hatsModulesClient = new HatsModulesClient({
       publicClient,
       walletClient: walletClient.data!,
     });
-    try {
-      await hatsModulesClient.prepare(getCustomRegistry());
 
+    await hatsModulesClient.prepare(getCustomRegistry());
+    const m = await hatsModulesClient.getModuleById(
+      HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS
+    );
+    checkAndEncodeArgs({
+      module: m!,
+      immutableArgs,
+      mutableArgs,
+    });
+
+    try {
       const createInstanceResult = await hatsModulesClient.createNewInstance({
         account: address,
         moduleId: HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS,
-        hatId: casterHatId,
+        hatId: BigInt(casterHatId as `0x${string}`),
         immutableArgs,
         mutableArgs,
       });

@@ -2,9 +2,7 @@ import React, { ReactNode, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import StepSequence from "@/common/components/Steps/StepSequence";
 import WalletLogin from "@/common/components/WalletLogin";
-import GenerateHatsProtocolTransferSignature from "./GenerateHatsProtocolTransferSignature";
 import { Button } from "@/components/ui/button";
-import SharedAccountOwnershipSetup from "./SharedAccountOwnershipSetup";
 import {
   ClipboardDocumentIcon,
   PaperAirplaneIcon,
@@ -14,12 +12,13 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
+import SharedAccountOwnershipSetup from "@/common/components/SharedAccountOwnershipSetup";
+import TransferAccountToHatsDelegator from "@/common/components/TransferAccountToHatsDelegator";
 import { openWindow } from "@/common/helpers/navigation";
-import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
+import { useAccountModal } from "@rainbow-me/rainbowkit";
 import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
 import get from "lodash.get";
-import { filter } from "lodash";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
@@ -69,7 +68,6 @@ export default function HatsProtocolPage() {
   const [infoMessage, setInfoMessage] = useState<string | null>();
 
   const { address, isConnected } = useAccount();
-  const { openAccountModal } = useAccountModal();
   const { data: idOfUser, error: idOfUserError } = useReadContract({
     ...ID_REGISTRY,
     functionName: address ? "idOf" : undefined,
@@ -148,15 +146,6 @@ export default function HatsProtocolPage() {
       <div className="flex flex-col space-y-8">
         <div className="flex flex-row">
           <WalletLogin />
-          {/* {isConnected && (
-            <Button
-              variant="outline"
-              className="ml-4"
-              onClick={() => openAccountModal?.()}
-            >
-              Switch connected account
-            </Button>
-          )} */}
         </div>
         {infoMessage && (
           <p className="text-sm text-foreground/70">{infoMessage}</p>
@@ -234,7 +223,7 @@ export default function HatsProtocolPage() {
         return getStepContent(
           "Transfer ownership",
           "Send your Farcaster account to the delegator contract",
-          <GenerateHatsProtocolTransferSignature
+          <TransferAccountToHatsDelegator
             onSuccess={() => setStep(HatsSignupNav.invite)}
             fid={BigInt(user?.fid || 0)}
             fromAddress={address!}
@@ -249,6 +238,9 @@ export default function HatsProtocolPage() {
             <div className="flex flex-col space-y-4">
               <p className="text-lg text-semibold">
                 Successfully created your shared Farcaster account 🥳
+              </p>
+              <p className="text-muted-foreground">
+                All users with the Caster Hat in their wallet can now join this account
               </p>
               <div className="mt-4 flex items-center space-x-4">
                 <p className="text-foreground/70">Invite link</p>
@@ -277,7 +269,6 @@ export default function HatsProtocolPage() {
           navItems={hatsSignupSteps}
           renderStep={renderStep}
         />
-        <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0"></div>
       </div>
     </div>
   );

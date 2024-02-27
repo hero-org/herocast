@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isAddress } from "viem";
 import DeployHatsDelegatorContract from "./DeployHatsDelegatorContract";
+import { ImgurImage } from "./PostEmbeddedContent/ImgurImage";
 
 enum OwnershipSetupSteps {
   unknown = "UNKNOWN",
@@ -53,11 +54,37 @@ const SharedAccountOwnershipSetup = ({
   );
 
   const renderExistingTreeStep = () => (
-    <DeployHatsDelegatorContract
-      onSuccess={onSuccess}
-      delegatorContractAddress={delegatorContractAddress}
-      setDelegatorContractAddress={setDelegatorContractAddress}
-    />
+    <div className="flex flex-col space-x-2 lg:flex-row lg:space-x-8">
+      <div className="w-1/2">
+      <DeployHatsDelegatorContract
+        onSuccess={onSuccess}
+        delegatorContractAddress={delegatorContractAddress}
+        setDelegatorContractAddress={setDelegatorContractAddress}
+        />
+      </div>
+      <div className="w-1/2 mt-4 lg:mt-0">
+        <div className="mx-0 max-w-2xl">
+          <h3 className="text-lg font-semibold tracking-tight text-foreground">
+            How to get your Hats IDs
+          </h3>
+          <p className="mt-2 text-md leading-8 text-foreground/70">
+            Go to the{" "}
+            <a
+              href="https://app.hatsprotocol.xyz"
+              className="underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Hats app
+            </a>{" "}
+            and click on the tree you want to use. In the top right corner, you
+            will see the tree ID and the Hats ID. You will need to use the Hats
+            ID for the admin role and for the caster role.
+          </p>
+        </div>
+        <ImgurImage url="https://i.imgur.com/pgl0n75.gif" />
+      </div>
+    </div>
   );
 
   const renderGoBack = () =>
