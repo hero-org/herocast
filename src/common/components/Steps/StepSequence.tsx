@@ -31,7 +31,7 @@ const StepSequence = ({
 
   return (
     <div className="w-full">
-      <div className="space-y-6 p-10 pb-16 block">
+      <div className="space-y-6 pb-10 block">
         <div className="space-y-1 max-w-lg">
           <h2 className="text-2xl font-bold tracking-tight">
             {title}
@@ -50,7 +50,7 @@ const StepSequence = ({
               onClick={(step) => setStep(step)}
             />
           </aside>
-          <div className="flex-1 lg:max-w-2xl">{renderStep(step)}</div>
+          <div className="flex-1 max-w-lg lg:max-w-4xl">{renderStep(step)}</div>
         </div>
       </div>
     </div>

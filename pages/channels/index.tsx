@@ -225,7 +225,7 @@ export default function Channels() {
         <ul role="list" className="mt-3 ">
           {isEmpty(channels) ? (
             <div className="mt-0.5 h-14 col-span-2 flex rounded-sm">
-              <p className="text-gray-200 ">
+              <p className="text-muted-foreground">
                 Start pinning channels and they will appear up here
               </p>
             </div>

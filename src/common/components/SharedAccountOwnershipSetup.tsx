@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isAddress } from "viem";
 import DeployHatsDelegatorContract from "./DeployHatsDelegatorContract";
+import { ImgurImage } from "./PostEmbeddedContent/ImgurImage";
 
 enum OwnershipSetupSteps {
   unknown = "UNKNOWN",
   unprepared = "UNPREPARED",
   existing_tree = "EXISTING_TREE",
-  delegator_contract = "DELEGATOR_CONTRACT",
 }
 
 const SharedAccountOwnershipSetup = ({
@@ -20,7 +20,6 @@ const SharedAccountOwnershipSetup = ({
   const [state, setState] = useState<OwnershipSetupSteps>(
     OwnershipSetupSteps.unknown
   );
-  const [hatsTreeAddress, setHatsTreeAddress] = useState<string>("");
 
   const renderStep = () => {
     switch (state) {
@@ -30,8 +29,8 @@ const SharedAccountOwnershipSetup = ({
         return renderUnpreparedStep();
       case OwnershipSetupSteps.existing_tree:
         return renderExistingTreeStep();
-      case OwnershipSetupSteps.delegator_contract:
-        return renderDelegatorContractStep();
+      // case OwnershipSetupSteps.delegator_contract:
+      // return renderDelegatorContractStep();
       default:
         return null;
     }
@@ -39,17 +38,54 @@ const SharedAccountOwnershipSetup = ({
 
   const renderUnpreparedStep = () => (
     <div>
-      Current not supported, you can go to Hats Protocol at{" "}
-      <a href="https://app.hatsprotocol.xyz" target="_blank" className="underline" rel="noreferrer">
+      Go to Hats Protocol to create a Hats tree and then come back here to
+      continue <br />
+      Visit{" "}
+      <a
+        href=" https://app.hatsprotocol.xyz/trees/new"
+        target="_blank"
+        className="underline"
+        rel="noreferrer"
+      >
         https://app.hatsprotocol.xyz
       </a>{" "}
       to create a tree.
     </div>
   );
+
   const renderExistingTreeStep = () => (
-    <DeployHatsDelegatorContract onSuccess={onSuccess} />
+    <div className="flex flex-col space-x-2 lg:flex-row lg:space-x-8">
+      <div className="w-1/2">
+      <DeployHatsDelegatorContract
+        onSuccess={onSuccess}
+        delegatorContractAddress={delegatorContractAddress}
+        setDelegatorContractAddress={setDelegatorContractAddress}
+        />
+      </div>
+      <div className="w-1/2 mt-4 lg:mt-0">
+        <div className="mx-0 max-w-2xl">
+          <h3 className="text-lg font-semibold tracking-tight text-foreground">
+            How to get your Hats IDs
+          </h3>
+          <p className="mt-2 text-md leading-8 text-foreground/70">
+            Go to the{" "}
+            <a
+              href="https://app.hatsprotocol.xyz"
+              className="underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Hats app
+            </a>{" "}
+            and click on the tree you want to use. In the top right corner, you
+            will see the tree ID and the Hats ID. You will need to use the Hats
+            ID for the admin role and for the caster role.
+          </p>
+        </div>
+        <ImgurImage url="https://i.imgur.com/pgl0n75.gif" />
+      </div>
+    </div>
   );
-  const renderDelegatorContractStep = () => <div></div>;
 
   const renderGoBack = () =>
     state !== OwnershipSetupSteps.unknown && (
@@ -66,14 +102,7 @@ const SharedAccountOwnershipSetup = ({
     <BigOptionSelector
       options={[
         {
-          title: "I don't have a Hats tree yet",
-          description:
-            "Let's setup a Hats tree and deploy a delegator contract",
-          buttonText: "Start setup",
-          onClick: () => setState(OwnershipSetupSteps.unprepared),
-        },
-        {
-          title: "I have an existing Hats tree",
+          title: "I have no delegator contract",
           description: "Let's deploy your own Farcaster delegator contract",
           buttonText: "Start deplyoment",
           onClick: () => setState(OwnershipSetupSteps.existing_tree),

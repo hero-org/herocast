@@ -14,7 +14,6 @@ import {
   useSignTypedData,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { readContract } from "@wagmi/core";
 import { Input } from "@/components/ui/input";
 import {
   HatsFarcasterDelegatorAbi,
@@ -26,16 +25,12 @@ import {
   keccak256,
 } from "viem";
 import {
-  KEY_GATEWAY_ADDRESS,
   SIGNED_KEY_REQUEST_TYPE,
-  SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
   SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
   bytesToHexString,
-  keyGatewayABI,
-  signedKeyRequestValidatorABI,
 } from "@farcaster/hub-web";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { config, publicClient } from "@/common/helpers/rainbowkit";
+import { config } from "@/common/helpers/rainbowkit";
 import {
   getDeadline, isValidSignedKeyRequest,
 } from "@/common/helpers/farcaster";
@@ -49,6 +44,8 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { JoinedHerocastViaHatsProtocolDraft, useNewPostStore } from "@/stores/useNewPostStore";
 import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { isValidSignature, isValidSigner } from "@/lib/hats";
+import { SIGNED_KEY_REQUEST_TYPEHASH } from "@/lib/hats";
 
 enum SignupStateEnum {
   "CONNECT_WALLET",
@@ -106,44 +103,6 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
     idx: 5,
   },
 ];
-
-const SIGNED_KEY_REQUEST_TYPEHASH =
-      "0x16be47f1f1f50a66a48db64eba3fd35c21439c23622e513aab5b902018aec438";
-
-async function isValidSigner(
-  contractAddress: `0x${string}`,
-  typeHash: `0x${string}`,
-  signer: `0x${string}`,
-): Promise<boolean> {
-  const res = await readContract(config, {
-    address: contractAddress,
-    abi: HatsFarcasterDelegatorAbi,
-    functionName: "isValidSigner",
-    args: [typeHash, signer],
-  });
-  console.log("isValidSigner result", res);
-  return res;
-}
-
-async function isValidSignature(
-  contractAddress: `0x${string}`,
-  hash: `0x${string}`,
-  sig: `0x${string}`
-): Promise<boolean> {
-  const res = await readContract(config, {
-    address: contractAddress,
-    abi: HatsFarcasterDelegatorAbi,
-    functionName: "isValidSignature",
-    args: [hash, sig],
-  });
-  console.log(
-    "isValidSignature result",
-    res,
-    "isValid: ",
-    res === "0x1626ba7e"
-  );
-  return res === "0x1626ba7e";
-}
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
@@ -322,16 +281,15 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         },
       ]
     );
-    // console.log('isMetadataSignatureValid', await isValidSignature(delegatorContractAddress, metadataHash, metadata));
-    const isValidSignedKeyReq = await isValidSignedKeyRequest(
-      config,
-      fid,
-      hexStringPublicKey,
-      metadata
-    );
-    console.log('isValidSignedKeyReq', isValidSignedKeyReq)
     try {
-
+      // console.log('isMetadataSignatureValid', await isValidSignature(delegatorContractAddress, metadataHash, metadata));
+      // const isValidSignedKeyReq = await isValidSignedKeyRequest(
+      //   fid,
+      //   hexStringPublicKey,
+      //   metadata
+      // );
+      // console.log('isValidSignedKeyReq', isValidSignedKeyReq)
+      
       const tx = await writeContract(config, {
         abi: HatsFarcasterDelegatorAbi,
         address: delegatorContractAddress,
@@ -341,7 +299,8 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       setOnchainTransactionHash(tx);
       console.log("result tx", tx);
     } catch (e) {
-      setErrorMessage(`Error when trying to add key ${e}`);
+      console.error("error when trying to add key", e);
+      setErrorMessage(`Failed to add key ${e}`);
       setState(HatsProtocolSignupSteps[5]);
     }
   };
@@ -389,7 +348,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       case SignupStateEnum.CONFIRMED_ADD_KEY:
         return null;
       case SignupStateEnum.ERROR:
-        return "Reset";
+        return "Restart";
     }
   };
 
@@ -440,7 +399,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
                 onChange={(e) => setAccountName(e.target.value)}
               />
               <p className="mt-2 mb-1">
-                What is the target Hats Protocol Delegator instance?
+                What is the address of the Hats Protocol Delegator instance?
               </p>
               <Input
                 className="w-2/3"
@@ -498,7 +457,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
-            Connect your Farcaster Account with Hats Protocol 🧢 (beta)
+            Connect your shared account via Hats Protocol 🧢
           </CardTitle>
           <CardDescription className="text-lg">
             {state.description}
@@ -508,7 +467,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
           {getCardContent()}
           {errorMessage && (
             <div className="flex flex-start items-center mt-2">
-              <p className="text-wrap break-all	text-sm text-red-500">
+              <p className="text-wrap break-all	line-clamp-5 text-sm text-red-500">
                 Error: {errorMessage}
               </p>
             </div>

@@ -15,6 +15,7 @@ type OptionSelectorType = {
   buttonText: string;
   content?: React.ReactNode;
   onClick: () => void;
+  disabled?: boolean;
 };
 
 type BigOptionSelectorProps = {
@@ -32,7 +33,7 @@ const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
         {option.content ? <CardContent>{option.content}</CardContent> : null}
         {option.buttonText ? (
           <CardFooter>
-            <Button className="w-full" onClick={() => option.onClick()}>
+            <Button className="w-full" disabled={option.disabled} onClick={() => option.onClick()}>
               {option.buttonText}
             </Button>
           </CardFooter>

@@ -14,8 +14,8 @@ import {
   DEFAULT_FEED_PAGE_SIZE,
   getNeynarFeedEndpoint,
 } from "../../src/common/helpers/neynar";
-import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
+import RecommendedProfilesCard from "../../src/common/components/RecommendedProfilesCard";
 import { Key } from "ts-key-enum";
 import ReplyModal from "../../src/common/components/ReplyModal";
 import EmbedsModal from "../../src/common/components/EmbedsModal";
@@ -254,6 +254,11 @@ export default function Feed() {
     );
   };
 
+  const renderRecommendedProfiles = () =>
+    feed.length === 0 &&
+    hydrated &&
+    !isLoadingFeed && <RecommendedProfilesCard />;
+
   const renderChannelEmbed = () =>
     selectedChannelUrl ? (
       <div className="mx-2 mt-4 mb-4">
@@ -270,6 +275,7 @@ export default function Feed() {
         ) : (
           <>
             {renderFeed()}
+            {renderRecommendedProfiles()}
             {feed.length > 0 &&
               feed.length >= DEFAULT_FEED_PAGE_SIZE &&
               renderLoadMoreButton()}
@@ -281,7 +287,7 @@ export default function Feed() {
     </>
   );
 
-  if (hydrated && isEmpty(accounts)){
+  if (hydrated && isEmpty(accounts)) {
     router.push("/welcome");
   }
 

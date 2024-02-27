@@ -465,6 +465,14 @@
   dependencies:
     hls.js "^1.2.7"
 
+"@hatsprotocol/modules-sdk@^0.15.2":
+  version "0.15.2"
+  resolved "https://registry.yarnpkg.com/@hatsprotocol/modules-sdk/-/modules-sdk-0.15.2.tgz#b9bb9e94c5ef9688e82f3c9ff444a2ee231b715b"
+  integrity sha512-PxABbhKM2ZlTfa2R0Z9CjMz3gzFE3/yxr6hLD3AgVrjQQcnuX3QSAKu3dRxvJhcLbXq5n5bhRTZWYLM1Qe7BZQ==
+  dependencies:
+    axios "^1.5.0"
+    zod "^3.21.4"
+
 "@headlessui/react@^1.7.16":
   version "1.7.18"
   resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.7.18.tgz#30af4634d2215b2ca1aa29d07f33d02bea82d9d7"
@@ -978,9 +986,9 @@
   integrity sha512-9WEbVRRAqJ3YFVqEZIxUqkiO8l1nool1LmNxygr5HWF8AcSYsEpneUDhmjUVJEzO2A04+oPtZdombzzPPkTtgg==
 
 "@neynar/nodejs-sdk@^1.9.6":
-  version "1.9.6"
-  resolved "https://registry.yarnpkg.com/@neynar/nodejs-sdk/-/nodejs-sdk-1.9.6.tgz#b76f67dd3d4e6ae60ac155c1e11e58221882f06f"
-  integrity sha512-yk2V+RY5BWlIdNC0sFsqjkJefiZtqHg4X5nuiAWA0pHvSERCl6XqiqCeyCb2xMDoHmXKRz3DqueFibS4mAK7xw==
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@neynar/nodejs-sdk/-/nodejs-sdk-1.10.0.tgz#65bf69ea2c769a90a79bd1a9982358720d614e3c"
+  integrity sha512-pbpgtwhTl7gYpUVQR6wHq1q073nB6qORWdBsimRO0wMDxgXXoKIvcWvTHjkl2u6WqRbqIl5OxBu/MQWurRNd2Q==
   dependencies:
     "@openapitools/openapi-generator-cli" "^2.7.0"
     axios "^1.6.2"
@@ -3607,7 +3615,7 @@ axios@1.6.5:
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
-axios@^1.6.2, axios@^1.6.7:
+axios@^1.5.0, axios@^1.6.2, axios@^1.6.7:
   version "1.6.7"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.7.tgz#7b48c2e27c96f9c68a2f8f31e2ab19f59b06b0a7"
   integrity sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==
@@ -9370,7 +9378,6 @@ which@^2.0.1:
     isexe "^2.0.0"
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
-  name wrap-ansi-cjs
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
@@ -9531,7 +9538,7 @@ yocto-queue@^0.1.0:
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 
-zod@^3.22.4:
+zod@^3.21.4, zod@^3.22.4:
   version "3.22.4"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.4.tgz#f31c3a9386f61b1f228af56faa9255e845cf3fff"
   integrity sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==
