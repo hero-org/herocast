@@ -244,16 +244,12 @@ const IdContract = {
   chain: optimism,
 };
 
-export const getFidForWallet = async (address: `0x${string}`) => {
-  const existingFid = (await publicClient.readContract({
+export const getFidForWallet = async (address: `0x${string}`): Promise<bigint | undefined> => {
+  return (await publicClient.readContract({
     ...IdContract,
     functionName: 'idOf',
     args: [address],
   })) as bigint;
-
-  if (existingFid > 0n) {
-    return parseInt(existingFid.toString());
-  }
 };
 
 const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';

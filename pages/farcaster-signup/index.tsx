@@ -80,13 +80,21 @@ export default function Welcome() {
       <h3 className="mb-4 text-lg font-medium">
         You are fully onboarded to herocast 🥳
       </h3>
-      <div className="flex items-center space-x-2">
+      <div className="w-1/2 grid grid-cols-1 items-center gap-4">
         <Button variant="default" onClick={() => router.push("/feed")}>
           Start exploring your feed
         </Button>
         <Button variant="outline" onClick={() => router.push("/post")}>
           Post your first cast
         </Button>
+        <div className="w-full">
+          <Button className="w-full" variant="outline" onClick={() => router.push("/hats")}>
+            Share this account with others
+          </Button>
+          <p className="mt-2 text-sm text-gray-700">
+            Use Hats Protocol 🧢 to share this account with onchain permissions
+          </p>
+        </div>
       </div>
       <div className="mt-12 space-y-4">
         {/* <div className="w-[500px]">

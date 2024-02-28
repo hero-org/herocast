@@ -3,10 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import StepSequence from "@/common/components/Steps/StepSequence";
 import WalletLogin from "@/common/components/WalletLogin";
 import { Button } from "@/components/ui/button";
-import {
-  ClipboardDocumentIcon,
-  PaperAirplaneIcon,
-} from "@heroicons/react/20/solid";
+import { ClipboardDocumentIcon } from "@heroicons/react/20/solid";
 import { useAccount, useReadContract } from "wagmi";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
@@ -15,10 +12,10 @@ import BigOptionSelector from "@/common/components/BigOptionSelector";
 import SharedAccountOwnershipSetup from "@/common/components/SharedAccountOwnershipSetup";
 import TransferAccountToHatsDelegator from "@/common/components/TransferAccountToHatsDelegator";
 import { openWindow } from "@/common/helpers/navigation";
-import { useAccountModal } from "@rainbow-me/rainbowkit";
 import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
 import get from "lodash.get";
+import clsx from "clsx";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
@@ -66,7 +63,9 @@ export default function HatsProtocolPage() {
     `0x${string}` | null
   >();
   const [infoMessage, setInfoMessage] = useState<string | null>();
-
+  const shareWithOthersText = `Join my shared Farcaster account with delegator contract
+  address ${delegatorContractAddress} and FID ${user?.fid}`;
+  const [didClickCopyShare, setDidClickCopyShare] = useState(false);
   const { address, isConnected } = useAccount();
   const { data: idOfUser, error: idOfUserError } = useReadContract({
     ...ID_REGISTRY,
@@ -101,8 +100,11 @@ export default function HatsProtocolPage() {
                 });
             }
           } else {
-            const user = get(result, address.toLowerCase())?.[0] || get(result, address)?.[0] || null; 
-            console.log('user res:', user)
+            const user =
+              get(result, address.toLowerCase())?.[0] ||
+              get(result, address)?.[0] ||
+              null;
+            console.log("user res:", user);
             setUser(user);
           }
         })
@@ -180,6 +182,49 @@ export default function HatsProtocolPage() {
     );
   };
 
+  const renderInvite = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col">
+          <p className="text-lg text-semibold">
+            Successfully created your shared Farcaster account 🥳
+          </p>
+          <p className="text-muted-foreground">
+            All users with the Caster Hat in their wallet can now join!
+          </p>
+          <div className="mt-4 flex justify-between">
+            <p className="text-foreground/70">Share this to invite other users:</p>
+            <div className="flex flex-row space-x-2">
+              {didClickCopyShare && (
+                <p className="text-muted-foreground">Copied!</p>
+              )}
+              <ClipboardDocumentIcon
+                className={clsx(
+                  "h-5 w-5 ",
+                  didClickCopyShare
+                    ? "animate-pulse text-muted-foreground"
+                    : "text-foreground"
+                )}
+                onClick={() => {
+                  setDidClickCopyShare(true);
+                  navigator.clipboard.writeText(shareWithOthersText);
+                  setTimeout(() => {
+                    setDidClickCopyShare(false);
+                  }, 2000);
+                }}
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center space-x-4">
+            <p className="text-foreground py-2 px-3 bg-muted rounded-lg">
+              {shareWithOthersText}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderStep = (step: string) => {
     switch (step) {
       case HatsSignupNav.select_account:
@@ -234,24 +279,7 @@ export default function HatsProtocolPage() {
         return getStepContent(
           "Invite others",
           "Let other users join your shared account",
-          <div className="space-y-6">
-            <div className="flex flex-col space-y-4">
-              <p className="text-lg text-semibold">
-                Successfully created your shared Farcaster account 🥳
-              </p>
-              <p className="text-muted-foreground">
-                All users with the Caster Hat in their wallet can now join this account
-              </p>
-              <div className="mt-4 flex items-center space-x-4">
-                <p className="text-foreground/70">Invite link</p>
-                <p className="text-foreground py-2 px-3 bg-muted rounded-lg">
-                  https://app.herocast.xyz/invite/1234
-                </p>
-                <ClipboardDocumentIcon className="h-5 w-5 text-foreground" />
-                <PaperAirplaneIcon className="h-5 w-5 text-foreground" />
-              </div>
-            </div>
-          </div>
+          renderInvite()
         );
       default:
         return null;

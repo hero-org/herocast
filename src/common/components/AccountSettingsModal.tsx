@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Modal from './Modal';
-import { CastType } from '../constants/farcaster';
-import { SelectableListWithHotkeys } from './SelectableListWithHotkeys';
-import { openWindow } from '../helpers/navigation';
-import { classNames } from '../helpers/css';
-import { getUrlsInText } from '../helpers/text';
-import uniqBy from 'lodash.uniqby';
-import OpenGraphImage from './Embeds/OpenGraphImage';
 import { AccountObjectType } from '@/stores/useAccountStore';
 import RenameAccountForm from './RenameAccountForm';
 

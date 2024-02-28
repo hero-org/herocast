@@ -318,7 +318,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           <div className="lg:pl-48">
             <main
               className={classNames(
-                sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "lg:pr-64"
+                sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "md:pr-48 lg:pr-64"
               )}
             >
               <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">
@@ -334,7 +334,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   {title}
                 </h1>
               </header>
-              <div className="w-full max-w-full min-h-screen flex justify-between pr-2 border-t border-white/5 ">
+              <div className="w-full max-w-full min-h-screen flex justify-between border-t border-white/5 ">
                 {children}
               </div>
             </main>

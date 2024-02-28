@@ -12,6 +12,7 @@ import { getNavigationCommands } from '../../src/getNavigationCommands';
 import AccountSettingsModal from "../../src/common/components/AccountSettingsModal";
 import { useAccount } from "wagmi";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
+import { AccountPlatformType } from "../../src/common/constants/accounts";
 
 type SimpleCommand = {
   name: string;
@@ -144,6 +145,11 @@ export default function Settings() {
                   {item.status}
                 </p>
               )}
+              {item.platform === AccountPlatformType.farcaster_hats_protocol && (
+                <p className="text-sm">
+                  🧢
+                </p>
+                )}
               {item.platformAccountId && item.status === 'active' && (
                 <p className="font-mono truncate text-sm text-foreground/80">
                   fid: {item.platformAccountId}

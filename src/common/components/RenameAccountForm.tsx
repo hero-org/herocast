@@ -31,6 +31,7 @@ import { config, publicClient } from "@/common/helpers/rainbowkit";
 import {
   WARPCAST_RECOVERY_PROXY,
   getDeadline,
+  getFidForWallet,
   getSignedKeyRequestMetadataFromAppAccount,
   readNoncesFromKeyGateway,
   updateUsername,
@@ -39,12 +40,8 @@ import {
 import { toBytes, toHex } from "viem";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
-import { generateKeyPair } from "../helpers/warpcastLogin";
-import { writeContract } from "@wagmi/core";
-import ShowLinkCard from "./ShowLinkCard";
-import debounce from "lodash.debounce";
-import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 
 export type RenameAccountFormValues = z.infer<typeof RenameAccountFormSchema>;
 
@@ -90,6 +87,39 @@ const RenameAccountForm = ({
     return isValidNewUsername;
   };
 
+  const validateConnectedWalletOwnsFid = async () => {
+    if (!address) return;
+
+    if (account.platform === AccountPlatformType.farcaster) {
+      getFidForWallet(address).then(async (fid) => {
+        if (fid === BigInt(account.platformAccountId!)) {
+          return true;
+        } else {
+          const neynarClient = new NeynarAPIClient(
+            process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+          );
+          const walletsResponse =
+            await neynarClient.lookupCustodyAddressForUser(
+              Number(account.platformAccountId)
+            );
+          const custodyAddress = walletsResponse?.result?.custodyAddress;
+          const message = `Your connected wallet does not own the Farcaster account. Please connect with ${custodyAddress}. You are connected with ${address}`;
+          console.log(message);
+          form.setError("username", {
+            type: "manual",
+            message,
+          });
+          return false;
+        }
+      });
+    } else if (
+      account.platform === AccountPlatformType.farcaster_hats_protocol
+    ) {
+      // need to validate with the delegator contract address if wallet is a valid signer
+      return true;
+    }
+  };
+
   const renameAccount = async (data) => {
     console.log("createFarcasterAccount", data);
     // alert(JSON.stringify(data, null, 2));
@@ -97,23 +127,64 @@ const RenameAccountForm = ({
     if (!address) return;
 
     if (!validateUsername(data.username)) return;
+    if (!validateConnectedWalletOwnsFid()) return;
     setIsPending(true);
 
+    const timestamp = Math.floor(Date.now() / 1000);
     try {
-      const claim = makeUserNameProofClaim({
+      // const claim = makeUserNameProofClaim({
+      //   name: data.username,
+      //   owner: address,
+      //   timestamp,
+      // });
+      // console.log("claim", claim);
+      // const userSigner = new ViemWalletEip712Signer(wallet.data);
+      // const rawSignature = await userSigner.signUserNameProofClaim(claim);
+      // if (!rawSignature || rawSignature.isErr()) {
+      //   console.log("rawSignature", rawSignature.error);
+      //   throw new Error("Failed to sign username proof claim");
+      // }
+      // const signature = rawSignature._unsafeUnwrap();
+
+      const claim = {
         name: data.username,
         owner: address,
-        timestamp: Math.floor(Date.now() / 1000),
-      });
-      console.log('claim', claim);
-      const userSigner = new ViemWalletEip712Signer(wallet.data);
-      const rawSignature = await userSigner.signUserNameProofClaim(claim);
-      if (!rawSignature || rawSignature.isErr()) {
-        console.log('rawSignature', rawSignature.error);
-        throw new Error("Failed to sign username proof claim");     
-      }
-      const signature = rawSignature._unsafeUnwrap();
+        timestamp: BigInt(timestamp),
+      };
+      // console.log("userSigner", userSigner);
+      console.log("claim", claim);
+      // const rawSignature = await userSigner.signUserNameProofClaim(claim);
   
+      const result = await signTypedDataAsync({
+        domain: {
+          name: "Farcaster name verification",
+          version: "1",
+          chainId: 1,
+          verifyingContract:
+            "0xe3be01d99baa8db9905b33a3ca391238234b79d1" as `0x${string}`,
+        },
+        types: {
+          UserNameProof: [
+            {
+              name: "name",
+              type: "string",
+            },
+            {
+              name: "timestamp",
+              type: "uint256",
+            },
+            {
+              name: "owner",
+              type: "address",
+            },
+          ],
+        },
+        primaryType: "UserNameProof" as const,
+        message: claim,
+      });
+      console.log("res", result);
+      const signature = toHex(result);
+
       await updateUsername(
         account.platformAccountId!,
         data.username,
@@ -129,10 +200,7 @@ const RenameAccountForm = ({
 
   const renderForm = () => (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(renameAccount)}
-        className="space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(renameAccount)} className="space-y-8">
         <FormField
           control={form.control}
           name="username"
@@ -161,12 +229,7 @@ const RenameAccountForm = ({
       <p className="text-radix-mauve1 text-[15px] leading-normal">
         You can only rename your account if you are connected with your
         custodial wallet. If you signed up with Warpcast, you need to export
-        your account and import it into a custodial wallet. <br />
-        {currentName && (
-          <span>
-            Your current username is <strong>{currentName}</strong>.<br />
-          </span>
-        )}
+        your account and import it into a custodial wallet.
       </p>
     </div>
   );
@@ -174,7 +237,14 @@ const RenameAccountForm = ({
   return (
     <div className="flex flex-col gap-y-4">
       {renderInfoBox()}
-      {isConnected ? renderForm() : (
+      {(currentName !== 'New Account') && (
+          <span>
+            Your current username is <strong>{currentName}</strong>.<br />
+          </span>
+        )}
+      {isConnected ? (
+        renderForm()
+      ) : (
         <div className="flex p-4 rounded-lg border border-gray-500 text-warning">
           <ExclamationCircleIcon className="h-5 w-5 mr-2 mt-.5" />
           <p className="text-foreground text-[15px] leading-normal">

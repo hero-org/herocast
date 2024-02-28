@@ -23,6 +23,8 @@ import {
 import { waitForTransactionReceipt } from "@wagmi/core";
 
 const readNonces = async (account: `0x${string}`) => {
+  if (!account) return BigInt(0);
+
   return await publicClient.readContract({
     address: ID_REGISTRY_ADDRESS,
     abi: idRegistryABI,
@@ -136,10 +138,7 @@ const TransferAccountToHatsDelegator = ({
   const [deadline, setDeadline] = useState<bigint>(BigInt(0));
   const [nonce, setNonce] = useState<bigint>(BigInt(0));
   const [onchainTransactionHash, setOnchainTransactionHash] =
-    useState<`0x${string}`>(
-      "0x"
-      // "0xa040548f222ec0dfeab4b846359aa6f79368a36060defd2624f1d177d5628ef2"
-    );
+    useState<`0x${string}`>("0x");
 
   const { signTypedDataAsync } = useSignTypedData();
 
@@ -162,7 +161,11 @@ const TransferAccountToHatsDelegator = ({
   });
 
   useEffect(() => {
-    if (step.state === TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE && isFidReceivable) {
+    if (
+      step.state ===
+        TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE &&
+      isFidReceivable
+    ) {
       setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE);
     }
   }, [isFidReceivable, status, step]);
@@ -198,7 +201,7 @@ const TransferAccountToHatsDelegator = ({
       console.log(
         `setup done, fid: ${fid}, nonces: ${newNonce}, deadline: ${newDeadline} toAddress: ${toAddress}`
       );
-    }
+    };
 
     setup();
   }, [fid, fromAddress, toAddress]);
@@ -287,13 +290,13 @@ const TransferAccountToHatsDelegator = ({
       ["bytes", "bytes32", "uint256", "address", "uint256", "uint256"],
       [signature, typeHash, BigInt(fid), toAddress, nonce, BigInt(deadline)]
     );
-    
+
     try {
       const hash = hashTypedData(getTransferTypeData());
       const isValidSig = await isValidSignature(toAddress, hash, sig);
       console.log("isValidSig", isValidSig);
     } catch (e) {
-      console.log('failed something', e);
+      console.log("failed something", e);
       setErrorMessage(`Error validating signature: ${e}`);
       setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR);
     }
@@ -324,8 +327,8 @@ const TransferAccountToHatsDelegator = ({
         TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_ONCHAIN_CONFIRMATION
       );
     } catch (e) {
-      if ('User rejected the request' in e) {
-        setErrorMessage('User rejected the request');
+      if ("User rejected the request" in e) {
+        setErrorMessage("User rejected the request");
       } else {
         setErrorMessage(e?.message || e);
       }
