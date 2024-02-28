@@ -3,7 +3,7 @@ import { useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useEditor, EditorContent, Editor } from "@mod-protocol/react-editor";
+import { useEditor, EditorContent } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
 import {
   fetchUrlMetadata,
@@ -15,18 +15,18 @@ import {
 } from "@mod-protocol/farcaster";
 import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
 import { CastLengthUIIndicator } from "@mod-protocol/react-ui-shadcn/dist/components/cast-length-ui-indicator";
-import { ChannelPicker } from "@mod-protocol/react-ui-shadcn/dist/components/channel-picker";
-import uniqBy from "lodash.uniqby";
 import debounce from "lodash.debounce";
 import { Button } from "@/components/ui/button";
 import { MentionList } from "@mod-protocol/react-ui-shadcn/dist/components/mention-list";
 import { ChannelList } from "@mod-protocol/react-ui-shadcn/dist/components/channel-list";
+import { take } from "lodash";
+import { ChannelPicker } from "./ChannelPicker";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
 const debouncedGetMentions = debounce(getMentions, 200, {leading: true, trailing: false});
 const getModChannels = getFarcasterChannels(API_URL);
-const debouncedGetModChannels = debounce(getModChannels, 200, {leading: true, trailing: false});
+const debouncedGetModChannels = debounce(getModChannels, 200, {leading: true, trailing: true});
 const getUrlMetadata = fetchUrlMetadata(API_URL);
 
 const onError = (err) => {
@@ -54,34 +54,13 @@ export default function NewPostEntry({
     updatePostDraft, publishPostDraft 
   } = useNewPostStore();
 
-  const { allChannels: channels } = useAccountStore();
-
   const getChannels = async (query: string): Promise<Channel[]> => {
-    const modChannels = query && query.length > 2 ? await debouncedGetModChannels(query) : [];
-    const filteredChannels = (
-      query === ""
-        ? channels
-        : channels.filter((channel) => {
-            return channel.name.toLowerCase().includes(query.toLowerCase());
-          })
-    ).map(
-      (channel) =>
-        ({
-          channel_id: channel.id,
-          parent_url: channel.url,
-          name: channel.name,
-          id: channel.name,
-          image_url: channel.icon_url || "",
-        } as Channel)
-    );
-    return uniqBy([...filteredChannels, ...modChannels], "parent_url");
+    const modChannels = query && query.length > 2 ? await debouncedGetModChannels(query, true) : [];
+    return take(modChannels, 10);
   };
 
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
-  );
-  const hasMultipleAccounts = useAccountStore(
-    (state) => state.accounts.length > 1
   );
   const isReply = draft?.parentCastId !== undefined;
 
@@ -169,7 +148,7 @@ export default function NewPostEntry({
           {!isReply && !hideChannel && (
             <div className="text-foreground/80">
             <ChannelPicker
-              getChannels={getChannels}
+              getChannels={getModChannels}
               onSelect={setChannel}
               value={getChannel()}
             />

@@ -21,7 +21,10 @@ import {
   readNoncesFromKeyGateway,
 } from "../helpers/farcaster";
 import { formatEther, toBytes, toHex } from "viem";
-import { PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from "@/stores/useAccountStore";
+import {
+  PENDING_ACCOUNT_NAME_PLACEHOLDER,
+  useAccountStore,
+} from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { generateKeyPair } from "../helpers/warpcastLogin";
 import { writeContract } from "@wagmi/core";
@@ -52,38 +55,47 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     hash: transactionHash,
   });
 
+  const getFidAndUpdateAccount = async (): Promise<boolean> => {
+    console.log(
+      "getFidAndUpdateAccount",
+      address,
+      "pending accounts",
+      pendingAccounts.length,
+      "transactionResult",
+      transactionResult?.data
+    );
+    if (!(transactionResult && pendingAccounts.length > 0)) return false;
+
+    return getFidForWallet(address!)
+      .then((fid) => {
+        console.log(
+          "getFidForWallet fid",
+          fid,
+          "pendingAccounts",
+          pendingAccounts
+        );
+        if (fid) {
+          const accountId = pendingAccounts[0].id!;
+          setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
+            platform_account_id: fid.toString(),
+            data: { signupViaHerocast: true },
+          });
+          onSuccess?.();
+          return true;
+        }
+        return false;
+      })
+      .catch((e) => {
+        console.log("error when trying to get fid", e);
+        setError(`Error when trying to get fid: ${e}`);
+        return false;
+      });
+  };
+
   useEffect(() => {
     if (!isConnected || transactionHash === "0x") return;
-    if (transactionResult && pendingAccounts.length > 0) {
-      const getFidAndUpdateAccount = async (): Promise<boolean> => {
-        return getFidForWallet(address!)
-          .then((fid) => {
-            console.log(
-              "getFidForWallet fid",
-              fid,
-              "pendingAccounts",
-              pendingAccounts
-            );
-            if (fid) {
-              const accountId = pendingAccounts[0].id!;
-              setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
-                platform_account_id: fid.toString(),
-                data: { signupViaHerocast: true },
-              });
-              onSuccess?.();
-              return true;
-            }
-            return false;
-          })
-          .catch((e) => {
-            console.log("error when trying to get fid", e);
-            setError(`Error when trying to get fid: ${e}`);
-            return false;
-          });
-      };
 
-      getFidAndUpdateAccount();
-    }
+    getFidAndUpdateAccount();
   }, [isConnected, transactionHash, transactionResult, pendingAccounts]);
 
   const createFarcasterAccount = async () => {
@@ -214,14 +226,16 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
   return (
     <div className="w-3/4 space-y-4">
       <p className="text-[0.8rem] text-muted-foreground">
-        This will require two wallet signatures and one on-chain transaction. <br />
-        You need to have ETH on Optimism to pay gas for the transaction
-        and the Farcaster platform fee. Farcaster platform fee (yearly) in ETH
-        right now:{" "}
-        {price ? `~${parseFloat(formatEther(price)).toFixed(5)}` : "loading..."}
+        This will require two wallet signatures and one on-chain transaction.{" "}
+        <br />
+        You need to have ETH on Optimism to pay gas for the transaction and the
+        Farcaster platform fee. Farcaster platform fee (yearly) right
+        now is {" "}
+        {price ? `~${parseFloat(formatEther(price)).toFixed(5)} ETH.` : "loading..."}
       </p>
       <p className="text-sm text-red-500">
-        Currently no way to set a username for this new account yet. This will be added soon!
+        Currently no way to set a username for this new account yet. This will
+        be added soon!
       </p>
       <Button
         variant="default"
@@ -238,6 +252,15 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
           </div>
         )}
       </Button>
+      {isPending && (
+        <Button
+          variant="outline"
+          className="ml-4"
+          onClick={() => getFidAndUpdateAccount()}
+        >
+          Manual refresh 🔄
+        </Button>
+      )}
       {error && (
         <div className="flex flex-start items-center mt-2">
           <p className="text-wrap break-all	text-sm text-red-500">

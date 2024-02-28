@@ -54,6 +54,10 @@ export default function Welcome() {
     if (isConnected && step === FarcasterSignupNav.connect_wallet) {
       setStep(FarcasterSignupNav.create_account_onchain);
     }
+
+    if (!isConnected && step === FarcasterSignupNav.create_account_onchain) {
+      setStep(FarcasterSignupNav.connect_wallet);
+    }
   }, [isConnected]);
 
   const getStepContent = (

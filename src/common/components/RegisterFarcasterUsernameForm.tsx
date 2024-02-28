@@ -21,7 +21,7 @@ import {
 } from "@farcaster/hub-web";
 import { wagmiConfig } from "@/common/helpers/rainbowkit";
 import { validateUsernameIsAvailable } from "../helpers/farcaster";
-import { createWalletClient, http, toHex } from "viem";
+import { createWalletClient, isAddress, http, toHex } from "viem";
 import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   useAccountStore,

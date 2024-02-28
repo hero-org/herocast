@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v1";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 
 type TokenInfo = {

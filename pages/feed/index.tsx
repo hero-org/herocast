@@ -14,14 +14,15 @@ import {
   DEFAULT_FEED_PAGE_SIZE,
   getNeynarFeedEndpoint,
 } from "../../src/common/helpers/neynar";
-import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
+import RecommendedProfilesCard from "../../src/common/components/RecommendedProfilesCard";
 import { Key } from "ts-key-enum";
 import ReplyModal from "../../src/common/components/ReplyModal";
 import EmbedsModal from "../../src/common/components/EmbedsModal";
 import { useInView } from "react-intersection-observer";
 import { renderEmbedForUrl } from "../../src/common/components/Embeds";
 import { useRouter } from "next/router";
+import { Button } from "../../src/components/ui/button";
 
 type FeedType = {
   [key: string]: CastType[];
@@ -198,7 +199,7 @@ export default function Feed() {
   };
 
   const renderLoadMoreButton = () => (
-    <button
+    <Button
       ref={buttonRef}
       onClick={() =>
         getFeed({
@@ -207,10 +208,11 @@ export default function Feed() {
           cursor: nextFeedCursor,
         })
       }
-      className="ml-4 my-4 text-foreground/80 bg-gray-600 hover:bg-gray-500 inline-flex h-[35px] items-center justify-center rounded-sm px-[15px] font-medium leading-none outline-none focus:bg-gray-500"
+      variant="outline"
+      className="ml-4 my-4 "
     >
       {getButtonText()}
-    </button>
+    </Button>
   );
 
   const renderFeed = () => (
@@ -252,6 +254,11 @@ export default function Feed() {
     );
   };
 
+  const renderRecommendedProfiles = () =>
+    feed.length === 0 &&
+    hydrated &&
+    !isLoadingFeed && <RecommendedProfilesCard />;
+
   const renderChannelEmbed = () =>
     selectedChannelUrl ? (
       <div className="mx-2 mt-4 mb-4">
@@ -268,6 +275,7 @@ export default function Feed() {
         ) : (
           <>
             {renderFeed()}
+            {renderRecommendedProfiles()}
             {feed.length > 0 &&
               feed.length >= DEFAULT_FEED_PAGE_SIZE &&
               renderLoadMoreButton()}
@@ -279,7 +287,7 @@ export default function Feed() {
     </>
   );
 
-  if (hydrated && isEmpty(accounts)){
+  if (hydrated && isEmpty(accounts)) {
     router.push("/welcome");
   }
 

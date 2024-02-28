@@ -39,12 +39,12 @@ const ProfileHoverCard = ({
         const neynarClient = new NeynarAPIClient(
           process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
         );
-        const resp = await neynarClient.lookupUserByUsername(
+        const resp = await neynarClient.searchUser(
           username,
           userFid! as number
         );
-        if (resp.result.user) {
-          addUserProfile({ username, data: resp.result.user });
+        if (resp?.result?.users && resp.result.users.length > 0) {
+          addUserProfile({ username, data: resp.result.users[0] });
         }
       } catch (err) {
         console.log("ProfileHoverCard: err getting data", err);
@@ -73,13 +73,13 @@ const ProfileHoverCard = ({
         <div className="space-y-2">
           <div className="flex flex-row justify-between">
             <Avatar>
-              <AvatarImage src={profile?.pfp.url} />
+              <AvatarImage src={profile?.pfp_url} />
               <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>
             </Avatar>
             <FollowButton username={profile?.username} />
           </div>
           <div>
-            <h2 className="text-md font-semibold">{profile?.displayName}</h2>
+            <h2 className="text-md font-semibold">{profile?.display_name}</h2>
             <h3 className="text-sm font-regular">@{username}</h3>
           </div>
           {profile ? (
@@ -89,12 +89,12 @@ const ProfileHoverCard = ({
               </p>
               <div className="flex items-center pt-2 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">
-                  {profile?.followingCount}
+                  {profile?.following_count}
                   &nbsp;
                 </span>
                 following
                 <span className="ml-2 font-semibold text-foreground">
-                  {profile?.followerCount}
+                  {profile?.follower_count}
                   &nbsp;
                 </span>
                 followers

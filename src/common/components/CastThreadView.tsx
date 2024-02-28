@@ -86,7 +86,7 @@ export const CastThreadView = ({
     <Button
       variant="outline"
       onClick={() => onBack && onBack()}
-      className="group md:ml-11 flex items-center px-2 py-1 shadow-sm text-sm font-medium rounded-md text-foreground/80 bg-background focus:outline-none"
+      className="group mt-2 md:ml-10 flex items-center px-2 py-1 shadow-sm text-sm font-medium rounded-md text-foreground/80 bg-background focus:outline-none"
     >
       <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
         <HotkeyTooltipWrapper hotkey="Esc" side="right">
@@ -242,7 +242,7 @@ export const CastThreadView = ({
       {renderReplyButton(casts[selectedCastIdx])}
       {false && draftIdx !== -1 && (
         <div
-          className="mt-4 ml-10 mr-4"
+          className="mt-4 mr-4"
           key={`new-post-parentHash-${cast?.hash}`}
         >
           <NewPostEntry
@@ -258,11 +258,11 @@ export const CastThreadView = ({
   );
 
   return (
-    <div className="flex flex-col text-foreground/80 text-lg mb-8">
+    <div className="flex flex-col text-foreground/80 text-lg">
+      {isLoading ? <Loading /> : renderThread()}
       {!isLoading && onBack && (
         <div className="mb-4">{renderGoBackButton()}</div>
       )}
-      {isLoading ? <Loading /> : renderThread()}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
+import { FilterType, NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
 import { GetStaticPaths } from "next/types";
 import {
   AvatarImage,
@@ -57,7 +57,7 @@ export const getStaticPaths = (async () => {
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
   const globalFeed = await client.fetchFeed("filter", {
-    filterType: "global_trending",
+    filterType: FilterType.GlobalTrending,
     limit: 100,
   });
 
@@ -104,12 +104,12 @@ export default function Profile({ profile }) {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const resp = await neynarClient.lookupUserByFid(
-        profile.fid,
-        userFid! as number
+      const resp = await neynarClient.fetchBulkUsers(
+        [profile.fid],
+        { viewerFid: userFid! as number},
       )
-      if (resp.result.user) {
-        addUserProfile({ username: profile.username, data: resp.result.user });
+      if (resp?.users && resp.users.length === 1) {
+        addUserProfile({ username: profile.username, data: resp.users[0] });
       }
     };
 
