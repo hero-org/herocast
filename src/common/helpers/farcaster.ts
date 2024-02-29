@@ -161,6 +161,9 @@ export const getDeadline = (): bigint => {
   return BigInt(now + oneHour);
 };
 
+export const getTimestamp = (): number => {
+  return Math.floor(Date.now() / 1000);
+}
 
 export const readNoncesFromKeyGateway = async (account: `0x${string}`) => {
   return await publicClient.readContract({
@@ -269,10 +272,35 @@ export const validateUsernameIsAvailable = async (username: string) => {
   return transfers.length === 0;
 };
 
-export const updateUsername = async (fid: string, username: string, address: `0x${string}`, signature: `0x${string}`) => {
-  // To register a new fid, e.g. hubble, first make sure the fname is not already registered.
-  // Then make a POST request to /transfers with the following body:
+export const getUsernameForFid = async (fid: string) => {
+  const response = await axios.get(`${FARCASTER_FNAME_ENDPOINT}?fid=${fid}`);
+  if (response.status !== 200) {
+    throw new Error('Failed to get username for fid');
+  }
+  const transfers = response.data.transfers.filter((t) => t.to === fid);
 
+  if (transfers.length === 0) {
+    return undefined;
+  } else {
+    return transfers[transfers.length - 1].username;
+  }
+};
+
+type UpdateUsernameParams = {
+  fid: string;
+  username: string;
+  timestamp: number;
+  address: `0x${string}`;
+  signature: `0x${string}`;
+  toFid?: string;
+  fromFid?: string;
+};
+
+export const updateUsername = async ({ fid, fromFid, toFid, username, timestamp, address, signature }: UpdateUsernameParams) => {
+  console.log('updateUsername', username, fid, fromFid, toFid);
+  if (!fromFid && !toFid) {
+    throw new Error('fromFid or toFid must be provided');
+  }
   // {
   //   "name": "hubble", // Name to register
   //   "from": 0,  // Fid to transfer from (0 for a new registration)
@@ -282,15 +310,26 @@ export const updateUsername = async (fid: string, username: string, address: `0x
   //   "timestamp": 1641234567,  // Current timestamp in seconds
   //   "signature": "0x..."  // EIP-712 signature signed by the custody address of the fid
   // }
+  console.log(`making request to ${FARCASTER_FNAME_ENDPOINT} with username: ${username}, fid: ${fid}, address: ${address}, signature: ${signature}`)
+  try {
+    const res = await axios.post(FARCASTER_FNAME_ENDPOINT, {
+      name: username,
+      from: fromFid,
+      to: toFid,
+      fid,
+      owner: address,
+      timestamp,
+      signature,
+    });
+    console.log('updateUsername response', res, res?.data);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
-  const res = await axios.post(`${FARCASTER_FNAME_ENDPOINT}`, {
-    name: username,
-    to: fid,
-    fid,
-    owner: address,
-    timestamp: Math.floor(Date.now() / 1000),
-    signature,
-  });
-  console.log('res updateUsername', res);
-  return res.data;
+    return res.data;
+  } catch (e: any) {
+    console.error('updateUsername error', e);
+    if (e.response.data.code === "THROTTLED")
+      throw new Error("You can only change your username every 28 days.");
+    else
+      throw new Error("Failed to register current username: " + e.response.data.error);
+  }
 };

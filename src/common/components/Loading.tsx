@@ -1,3 +1,7 @@
-import React from 'react';
+import React from "react";
 
-export const Loading = () => <span className="my-4 font-semibold text-gray-200">Loading...</span>
+export const Loading = () => (
+  <p className="my-4 font-semibold text-muted-foreground">
+    Loading<span className="animate-pulse">...</span>
+  </p>
+);

@@ -1,15 +1,12 @@
-import { NextRouter } from 'next/router'
-import { CommandType } from './common/constants/commands';
-import { ComputerDesktopIcon, MagnifyingGlassIcon, MoonIcon, RectangleGroupIcon, SunIcon } from '@heroicons/react/20/solid';
-import { BellIcon } from '@heroicons/react/24/outline';
-import { Bars3BottomLeftIcon } from "@heroicons/react/20/solid";
-import { Cog6ToothIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 
-export const getThemeCommands = (setTheme: (theme: string) => void): CommandType[] => (
+import { CommandType } from './common/constants/commands';
+import { ArrowPathRoundedSquareIcon, ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/20/solid';
+
+export const getThemeCommands = (theme: string, setTheme: (theme: string) => void): CommandType[] => (
     [
         {
             name: 'Switch to Light Theme',
-            aliases: ['bright'],
+            aliases: ['bright', ],
             icon: SunIcon,
             action: () => setTheme('light'),
         },
@@ -25,5 +22,17 @@ export const getThemeCommands = (setTheme: (theme: string) => void): CommandType
             icon: ComputerDesktopIcon,
             action: () => setTheme('system'),
         },
+        {
+            name: 'Toggle theme',
+            aliases: [],
+            icon: ArrowPathRoundedSquareIcon,
+            action: () => {
+                if (theme === 'light') {
+                    setTheme('dark');
+                } else {
+                    setTheme('light');
+                }
+            }
+        }
     ]
 )

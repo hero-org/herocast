@@ -38,8 +38,8 @@ export default function CommandPalette() {
     enableOnFormTags: true,
   })
 
-  const { setTheme } = useTheme()
-  const themeCommands = getThemeCommands(setTheme);
+  const { theme, setTheme } = useTheme()
+  const themeCommands = getThemeCommands(theme, setTheme);
   const navigationCommands = getNavigationCommands({ router });
 
   let commands: CommandType[] = [
