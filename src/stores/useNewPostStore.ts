@@ -21,7 +21,7 @@ export const NewPostDraft: DraftType = {
   parentUrl: undefined,
   parentCastId: undefined,
   status: DraftStatus.writing,
-  mentionsToFids: {}
+  mentionsToFids: {},
 };
 
 
@@ -41,7 +41,7 @@ export const JoinedHerocastPostDraft: DraftType = {
 export const JoinedHerocastViaHatsProtocolDraft: DraftType = {
   text: "I just joined @herocast via @hatsprotocol",
   status: DraftStatus.writing,
-  mentionsToFids: { 'herocast': '18665', 'hatsprotocol': '18484'}
+  mentionsToFids: { 'herocast': '18665', 'hatsprotocol': '18484' }
 }
 
 type addNewPostDraftProps = {
@@ -160,12 +160,12 @@ const store = (set: StoreSet) => ({
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody: {
-            text: string;
-            embeds?: Embed[] | undefined;
-            embedsDeprecated?: string[];
-            mentions?: number[];
-            mentionsPositions?: number[];
-            parentCastId?: CastId | { fid: number, hash: string };
+          text: string;
+          embeds?: Embed[] | undefined;
+          embedsDeprecated?: string[];
+          mentions?: number[];
+          mentionsPositions?: number[];
+          parentCastId?: CastId | { fid: number, hash: string };
         } | false = await formatPlaintextToHubCastMessage({
           text: draft.text,
           embeds: draft.embeds,

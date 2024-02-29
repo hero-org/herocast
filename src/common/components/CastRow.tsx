@@ -5,7 +5,6 @@ import { ChannelType } from "../../../src/common/constants/channels";
 import { useAccountStore } from "../../../src/stores/useAccountStore";
 import { ArrowPathRoundedSquareIcon, ArrowTopRightOnSquareIcon, ChatBubbleLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
-import { ImgurImage } from "../../../src/common/components/PostEmbeddedContent";
 import { localize, timeDiff } from "../helpers/date";
 import { publishReaction, removeReaction } from '../helpers/farcaster';
 import includes from 'lodash.includes';
@@ -15,7 +14,6 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import get from 'lodash.get';
 import Linkify from "linkify-react";
-import { isImageUrl } from '../helpers/text';
 import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
 import ProfileHoverCard from './ProfileHoverCard';
@@ -123,7 +121,6 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
     allChannels: channels,
     setSelectedChannelByName,
   } = useAccountStore();
-  // if (isSelected) console.log('selected cast', cast);
 
   const [didLike, setDidLike] = useState(false)
   const [didRecast, setDidRecast] = useState(false)
@@ -132,9 +129,6 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const userFid = Number(selectedAccount?.platformAccountId);
   const authorFid = cast?.author.fid;
 
-  const hasEmbeds = cast?.embeds?.length > 0;
-  const embedUrl = hasEmbeds ? cast.embeds[0].url : null;
-  const embedImageUrl = embedUrl && isImageUrl(embedUrl) ? embedUrl : null;
   const now = new Date();
   const hasFrame = cast.frames && cast.frames.length > 0;
 
@@ -337,7 +331,6 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
             <div className="mt-2 w-full max-w-xl text-md text-foreground break-words lg:break-normal" style={castTextStyle}>
               {getText()}
             </div>
-            {embedImageUrl && <ImgurImage url={embedImageUrl} />}
           </div>
           {renderCastReactions(cast)}
           {!disableEmbeds && !hasFrame && renderEmbeds()}
