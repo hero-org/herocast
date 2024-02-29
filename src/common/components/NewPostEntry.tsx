@@ -6,7 +6,12 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
 import {
+  Embed,
+  ModManifest,
   fetchUrlMetadata,
+  handleAddEmbed,
+  handleOpenFile,
+  handleSetInput,
 } from "@mod-protocol/core";
 import {
   Channel,
@@ -21,12 +26,35 @@ import { MentionList } from "@mod-protocol/react-ui-shadcn/dist/components/menti
 import { ChannelList } from "@mod-protocol/react-ui-shadcn/dist/components/channel-list";
 import { take } from "lodash";
 import { ChannelPicker } from "./ChannelPicker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CreationMod, RichEmbed } from "@mod-protocol/react";
+import {
+  creationMods,
+  defaultRichEmbedMod,
+  creationModsExperimental,
+} from "@mod-protocol/mod-registry";
+import { ModsSearch } from "@mod-protocol/react-ui-shadcn/dist/components/creation-mods-search";
+import { renderers } from "@mod-protocol/react-ui-shadcn/dist/renderers";
+import map from "lodash.map";
+import { renderEmbedForUrl } from "./Embeds";
+import ImgurUpload from "@mods/imgur-upload";
+import { PhotoIcon } from "@heroicons/react/20/solid";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
-const debouncedGetMentions = debounce(getMentions, 200, {leading: true, trailing: false});
+const debouncedGetMentions = debounce(getMentions, 200, {
+  leading: true,
+  trailing: false,
+});
 const getModChannels = getFarcasterChannels(API_URL);
-const debouncedGetModChannels = debounce(getModChannels, 200, {leading: true, trailing: true});
+const debouncedGetModChannels = debounce(getModChannels, 200, {
+  leading: true,
+  trailing: true,
+});
 const getUrlMetadata = fetchUrlMetadata(API_URL);
 
 const onError = (err) => {
@@ -50,12 +78,15 @@ export default function NewPostEntry({
   onPost,
   hideChannel,
 }: NewPostEntryProps) {
-  const { 
-    updatePostDraft, publishPostDraft 
-  } = useNewPostStore();
+  const { updatePostDraft, publishPostDraft } = useNewPostStore();
+  const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
+  const hasEmbeds = draft?.embeds && draft.embeds.length > 0;
 
   const getChannels = async (query: string): Promise<Channel[]> => {
-    const modChannels = query && query.length > 2 ? await debouncedGetModChannels(query, true) : [];
+    const modChannels =
+      query && query.length > 2
+        ? await debouncedGetModChannels(query, true)
+        : [];
     return take(modChannels, 10);
   };
 
@@ -85,6 +116,7 @@ export default function NewPostEntry({
   const {
     editor,
     getText,
+    addEmbed,
     getEmbeds,
     setEmbeds,
     setChannel,
@@ -147,18 +179,62 @@ export default function NewPostEntry({
         <div className="flex flex-row pt-2 gap-1">
           {!isReply && !hideChannel && (
             <div className="text-foreground/80">
-            <ChannelPicker
-              getChannels={getModChannels}
-              onSelect={setChannel}
-              value={getChannel()}
-            />
+              <ChannelPicker
+                getChannels={getModChannels}
+                onSelect={setChannel}
+                value={getChannel()}
+              />
             </div>
           )}
+          <Popover
+            open={!!currentMod}
+            onOpenChange={(op: boolean) => {
+              if (!op) setCurrentMod(null);
+            }}
+          >
+            <PopoverTrigger></PopoverTrigger>
+            {/* <ModsSearch mods={creationMods} onSelect={setCurrentMod} /> */}
+            <PopoverContent className="w-[400px]" align="start">
+              <div className="space-y-4">
+                <h4 className="font-medium leading-none">{currentMod?.name}</h4>
+                <hr />
+                <CreationMod
+                  input={getText()}
+                  embeds={getEmbeds()}
+                  api={API_URL}
+                  // user={user}
+                  variant="creation"
+                  manifest={currentMod}
+                  renderers={renderers}
+                  onOpenFileAction={handleOpenFile}
+                  onExitAction={() => setCurrentMod(null)}
+                  onSetInputAction={handleSetInput(setText)}
+                  onAddEmbedAction={handleAddEmbed(addEmbed)}
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentMod(creationMods[0])}
+          >
+            <PhotoIcon className="mr-1 w-5 h-5" />
+            Add image
+          </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
           <Button type="submit">Cast</Button>
         </div>
       </form>
+      {hasEmbeds && (
+        <div className="mt-8 rounded-md bg-muted px-4 max-w-xl break-all">
+          {map(draft.embeds, (embed) => (
+            <div key={`cast-embed-${embed.url}`}>
+              {renderEmbedForUrl(embed)}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
