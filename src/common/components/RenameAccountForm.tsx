@@ -39,7 +39,7 @@ import {
   updateUsername,
   validateUsernameIsAvailable,
 } from "../helpers/farcaster";
-import { Address, toBytes, toHex } from "viem";
+import { Address, getAddress, toBytes, toHex } from "viem";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import {
@@ -144,6 +144,7 @@ const RenameAccountForm = ({
 
     if (account.platform === AccountPlatformType.farcaster) {
       getFidForWallet(address).then(async (fid) => {
+        console.log('fid for wallet', fid, address, account.platformAccountId!);
         if (fid === BigInt(account.platformAccountId!)) {
           return true;
         } else {
@@ -204,6 +205,7 @@ const RenameAccountForm = ({
     let timestamp = getTimestamp();
 
     try {
+      const owner = getAddress(address);
       const existingOffchainUsername = await getUsernameForFid(
         account.platformAccountId!
       );
@@ -211,7 +213,7 @@ const RenameAccountForm = ({
       if (existingOffchainUsername) {
         const unregisterSignature = await getSignatureForUsernameProof({
           name: existingOffchainUsername,
-          owner: address,
+          owner,
           timestamp: BigInt(timestamp),
         });
         console.log("unregisterSignature:", unregisterSignature);
@@ -221,7 +223,7 @@ const RenameAccountForm = ({
         // unregister old username
         await updateUsername({
           timestamp,
-          address,
+          owner,
           toFid: "0",
           fromFid: account.platformAccountId!,
           fid: account.platformAccountId!,
@@ -235,7 +237,7 @@ const RenameAccountForm = ({
       timestamp = getTimestamp();
       const registerSignature = await getSignatureForUsernameProof({
         name: data.username,
-        owner: address,
+        owner,
         timestamp: BigInt(timestamp),
       });
       if (!registerSignature) {
@@ -245,7 +247,7 @@ const RenameAccountForm = ({
       // register new username
       await updateUsername({
         timestamp,
-        address,
+        owner,
         fromFid: "0",
         toFid: account.platformAccountId!,
         fid: account.platformAccountId!,

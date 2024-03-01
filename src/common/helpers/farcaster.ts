@@ -255,6 +255,7 @@ export const getFidForWallet = async (address: `0x${string}`): Promise<bigint | 
   })) as bigint;
 };
 
+// const FARCASTER_FNAME_ENDPOINT = 'http://localhost:3000/transfers'; 
 const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';
 
 // example implementation here:
@@ -290,13 +291,13 @@ type UpdateUsernameParams = {
   fid: string;
   username: string;
   timestamp: number;
-  address: `0x${string}`;
+  owner: `0x${string}`;
   signature: `0x${string}`;
   toFid?: string;
   fromFid?: string;
 };
 
-export const updateUsername = async ({ fid, fromFid, toFid, username, timestamp, address, signature }: UpdateUsernameParams) => {
+export const updateUsername = async ({ fid, fromFid, toFid, username, timestamp, owner, signature }: UpdateUsernameParams) => {
   console.log('updateUsername', username, fid, fromFid, toFid);
   if (!fromFid && !toFid) {
     throw new Error('fromFid or toFid must be provided');
@@ -310,17 +311,20 @@ export const updateUsername = async ({ fid, fromFid, toFid, username, timestamp,
   //   "timestamp": 1641234567,  // Current timestamp in seconds
   //   "signature": "0x..."  // EIP-712 signature signed by the custody address of the fid
   // }
-  console.log(`making request to ${FARCASTER_FNAME_ENDPOINT} with username: ${username}, fid: ${fid}, address: ${address}, signature: ${signature}`)
+  console.log(`making request to ${FARCASTER_FNAME_ENDPOINT} with username: ${username}, fid: ${fid}, owner: ${owner}, signature: ${signature}`)
   try {
-    const res = await axios.post(FARCASTER_FNAME_ENDPOINT, {
+    const payload = {
       name: username,
-      from: fromFid,
-      to: toFid,
-      fid,
-      owner: address,
+      fid: Number(fid),
+      to: Number(toFid),
+      from: Number(fromFid),
+      owner,
       timestamp,
       signature,
-    });
+    };
+
+    console.log('updateUsername payload', payload);
+    const res = await axios.post(FARCASTER_FNAME_ENDPOINT, payload);
     console.log('updateUsername response', res, res?.data);
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
@@ -330,6 +334,6 @@ export const updateUsername = async ({ fid, fromFid, toFid, username, timestamp,
     if (e.response.data.code === "THROTTLED")
       throw new Error("You can only change your username every 28 days.");
     else
-      throw new Error("Failed to register current username: " + e.response.data.error);
+      throw new Error("Failed to register current username: " + e.response.data?.error + " " + e.response.data?.code);
   }
 };
