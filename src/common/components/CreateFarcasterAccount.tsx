@@ -98,23 +98,31 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     getFidAndUpdateAccount();
   }, [isConnected, transactionHash, transactionResult, pendingAccounts]);
 
+  useEffect(() => {
+    validateWalletHasNoFid();
+  }, []);
+
+  const validateWalletHasNoFid = async (): Promise<boolean> => {
+    if (!address) return false;
+
+    const fid = await getFidForWallet(address);
+    if (fid) {
+      setError(`Wallet ${address} has already registered FID ${fid} - only one account per address`);
+      return false;
+    }
+    return true;
+  }
+
   const createFarcasterAccount = async () => {
     console.log("createFarcasterAccount");
 
     if (!address) return;
-
-    const fid = await getFidForWallet(address);
-    // console.log("fid", fid);
-    if (fid) {
-      setError(`Wallet ${address} already has registered FID ${fid}`);
-      return;
-    }
+    if (!validateWalletHasNoFid()) return;
 
     setIsPending(true);
 
     let hexStringPublicKey: `0x${string}`, hexStringPrivateKey: `0x${string}`;
 
-    // console.log("pendingAccounts", pendingAccounts);
     if (!pendingAccounts || pendingAccounts.length === 0) {
       const { publicKey, privateKey } = await generateKeyPair();
       hexStringPublicKey = bytesToHexString(publicKey)._unsafeUnwrap();
@@ -232,10 +240,6 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
         Farcaster platform fee. Farcaster platform fee (yearly) right
         now is {" "}
         {price ? `~${parseFloat(formatEther(price)).toFixed(5)} ETH.` : "loading..."}
-      </p>
-      <p className="text-sm text-red-500">
-        Currently no way to set a username for this new account yet. This will
-        be added soon!
       </p>
       <Button
         variant="default"

@@ -22,6 +22,7 @@ import {
 } from "wagmi";
 import {
   BUNDLER_ADDRESS,
+  UserDataType,
   ViemWalletEip712Signer,
   bundlerABI,
   bytesToHexString,
@@ -32,15 +33,17 @@ import {
   WARPCAST_RECOVERY_PROXY,
   getDeadline,
   getFidForWallet,
+  getSignatureForUsernameProof,
   getSignedKeyRequestMetadataFromAppAccount,
   getTimestamp,
   getUsernameForFid,
   readNoncesFromKeyGateway,
+  setUserDataInProtocol,
   updateUsername,
   validateUsernameIsAvailable,
 } from "../helpers/farcaster";
 import { Address, getAddress, toBytes, toHex } from "viem";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
+import { AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import {
   Cog6ToothIcon,
@@ -54,24 +57,6 @@ import { UserNeynarV1Type } from "../helpers/neynar";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v1";
 
 export type RenameAccountFormValues = z.infer<typeof RenameAccountFormSchema>;
-
-const EIP_712_USERNAME_PROOF = [
-  { name: "name", type: "string" },
-  { name: "timestamp", type: "uint256" },
-  { name: "owner", type: "address" },
-];
-
-const EIP_712_USERNAME_DOMAIN = {
-  name: "Farcaster name verification",
-  version: "1",
-  chainId: 1,
-  verifyingContract: "0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1" as Address, // name registry contract, will be the farcaster ENS CCIP contract later
-};
-
-const USERNAME_PROOF_EIP_712_TYPES = {
-  domain: EIP_712_USERNAME_DOMAIN,
-  types: { UserNameProof: EIP_712_USERNAME_PROOF },
-};
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -97,7 +82,7 @@ const RenameAccountForm = ({
   const [userInProtocol, setUserInProtocol] = useState<User>();
   const { address, chainId, isConnected } = useAccount();
   const currentName = account.name;
-  const { setAccountActive } = useAccountStore();
+  const { updateAccountUsername } = useAccountStore();
   const client = useWalletClient({
     account: address,
     chainId: mainnet.id,
@@ -139,13 +124,16 @@ const RenameAccountForm = ({
     return isValidNewUsername;
   };
 
-  const validateConnectedWalletOwnsFid = async () => {
-    if (!address) return;
+  const validateConnectedWalletOwnsFid = async (): Promise<
+    boolean | undefined
+  > => {
+    if (!address) return undefined;
 
     if (account.platform === AccountPlatformType.farcaster) {
       getFidForWallet(address).then(async (fid) => {
-        console.log('fid for wallet', fid, address, account.platformAccountId!);
+        console.log("fid for wallet", fid, address, account.platformAccountId!);
         if (fid === BigInt(account.platformAccountId!)) {
+          console.log("wallet owns fid");
           return true;
         } else {
           const neynarClient = new NeynarAPIClient(
@@ -173,31 +161,16 @@ const RenameAccountForm = ({
     }
   };
 
-  const getSignatureForUsernameProof = async (message: {
-    name: string;
-    owner: string;
-    timestamp: bigint;
-  }): Promise<`0x${string}` | undefined> => {
-    if (!address || !client) return;
-
-    const signature = await client.signTypedData({
-      ...USERNAME_PROOF_EIP_712_TYPES,
-      account: address,
-      primaryType: "UserNameProof",
-      message: message,
-    });
-    console.log("getSignatureForUsernameProof:", signature);
-    return signature;
-  };
-
   const renameAccount = async (data) => {
     console.log("createFarcasterAccount", data);
     // alert(JSON.stringify(data, null, 2));
 
     if (!address || !client || !userInProtocol) return;
 
-    if (!validateUsername(data.username)) return;
-    if (!validateConnectedWalletOwnsFid()) return;
+    const { username } = data;
+
+    if (!(await validateUsername(username))) return;
+    if (!(await validateConnectedWalletOwnsFid())) return;
     setIsPending(true);
 
     console.log("herocast account", account);
@@ -211,11 +184,15 @@ const RenameAccountForm = ({
       );
       console.log("offchain username", existingOffchainUsername);
       if (existingOffchainUsername) {
-        const unregisterSignature = await getSignatureForUsernameProof({
-          name: existingOffchainUsername,
-          owner,
-          timestamp: BigInt(timestamp),
-        });
+        const unregisterSignature = await getSignatureForUsernameProof(
+          client,
+          address,
+          {
+            name: existingOffchainUsername,
+            owner,
+            timestamp: BigInt(timestamp),
+          }
+        );
         console.log("unregisterSignature:", unregisterSignature);
         if (!unregisterSignature) {
           throw new Error("Failed to get signature to unregister username");
@@ -233,32 +210,42 @@ const RenameAccountForm = ({
 
         await new Promise((resolve) => setTimeout(resolve, 3000));
       }
-      
+
       timestamp = getTimestamp();
-      const registerSignature = await getSignatureForUsernameProof({
-        name: data.username,
-        owner,
-        timestamp: BigInt(timestamp),
-      });
+      const registerSignature = await getSignatureForUsernameProof(
+        client,
+        address,
+        {
+          name: username,
+          owner,
+          timestamp: BigInt(timestamp),
+        }
+      );
       if (!registerSignature) {
         throw new Error("Failed to get signature to register username");
       }
 
       // register new username
-      await updateUsername({
+
+      const result = await updateUsername({
         timestamp,
         owner,
         fromFid: "0",
         toFid: account.platformAccountId!,
         fid: account.platformAccountId!,
-        username: data.username,
+        username: username,
         signature: registerSignature,
       });
+      console.log("updateUsername result", result);
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      // setAccountActive(account.id!, data.username, {
-      //   platform_account_id: account.platformAccountId!,
-      // });
+      await setUserDataInProtocol(
+        account.privateKey!,
+        Number(account.platformAccountId!),
+        UserDataType.DISPLAY,
+        username
+      );
+      updateAccountUsername(account.id!, username);
     } catch (e) {
       console.error("renameAccount error", e);
       form.setError("username", {
@@ -333,7 +320,7 @@ const RenameAccountForm = ({
   return (
     <div className="flex flex-col gap-y-4">
       {renderInfoBox()}
-      {currentName !== "New Account" && (
+      {currentName !== PENDING_ACCOUNT_NAME_PLACEHOLDER && (
         <span>
           Your current username is <strong>{currentName}</strong>.<br />
         </span>

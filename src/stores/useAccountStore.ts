@@ -10,6 +10,7 @@ import isEmpty from "lodash.isempty";
 import findIndex from 'lodash.findindex';
 import sortBy from "lodash.sortby";
 import cloneDeep from "lodash.clonedeep";
+import { UUID } from "crypto";
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 
@@ -31,7 +32,7 @@ type UpdatedPinnedChannelIndicesProps = {
 }
 
 export type AccountObjectType = {
-  id: number | null;
+  id: UUID | null;
   userId?: string;
   name?: string;
   status: AccountStatusType;
@@ -56,7 +57,8 @@ interface AccountStoreActions {
   addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey?: string }) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
-  setAccountActive: (accountId: number, name: string, data: { platform_account_id: string, data?: object }) => void;
+  setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => void;
+  updateAccountUsername: (accountId: UUID, username: string) => void;
   removeAccount: (idx: number) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setSelectedChannelUrl: (url: string | null) => void;
@@ -112,28 +114,43 @@ const store = (set: StoreSet) => ({
         });
       })
   },
-  setAccountActive: (accountId: number, name: string, data: { platform_account_id: string, data?: object }) => {
-    set((state) => {
-      supabaseClient
+  setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => {
+    set(async (state) => {
+      const { error } = await supabaseClient
         .from('accounts')
         .update({ name, status: AccountStatusType.active, ...data })
         .eq('id', accountId)
         .select()
-        .then(({ error, data }) => {
-          console.log('response setAccountActive - data', data, 'error', error);
-          if (!error) {
-            // I don't think this loop works ¯\_(ツ)_/¯
-            const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
-            const account = state.accounts[accountIndex];
-            account.status = AccountStatusType.active;
-            state.accounts[accountIndex] = account;
-          }
-        });
+
+      console.log('response setAccountActive - data', data, 'error', error);
+      if (!error) {
+        const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
+        const account = state.accounts[accountIndex];
+        account.status = AccountStatusType.active;
+        state.accounts[accountIndex] = account;
+      }
+    });
+  },
+  updateAccountUsername: (accountId: UUID, username: string) => {
+    set(async (state) => {
+      const { data, error } = await supabaseClient
+        .from('accounts')
+        .update({ name: username })
+        .eq('id', accountId)
+        .select();
+
+      console.log('response updateAccountUsername - data', data, 'error', error);
+      if (!error) {
+        const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
+        const account = state.accounts[accountIndex];
+        account.name = username;
+        state.accounts[accountIndex] = account;
+      }
     });
   },
   removeAccount: (idx: number) => {
-    set((state) => {
-      supabaseClient
+    set(async (state) => {
+      await supabaseClient
         .from('accounts')
         .update({ status: AccountStatusType.removed })
         .eq('id', state.accounts[idx].id)
@@ -309,7 +326,7 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
       .from('channel')
       .select('*', { count: 'exact' })
       .range(start, end);
-    
+
     if (error) throw error;
     channelData = channelData.concat(data);
     hasMoreChannels = data.length > 0;
@@ -319,7 +336,7 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
 
 export const hydrate = async () => {
   console.log('hydrating 💦');
-  
+
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (isEmpty(user)) {
     console.log('no account to hydrate');
@@ -426,7 +443,7 @@ const getChannelCommands = () => {
       useAccountStore.getState().resetSelectedChannel();
     },
   });
-  
+
   for (let i = 0; i < 9; i++) {
     channelCommands.push({
       name: `Switch to channel ${i + 1}`,
@@ -474,7 +491,7 @@ const getChannelCommands = () => {
 
       state.setSelectedChannelUrl(channels[nextIdx].url);
     },
-  },{
+  }, {
     name: 'Switch to previous channel',
     aliases: ['previous', 'back'],
     shortcut: 'shift+k',
@@ -486,7 +503,7 @@ const getChannelCommands = () => {
       const currentIdx = channels.findIndex((channel) => channel.url === state.selectedChannelUrl);
       const previousIdx = currentIdx - 1;
       if (previousIdx < -1) return;
-      
+
       if (previousIdx === -1) {
         state.resetSelectedChannel();
       } else {

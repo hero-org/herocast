@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CastAddBody, Embed, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, ViemLocalEip712Signer, hexStringToBytes, idRegistryABI, keyGatewayABI, makeCastAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
+import { CastAddBody, Embed, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, UserDataType, ViemLocalEip712Signer, hexStringToBytes, idRegistryABI, keyGatewayABI, makeCastAdd, makeUserDataAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
 import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
 import { encodeAbiParameters, toBytes } from "viem";
 import { publicClient } from "./rainbowkit";
@@ -37,6 +37,12 @@ type RemoveReactionParams = {
     };
   };
 }
+
+const getDataOptions = (fid: number) => ({
+    fid: fid,
+    network: 1,
+  }
+);
 
 export const removeReaction = async ({ authorFid, privateKey, reaction }: RemoveReactionParams) => {
   const writeClient = new HubRestAPIClient({
@@ -113,10 +119,7 @@ export const submitCast = async ({
   // below is copy and adapted from farcaster-js, because the package is missing parentUrl parameter
   // https://github.com/standard-crypto/farcaster-js/blob/be57dedec70ebadbb55118d3a64143457102adb4/packages/farcaster-js-hub-rest/src/hubRestApiClient.ts#L173
 
-  const dataOptions = {
-    fid: fid,
-    network: 1,
-  };
+  const dataOptions = getDataOptions(fid);
   const castAdd: CastAddBody = {
     text,
     embeds: embeds ?? [],
@@ -255,7 +258,6 @@ export const getFidForWallet = async (address: `0x${string}`): Promise<bigint | 
   })) as bigint;
 };
 
-// const FARCASTER_FNAME_ENDPOINT = 'http://localhost:3000/transfers'; 
 const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';
 
 // example implementation here:
@@ -336,4 +338,61 @@ export const updateUsername = async ({ fid, fromFid, toFid, username, timestamp,
     else
       throw new Error("Failed to register current username: " + e.response.data?.error + " " + e.response.data?.code);
   }
+};
+
+export const setUserDataInProtocol = async (privateKey: string, fid: number, type: UserDataType, value: string) => {
+  const signer = new NobleEd25519Signer(toBytes(privateKey));
+  const dataOptions = getDataOptions(fid);
+
+  const msg = await makeUserDataAdd({ type, value }, dataOptions, signer);
+
+  if (msg.isErr()) {
+    throw msg.error;
+  }
+  const messageBytes = Buffer.from(Message.encode(msg.value).finish());
+  const writeClient = new HubRestAPIClient({
+    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
+    axiosInstance
+  });
+  const response = await writeClient.apis.submitMessage.submitMessage({
+    body: messageBytes,
+  });
+  return response.data;
+};
+
+
+const EIP_712_USERNAME_PROOF = [
+  { name: "name", type: "string" },
+  { name: "timestamp", type: "uint256" },
+  { name: "owner", type: "address" },
+];
+
+const EIP_712_USERNAME_DOMAIN = {
+  name: "Farcaster name verification",
+  version: "1",
+  chainId: 1,
+  verifyingContract: "0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1" as Address, // name registry contract, will be the farcaster ENS CCIP contract later
+};
+
+const USERNAME_PROOF_EIP_712_TYPES = {
+  domain: EIP_712_USERNAME_DOMAIN,
+  types: { UserNameProof: EIP_712_USERNAME_PROOF },
+};
+
+
+export const getSignatureForUsernameProof = async (client, address, message: {
+  name: string;
+  owner: string;
+  timestamp: bigint;
+}): Promise<`0x${string}` | undefined> => {
+  if (!address || !client) return;
+
+  const signature = await client.signTypedData({
+    ...USERNAME_PROOF_EIP_712_TYPES,
+    account: address,
+    primaryType: "UserNameProof",
+    message: message,
+  });
+  console.log("getSignatureForUsernameProof:", signature);
+  return signature;
 };
