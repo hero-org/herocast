@@ -13,64 +13,61 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAccount, useConnectorClient, useSignTypedData } from "wagmi";
+import { useAccount, useSignTypedData, useWalletClient } from "wagmi";
 import {
-  SIGNED_KEY_REQUEST_TYPE,
-  SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
-  makeUserNameProofClaim,
-} from "@farcaster/hub-web";
-import { wagmiConfig } from "@/common/helpers/rainbowkit";
-import { validateUsernameIsAvailable } from "../helpers/farcaster";
-import { isAddress, toHex } from "viem";
+  getFidForWallet,
+  getSignatureForUsernameProof,
+  getTimestamp,
+  setUserDataInProtocol,
+  updateUsername,
+  validateUsernameIsAvailable,
+} from "../helpers/farcaster";
+import { getAddress, toHex } from "viem";
 import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
+import { mainnet } from "viem/chains";
+import { UserDataType } from "@farcaster/hub-web";
+import { switchChain } from "viem/actions";
 
 export type FarcasterAccountSetupFormValues = z.infer<
   typeof FarcasterAccountSetupFormSchema
 >;
 
-const USERNAME_PROOF_EIP_712_TYPES = {
-  domain: {
-    name: "Farcaster name verification",
-    version: "1",
-    chainId: 1,
-    verifyingContract:
-      "0xe3be01d99baa8db9905b33a3ca391238234b79d1" as `0x${string}`,
-  },
-  types: {
-    UserNameProof: [
-      {
-        name: "name",
-        type: "string",
-      },
-      {
-        name: "timestamp",
-        type: "uint256",
-      },
-      {
-        name: "owner",
-        type: "address",
-      },
-    ],
-  },
-};
-
 const FarcasterAccountSetupFormSchema = z.object({
-  username: z
-    .string()
-    .min(2, {
-      message: "Username must be at least 1 characters.",
-    })
-    .max(30, {
-      message: "Username must not be longer than 30 characters.",
-    }),
-  // displayName: z.string().min(5, {
-  //   message: "Display name must be at least 5 characters",
-  // }),
-  // bio: z.string().max(160).min(4),
+  username: z.string().min(5, {
+    message: "Username must be at least 5 characters",
+  }),
+  displayName: z
+    .union([
+      z.string().length(0),
+      z
+        .string()
+        .min(4, {
+          message: "Display name must be at least 4 characters.",
+        })
+        .max(20, {
+          message: "Display name must not be longer than 20 characters.",
+        }),
+    ])
+    .optional()
+    .transform((e) => (e === "" ? undefined : e)),
+  bio: z
+    .union([
+      z.string().length(0),
+      z
+        .string()
+        .min(4, {
+          message: "Bio must be at least 4 characters.",
+        })
+        .max(160, {
+          message: "Bio must not be longer than 20 characters.",
+        }),
+    ])
+    .optional()
+    .transform((e) => (e === "" ? undefined : e)),
 });
 
 const RegisterFarcasterUsernameForm = ({
@@ -79,36 +76,36 @@ const RegisterFarcasterUsernameForm = ({
   onSuccess: (data: FarcasterAccountSetupFormValues) => void;
 }) => {
   const [isPending, setIsPending] = useState(false);
+  const [fid, setFid] = useState<bigint | null>();
   const [error, setError] = useState<string | null>();
-  const { address, isConnected } = useAccount();
-  // const walletClient = useWalletClient({
-  //   account: address,
-  // });
-  const { signTypedDataAsync } = useSignTypedData();
-  // const { data: walletClient } = useConnectorClient(wagmiConfig);
+  const { address, chainId, isConnected } = useAccount();
+  const client = useWalletClient({
+    account: address,
+    chainId: mainnet.id,
+  })?.data;
   const form = useForm<FarcasterAccountSetupFormValues>({
     resolver: zodResolver(FarcasterAccountSetupFormSchema),
-    defaultValues: { username: "hellyes" },
+    defaultValues: { username: "", displayName: "", bio: "" },
   });
-  const { accounts } = useAccountStore();
+  const { accounts, updateAccountUsername } = useAccountStore();
   const pendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.active &&
       account.platform === AccountPlatformType.farcaster &&
       account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER
   );
-  console.log("pendingAccounts", pendingAccounts);
 
-  const fid = pendingAccounts[0]?.platformAccountId;
-  const canSubmitForm = !isPending && isConnected && fid;
+  const canSubmitForm = !isPending && isConnected && chainId === mainnet.id;
+
+  useEffect(() => {
+    getFidForWallet(address!)
+      .then(setFid)
+      .catch((e) => setError(e.message));
+  }, [address]);
 
   useEffect(() => {
     if (pendingAccounts.length === 0) {
       setError("No pending accounts found");
-    } else if (pendingAccounts.length > 1) {
-      setError("Multiple pending accounts found");
-    } else if (!fid) {
-      setError("No FID found");
     } else {
       setError(null);
     }
@@ -133,99 +130,154 @@ const RegisterFarcasterUsernameForm = ({
     if (!address || !fid) return;
     if (!validateUsername(data.username)) return;
 
+    const account = pendingAccounts.filter(
+      (account) => account.platformAccountId === String(fid!)
+    )?.[0];
+    if (!account) {
+      setError("No pending account found");
+      return;
+    }
+    console.log("account", account);
+
     setIsPending(true);
+    const owner = getAddress(address);
+    const { username, bio } = data;
+    console.log("RegusterFarcasterAccount", data);
+    let displayName = data.displayName;
+    if (!displayName) {
+      displayName = username;
+    }
 
-    console.log("createFarcasterAccount", data);
+    const timestamp = getTimestamp();
+    const registerSignature = await getSignatureForUsernameProof(
+      client,
+      address,
+      {
+        name: username,
+        owner,
+        timestamp: BigInt(timestamp),
+      }
+    );
+    if (!registerSignature) {
+      throw new Error("Failed to get signature to register username");
+    }
 
-    // const hexStringPublicKey: `0x${string}` = pendingAccounts[0].publicKey;
-    // const hexStringPrivateKey: `0x${string}` = pendingAccounts[0].privateKey!;
-    const timestamp = Math.floor(Date.now() / 1000);
-    // console.log("walletClient", walletClient.data);
-    // const userSigner = new ViemWalletEip712Signer({
-    //   ...walletClient!,
-    // });
-    const claim = {
-      name: data.username,
-      owner: address,
-      timestamp: BigInt(timestamp),
-    };
-    // console.log("userSigner", userSigner);
-    console.log("claim", claim);
-    // const rawSignature = await userSigner.signUserNameProofClaim(claim);
+    // register new username
 
-    const result = await signTypedDataAsync({
-      domain: {
-        name: "Farcaster name verification",
-        version: "1",
-        chainId: 1,
-        verifyingContract:
-          "0xe3be01d99baa8db9905b33a3ca391238234b79d1" as `0x${string}`,
-      },
-      types: {
-        UserNameProof: [
-          {
-            name: "name",
-            type: "string",
-          },
-          {
-            name: "timestamp",
-            type: "uint256",
-          },
-          {
-            name: "owner",
-            type: "address",
-          },
-        ],
-      },
-      primaryType: "UserNameProof" as const,
-      message: claim,
+    const result = await updateUsername({
+      timestamp,
+      owner,
+      fromFid: "0",
+      toFid: fid.toString(),
+      fid: fid.toString(),
+      username: username,
+      signature: registerSignature,
     });
-    console.log("res", result);
-    const signature = toHex(result);
-    // const signature = toHex(rawSignature._unsafeUnwrap());
+    console.log("updateUsername result", result);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    // updateUsername(fid, data.username, address, signature);
+    await setUserDataInProtocol(
+      account.privateKey!,
+      Number(account.platformAccountId!),
+      UserDataType.DISPLAY,
+      username
+    );
+    updateAccountUsername(account.id!, username);
+
+    await setUserDataInProtocol(
+      account.privateKey!,
+      Number(account.platformAccountId!),
+      UserDataType.DISPLAY,
+      displayName
+    );
+
+    if (bio) {
+      await setUserDataInProtocol(
+        account.privateKey!,
+        Number(account.platformAccountId!),
+        UserDataType.BIO,
+        bio
+      );
+    }
   };
 
   const renderForm = () => (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(registerFarcasterUsername)}
-        className="space-y-8"
+        className="space-y-4"
       >
         <FormField
           control={form.control}
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username for account fid: {fid}</FormLabel>
+              <FormLabel>Username</FormLabel>
               <FormControl>
                 <Input placeholder="hellyes" {...field} />
               </FormControl>
               <FormDescription>
-                This will be your public username on Farcaster. It can be your
-                real name or a pseudonym.
+                This will be your public username. It can be your real name or a
+                pseudonym.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button variant={canSubmitForm ? "default" : "outline"} type="submit">
-          Register username
-        </Button>
-        {/* <Button
-        className="ml-4"
-          variant="outline"
-          onClick={() => onSuccess(form.getValues())}
-        >
-          Skip
-        </Button> */}
+        <FormField
+          control={form.control}
+          name="displayName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Display Name</FormLabel>
+              <FormControl>
+                <Input placeholder="hellyes123" {...field} />
+              </FormControl>
+              <FormDescription>
+                This will be your public display name.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="bio"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Bio</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Building x | Love to y | Find me at z"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                This will be your public bio / account description.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex flex-col space-y-2">
+          <Button disabled={!canSubmitForm} type="submit">
+            Register username
+          </Button>
+          {chainId !== mainnet.id && (
+            <Button
+              variant="default"
+              onClick={() => switchChain(client!, { id: mainnet.id })}
+            >
+              Switch to mainnet
+            </Button>
+          )}
+        </div>
       </form>
     </Form>
   );
 
   return (
-    <div className="w-1/2">
+    <div className="w-2/3">
       {renderForm()}
       {error && (
         <div className="flex flex-start items-center mt-2">

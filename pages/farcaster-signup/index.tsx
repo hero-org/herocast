@@ -1,13 +1,12 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import StepSequence from "@/common/components/Steps/StepSequence";
-import WalletLogin from "@/common/components/WalletLogin";
 import RegisterFarcasterUsernameForm from "@/common/components/RegisterFarcasterUsernameForm";
 import CreateFarcasterAccount from "@/common/components/CreateFarcasterAccount";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
+import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 
 enum FarcasterSignupNav {
   login = "LOGIN",
@@ -33,11 +32,11 @@ const onboardingNavItems = [
     idx: 2,
     key: FarcasterSignupNav.create_account_onchain,
   },
-  // {
-  //   title: "Register username",
-  //   idx: 3,
-  //   key: FarcasterSignupNav.register_username,
-  // },
+  {
+    title: "Register username",
+    idx: 3,
+    key: FarcasterSignupNav.register_username,
+  },
   {
     title: "Let's go",
     idx: 3,
@@ -49,6 +48,8 @@ export default function Welcome() {
   const { isConnected } = useAccount();
   const [step, setStep] = useState<string>(onboardingNavItems[1].key);
   const router = useRouter();
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
 
   useEffect(() => {
     if (isConnected && step === FarcasterSignupNav.connect_wallet) {
@@ -88,10 +89,14 @@ export default function Welcome() {
           Post your first cast
         </Button>
         <div className="w-full">
-          <Button className="w-full" variant="outline" onClick={() => router.push("/hats")}>
-            Share this account with others
+          <Button
+            className="w-full"
+            variant="outline"
+            onClick={() => router.push("/hats")}
+          >
+            Share account
           </Button>
-          <p className="mt-2 text-sm text-gray-700">
+          <p className="mt-1 text-sm text-gray-700">
             Use Hats Protocol 🧢 to share this account with onchain permissions
           </p>
         </div>
@@ -117,21 +122,42 @@ export default function Welcome() {
         return getStepContent(
           "Connect your wallet",
           "We will create a Farcaster account onchain in the next step.",
-          <WalletLogin />
+          <div className="flex flex-row gap-4">
+            <Button
+              key="connect-wallet"
+              className="w-60"
+              onClick={() => openConnectModal?.()}
+            >
+              Connect wallet
+            </Button>
+            <Button
+              key="switch-wallet"
+              className="w-60"
+              onClick={() => openAccountModal?.()}
+            >
+              Switch your connected wallet
+            </Button>
+            <Button
+              disabled={!isConnected}
+              onClick={() => setStep(FarcasterSignupNav.create_account_onchain)}
+            >
+              Next step
+            </Button>
+          </div>
         );
       case FarcasterSignupNav.create_account_onchain:
         return getStepContent(
           "Create your Farcaster account",
           "Let's get you onchain",
           <CreateFarcasterAccount
-            onSuccess={() => setStep(FarcasterSignupNav.explainer)}
+            onSuccess={() => setStep(FarcasterSignupNav.register_username)}
           />
         );
       case FarcasterSignupNav.register_username:
         // skipped for now
         return getStepContent(
           "Register your username",
-          "Choose a username for your Farcaster account",
+          "Submit name and bio of your Farcaster account",
           <RegisterFarcasterUsernameForm
             onSuccess={() => setStep(FarcasterSignupNav.explainer)}
           />
@@ -148,13 +174,15 @@ export default function Welcome() {
   };
 
   return (
-    <StepSequence
-      title="Welcome to herocast"
-      description="Follow these steps to create your Farcaster account"
-      step={step}
-      setStep={setStep}
-      navItems={onboardingNavItems}
-      renderStep={renderStep}
-    />
+    <div className="space-y-6 p-4 pb-16 block">
+      <StepSequence
+        title="Welcome to herocast"
+        description="Follow these steps to create your Farcaster account"
+        step={step}
+        setStep={setStep}
+        navItems={onboardingNavItems}
+        renderStep={renderStep}
+      />
+    </div>
   );
 }
