@@ -18,7 +18,7 @@ type CastEmbed = {
 };
 
 export const renderEmbedForUrl = ({ url, cast_id }: CastEmbed) => {
-  console.log("renderEmbedForUrl", url);
+
   if (cast_id) {
     return <CastEmbed castId={cast_id} />;
   }

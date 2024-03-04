@@ -6,6 +6,7 @@ import { supabaseClient } from "../../src/common/helpers/supabase";
 import { Button } from "../../src/components/ui/button";
 import {
   AccountObjectType,
+  PENDING_ACCOUNT_NAME_PLACEHOLDER,
   accountCommands,
   channelCommands,
   useAccountStore,
@@ -178,7 +179,7 @@ export default function Settings() {
                   "flex-auto truncate text-sm font-semibold leading-6"
                 )}
               >
-                {item.name}
+                {item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
               </h3>
               {item.platformAccountId && item.status !== "active" && (
                 <p className="truncate text-sm text-foreground/80">

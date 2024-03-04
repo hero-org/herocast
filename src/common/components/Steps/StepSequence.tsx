@@ -50,7 +50,7 @@ const StepSequence = ({
               onClick={(step) => setStep(step)}
             />
           </aside>
-          <div className="flex-1 max-w-lg lg:max-w-4xl">{renderStep(step)}</div>
+          <div className="flex-1 max-w-xl lg:max-w-4xl">{renderStep(step)}</div>
         </div>
       </div>
     </div>

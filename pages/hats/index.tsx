@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
 import SharedAccountOwnershipSetup from "@/common/components/SharedAccountOwnershipSetup";
 import TransferAccountToHatsDelegator from "@/common/components/TransferAccountToHatsDelegator";
+import FarcasterLogo from "@/common/components/FarcasterLogo";
 import { openWindow } from "@/common/helpers/navigation";
 import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
@@ -160,7 +161,7 @@ export default function HatsProtocolPage() {
                 <AvatarFallback>{user.username || user.fid}</AvatarFallback>
               </Avatar>
               <div className="text-left">
-                <h2 className="text-xl font-bold text-gray-200">
+                <h2 className="text-xl font-bold text-foreground">
                   {user?.display_name}
                 </h2>
                 <span className="text-sm text-foreground/80">

@@ -125,7 +125,7 @@ export default function CommandPalette() {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-background/90 transition-opacity" />
+          <div className="fixed inset-0 bg-muted/95 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20">
@@ -138,7 +138,7 @@ export default function CommandPalette() {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-98"
           >
-            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-lg bg-background shadow-sm border border-border transition-all">
+            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-lg bg-background shadow-lg border border-border transition-all">
               <Combobox onChange={(e: any) => { onClick(e) }}>
                 <div className="relative">
                   <MagnifyingGlassIcon

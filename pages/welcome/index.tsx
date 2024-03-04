@@ -18,13 +18,13 @@ export default function Welcome() {
           <BigOptionSelector
             options={[
               {
-                title: "You have an existing account",
+                title: "I have a Farcaster account",
                 description: "I signed up for Farcaster before and want to connect my account to herocast.",
                 buttonText: "Connect my account",
                 onClick: () => router.push("/accounts"),
               },
               {
-                title: "New to Farcaster",
+                title: "I am new to Farcaster",
                 description: "I am new to Farcaster and want to create a new account",
                 buttonText: "Create new account",
                 onClick: () => router.push("/farcaster-signup"),
