@@ -12,7 +12,7 @@ import { classNames } from "../common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "../common/components/RightSidebar/ChannelsRightSidebar";
-import { useAccountStore } from "../stores/useAccountStore";
+import { CUSTOM_CHANNELS, useAccountStore } from "../stores/useAccountStore";
 import { findParamInHashUrlPath } from "../common/helpers/navigation";
 import {
   BellIcon,
@@ -41,13 +41,23 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl } = useAccountStore();
 
-  const selectedChannelIdx = allChannels?.findIndex(
-    (channel) => channel.url === selectedChannelUrl
-  );
-  const feedTitle =
-    selectedChannelIdx !== -1
-      ? `${allChannels[selectedChannelIdx]?.name} channel`
-      : "Feed";
+  
+  const getFeedTitle = () => {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
+      return "Following Feed";
+    } 
+    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING) {
+      return "Trending Feed";
+    }
+
+    const selectedChannelIdx = allChannels?.findIndex(
+      (channel) => channel.url === selectedChannelUrl
+    );
+    if (selectedChannelIdx !== -1) {
+      return `${allChannels[selectedChannelIdx]?.name} channel`;
+    }
+    return "Feed";
+  }
 
   const { isToastOpen, setIsToastOpen } = useNewPostStore();
 
@@ -56,7 +66,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       name: "Feed",
       router: "/feed",
       icon: NewspaperIcon,
-      getTitle: () => feedTitle,
+      getTitle: getFeedTitle,
     },
     { name: "New Post", router: "/post", icon: PlusCircleIcon },
     { name: "Search", router: "/search", icon: MagnifyingGlassIcon },

@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from "react";
 import {
   AccountObjectType,
+  CUSTOM_CHANNELS,
   useAccountStore,
 } from "../../src/stores/useAccountStore";
 import { CastType } from "../../src/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
-import uniqBy from "lodash.uniqby";
 import get from "lodash.get";
 import { CastRow } from "../../src/common/components/CastRow";
 import isEmpty from "lodash.isempty";
 import { CastThreadView } from "../../src/common/components/CastThreadView";
-import {
-  DEFAULT_FEED_PAGE_SIZE,
-  getNeynarFeedEndpoint,
-} from "../../src/common/helpers/neynar";
+import { DEFAULT_FEED_PAGE_SIZE } from "../../src/common/helpers/neynar";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import RecommendedProfilesCard from "../../src/common/components/RecommendedProfilesCard";
 import { Key } from "ts-key-enum";
@@ -23,22 +20,34 @@ import { useInView } from "react-intersection-observer";
 import { renderEmbedForUrl } from "../../src/common/components/Embeds";
 import { useRouter } from "next/router";
 import { Button } from "../../src/components/ui/button";
+import { FilterType, NeynarAPIClient } from "@neynar/nodejs-sdk";
+import {
+  CastWithInteractions,
+  FeedType,
+} from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { Loading } from "../../src/common/components/Loading";
 
-type FeedType = {
-  [key: string]: CastType[];
+type FeedsType = {
+  [key: string]: CastWithInteractions[];
 };
+
+const neynarClient = new NeynarAPIClient(
+  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+);
 
 export default function Feed() {
   const router = useRouter();
 
-  const [feeds, setFeeds] = useState<FeedType>({});
+  const [feeds, setFeeds] = useState<FeedsType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedCursor, setNextFeedCursor] = useState("");
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
-  const [selectedCast, setSelectedCast] = useState<CastType | null>(null);
+  const [selectedCast, setSelectedCast] = useState<CastWithInteractions | null>(
+    null
+  );
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
@@ -96,7 +105,7 @@ export default function Feed() {
 
     if (inView || selectedFeedIdx >= feed.length - 5) {
       getFeed({
-        fid: account.platformAccountId,
+        fid: account.platformAccountId!,
         parentUrl: selectedChannelUrl,
         cursor: nextFeedCursor,
       });
@@ -129,6 +138,18 @@ export default function Feed() {
     }
   );
 
+  const getFeedType = (parentUrl: string | undefined) =>
+    parentUrl === CUSTOM_CHANNELS.FOLLOWING
+      ? FeedType.Following
+      : FeedType.Filter;
+
+  const getFilterType = (parentUrl: string | undefined) => {
+    if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) return undefined;
+    if (parentUrl === CUSTOM_CHANNELS.TRENDING)
+      return FilterType.GlobalTrending;
+    return FilterType.ParentUrl;
+  };
+
   const getFeed = async ({
     fid,
     parentUrl,
@@ -143,24 +164,28 @@ export default function Feed() {
     }
     setIsLoadingFeed(true);
 
-    const neynarEndpoint = getNeynarFeedEndpoint({ fid, parentUrl, cursor });
-    await fetch(neynarEndpoint)
-      .then((response) => response.json())
-      .then((data) => {
-        const feedKey = parentUrl || fid;
-        const feed = feeds[feedKey] || [];
-        setFeeds({
-          ...feeds,
-          [feedKey]: uniqBy(feed.concat(data.casts), "hash"),
-        });
-        if (data.next) {
-          setNextFeedCursor(data.next.cursor);
-        }
-      })
-      .catch((err) => {
-        console.log("err", err);
-      })
-      .finally(() => setIsLoadingFeed(false));
+    const feedOptions = {
+      filterType: getFilterType(parentUrl),
+      parentUrl,
+      cursor,
+      fid: Number(fid),
+      limit: DEFAULT_FEED_PAGE_SIZE,
+    };
+    const newFeed = await neynarClient.fetchFeed(
+      getFeedType(parentUrl),
+      feedOptions
+    );
+    const feedKey = parentUrl || fid;
+    const feed = feeds[feedKey] || [];
+
+    setFeeds({
+      ...feed,
+      [feedKey]: newFeed.casts,
+    });
+    if (newFeed?.next?.cursor) {
+      setNextFeedCursor(newFeed.next.cursor);
+    }
+    setIsLoadingFeed(false);
   };
 
   useEffect(() => {
@@ -169,7 +194,7 @@ export default function Feed() {
       setSelectedFeedIdx(0);
       setShowCastThreadView(false);
 
-      const fid = account.platformAccountId;
+      const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid });
     }
   }, [account, selectedChannelUrl]);
@@ -269,6 +294,7 @@ export default function Feed() {
   const renderContent = () => (
     <>
       <div className="min-w-full">
+      {isLoadingFeed && isEmpty(feed) && <Loading />}
         <div>{renderChannelEmbed()}</div>
         {showCastThreadView ? (
           renderThread()

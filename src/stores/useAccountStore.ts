@@ -13,6 +13,19 @@ import cloneDeep from "lodash.clonedeep";
 import { UUID } from "crypto";
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
+export enum CUSTOM_CHANNELS {
+  FOLLOWING = 'following',
+  TRENDING = 'trending',
+}
+
+const CUSTOM_CHANNEL_TO_IDX = {
+  [CUSTOM_CHANNELS.FOLLOWING]: 0,
+  [CUSTOM_CHANNELS.TRENDING]: 1,
+};
+
+const CUSTOM_CHANNEL_COUNT = 2;
+
+export const DEFAULT_CHANNEL_URL = CUSTOM_CHANNELS.FOLLOWING;
 
 type AccountChannelType = ChannelType & {
   idx: number;
@@ -47,7 +60,7 @@ export type AccountObjectType = {
 
 interface AccountStoreProps {
   selectedAccountIdx: number;
-  selectedChannelUrl: string | null;
+  selectedChannelUrl: string;
   accounts: AccountObjectType[];
   allChannels: ChannelType[];
   hydrated: boolean;
@@ -76,7 +89,7 @@ const initialState: AccountStoreProps = {
   accounts: [],
   allChannels: [],
   selectedAccountIdx: 0,
-  selectedChannelUrl: '',
+  selectedChannelUrl: DEFAULT_CHANNEL_URL,
   hydrated: false,
 };
 
@@ -185,7 +198,7 @@ const store = (set: StoreSet) => ({
   },
   resetSelectedChannel: () => {
     set((state) => {
-      state.selectedChannelUrl = '';
+      state.selectedChannelUrl = DEFAULT_CHANNEL_URL;
     })
   },
   resetStore: () => {
@@ -485,11 +498,15 @@ const getChannelCommands = () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
       if (isEmpty(channels)) return;
-      const currentIdx = channels.findIndex((channel) => channel.url === state.selectedChannelUrl);
+      const currentIdx = getCurrentChannelIndex(state.selectedChannelUrl, channels);
       const nextIdx = currentIdx + 1;
       if (nextIdx >= channels.length) return;
-
-      state.setSelectedChannelUrl(channels[nextIdx].url);
+      
+      if (nextIdx === 1) {
+        state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
+      } else {
+        state.setSelectedChannelUrl(channels[nextIdx - CUSTOM_CHANNEL_COUNT].url);
+      }
     },
   }, {
     name: 'Switch to previous channel',
@@ -500,20 +517,33 @@ const getChannelCommands = () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
       if (isEmpty(channels)) return;
-      const currentIdx = channels.findIndex((channel) => channel.url === state.selectedChannelUrl);
+
+      const currentIdx = getCurrentChannelIndex(state.selectedChannelUrl, channels);
       const previousIdx = currentIdx - 1;
       if (previousIdx < -1) return;
 
-      if (previousIdx === -1) {
+      if (previousIdx === 1) {
+        state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
+      } else if (previousIdx === 0) {
+        state.setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
+      } else if (previousIdx === -1) {
         state.resetSelectedChannel();
       } else {
-        state.setSelectedChannelUrl(channels[previousIdx].url);
+        state.setSelectedChannelUrl(channels[previousIdx - CUSTOM_CHANNEL_COUNT].url);
       }
     },
   },
   ]);
 
   return channelCommands;
+}
+
+const getCurrentChannelIndex = (channelUrl: string, channels) => {
+  const customChannelIdx = CUSTOM_CHANNEL_TO_IDX[channelUrl];
+  if (customChannelIdx !== undefined) return customChannelIdx;
+
+  const currentIdx = channels.findIndex((channel) => channel.url === channelUrl);
+  return currentIdx + CUSTOM_CHANNEL_COUNT;
 }
 
 export const accountCommands = getAccountCommands();
