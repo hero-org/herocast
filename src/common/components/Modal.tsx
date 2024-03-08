@@ -8,10 +8,11 @@ type ModalProps = {
   title?: string;
   description?: string;
   children?: React.ReactNode;
+  focusMode?: boolean;
 }
 
-const Modal = ({ open, setOpen, title, description, children }: ModalProps) => (
-  <Dialog.Root open={open} onOpenChange={setOpen} modal={false}>
+const Modal = ({ open, setOpen, title, description, children, focusMode }: ModalProps) => (
+  <Dialog.Root open={open} onOpenChange={setOpen} modal={focusMode || true}>
     <Dialog.Portal>
       <Dialog.Overlay className="bg-muted/95 data-[state=open]:animate-overlayShow fixed inset-0" />
       <Dialog.Content className="data-[state=open]:animate-contentShow fixed bg-background top-[40%] left-[50%] w-[100vw] max-w-[600px] translate-x-[-50%] translate-y-[-40%] rounded-[6px] p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none">

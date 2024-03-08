@@ -32,7 +32,7 @@ import {
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { config } from "@/common/helpers/rainbowkit";
 import {
-  getDeadline, isValidSignedKeyRequest,
+  getDeadline, getUsernameForFid, isValidSignedKeyRequest,
 } from "@/common/helpers/farcaster";
 import { writeContract } from "@wagmi/core";
 import { generateKeyPair } from "@/common/helpers/warpcastLogin";
@@ -69,7 +69,7 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
     state: SignupStateEnum.CONNECT_WALLET,
     title: "Connect your wallet",
     description:
-      "Connect your wallet and use Farcaster with a Hats Protocol hat",
+      "Shared accounts are powered by Hats Protocol 🧢. You need to have a caster hat in your wallet to use a shared account.",
     idx: 0,
   },
   {
@@ -174,7 +174,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     let fid: number | undefined;
     const isNumeric = /^-?\d+$/.test(accountName);
     if (isNumeric) {
-      fid = parseInt(accountName);
+      fid = Number(accountName);
     } else {
       fid = await getFidForUsername(accountName);
     }
@@ -203,7 +203,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
 
       try {
-        addAccount({
+        await addAccount({
           id: null,
           platformAccountId: fid.toString(),
           status: AccountStatusType.pending,
@@ -310,14 +310,19 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   });
 
   useEffect(() => {
-    if (onchainTransactionHash === "0x") return;
-
-    if (transactionResult && hatsProtocolPendingAccounts.length > 0) {
+    const activateAccount = async () => {
       setState(HatsProtocolSignupSteps[4]);
-      setAccountActive(hatsProtocolPendingAccounts[0].id!, "", {
+      const username = await getUsernameForFid(Number(fid));
+      setAccountActive(hatsProtocolPendingAccounts[0].id!, username, {
         platform_account_id: fid.toString(),
         data: {},
       });
+    }
+
+    if (onchainTransactionHash === "0x") return;
+
+    if (transactionResult && hatsProtocolPendingAccounts.length > 0) {
+      activateAccount();
     }
   }, [onchainTransactionHash, transactionResult]);
 
@@ -457,7 +462,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
-            Connect your shared account via Hats Protocol 🧢
+            Connect to a shared account
           </CardTitle>
           <CardDescription className="text-lg">
             {state.description}
@@ -491,7 +496,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
               className="ml-4 w-full"
               variant="outline"
               onClick={() =>
-                address ? openAccountModal?.() : openConnectModal?.()
+                openAccountModal?.()
               }
             >
               Switch your connected wallet

@@ -5,8 +5,7 @@ import { supabaseClient } from "../../src/common/helpers/supabase";
 import { hydrate } from "../../src/stores/useAccountStore";
 import get from "lodash.get";
 import { useRouter } from "next/router";
-import Image from "next/image"
-import Link from "next/link"
+import { usePostHog } from "posthog-js/react";
 
 const appearance = {
   extend: true,
@@ -38,6 +37,8 @@ const appearance = {
 
 export default function Login() {
   const router = useRouter();
+  const posthog = usePostHog();
+  
   const [isLoading, setIsLoading] = useState(false);
   const { asPath } = router;
   const hash = asPath.split("#")[1] || "";
@@ -51,6 +52,16 @@ export default function Login() {
 
   const requestType = get(queryParams, "type");
   console.log("Login queryParams.type", requestType);
+
+    const setupUser = async (session) => {
+      setIsLoading(true);
+      if (session?.user?.id) {
+        posthog.identify(session?.user?.id);
+      }
+      await hydrate();
+      setIsLoading(false);
+      router.push("/feed");
+    }
 
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
@@ -70,10 +81,7 @@ export default function Login() {
         console.log("Login onAuthStateChange hasSession");
       } else if (event === "SIGNED_IN") {
         console.log("Login onAuthStateChange signed in - hydrate and navigate");
-        setIsLoading(true);
-        hydrate();
-        setIsLoading(false);
-        router.push("/feed");
+        setupUser(session);
       } else if (event === "SIGNED_OUT") {
         console.log("Login onAuthStateChange signed out");
       }

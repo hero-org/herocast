@@ -106,8 +106,8 @@ type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   ...initialState,
-  addAccount: (account: AccountObjectType & { privateKey: string }) => {
-    supabaseClient
+  addAccount: async (account: AccountObjectType & { privateKey: string }) => {
+    await supabaseClient
       .from('accounts')
       .insert({
         name: account.name,
@@ -119,15 +119,16 @@ const store = (set: StoreSet) => ({
       })
       .select()
       .then(({ error, data }) => {
-        // console.log('response - data', data, 'error', error);
+        console.log('response - data', data, 'error', error);
 
         if (!data || error) return;
         set((state) => {
           state.accounts.push({ ...account, ...{ id: data[0].id } });
         });
       })
+    console.log('----> addAccount done')
   },
-  setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => {
+  setAccountActive: async (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => {
     set(async (state) => {
       const { error } = await supabaseClient
         .from('accounts')
@@ -142,6 +143,7 @@ const store = (set: StoreSet) => ({
         account.status = AccountStatusType.active;
         state.accounts[accountIndex] = account;
       }
+      console.log('-----> setAcountActive done')
     });
   },
   updateAccountUsername: async (accountId: UUID, username: string) => {

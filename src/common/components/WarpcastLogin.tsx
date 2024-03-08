@@ -42,7 +42,7 @@ const WarpcastLogin = () => {
           const { status, data } = await getWarpcastSignerStatus(account.data.signerToken);
           console.log('signerStatus: ', status, data);
           if (status === WarpcastLoginStatus.success) {
-            setAccountActive(account.id, { platform_account_id: data.userFid, data });
+            await setAccountActive(account.id, { platform_account_id: data.userFid, data });
             // console.log('idx + 1', idx + 1, 'pendingAccounts', pendingAccounts.length);
             if (idx + 1 === pendingAccounts.length) {
               setRunPolling(false);
@@ -76,7 +76,7 @@ const WarpcastLogin = () => {
     const { token, deeplinkUrl } = await createSignerRequest(publicKey, requestFid, signature, deadline);
 
     try {
-      addAccount({
+      await addAccount({
         id: null,
         platformAccountId: undefined,
         name: accountName,

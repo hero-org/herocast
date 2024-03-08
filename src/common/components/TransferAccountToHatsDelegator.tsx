@@ -58,7 +58,7 @@ const TransferAccountToHatsDelegatorSteps: TransferAccountToHatsDelegatorStepTyp
       state: TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONNECT_WALLET,
       title: "Connect your wallet",
       description:
-        "Connect your wallet and use Farcaster with a Hats Protocol hat",
+        "Connect your wallet",
       idx: 0,
     },
     {

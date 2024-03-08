@@ -15,8 +15,8 @@ type WarpcastLoginType = {
 }
 
 type WarpcastSignerType = {
-  publicKey: string,
-  privateKey: string,
+  publicKey: `0x${string}`,
+  privateKey: `0x${string}`,
   signature: string,
   requestFid: number,
   deadline: number
@@ -64,8 +64,8 @@ const getSignerRequestStatus = async (signerToken: string) => {
 
 const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
   const { publicKey, privateKey } = await generateKeyPair();
-  const hexStringPublicKey = bytesToHexString(publicKey)._unsafeUnwrap();
-  const hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
+  const hexStringPublicKey = bytesToHexString(publicKey)._unsafeUnwrap() as `0x${string}`;
+  const hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap() as `0x${string}`;
 
   const appAccount = mnemonicToAccount(APP_MNENOMIC!);
   const requestFid = APP_FID;

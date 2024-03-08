@@ -4,6 +4,7 @@ import NewPostEntry from './NewPostEntry';
 import { useNewPostStore } from '@/stores/useNewPostStore';
 import { CastRow } from './CastRow';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { useAccountStore } from '@/stores/useAccountStore';
 
 type CastToReplyType = {
   hash: string;
@@ -25,6 +26,8 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
     addNewPostDraft,
     removePostDraft
   } = useNewPostStore();
+
+  const account = useAccountStore(state => state.accounts[state.selectedAccountIdx]);
 
   const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === parentCast?.hash));
   const { drafts } = useNewPostStore();
@@ -53,9 +56,11 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
     }
     );
 
+  const getTitle = () => `Reply to ${parentCast?.author.display_name || parentCast?.author.displayName} as ${account?.name}`
+
   return (
     <Modal
-      title={`Reply to ${parentCast?.author.display_name || parentCast?.author.displayName}`}
+      title={getTitle()}
       open={open}
       setOpen={setOpen}
     >

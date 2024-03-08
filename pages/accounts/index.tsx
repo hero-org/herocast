@@ -126,7 +126,7 @@ export default function Accounts() {
 
     try {
       setIsLoading(true);
-      addAccount({
+      await addAccount({
         id: null,
         platformAccountId: undefined,
         status: AccountStatusType.pending,
@@ -154,7 +154,7 @@ export default function Accounts() {
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
       const user = (await neynarClient.lookupUserByFid(fid, APP_FID!)).result.user;
-      setAccountActive(pendingAccount.id, user.displayName, {
+      await setAccountActive(pendingAccount.id, user.displayName, {
         platform_account_id: user.fid.toString(),
         data,
       });
@@ -178,6 +178,7 @@ export default function Accounts() {
     addNewPostDraft(JoinedHerocastPostDraft);
     router.push("/post");
   };
+
   const renderCreateSignerStep = () => (
     <Card>
       <CardHeader>
