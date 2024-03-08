@@ -12,20 +12,39 @@ import Home from "../src/home";
 import "../src/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 
+
+import posthog from "posthog-js"
+import { PostHogProvider } from 'posthog-js/react'
+
+const loadPosthog = () => {
+  if (typeof window !== 'undefined') { // checks that we are client-side
+    if (!process.env.NEXT_PUBLIC_POSTHOG_KEY || !process.env.NEXT_PUBLIC_POSTHOG_HOST) return;
+  
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      // loaded: (posthog) => {
+      //   if (process.env.NODE_ENV === 'development') posthog.debug() // debug mode in development
+      // },
+    })
+  }
+}
+
 const queryClient = new QueryClient();
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const children = (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={rainbowKitTheme}>
-          <CommandPalette />
-          <Home>
-            <Component {...pageProps} />
-          </Home>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <PostHogProvider client={posthog}>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider theme={rainbowKitTheme}>
+            <CommandPalette />
+            <Home>
+              <Component {...pageProps} />
+            </Home>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </PostHogProvider>
   );
 
   const content = process.env.NEXT_PUBLIC_APTABASE_KEY ? (
