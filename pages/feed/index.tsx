@@ -45,9 +45,7 @@ export default function Feed() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
-  const [selectedCast, setSelectedCast] = useState<CastWithInteractions | null>(
-    null
-  );
+  const [selectedCast, setSelectedCast] = useState<CastWithInteractions | null>();
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
@@ -103,7 +101,7 @@ export default function Feed() {
     )
       return;
 
-    if (inView || selectedFeedIdx >= feed.length - 5) {
+    if (inView) { // || selectedFeedIdx >= feed.length - 3) {
       getFeed({
         fid: account.platformAccountId!,
         parentUrl: selectedChannelUrl,
@@ -190,14 +188,16 @@ export default function Feed() {
 
   useEffect(() => {
     if (account && !showCastThreadView) {
-      setShowReplyModal(false);
-      setSelectedFeedIdx(0);
-      setShowCastThreadView(false);
-
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid });
     }
-  }, [account, selectedChannelUrl]);
+  }, [account, selectedChannelUrl, showCastThreadView]);
+
+  useEffect(() => {
+    setShowReplyModal(false);
+    setShowCastThreadView(false);
+    setSelectedFeedIdx(0);
+  }, [selectedChannelUrl]);
 
   const renderRow = (item: any, idx: number) => (
     <li
@@ -287,7 +287,7 @@ export default function Feed() {
   const renderContent = () => (
     <>
       <div className="min-w-full">
-      {isLoadingFeed && isEmpty(feed) && <Loading />}
+      {isLoadingFeed && isEmpty(feed) && <div className="ml-4"><Loading /></div>}
         {showCastThreadView ? (
           renderThread()
         ) : (

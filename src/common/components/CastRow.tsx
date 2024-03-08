@@ -193,6 +193,12 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       return;
     }
 
+    if (key === CastReactionType.likes) {
+      setDidLike(!isActive)
+    } else {
+      setDidRecast(!isActive)
+    }
+    
     try {
       const reactionBodyType: 'like' | 'recast' = key === CastReactionType.likes ? 'like' : 'recast';
       const reaction = { type: reactionBodyType, target: { fid: Number(authorFid), hash: cast.hash } }
@@ -205,11 +211,6 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       console.error(`Error in onClickReaction: ${error}`);
     }
 
-    if (key === CastReactionType.likes) {
-      setDidLike(!isActive)
-    } else {
-      setDidRecast(!isActive)
-    }
   }
 
   const renderReaction = (key: CastReactionType, isActive: boolean, count?: number | string, icon?: JSX.Element) => {

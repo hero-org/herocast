@@ -19,7 +19,7 @@ import { getNavigationCommands } from "../../src/getNavigationCommands";
 import AccountSettingsModal from "../../src/common/components/AccountSettingsModal";
 import { useAccount, useSwitchAccount } from "wagmi";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { AccountPlatformType } from "../../src/common/constants/accounts";
+import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
 import { Loading } from "../../src/common/components/Loading";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { getUsernameForFid } from "../../src/common/helpers/farcaster";
@@ -41,6 +41,8 @@ export default function Settings() {
 
   const {
     hydrated,
+    addAccount,
+    setAccountActive,
     accounts,
     resetStore,
     removeAccount,
@@ -171,17 +173,10 @@ export default function Settings() {
       <div className="flex flex-row gap-4">
         <Button
           key="connect-wallet"
-          className="w-60"
+          className="w-44"
           onClick={() => openConnectModal?.()}
         >
           Connect wallet
-        </Button>
-        <Button
-          key="switch-wallet"
-          className="w-60"
-          onClick={() => openAccountModal?.()}
-        >
-          Switch your connected wallet
         </Button>
         <Button
           type="button"

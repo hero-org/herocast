@@ -25,7 +25,7 @@ export default function Welcome() {
               },
               {
                 title: "I am new to Farcaster",
-                description: "I am new to Farcaster and want to create a new account",
+                description: "I want to create a new account on Farcaster with herocast.",
                 buttonText: "Create new account",
                 onClick: () => router.push("/farcaster-signup"),
               },

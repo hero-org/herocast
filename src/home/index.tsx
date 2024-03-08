@@ -7,7 +7,11 @@ import {
   PlusCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { AcademicCapIcon, Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
+import {
+  AcademicCapIcon,
+  Bars3Icon,
+  UserPlusIcon,
+} from "@heroicons/react/20/solid";
 import { classNames } from "../common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
@@ -26,6 +30,7 @@ import { useNewPostStore } from "../stores/useNewPostStore";
 import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
+import { trackPageView } from "@/common/helpers/analytics";
 
 type NavigationItemType = {
   name: string;
@@ -41,11 +46,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl } = useAccountStore();
 
-  
   const getFeedTitle = () => {
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
       return "Following Feed";
-    } 
+    }
     if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING) {
       return "Trending Feed";
     }
@@ -57,7 +61,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       return `${allChannels[selectedChannelIdx]?.name} channel`;
     }
     return "Feed";
-  }
+  };
 
   const { isToastOpen, setIsToastOpen } = useNewPostStore();
 
@@ -79,7 +83,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       getTitle: () => "Your notifications",
     },
     {
-      name: "Hats Protocol", router: "/hats", icon: AcademicCapIcon,
+      name: "Hats Protocol",
+      router: "/hats",
+      icon: AcademicCapIcon,
     },
     { name: "Settings", router: "/settings", icon: Cog6ToothIcon },
   ];
@@ -107,9 +113,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   };
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
 
-  // useEffect(() => {
-  //   trackPageView(pathname.slice(1));
-  // }, [pathname])
+  useEffect(() => {
+    trackPageView(pathname.slice(1));
+  }, [pathname]);
 
   useEffect(() => {
     if (locationHash && locationHash.startsWith("#error")) {
@@ -132,11 +138,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       console.log("unknown locationHash", locationHash);
     } else {
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        console.log(`Home session`, session, 'pathname', pathname);
         if (
           !session &&
-          pathname !== "/login" &&
-          !pathname.startsWith("/profile")
+          pathname !== "/login"
         ) {
           router.push("/login");
         }
@@ -328,7 +332,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           <div className="lg:pl-48">
             <main
               className={classNames(
-                sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "md:pr-48 lg:pr-64"
+                sidebarType === RIGHT_SIDEBAR_ENUM.NONE
+                  ? ""
+                  : "md:pr-48 lg:pr-64"
               )}
             >
               <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">

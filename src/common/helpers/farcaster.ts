@@ -50,12 +50,11 @@ export const removeReaction = async ({ authorFid, privateKey, reaction }: Remove
     axiosInstance
   });
 
-  const submitReactionResponse = await writeClient.removeReaction(
+  await writeClient.removeReaction(
     reaction,
     authorFid,
     privateKey
   );
-  console.log(`new reaction hash: ${submitReactionResponse.hash}`)
 };
 
 export const publishReaction = async ({ authorFid, privateKey, reaction }: PublishReactionParams) => {
@@ -64,12 +63,11 @@ export const publishReaction = async ({ authorFid, privateKey, reaction }: Publi
     axiosInstance
   });
 
-  const submitReactionResponse = await writeClient.submitReaction(
+  await writeClient.submitReaction(
     reaction,
     authorFid,
     privateKey
   );
-  console.log(`new reaction hash: ${submitReactionResponse.hash}`);
 };
 
 export const followUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {

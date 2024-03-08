@@ -67,19 +67,13 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     if (!(transactionResult && pendingAccounts.length > 0)) return false;
 
     return getFidForAddress(address!)
-      .then((fid) => {
-        console.log(
-          "getFidForWallet fid",
-          fid,
-          "pendingAccounts",
-          pendingAccounts
-        );
+      .then(async (fid) => {
         if (fid) {
           const accountId = pendingAccounts[0].id!;
-          setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
+          await setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
             platform_account_id: fid.toString(),
             data: { signupViaHerocast: true },
-          });
+          })
           onSuccess?.();
           return true;
         }
@@ -129,7 +123,7 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
       hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
 
       try {
-        addAccount({
+        await addAccount({
           id: null,
           status: AccountStatusType.pending,
           platform: AccountPlatformType.farcaster,
