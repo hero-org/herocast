@@ -97,6 +97,7 @@
     "mutative": "^0.2.2",
     "next": "^14.0.3",
     "next-themes": "^0.2.1",
+    "posthog-js": "^1.112.0",
     "prop-types": "^15.8.1",
     "radix-colors-for-tailwind": "^2.0.0",
     "react": "18.2.0",
