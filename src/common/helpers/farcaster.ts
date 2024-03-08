@@ -1,7 +1,7 @@
 import axios from "axios";
 import { CastAddBody, Embed, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, UserDataType, ViemLocalEip712Signer, hexStringToBytes, idRegistryABI, keyGatewayABI, makeCastAdd, makeUserDataAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
 import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
-import { encodeAbiParameters, toBytes } from "viem";
+import { Address, encodeAbiParameters, toBytes } from "viem";
 import { publicClient } from "./rainbowkit";
 import { mnemonicToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
@@ -250,7 +250,7 @@ const IdContract = {
   chain: optimism,
 };
 
-export const getFidForWallet = async (address: `0x${string}`): Promise<bigint | undefined> => {
+export const getFidForAddress = async (address: `0x${string}`): Promise<bigint | undefined> => {
   return (await publicClient.readContract({
     ...IdContract,
     functionName: 'idOf',
@@ -275,13 +275,13 @@ export const validateUsernameIsAvailable = async (username: string) => {
   return transfers.length === 0;
 };
 
-export const getUsernameForFid = async (fid: string) => {
+export const getUsernameForFid = async (fid: number) => {
   const response = await axios.get(`${FARCASTER_FNAME_ENDPOINT}?fid=${fid}`);
   if (response.status !== 200) {
     throw new Error('Failed to get username for fid');
   }
-  const transfers = response.data.transfers.filter((t) => t.to === fid);
 
+  const transfers = response.data.transfers.filter((t) => t.to === fid);
   if (transfers.length === 0) {
     return undefined;
   } else {
@@ -371,7 +371,7 @@ const EIP_712_USERNAME_DOMAIN = {
   name: "Farcaster name verification",
   version: "1",
   chainId: 1,
-  verifyingContract: "0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1" as Address, // name registry contract, will be the farcaster ENS CCIP contract later
+  verifyingContract: "0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1" as Address, 
 };
 
 const USERNAME_PROOF_EIP_712_TYPES = {

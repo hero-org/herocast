@@ -9,6 +9,7 @@ import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   accountCommands,
   channelCommands,
+  hydrate,
   useAccountStore,
 } from "../../src/stores/useAccountStore";
 import { newPostCommands } from "../../src/stores/useNewPostStore";
@@ -20,6 +21,8 @@ import { useAccount, useSwitchAccount } from "wagmi";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import { AccountPlatformType } from "../../src/common/constants/accounts";
 import { Loading } from "../../src/common/components/Loading";
+import { ArrowPathIcon } from "@heroicons/react/20/solid";
+import { getUsernameForFid } from "../../src/common/helpers/farcaster";
 
 type SimpleCommand = {
   name: string;
@@ -36,7 +39,13 @@ export default function Settings() {
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
 
-  const { hydrated, accounts, resetStore, removeAccount } = useAccountStore();
+  const {
+    hydrated,
+    accounts,
+    resetStore,
+    removeAccount,
+    updateAccountUsername,
+  } = useAccountStore();
 
   useEffect(() => {
     const getUser = async () => {
@@ -71,6 +80,34 @@ export default function Settings() {
     setOpen(true);
   };
 
+  const syncAccountNameFromProtocolToDB = async (
+    account: AccountObjectType
+  ) => {
+    try {
+      const fid = account.platformAccountId;
+      if (fid && account.status === "active") {
+        const username = await getUsernameForFid(Number(fid));
+        console.log("protocol", username, "DB", account.name);
+        if (username && username !== account.name) {
+          await updateAccountUsername(account.id, username);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to sync account name from protocol to DB", error);
+    }
+  };
+
+  const refreshAccountNames = async () => {
+    Promise.all(accounts.map(syncAccountNameFromProtocolToDB))
+      .then(() => {
+        console.log("All account names refreshed successfully");
+        hydrate();
+      })
+      .catch((error) =>
+        console.error("Error refreshing account names:", error)
+      );
+  };
+
   const renderInfoSection = () => {
     const allCommands = [
       { name: "Command Palette", shortcut: "cmd+k" },
@@ -89,22 +126,14 @@ export default function Settings() {
     );
 
     return (
-      <div className="mt-20 overflow-hidden">
+      <div className="w-2/3 mt-20 overflow-hidden">
         <div className="border-b border-border">
           <h1 className="text-xl font-semibold leading-7 text-foreground/80">
             Hotkeys / Keyboard Shortcuts
           </h1>
         </div>
-        <div className="px-2 py-4">
-          <h3 className="text-base font-semibold leading-7 text-foreground/80">
-            hotkeys overview
-          </h3>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-foreground/70">
-            list of all hotkeys in herocast
-          </p>
-        </div>
-        <div className="border-t border-gray-600">
-          <dl className="divide-y divide-gray-600">
+        <div className="border-t border-muted">
+          <dl className="divide-y divide-muted">
             {commandsWithShortcuts.map((command) => (
               <div
                 key={`command-${command.name}`}
@@ -163,10 +192,18 @@ export default function Settings() {
           Logout
         </Button>
       </div>
-      <div className="border-b border-gray-200">
+      <div className="flex justify-between pb-2 border-b border-gray-200">
         <h1 className="text-xl font-semibold leading-7 text-foreground/80">
           Farcaster accounts
         </h1>
+        <Button
+          variant="outline"
+          className="h-8"
+          onClick={() => refreshAccountNames()}
+        >
+          Reload accounts
+          <ArrowPathIcon className="ml-1 w-4 h-4" />
+        </Button>
       </div>
       {!hydrated && <Loading />}
       <ul role="list" className="divide-y divide-white/5">

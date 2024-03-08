@@ -45,7 +45,7 @@ type UpdatedPinnedChannelIndicesProps = {
 }
 
 export type AccountObjectType = {
-  id: UUID | null;
+  id: UUID;
   userId?: string;
   name?: string;
   status: AccountStatusType;
@@ -144,7 +144,7 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  updateAccountUsername: (accountId: UUID, username: string) => {
+  updateAccountUsername: async (accountId: UUID, username: string) => {
     set(async (state) => {
       const { data, error } = await supabaseClient
         .from('accounts')
@@ -348,6 +348,10 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
 }
 
 export const hydrate = async () => {
+  if (useAccountStore.getState().hydrated) {
+    useAccountStore.getState().resetStore();
+  }
+  
   console.log('hydrating 💦');
 
   const { data: { user } } = await supabaseClient.auth.getUser();
