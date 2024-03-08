@@ -16,7 +16,7 @@ import { config } from "@/common/helpers/rainbowkit";
 import {
   WARPCAST_RECOVERY_PROXY,
   getDeadline,
-  getFidForWallet,
+  getFidForAddress,
   getSignedKeyRequestMetadataFromAppAccount,
   readNoncesFromKeyGateway,
 } from "../helpers/farcaster";
@@ -66,7 +66,7 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     );
     if (!(transactionResult && pendingAccounts.length > 0)) return false;
 
-    return getFidForWallet(address!)
+    return getFidForAddress(address!)
       .then((fid) => {
         console.log(
           "getFidForWallet fid",
@@ -105,7 +105,7 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
   const validateWalletHasNoFid = async (): Promise<boolean> => {
     if (!address) return false;
 
-    const fid = await getFidForWallet(address);
+    const fid = await getFidForAddress(address);
     if (fid) {
       setError(`Wallet ${address} has already registered FID ${fid} - only one account per address`);
       return false;

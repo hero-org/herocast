@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAccount, useSignTypedData, useWalletClient } from "wagmi";
 import {
-  getFidForWallet,
+  getFidForAddress,
   getSignatureForUsernameProof,
   getTimestamp,
   setUserDataInProtocol,
@@ -98,7 +98,7 @@ const RegisterFarcasterUsernameForm = ({
   const canSubmitForm = !isPending && isConnected && chainId === mainnet.id;
 
   useEffect(() => {
-    getFidForWallet(address!)
+    getFidForAddress(address!)
       .then(setFid)
       .catch((e) => setError(e.message));
   }, [address]);

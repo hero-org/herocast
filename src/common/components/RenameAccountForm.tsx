@@ -1,59 +1,43 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
   useAccount,
-  useSignTypedData,
-  useWaitForTransactionReceipt,
   useWalletClient,
 } from "wagmi";
 import {
-  BUNDLER_ADDRESS,
   UserDataType,
-  ViemWalletEip712Signer,
-  bundlerABI,
-  bytesToHexString,
-  makeUserNameProofClaim,
 } from "@farcaster/hub-web";
-import { config, publicClient } from "@/common/helpers/rainbowkit";
 import {
-  WARPCAST_RECOVERY_PROXY,
-  getDeadline,
-  getFidForWallet,
+  getFidForAddress,
   getSignatureForUsernameProof,
-  getSignedKeyRequestMetadataFromAppAccount,
   getTimestamp,
   getUsernameForFid,
-  readNoncesFromKeyGateway,
   setUserDataInProtocol,
   updateUsername,
   validateUsernameIsAvailable,
 } from "../helpers/farcaster";
-import { Address, getAddress, toBytes, toHex } from "viem";
+import { getAddress } from "viem";
 import { AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from "@/stores/useAccountStore";
-import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
+import { AccountPlatformType } from "../constants/accounts";
 import {
   Cog6ToothIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/20/solid";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { mainnet, optimism } from "viem/chains";
+import { mainnet } from "viem/chains";
 import { switchChain } from "viem/actions";
-import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
-import { UserNeynarV1Type } from "../helpers/neynar";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v1";
 
 export type RenameAccountFormValues = z.infer<typeof RenameAccountFormSchema>;
@@ -130,7 +114,7 @@ const RenameAccountForm = ({
     if (!address) return undefined;
 
     if (account.platform === AccountPlatformType.farcaster) {
-      getFidForWallet(address).then(async (fid) => {
+      getFidForAddress(address).then(async (fid) => {
         console.log("fid for wallet", fid, address, account.platformAccountId!);
         if (fid === BigInt(account.platformAccountId!)) {
           console.log("wallet owns fid");
@@ -180,7 +164,7 @@ const RenameAccountForm = ({
     try {
       const owner = getAddress(address);
       const existingOffchainUsername = await getUsernameForFid(
-        account.platformAccountId!
+        Number(account.platformAccountId!)
       );
       console.log("offchain username", existingOffchainUsername);
       if (existingOffchainUsername) {

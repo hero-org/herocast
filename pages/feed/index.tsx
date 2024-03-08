@@ -284,18 +284,10 @@ export default function Feed() {
     hydrated &&
     !isLoadingFeed && <RecommendedProfilesCard />;
 
-  const renderChannelEmbed = () =>
-    selectedChannelUrl ? (
-      <div className="mx-2 mt-4 mb-4">
-        {renderEmbedForUrl({ url: selectedChannelUrl })}
-      </div>
-    ) : null;
-
   const renderContent = () => (
     <>
       <div className="min-w-full">
       {isLoadingFeed && isEmpty(feed) && <Loading />}
-        <div>{renderChannelEmbed()}</div>
         {showCastThreadView ? (
           renderThread()
         ) : (
