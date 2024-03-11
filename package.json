@@ -119,7 +119,7 @@
     "viem": "2.x",
     "wagmi": "^2.5.7",
     "zod": "^3.22.4",
-    "zustand": "^4.4.7"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
