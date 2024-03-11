@@ -75,7 +75,7 @@
     "clsx": "^2.0.0",
     "cmdk": "^0.2.1",
     "command-score": "^0.1.2",
-    "esbuild": "^0.19.8",
+    "esbuild": "^0.20.1",
     "focus-trap-react": "^10.2.1",
     "google-protobuf": "^3.21.2",
     "javascript-time-ago": "^2.5.9",
