@@ -94,7 +94,7 @@
     "lodash.sortby": "^4.7.0",
     "lodash.uniq": "^4.5.0",
     "lodash.uniqby": "^4.7.0",
-    "mutative": "^0.2.2",
+    "mutative": "^1.0.3",
     "next": "^14.0.3",
     "next-themes": "^0.2.1",
     "posthog-js": "^1.112.0",
