@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Fragment, useState } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
 import { supabaseClient } from "../common/helpers/supabase";
 import {
   Cog6ToothIcon,
@@ -8,7 +8,10 @@ import {
   XMarkIcon,
   AcademicCapIcon,
 } from "@heroicons/react/24/outline";
-import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
+import {
+  Bars3Icon,
+  UserPlusIcon,
+} from "@heroicons/react/20/solid";
 import { classNames } from "../common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
