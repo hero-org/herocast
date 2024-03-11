@@ -8516,10 +8516,10 @@ split2@^4.0.0:
   resolved "https://registry.yarnpkg.com/split2/-/split2-4.2.0.tgz#c9c5920904d148bab0b9f67145f245a86aadbfa4"
   integrity sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==
 
-squire-rte@^2.0.3:
-  version "2.2.6"
-  resolved "https://registry.yarnpkg.com/squire-rte/-/squire-rte-2.2.6.tgz#9b418669446989e192f1133f3401230bde29a704"
-  integrity sha512-LW7jbOseMasGRajT6DIDLkAsKI3bArgJzYACPrtSwl+k27nA8z4CBEzghdnp12vBZul2S5z7UZ906H0vSLjdtw==
+squire-rte@^2.2.8:
+  version "2.2.8"
+  resolved "https://registry.yarnpkg.com/squire-rte/-/squire-rte-2.2.8.tgz#9fe2c07dabf06f0a9fd8838bde8af3f72268576f"
+  integrity sha512-eiCBDMzydWSiGWr558BQA9aFfSSpALRAzJkKMosLh+sf+HyB2zjILF3gII7L/fqShQZbyP/gJYfq8hONK9StXA==
 
 standard-as-callback@^2.1.0:
   version "2.1.0"
