@@ -127,7 +127,7 @@ const ChannelsOverview = () => {
               </Tooltip.Provider>
               {idx < 9 && (
                 <kbd className="flex flex-nowrap px-1.5 py-0.5 text-xs border rounded-md bg-muted text-primary border-foreground/60">
-                  Shift + {idx + 1}
+                  Shift + {idx + 2}
                 </kbd>
               )}
             </div>

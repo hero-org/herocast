@@ -45,7 +45,8 @@ export default function Feed() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
-  const [selectedCast, setSelectedCast] = useState<CastWithInteractions | null>();
+  const [selectedCast, setSelectedCast] =
+    useState<CastWithInteractions | null>();
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
@@ -101,14 +102,14 @@ export default function Feed() {
     )
       return;
 
-    if (inView) { // || selectedFeedIdx >= feed.length - 3) {
+    if (inView) {
       getFeed({
         fid: account.platformAccountId!,
         parentUrl: selectedChannelUrl,
         cursor: nextFeedCursor,
       });
     }
-  }, [selectedFeedIdx, feed, account, selectedChannelUrl, inView]);
+  }, [selectedFeedIdx, feed, account, selectedChannelUrl, inView, isLoadingFeed]);
 
   useHotkeys(
     [Key.Escape, "§"],

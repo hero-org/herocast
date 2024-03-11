@@ -207,7 +207,7 @@ export default function Profile({ profile }) {
                 {feedType !== FeedTypeEnum[key] && (
                   <div className="ml-4 text-foreground/80 hidden md:block">
                     Switch with &nbsp;
-                    <kbd className="px-1 py-0.5 text-xs border rounded-md bg-gray-700 text-foreground/80 border-gray-600">
+                    <kbd className="px-1.5 py-1 text-xs border rounded-lg bg-foreground/80 text-background/80">
                       Tab
                     </kbd>
                   </div>
@@ -240,7 +240,7 @@ export default function Profile({ profile }) {
                 <AvatarFallback>{profile.username}</AvatarFallback>
               </Avatar>
               <div className="text-left">
-                <h2 className="text-xl font-bold text-gray-200">
+                <h2 className="text-xl font-bold text-foreground">
                   {profile.displayName}
                 </h2>
                 <span className="text-sm text-foreground/80">
@@ -260,7 +260,7 @@ export default function Profile({ profile }) {
               <strong>{profile.followerCount}</strong> Followers
             </span>
           </div>
-          <p className="text-gray-200">{profile.profile.bio.text}</p>
+          <span className="text-foreground">{profile.profile.bio.text}</span>
         </CardHeader>
       </Card>
       {renderFeed()}
