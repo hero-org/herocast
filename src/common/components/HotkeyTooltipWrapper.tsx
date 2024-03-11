@@ -1,35 +1,39 @@
 // needs to be wrapped in <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
 import React from "react";
-import * as Tooltip from '@radix-ui/react-tooltip';
-import { KeyboardIcon } from '@radix-ui/react-icons';
-
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import { TooltipArrow } from "@radix-ui/react-tooltip";
 
 type HotkeyTooltipWrapperProps = {
-  hotkey: string;
+  hotkey?: string | React.ReactNode;
   side: "top" | "right" | "bottom" | "left";
   children: React.ReactNode;
-}
+};
 
-const HotkeyTooltipWrapper = ({ hotkey, side, children }: HotkeyTooltipWrapperProps) => {
+const HotkeyTooltipWrapper = ({
+  hotkey,
+  side,
+  children,
+}: HotkeyTooltipWrapperProps) => {
+  if (!hotkey) return children;
+  
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger asChild>
-        {children}
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Content
-          align={"center"}
-          className="flex bg-muted text-foreground data-[state=delayed-open]:data-[side=top]:animate-slideDownAndFade data-[state=delayed-open]:data-[side=right]:animate-slideLeftAndFade data-[state=delayed-open]:data-[side=left]:animate-slideRightAndFade data-[state=delayed-open]:data-[side=bottom]:animate-slideUpAndFade text-violet11 select-none rounded-[4px] px-[15px] py-[10px] text-[15px] leading-none shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] will-change-[transform,opacity]"
-          side={side}
-          sideOffset={5}
-        >
-          <KeyboardIcon className="mr-2" />
-          {hotkey}
-          <Tooltip.Arrow className="fill-muted" />
-        </Tooltip.Content>
-      </Tooltip.Portal>
-    </Tooltip.Root>
-  )
-}
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent
+        align={"center"}
+        className="bg-background border border-muted text-foreground/80"
+        side={side}
+        sideOffset={5}
+      >
+        {hotkey}
+        <TooltipArrow className="fill-muted" />
+      </TooltipContent>
+    </Tooltip>
+  );
+};
 
 export default HotkeyTooltipWrapper;

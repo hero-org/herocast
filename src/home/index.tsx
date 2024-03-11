@@ -31,12 +31,20 @@ import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
 import { trackPageView } from "@/common/helpers/analytics";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 
 type NavigationItemType = {
   name: string;
   router: string;
   icon: any;
   getTitle?: () => string;
+  shortcut?: string;
 };
 
 const Home = ({ children }: { children: React.ReactNode }) => {
@@ -71,23 +79,45 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       router: "/feed",
       icon: NewspaperIcon,
       getTitle: getFeedTitle,
+      shortcut: "Shift + F",
     },
-    { name: "New Post", router: "/post", icon: PlusCircleIcon },
-    { name: "Search", router: "/search", icon: MagnifyingGlassIcon },
-    { name: "Channels", router: "/channels", icon: RectangleGroupIcon },
-    { name: "Accounts", router: "/accounts", icon: UserPlusIcon },
+    { name: "New Post", router: "/post", icon: PlusCircleIcon, shortcut: "C" },
+    {
+      name: "Search",
+      router: "/search",
+      icon: MagnifyingGlassIcon,
+      shortcut: "/",
+    },
+    {
+      name: "Channels",
+      router: "/channels",
+      icon: RectangleGroupIcon,
+      shortcut: "Shift + C",
+    },
+    {
+      name: "Accounts",
+      router: "/accounts",
+      icon: UserPlusIcon,
+      shortcut: "Shift + C",
+    },
     {
       name: "Notifications",
       router: "/notifications",
       icon: BellIcon,
       getTitle: () => "Your notifications",
+      shortcut: "Shift + N",
     },
     {
       name: "Hats Protocol",
       router: "/hats",
       icon: AcademicCapIcon,
     },
-    { name: "Settings", router: "/settings", icon: Cog6ToothIcon },
+    {
+      name: "Settings",
+      router: "/settings",
+      icon: Cog6ToothIcon,
+      shortcut: "Shift + ,",
+    },
   ];
 
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
@@ -105,6 +135,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
     }
+  };
+
+  const onClickItem = (item: NavigationItemType) => {
+    if (pathname === "/login") return;
+    router.push(item.router);
+    setSidebarOpen(false);
   };
 
   const navItem = navigation.find((item) => item.router === pathname) || {
@@ -250,11 +286,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                               {navigation.map((item) => (
                                 <li key={item.name}>
                                   <p
-                                    onClick={() => {
-                                      if (pathname === "/login") return;
-                                      router.push(item.router);
-                                      setSidebarOpen(false);
-                                    }}
+                                    onClick={() => onClickItem(item)}
                                     className={classNames(
                                       item.router === pathname
                                         ? "text-foreground bg-foreground/10"
@@ -306,25 +338,28 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   >
                     {navigation.map((item) => (
                       <li key={item.name}>
-                        <a
-                          onClick={() => {
-                            if (pathname === "/login") return;
-                            router.push(item.router);
-                            setSidebarOpen(false);
-                          }}
-                          className={classNames(
-                            item.router === pathname
-                              ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                            "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                          )}
+                        <TooltipProvider
+                          delayDuration={50}
+                          skipDelayDuration={0}
                         >
-                          <item.icon
-                            className="h-6 w-6 shrink-0"
-                            aria-hidden="true"
-                          />
-                          <span className="sr-only">{item.name}</span>
-                        </a>
+                          <HotkeyTooltipWrapper hotkey={item.shortcut} side="right">
+                              <div
+                                onClick={() => onClickItem(item)}
+                                className={classNames(
+                                  item.router === pathname
+                                    ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                  "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                )}
+                              >
+                                <item.icon
+                                  className="h-6 w-6 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                <span className="sr-only">{item.name}</span>
+                              </div>
+                            </HotkeyTooltipWrapper>
+                        </TooltipProvider>
                       </li>
                     ))}
                   </ul>
