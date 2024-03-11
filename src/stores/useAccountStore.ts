@@ -353,7 +353,7 @@ export const hydrate = async () => {
   if (useAccountStore.getState().hydrated) {
     useAccountStore.getState().resetStore();
   }
-  
+
   console.log('hydrating 💦');
 
   const { data: { user } } = await supabaseClient.auth.getUser();
@@ -448,26 +448,36 @@ const getAccountCommands = () => {
 };
 
 const getChannelCommands = () => {
-  const channelCommands: CommandType[] = [];
-
-  channelCommands.push({
+  const channelCommands: CommandType[] = [{
     name: `Switch to follow feed`,
-    aliases: ['follow feed', 'following', 'feed', 'home'],
+    aliases: ['following', 'feed', 'home'],
     shortcut: 'shift+0',
     options: {
       enableOnFormTags: false,
     },
     navigateTo: '/feed',
     action: () => {
-      useAccountStore.getState().resetSelectedChannel();
+      useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
     },
-  });
+  },
+  {
+    name: `Switch to trending feed`,
+    aliases: ['trending', 'popular'],
+    shortcut: 'shift+1',
+    options: {
+      enableOnFormTags: false,
+    },
+    navigateTo: '/feed',
+    action: () => {
+      useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+    },
+  }];
 
   for (let i = 0; i < 9; i++) {
     channelCommands.push({
-      name: `Switch to channel ${i + 1}`,
+      name: `Switch to channel ${i + 2}`,
       aliases: [],
-      shortcut: `shift+${i + 1}`,
+      shortcut: `shift+${i + 2}`,
       options: {
         enableOnFormTags: false,
       },
@@ -507,7 +517,7 @@ const getChannelCommands = () => {
       const currentIdx = getCurrentChannelIndex(state.selectedChannelUrl, channels);
       const nextIdx = currentIdx + 1;
       if (nextIdx >= channels.length) return;
-      
+
       if (nextIdx === 1) {
         state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
       } else {

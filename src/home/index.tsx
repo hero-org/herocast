@@ -1,14 +1,14 @@
 import React, { useEffect } from "react";
 import { Fragment, useState } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
 import { supabaseClient } from "../common/helpers/supabase";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
   XMarkIcon,
+  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 import {
-  AcademicCapIcon,
   Bars3Icon,
   UserPlusIcon,
 } from "@heroicons/react/20/solid";
@@ -138,10 +138,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       console.log("unknown locationHash", locationHash);
     } else {
       supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        if (
-          !session &&
-          pathname !== "/login"
-        ) {
+        if (!session && pathname !== "/login") {
           router.push("/login");
         }
       });
@@ -287,49 +284,106 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </Transition.Root>
 
           {/* Static sidebar for desktop */}
-          <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col">
+          {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
+          <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:bg-background border-r border-muted">
             {/* Sidebar component, swap this element with another sidebar if you like */}
-            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/10 px-6 ring-1 ring-white/5">
+            <div className="flex grow flex-col min-h-full gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-white/5">
               <div className="flex h-16 shrink-0 items-center">
-                <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+                <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
                   herocast
                 </h2>
+                <img
+                  className="h-8 w-auto"
+                  src={herocastImg.src}
+                  alt="herocast"
+                />
               </div>
-              <nav className="flex flex-1 flex-col">
-                <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                  <li>
-                    <ul role="list" className="-mx-2 space-y-1">
-                      {navigation.map((item) => (
-                        <li key={item.name}>
-                          <p
-                            onClick={() => {
-                              if (pathname === "/login") return;
-                              router.push(item.router);
-                              setSidebarOpen(false);
-                            }}
-                            className={classNames(
-                              item.router === pathname
-                                ? "bg-foreground/5 text-foreground"
-                                : "text-foreground/70 hover:text-foreground hover:bg-foreground/10",
-                              "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
-                            )}
-                          >
-                            <item.icon
-                              className="h-6 w-6 shrink-0"
-                              aria-hidden="true"
-                            />
-                            {item.name}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                </ul>
-              </nav>
+              <div className="h-full min-h-full flex flex-col justify-between">
+                <nav className="mt-0">
+                  <ul
+                    role="list"
+                    className="flex flex-col items-center space-y-1"
+                  >
+                    {navigation.map((item) => (
+                      <li key={item.name}>
+                        <a
+                          onClick={() => {
+                            if (pathname === "/login") return;
+                            router.push(item.router);
+                            setSidebarOpen(false);
+                          }}
+                          className={classNames(
+                            item.router === pathname
+                              ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                            "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                          )}
+                        >
+                          <item.icon
+                            className="h-6 w-6 shrink-0"
+                            aria-hidden="true"
+                          />
+                          <span className="sr-only">{item.name}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </div>
               <ThemeToggle />
             </div>
           </div>
-          <div className="lg:pl-48">
+
+          <div className="lg:pl-20">
+            <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+              <button
+                type="button"
+                className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <span className="sr-only">Open sidebar</span>
+                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+              </button>
+              <h1 className="mx-auto text-xl font-semibold leading-7 text-foreground">
+                {title}
+              </h1>
+              {/* Separator */}
+              <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+                <div className="flex items-center gap-x-4 lg:gap-x-6">
+                  {/* Separator */}
+                  {/* <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" /> */}
+                  {/* Profile dropdown */}
+                  {/* <Menu as="div" className="relative">
+                  <Menu.Button className="-m-1.5 flex items-center p-1.5">
+                    <span className="sr-only">Open user menu</span>
+                    <img
+                      className="h-8 w-8 rounded-full bg-gray-50"
+                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                      alt=""
+                    />
+                    <span className="hidden lg:flex lg:items-center">
+                      <span className="ml-4 text-sm font-semibold leading-6 text-gray-900" aria-hidden="true">
+                        Tom Cook
+                      </span>
+                      <ChevronDownIcon className="ml-2 h-5 w-5 text-gray-400" aria-hidden="true" />
+                    </span>
+                  </Menu.Button>
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                    </Menu.Items>
+                  </Transition>
+                </Menu> */}
+                </div>
+              </div>
+            </div>
             <main
               className={classNames(
                 sidebarType === RIGHT_SIDEBAR_ENUM.NONE
@@ -337,24 +391,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   : "md:pr-48 lg:pr-64"
               )}
             >
-              <header className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-6 lg:px-6 h-16">
-                <button
-                  type="button"
-                  className="-m-2.5 p-2.5 text-foreground lg:hidden"
-                  onClick={() => setSidebarOpen(true)}
-                >
-                  <span className="sr-only">Open sidebar</span>
-                  <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-                </button>
-                <h1 className="mx-auto text-2xl font-semibold leading-7 text-foreground">
-                  {title}
-                </h1>
-              </header>
-              <div className="w-full max-w-full min-h-screen flex justify-between border-t border-white/5 ">
+              <div className="w-full max-w-full min-h-screen flex justify-between">
                 {children}
               </div>
+              {renderRightSidebar()}
             </main>
-            {renderRightSidebar()}
           </div>
         </div>
         <CustomToast
