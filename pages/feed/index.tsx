@@ -17,7 +17,6 @@ import { Key } from "ts-key-enum";
 import ReplyModal from "../../src/common/components/ReplyModal";
 import EmbedsModal from "../../src/common/components/EmbedsModal";
 import { useInView } from "react-intersection-observer";
-import { renderEmbedForUrl } from "../../src/common/components/Embeds";
 import { useRouter } from "next/router";
 import { Button } from "../../src/components/ui/button";
 import { FilterType, NeynarAPIClient } from "@neynar/nodejs-sdk";
@@ -178,8 +177,8 @@ export default function Feed() {
     const feed = feeds[feedKey] || [];
 
     setFeeds({
-      ...feed,
-      [feedKey]: newFeed.casts,
+      ...feeds,
+      [feedKey]: feed.concat(newFeed.casts),
     });
     if (newFeed?.next?.cursor) {
       setNextFeedCursor(newFeed.next.cursor);
@@ -207,9 +206,9 @@ export default function Feed() {
     >
       <CastRow
         cast={item as CastType}
-        showChannel={!selectedChannelUrl}
         isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
+        showChannel
       />
     </li>
   );
