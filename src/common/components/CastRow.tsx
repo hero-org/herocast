@@ -87,6 +87,8 @@ const renderCashtag = ({ attributes, content }) => {
   }
 
   const tokenSymbol = content.slice(1);
+  if (tokenSymbol === 'usd') return null;
+
   const { userFid } = attributes;
 
   return (

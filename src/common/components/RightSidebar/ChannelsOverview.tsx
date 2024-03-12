@@ -37,8 +37,8 @@ const ChannelsOverview = () => {
             selectedChannelUrl === url
               ? "bg-background text-foreground font-normal"
               : "text-foreground/80 hover:text-foreground/80 hover:bg-background",
-            "group align-center justify-between flex gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
-          )}
+              "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
+              )}
         >
           <span className="flex-nowrap truncate">{name}</span>
           <Badge variant="outline" className="w-16">{shortcut}</Badge>
