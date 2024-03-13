@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  AccountObjectType,
   useAccountStore,
 } from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
@@ -15,12 +14,6 @@ import SortableList, { SortableItem } from "react-easy-sort";
 import { useRouter } from "next/router";
 import { take } from "lodash";
 
-type Inputs = {
-  name: string;
-  url: string;
-  iconUrl: string;
-  account: string;
-};
 
 export default function Channels() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,15 +25,11 @@ export default function Channels() {
     addPinnedChannel,
     removePinnedChannel,
     accounts,
-    selectedAccountIdx,
     hydrated,
     allChannels,
-    addChannel,
     updatedPinnedChannelIndices,
   } = useAccountStore();
 
-  const account: AccountObjectType = accounts[selectedAccountIdx];
-  // const channels = account?.channels || [];
   const channels = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.channels || []
   );
@@ -78,7 +67,7 @@ export default function Channels() {
             enabled && idx !== undefined
               ? "rounded-r-lg border-b border-r border-t"
               : "rounded-lg border",
-            "flex flex-1 items-center justify-between truncate border-foreground/60 bg-muted-background pr-4"
+            "flex flex-1 items-center justify-between truncate border-foreground/60 bg-muted-background p-2 pr-4"
           )}
         >
           {channel.icon_url ? (
@@ -94,11 +83,6 @@ export default function Channels() {
             <p className="truncate font-medium text-foreground/80">
               {channel.name}
             </p>
-            {channel.source && (
-              <p className="text-foreground/70 truncate">
-                Added by {channel.source}
-              </p>
-            )}
           </div>
           <Toggle
             enabled={enabled}
@@ -106,15 +90,6 @@ export default function Channels() {
               enabled ? removePinnedChannel(channel) : addPinnedChannel(channel)
             }
           />
-          {/* <div className="flex-shrink-0 pr-2">
-            <button
-              type="button"
-              className="ml-2 inline-flex h-8 w-4 items-center justify-center rounded-sm bg-transparent text-foreground/70 hover:text-foreground/80 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-            >
-              <span className="sr-only">Open options</span>
-              <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-            </button>
-          </div> */}
         </div>
       </div>
     );
@@ -316,7 +291,11 @@ export default function Channels() {
     );
   };
 
-  return hydrated && isEmpty(accounts) ? (
+  if (!hydrated) {
+    return null;
+  }
+
+  return isEmpty(accounts) ? (
     renderEmptyState()
   ) : (
     <>

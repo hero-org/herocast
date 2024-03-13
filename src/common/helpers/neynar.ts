@@ -128,3 +128,4 @@ export const getUserInfoByFid = async (fid: string | number): Promise<UserNeynar
       return {} as UserNeynarV1Type;
     });
 };
+

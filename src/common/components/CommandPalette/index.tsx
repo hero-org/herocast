@@ -217,7 +217,6 @@ export default function CommandPalette() {
                         ))}
                       </ul>
                     </li>
-
                   </Combobox.Options>
                 )}
 
