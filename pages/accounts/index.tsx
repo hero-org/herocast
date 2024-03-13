@@ -34,7 +34,6 @@ import {
   generateWarpcastSigner,
   getWarpcastSignerStatus,
 } from "../../src/common/helpers/warpcastLogin";
-import { getUserInfoByFid } from "../../src/common/helpers/neynar";
 import HelpCard from "../../src/common/components/HelpCard";
 import { useIsMounted } from "../../src/common/helpers/hooks";
 import { useRouter } from "next/router";
