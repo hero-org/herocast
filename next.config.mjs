@@ -25,11 +25,11 @@ const nextConfig = {
 const millionConfig = {
   auto: {
     threshold: 0.05, // default: 0.1,
-    skip: ['AccountsRightSidebar', 'ConnectModal', 'ConnectButton', 'NounsBuildEmbed'], // default []
-    // if you're using RSC: auto: 
-    // rsc: true,
+    skip: ['AccountsRightSidebar', 'EmbedsModal', /Modal/g, 'ConnectModal', 'ConnectButton', 'NounsBuildEmbed'], // default []
+    rsc: true,
   }
 }
+
 export default million.next(nextConfig, millionConfig);
 
 // export default nextConfig
