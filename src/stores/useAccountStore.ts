@@ -2,15 +2,20 @@ import { AccountPlatformType, AccountStatusType } from "../../src/common/constan
 import { ChannelType } from "../../src/common/constants/channels";
 import { CommandType } from "../../src/common/constants/commands";
 import { randomNumberBetween } from "../../src/common/helpers/math";
-import { supabaseClient } from "../../src/common/helpers/supabase";
+import { getAccountsForUser, supabaseClient } from "../../src/common/helpers/supabase";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
-import { createJSONStorage, devtools } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import isEmpty from "lodash.isempty";
 import findIndex from 'lodash.findindex';
 import sortBy from "lodash.sortby";
 import cloneDeep from "lodash.clonedeep";
 import { UUID } from "crypto";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
+const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 export enum CUSTOM_CHANNELS {
@@ -56,6 +61,7 @@ export type AccountObjectType = {
   createdAt?: string;
   data?: { deeplinkUrl?: string, signerToken?: string };
   channels: AccountChannelType[];
+  user?: User;
 }
 
 interface AccountStoreProps {
@@ -63,7 +69,7 @@ interface AccountStoreProps {
   selectedChannelUrl: string;
   accounts: AccountObjectType[];
   allChannels: ChannelType[];
-  hydrated: boolean;
+  hydratedAt?: number; // timestamp
 }
 
 interface AccountStoreActions {
@@ -90,16 +96,10 @@ const initialState: AccountStoreProps = {
   allChannels: [],
   selectedAccountIdx: 0,
   selectedChannelUrl: DEFAULT_CHANNEL_URL,
-  hydrated: false,
 };
 
 export const mutative = (config) =>
   (set, get) => config((fn) => set(mutativeCreate(fn)), get,
-    {
-      'name': 'accounts',
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
-      // storage: createJSONStorage(() => getStateStorageForStore(tauriStore)),
-    }
   );
 
 type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
@@ -119,7 +119,7 @@ const store = (set: StoreSet) => ({
       })
       .select()
       .then(({ error, data }) => {
-        console.log('response - data', data, 'error', error);
+        // console.log('response - data', data, 'error', error);
 
         if (!data || error) return;
         set((state) => {
@@ -136,7 +136,7 @@ const store = (set: StoreSet) => ({
         .eq('id', accountId)
         .select()
 
-      console.log('response setAccountActive - data', data, 'error', error);
+      // console.log('response setAccountActive - data', data, 'error', error);
       if (!error) {
         const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
         const account = state.accounts[accountIndex];
@@ -154,7 +154,7 @@ const store = (set: StoreSet) => ({
         .eq('id', accountId)
         .select();
 
-      console.log('response updateAccountUsername - data', data, 'error', error);
+      // console.log('response updateAccountUsername - data', data, 'error', error);
       if (!error) {
         const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
         const account = state.accounts[accountIndex];
@@ -171,7 +171,7 @@ const store = (set: StoreSet) => ({
         .eq('id', state.accounts[idx].id)
         .select()
         .then(({ error, data }) => {
-          console.log('response removeAccount - data', data, 'error', error);
+          // console.log('response removeAccount - data', data, 'error', error);
         });
 
       const copy = [...state.accounts];
@@ -285,7 +285,7 @@ const store = (set: StoreSet) => ({
       const channels = account.channels;
       const newChannels = cloneDeep(account.channels);
 
-      console.log(`moving channel ${channels[oldIndex].name} to index ${newIndex}`);
+      // console.log(`moving channel ${channels[oldIndex].name} to index ${newIndex}`);
 
       supabaseClient
         .from('accounts_to_channel')
@@ -306,7 +306,7 @@ const store = (set: StoreSet) => ({
       for (let i = 0; i < nrUpdates; i++) {
         const from = oldIndex > newIndex ? newIndex + i : oldIndex + i + 1;
         const to = oldIndex > newIndex ? newIndex + i + 1 : oldIndex + i;
-        console.log(`moving channel ${channels[from].name} to index ${to}`);
+        // console.log(`moving channel ${channels[from].name} to index ${to}`);
 
         newChannels[to] = cloneDeep(channels[from]);
         newChannels[to].idx = to;
@@ -328,7 +328,27 @@ const store = (set: StoreSet) => ({
     });
   }
 });
-export const useAccountStore = create<AccountStore>()(devtools(mutative(store)));
+
+export const useAccountStore = create<AccountStore>()(persist(mutative(store),
+  {
+    'name': 'herocast-accounts-store',
+    storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
+    partialize: (state) => ({
+      allChannels: state.allChannels,
+      hydratedAt: state.hydratedAt,
+    }),
+    // onRehydrateStorage: (state) => {
+      // console.log('onRehydrateStorage hydration starts', state);
+      // run after hydrate
+      // return (state, error) => {
+      //   if (error) {
+      //     // console.log('onRehydrateStorage an error happened during hydration', error)
+      //   } else {
+      //     console.log('onRehydrateStorage hydration finished', state)
+      //   }
+      // }
+    // },
+  }));
 
 const fetchAllChannels = async (): Promise<ChannelType[]> => {
   let channelData = [];
@@ -349,37 +369,13 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
   return channelData || [];
 }
 
-export const hydrate = async () => {
-  if (useAccountStore.getState().hydrated) {
-    useAccountStore.getState().resetStore();
-  }
-
-  console.log('hydrating 💦');
-
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (isEmpty(user)) {
-    console.log('no account to hydrate');
-    return;
-  }
-
-  const { data: accountData, error: accountError } = await supabaseClient
-    .from('decrypted_accounts')
-    .select('*, accounts_to_channel(*, channel(*))')
-    .eq('user_id', user?.id)
-    .neq('status', AccountStatusType.removed)
-    .order('created_at', { ascending: true });
-
-  if (accountError) {
-    console.error('error hydrating account store', accountError);
-    return;
-  }
-
-  let accountsForState: AccountObjectType[] = [];
+const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
+  const accountData = await getAccountsForUser();
+  let accounts: AccountObjectType[] = [];
   if (accountData.length === 0) {
     console.log('no accounts found');
   } else {
-    accountsForState = accountData.map((account) => {
-      // console.log('channels for account', account.name, account.accounts_to_channel);
+    accounts = accountData.map((account) => {
       const channels: AccountChannelType[] = sortBy(account.accounts_to_channel, 'index').map((accountToChannel) => ({
         idx: accountToChannel.index,
         lastRead: accountToChannel.last_read,
@@ -404,15 +400,47 @@ export const hydrate = async () => {
     })
   }
 
-  const allChannels = await fetchAllChannels();
-  console.log('loaded all channels: ', allChannels.length)
-  useAccountStore.setState({
-    ...useAccountStore.getState(),
-    allChannels,
-    accounts: accountsForState,
-    selectedAccountIdx: 0,
-    hydrated: true
+  // get pfpUrl for each account based on platformAccountId which is fid
+  const neynarClient = new NeynarAPIClient(
+    process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+  );
+
+  const fids = accounts.map((account) => Number(account.platformAccountId!));
+  const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
+  accounts = accounts.map((account) => {
+    const user = users.find((user) => user.fid === Number(account.platformAccountId));
+    if (user) {
+      account.user = user;
+    }
+    return account;
   });
+
+  return accounts;
+}
+
+export const hydrate = async () => {
+  const state = useAccountStore.getState();
+
+  console.log('hydrating 💦');
+
+  const accounts = await hydrateAccounts();
+
+  let allChannels: ChannelType[] = state.allChannels;
+  let hydratedAt = state.hydratedAt;
+
+  const shouldRehydrate = !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE;
+  if (shouldRehydrate) {
+    allChannels = await fetchAllChannels();
+    hydratedAt = Date.now();
+  }
+
+  useAccountStore.setState({
+    ...state,
+    accounts,
+    allChannels,
+    hydratedAt,
+  });
+
   console.log('done hydrating 🌊 happy casting')
 }
 
@@ -473,7 +501,7 @@ const getChannelCommands = () => {
     },
   }];
 
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 8; i++) {
     channelCommands.push({
       name: `Switch to channel ${i + 2}`,
       aliases: [],
