@@ -335,6 +335,10 @@ export const useAccountStore = create<AccountStore>()(persist(mutative(store),
     storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
     partialize: (state) => ({
       allChannels: state.allChannels,
+      accounts: state.accounts.map((account) => {
+        const { privateKey, ...rest } = account;
+        return rest;
+      }),
       hydratedAt: state.hydratedAt,
     }),
     // onRehydrateStorage: (state) => {

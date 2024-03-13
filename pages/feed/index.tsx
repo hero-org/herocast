@@ -97,7 +97,8 @@ export default function Feed() {
       isLoadingFeed ||
       isEmpty(feed) ||
       showCastThreadView ||
-      feed.length < DEFAULT_FEED_PAGE_SIZE
+      feed.length < DEFAULT_FEED_PAGE_SIZE ||
+      !account.platformAccountId
     )
       return;
 
