@@ -19,6 +19,7 @@ type AccountsRightSidebarProps = {
   showChannels?: boolean;
 };
 
+// million-ignore
 const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
   const router = useRouter();
 

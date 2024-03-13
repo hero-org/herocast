@@ -25,6 +25,7 @@ import {
   FeedType,
 } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Loading } from "../../src/common/components/Loading";
+import uniqBy from "lodash.uniqby";
 
 type FeedsType = {
   [key: string]: CastWithInteractions[];
@@ -179,7 +180,7 @@ export default function Feed() {
 
     setFeeds({
       ...feeds,
-      [feedKey]: feed.concat(newFeed.casts),
+      [feedKey]: uniqBy(feed.concat(newFeed.casts), "hash"),
     });
     if (newFeed?.next?.cursor) {
       setNextFeedCursor(newFeed.next.cursor);

@@ -7,6 +7,7 @@ const getImageViaCdnUrl = (imgUrl: string) => {
   return `https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_${fileSuffix}/${imgUrl}`
 }
 
+// million-ignore
 export const ImgurImage = ({ url }: { url: string }) => {
   const [isLoading, setIsLoading] = useState(true);
 

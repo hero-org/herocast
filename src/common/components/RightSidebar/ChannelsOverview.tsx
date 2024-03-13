@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
 import { Badge } from "@/components/ui/badge";
 
+// million-ignore
 const ChannelsOverview = () => {
   const router = useRouter();
   const { selectedChannelUrl, setSelectedChannelUrl, resetSelectedChannel } =
