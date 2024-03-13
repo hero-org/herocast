@@ -157,6 +157,10 @@ const store = (set: StoreSet) => ({
       // console.log('response updateAccountUsername - data', data, 'error', error);
       if (!error) {
         const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
+        const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
+        const account = state.accounts[accountIndex];
+        delete account.privateKey;
+        state.accounts[accountIndex] = account;
         const account = state.accounts[accountIndex];
         account.name = username;
         state.accounts[accountIndex] = account;
@@ -335,7 +339,7 @@ export const useAccountStore = create<AccountStore>()(persist(mutative(store),
     storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
     partialize: (state) => ({
       allChannels: state.allChannels,
-      accounts: state.accounts.map((account) => {
+      accounts: state.accounts.forEach((account) => { delete account.privateKey;
         const { privateKey, ...rest } = account;
         return rest;
       }),
