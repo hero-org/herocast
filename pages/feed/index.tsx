@@ -25,6 +25,7 @@ import {
   FeedType,
 } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Loading } from "../../src/common/components/Loading";
+import uniqBy from "lodash.uniqby";
 
 type FeedsType = {
   [key: string]: CastWithInteractions[];
@@ -52,7 +53,7 @@ export default function Feed() {
     delay: 100,
   });
 
-  const { accounts, selectedAccountIdx, selectedChannelUrl, hydrated } =
+  const { accounts, selectedAccountIdx, selectedChannelUrl, hydratedAt } =
     useAccountStore();
 
   const account: AccountObjectType = accounts[selectedAccountIdx];
@@ -179,7 +180,7 @@ export default function Feed() {
 
     setFeeds({
       ...feeds,
-      [feedKey]: feed.concat(newFeed.casts),
+      [feedKey]: uniqBy(feed.concat(newFeed.casts), "hash"),
     });
     if (newFeed?.next?.cursor) {
       setNextFeedCursor(newFeed.next.cursor);
@@ -282,7 +283,7 @@ export default function Feed() {
 
   const renderRecommendedProfiles = () =>
     feed.length === 0 &&
-    hydrated &&
+    hydratedAt &&
     !isLoadingFeed && <RecommendedProfilesCard />;
 
   const renderContent = () => (
@@ -306,7 +307,7 @@ export default function Feed() {
     </>
   );
 
-  if (hydrated && isEmpty(accounts)) {
+  if (hydratedAt && isEmpty(accounts)) {
     router.push("/welcome");
   }
 
