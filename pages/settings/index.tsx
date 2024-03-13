@@ -40,7 +40,7 @@ export default function Settings() {
   const { openAccountModal } = useAccountModal();
 
   const {
-    hydrated,
+    hydratedAt,
     addAccount,
     setAccountActive,
     accounts,
@@ -200,7 +200,7 @@ export default function Settings() {
           <ArrowPathIcon className="ml-1 w-4 h-4" />
         </Button>
       </div>
-      {!hydrated && <Loading />}
+      {!hydratedAt && <Loading />}
       <ul role="list" className="divide-y divide-white/5">
         {accounts.map((item: AccountObjectType, idx: number) => (
           <li key={item.id} className="px-2 py-2">
