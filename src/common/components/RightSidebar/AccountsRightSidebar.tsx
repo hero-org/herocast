@@ -70,7 +70,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
                 onClick={() =>
                   account.status === "active" && setCurrentAccountIdx(idx)
                 }
-                className="flex items-center gap-x-3 cursor-pointer"
+                className="flex items-center gap-x-3 cursor-pointer group"
               >
                 {account.user?.pfp_url && (
                   <img
@@ -97,7 +97,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
                 {renderStatus(account.status)}
                 {account.platform ===
                   AccountPlatformType.farcaster_hats_protocol && (
-                  <p className="truncate text-sm text-foreground">🧢</p>
+                  <p className="truncate text-md text-foreground grayscale group-hover:grayscale-0">🧢</p>
                 )}
               </div>
             </HotkeyTooltipWrapper>

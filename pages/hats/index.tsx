@@ -237,17 +237,17 @@ export default function HatsProtocolPage() {
           <BigOptionSelector
             options={[
               {
-                title: "I have a Hats tree",
+                title: "I have created a Hats tree",
                 description:
-                  "Let's deploy your own Farcaster delegator contract",
-                buttonText: "Start deplyoment",
+                  "Continue with the setup in herocast",
+                buttonText: "I have a Hats tree",
                 disabled: isEmpty(user),
                 onClick: () => setStep(HatsSignupNav.account_ownership),
               },
               {
                 title: "I need a new Hats tree",
                 description:
-                  "Let's get you setup with Hats Protocol in the Hats app",
+                  "Start your setup with Hats Protocol in the Hats app",
                 buttonText: "Get started ↗️",
                 onClick: () =>
                   openWindow(" https://app.hatsprotocol.xyz/trees/new"),

@@ -21,7 +21,10 @@ export function SidebarNav({
   onClick,
   ...props
 }: SidebarNavProps) {
-  const currentStepIdx = findIndex(items, (item) => item.key === step);
+  const getIdxForStep = (step: string) => {
+    return findIndex(items, (item) => item.key === step);
+  };
+  const currentStepIdx = getIdxForStep(step);
 
   return (
     <nav
@@ -31,34 +34,31 @@ export function SidebarNav({
       )}
       {...props}
     >
-      {items.map((item, idx) => (
-        <Button
-          onClick={() => onClick(item.key)}
-          key={item.key}
-          variant="ghost"
-          className={classNames(
-            item.key === step
-              ? "bg-muted hover:bg-muted"
-              : "text-foreground/40 hover:bg-transparent hover:underline",
-            "justify-start truncate"
-          )}
-        >
-          {item.title}
-          <div className="flex-shrink-0 ml-2">
-            {item.idx < currentStepIdx ? (
-              <CheckCircleIcon
-                className="h-6 w-6 text-green-600"
-                aria-hidden="true"
-              />
-            ) : (
-              <ArrowRightIcon
-                className="mx-1 h-4 w-4 text-foreground/40"
-                aria-hidden="true"
-              />
+      {items.map((item) => {
+        const enabled = item.idx <= currentStepIdx;
+        return (
+          <Button
+            onClick={() => onClick(item.key)}
+            key={item.key}
+            variant="ghost"
+            disabled={!enabled}
+            className={classNames(
+              enabled ? "text-foreground/40 hover:bg-transparent hover:underline" : "",
+              item.key === step ? "bg-muted hover:bg-muted" : "",
+              "justify-start truncate"
             )}
-          </div>
-        </Button>
-      ))}
+          >
+            {item.title}
+            <div className="flex-shrink-0 ml-2">
+              {item.idx < currentStepIdx && (
+                <CheckCircleIcon
+                  className="h-6 w-6 text-green-600"
+                  aria-hidden="true" />
+              )}
+            </div>
+          </Button>
+        );
+      })}
     </nav>
   );
 }

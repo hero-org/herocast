@@ -117,12 +117,6 @@ const DeployHatsDelegatorContract = ({
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
     defaultValues: {
-      // adminHatId: "71.1.1",
-      // casterHatId: "71.1.1.1",
-      adminHatId:
-        "0x0000004700010001000000000000000000000000000000000000000000000000",
-      casterHatId:
-        "0x0000004700010001000100000000000000000000000000000000000000000000",
     },
   });
   const walletClient = useWalletClient({

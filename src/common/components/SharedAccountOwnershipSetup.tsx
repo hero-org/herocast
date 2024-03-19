@@ -104,7 +104,7 @@ const SharedAccountOwnershipSetup = ({
         {
           title: "I have no delegator contract",
           description: "Let's deploy your own Farcaster delegator contract",
-          buttonText: "Start deplyoment",
+          buttonText: "Create a delegator contract",
           onClick: () => setState(OwnershipSetupSteps.existing_tree),
         },
         {

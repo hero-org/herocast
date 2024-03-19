@@ -163,7 +163,7 @@ const TransferAccountToHatsDelegator = ({
   useEffect(() => {
     if (
       step.state ===
-        TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE &&
+        TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_PREPARE_TO_RECEIVE_CONFIRMATION &&
       isFidReceivable
     ) {
       setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE);
@@ -344,10 +344,11 @@ const TransferAccountToHatsDelegator = ({
         return "Prepare for transfer";
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE:
         return `Generate signature`;
+      case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_PREPARE_TO_RECEIVE_CONFIRMATION:
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_SIGNATURE_CONFIRMATION:
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_ONCHAIN_CONFIRMATION:
         return (
-          <p className="flex text-muted-foreground">
+          <p className="flex text-muted">
             <Cog6ToothIcon
               className="h-5 w-5 animate-spin"
               aria-hidden="true"
@@ -359,7 +360,7 @@ const TransferAccountToHatsDelegator = ({
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONFIRMED:
         return "Continue";
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR:
-        return "Error";
+        return "Error - Try again";
     }
   };
 
@@ -373,8 +374,6 @@ const TransferAccountToHatsDelegator = ({
   }, [address]);
 
   const onClick = () => {
-    if (errorMessage) return;
-
     switch (step.state) {
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE:
         onExecutePrepareToReceive();
@@ -398,7 +397,7 @@ const TransferAccountToHatsDelegator = ({
         onSuccess();
         break;
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR:
-        setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONNECT_WALLET);
+        setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE);
         break;
       default:
         break;
@@ -409,10 +408,18 @@ const TransferAccountToHatsDelegator = ({
     switch (step.state) {
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE:
         return (
+          <>
           <div className="flex flex-col">
             Prepare delegator contract {toAddress} to receive your Farcaster
             account with FID {fid.toString()}
+          <Button 
+            className="mt-8 w-1/2" 
+            variant="outline" 
+            onClick={() => setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE)}>
+            Already prepared the contract
+          </Button>
           </div>
+          </>
         );
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE:
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_ONCHAIN:
@@ -477,7 +484,6 @@ const TransferAccountToHatsDelegator = ({
         className="w-1/2"
         variant="default"
         disabled={
-          !!errorMessage ||
           !toAddress ||
           !fromAddress ||
           !fid ||

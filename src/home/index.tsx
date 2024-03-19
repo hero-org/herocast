@@ -1,12 +1,11 @@
 import React, { useEffect } from "react";
 import { Fragment, useState } from "react";
-import { Dialog, Menu, Transition } from "@headlessui/react";
+import { Dialog, Transition } from "@headlessui/react";
 import { supabaseClient } from "../common/helpers/supabase";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
   XMarkIcon,
-  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 import {
   Bars3Icon,
@@ -32,10 +31,7 @@ import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
 import { trackPageView } from "@/common/helpers/analytics";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 
@@ -77,45 +73,50 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     {
       name: "Feed",
       router: "/feed",
-      icon: NewspaperIcon,
+      icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       getTitle: getFeedTitle,
       shortcut: "Shift + F",
     },
-    { name: "New Post", router: "/post", icon: PlusCircleIcon, shortcut: "C" },
+    { 
+      name: "New Post",
+      router: "/post", 
+      icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />, 
+      shortcut: "C" 
+    },
     {
       name: "Search",
       router: "/search",
-      icon: MagnifyingGlassIcon,
+      icon: <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       shortcut: "/",
     },
     {
       name: "Channels",
       router: "/channels",
-      icon: RectangleGroupIcon,
+      icon: <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       shortcut: "Shift + C",
     },
     {
       name: "Accounts",
       router: "/accounts",
-      icon: UserPlusIcon,
+      icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       shortcut: "Shift + C",
     },
     {
       name: "Notifications",
       router: "/notifications",
-      icon: BellIcon,
+      icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       getTitle: () => "Your notifications",
       shortcut: "Shift + N",
     },
     {
       name: "Hats Protocol",
       router: "/hats",
-      icon: AcademicCapIcon,
+      icon: <span className="grayscale group-hover:grayscale-0 text-xl h-6 w-6 shrink-0" aria-hidden="true">🧢</span>,
     },
     {
       name: "Settings",
       router: "/settings",
-      icon: Cog6ToothIcon,
+      icon: <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       shortcut: "Shift + ,",
     },
   ];
@@ -240,7 +241,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   leaveFrom="translate-x-0"
                   leaveTo="-translate-x-full"
                 >
-                  <Dialog.Panel className="relative mr-10 flex w-full max-w-xs flex-1">
+                  <Dialog.Panel className="relative mr-2 flex w-full max-w-64 flex-1">
                     <Transition.Child
                       as={Fragment}
                       enter="ease-in-out duration-10"
@@ -294,10 +295,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                                       "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
                                     )}
                                   >
-                                    <item.icon
-                                      className="h-6 w-6 shrink-0"
-                                      aria-hidden="true"
-                                    />
+                                    {item.icon}
                                     {item.name}
                                   </p>
                                 </li>
@@ -352,10 +350,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                                   "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
                                 )}
                               >
-                                <item.icon
-                                  className="h-6 w-6 shrink-0"
-                                  aria-hidden="true"
-                                />
+                                {item.icon}
                                 <span className="sr-only">{item.name}</span>
                               </div>
                             </HotkeyTooltipWrapper>
