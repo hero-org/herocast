@@ -261,8 +261,7 @@ const TransferAccountToHatsDelegator = ({
     const hasConnectedValidSignerAddress = await isValidSigner(
       toAddress!,
       SIGNED_KEY_REQUEST_TYPEHASH,
-      // address
-      "0x3B60e31CFC48a9074CD5bEbb26C9EAa77650a43F"
+      address
     );
 
     if (!hasConnectedValidSignerAddress) {
