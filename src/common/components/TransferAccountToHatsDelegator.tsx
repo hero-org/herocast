@@ -24,6 +24,8 @@ import { waitForTransactionReceipt } from "@wagmi/core";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import SwitchWalletButton from "./SwitchWalletButton";
 import { ID_REGISTRY } from "../constants/contracts/id-registry";
+import { Label } from "@/components/ui/label";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 const readNonces = async (account: `0x${string}`) => {
   if (!account) return BigInt(0);
@@ -125,7 +127,9 @@ const TransferAccountToHatsDelegatorSteps: TransferAccountToHatsDelegatorStepTyp
 const TransferAccountToHatsDelegator = ({
   toAddress,
   onSuccess,
+  user
 }: {
+  user: User;
   toAddress: `0x${string}`;
   onSuccess: () => void;
 }) => {
@@ -140,19 +144,13 @@ const TransferAccountToHatsDelegator = ({
   const [onchainTransactionHash, setOnchainTransactionHash] =
     useState<`0x${string}`>("0x");
 
+  const fid = BigInt(user.fid!);
+
   const { signTypedDataAsync } = useSignTypedData();
 
   const transactionResult = useWaitForTransactionReceipt({
     hash: onchainTransactionHash,
   });
-
-  const { data: fidOfUser, error: idOfUserError } = useReadContract({
-    ...ID_REGISTRY,
-    functionName: address ? "idOf" : undefined,
-    args: address ? [address] : undefined,
-  }) as { data: bigint | undefined; error: Error | undefined };
-
-  console.log('fidOFUser', fidOfUser, 'idOfUserError', idOfUserError);
 
   const {
     data: isFidReceivable,
@@ -162,8 +160,8 @@ const TransferAccountToHatsDelegator = ({
     address: toAddress,
     abi: HatsFarcasterDelegatorAbi,
     chainId: 10,
-    functionName: toAddress && fidOfUser ? "receivable" : undefined,
-    args: toAddress && fidOfUser ? [fidOfUser] : undefined,
+    functionName: toAddress ? "receivable" : undefined,
+    args: toAddress ? [fid] : undefined,
   });
 
   useEffect(() => {
@@ -185,8 +183,8 @@ const TransferAccountToHatsDelegator = ({
 
   useEffect(() => {
     console.log('useEffect')
-    if (address && !fidOfUser) {
-      setErrorMessage("FID is required1");
+    if (address && !fid) {
+      setErrorMessage("FID is required");
       setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR);
     } else if (!toAddress) {
       setErrorMessage("To address is required");
@@ -194,7 +192,7 @@ const TransferAccountToHatsDelegator = ({
     } else if (errorMessage) {
       setErrorMessage("");
     }
-  }, [fidOfUser, address, toAddress]);
+  }, [fid, address, toAddress]);
 
   useEffect(() => {
     const setup = async () => {
@@ -225,7 +223,7 @@ const TransferAccountToHatsDelegator = ({
         abi: HatsFarcasterDelegatorAbi,
         address: toAddress,
         functionName: "prepareToReceive",
-        args: [fidOfUser!],
+        args: [fid],
       });
 
       const result = await waitForTransactionReceipt(config, { hash: tx });
@@ -248,7 +246,7 @@ const TransferAccountToHatsDelegator = ({
     },
     primaryType: "Transfer" as const,
     message: {
-      fid: fidOfUser!,
+      fid,
       to: toAddress,
       nonce: nonce,
       deadline: BigInt(deadline),
@@ -285,14 +283,14 @@ const TransferAccountToHatsDelegator = ({
   };
 
   const onExecuteTransfer = async () => {
-    if (!address || signature === "0x" || !fidOfUser) return;
+    if (!address || signature === "0x" || !fid) return;
 
     const typeHash = keccak256(
       toHex("Transfer(uint256 fid,address to,uint256 nonce,uint256 deadline)")
     );
     const sig = encodePacked(
       ["bytes", "bytes32", "uint256", "address", "uint256", "uint256"],
-      [signature, typeHash, BigInt(fidOfUser), toAddress, nonce, BigInt(deadline)]
+      [signature, typeHash, BigInt(fid), toAddress, nonce, BigInt(deadline)]
     );
 
     try {
@@ -405,8 +403,7 @@ const TransferAccountToHatsDelegator = ({
           <div className="flex flex-col">
             <span>
               Prepare delegator contract{' '}
-              <a className="underline" href={`https://optimistic.etherscan.io/address/${toAddress}`} target="_blank" rel="noopener noreferrer">{toAddress}</a> to receive your Farcaster
-              account with FID {fidOfUser?.toString()}.
+              <a className="underline" href={`https://optimistic.etherscan.io/address/${toAddress}`} target="_blank" rel="noopener noreferrer">{toAddress}</a> to receive your Farcaster account.
             </span>
             <Button 
               className="mt-8 w-1/2" 
@@ -414,9 +411,9 @@ const TransferAccountToHatsDelegator = ({
               onClick={() => setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE)}>
               Skip
             </Button>
-            <span className="mt-2 text-sm text-muted-foreground">
+            <Label className="mt-2">
               Skip if you already prepared the contract.
-            </span>
+            </Label>
           </div>
           </>
         );
@@ -427,7 +424,7 @@ const TransferAccountToHatsDelegator = ({
           <div className="flex flex-col">
             <div>
               <p>
-                Transferring your Farcaster account with FID {fidOfUser?.toString()} to
+                Transferring your Farcaster account to
                 delegator contract{' '}<a className="underline" href={`https://optimistic.etherscan.io/address/${toAddress}`} target="_blank" rel="noopener noreferrer">{toAddress}</a>.
               </p>
               <p>
@@ -480,7 +477,7 @@ const TransferAccountToHatsDelegator = ({
         disabled={
           !toAddress ||
           !address ||
-          !fidOfUser ||
+          !fid ||
           step.state ===
             TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_SIGNATURE_CONFIRMATION ||
           step.state ===

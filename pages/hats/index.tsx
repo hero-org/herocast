@@ -3,6 +3,8 @@ import { Separator } from "@/components/ui/separator";
 import StepSequence from "@/common/components/Steps/StepSequence";
 import WalletLogin from "@/common/components/WalletLogin";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ClipboardDocumentIcon } from "@heroicons/react/20/solid";
 import { useAccount, useReadContract } from "wagmi";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
@@ -14,9 +16,9 @@ import TransferAccountToHatsDelegator from "@/common/components/TransferAccountT
 import { openWindow } from "@/common/helpers/navigation";
 import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
-import get from "lodash.get";
 import clsx from "clsx";
-import SwitchWalletButton from '@/common/components/SwitchWalletButton';
+import SwitchWalletButton from "@/common/components/SwitchWalletButton";
+import { Loading } from "@/common/components/Loading";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
@@ -59,73 +61,54 @@ const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
 export default function HatsProtocolPage() {
   const [step, setStep] = useState<string>(hatsSignupSteps[0].key);
-  const [user, setUser] = useState<User | null>();
+  const [accountToTransfer, setAccountToTransfer] = useState<User | null>();
   const [delegatorContractAddress, setDelegatorContractAddress] = useState<
     `0x${string}` | null
   >();
   const [infoMessage, setInfoMessage] = useState<string | null>();
-  const shareWithOthersText = `Join my shared Farcaster account with delegator contract
-  address ${delegatorContractAddress} and FID ${user?.fid}`;
   const [didClickCopyShare, setDidClickCopyShare] = useState(false);
   const { address, isConnected } = useAccount();
+  const [userInput, setUserInput] = useState<string>("");
+  const [isLoadingAccount, setIsLoadingAccount] = useState(false);
+  const shareWithOthersText = `Join my shared Farcaster account with delegator contract
+  address ${delegatorContractAddress} and FID ${accountToTransfer?.fid}`;
+
   const { data: fidOfUser, error: idOfUserError } = useReadContract({
     ...ID_REGISTRY,
     functionName: address ? "idOf" : undefined,
     args: address ? [address] : undefined,
   });
 
-  useEffect(() => {
-    if (!address || !isConnected) {
-      setUser(null);
-      return;
-    }
+  const fetchUser = async () => {
+    if (!userInput) return;
 
-    const fetchUser = async () => {
+    setIsLoadingAccount(true);
+    try {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
 
-      neynarClient
-        .fetchBulkUsersByEthereumAddress([address])
-        .then((result) => {
-          console.log("HatsProtocolPage: fetchBulkUsersByEthereumAddress result", result);
-          if (isEmpty(result)) {
-            // fallback to idOf value from contract
-            if (fidOfUser) {
-              neynarClient
-                .fetchBulkUsers([Number(fidOfUser)], {
-                  viewerFid: Number(APP_FID),
-                })
-                .then((result) => {
-                  setUser(result?.users?.[0] || null);
-                });
-            }
-          } else {
-            const user =
-              get(result, address.toLowerCase())?.[0] ||
-              get(result, address)?.[0] ||
-              null;
-            console.log("user res:", user);
-            setUser(user);
-          }
-        })
-        .catch((err) => {
-          console.log("HatsProtocolPage: err getting user", err);
+      let fid: number | undefined;
+      const isNumeric = /^-?\d+$/.test(userInput);
+      if (isNumeric) {
+        fid = Number(userInput);
+        const res = await neynarClient.fetchBulkUsers([fid], {
+          viewerFid: Number(APP_FID),
         });
-    };
-
-    fetchUser();
-  }, [address, isConnected, fidOfUser]);
-
-  useEffect(() => {
-    if (isConnected && !user) {
-      setInfoMessage(
-        "You are connected with wallet , but we couldn't find a Farcaster account connected to it. If you recently created a Farcaster account, it may take a few minutes for it to be indexed."
-      );
-    } else if (isConnected && user) {
-      setInfoMessage(null);
+        console.log("res", res);
+        setAccountToTransfer(res?.users?.[0]);
+      } else {
+        const res = await neynarClient.searchUser(userInput, parseInt(APP_FID));
+        console.log("res", res);
+        setAccountToTransfer(res.result?.users?.[0]);
+      }
+    } catch (error) {
+      console.error(error);
+      setInfoMessage("User not found, please try again");
+    } finally {
+      setIsLoadingAccount(false);
     }
-  }, [isConnected, user]);
+  };
 
   const getStepContent = (
     title: string,
@@ -142,38 +125,71 @@ export default function HatsProtocolPage() {
     </div>
   );
 
+  const renderUserInputForm = () => (
+    <div className="flex flex-col space-y-2">
+      <div className="flex items-center space-x-2">
+        <Input
+          className="w-72"
+          placeholder="herocast"
+          value={userInput}
+          onChange={(e) => {
+            if (accountToTransfer) setAccountToTransfer(null);
+            if (infoMessage) setInfoMessage(null);
+            setUserInput(e.target.value);
+          }}
+        />
+        <Button
+          className="w-1/3"
+          variant={accountToTransfer ? "outline" : "default"}
+          onClick={fetchUser}
+        >
+          Search
+        </Button>
+      </div>
+      <Label>
+        Enter the username or FID of the account you want to share with others.
+      </Label>
+      {accountToTransfer && renderAccountToTransferPreview()}
+      {isLoadingAccount && <Loading />}
+    </div>
+  );
+
+  const renderAccountToTransferPreview = () =>
+    accountToTransfer && (
+      <div className="mb-4 space-x-4 grid grid-cols-2 lg:grid-cols-3">
+        <div className="col-span-1 lg:col-span-2">
+          <Avatar className="h-14 w-14">
+            <AvatarImage alt="User avatar" src={accountToTransfer.pfp_url} />
+            <AvatarFallback>
+              {accountToTransfer.username || accountToTransfer.fid}
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-left">
+            <h2 className="text-xl font-bold text-foreground">
+              {accountToTransfer?.display_name}
+            </h2>
+            <span className="text-sm text-foreground/80">
+              @{accountToTransfer?.username} · fid: {accountToTransfer?.fid}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+
   const renderSelectAccount = () => {
     return getStepContent(
       "Select account",
       "You need to connect your wallet to select a Farcaster account to share",
-      <div className="flex flex-col space-y-8">
-
+      <div className="flex flex-col space-y-8 w-1/2">
         <SwitchWalletButton />
+        {renderUserInputForm()}
         {infoMessage && (
           <p className="text-sm text-foreground/70">{infoMessage}</p>
-        )}
-        {user && (
-          <div className="space-x-4 grid grid-cols-2 lg:grid-cols-3">
-            <div className="col-span-1 lg:col-span-2">
-              <Avatar className="h-14 w-14">
-                <AvatarImage alt="User avatar" src={user.pfp_url} />
-                <AvatarFallback>{user.username || user.fid}</AvatarFallback>
-              </Avatar>
-              <div className="text-left">
-                <h2 className="text-xl font-bold text-foreground">
-                  {user?.display_name}
-                </h2>
-                <span className="text-sm text-foreground/80">
-                  @{user?.username || user?.fid}
-                </span>
-              </div>
-            </div>
-          </div>
         )}
         <Button
           className="w-1/3"
           variant="default"
-          disabled={!isConnected || !user}
+          disabled={!isConnected || !accountToTransfer}
           onClick={() => setStep(HatsSignupNav.hats_protocol_setup)}
         >
           Continue
@@ -193,7 +209,9 @@ export default function HatsProtocolPage() {
             All users with the Caster Hat in their wallet can now join!
           </p>
           <div className="mt-4 flex justify-between">
-            <p className="text-foreground/70">Share this to invite other users:</p>
+            <p className="text-foreground/70">
+              Share this to invite other users:
+            </p>
             <div className="flex flex-row space-x-2">
               {didClickCopyShare && (
                 <p className="text-muted-foreground">Copied!</p>
@@ -233,46 +251,54 @@ export default function HatsProtocolPage() {
         return getStepContent(
           "Hats Protocol setup",
           "Setup your Hats tree and deploy a delegator contract",
-          <BigOptionSelector
-            options={[
-              {
-                title: "I have created a Hats tree",
-                description:
-                  "Continue with the setup in herocast",
-                buttonText: "I have a Hats tree",
-                disabled: isEmpty(user),
-                onClick: () => setStep(HatsSignupNav.account_ownership),
-              },
-              {
-                title: "I need a new Hats tree",
-                description:
-                  "Start your setup with Hats Protocol in the Hats app",
-                buttonText: "Get started ↗️",
-                onClick: () =>
-                  openWindow(" https://app.hatsprotocol.xyz/trees/new"),
-              },
-            ]}
-          />
+          <div>
+            {accountToTransfer && renderAccountToTransferPreview()}
+            <BigOptionSelector
+              options={[
+                {
+                  title: "I have created a Hats tree",
+                  description: "Continue with the setup in herocast",
+                  buttonText: "I have a Hats tree",
+                  disabled: isEmpty(accountToTransfer),
+                  onClick: () => setStep(HatsSignupNav.account_ownership),
+                },
+                {
+                  title: "I need a new Hats tree",
+                  description:
+                    "Start your setup with Hats Protocol in the Hats app",
+                  buttonText: "Get started ↗️",
+                  onClick: () =>
+                    openWindow(" https://app.hatsprotocol.xyz/trees/new"),
+                },
+              ]}
+            />
+          </div>
         );
       case HatsSignupNav.account_ownership:
         return getStepContent(
           "Account ownership",
           "Decide where the Farcaster account will be owned and managed",
-          <SharedAccountOwnershipSetup
-            onSuccess={() => setStep(HatsSignupNav.transfer_ownership)}
-            delegatorContractAddress={delegatorContractAddress}
-            setDelegatorContractAddress={setDelegatorContractAddress}
-          />
+          <div>
+            {accountToTransfer && renderAccountToTransferPreview()}
+            <SharedAccountOwnershipSetup
+              onSuccess={() => setStep(HatsSignupNav.transfer_ownership)}
+              delegatorContractAddress={delegatorContractAddress}
+              setDelegatorContractAddress={setDelegatorContractAddress}
+            />
+          </div>
         );
       case HatsSignupNav.transfer_ownership:
         return getStepContent(
           "Transfer ownership",
           "Send your Farcaster account to the delegator contract",
-          <TransferAccountToHatsDelegator
-            onSuccess={() => setStep(HatsSignupNav.invite)}
-            fid={BigInt(user?.fid || 0)}
-            toAddress={delegatorContractAddress!}
-          />
+          <div>
+            {accountToTransfer && renderAccountToTransferPreview()}
+            <TransferAccountToHatsDelegator
+              user={accountToTransfer}
+              onSuccess={() => setStep(HatsSignupNav.invite)}
+              toAddress={delegatorContractAddress!}
+            />
+          </div>
         );
       case HatsSignupNav.invite:
         return getStepContent(
