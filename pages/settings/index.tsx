@@ -23,6 +23,7 @@ import { AccountPlatformType, AccountStatusType } from "../../src/common/constan
 import { Loading } from "../../src/common/components/Loading";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { getUsernameForFid } from "../../src/common/helpers/farcaster";
+import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 
 type SimpleCommand = {
   name: string;
@@ -171,13 +172,7 @@ export default function Settings() {
         </span>
       </div>
       <div className="flex flex-row gap-4">
-        <Button
-          key="connect-wallet"
-          className="w-44"
-          onClick={() => openConnectModal?.()}
-        >
-          Connect wallet
-        </Button>
+        <SwitchWalletButton />
         <Button
           type="button"
           variant="destructive"

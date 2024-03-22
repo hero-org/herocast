@@ -11,12 +11,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
 import SharedAccountOwnershipSetup from "@/common/components/SharedAccountOwnershipSetup";
 import TransferAccountToHatsDelegator from "@/common/components/TransferAccountToHatsDelegator";
-import FarcasterLogo from "@/common/components/FarcasterLogo";
 import { openWindow } from "@/common/helpers/navigation";
 import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
 import get from "lodash.get";
 import clsx from "clsx";
+import SwitchWalletButton from '@/common/components/SwitchWalletButton';
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
@@ -68,7 +68,7 @@ export default function HatsProtocolPage() {
   address ${delegatorContractAddress} and FID ${user?.fid}`;
   const [didClickCopyShare, setDidClickCopyShare] = useState(false);
   const { address, isConnected } = useAccount();
-  const { data: idOfUser, error: idOfUserError } = useReadContract({
+  const { data: fidOfUser, error: idOfUserError } = useReadContract({
     ...ID_REGISTRY,
     functionName: address ? "idOf" : undefined,
     args: address ? [address] : undefined,
@@ -88,12 +88,12 @@ export default function HatsProtocolPage() {
       neynarClient
         .fetchBulkUsersByEthereumAddress([address])
         .then((result) => {
-          console.log("HatsProtocolPage: result", result);
+          console.log("HatsProtocolPage: fetchBulkUsersByEthereumAddress result", result);
           if (isEmpty(result)) {
             // fallback to idOf value from contract
-            if (idOfUser) {
+            if (fidOfUser) {
               neynarClient
-                .fetchBulkUsers([Number(idOfUser)], {
+                .fetchBulkUsers([Number(fidOfUser)], {
                   viewerFid: Number(APP_FID),
                 })
                 .then((result) => {
@@ -115,7 +115,7 @@ export default function HatsProtocolPage() {
     };
 
     fetchUser();
-  }, [address, isConnected, idOfUser]);
+  }, [address, isConnected, fidOfUser]);
 
   useEffect(() => {
     if (isConnected && !user) {
@@ -147,9 +147,8 @@ export default function HatsProtocolPage() {
       "Select account",
       "You need to connect your wallet to select a Farcaster account to share",
       <div className="flex flex-col space-y-8">
-        <div className="flex flex-row">
-          <WalletLogin />
-        </div>
+
+        <SwitchWalletButton />
         {infoMessage && (
           <p className="text-sm text-foreground/70">{infoMessage}</p>
         )}
@@ -272,7 +271,6 @@ export default function HatsProtocolPage() {
           <TransferAccountToHatsDelegator
             onSuccess={() => setStep(HatsSignupNav.invite)}
             fid={BigInt(user?.fid || 0)}
-            fromAddress={address!}
             toAddress={delegatorContractAddress!}
           />
         );
