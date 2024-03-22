@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import type { AppProps } from "next/app";
 import { AptabaseProvider } from "@aptabase/react";
 import { ThemeProvider } from "../src/common/hooks/ThemeProvider";
@@ -12,6 +12,7 @@ import { PostHogProvider } from 'posthog-js/react'
 import { loadPosthogAnalytics } from "../src/lib/analytics";
 import "../src/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
+import { useRouter } from "next/router";
 
 
 const posthog = loadPosthogAnalytics();
@@ -19,6 +20,17 @@ const posthog = loadPosthogAnalytics();
 const queryClient = new QueryClient();
 
 export default function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleRouteChange = () => posthog?.capture('$pageview')
+    router.events.on('routeChangeComplete', handleRouteChange)
+
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange)
+    }
+  }, [])
+
   const children = (
     <PostHogProvider client={posthog}>
       <WagmiProvider config={config}>
