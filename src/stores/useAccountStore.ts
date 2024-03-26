@@ -342,15 +342,15 @@ export const useAccountStore = create<AccountStore>()(persist(mutative(store),
       hydratedAt: state.hydratedAt,
     }),
     // onRehydrateStorage: (state) => {
-      // console.log('onRehydrateStorage hydration starts', state);
-      // run after hydrate
-      // return (state, error) => {
-      //   if (error) {
-      //     // console.log('onRehydrateStorage an error happened during hydration', error)
-      //   } else {
-      //     console.log('onRehydrateStorage hydration finished', state)
-      //   }
-      // }
+    // console.log('onRehydrateStorage hydration starts', state);
+    // run after hydrate
+    // return (state, error) => {
+    //   if (error) {
+    //     // console.log('onRehydrateStorage an error happened during hydration', error)
+    //   } else {
+    //     console.log('onRehydrateStorage hydration finished', state)
+    //   }
+    // }
     // },
   }));
 
@@ -402,22 +402,21 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
         channels: channels,
       }
     })
+    // get pfpUrl for each account based on platformAccountId which is fid
+    const neynarClient = new NeynarAPIClient(
+      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+    );
+
+    const fids = accounts.map((account) => Number(account.platformAccountId!));
+    const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
+    accounts = accounts.map((account) => {
+      const user = users.find((user) => user.fid === Number(account.platformAccountId));
+      if (user) {
+        account.user = user;
+      }
+      return account;
+    });
   }
-
-  // get pfpUrl for each account based on platformAccountId which is fid
-  const neynarClient = new NeynarAPIClient(
-    process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-  );
-
-  const fids = accounts.map((account) => Number(account.platformAccountId!));
-  const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
-  accounts = accounts.map((account) => {
-    const user = users.find((user) => user.fid === Number(account.platformAccountId));
-    if (user) {
-      account.user = user;
-    }
-    return account;
-  });
 
   return accounts;
 }

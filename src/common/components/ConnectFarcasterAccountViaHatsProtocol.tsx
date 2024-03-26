@@ -46,6 +46,7 @@ import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { isValidSignature, isValidSigner } from "@/lib/hats";
 import { SIGNED_KEY_REQUEST_TYPEHASH } from "@/lib/hats";
+import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 
 enum SignupStateEnum {
   "CONNECT_WALLET",
@@ -492,15 +493,9 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
             </Button>
           )}
           {state.state === SignupStateEnum.SELECT_FARCASTER_ACCOUNT && (
-            <Button
-              className="ml-4 w-full"
-              variant="outline"
-              onClick={() =>
-                openAccountModal?.()
-              }
-            >
-              Switch your connected wallet
-            </Button>
+            <div className="ml-4 w-full">
+              <SwitchWalletButton />
+            </div>
           )}
         </CardFooter>
       </Card>

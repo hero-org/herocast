@@ -240,11 +240,11 @@ export default function Accounts() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Sign in with Warpcast</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Pay with Fiat in Warpcast to connect with herocast
+              Pay with Warps in Warpcast to connect with herocast
             </CardDescription>
           </CardHeader>
           <CardContent>
-            Scan the QR code with your mobile camera app to sign in via Warpcast
+            <span>Scan the QR code with your mobile camera app to sign in via Warpcast.</span>
             <QrCode
               deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
             />
