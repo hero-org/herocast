@@ -1,99 +1,70 @@
 import "@farcaster/auth-kit/styles.css";
 import React, { useEffect, useState } from "react";
 import { createClient } from "../../src/common/helpers/supabase/component";
-import { hydrate } from "../../src/stores/useAccountStore";
-import get from "lodash.get";
+import { hydrate, useAccountStore } from "../../src/stores/useAccountStore";
 import { useRouter } from "next/router";
-import { usePostHog } from "posthog-js/react";
 import { UserAuthForm } from "@/common/components/UserAuthForm";
 import { AuthKitProvider, useProfile } from "@farcaster/auth-kit";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import {
+  AccountPlatformType,
+  AccountStatusType,
+} from "../../src/common/constants/accounts";
+
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
   domain: process.env.NEXT_PUBLIC_URL,
-  siweUri: 'https://example.com/login',
+  siweUri: "https://example.com/login",
 };
 
 export default function Login() {
   const router = useRouter();
-  const supabase = createClient()
-  const posthog = usePostHog();
+  const supabase = createClient();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const { asPath } = router;
-  const hash = asPath.split("#")[1] || "";
-  const queryParams = hash
-    .substring(1)
-    .split("&")
-    .reduce((acc, curr) => {
-      const [key, value] = curr.split("=");
-      return { ...acc, [key]: value };
-    }, {});
+  const { addAccount } = useAccountStore();
 
-  const {
-    isAuthenticated,
-    profile,
-  } = useProfile();
+  const { isAuthenticated, profile } = useProfile();
 
   useEffect(() => {
-    if (isAuthenticated && profile) {
-      // useAccountStore, setup new account, but only locally
-    }
-  }, [isAuthenticated, profile])
+    const setupLocalAccount = async () => {
+      const { fid } = profile;
+      if (!fid) return;
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
 
-  console.log('Farcaster Auth: ', isAuthenticated, profile);
-
-  const requestType = get(queryParams, "type");
-  console.log("Login queryParams.type", requestType);
-
-  const setupUser = async (session) => {
-    setIsLoading(true);
-    if (session?.user?.id) {
-      posthog.identify(session?.user?.id);
-    }
-    await hydrate();
-    setIsLoading(false);
-    router.push("/feed");
-  };
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log(`Login getSession`, session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(`Login onAuthStateChange`, event);
-
-      if (event === "INITIAL_SESSION") {
-        console.log("initial session");
-      } else if (event === "PASSWORD_RECOVERY") {
-        console.log("new pw being set");
-      } else if (event === "USER_UPDATED") {
-        console.log("Login onAuthStateChange hasSession");
-      } else if (event === "SIGNED_IN") {
-        console.log("Login onAuthStateChange signed in - hydrate and navigate");
-        setupUser(session);
-      } else if (event === "SIGNED_OUT") {
-        console.log("Login onAuthStateChange signed out");
+      const users = (
+        await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
+      ).users;
+      if (!users.length) {
+        console.error("No users found for fid: ", fid);
+        return;
       }
-    });
 
-    return () => subscription.unsubscribe();
-  }, []);
+      addAccount({
+        account: {
+          name: profile.username,
+          status: AccountStatusType.active,
+          platform: AccountPlatformType.farcaster_local_readonly,
+          platformAccountId: fid.toString(),
+          user: users[0],
+        },
+        localOnly: true,
+      });
+      router.push("/feed");
+    };
+    if (isAuthenticated && profile) {
+      setupLocalAccount();
+    }
+  }, [isAuthenticated, profile]);
+
+  console.log("Farcaster Auth: ", isAuthenticated, profile);
 
   const renderAuthForm = () => (
     <div className="mt-10 text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
       <UserAuthForm />
-      {/* <Auth
-        supabaseClient={supabaseClient}
-        providers={[]}
-        appearance={appearance}
-        queryParams={queryParams}
-        magicLink
-        dark
-      /> */}
     </div>
   );
 
@@ -112,10 +83,23 @@ export default function Login() {
             </div>
             <div className="relative z-20 mt-auto">
               <div className="text-center">
-                <h1 className="bg-gradient-to-br from-gray-100 to-stone-300 bg-clip-text text-center text-4xl font-bold leading-tight tracking-tight text-transparent drop-shadow-sm dark:from-stone-100 dark:to-yellow-200 md:text-7xl md:leading-[6rem] lg:leading-[1.1]">
-                  The Fastest Farcaster Experience
+                <h1 className="bg-gradient-to-tl from-white via-stone-200 to-stone-400 bg-clip-text text-center text-4xl font-bold leading-tight tracking-tight text-transparent drop-shadow-sm dark:from-stone-100 dark:to-yellow-200 md:text-7xl md:leading-[6rem] lg:leading-[1.1]">
+                  <p className="inline-block">
+                    <span>The Fastest Farcaster Experience </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="42"
+                      height="42"
+                      viewBox="0 0 1024 1024"
+                      fill="#8A63D2"
+                      className="ml-2 bg-gray-100 rounded-lg inline-block items-center"
+                    >
+                      <rect width="1024" height="1024" fill="none" />
+                      <path d="M308.786 227H715.928V308.429L817.714 308.429L797.357 389.857H777V715.571C788.247 715.571 797.357 724.681 797.357 735.928V756.286C808.604 756.286 817.714 765.396 817.714 776.643V797H614.143V776.643C614.143 765.396 623.253 756.286 634.5 756.286L634.5 735.928C634.5 724.681 643.61 715.571 654.857 715.571L654.857 550.97C654.795 472.322 591.019 408.586 512.357 408.586C433.672 408.586 369.883 472.359 369.857 551.038L369.857 715.571C381.104 715.571 390.214 724.681 390.214 735.928V756.286C401.462 756.286 410.571 765.396 410.571 776.643V797H207V776.643C207 765.396 216.11 756.286 227.357 756.286L227.357 735.928C227.357 724.681 236.467 715.571 247.714 715.571L247.714 389.857H227.357L207 308.429L308.786 308.429V227Z" />
+                    </svg>
+                  </p>
                 </h1>
-                <p className="mt-6 text-lg leading-8 text-gray-200">
+                <p className="mt-6 text-lg font-light leading-0 text-gray-200">
                   Be superhuman onchain.
                   <br />
                   Share Farcaster accounts with onchain permissions.
@@ -151,7 +135,7 @@ export default function Login() {
                 <h1 className="text-3xl font-semibold tracking-tight text-gray-100">
                   Welcome to herocast
                 </h1>
-                <p className="px-8 text-center text-md text-gray-300">
+                <p className="px-8 text-center text-md text-gray-400">
                   Your herocast account can be used to connect multiple
                   Farcaster accounts.
                 </p>

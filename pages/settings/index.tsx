@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import AlertDialogDemo from "../../src/common/components/AlertDialog";
 import HelpCard from "../../src/common/components/HelpCard";
 import { classNames } from "../../src/common/helpers/css";
-import { supabaseClient } from "../../src/common/helpers/supabase";
 import { Button } from "../../src/components/ui/button";
 import {
   AccountObjectType,
@@ -24,6 +23,7 @@ import { Loading } from "../../src/common/components/Loading";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { getUsernameForFid } from "../../src/common/helpers/farcaster";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
+import { createClient } from "../../src/common/helpers/supabase/component";
 
 type SimpleCommand = {
   name: string;
@@ -32,6 +32,8 @@ type SimpleCommand = {
 
 export default function Settings() {
   const router = useRouter();
+  const supabase = createClient()
+
   const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] =
@@ -54,7 +56,7 @@ export default function Settings() {
     const getUser = async () => {
       const {
         data: { user },
-      } = await supabaseClient.auth.getUser();
+      } = await supabase.auth.getUser();
       setUser(user);
     };
     getUser();
@@ -63,12 +65,12 @@ export default function Settings() {
   const onLogout = async () => {
     const {
       data: { session },
-    } = await supabaseClient.auth.getSession();
+    } = await supabase.auth.getSession();
 
     if (session) {
       resetStore();
       setUser(null);
-      await supabaseClient.auth.signOut();
+      await supabase.auth.signOut();
     }
 
     router.push("/login");

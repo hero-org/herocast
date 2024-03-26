@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { supabaseClient } from "../common/helpers/supabase";
+import { createClient } from "../../src/common/helpers/supabase/component";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
@@ -45,6 +45,8 @@ type NavigationItemType = {
 
 const Home = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const supabase = createClient()
+
   const { pathname, asPath } = router;
   const locationHash = asPath.split("#")[1];
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -154,33 +156,33 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     trackPageView(pathname.slice(1));
   }, [pathname]);
 
-  useEffect(() => {
-    if (locationHash && locationHash.startsWith("#error")) {
-      // example location hash with error: #error=unauthorized_client&error_code=401&error_description=Email+link+is+invalid+or+has+expired
-      const errorCode =
-        findParamInHashUrlPath(locationHash, "error_code") || "500";
-      const description = findParamInHashUrlPath(
-        locationHash,
-        "error_description"
-      )?.replace(/\+/g, " ");
-      console.log("throwing error", errorCode, description);
-      throw new Response(description, {
-        status: Number(errorCode),
-        statusText: description,
-      });
-    } else if (locationHash && locationHash.startsWith("#access_token")) {
-      console.log("locationhash", locationHash);
-      router.push(`/login${locationHash}`);
-    } else if (locationHash) {
-      console.log("unknown locationHash", locationHash);
-    } else {
-      supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        if (!session && pathname !== "/login") {
-          router.push("/login");
-        }
-      });
-    }
-  }, [locationHash]);
+  // useEffect(() => {
+  //   if (locationHash && locationHash.startsWith("#error")) {
+  //     // example location hash with error: #error=unauthorized_client&error_code=401&error_description=Email+link+is+invalid+or+has+expired
+  //     const errorCode =
+  //       findParamInHashUrlPath(locationHash, "error_code") || "500";
+  //     const description = findParamInHashUrlPath(
+  //       locationHash,
+  //       "error_description"
+  //     )?.replace(/\+/g, " ");
+  //     console.log("throwing error", errorCode, description);
+  //     throw new Response(description, {
+  //       status: Number(errorCode),
+  //       statusText: description,
+  //     });
+  //   } else if (locationHash && locationHash.startsWith("#access_token")) {
+  //     console.log("locationhash", locationHash);
+  //     router.push(`/login${locationHash}`);
+  //   } else if (locationHash) {
+  //     console.log("unknown locationHash", locationHash);
+  //   } else {
+  //     supabaseClient.auth.getSession().then(({ data: { session } }) => {
+  //       if (!session && pathname !== "/login") {
+  //         router.push("/login");
+  //       }
+  //     });
+  //   }
+  // }, [locationHash]);
 
   const sidebarType = getSidebarForPathname(pathname);
 

@@ -127,7 +127,6 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
 
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { openAccountModal } = useAccountModal();
   const { signTypedDataAsync } = useSignTypedData();
 
   const { accounts, addAccount, setAccountActive } = useAccountStore();
@@ -204,14 +203,15 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
 
       try {
-        await addAccount({
-          id: null,
-          platformAccountId: fid.toString(),
-          status: AccountStatusType.pending,
-          platform: AccountPlatformType.farcaster_hats_protocol,
-          publicKey: hexStringPublicKey,
-          privateKey: hexStringPrivateKey,
-          data: {},
+        await addAccount({ 
+          account: {
+            platformAccountId: fid.toString(),
+            status: AccountStatusType.pending,
+            platform: AccountPlatformType.farcaster_hats_protocol,
+            publicKey: hexStringPublicKey,
+            privateKey: hexStringPrivateKey,
+            data: {},
+          }
         });
       } catch (e) {
         console.log("error when trying to add account", e);

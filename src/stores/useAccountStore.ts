@@ -2,7 +2,7 @@ import { AccountPlatformType, AccountStatusType } from "../../src/common/constan
 import { ChannelType } from "../../src/common/constants/channels";
 import { CommandType } from "../../src/common/constants/commands";
 import { randomNumberBetween } from "../../src/common/helpers/math";
-import { getAccountsForUser, supabaseClient } from "../../src/common/helpers/supabase";
+import { getAccountsForUser } from "../../src/common/helpers/supabase";
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -13,6 +13,7 @@ import cloneDeep from "lodash.clonedeep";
 import { UUID } from "crypto";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { createClient } from "@/common/helpers/supabase/component";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
@@ -44,6 +45,11 @@ type AddChannelProps = {
   account: string;
 }
 
+type AddAccountProps = {
+  account: Omit<AccountObjectType, 'channels' | 'id'> & { privateKey?: string };
+  localOnly?: boolean;
+}
+
 type UpdatedPinnedChannelIndicesProps = {
   oldIndex: number;
   newIndex: number;
@@ -54,7 +60,7 @@ export type AccountObjectType = {
   userId?: string;
   name?: string;
   status: AccountStatusType;
-  publicKey: `0x${string}`;
+  publicKey?: `0x${string}`;
   platform: AccountPlatformType;
   platformAccountId?: string;
   privateKey?: `0x${string}`;
@@ -73,7 +79,7 @@ interface AccountStoreProps {
 }
 
 interface AccountStoreActions {
-  addAccount: (account: Omit<AccountObjectType, 'channels'> & { privateKey?: string }) => void;
+  addAccount: (props: AddAccountProps) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => void;
@@ -104,28 +110,38 @@ export const mutative = (config) =>
 
 type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
 
+const supabaseClient = createClient();
+
 const store = (set: StoreSet) => ({
   ...initialState,
-  addAccount: async (account: AccountObjectType & { privateKey: string }) => {
-    await supabaseClient
-      .from('accounts')
-      .insert({
-        name: account.name,
-        status: account.status,
-        public_key: account.publicKey,
-        platform: account.platform,
-        data: account.data || {},
-        private_key: account.privateKey,
-      })
-      .select()
-      .then(({ error, data }) => {
-        // console.log('response - data', data, 'error', error);
-
-        if (!data || error) return;
-        set((state) => {
-          state.accounts.push({ ...account, ...{ id: data[0].id } });
-        });
-      })
+  addAccount: async (props: AddAccountProps) => {
+    const { account, localOnly } = props;
+    if (localOnly) {
+      set((state) => {
+        state.accounts.push({ ...account, ...{ id: account.id } });
+      });
+      return;
+    } else {
+      await supabaseClient
+        .from('accounts')
+        .insert({
+          name: account.name,
+          status: account.status,
+          public_key: account.publicKey,
+          platform: account.platform,
+          data: account.data || {},
+          private_key: account.privateKey,
+        })
+        .select()
+        .then(({ error, data }) => {
+          // console.log('response - data', data, 'error', error);
+  
+          if (!data || error) return;
+          set((state) => {
+            state.accounts.push({ ...account, ...{ id: data[0].id } });
+          });
+        })
+    }
     console.log('----> addAccount done')
   },
   setAccountActive: async (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => {
@@ -374,7 +390,7 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
 }
 
 const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
-  const accountData = await getAccountsForUser();
+  const accountData = await getAccountsForUser(supabaseClient);
   let accounts: AccountObjectType[] = [];
   if (accountData.length === 0) {
     console.log('no accounts found');

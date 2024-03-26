@@ -126,13 +126,15 @@ export default function Accounts() {
     try {
       setIsLoading(true);
       await addAccount({
-        id: null,
-        platformAccountId: undefined,
-        status: AccountStatusType.pending,
-        platform: AccountPlatformType.farcaster,
-        publicKey,
-        privateKey,
-        data: { signerToken: token, deeplinkUrl },
+        account: {
+          id: null,
+          platformAccountId: undefined,
+          status: AccountStatusType.pending,
+          platform: AccountPlatformType.farcaster,
+          publicKey,
+          privateKey,
+          data: { signerToken: token, deeplinkUrl },
+        },
       });
       setIsLoading(false);
       setSignupState(1);
@@ -152,7 +154,8 @@ export default function Accounts() {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const user = (await neynarClient.lookupUserByFid(fid, APP_FID!)).result.user;
+      const user = (await neynarClient.lookupUserByFid(fid, APP_FID!)).result
+        .user;
       await setAccountActive(pendingAccount.id, user.displayName, {
         platform_account_id: user.fid.toString(),
         data,
@@ -244,7 +247,10 @@ export default function Accounts() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <span>Scan the QR code with your mobile camera app to sign in via Warpcast.</span>
+            <span>
+              Scan the QR code with your mobile camera app to sign in via
+              Warpcast.
+            </span>
             <QrCode
               deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
             />

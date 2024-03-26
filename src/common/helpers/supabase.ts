@@ -14,7 +14,7 @@ import { AccountStatusType } from '../constants/accounts';
 
 // export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, options)
 
-export const getAccountsForUser = async () => {
+export const getAccountsForUser = async (supabaseClient) => {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (isEmpty(user)) {
     console.log('no account to hydrate');
