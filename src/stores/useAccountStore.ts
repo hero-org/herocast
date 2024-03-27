@@ -15,6 +15,7 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { createClient } from "@/common/helpers/supabase/component";
 import includes from "lodash.includes";
+import uniqBy from "lodash.uniqby";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
@@ -457,8 +458,7 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
   }
   console.log('current accounts', useAccountStore.getState().accounts);
   const localOnlyAccounts = useAccountStore.getState().accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);
-
-  return [...accounts, ...localOnlyAccounts];
+  return uniqBy([...accounts, ...localOnlyAccounts], 'platformAccountId');
 }
 
 export const hydrateChannels = async () => {

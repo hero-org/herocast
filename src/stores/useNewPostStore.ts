@@ -15,6 +15,7 @@ import { toHex } from "viem";
 import { CastId, Embed } from "@farcaster/hub-web";
 import { toast } from "sonner";
 import truncate from "lodash.truncate";
+import { AccountPlatformType } from "@/common/constants/accounts";
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 
@@ -152,7 +153,7 @@ const store = (set: StoreSet) => ({
       state.drafts = [];
     });
   },
-  publishPostDraft: async (draftIdx: number, account: { privateKey: string, platformAccountId: string }, onPost?: () => null): Promise<void> => {
+  publishPostDraft: async (draftIdx: number, account: AccountObjectType, onPost?: () => null): Promise<void> => {
     set(async (state) => {
       const draft = state.drafts[draftIdx];
 
@@ -184,15 +185,20 @@ const store = (set: StoreSet) => ({
           }
         }
 
+
+        if (account.platform === AccountPlatformType.farcaster_local_readonly) {
+          toast.info('You\'re using a readonly account', { description: '<a href="/login">Switch to a full account to start casting ↗️</a>', descriptionClassName: "underline" })
+        }
+
         await submitCast({
           ...castBody,
-          signerPrivateKey: account.privateKey,
+          signerPrivateKey: account.privateKey!,
           fid: Number(account.platformAccountId),
         });
 
         trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
         state.removePostDraft(draftIdx);
-        toast.success('Cast published successfully',  { description: truncate(draft.text, { length: 25 })});
+        toast.success('Cast published successfully', { description: truncate(draft.text, { length: 25 }) });
 
         if (onPost) onPost();
       } catch (error) {
