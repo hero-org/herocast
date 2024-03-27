@@ -135,7 +135,7 @@ const store = (set: StoreSet) => ({
         .select()
         .then(({ error, data }) => {
           // console.log('response - data', data, 'error', error);
-  
+
           if (!data || error) return;
           set((state) => {
             state.accounts.push({ ...account, ...{ id: data[0].id } });
@@ -386,6 +386,7 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
     channelData = channelData.concat(data);
     hasMoreChannels = data.length > 0;
   } while (hasMoreChannels);
+  console.log('done fetching channels in DB', channelData.length);
   return channelData || [];
 }
 
@@ -437,12 +438,8 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
   return accounts;
 }
 
-export const hydrate = async () => {
+export const hydrateChannels = async () => {
   const state = useAccountStore.getState();
-
-  console.log('hydrating 💦');
-
-  const accounts = await hydrateAccounts();
 
   let allChannels: ChannelType[] = state.allChannels;
   let hydratedAt = state.hydratedAt;
@@ -455,9 +452,22 @@ export const hydrate = async () => {
 
   useAccountStore.setState({
     ...state,
-    accounts,
     allChannels,
     hydratedAt,
+  });
+}
+
+export const hydrate = async () => {
+  const state = useAccountStore.getState();
+
+  console.log('hydrating 💦');
+
+  const accounts = await hydrateAccounts();
+  await hydrateChannels();
+  
+  useAccountStore.setState({
+    ...state,
+    accounts
   });
 
   console.log('done hydrating 🌊 happy casting')

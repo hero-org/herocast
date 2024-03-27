@@ -1,67 +1,16 @@
 import "@farcaster/auth-kit/styles.css";
 import React, { useEffect, useState } from "react";
-import { createClient } from "../../src/common/helpers/supabase/component";
-import { hydrate, useAccountStore } from "../../src/stores/useAccountStore";
-import { useRouter } from "next/router";
 import { UserAuthForm } from "@/common/components/UserAuthForm";
-import { AuthKitProvider, useProfile } from "@farcaster/auth-kit";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import {
-  AccountPlatformType,
-  AccountStatusType,
-} from "../../src/common/constants/accounts";
+import { AuthKitProvider } from "@farcaster/auth-kit";
 
-const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-  domain: process.env.NEXT_PUBLIC_URL,
-  siweUri: "https://example.com/login",
+  domain: 'app.herocast.xyz',
+  // siweUri: `${process.env.NEXT_PUBLIC_URL}/api/auth/siwe`,
 };
 
 export default function Login() {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const { addAccount } = useAccountStore();
-
-  const { isAuthenticated, profile } = useProfile();
-
-  useEffect(() => {
-    const setupLocalAccount = async () => {
-      const { fid } = profile;
-      if (!fid) return;
-      const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
-
-      const users = (
-        await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
-      ).users;
-      if (!users.length) {
-        console.error("No users found for fid: ", fid);
-        return;
-      }
-
-      addAccount({
-        account: {
-          name: profile.username,
-          status: AccountStatusType.active,
-          platform: AccountPlatformType.farcaster_local_readonly,
-          platformAccountId: fid.toString(),
-          user: users[0],
-        },
-        localOnly: true,
-      });
-      router.push("/feed");
-    };
-    if (isAuthenticated && profile) {
-      setupLocalAccount();
-    }
-  }, [isAuthenticated, profile]);
-
-  console.log("Farcaster Auth: ", isAuthenticated, profile);
-
   const renderAuthForm = () => (
     <div className="mt-10 text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
       <UserAuthForm />
@@ -72,7 +21,7 @@ export default function Login() {
     <AuthKitProvider config={authKitConfig}>
       <div className="w-full max-w-full min-h-screen">
         <div className="container relative h-screen flex-col items-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-          <div className="relative h-full flex-col bg-muted p-10 text-foreground flex dark:border-r">
+          <div className="relative h-full flex-col bg-muted p-10 text-foreground flex">
             <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-l from-gray-900 via-gray-700 to-stone-500" />
             <div className="relative z-20 flex items-center text-lg font-medium text-gray-200">
               {/* <img
@@ -81,9 +30,9 @@ export default function Login() {
               alt="herocast"
             /> */}
             </div>
-            <div className="relative z-20 mt-auto">
+            <div className="relative z-20 mt-24">
               <div className="text-center">
-                <h1 className="bg-gradient-to-tl from-white via-stone-200 to-stone-400 bg-clip-text text-center text-4xl font-bold leading-tight tracking-tight text-transparent drop-shadow-sm dark:from-stone-100 dark:to-yellow-200 md:text-7xl md:leading-[6rem] lg:leading-[1.1]">
+                <h1 className="bg-gradient-to-tl from-white via-gray-300 to-stone-500 bg-clip-text text-center text-4xl font-bold leading-tight tracking-tight text-transparent drop-shadow-sm dark:from-stone-100 dark:to-yellow-200 md:text-7xl md:leading-[6rem] lg:leading-[1.1]">
                   <p className="inline-block">
                     <span>The Fastest Farcaster Experience </span>
                     <svg
@@ -100,8 +49,6 @@ export default function Login() {
                   </p>
                 </h1>
                 <p className="mt-6 text-lg font-light leading-0 text-gray-200">
-                  Be superhuman onchain.
-                  <br />
                   Share Farcaster accounts with onchain permissions.
                   <br />
                   Switch between multiple accounts.
@@ -129,7 +76,7 @@ export default function Login() {
               </div>
             </div>
           </div>
-          <div className="bg-gray-900 h-full w-full p-8 lg:pt-24">
+          <div className="bg-gray-900 h-full w-full p-8 lg:pt-36">
             <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
               <div className="flex flex-col space-y-2 text-center">
                 <h1 className="text-3xl font-semibold tracking-tight text-gray-100">
