@@ -94,6 +94,7 @@ export default function Feed() {
   }, [selectedFeedIdx, showCastThreadView]);
 
   useEffect(() => {
+    console.log('useeffect in feed', account)
     if (
       isLoadingFeed ||
       isEmpty(feed) ||
@@ -306,10 +307,6 @@ export default function Feed() {
       {renderEmbedsModal()}
     </>
   );
-
-  if (hydratedAt && isEmpty(accounts)) {
-    router.push("/welcome");
-  }
 
   return renderContent();
 }

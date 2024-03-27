@@ -13,6 +13,8 @@ import {
 import { submitCast } from "@/common/helpers/farcaster";
 import { toHex } from "viem";
 import { CastId, Embed } from "@farcaster/hub-web";
+import { toast } from "sonner";
+import truncate from "lodash.truncate";
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 
@@ -53,11 +55,9 @@ type addNewPostDraftProps = {
 
 interface NewPostStoreProps {
   drafts: DraftType[];
-  isToastOpen: boolean;
 }
 
 interface NewPostStoreActions {
-  setIsToastOpen: (isToastOpen: boolean) => void;
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
   addNewPostDraft: ({ text, parentCastId, parentUrl }: addNewPostDraftProps) => void;
@@ -76,7 +76,6 @@ type StoreSet = (fn: (draft: Draft<NewPostStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   drafts: [],
-  isToastOpen: false,
   addNewPostDraft: ({ text, parentUrl, parentCastId }: addNewPostDraftProps) => {
     set((state) => {
       const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId };
@@ -191,10 +190,9 @@ const store = (set: StoreSet) => ({
           fid: Number(account.platformAccountId),
         });
 
-        await new Promise(f => setTimeout(f, 100));
         trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
         state.removePostDraft(draftIdx);
-        state.setIsToastOpen(true);
+        toast.success('Cast published successfully',  { description: truncate(draft.text, { length: 25 })});
 
         if (onPost) onPost();
       } catch (error) {
@@ -203,11 +201,6 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  setIsToastOpen: (isToastOpen: boolean) => {
-    set((state) => {
-      state.isToastOpen = isToastOpen;
-    });
-  }
 });
 export const useNewPostStore = create<NewPostStore>()(devtools(mutative(store)));
 

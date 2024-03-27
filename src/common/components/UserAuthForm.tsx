@@ -20,9 +20,14 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { hydrate, hydrateChannels, useAccountStore } from "@/stores/useAccountStore";
+import {
+  hydrate,
+  hydrateChannels,
+  useAccountStore,
+} from "@/stores/useAccountStore";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
+import { set } from "mutative/dist/utils/draft.js";
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 export type UserAuthFormValues = z.infer<typeof UserAuthFormSchema>;
@@ -43,9 +48,9 @@ const UserAuthFormSchema = z.object({
 
 export function UserAuthForm({ className }: { className: string }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [userMessage, setUserMessage] = useState<string>("");
   const supabase = createClient();
   const router = useRouter();
-  const posthog = usePostHog();
   const { isAuthenticated, profile } = useProfile();
   console.log("AuthForm profile", profile, isAuthenticated);
 
@@ -72,20 +77,21 @@ export function UserAuthForm({ className }: { className: string }) {
       return;
     }
 
+    const account = {
+      name: profile.username,
+      status: AccountStatusType.active,
+      platform: AccountPlatformType.farcaster_local_readonly,
+      platformAccountId: fid.toString(),
+      user: users[0],
+    };
+    console.log('assembled local only account', account);
+    setUserMessage("Setting up local account...");
+    await hydrateChannels();
     await addAccount({
-      account: {
-        name: profile.username,
-        status: AccountStatusType.active,
-        platform: AccountPlatformType.farcaster_local_readonly,
-        platformAccountId: fid.toString(),
-        user: users[0],
-        channels: [
-          
-        ]
-      },
+      account,
       localOnly: true,
     });
-    await hydrateChannels();
+    setUserMessage("Setup done. Welcome to the herocast experience!");
     router.push("/feed");
     setIsLoading(false);
   };
@@ -133,7 +139,27 @@ export function UserAuthForm({ className }: { className: string }) {
       console.error(error);
     }
     setIsLoading(false);
+    console.log("UserAuthForm router push");
     router.push("/welcome");
+  }
+
+  async function resetPassword() {
+    const { email } = form.getValues();
+    if (!email) {
+      form.setError("email", {
+        type: "manual",
+        message: "Email is required.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_URL}/login`,
+    });
+    setUserMessage("Password reset email sent.");
+    setIsLoading(false);
   }
 
   return (
@@ -187,23 +213,37 @@ export function UserAuthForm({ className }: { className: string }) {
             </div>
             <Button
               type="button"
-              variant="outline"
+              variant="default"
               size="lg"
-              className="text-white"
+              className="py-6"
               disabled={isLoading}
               onClick={() => logIn()}
             >
               {isLoading ? <Loading /> : "Sign In with Email"}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-white"
-              disabled={isLoading}
-              onClick={() => signUp()}
-            >
-              {isLoading ? <Loading /> : "Signup"}
-            </Button>
+            <div className="flex items-center justify-center">
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-white w-full"
+                disabled={isLoading}
+                onClick={() => signUp()}
+              >
+                Signup
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-white w-full"
+                disabled={isLoading}
+                onClick={() => resetPassword()}
+              >
+                Forgot Password?
+              </Button>
+            </div>
+            {userMessage && (
+              <span className="text-md text-white">{userMessage}</span>
+            )}
           </div>
         </form>
       </Form>
@@ -212,7 +252,9 @@ export function UserAuthForm({ className }: { className: string }) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-gray-900 px-2 text-muted">or continue with</span>
+          <span className="bg-gray-900 px-2 text-muted-foreground">
+            or continue with
+          </span>
         </div>
       </div>
       <div className="flex justify-center text-white">

@@ -4,7 +4,7 @@ import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   useAccountStore,
 } from "../../../../src/stores/useAccountStore";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import EmptyStateWithAction from "../../../../src/common/components/EmptyStateWithAction";
 import { classNames } from "../../../../src/common/helpers/css";
 import isEmpty from "lodash.isempty";
@@ -60,11 +60,33 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     }
   };
 
+  const renderAccountPlatformIndicator = () => {
+    switch (accounts[selectedAccountIdx].platform) {
+      case AccountPlatformType.farcaster_hats_protocol:
+        return (
+          <p className="truncate text-md text-foreground grayscale group-hover:grayscale-0">
+            🧢
+          </p>
+        );
+      case AccountPlatformType.farcaster_local_readonly:
+        return (
+          <p className="truncate text-md text-foreground grayscale group-hover:grayscale-0">
+            <ArrowDownTrayIcon className="w-4 h-4" />
+          </p>
+        );
+      default:
+        return null;
+    }
+  };
+
   const renderAccounts = () => (
     <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
       <ul role="list" className="mx-4 divide-y divide-white/5">
         {accounts.map((account: AccountObjectType, idx: number) => (
-          <li key={`${account.name}-${account.id}`} className="px-2 py-2 sm:px-3 lg:px-4">
+          <li
+            key={`${account.name}-${account.id}`}
+            className="px-2 py-2 sm:px-3 lg:px-4"
+          >
             <HotkeyTooltipWrapper hotkey={`Ctrl + ${idx + 1}`} side="left">
               <div
                 onClick={() =>
@@ -95,10 +117,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
                   {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
                 </h3>
                 {renderStatus(account.status)}
-                {account.platform ===
-                  AccountPlatformType.farcaster_hats_protocol && (
-                  <p className="truncate text-md text-foreground grayscale group-hover:grayscale-0">🧢</p>
-                )}
+                {renderAccountPlatformIndicator()}
               </div>
             </HotkeyTooltipWrapper>
           </li>

@@ -6580,6 +6580,11 @@ lodash.tostring@^4.1.4:
   resolved "https://registry.yarnpkg.com/lodash.tostring/-/lodash.tostring-4.1.4.tgz#560c27d1f8eadde03c2cce198fef5c031d8298fb"
   integrity sha512-xWHJ0LY7cSz/C/4ghNNiYA1Ong0VLdzAzrjDHvOzN+eJHzDEHme2+k+w/9Pk8dtdwcASMUbxN1/mtj6mFI25Ng==
 
+lodash.truncate@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/lodash.truncate/-/lodash.truncate-4.4.2.tgz#5a350da0b1113b837ecfffd5812cbe58d6eae193"
+  integrity sha512-jttmRe7bRse52OsWIMDLaXxWqRAmtIUccAQ3garviCqJjafXOfNMO0yMfNpdD6zbGaTU0P5Nz7e7gAT6cKmJRw==
+
 lodash.uniq@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
@@ -6959,10 +6964,10 @@ neverthrow@^6.0.0, neverthrow@^6.1.0:
   resolved "https://registry.yarnpkg.com/neverthrow/-/neverthrow-6.1.0.tgz#51a6e9ce2e06600045b3c1b37aecc536d267bf95"
   integrity sha512-xNbNjp/6M5vUV+mststgneJN9eJeJCDSYSBTaf3vxgvcKooP+8L0ATFpM8DGfmH7UWKJeoa24Qi33tBP9Ya3zA==
 
-next-themes@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/next-themes/-/next-themes-0.2.1.tgz#0c9f128e847979daf6c67f70b38e6b6567856e45"
-  integrity sha512-B+AKNfYNIzh0vqQQKqQItTS8evEouKD7H5Hj3kmuPERwddR2TxvDSFZuTj6T7Jfn1oyeUyJMydPl1Bkxkh0W7A==
+next-themes@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/next-themes/-/next-themes-0.3.0.tgz#b4d2a866137a67d42564b07f3a3e720e2ff3871a"
+  integrity sha512-/QHIrsYpd6Kfk7xakK4svpDI5mmXP0gfvCoJdGpZQ2TOrQZmsW0QxjaiLn8wbIKjtm4BTSqLoix4lxYYOnLJ/w==
 
 next@^14.0.3:
   version "14.1.0"
@@ -8597,6 +8602,11 @@ sonic-boom@^2.2.1:
   integrity sha512-kuonw1YOYYNOve5iHdSahXPOK49GqwA+LZhI6Wz/l0rP57iKyXXIHaRagOBHAPmGwJC6od2Z9zgvZ5loSgMlVg==
   dependencies:
     atomic-sleep "^1.0.0"
+
+sonner@^1.4.41:
+  version "1.4.41"
+  resolved "https://registry.yarnpkg.com/sonner/-/sonner-1.4.41.tgz#ff085ae4f4244713daf294959beaa3e90f842d2c"
+  integrity sha512-uG511ggnnsw6gcn/X+YKkWPo5ep9il9wYi3QJxHsYe7yTZ4+cOd1wuodOUmOpFuXL+/RE3R04LczdNCDygTDgQ==
 
 source-map-js@^1.0.2:
   version "1.0.2"

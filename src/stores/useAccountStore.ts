@@ -14,6 +14,7 @@ import { UUID } from "crypto";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { createClient } from "@/common/helpers/supabase/component";
+import includes from "lodash.includes";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
@@ -32,7 +33,16 @@ const CUSTOM_CHANNEL_TO_IDX = {
 const CUSTOM_CHANNEL_COUNT = 2;
 
 export const DEFAULT_CHANNEL_URL = CUSTOM_CHANNELS.FOLLOWING;
-
+const DEFAULT_LOCAL_ACCOUNT_CHANNELS = [
+  "Farcaster",
+  "herocast",
+  "Base",
+  "Founders",
+  "Product",
+  "EVM",
+  "GM",
+  "dev"
+];
 type AccountChannelType = ChannelType & {
   idx: number;
   lastRead?: string; // can be a timestamp
@@ -56,7 +66,7 @@ type UpdatedPinnedChannelIndicesProps = {
 }
 
 export type AccountObjectType = {
-  id: UUID;
+  id: UUID | number;
   userId?: string;
   name?: string;
   status: AccountStatusType;
@@ -117,8 +127,11 @@ const store = (set: StoreSet) => ({
   addAccount: async (props: AddAccountProps) => {
     const { account, localOnly } = props;
     if (localOnly) {
+
       set((state) => {
-        state.accounts.push({ ...account, ...{ id: account.id } });
+        const channels = state.allChannels.filter((channel) => includes(DEFAULT_LOCAL_ACCOUNT_CHANNELS, channel.name));
+        const accountChannels = channels.map((channel, idx) => ({ ...channel, idx }));
+        state.accounts.push({ ...account, ...{ channels: accountChannels }, ...{ id: state.accounts.length } });
       });
       return;
     } else {
@@ -234,24 +247,26 @@ const store = (set: StoreSet) => ({
       account.channels = [...account.channels, newChannel]
       state.accounts[state.selectedAccountIdx] = account;
 
-      supabaseClient
-        .from('accounts_to_channel')
-        .insert({
-          account_id: account.id,
-          channel_id: channel.id,
-          index: idx,
-        })
-        .select('*')
-        .then(({ error, data }) => {
-          // console.log('response - data', data, 'error', error);
-        });
+      if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
+        supabaseClient
+          .from('accounts_to_channel')
+          .insert({
+            account_id: account.id,
+            channel_id: channel.id,
+            index: idx,
+          })
+          .select('*')
+          .then(({ error, data }) => {
+            // console.log('response - data', data, 'error', error);
+          });
+      }
     })
   },
   removePinnedChannel: (channel: ChannelType) => {
     set((state) => {
       const account = state.accounts[state.selectedAccountIdx];
 
-      if (!channel.id || !account.id) {
+      if (!channel) {
         console.log('no channel or account id', channel,)
         return;
       }
@@ -261,19 +276,21 @@ const store = (set: StoreSet) => ({
       account.channels = copy;
       state.accounts[state.selectedAccountIdx] = account;
 
-      supabaseClient
-        .from('accounts_to_channel')
-        .delete()
-        .eq('account_id', account.id)
-        .eq('channel_id', channel.id)
-        .then(({ error, data }) => {
-          // console.log('response - data', data, 'error', error);
-        });
+      if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
+        supabaseClient
+          .from('accounts_to_channel')
+          .delete()
+          .eq('account_id', account.id)
+          .eq('channel_id', channel.id)
+          .then(({ error, data }) => {
+            // console.log('response - data', data, 'error', error);
+          });
+      }
     })
   },
   addChannel: ({ name, url, iconUrl, account }: AddChannelProps) => {
     set(async (state) => {
-      return await supabaseClient
+      await supabaseClient
         .from('channel')
         .insert({
           name,
@@ -303,18 +320,20 @@ const store = (set: StoreSet) => ({
 
       // console.log(`moving channel ${channels[oldIndex].name} to index ${newIndex}`);
 
-      supabaseClient
-        .from('accounts_to_channel')
-        .update({ index: newIndex })
-        .eq('account_id', accountId)
-        .eq('channel_id', channels[oldIndex].id)
-        .select('*, channel(*)')
-        .then(({ error }) => {
-          if (error) {
-            console.log('failed to update channel', channels[oldIndex].id)
-            return;
-          }
-        });
+      if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
+        supabaseClient
+          .from('accounts_to_channel')
+          .update({ index: newIndex })
+          .eq('account_id', accountId)
+          .eq('channel_id', channels[oldIndex].id)
+          .select('*, channel(*)')
+          .then(({ error }) => {
+            if (error) {
+              console.log('failed to update channel', channels[oldIndex].id)
+              return;
+            }
+          });
+      }
       newChannels[newIndex] = cloneDeep(channels[oldIndex]);
       newChannels[newIndex].idx = newIndex;
       const nrUpdates = Math.abs(oldIndex - newIndex);
@@ -326,19 +345,20 @@ const store = (set: StoreSet) => ({
 
         newChannels[to] = cloneDeep(channels[from]);
         newChannels[to].idx = to;
-
-        supabaseClient
-          .from('accounts_to_channel')
-          .update({ index: to })
-          .eq('account_id', accountId)
-          .eq('channel_id', channels[from].id)
-          .select('*, channel(*)')
-          .then(({ error }) => {
-            if (error) {
-              console.log('failed to update channel', channels[oldIndex].id)
-              return;
-            }
-          });
+        if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
+          supabaseClient
+            .from('accounts_to_channel')
+            .update({ index: to })
+            .eq('account_id', accountId)
+            .eq('channel_id', channels[from].id)
+            .select('*, channel(*)')
+            .then(({ error }) => {
+              if (error) {
+                console.log('failed to update channel', channels[oldIndex].id)
+                return;
+              }
+            });
+        }
       }
       state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
     });
@@ -391,6 +411,7 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
 }
 
 const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
+  console.log('hydrating accounts 🌊');
   const accountData = await getAccountsForUser(supabaseClient);
   let accounts: AccountObjectType[] = [];
   if (accountData.length === 0) {
@@ -434,17 +455,21 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       return account;
     });
   }
+  console.log('current accounts', useAccountStore.getState().accounts);
+  const localOnlyAccounts = useAccountStore.getState().accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);
 
-  return accounts;
+  return [...accounts, ...localOnlyAccounts];
 }
 
 export const hydrateChannels = async () => {
+  console.log('hydrating channels 🌊');
   const state = useAccountStore.getState();
 
   let allChannels: ChannelType[] = state.allChannels;
   let hydratedAt = state.hydratedAt;
 
-  const shouldRehydrate = !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE;
+  const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE;
+  console.log('shouldRehydrate', shouldRehydrate, 'allChannels', allChannels.length, 'hydratedAt', hydratedAt)
   if (shouldRehydrate) {
     allChannels = await fetchAllChannels();
     hydratedAt = Date.now();
@@ -455,18 +480,17 @@ export const hydrateChannels = async () => {
     allChannels,
     hydratedAt,
   });
+  console.log('done hydrating channels 🌊');
 }
 
 export const hydrate = async () => {
-  const state = useAccountStore.getState();
-
   console.log('hydrating 💦');
 
   const accounts = await hydrateAccounts();
   await hydrateChannels();
-  
+
   useAccountStore.setState({
-    ...state,
+    ...useAccountStore.getState(),
     accounts
   });
 
