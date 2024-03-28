@@ -10,12 +10,13 @@ import isEmpty from "lodash.isempty";
 import findIndex from 'lodash.findindex';
 import sortBy from "lodash.sortby";
 import cloneDeep from "lodash.clonedeep";
-import { UUID, randomUUID } from "crypto";
+import { UUID } from "crypto";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { createClient } from "@/common/helpers/supabase/component";
 import includes from "lodash.includes";
 import uniqBy from "lodash.uniqby";
+import { v4 as uuidv4 } from 'uuid';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
@@ -127,12 +128,12 @@ const store = (set: StoreSet) => ({
   ...initialState,
   addAccount: async (props: AddAccountProps) => {
     const { account, localOnly } = props;
-    if (localOnly) {
 
+    if (localOnly) {
       set((state) => {
         const channels = state.allChannels.filter((channel) => includes(DEFAULT_LOCAL_ACCOUNT_CHANNELS, channel.name));
         const accountChannels = channels.map((channel, idx) => ({ ...channel, idx }));
-        state.accounts.push({ ...account, ...{ channels: accountChannels }, ...{ id: randomUUID() } });
+        state.accounts.push({ ...account, ...{ channels: accountChannels }, ...{ id: uuidv4() } });
       });
       return;
     } else {
@@ -456,8 +457,10 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       return account;
     });
   }
+
   const localOnlyAccounts = useAccountStore.getState().accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);
-  return uniqBy([...accounts, ...localOnlyAccounts], 'platformAccountId');
+  console.log('done hydrating accounts 🌊');
+  return [...accounts, ...uniqBy(localOnlyAccounts, 'platformAccountId')];
 }
 
 export const hydrateChannels = async () => {
