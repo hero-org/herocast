@@ -193,7 +193,8 @@ export default function Accounts() {
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl flex">
-          You are using a readonly account <ArrowDownTrayIcon className="ml-2 mt-1 w-6 h-6" />
+          You are using a readonly account{" "}
+          <ArrowDownTrayIcon className="ml-2 mt-1 w-6 h-6" />
         </CardTitle>
         <CardDescription>
           A readonly account is great for browsing, but you need a full account
@@ -355,13 +356,15 @@ export default function Accounts() {
         {hasOnlyLocalAccounts ? (
           <div className="flex w-full">{renderSignupForNonLocalAccount()}</div>
         ) : (
-          <div className="flex w-full">
-            {signupState === SignupStateEnum.initial &&
-              renderCreateSignerStep()}
-            {signupState === SignupStateEnum.connecting &&
-              renderConnectAccountStep()}
+          <>
+            <div className="flex w-full">
+              {signupState === SignupStateEnum.initial &&
+                renderCreateSignerStep()}
+              {signupState === SignupStateEnum.connecting &&
+                renderConnectAccountStep()}
+            </div>
             <ConnectFarcasterAccountViaHatsProtocol />
-          </div>
+          </>
         )}
         <HelpCard />
       </div>
