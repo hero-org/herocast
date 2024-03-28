@@ -20,14 +20,11 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  hydrate,
-  hydrateChannels,
-  useAccountStore,
-} from "@/stores/useAccountStore";
+import { hydrateChannels, useAccountStore } from "@/stores/useAccountStore";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
-import { set } from "mutative/dist/utils/draft.js";
+import { v4 as uuidv4 } from "uuid";
+
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 export type UserAuthFormValues = z.infer<typeof UserAuthFormSchema>;
@@ -89,7 +86,7 @@ export function UserAuthForm({ className }: { className: string }) {
       account,
       localOnly: true,
     });
-    posthog.identify(`fid:${fid}`)
+    posthog.identify(uuidv4(), { isLocalOnly: true });
 
     setUserMessage("Setup done. Welcome to the herocast experience!");
     router.push("/feed");
@@ -119,7 +116,7 @@ export function UserAuthForm({ className }: { className: string }) {
       });
       console.error(error);
     }
-    posthog.identify(data?.user?.id)
+    posthog.identify(data?.user?.id);
     setIsLoading(false);
     router.push("/feed");
   }
@@ -138,7 +135,7 @@ export function UserAuthForm({ className }: { className: string }) {
       });
       console.error(error);
     }
-    posthog.identify(data?.user?.id)
+    posthog.identify(data?.user?.id);
 
     setIsLoading(false);
     router.push("/welcome");

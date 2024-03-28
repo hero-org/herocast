@@ -16,14 +16,15 @@ import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { getNavigationCommands } from "../../src/getNavigationCommands";
 import AccountSettingsModal from "../../src/common/components/AccountSettingsModal";
-import { useAccount, useSwitchAccount } from "wagmi";
+import { useAccount } from "wagmi";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
+import { AccountPlatformType } from "../../src/common/constants/accounts";
 import { Loading } from "../../src/common/components/Loading";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { getUsernameForFid } from "../../src/common/helpers/farcaster";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { createClient } from "../../src/common/helpers/supabase/component";
+import { usePostHog } from "posthog-js/react";
 
 type SimpleCommand = {
   name: string;
@@ -33,19 +34,16 @@ type SimpleCommand = {
 export default function Settings() {
   const router = useRouter();
   const supabase = createClient()
+  const posthog = usePostHog();
 
   const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] =
     useState<AccountObjectType | null>(null);
   const { address, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
-  const { openAccountModal } = useAccountModal();
 
   const {
     hydratedAt,
-    addAccount,
-    setAccountActive,
     accounts,
     resetStore,
     removeAccount,
@@ -71,6 +69,7 @@ export default function Settings() {
       resetStore();
       setUser(null);
       await supabase.auth.signOut();
+      posthog.reset()
     }
 
     router.push("/login");
