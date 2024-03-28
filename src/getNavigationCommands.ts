@@ -15,7 +15,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
             name: 'Accounts',
             aliases: ['new account', 'sign up'],
             icon: UserPlusIcon,
-            shortcut: 'cmd+shift+a',
+            shortcut: 'meta+shift+a',
             action: () => router.push('/accounts'),
             options: {
                 enableOnFormTags: true,
