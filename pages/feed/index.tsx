@@ -94,7 +94,6 @@ export default function Feed() {
   }, [selectedFeedIdx, showCastThreadView]);
 
   useEffect(() => {
-    console.log('useeffect in feed', account)
     if (
       isLoadingFeed ||
       isEmpty(feed) ||

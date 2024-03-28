@@ -10,7 +10,7 @@ import isEmpty from "lodash.isempty";
 import findIndex from 'lodash.findindex';
 import sortBy from "lodash.sortby";
 import cloneDeep from "lodash.clonedeep";
-import { UUID } from "crypto";
+import { UUID, randomUUID } from "crypto";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { createClient } from "@/common/helpers/supabase/component";
@@ -67,7 +67,7 @@ type UpdatedPinnedChannelIndicesProps = {
 }
 
 export type AccountObjectType = {
-  id: UUID | number;
+  id: UUID;
   userId?: string;
   name?: string;
   status: AccountStatusType;
@@ -132,7 +132,7 @@ const store = (set: StoreSet) => ({
       set((state) => {
         const channels = state.allChannels.filter((channel) => includes(DEFAULT_LOCAL_ACCOUNT_CHANNELS, channel.name));
         const accountChannels = channels.map((channel, idx) => ({ ...channel, idx }));
-        state.accounts.push({ ...account, ...{ channels: accountChannels }, ...{ id: state.accounts.length } });
+        state.accounts.push({ ...account, ...{ channels: accountChannels }, ...{ id: randomUUID() } });
       });
       return;
     } else {
@@ -456,7 +456,6 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       return account;
     });
   }
-  console.log('current accounts', useAccountStore.getState().accounts);
   const localOnlyAccounts = useAccountStore.getState().accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);
   return uniqBy([...accounts, ...localOnlyAccounts], 'platformAccountId');
 }
@@ -469,7 +468,6 @@ export const hydrateChannels = async () => {
   let hydratedAt = state.hydratedAt;
 
   const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE;
-  console.log('shouldRehydrate', shouldRehydrate, 'allChannels', allChannels.length, 'hydratedAt', hydratedAt)
   if (shouldRehydrate) {
     allChannels = await fetchAllChannels();
     hydratedAt = Date.now();
