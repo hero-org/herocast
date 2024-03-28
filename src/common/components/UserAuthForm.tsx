@@ -51,8 +51,8 @@ export function UserAuthForm({ className }: { className: string }) {
   const [userMessage, setUserMessage] = useState<string>("");
   const supabase = createClient();
   const router = useRouter();
+  const posthog = usePostHog();
   const { isAuthenticated, profile } = useProfile();
-  console.log("AuthForm profile", profile, isAuthenticated);
 
   const form = useForm<UserAuthFormValues>({
     resolver: zodResolver(UserAuthFormSchema),
@@ -62,7 +62,6 @@ export function UserAuthForm({ className }: { className: string }) {
   const { addAccount } = useAccountStore();
   const setupLocalAccount = async () => {
     setIsLoading(true);
-    console.log("setupLocalAccount profile", profile);
     const { fid } = profile;
     if (!fid) return;
     const neynarClient = new NeynarAPIClient(
@@ -84,13 +83,14 @@ export function UserAuthForm({ className }: { className: string }) {
       platformAccountId: fid.toString(),
       user: users[0],
     };
-    console.log('assembled local only account', account);
     setUserMessage("Setting up local account...");
     await hydrateChannels();
     await addAccount({
       account,
       localOnly: true,
     });
+    posthog.identify(`fid:${fid}`)
+
     setUserMessage("Setup done. Welcome to the herocast experience!");
     router.push("/feed");
     setIsLoading(false);
@@ -111,7 +111,7 @@ export function UserAuthForm({ className }: { className: string }) {
       email,
       password,
     });
-    console.log("logIn", data, error);
+
     if (error) {
       form.setError("password", {
         type: "manual",
@@ -119,8 +119,9 @@ export function UserAuthForm({ className }: { className: string }) {
       });
       console.error(error);
     }
+    posthog.identify(data?.user?.id)
     setIsLoading(false);
-    router.push("/");
+    router.push("/feed");
   }
 
   async function signUp() {
@@ -130,7 +131,6 @@ export function UserAuthForm({ className }: { className: string }) {
     const { email, password } = form.getValues();
     const { data, error } = await supabase.auth.signUp({ email, password });
 
-    console.log("signUp", data, error);
     if (error) {
       form.setError("password", {
         type: "manual",
@@ -138,8 +138,9 @@ export function UserAuthForm({ className }: { className: string }) {
       });
       console.error(error);
     }
+    posthog.identify(data?.user?.id)
+
     setIsLoading(false);
-    console.log("UserAuthForm router push");
     router.push("/welcome");
   }
 
@@ -213,19 +214,18 @@ export function UserAuthForm({ className }: { className: string }) {
             </div>
             <Button
               type="button"
-              variant="default"
               size="lg"
-              className="py-6"
+              className="py-6 bg-[#7C65C1] hover:bg-[#6A4CA5]"
               disabled={isLoading}
               onClick={() => logIn()}
             >
               {isLoading ? <Loading /> : "Sign In with Email"}
             </Button>
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center space-x-2">
               <Button
                 type="button"
-                variant="ghost"
-                className="text-white w-full"
+                variant="outline"
+                className="text-gray-100 border-gray-500 w-full"
                 disabled={isLoading}
                 onClick={() => signUp()}
               >
@@ -233,20 +233,20 @@ export function UserAuthForm({ className }: { className: string }) {
               </Button>
               <Button
                 type="button"
-                variant="ghost"
-                className="text-white w-full"
+                variant="outline"
+                className="text-gray-100 border-gray-500 w-full"
                 disabled={isLoading}
                 onClick={() => resetPassword()}
               >
                 Forgot Password?
               </Button>
             </div>
-            {userMessage && (
-              <span className="text-md text-white">{userMessage}</span>
-            )}
           </div>
         </form>
       </Form>
+      <div className="text-center">
+        {userMessage && <Label className="text-gray-200">{userMessage}</Label>}
+      </div>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
@@ -257,7 +257,7 @@ export function UserAuthForm({ className }: { className: string }) {
           </span>
         </div>
       </div>
-      <div className="flex justify-center text-white">
+      <div className="flex flex-col space-y-4 items-center justify-center text-white">
         {!isAuthenticated && !isLoading ? (
           <SignInButton hideSignOut />
         ) : (
