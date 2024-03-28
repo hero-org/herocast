@@ -307,9 +307,5 @@ export default function Feed() {
     </>
   );
 
-  if (hydratedAt && isEmpty(accounts)) {
-    router.push("/welcome");
-  }
-
   return renderContent();
 }

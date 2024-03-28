@@ -7,6 +7,7 @@ import CreateFarcasterAccount from "@/common/components/CreateFarcasterAccount";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
+import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 
 enum FarcasterSignupNav {
   login = "LOGIN",
@@ -123,20 +124,7 @@ export default function Welcome() {
           "Connect your wallet",
           "We will create a Farcaster account onchain in the next step.",
           <div className="flex flex-row gap-4">
-            <Button
-              key="connect-wallet"
-              className="w-60"
-              onClick={() => openConnectModal?.()}
-            >
-              Connect wallet
-            </Button>
-            <Button
-              key="switch-wallet"
-              className="w-60"
-              onClick={() => openAccountModal?.()}
-            >
-              Switch your connected wallet
-            </Button>
+            <SwitchWalletButton />
             <Button
               disabled={!isConnected}
               onClick={() => setStep(FarcasterSignupNav.create_account_onchain)}

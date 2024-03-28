@@ -4,9 +4,13 @@
     "lib": [
       "ES2020",
       "DOM",
-      "DOM.Iterable",
+      "DOM.Iterable"
     ],
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "noImplicitAny": false,
@@ -35,7 +39,8 @@
   "include": [
     "src",
     "./dist/types/**/*.ts",
-     "./next-env.d.ts",
+    "./next-env.d.ts",
+    ".next/types/**/*.ts"
     // "./**/*.ts",
     // "./**/*.tsx",
     // "./src",
@@ -44,5 +49,5 @@
   "exclude": [
     "node_modules",
     "./node_modules"
-  ],
+  ]
 }

@@ -5,7 +5,7 @@ import {
   RectangleGroupIcon,
   UserPlusIcon,
 } from "@heroicons/react/20/solid";
-import { NewspaperIcon } from "@heroicons/react/24/solid";
+import { ArrowDownTrayIcon, NewspaperIcon } from "@heroicons/react/24/solid";
 import {
   JoinedHerocastPostDraft,
   useNewPostStore,
@@ -38,6 +38,7 @@ import HelpCard from "../../src/common/components/HelpCard";
 import { useIsMounted } from "../../src/common/helpers/hooks";
 import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { openWindow } from "../../src/common/helpers/navigation";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -86,12 +87,19 @@ export default function Accounts() {
   const { addNewPostDraft } = useNewPostStore();
 
   const hasActiveAccounts =
-    accounts.filter((account) => account.status === AccountStatusType.active)
-      .length > 0;
+    accounts.filter(
+      (account) =>
+        account.status === AccountStatusType.active &&
+        account.platform !== AccountPlatformType.farcaster_local_readonly
+    ).length > 0;
   const pendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.pending &&
       account.platform === AccountPlatformType.farcaster
+  );
+  const hasOnlyLocalAccounts = accounts.every(
+    (account) =>
+      account.platform === AccountPlatformType.farcaster_local_readonly
   );
   const hasPendingNewAccounts = pendingAccounts.length > 0;
   const pendingAccount = hasPendingNewAccounts ? pendingAccounts[0] : null;
@@ -126,13 +134,15 @@ export default function Accounts() {
     try {
       setIsLoading(true);
       await addAccount({
-        id: null,
-        platformAccountId: undefined,
-        status: AccountStatusType.pending,
-        platform: AccountPlatformType.farcaster,
-        publicKey,
-        privateKey,
-        data: { signerToken: token, deeplinkUrl },
+        account: {
+          id: null,
+          platformAccountId: undefined,
+          status: AccountStatusType.pending,
+          platform: AccountPlatformType.farcaster,
+          publicKey,
+          privateKey,
+          data: { signerToken: token, deeplinkUrl },
+        },
       });
       setIsLoading(false);
       setSignupState(1);
@@ -152,7 +162,8 @@ export default function Accounts() {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const user = (await neynarClient.lookupUserByFid(fid, APP_FID!)).result.user;
+      const user = (await neynarClient.lookupUserByFid(fid, APP_FID!)).result
+        .user;
       await setAccountActive(pendingAccount.id, user.displayName, {
         platform_account_id: user.fid.toString(),
         data,
@@ -177,6 +188,29 @@ export default function Accounts() {
     addNewPostDraft(JoinedHerocastPostDraft);
     router.push("/post");
   };
+
+  const renderSignupForNonLocalAccount = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-2xl flex">
+          You are using a readonly account <ArrowDownTrayIcon className="ml-2 mt-1 w-6 h-6" />
+        </CardTitle>
+        <CardDescription>
+          A readonly account is great for browsing, but you need a full account
+          to start casting and interact with others on Farcaster.
+        </CardDescription>
+      </CardHeader>
+      <CardFooter>
+        <Button
+          className="w-full"
+          variant="default"
+          onClick={() => openWindow(`${process.env.NEXT_PUBLIC_URL}/login`)}
+        >
+          Switch to a full account
+        </Button>
+      </CardFooter>
+    </Card>
+  );
 
   const renderCreateSignerStep = () => (
     <Card>
@@ -240,11 +274,14 @@ export default function Accounts() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Sign in with Warpcast</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Pay with Fiat in Warpcast to connect with herocast
+              Pay with Warps in Warpcast to connect with herocast
             </CardDescription>
           </CardHeader>
           <CardContent>
-            Scan the QR code with your mobile camera app to sign in via Warpcast
+            <span>
+              Scan the QR code with your mobile camera app to sign in via
+              Warpcast.
+            </span>
             <QrCode
               deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
             />
@@ -314,15 +351,20 @@ export default function Accounts() {
     <div className="m-4 flex flex-col gap-5">
       {(hasActiveAccounts || signupState === SignupStateEnum.done) &&
         renderDoneStep()}
-      <div>
-        <div className="flex w-full">
-          {signupState === SignupStateEnum.initial && renderCreateSignerStep()}
-          {signupState === SignupStateEnum.connecting &&
-            renderConnectAccountStep()}
-        </div>
+      <div className="w-2/3 flex flex-col gap-5">
+        {hasOnlyLocalAccounts ? (
+          <div className="flex w-full">{renderSignupForNonLocalAccount()}</div>
+        ) : (
+          <div className="flex w-full">
+            {signupState === SignupStateEnum.initial &&
+              renderCreateSignerStep()}
+            {signupState === SignupStateEnum.connecting &&
+              renderConnectAccountStep()}
+            <ConnectFarcasterAccountViaHatsProtocol />
+          </div>
+        )}
+        <HelpCard />
       </div>
-      <ConnectFarcasterAccountViaHatsProtocol />
-      <HelpCard />
     </div>
   );
 }

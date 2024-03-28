@@ -77,14 +77,15 @@ const WarpcastLogin = () => {
 
     try {
       await addAccount({
-        id: null,
-        platformAccountId: undefined,
-        name: accountName,
-        status: AccountStatusType.pending,
-        platform: AccountPlatformType.farcaster,
-        publicKey,
-        privateKey,
-        data: { signerToken: token, deeplinkUrl }
+        account: {
+          platformAccountId: undefined,
+          name: accountName,
+          status: AccountStatusType.pending,
+          platform: AccountPlatformType.farcaster,
+          publicKey,
+          privateKey,
+          data: { signerToken: token, deeplinkUrl }
+        }
       });
     } catch (e) {
       console.log('error when trying to add account', e);

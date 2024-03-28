@@ -22,6 +22,8 @@ import FrameEmbed from './Embeds/FrameEmbed';
 import { registerPlugin } from 'linkifyjs';
 import CashtagHoverCard from './CashtagHoverCard';
 import mentionPlugin, { cashtagPlugin, channelPlugin } from '../helpers/linkify';
+import { toast } from "sonner";
+import { AccountPlatformType } from '../constants/accounts';
 
 registerPlugin('mention', mentionPlugin);
 registerPlugin('cashtag', cashtagPlugin);
@@ -130,7 +132,7 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
   const selectedAccount = accounts[selectedAccountIdx];
   const userFid = Number(selectedAccount?.platformAccountId);
   const authorFid = cast?.author.fid;
-
+  const canSendReaction = selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
   const now = new Date();
   const hasFrame = cast.frames && cast.frames.length > 0;
 
@@ -201,6 +203,11 @@ export const CastRow = ({ cast, isSelected, showChannel, onSelect, isThreadView 
       setDidRecast(!isActive)
     }
     
+    if (!canSendReaction) {
+      toast.info('You\'re using a readonly account', {description: '<a href="/login">Switch to a full account to interact with other ↗️</a>', descriptionClassName: "underline"})
+      return;
+    }
+
     try {
       const reactionBodyType: 'like' | 'recast' = key === CastReactionType.likes ? 'like' : 'recast';
       const reaction = { type: reactionBodyType, target: { fid: Number(authorFid), hash: cast.hash } }

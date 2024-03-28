@@ -1,3 +1,6 @@
+import "../src/globals.css";
+import "@rainbow-me/rainbowkit/styles.css";
+
 import React, { useEffect } from "react";
 import type { AppProps } from "next/app";
 import { AptabaseProvider } from "@aptabase/react";
@@ -10,8 +13,6 @@ import { rainbowKitTheme, config } from "../src/common/helpers/rainbowkit";
 import Home from "../src/home";
 import { PostHogProvider } from 'posthog-js/react'
 import { loadPosthogAnalytics } from "../src/lib/analytics";
-import "../src/globals.css";
-import "@rainbow-me/rainbowkit/styles.css";
 import { useRouter } from "next/router";
 
 

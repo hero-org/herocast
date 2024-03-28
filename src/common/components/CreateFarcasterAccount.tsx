@@ -73,7 +73,7 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
           await setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
             platform_account_id: fid.toString(),
             data: { signupViaHerocast: true },
-          })
+          });
           onSuccess?.();
           return true;
         }
@@ -101,11 +101,13 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
 
     const fid = await getFidForAddress(address);
     if (fid) {
-      setError(`Wallet ${address} has already registered FID ${fid} - only one account per address`);
+      setError(
+        `Wallet ${address} has already registered FID ${fid} - only one account per address`
+      );
       return false;
     }
     return true;
-  }
+  };
 
   const createFarcasterAccount = async () => {
     console.log("createFarcasterAccount");
@@ -124,11 +126,12 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       try {
         await addAccount({
-          id: null,
-          status: AccountStatusType.pending,
-          platform: AccountPlatformType.farcaster,
-          publicKey: hexStringPublicKey,
-          privateKey: hexStringPrivateKey,
+          account: {
+            status: AccountStatusType.pending,
+            platform: AccountPlatformType.farcaster,
+            publicKey: hexStringPublicKey,
+            privateKey: hexStringPrivateKey,
+          },
         });
       } catch (e) {
         console.log("error when trying to add account", e);
@@ -231,9 +234,10 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
         This will require two wallet signatures and one on-chain transaction.{" "}
         <br />
         You need to have ETH on Optimism to pay gas for the transaction and the
-        Farcaster platform fee. Farcaster platform fee (yearly) right
-        now is {" "}
-        {price ? `~${parseFloat(formatEther(price)).toFixed(5)} ETH.` : "loading..."}
+        Farcaster platform fee. Farcaster platform fee (yearly) right now is{" "}
+        {price
+          ? `~${parseFloat(formatEther(price)).toFixed(5)} ETH.`
+          : "loading..."}
       </p>
       <Button
         variant="default"

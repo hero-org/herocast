@@ -46,6 +46,7 @@ import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { isValidSignature, isValidSigner } from "@/lib/hats";
 import { SIGNED_KEY_REQUEST_TYPEHASH } from "@/lib/hats";
+import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 
 enum SignupStateEnum {
   "CONNECT_WALLET",
@@ -126,7 +127,6 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
 
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { openAccountModal } = useAccountModal();
   const { signTypedDataAsync } = useSignTypedData();
 
   const { accounts, addAccount, setAccountActive } = useAccountStore();
@@ -203,14 +203,15 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
 
       try {
-        await addAccount({
-          id: null,
-          platformAccountId: fid.toString(),
-          status: AccountStatusType.pending,
-          platform: AccountPlatformType.farcaster_hats_protocol,
-          publicKey: hexStringPublicKey,
-          privateKey: hexStringPrivateKey,
-          data: {},
+        await addAccount({ 
+          account: {
+            platformAccountId: fid.toString(),
+            status: AccountStatusType.pending,
+            platform: AccountPlatformType.farcaster_hats_protocol,
+            publicKey: hexStringPublicKey,
+            privateKey: hexStringPrivateKey,
+            data: {},
+          }
         });
       } catch (e) {
         console.log("error when trying to add account", e);
@@ -492,15 +493,9 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
             </Button>
           )}
           {state.state === SignupStateEnum.SELECT_FARCASTER_ACCOUNT && (
-            <Button
-              className="ml-4 w-full"
-              variant="outline"
-              onClick={() =>
-                openAccountModal?.()
-              }
-            >
-              Switch your connected wallet
-            </Button>
+            <div className="ml-4 w-full">
+              <SwitchWalletButton />
+            </div>
           )}
         </CardFooter>
       </Card>
