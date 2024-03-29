@@ -30,6 +30,7 @@ import ConnectFarcasterAccountViaHatsProtocol from "../../src/common/components/
 import { useAccount } from "wagmi";
 import {
   WarpcastLoginStatus,
+  callCreateSignerRequest,
   createSignerRequest,
   generateWarpcastSigner,
   getWarpcastSignerStatus,
@@ -124,12 +125,12 @@ export default function Accounts() {
   const onCreateNewAccount = async () => {
     const { publicKey, privateKey, signature, requestFid, deadline } =
       await generateWarpcastSigner();
-    const { token, deeplinkUrl } = await createSignerRequest(
+    const { token, deeplinkUrl } = await callCreateSignerRequest({
       publicKey,
       requestFid,
       signature,
       deadline
-    );
+    });
 
     try {
       setIsLoading(true);
@@ -164,7 +165,7 @@ export default function Accounts() {
       );
       const user = (await neynarClient.lookupUserByFid(fid, APP_FID!)).result
         .user;
-      await setAccountActive(pendingAccount.id, user.displayName, {
+      await setAccountActive(pendingAccount.id, user.username, {
         platform_account_id: user.fid.toString(),
         data,
       });

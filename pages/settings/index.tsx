@@ -84,23 +84,6 @@ export default function Settings() {
     setOpen(true);
   };
 
-  const syncAccountNameFromProtocolToDB = async (
-    account: AccountObjectType
-  ) => {
-    try {
-      const fid = account.platformAccountId;
-      if (fid && account.status === "active") {
-        const username = await getUsernameForFid(Number(fid));
-        console.log("protocol", username, "DB", account.name);
-        if (username && username !== account.name) {
-          await updateAccountUsername(account.id, username);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to sync account name from protocol to DB", error);
-    }
-  };
-
   const refreshAccountNames = async () => {
     Promise.all(accounts.map(syncAccountNameFromProtocolToDB))
       .then(() => {

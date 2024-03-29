@@ -182,7 +182,7 @@ const RegisterFarcasterUsernameForm = ({
       UserDataType.DISPLAY,
       username
     );
-    updateAccountUsername(account.id!, username);
+    updateAccountUsername(account.id!);
 
     await setUserDataInProtocol(
       account.privateKey!,

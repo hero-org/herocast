@@ -17,6 +17,7 @@ import { createClient } from "@/common/helpers/supabase/component";
 import includes from "lodash.includes";
 import uniqBy from "lodash.uniqby";
 import { v4 as uuidv4 } from 'uuid';
+import { getUsernameForFid } from "@/common/helpers/farcaster";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
@@ -95,7 +96,7 @@ interface AccountStoreActions {
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => void;
-  updateAccountUsername: (accountId: UUID, username: string) => void;
+  updateAccountUsername: (accountId: UUID) => void;
   removeAccount: (idx: number) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setSelectedChannelUrl: (url: string | null) => void;
@@ -177,20 +178,31 @@ const store = (set: StoreSet) => ({
       console.log('-----> setAcountActive done')
     });
   },
-  updateAccountUsername: async (accountId: UUID, username: string) => {
+  updateAccountUsername: async (accountId: UUID) => {
     set(async (state) => {
-      const { data, error } = await supabaseClient
-        .from('accounts')
-        .update({ name: username })
-        .eq('id', accountId)
-        .select();
+      const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
+      const account = state.accounts[accountIndex];
 
-      // console.log('response updateAccountUsername - data', data, 'error', error);
-      if (!error) {
-        const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
-        const account = state.accounts[accountIndex];
-        account.name = username;
-        state.accounts[accountIndex] = account;
+      try {
+        const fid = account.platformAccountId;
+        if (fid && account.status === "active") {
+          const username = await getUsernameForFid(Number(fid));
+          if (username && username !== account.name) {
+            const { data, error } = await supabaseClient
+              .from('accounts')
+              .update({ name: username })
+              .eq('id', accountId)
+              .select();
+
+            // console.log('response updateAccountUsername - data', data, 'error', error);
+            if (!error) {
+              account.name = username;
+              state.accounts[accountIndex] = account;
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to sync account name from protocol to DB", error);
       }
     });
   },
