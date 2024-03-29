@@ -41,9 +41,25 @@ export const generateKeyPair = async (): Promise<KeyPairType> => {
   return { publicKey, privateKey };
 }
 
-export const createSignerRequest = async (publicKey: string, requestFid: number, signature: string, deadline: number): Promise<WarpcastLoginType> => {
+type CreateSignerRequestType = {
+  publicKey: string;
+  requestFid: number;
+  signature: string;
+  deadline: number;
+}
+
+export const callCreateSignerRequest = async (data: CreateSignerRequestType): Promise<WarpcastLoginType> => {
+  const response = await fetch("/api/signerRequest", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return response.json();
+}
+
+export const createSignerRequest = async (data: CreateSignerRequestType): Promise<WarpcastLoginType> => {
+  const { publicKey: key, requestFid, signature, deadline } = data;
   const payload = {
-    key: publicKey,
+    key,
     requestFid,
     signature,
     deadline,
@@ -56,8 +72,17 @@ export const createSignerRequest = async (publicKey: string, requestFid: number,
   return { deeplinkUrl, token };
 }
 
-const getSignerRequestStatus = async (signerToken: string) => {
-  console.log('getSignerRequestStatus', signerToken);
+const callGetSignerRequestStatus = async (signerToken: string) => {
+  const response = await fetch(`/api/signerRequest?signerToken=${signerToken}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return response.json();
+}
+
+export const getSignerRequestStatus = async (signerToken: string) => {
   const data = await (await fetch(`${WARPCAST_API_ENDPOINT}signed-key-request?token=${signerToken}`, { headers })).json();
   return data.result.signedKeyRequest;
 }
@@ -87,7 +112,7 @@ const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
 }
 
 const getWarpcastSignerStatus = async (signerToken: string): Promise<{ status: WarpcastLoginStatus, data: any }> => {
-  const data = await getSignerRequestStatus(signerToken);
+  const data = await callGetSignerRequestStatus(signerToken);
   const status = data && (data.state === 'approved' || data.state === 'completed') ? WarpcastLoginStatus.success : WarpcastLoginStatus.pending;
   return { status, data: data }
 }

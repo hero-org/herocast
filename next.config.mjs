@@ -18,6 +18,15 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/demo',
+        destination: '/login',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig
