@@ -60,8 +60,8 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     }
   };
 
-  const renderAccountPlatformIndicator = () => {
-    switch (accounts[selectedAccountIdx].platform) {
+  const renderAccountPlatformIndicator = (platform: AccountPlatformType) => {
+    switch (platform) {
       case AccountPlatformType.farcaster_hats_protocol:
         return (
           <p className="truncate text-md text-foreground grayscale group-hover:grayscale-0">
@@ -117,7 +117,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
                   {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
                 </h3>
                 {renderStatus(account.status)}
-                {renderAccountPlatformIndicator()}
+                {renderAccountPlatformIndicator(account.platform)}
               </div>
             </HotkeyTooltipWrapper>
           </li>
