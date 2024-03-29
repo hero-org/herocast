@@ -83,7 +83,6 @@ const callGetSignerRequestStatus = async (signerToken: string) => {
 }
 
 export const getSignerRequestStatus = async (signerToken: string) => {
-  console.log('getSignerRequestStatus', signerToken);
   const data = await (await fetch(`${WARPCAST_API_ENDPOINT}signed-key-request?token=${signerToken}`, { headers })).json();
   return data.result.signedKeyRequest;
 }
