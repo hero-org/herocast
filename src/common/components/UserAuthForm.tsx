@@ -116,7 +116,7 @@ export function UserAuthForm({ className }: { className: string }) {
       });
       console.error(error);
     }
-    posthog.identify(data?.user?.id);
+    posthog.identify(data?.user?.id, { email });
     setIsLoading(false);
     router.push("/feed");
   }
@@ -135,7 +135,7 @@ export function UserAuthForm({ className }: { className: string }) {
       });
       console.error(error);
     }
-    posthog.identify(data?.user?.id);
+    posthog.identify(data?.user?.id, { email });
 
     setIsLoading(false);
     router.push("/welcome");
