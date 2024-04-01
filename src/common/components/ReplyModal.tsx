@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Modal from './Modal';
 import NewPostEntry from './NewPostEntry';
-import { useNewPostStore } from '@/stores/useNewPostStore';
+import { useLocalDraftStore } from '@/stores/useLocalDraftStore';
 import { CastRow } from './CastRow';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useAccountStore } from '@/stores/useAccountStore';
@@ -23,19 +23,19 @@ type ReplyModalProps = {
 
 const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
   const {
-    addNewPostDraft,
+    addNewLocalDraft,
     removePostDraft
-  } = useNewPostStore();
+  } = useLocalDraftStore();
 
   const account = useAccountStore(state => state.accounts[state.selectedAccountIdx]);
 
-  const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === parentCast?.hash));
-  const { drafts } = useNewPostStore();
+  const draftIdx = useLocalDraftStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === parentCast?.hash));
+  const { drafts } = useLocalDraftStore();
   const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 
   useEffect(() => {
     if (draftIdx === -1 && open) {
-      addNewPostDraft({ parentCastId: { hash: parentCast?.hash, fid: parentCast?.author.fid } })
+      addNewLocalDraft({ parentCastId: { hash: parentCast?.hash, fid: parentCast?.author.fid } })
     }
     return () => {
       if (open) return;

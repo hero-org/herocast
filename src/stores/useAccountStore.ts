@@ -1,4 +1,4 @@
-import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
+import { AccountPlatformType, AccountStatusType, DraftStatusType } from "../../src/common/constants/accounts";
 import { ChannelType } from "../../src/common/constants/channels";
 import { CommandType } from "../../src/common/constants/commands";
 import { randomNumberBetween } from "../../src/common/helpers/math";
@@ -21,6 +21,15 @@ import { getUsernameForFid } from "@/common/helpers/farcaster";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
+
+const tranformDBDraftForLocalStore = (draft) => ({
+  id: draft.id,
+  data: draft.data,
+  createdAt: draft.created_at,
+  scheduledFor: draft?.scheduled_for,
+  publishedAt: draft?.published_at,
+  status: draft.status
+})
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 export enum CUSTOM_CHANNELS {
@@ -68,6 +77,16 @@ type UpdatedPinnedChannelIndicesProps = {
   newIndex: number;
 }
 
+
+export type DraftObjectType = {
+  id: UUID;
+  data: object;
+  createdAt: string;
+  scheduledFor?: string;
+  publishedAt?: string;
+  status: DraftStatusType
+}
+
 export type AccountObjectType = {
   id: UUID;
   userId?: string;
@@ -80,6 +99,7 @@ export type AccountObjectType = {
   createdAt?: string;
   data?: { deeplinkUrl?: string, signerToken?: string };
   channels: AccountChannelType[];
+  drafts: DraftObjectType[];
   user?: User;
 }
 
@@ -105,6 +125,8 @@ interface AccountStoreActions {
   resetStore: () => void;
   addPinnedChannel: (channel: ChannelType) => void;
   removePinnedChannel: (channel: ChannelType) => void;
+  addScheduledDraft: (draft: any, scheduledAt: Date) => Promise<void>;
+  removeScheduledDraft: (draftId: UUID) => Promise<void>;
 }
 
 
@@ -138,25 +160,30 @@ const store = (set: StoreSet) => ({
       });
       return;
     } else {
-      await supabaseClient
-        .from('accounts')
-        .insert({
-          name: account.name,
-          status: account.status,
-          public_key: account.publicKey,
-          platform: account.platform,
-          data: account.data || {},
-          private_key: account.privateKey,
-        })
-        .select()
-        .then(({ error, data }) => {
-          // console.log('response - data', data, 'error', error);
+      try {
 
-          if (!data || error) return;
-          set((state) => {
-            state.accounts.push({ ...account, ...{ id: data[0].id } });
-          });
-        })
+        await supabaseClient
+          .from('accounts')
+          .insert({
+            name: account.name,
+            status: account.status,
+            public_key: account.publicKey,
+            platform: account.platform,
+            data: account.data || {},
+            private_key: account.privateKey,
+          })
+          .select()
+          .then(({ error, data }) => {
+            console.log('response - data', data, 'error', error);
+
+            if (!data || error) return;
+            set((state) => {
+              state.accounts.push({ ...account, ...{ id: data[0].id } });
+            });
+          })
+      } catch (error) {
+        console.error("Failed to add account", error);
+      }
     }
     console.log('----> addAccount done')
   },
@@ -376,6 +403,49 @@ const store = (set: StoreSet) => ({
       }
       state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
     });
+  },
+  addScheduledDraft: async (draft: any, scheduledFor: Date): Promise<void> => {
+    set(async (state) => {
+      delete draft.status;
+      console.log('addScheduledDraft start', draft)
+      const account = state.accounts[state.selectedAccountIdx]
+      await supabaseClient
+        .from('draft')
+        .insert({
+          account_id: account.id,
+          data: draft,
+          scheduled_for: scheduledFor,
+          status: DraftStatusType.scheduled,
+        })
+        .select()
+        .then(({ error, data }) => {
+          console.log('insert draft - data', data, 'error', error);
+          if (error || !data) return;
+
+          const drafts = [...cloneDeep(account.drafts), tranformDBDraftForLocalStore(data[0])];
+          console.log('new drafts setting: drafts', drafts.length)
+          state.accounts[state.selectedAccountIdx] = {...account, ...{ drafts} };
+          console.log('end supabase insert.then()')
+        });
+      console.log('addScheduledDraft end, now has drafts:', state.accounts[state.selectedAccountIdx].drafts.length)
+    });
+  },
+  removeScheduledDraft: async (draftId: UUID): Promise<void> => {
+    set(async (state) => {
+      await supabaseClient
+        .from('draft')
+        .update({ status: DraftStatusType.removed })
+        .eq('id', draftId)
+        .select()
+        .then(({ error, data }) => {
+          console.log('response removeScheduledDraft - data', data, 'error', error);
+        });
+        
+      const selectedAccount = state.accounts[state.selectedAccountIdx]
+      const newDrafts = selectedAccount.drafts.filter((draft) => draft.id !== draftId);
+      state.accounts[state.selectedAccountIdx].drafts = newDrafts;
+      console.log('removeScheduledDraft: now has drafts', newDrafts.length, state.accounts[state.selectedAccountIdx].drafts.length)
+    });
   }
 });
 
@@ -441,6 +511,9 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
         icon_url: accountToChannel.channel.icon_url,
         source: accountToChannel.channel.source,
       }));
+
+      const drafts: DraftObjectType[] = account.draft.map(tranformDBDraftForLocalStore)
+
       return {
         id: account.id,
         name: account.name,
@@ -451,7 +524,8 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
         createdAt: account.created_at,
         data: account.data,
         privateKey: account.decrypted_private_key,
-        channels: channels,
+        channels,
+        drafts
       }
     })
     // get pfpUrl for each account based on platformAccountId which is fid

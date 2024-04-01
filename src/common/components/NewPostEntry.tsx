@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNewPostStore } from "@/stores/useNewPostStore";
+import { useLocalDraftStore } from "@/stores/useLocalDraftStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -41,8 +41,10 @@ import { ModsSearch } from "@mod-protocol/react-ui-shadcn/dist/components/creati
 import { renderers } from "@mod-protocol/react-ui-shadcn/dist/renderers";
 import map from "lodash.map";
 import { renderEmbedForUrl } from "./Embeds";
-import ImgurUpload from "@mods/imgur-upload";
 import { PhotoIcon } from "@heroicons/react/20/solid";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
+import { AccountPlatformType } from "../constants/accounts";
+import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -78,9 +80,16 @@ export default function NewPostEntry({
   onPost,
   hideChannel,
 }: NewPostEntryProps) {
-  const { updatePostDraft, publishPostDraft } = useNewPostStore();
+  const { updatePostDraft, publishPostDraft, removePostDraft } = useLocalDraftStore();
+  const { addScheduledDraft } = useAccountStore();
+  const selectedAccount = useAccountStore(
+    (state) => state.accounts?.[state.selectedAccountIdx]
+  );
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const hasEmbeds = draft?.embeds && draft.embeds.length > 0;
+  const [scheduleDateTime, setScheduleDateTime] = React.useState<Date | null>(
+    null
+  );
 
   const getChannels = async (query: string): Promise<Channel[]> => {
     const modChannels =
@@ -100,11 +109,21 @@ export default function NewPostEntry({
   };
 
   const onSubmitPost = async (): Promise<boolean> => {
-    if (draft?.text && draft.text.length > 0) {
-      await new Promise(() => publishPostDraft(draftIdx, account, onPost));
-      return true;
+    if (!draft?.text || !draft.text.length) return false;
+    if (selectedAccount.platform === AccountPlatformType.farcaster_local_readonly) {
+      toast.info('You\'re using a readonly account', { description: '<a href="/login">Switch to a full account to start casting ↗️</a>', descriptionClassName: "underline" })
+      return false;
     }
-    return false;
+
+    if (scheduleDateTime) {
+      await addScheduledDraft(draft, scheduleDateTime).then(() => {
+        console.log('addScheduledDraft.then starts here')
+        removePostDraft(draftIdx)
+      })
+    } else {
+      await new Promise(() => publishPostDraft(draftIdx, account, onPost));
+    }
+    return true;
   };
 
   const ref = useHotkeys("meta+enter", onSubmitPost, [draft, account], {
@@ -202,7 +221,6 @@ export default function NewPostEntry({
                   input={getText()}
                   embeds={getEmbeds()}
                   api={API_URL}
-                  // user={user}
                   variant="creation"
                   manifest={currentMod}
                   renderers={renderers}
@@ -223,7 +241,15 @@ export default function NewPostEntry({
           </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
-          <Button type="submit">Cast</Button>
+          <DateTimePicker
+            granularity="minute"
+            hourCycle={24}
+            onJsDateChange={setScheduleDateTime}
+            showClearButton
+          />
+          <Button size="lg" type="submit">
+            {scheduleDateTime ? "Schedule" : "Cast"}
+          </Button>
         </div>
       </form>
       {hasEmbeds && (

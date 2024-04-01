@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS "public"."accounts" (
 
 ALTER TABLE "public"."accounts" OWNER TO "postgres";
 
+-- this ID is hardcoded, but on local development we don't regenerate the same pgsodium key
 SECURITY LABEL FOR "pgsodium" ON COLUMN "public"."accounts"."private_key" IS 'ENCRYPT WITH KEY ID dcd0dca7-c03a-40c5-b348-fefb87be2845 SECURITY INVOKER';
 
 CREATE TABLE IF NOT EXISTS "public"."accounts_to_channel" (

@@ -30,7 +30,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   }, [profile]);
 
   const updateFollowStatus = async () => {
-    if (isFollowing === undefined) return;
+    if (isFollowing === undefined || !selectedAccount) return;
 
     setIsPending(true);
     if (isFollowing) {

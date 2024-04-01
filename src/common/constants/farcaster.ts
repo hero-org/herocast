@@ -5,14 +5,14 @@ export type ParentCastIdType = {
   hash: string;
 }
 
-export enum DraftStatus {
+export enum LocalDraftStatus {
   writing = "writing",
   publishing = "publishing",
   published = "published",
 }
 
 export type DraftType = PostType & {
-  status: DraftStatus,
+  status: LocalDraftStatus,
   mentionsToFids?: { [key: string]: string }
 };
 

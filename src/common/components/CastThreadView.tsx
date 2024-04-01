@@ -4,7 +4,7 @@ import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
 import { useAccountStore } from "@/stores/useAccountStore";
 import NewPostEntry from "./NewPostEntry";
-import { useNewPostStore } from "@/stores/useNewPostStore";
+import { useLocalDraftStore } from "@/stores/useLocalDraftStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { openWindow } from "../helpers/navigation";
@@ -38,12 +38,12 @@ export const CastThreadView = ({
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [selectedCastDepth, setSelectedCastDepth] = useState(0);
 
-  const draftIdx = useNewPostStore(
+  const draftIdx = useLocalDraftStore(
     (state) =>
       state.drafts &&
       state.drafts.findIndex((draft) => draft.parentCastId?.hash === cast?.hash)
   );
-  const { drafts } = useNewPostStore();
+  const { drafts } = useLocalDraftStore();
   const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 
   // upgrade this component
@@ -74,7 +74,7 @@ export const CastThreadView = ({
 
   const { selectedChannelUrl } = useAccountStore();
 
-  const { addNewPostDraft, removePostDraft } = useNewPostStore();
+  const { addNewLocalDraft, removePostDraft } = useLocalDraftStore();
 
   useEffect(() => {
     if (!cast || casts.length === 0 || !setSelectedCast) return;
@@ -122,7 +122,7 @@ export const CastThreadView = ({
 
     setSelectedCastIdx(0);
     loadData();
-    addNewPostDraft({
+    addNewLocalDraft({
       parentCastId: { hash: cast.hash, fid: cast.author.fid },
     });
 

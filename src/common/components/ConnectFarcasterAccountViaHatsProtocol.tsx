@@ -41,7 +41,7 @@ import {
   AccountStatusType,
 } from "@/common/constants/accounts";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { JoinedHerocastViaHatsProtocolDraft, useNewPostStore } from "@/stores/useNewPostStore";
+import { JoinedHerocastViaHatsProtocolDraft, useLocalDraftStore } from "@/stores/useLocalDraftStore";
 import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { isValidSignature, isValidSigner } from "@/lib/hats";
@@ -122,8 +122,8 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     useState<`0x${string}`>("0x");
 
   const {
-    addNewPostDraft,
-  } = useNewPostStore();
+    addNewLocalDraft,
+  } = useLocalDraftStore();
 
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
@@ -328,7 +328,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   }, [onchainTransactionHash, transactionResult]);
 
   const onPublishTestCast = async () => {
-    addNewPostDraft(JoinedHerocastViaHatsProtocolDraft);
+    addNewLocalDraft(JoinedHerocastViaHatsProtocolDraft);
     router.push('/post');
   };
 
@@ -479,7 +479,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
             </div>
           )}
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col">
           {buttonLabel && (
             <Button
               className="w-full"
@@ -493,7 +493,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
             </Button>
           )}
           {state.state === SignupStateEnum.SELECT_FARCASTER_ACCOUNT && (
-            <div className="ml-4 w-full">
+            <div className="mt-4 w-full">
               <SwitchWalletButton />
             </div>
           )}

@@ -25,7 +25,7 @@ import {
 } from "@heroicons/react/24/solid";
 import * as Toast from "@radix-ui/react-toast";
 import CustomToast from "../common/components/CustomToast";
-import { useNewPostStore } from "../stores/useNewPostStore";
+import { useLocalDraftStore } from "../stores/useLocalDraftStore";
 import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
