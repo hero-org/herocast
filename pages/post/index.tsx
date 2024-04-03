@@ -85,11 +85,11 @@ export default function NewPost() {
                 <div>{getIconForDraftStatus(draft.status)}</div>
                 <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                   <div>
-                    <p className="text-sm text-gray-500">{draft.data?.text} </p>
+                    <p className="text-sm text-gray-500 text-wrap break-all">{draft.data?.text} </p>
                   </div>
                   <div className="whitespace-nowrap text-right text-sm text-gray-500">
                     <time dateTime={draft.scheduledFor}>
-                      {draft.scheduledFor}
+                      {new Date(draft.scheduledFor).toUTCString()}
                     </time>
                     <Button
                       onClick={() => removeScheduledDraft(draft.id)}
@@ -164,7 +164,7 @@ export default function NewPost() {
                 draft={draft}
                 key={`draft-${draftIdx}`}
                 draftIdx={draftIdx}
-                onPost={() => null}
+                onPost={() => addNewLocalDraft({})}
               />
             </div>
           ))}

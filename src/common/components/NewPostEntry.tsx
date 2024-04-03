@@ -1,5 +1,8 @@
 import React, { useEffect } from "react";
-import { useLocalDraftStore } from "@/stores/useLocalDraftStore";
+import {
+  prepareCastBody,
+  useLocalDraftStore,
+} from "@/stores/useLocalDraftStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -24,7 +27,7 @@ import debounce from "lodash.debounce";
 import { Button } from "@/components/ui/button";
 import { MentionList } from "@mod-protocol/react-ui-shadcn/dist/components/mention-list";
 import { ChannelList } from "@mod-protocol/react-ui-shadcn/dist/components/channel-list";
-import { take } from "lodash";
+import { take, truncate } from "lodash";
 import { ChannelPicker } from "./ChannelPicker";
 import {
   Popover,
@@ -80,7 +83,8 @@ export default function NewPostEntry({
   onPost,
   hideChannel,
 }: NewPostEntryProps) {
-  const { updatePostDraft, publishPostDraft, removePostDraft } = useLocalDraftStore();
+  const { updatePostDraft, publishPostDraft, removePostDraft } =
+    useLocalDraftStore();
   const { addScheduledDraft } = useAccountStore();
   const selectedAccount = useAccountStore(
     (state) => state.accounts?.[state.selectedAccountIdx]
@@ -110,16 +114,31 @@ export default function NewPostEntry({
 
   const onSubmitPost = async (): Promise<boolean> => {
     if (!draft?.text || !draft.text.length) return false;
-    if (selectedAccount.platform === AccountPlatformType.farcaster_local_readonly) {
-      toast.info('You\'re using a readonly account', { description: '<a href="/login">Switch to a full account to start casting ↗️</a>', descriptionClassName: "underline" })
+    if (
+      selectedAccount.platform === AccountPlatformType.farcaster_local_readonly
+    ) {
+      toast.info("You're using a readonly account", {
+        description:
+          '<a href="/login">Switch to a full account to start casting ↗️</a>',
+        descriptionClassName: "underline",
+      });
       return false;
     }
 
     if (scheduleDateTime) {
-      await addScheduledDraft(draft, scheduleDateTime).then(() => {
-        console.log('addScheduledDraft.then starts here')
-        removePostDraft(draftIdx)
-      })
+      const castBody = await prepareCastBody(draft);
+      await addScheduledDraft(
+        castBody,
+        scheduleDateTime
+      ).then(() => {
+        console.log("addScheduledDraft.then starts here");
+        toast.success("Cast scheduled", {
+          description: truncate(castBody.text, { length: 25 })
+        });
+        setScheduleDateTime(null);
+        removePostDraft(draftIdx);
+        onPost?.();
+      });
     } else {
       await new Promise(() => publishPostDraft(draftIdx, account, onPost));
     }
@@ -244,6 +263,7 @@ export default function NewPostEntry({
           <DateTimePicker
             granularity="minute"
             hourCycle={24}
+            jsDate={scheduleDateTime}
             onJsDateChange={setScheduleDateTime}
             showClearButton
           />

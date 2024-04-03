@@ -11,7 +11,7 @@ import {
   hydrate,
   useAccountStore,
 } from "../../src/stores/useAccountStore";
-import { newPostCommands } from "../../src/stores/useNewPostStore";
+import { localDraftCommands } from "../../src/stores/useLocalDraftStore";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { getNavigationCommands } from "../../src/getNavigationCommands";
@@ -28,7 +28,7 @@ import { usePostHog } from "posthog-js/react";
 
 type SimpleCommand = {
   name: string;
-  shortcut: string;
+  shortcut?: string;
 };
 
 export default function Settings() {
@@ -85,7 +85,7 @@ export default function Settings() {
   };
 
   const refreshAccountNames = async () => {
-    Promise.all(accounts.map(syncAccountNameFromProtocolToDB))
+    Promise.all(accounts.map((account) => updateAccountUsername(account.id)))
       .then(() => {
         console.log("All account names refreshed successfully");
         hydrate();
@@ -103,7 +103,7 @@ export default function Settings() {
       { name: "Feed: Open thread view for cast", shortcut: "Enter or o" },
       { name: "Feed: Open embedded link in new tab", shortcut: "shift+o" },
       ...getNavigationCommands({ router }),
-      ...newPostCommands,
+      ...localDraftCommands,
       ...accountCommands,
       ...channelCommands,
     ];

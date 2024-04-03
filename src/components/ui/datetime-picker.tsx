@@ -167,7 +167,7 @@ function CalendarCell({ state, date }: CalendarCellProps) {
         ref={ref}
         className={cn(
           buttonProps.className,
-          'h-9 w-9',
+          'h-8 w-8',
           isToday && 'bg-accent text-accent-foreground',
           isSelected &&
             'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
@@ -288,6 +288,7 @@ const DateTimePicker = React.forwardRef<
     jsDate?: Date | null;
     onJsDateChange?: (date: Date | null) => void;
     showClearButton?: boolean;
+    // hourCycle?: 12 | 24;
   }
 >(({ jsDate, onJsDateChange, showClearButton = true, ...props }, ref) => {
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -328,6 +329,12 @@ const DateTimePicker = React.forwardRef<
   }, [jsDatetime, state.hasTime]);
 
   useEffect(() => {
+    if (jsDate) {
+      setJsDatetime(jsDate);
+    }
+  }, [jsDate]);
+
+  useEffect(() => {
     /**
      * If user types datetime, it will be a null value until we get the correct datetime.
      * This is controlled by react-aria.
@@ -340,7 +347,6 @@ const DateTimePicker = React.forwardRef<
   }, [state.value, onJsDateChange]);
 
   const onClear = () => {
-    console.log('onClear')
     setJsDatetime(null);
     state.setValue(null);
     onJsDateChange?.(null);
@@ -371,7 +377,7 @@ const DateTimePicker = React.forwardRef<
         <PopoverContent ref={contentRef} className="w-full">
           <div {...dialogProps} className="space-y-3">
             <Calendar {...calendarProps} />
-            {state.hasTime && <TimeField value={state.timeValue} onChange={state.setTimeValue} />}
+            {state.hasTime && <TimeField granularity="minute" hourCycle={24} value={state.timeValue} onChange={state.setTimeValue} />}
           </div>
         </PopoverContent>
       </Popover>

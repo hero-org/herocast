@@ -22,13 +22,25 @@ import { getUsernameForFid } from "@/common/helpers/farcaster";
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
 
-const tranformDBDraftForLocalStore = (draft) => ({
+const tranformDBDraftForLocalStore = (draft): DraftObjectType => ({
   id: draft.id,
   data: draft.data,
   createdAt: draft.created_at,
   scheduledFor: draft?.scheduled_for,
   publishedAt: draft?.published_at,
   status: draft.status
+})
+
+const transformDBAccountForLocalStore = (account): Omit<AccountObjectType, 'drafts' | 'channels'> => ({
+  id: account.id,
+  name: account.name,
+  status: account.status,
+  publicKey: account.public_key,
+  platform: account.platform,
+  platformAccountId: account.platform_account_id,
+  createdAt: account.created_at,
+  data: account.data,
+  privateKey: account.decrypted_private_key,
 })
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
@@ -405,46 +417,48 @@ const store = (set: StoreSet) => ({
     });
   },
   addScheduledDraft: async (draft: any, scheduledFor: Date): Promise<void> => {
-    set(async (state) => {
-      delete draft.status;
-      console.log('addScheduledDraft start', draft)
-      const account = state.accounts[state.selectedAccountIdx]
-      await supabaseClient
-        .from('draft')
-        .insert({
-          account_id: account.id,
-          data: draft,
-          scheduled_for: scheduledFor,
-          status: DraftStatusType.scheduled,
-        })
-        .select()
-        .then(({ error, data }) => {
-          console.log('insert draft - data', data, 'error', error);
-          if (error || !data) return;
+    console.log('addScheduledDraft start', draft)
+    const state = useAccountStore.getState();
+    const account = state.accounts[state.selectedAccountIdx];
+    const { data, error } = await supabaseClient
+      .from('draft')
+      .insert({
+        account_id: account.id,
+        data: draft,
+        scheduled_for: scheduledFor,
+        status: DraftStatusType.scheduled,
+      })
+      .select()
+    if (error || !data) {
+      console.error('Failed to add scheduled draft', error, data);
+      return;
+    }
+    const newDrafts = [...cloneDeep(account.drafts), tranformDBDraftForLocalStore(data[0])];
+    if (!newDrafts.length) return;
 
-          const drafts = [...cloneDeep(account.drafts), tranformDBDraftForLocalStore(data[0])];
-          console.log('new drafts setting: drafts', drafts.length)
-          state.accounts[state.selectedAccountIdx] = {...account, ...{ drafts} };
-          console.log('end supabase insert.then()')
-        });
-      console.log('addScheduledDraft end, now has drafts:', state.accounts[state.selectedAccountIdx].drafts.length)
+    set((state) => {
+      console.log('addScheduledDraft end, now has drafts:', newDrafts.length)
+      state.accounts[state.selectedAccountIdx] = { ...account, ...{ drafts: newDrafts } };
     });
   },
   removeScheduledDraft: async (draftId: UUID): Promise<void> => {
-    set(async (state) => {
-      await supabaseClient
-        .from('draft')
-        .update({ status: DraftStatusType.removed })
-        .eq('id', draftId)
-        .select()
-        .then(({ error, data }) => {
-          console.log('response removeScheduledDraft - data', data, 'error', error);
-        });
-        
-      const selectedAccount = state.accounts[state.selectedAccountIdx]
-      const newDrafts = selectedAccount.drafts.filter((draft) => draft.id !== draftId);
-      state.accounts[state.selectedAccountIdx].drafts = newDrafts;
-      console.log('removeScheduledDraft: now has drafts', newDrafts.length, state.accounts[state.selectedAccountIdx].drafts.length)
+    const { data, error } = await supabaseClient
+      .from('draft')
+      .update({ status: DraftStatusType.removed })
+      .eq('id', draftId)
+      .select()
+
+    if (error || !data) {
+      console.error('Failed to remove scheduled draft', error, data);
+      return;
+    }
+
+    const state = useAccountStore.getState();
+    const selectedAccount = state.accounts[state.selectedAccountIdx]
+    const newDrafts = selectedAccount.drafts.filter((draft) => draft.id !== draftId);
+
+    set((state) => {
+      state.accounts[state.selectedAccountIdx] = { ...selectedAccount, ...{ drafts: newDrafts } };
     });
   }
 });
@@ -515,15 +529,7 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       const drafts: DraftObjectType[] = account.draft.map(tranformDBDraftForLocalStore)
 
       return {
-        id: account.id,
-        name: account.name,
-        status: account.status,
-        publicKey: account.public_key,
-        platform: account.platform,
-        platformAccountId: account.platform_account_id,
-        createdAt: account.created_at,
-        data: account.data,
-        privateKey: account.decrypted_private_key,
+        ...transformDBAccountForLocalStore(account),
         channels,
         drafts
       }

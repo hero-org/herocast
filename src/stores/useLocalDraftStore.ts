@@ -19,7 +19,35 @@ import { AccountPlatformType } from "@/common/constants/accounts";
 import { createClient } from "@/common/helpers/supabase/component";
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
-const supabaseClient = createClient();
+
+export const prepareCastBody = async (draft) => {
+  const castBody: {
+    text: string;
+    embeds?: Embed[] | undefined;
+    embedsDeprecated?: string[];
+    mentions?: number[];
+    mentionsPositions?: number[];
+    parentCastId?: CastId | { fid: number, hash: string };
+  } | false = await formatPlaintextToHubCastMessage({
+    text: draft.text,
+    embeds: draft.embeds,
+    getMentionFidsByUsernames: getMentionFids,
+    parentUrl: draft.parentUrl,
+    parentCastFid: Number(draft.parentCastId?.fid),
+    parentCastHash: draft.parentCastId?.hash,
+  });
+
+  if (!castBody) {
+    throw new Error('Failed to prepare cast');
+  }
+  if (castBody.parentCastId) {
+    castBody.parentCastId = {
+      fid: Number(castBody.parentCastId.fid),
+      hash: toHex(castBody.parentCastId.hash)
+    }
+  }
+  return castBody;
+}
 
 export const NewPostDraft: DraftType = {
   text: "",
@@ -162,37 +190,13 @@ const store = (set: StoreSet) => ({
       const draft = state.drafts[draftIdx];
 
       try {
-        state.updatePostDraft(draftIdx, { ...draft, status: LocalDraftStatus.publishing });
-        const castBody: {
-          text: string;
-          embeds?: Embed[] | undefined;
-          embedsDeprecated?: string[];
-          mentions?: number[];
-          mentionsPositions?: number[];
-          parentCastId?: CastId | { fid: number, hash: string };
-        } | false = await formatPlaintextToHubCastMessage({
-          text: draft.text,
-          embeds: draft.embeds,
-          getMentionFidsByUsernames: getMentionFids,
-          parentUrl: draft.parentUrl,
-          parentCastFid: Number(draft.parentCastId?.fid),
-          parentCastHash: draft.parentCastId?.hash,
-        });
-
-        if (!castBody) {
-          throw new Error('Failed to prepare cast');
-        }
-        if (castBody.parentCastId) {
-          castBody.parentCastId = {
-            fid: Number(castBody.parentCastId.fid),
-            hash: toHex(castBody.parentCastId.hash)
-          }
-        }
-
-
         if (account.platform === AccountPlatformType.farcaster_local_readonly) {
           toast.info('You\'re using a readonly account', { description: '<a href="/login">Switch to a full account to start casting ↗️</a>', descriptionClassName: "underline" })
+          return;
         }
+
+        state.updatePostDraft(draftIdx, { ...draft, status: LocalDraftStatus.publishing });
+        const castBody = await prepareCastBody(draft);
 
         await submitCast({
           ...castBody,
