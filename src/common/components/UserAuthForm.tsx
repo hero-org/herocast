@@ -20,7 +20,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { hydrateChannels, useAccountStore } from "@/stores/useAccountStore";
+import { hydrate, hydrateChannels, useAccountStore } from "@/stores/useAccountStore";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { v4 as uuidv4 } from "uuid";
@@ -115,8 +115,11 @@ export function UserAuthForm({ className }: { className: string }) {
         message: error.message,
       });
       console.error(error);
+      return;
     }
+  
     posthog.identify(data?.user?.id, { email });
+    await hydrate();
     setIsLoading(false);
     router.push("/feed");
   }
@@ -134,9 +137,10 @@ export function UserAuthForm({ className }: { className: string }) {
         message: error.message,
       });
       console.error(error);
+      return;
     }
-    posthog.identify(data?.user?.id, { email });
 
+    posthog.identify(data?.user?.id, { email });
     setIsLoading(false);
     router.push("/welcome");
   }

@@ -62,7 +62,7 @@ const RecommendedProfilesCard = () => {
   }, [profiles]);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 lg:px-8 mb-12">
+    <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-8">
       <div className="mx-auto max-w-2xl lg:mx-0">
         <h2 className="text-xl font-semibold tracking-tight text-foreground">
           Follow more profiles to see more content

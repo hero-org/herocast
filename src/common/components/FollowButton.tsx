@@ -60,6 +60,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   return (
     <Button
       size="lg"
+      variant="outline"
       className="rounded-sm group"
       onClick={(e) => {
         if (!selectedAccount) router.push("/login");
