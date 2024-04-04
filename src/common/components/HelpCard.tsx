@@ -12,7 +12,7 @@ import { openWindow } from "@/common/helpers/navigation";
 import { Button } from '@/components/ui/button';
 
 const HelpCard = () => (
-    <Card className="bg-background text-foreground">
+    <Card>
         <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Need help?</CardTitle>
             <CardDescription>
@@ -20,12 +20,12 @@ const HelpCard = () => (
             </CardDescription>
         </CardHeader>
         <CardContent className="grid">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Button variant="default" onClick={() => openWindow('https://warpcast.com/hellno')}>
                     <ChatBubbleLeftEllipsisIcon className="mr-2 h-4 w-4" />
                     Talk to me on Warpcast
                 </Button>
-                <Button variant="link" onClick={() => openWindow('https://t.me/HELLNO_HELLNO')}>
+                <Button variant="outline" onClick={() => openWindow('https://t.me/HELLNO_HELLNO')}>
                     <PaperAirplaneIcon className="mr-2 h-4 w-4" />
                     Talk to me on Telegram
                 </Button>

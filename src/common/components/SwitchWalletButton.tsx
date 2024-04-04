@@ -20,7 +20,7 @@ export default function SwitchWalletButton() {
   }, [address]);
 
   return (
-    <div className="flex flex-col max-w-xs">
+    <div className="flex flex-col">
       <Button
         variant="outline"
         onClick={() => openConnectModal?.() || openAccountModal?.()}

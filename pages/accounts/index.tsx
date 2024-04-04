@@ -98,10 +98,12 @@ export default function Accounts() {
       account.status === AccountStatusType.pending &&
       account.platform === AccountPlatformType.farcaster
   );
-  const hasOnlyLocalAccounts = accounts.every(
-    (account) =>
-      account.platform === AccountPlatformType.farcaster_local_readonly
-  );
+  const hasOnlyLocalAccounts =
+    accounts.length &&
+    accounts.every(
+      (account) =>
+        account.platform === AccountPlatformType.farcaster_local_readonly
+    );
   const hasPendingNewAccounts = pendingAccounts.length > 0;
   const pendingAccount = hasPendingNewAccounts ? pendingAccounts[0] : null;
 
@@ -129,7 +131,7 @@ export default function Accounts() {
       publicKey,
       requestFid,
       signature,
-      deadline
+      deadline,
     });
 
     try {
@@ -353,21 +355,23 @@ export default function Accounts() {
     <div className="m-4 flex flex-col gap-5">
       {(hasActiveAccounts || signupState === SignupStateEnum.done) &&
         renderDoneStep()}
-      <div className="w-2/3 flex flex-col gap-5">
+      <div className="w-full flex flex-col gap-5">
         {hasOnlyLocalAccounts ? (
-          <div className="flex w-full">{renderSignupForNonLocalAccount()}</div>
+          <div className="flex">{renderSignupForNonLocalAccount()}</div>
         ) : (
           <>
-            <div className="flex w-full">
+            <div className="max-w-md lg:max-w-lg">
               {signupState === SignupStateEnum.initial &&
                 renderCreateSignerStep()}
               {signupState === SignupStateEnum.connecting &&
                 renderConnectAccountStep()}
             </div>
+            <div className="max-w-md lg:max-w-lg">
+              <HelpCard />
+            </div>
             <ConnectFarcasterAccountViaHatsProtocol />
           </>
         )}
-        <HelpCard />
       </div>
     </div>
   );

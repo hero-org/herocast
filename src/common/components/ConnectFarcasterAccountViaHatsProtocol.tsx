@@ -459,7 +459,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
 
   const buttonLabel = getButtonLabel();
   return (
-    <div className="flex w-full max-w-xl">
+    <div className="flex max-w-full lg:max-w-lg">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
@@ -479,7 +479,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
             </div>
           )}
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col">
           {buttonLabel && (
             <Button
               className="w-full"
@@ -493,7 +493,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
             </Button>
           )}
           {state.state === SignupStateEnum.SELECT_FARCASTER_ACCOUNT && (
-            <div className="ml-4 w-full">
+            <div className="mt-4 w-full">
               <SwitchWalletButton />
             </div>
           )}
