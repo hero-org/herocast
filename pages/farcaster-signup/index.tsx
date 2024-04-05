@@ -49,8 +49,6 @@ export default function Welcome() {
   const { isConnected } = useAccount();
   const [step, setStep] = useState<string>(onboardingNavItems[1].key);
   const router = useRouter();
-  const { openConnectModal } = useConnectModal();
-  const { openAccountModal } = useAccountModal();
 
   useEffect(() => {
     if (isConnected && step === FarcasterSignupNav.connect_wallet) {

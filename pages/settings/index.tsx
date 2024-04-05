@@ -21,7 +21,7 @@ import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import { AccountPlatformType } from "../../src/common/constants/accounts";
 import { Loading } from "../../src/common/components/Loading";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
-import { getUsernameForFid } from "../../src/common/helpers/farcaster";
+import { getUsernameForFid, updateUsername } from "../../src/common/helpers/farcaster";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { createClient } from "../../src/common/helpers/supabase/component";
 import { usePostHog } from "posthog-js/react";
@@ -85,7 +85,7 @@ export default function Settings() {
   };
 
   const refreshAccountNames = async () => {
-    Promise.all(accounts.map(syncAccountNameFromProtocolToDB))
+    Promise.all(accounts.map((account) => updateAccountUsername(account.id)))
       .then(() => {
         console.log("All account names refreshed successfully");
         hydrate();
