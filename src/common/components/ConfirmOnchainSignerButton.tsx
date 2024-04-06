@@ -13,7 +13,11 @@ import { KEY_REGISTRY } from "../constants/contracts/key-registry";
 import { CheckCircleIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
 import { ID_REGISTRY } from "../constants/contracts/id-registry";
 import { mnemonicToAccount } from "viem/accounts";
-import { AccountObjectType, hydrate } from "@/stores/useAccountStore";
+import {
+  AccountObjectType,
+  hydrate,
+  useAccountStore,
+} from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { useAccountModal } from "@rainbow-me/rainbowkit";
 import { getChainId } from "@wagmi/core";
@@ -22,22 +26,11 @@ import { writeContract } from "@wagmi/core";
 import SwitchWalletButton from "./SwitchWalletButton";
 import { KEY_GATEWAY } from "../constants/contracts/key-gateway";
 import { getSignedKeyRequestMetadataFromAppAccount } from "../helpers/farcaster";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { Label } from "@/components/ui/label";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC!;
-
-const SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN = {
-  name: "Farcaster SignedKeyRequestValidator",
-  version: "1",
-  chainId: 10,
-  verifyingContract: "0x00000000fc700472606ed4fa22623acf62c60553",
-} as const;
-
-const SIGNED_KEY_REQUEST_TYPE = [
-  { name: "requestFid", type: "uint256" },
-  { name: "key", type: "bytes" },
-  { name: "deadline", type: "uint256" },
-] as const;
 
 const SIGNED_KEY_REQUEST_TYPE_V2 = [
   {
@@ -92,39 +85,21 @@ const ConfirmOnchainSignerButton = ({
     args: address ? [address] : undefined,
   });
 
+  const isWalletOwnerOfFid = idOfUser !== 0n;
   if (idOfUserError) console.log("idOfUserError", idOfUserError);
 
+  const { setAccountActive } = useAccountStore();
   const appAccount = mnemonicToAccount(APP_MNENOMIC);
-  console.log("account", account, "appAccount", appAccount);
   const enabled = !isEmpty(account);
   const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
 
   const getSignature = useCallback(async () => {
     if (!account || !account.publicKey) return;
-    return getSignedKeyRequestMetadataFromAppAccount(account.publicKey, deadline)
+    return getSignedKeyRequestMetadataFromAppAccount(
+      account.publicKey,
+      deadline
+    );
   }, [account, deadline]);
-
-  const getAddKeyConfig = (signature: `0x${string}`) => ({
-    ...KEY_GATEWAY,
-    functionName: enabled ? "add" : undefined,
-    args: [
-      1,
-      account.publicKey as `0x${string}`,
-      1,
-      encodeAbiParameters(SIGNED_KEY_REQUEST_TYPE_V2, [
-        {
-          requestFid: BigInt(APP_FID),
-          requestSigner: appAccount.address,
-          signature: signature,
-          deadline: BigInt(deadline),
-        },
-      ]),
-    ],
-  });
-  // const simulateContractResult = useSimulateContract(addKeyConfig);
-  // console.log('simulateContractResult', JSON.stringify(simulateContractResult))
-  // const { failureCount, failureReason, data: prepareToAddKeyData, error: prepareToAddKeyError }  = simulateContractResult;
-  // console.log('prepareToAddKeyData', prepareToAddKeyData, 'prepareToAddKeyError', prepareToAddKeyError);
 
   const {
     data: addKeyTxReceipt,
@@ -135,10 +110,26 @@ const ConfirmOnchainSignerButton = ({
   } = useWaitForTransactionReceipt({ hash: addKeyTx });
 
   useEffect(() => {
+    const setupAccount = async () => {
+      if (!isAddKeyTxLoading || !isWalletOwnerOfFid) return;
+
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const user = (
+        await neynarClient.fetchBulkUsers([Number(idOfUser)], {
+          viewerFid: Number(APP_FID!),
+        })
+      ).users[0];
+      await setAccountActive(account.id, user.username, {
+        platform_account_id: user.fid.toString(),
+      });
+      hydrate();
+    };
     if (isAddKeyTxSuccess) {
-        hydrate();
+      setupAccount();
     }
-  }, [isAddKeyTxSuccess])
+  }, [idOfUser, isAddKeyTxSuccess]);
 
   console.log(
     "addKeyTxReceipt",
@@ -156,11 +147,14 @@ const ConfirmOnchainSignerButton = ({
   const onClick = async () => {
     if (chainId !== 10) {
       switchChain?.({ chainId: 10 });
-    } else if (!idOfUser) {
+    } else if (!isWalletOwnerOfFid) {
       openAccountModal?.();
     } else {
       try {
         const signature = await getSignature();
+        if (!signature) {
+          throw new Error("Failed to get signature to confirm onchain account");
+        }
         console.log("signature", signature);
         const addKeyTx = await writeContract(config, {
           ...KEY_GATEWAY,
@@ -186,13 +180,11 @@ const ConfirmOnchainSignerButton = ({
     }
   };
 
-  const isPending = addKeySignPending;
   const isError = addKeyError !== null;
 
   const getButtonText = () => {
     // if (addKeySignPending) return 'Waiting for you to sign in your wallet'
     if (chainId !== 10) return "Switch to Optimism";
-    if (!idOfUser) return "Switch wallet";
     if (isAddKeyTxLoading)
       return "Waiting for onchain transaction to be confirmed";
     if (isAddKeyTxSuccess) return "Confirmed onchain";
@@ -203,14 +195,19 @@ const ConfirmOnchainSignerButton = ({
 
   return (
     <div className="flex flex-col gap-5">
+      {!isWalletOwnerOfFid && (
+        <Label>
+          Connect a wallet that owns a Farcaster account.
+        </Label>
+      )}
       <Button
         variant="default"
         className="w-full"
         onClick={() => onClick()}
-        disabled={!enabled || isAddKeyTxSuccess || isError}
+        disabled={!enabled || !isWalletOwnerOfFid || isAddKeyTxSuccess || isError}
       >
         {getButtonText()}
-        {isPending && (
+        {isAddKeyTxLoading && (
           <Cog6ToothIcon
             className="ml-1.5 h-5 w-5 text-foreground/80 animate-spin"
             aria-hidden="true"
@@ -218,8 +215,9 @@ const ConfirmOnchainSignerButton = ({
         )}
         {isAddKeyTxSuccess && (
           <CheckCircleIcon
-          className="ml-1.5 h-6 w-6 text-green-600"
-          aria-hidden="true" />
+            className="ml-1.5 h-6 w-6 text-green-600"
+            aria-hidden="true"
+          />
         )}
       </Button>
       {!isAddKeyTxSuccess && <SwitchWalletButton />}

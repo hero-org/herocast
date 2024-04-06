@@ -42,7 +42,7 @@ const RecommendedProfilesCard = () => {
       );
 
       const relevantFollowers = await client.fetchActiveUsers({
-        limit: 26,
+        limit: 14,
       });
 
       if (!relevantFollowers || !relevantFollowers.users) {

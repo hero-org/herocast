@@ -23,13 +23,9 @@ import {
   NewspaperIcon,
   RectangleGroupIcon,
 } from "@heroicons/react/24/solid";
-import * as Toast from "@radix-ui/react-toast";
-import CustomToast from "../common/components/CustomToast";
-import { useNewPostStore } from "../stores/useNewPostStore";
 import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
-import { trackPageView } from "@/common/helpers/analytics";
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
@@ -149,12 +145,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     name: "",
     getTitle: null,
   };
+
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
-
-  useEffect(() => {
-    trackPageView(pathname.slice(1));
-  }, [pathname]);
-
   const sidebarType = getSidebarForPathname(pathname);
 
   const renderRightSidebar = () => {

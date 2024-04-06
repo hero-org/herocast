@@ -250,7 +250,7 @@ export default function Accounts() {
           <Card className="bg-background text-foreground">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">
-                Sign in with Ethereum wallet
+                Sign in with Web3 wallet
               </CardTitle>
               <CardDescription className="text-muted-foreground">
                 Pay with ETH on Optimism to connect with herocast

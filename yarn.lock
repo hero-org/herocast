@@ -22,18 +22,6 @@
   resolved "https://registry.yarnpkg.com/@alloc/quick-lru/-/quick-lru-5.2.0.tgz#7bf68b20c0a350f936915fcae06f58e32007ce30"
   integrity sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==
 
-"@aptabase/react@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@aptabase/react/-/react-0.2.2.tgz#9ec314f97a8b11f0b3ab87704ba4b4edd047e068"
-  integrity sha512-uFfofesYZWfEovGTl34w86bI0Ly/sNvyl9oU8VVKiHbHaKv5ufKEvuuINLU6lHkkXbmOQ+OzciVZX/FcldstGQ==
-  dependencies:
-    "@aptabase/web" "^0.3.0"
-
-"@aptabase/web@^0.3.0":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@aptabase/web/-/web-0.3.2.tgz#e905e91e58e124208d3406789e93a34bae0f4a50"
-  integrity sha512-Prl2Fu5hnzHaOcOet5s3OhEvT8dymqhQ/K02ziZVzq8suhcW9TOde8mUf5Sp1YrAxIMjKioBpTC/7HNYXvirSw==
-
 "@babel/code-frame@^7.0.0":
   version "7.23.5"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.23.5.tgz#9009b69a8c602293476ad598ff53e4562e15c244"
@@ -1038,9 +1026,9 @@
   integrity sha512-9WEbVRRAqJ3YFVqEZIxUqkiO8l1nool1LmNxygr5HWF8AcSYsEpneUDhmjUVJEzO2A04+oPtZdombzzPPkTtgg==
 
 "@neynar/nodejs-sdk@^1.9.6":
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/@neynar/nodejs-sdk/-/nodejs-sdk-1.14.0.tgz#e86f9824e662cda72a84922203fd0304a5391ee9"
-  integrity sha512-VfN15qPA4T8L7oKdwjPQNfh7xCpkCeEl0jAIdgu3lt4Mw93x79kiY2x8TjKtkXyVb6oSzH+aq8haIz/dik5LkQ==
+  version "1.15.0"
+  resolved "https://registry.yarnpkg.com/@neynar/nodejs-sdk/-/nodejs-sdk-1.15.0.tgz#7b0b7640abbd9137bda4aeba873516c5b8e32e81"
+  integrity sha512-XQzAJn2KmRPS6Tu6u1/k5wS61BdgEKDZs5dTJJQjnG3uQulDRCMUyx0+medNEGbwjSINstj/YiS/iBEWBtn0Ew==
   dependencies:
     "@openapitools/openapi-generator-cli" "^2.7.0"
     axios "^1.6.2"

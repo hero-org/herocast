@@ -90,7 +90,15 @@ export default function Feed() {
   };
 
   useEffect(() => {
-    if (!showCastThreadView) setSelectedCast(feed[selectedFeedIdx]);
+    if (!showCastThreadView) {
+      setSelectedCast(feed[selectedFeedIdx]);
+
+      if (selectedFeedIdx === 0) {
+        window.scrollTo(0, 0);
+      } else if (selectedFeedIdx === feed.length - 1) {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
+    }
   }, [selectedFeedIdx, showCastThreadView]);
 
   useEffect(() => {
@@ -110,7 +118,14 @@ export default function Feed() {
         cursor: nextFeedCursor,
       });
     }
-  }, [selectedFeedIdx, feed, account, selectedChannelUrl, inView, isLoadingFeed]);
+  }, [
+    selectedFeedIdx,
+    feed,
+    account,
+    selectedChannelUrl,
+    inView,
+    isLoadingFeed,
+  ]);
 
   useHotkeys(
     [Key.Escape, "§"],
@@ -289,7 +304,11 @@ export default function Feed() {
   const renderContent = () => (
     <>
       <div className="min-w-full">
-      {isLoadingFeed && isEmpty(feed) && <div className="ml-4"><Loading /></div>}
+        {isLoadingFeed && isEmpty(feed) && (
+          <div className="ml-4">
+            <Loading />
+          </div>
+        )}
         {showCastThreadView ? (
           renderThread()
         ) : (

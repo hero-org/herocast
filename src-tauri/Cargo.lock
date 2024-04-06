@@ -71,7 +71,6 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
- "tauri-plugin-aptabase",
 ]
 
 [[package]]
@@ -3505,25 +3504,6 @@ dependencies = [
  "syn 1.0.109",
  "tauri-codegen",
  "tauri-utils",
-]
-
-[[package]]
-name = "tauri-plugin-aptabase"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a15ea259aecca447ff1ae6de28c9c1e756fc83735840803a9ec766b6c577006"
-dependencies = [
- "futures",
- "log",
- "os_info",
- "reqwest",
- "serde",
- "serde_json",
- "tauri",
- "thiserror",
- "time",
- "tokio",
- "uuid",
 ]
 
 [[package]]

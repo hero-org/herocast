@@ -4,7 +4,6 @@ import { create as mutativeCreate, Draft } from 'mutative';
 import { CommandType } from "../../src/common/constants/commands";
 import { PlusCircleIcon, TagIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { AccountObjectType } from "./useAccountStore";
-import { trackEventWithProperties } from "../../src/common/helpers/analytics";
 import { DraftStatus, DraftType, ParentCastIdType } from "../../src/common/constants/farcaster";
 import {
   getMentionFidsByUsernames,
@@ -13,9 +12,8 @@ import {
 import { submitCast } from "@/common/helpers/farcaster";
 import { toHex } from "viem";
 import { CastId, Embed } from "@farcaster/hub-web";
-import { toast } from "sonner";
-import truncate from "lodash.truncate";
 import { AccountPlatformType } from "@/common/constants/accounts";
+import { toastInfoReadOnlyMode } from "@/common/helpers/toast";
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 
@@ -187,7 +185,7 @@ const store = (set: StoreSet) => ({
 
 
         if (account.platform === AccountPlatformType.farcaster_local_readonly) {
-          toast.info('You\'re using a readonly account', { description: '<a href="/login">Switch to a full account to start casting ↗️</a>', descriptionClassName: "underline" })
+          toastInfoReadOnlyMode();
         }
 
         await submitCast({
@@ -196,9 +194,8 @@ const store = (set: StoreSet) => ({
           fid: Number(account.platformAccountId),
         });
 
-        trackEventWithProperties('publish_post', { authorFid: account.platformAccountId });
         state.removePostDraft(draftIdx);
-        toast.success('Cast published successfully', { description: truncate(draft.text, { length: 25 }) });
+        toastSuccessCastPublished(draft.text);
 
         if (onPost) onPost();
       } catch (error) {

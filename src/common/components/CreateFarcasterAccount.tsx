@@ -160,7 +160,7 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
       );
       setIsPending(false);
       setError(
-        `Error when trying to sign register: ${registerSignatureResponse}`
+        `Error when trying to sign register: ${JSON.stringify(registerSignatureResponse)}`
       );
       return;
     }

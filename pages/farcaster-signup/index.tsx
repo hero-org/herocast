@@ -121,7 +121,7 @@ export default function Welcome() {
         return getStepContent(
           "Connect your wallet",
           "We will create a Farcaster account onchain in the next step.",
-          <div className="flex flex-row gap-4">
+          <div className="flex flex-col gap-4">
             <SwitchWalletButton />
             <Button
               disabled={!isConnected}
