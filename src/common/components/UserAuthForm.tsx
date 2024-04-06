@@ -20,10 +20,16 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { hydrate, hydrateChannels, useAccountStore } from "@/stores/useAccountStore";
+import {
+  hydrate,
+  hydrateChannels,
+  useAccountStore,
+} from "@/stores/useAccountStore";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { v4 as uuidv4 } from "uuid";
+import { useHotkeys } from "react-hotkeys-hook";
+import { Key } from "ts-key-enum";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -117,7 +123,7 @@ export function UserAuthForm({ className }: { className: string }) {
       console.error(error);
       return;
     }
-  
+
     posthog.identify(data?.user?.id, { email });
     await hydrate();
     router.push("/feed");
@@ -163,6 +169,8 @@ export function UserAuthForm({ className }: { className: string }) {
     setUserMessage("Password reset email sent.");
     setIsLoading(false);
   }
+
+  useHotkeys(Key.Enter, logIn, [form.getValues()], { enableOnFormTags: true });
 
   return (
     <div className={cn("grid gap-6", className)}>
