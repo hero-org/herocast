@@ -13,7 +13,7 @@ import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { CastParamType, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1";
 
 type CastThreadViewProps = {
@@ -45,10 +45,6 @@ export const CastThreadView = ({
   );
   const { drafts } = useNewPostStore();
   const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
-
-  // upgrade this component
-  // - simple iterate with j,k along the full data, maybe I flatten the tree and just have a list with depth of cast?
-  // - make sure setSelectedCast works, because this opens up the reply modal
 
   const castTree = useMemo(() => {
     if (casts.length === 0) return [];
@@ -82,6 +78,14 @@ export const CastThreadView = ({
     setSelectedCast(casts[selectedCastIdx]);
   }, [cast, selectedCastIdx, casts]);
 
+  useEffect(() => {
+    if (selectedCastIdx === 0) {
+      window.scrollTo(0, 0);
+    } else if (selectedCastIdx === casts.length - 1) {
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+  }, [selectedCastIdx]);
+
   const renderGoBackButton = () => (
     <Button
       variant="outline"
@@ -107,9 +111,10 @@ export const CastThreadView = ({
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const { result } = await neynarClient.fetchAllCastsInThread(cast.hash, Number(fid));
-      if (result.casts && result.casts.length > 0) {
-        setCasts(result.casts);
+      const { conversation } = await neynarClient.lookupCastConversation(cast.hash, CastParamType.Hash, {replyDepth: 1, includeChronologicalParentCasts: true });
+      const {direct_replies: replies, ...castObjectWithoutReplies} = conversation.cast;
+      if (replies) {
+        setCasts([castObjectWithoutReplies].concat(replies));
       } else {
         const castResponse = await neynarClient.lookUpCastByHash(cast.hash, {viewerFid: Number(fid)});
         setCasts([castResponse.result.cast]);
@@ -259,7 +264,7 @@ export const CastThreadView = ({
 
   return (
     <div className="flex flex-col text-foreground/80 text-lg">
-      {isLoading ? <Loading /> : renderThread()}
+      {isLoading ? <Loading className="ml-4" /> : renderThread()}
       {!isLoading && onBack && (
         <div className="mb-4">{renderGoBackButton()}</div>
       )}

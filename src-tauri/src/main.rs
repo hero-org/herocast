@@ -8,7 +8,6 @@ use serde_json::json;
 use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Manager; // used by .get_window
-use tauri_plugin_aptabase::EventTracker;
 // use tauri_plugin_window_state;
 
 #[derive(Clone, serde::Serialize)]
@@ -53,22 +52,6 @@ fn main() {
     // .plugin(tauri_plugin_window_state::Builder::default().build()) // Enable if you want to control the window state
     // .plugin(tauri_plugin_store::Builder::default().build())
     // .plugin(tauri_plugin_sql::Builder::default().build())
-    .plugin(
-      tauri_plugin_aptabase::Builder::new("A-EU-5263596644")
-        .with_panic_hook(Box::new(|client, info| {
-          client.track_event(
-            "panic",
-            Some(json!({
-                "info": format!("{:?}", info),
-            })),
-          );
-        }))
-        .build(),
-    )
-    .setup(|app| {
-      app.track_event("app_started", None);
-      Ok(())
-    })
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

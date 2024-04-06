@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { classNames } from "@/common/helpers/css";
-import { ArrowLongRightIcon, ArrowRightIcon, CheckCircleIcon, CheckIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon } from "@heroicons/react/20/solid";
 import findIndex from "lodash.findindex";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -41,7 +41,7 @@ export function SidebarNav({
             onClick={() => onClick(item.key)}
             key={item.key}
             variant="ghost"
-            disabled={!enabled}
+            // disabled={!enabled}
             className={classNames(
               enabled ? "text-foreground/40 hover:bg-transparent hover:underline" : "",
               item.key === step ? "bg-muted hover:bg-muted" : "",

@@ -40,6 +40,8 @@ import { useIsMounted } from "../../src/common/helpers/hooks";
 import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { openWindow } from "../../src/common/helpers/navigation";
+import ConfirmOnchainSignerButton from "../../src/common/components/ConfirmOnchainSignerButton";
+import SwitchWalletButton from "../../src/common/components/SwitchWalletButton";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -107,7 +109,6 @@ export default function Accounts() {
   const hasPendingNewAccounts = pendingAccounts.length > 0;
   const pendingAccount = hasPendingNewAccounts ? pendingAccounts[0] : null;
 
-  console.log("accounts", accounts, hasActiveAccounts);
   const [signupState, setSignupState] = useState<SignupStateEnum>(
     SignupStateEnum.initial
   );
@@ -156,6 +157,8 @@ export default function Accounts() {
   };
 
   const checkStatusAndActiveAccount = async (pendingAccount) => {
+    if (!pendingAccount?.data?.signerToken) return;
+
     const { status, data } = await getWarpcastSignerStatus(
       pendingAccount.data.signerToken
     );
@@ -165,8 +168,7 @@ export default function Accounts() {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const user = (await neynarClient.lookupUserByFid(fid, APP_FID!)).result
-        .user;
+      const user = (await neynarClient.fetchBulkUsers([fid], {viewerFid: APP_FID!})).users[0];
       await setAccountActive(pendingAccount.id, user.username, {
         platform_account_id: user.fid.toString(),
         data,
@@ -248,15 +250,18 @@ export default function Accounts() {
           <Card className="bg-background text-foreground">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">
-                Sign in with Ethereum wallet
+                Sign in with Web3 wallet
               </CardTitle>
               <CardDescription className="text-muted-foreground">
                 Pay with ETH on Optimism to connect with herocast
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p>temporarily inactive - coming back soon</p>
-              {/* {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount} /> : <WalletLogin />} */}
+              {isConnected ? (
+                <ConfirmOnchainSignerButton account={pendingAccount} />
+              ) : (
+                <SwitchWalletButton />
+              )}
             </CardContent>
             <CardFooter></CardFooter>
           </Card>
@@ -351,6 +356,28 @@ export default function Accounts() {
     </Card>
   );
 
+  const renderCreateNewOnchainAccountCard = () => (
+    <Card>
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl">Create a new Farcaster account onchain</CardTitle>
+        <CardDescription>
+          No need to connect with Warpcast. 
+          Sign up directly with the Farcaster protocol onchain.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Button
+            variant="default"
+            onClick={() => router.push("/farcaster-signup")}
+          >
+            Create new account
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="m-4 flex flex-col gap-5">
       {(hasActiveAccounts || signupState === SignupStateEnum.done) &&
@@ -366,7 +393,8 @@ export default function Accounts() {
               {signupState === SignupStateEnum.connecting &&
                 renderConnectAccountStep()}
             </div>
-            <div className="max-w-md lg:max-w-lg">
+            <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
+              {renderCreateNewOnchainAccountCard()}
               <HelpCard />
             </div>
             <ConnectFarcasterAccountViaHatsProtocol />

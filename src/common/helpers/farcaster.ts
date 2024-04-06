@@ -190,7 +190,7 @@ export async function isValidSignedKeyRequest(
   return res;
 }
 
-export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey: `0x${string}`, deadline: bigint) => {
+export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey: `0x${string}`, deadline: bigint | number) => {
   const appAccount = mnemonicToAccount(process.env.NEXT_PUBLIC_APP_MNENOMIC!);
   const fid = BigInt(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -203,7 +203,7 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey:
     message: {
       requestFid: fid,
       key: signerPublicKey,
-      deadline,
+      deadline: BigInt(deadline),
     },
   });
 
@@ -235,8 +235,8 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey:
       {
         requestFid: fid,
         requestSigner: appAccount.address,
+        deadline: BigInt(deadline),
         signature,
-        deadline,
       },
     ]
   );

@@ -73,6 +73,9 @@ export const createSignerRequest = async (data: CreateSignerRequestType): Promis
 }
 
 const callGetSignerRequestStatus = async (signerToken: string) => {
+  if (!signerToken) {
+    return { state: "error", error: "No signer token provided" };
+  }
   const response = await fetch(`/api/signerRequest?signerToken=${signerToken}`, {
     method: "GET",
     headers: {

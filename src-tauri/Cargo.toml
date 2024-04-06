@@ -19,7 +19,6 @@ tauri = { version = "1.4.0", features = [ "updater", "devtools", "shell-open", "
 # tauri-plugin-store = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 # tauri-plugin-window-state = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 # tauri-plugin-sql = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1", features= ["postgres"] }
-tauri-plugin-aptabase = "0.4"
 sentry-tauri = "0.2"
 
 [features]

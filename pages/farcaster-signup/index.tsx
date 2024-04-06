@@ -49,8 +49,6 @@ export default function Welcome() {
   const { isConnected } = useAccount();
   const [step, setStep] = useState<string>(onboardingNavItems[1].key);
   const router = useRouter();
-  const { openConnectModal } = useConnectModal();
-  const { openAccountModal } = useAccountModal();
 
   useEffect(() => {
     if (isConnected && step === FarcasterSignupNav.connect_wallet) {
@@ -123,7 +121,7 @@ export default function Welcome() {
         return getStepContent(
           "Connect your wallet",
           "We will create a Farcaster account onchain in the next step.",
-          <div className="flex flex-row gap-4">
+          <div className="flex flex-col gap-4">
             <SwitchWalletButton />
             <Button
               disabled={!isConnected}

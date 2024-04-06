@@ -35,6 +35,7 @@ import mentionPlugin, {
 } from "../helpers/linkify";
 import { toast } from "sonner";
 import { AccountPlatformType } from "../constants/accounts";
+import { toastInfoReadOnlyMode } from "../helpers/toast";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -170,9 +171,9 @@ export const CastRow = ({
       cast.reactions?.likes?.length || cast.reactions?.count || 0;
 
     const likeFids =
-      cast.reactions?.fids || map(cast.reactions.likes, "fid") || [];
+      cast.reactions?.fids || map(cast.reactions?.likes, "fid") || [];
     const recastFids =
-      cast.recasts?.fids || map(cast.reactions.recasts, "fid") || [];
+      cast.recasts?.fids || map(cast.reactions?.recasts, "fid") || [];
     return {
       [CastReactionType.replies]: { count: repliesCount },
       [CastReactionType.recasts]: {
@@ -269,11 +270,7 @@ export const CastRow = ({
     }
 
     if (!canSendReaction) {
-      toast.info("You're using a readonly account", {
-        description:
-          '<a href="/login">Switch to a full account to interact with other ↗️</a>',
-        descriptionClassName: "underline",
-      });
+      toastInfoReadOnlyMode()
       return;
     }
 
@@ -324,7 +321,7 @@ export const CastRow = ({
   };
 
   const renderCastReactions = (cast: CastType) => {
-    const linksCount = cast.embeds.length;
+    const linksCount = cast?.embeds ? cast.embeds.length : 0;
     const isOnchainLink =
       linksCount > 0 && cast.embeds[0].url
         ? cast.embeds[0].url.startsWith('"chain:')
@@ -409,7 +406,7 @@ export const CastRow = ({
     ) : null;
 
   const renderEmbeds = () =>
-    cast.embeds.length > 0 && (
+    cast.embeds && cast.embeds.length > 0 && (
       <div className="mt-4">
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (

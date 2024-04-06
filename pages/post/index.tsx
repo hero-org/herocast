@@ -84,11 +84,6 @@ export default function NewPost() {
           ))}
         </div>
       </div>
-      <CustomToast
-        title="Cast published successfully"
-        showToast={showToast}
-        setShowToast={setShowToast}
-      />
     </>
   );
 }

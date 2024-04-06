@@ -3,7 +3,6 @@ import "@rainbow-me/rainbowkit/styles.css";
 
 import React, { useEffect } from "react";
 import type { AppProps } from "next/app";
-import { AptabaseProvider } from "@aptabase/react";
 import { ThemeProvider } from "../src/common/hooks/ThemeProvider";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import CommandPalette from "../src/common/components/CommandPalette";
@@ -11,26 +10,25 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { rainbowKitTheme, config } from "../src/common/helpers/rainbowkit";
 import Home from "../src/home";
-import { PostHogProvider } from 'posthog-js/react'
+import { PostHogProvider } from "posthog-js/react";
 import { loadPosthogAnalytics } from "../src/lib/analytics";
 import { useRouter } from "next/router";
-
 
 const posthog = loadPosthogAnalytics();
 
 const queryClient = new QueryClient();
 
 export default function MyApp({ Component, pageProps }: AppProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    const handleRouteChange = () => posthog?.capture('$pageview')
-    router.events.on('routeChangeComplete', handleRouteChange)
+    const handleRouteChange = () => posthog?.capture("$pageview");
+    router.events.on("routeChangeComplete", handleRouteChange);
 
     return () => {
-      router.events.off('routeChangeComplete', handleRouteChange)
-    }
-  }, [])
+      router.events.off("routeChangeComplete", handleRouteChange);
+    };
+  }, []);
 
   const children = (
     <PostHogProvider client={posthog}>
@@ -47,14 +45,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     </PostHogProvider>
   );
 
-  const content = process.env.NEXT_PUBLIC_APTABASE_KEY ? (
-    <AptabaseProvider appKey={process.env.NEXT_PUBLIC_APTABASE_KEY}>
-      {children}
-    </AptabaseProvider>
-  ) : (
-    children
-  );
-
   return (
     <ThemeProvider
       attribute="class"
@@ -62,7 +52,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       enableSystem
       disableTransitionOnChange
     >
-      {content}
+      {children}
     </ThemeProvider>
   );
 }

@@ -120,8 +120,8 @@ export function UserAuthForm({ className }: { className: string }) {
   
     posthog.identify(data?.user?.id, { email });
     await hydrate();
-    setIsLoading(false);
     router.push("/feed");
+    setIsLoading(false);
   }
 
   async function signUp() {
@@ -141,8 +141,8 @@ export function UserAuthForm({ className }: { className: string }) {
     }
 
     posthog.identify(data?.user?.id, { email });
-    setIsLoading(false);
     router.push("/welcome");
+    setIsLoading(false);
   }
 
   async function resetPassword() {

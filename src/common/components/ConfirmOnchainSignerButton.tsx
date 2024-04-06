@@ -1,197 +1,232 @@
-import React, { useEffect, useState } from "react";
-import { encodeAbiParameters } from 'viem';
+import React, { useCallback, useEffect, useState } from "react";
+import { encodeAbiParameters } from "viem";
 import {
-    useAccount,
-    useContractRead,
-    useContractWrite,
-    useNetwork,
-    usePrepareContractWrite,
-    useReadContract,
-    useSwitchNetwork,
-    useWaitForTransaction,
-    useWriteContract
-} from 'wagmi';
+  useAccount,
+  useReadContract,
+  useSignTypedData,
+  useSimulateContract,
+  useSwitchChain,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 import { Button } from "@/components/ui/button";
 import { KEY_REGISTRY } from "../constants/contracts/key-registry";
-import { CheckIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
 import { ID_REGISTRY } from "../constants/contracts/id-registry";
 import { mnemonicToAccount } from "viem/accounts";
-import { AccountObjectType } from "@/stores/useAccountStore";
+import {
+  AccountObjectType,
+  hydrate,
+  useAccountStore,
+} from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { useAccountModal } from "@rainbow-me/rainbowkit";
+import { getChainId } from "@wagmi/core";
+import { config } from "../helpers/rainbowkit";
+import { writeContract } from "@wagmi/core";
+import SwitchWalletButton from "./SwitchWalletButton";
+import { KEY_GATEWAY } from "../constants/contracts/key-gateway";
+import { getSignedKeyRequestMetadataFromAppAccount } from "../helpers/farcaster";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { Label } from "@/components/ui/label";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC!;
 
-const SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN = {
-    name: 'Farcaster SignedKeyRequestValidator',
-    version: '1',
-    chainId: 10,
-    verifyingContract: '0x00000000fc700472606ed4fa22623acf62c60553'
-} as const;
-
-const SIGNED_KEY_REQUEST_TYPE = [
-    { name: 'requestFid', type: 'uint256' },
-    { name: 'key', type: 'bytes' },
-    { name: 'deadline', type: 'uint256' }
+const SIGNED_KEY_REQUEST_TYPE_V2 = [
+  {
+    components: [
+      {
+        internalType: "uint256",
+        name: "requestFid",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "requestSigner",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+    ],
+    internalType: "struct SignedKeyRequestValidator.SignedKeyRequestMetadata",
+    name: "metadata",
+    type: "tuple",
+  },
 ] as const;
 
-const SIGNED_KEY_REQUEST_TYPE_V2 = [
-    {
-        components: [
-            {
-                internalType: 'uint256',
-                name: 'requestFid',
-                type: 'uint256',
-            },
-            {
-                internalType: 'address',
-                name: 'requestSigner',
-                type: 'address',
-            },
-            {
-                internalType: 'bytes',
-                name: 'signature',
-                type: 'bytes',
-            },
-            {
-                internalType: 'uint256',
-                name: 'deadline',
-                type: 'uint256',
-            },
-        ],
-        internalType: 'struct SignedKeyRequestValidator.SignedKeyRequestMetadata',
-        name: 'metadata',
-        type: 'tuple',
-    },
-] as const
-
-
 type ConfirmOnchainSignerButtonType = {
-    account: AccountObjectType
-}
+  account: AccountObjectType;
+};
 
-const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType) => {
-    const [signature, setSignature] = useState('');
-    const { openAccountModal } = useAccountModal();
+const ConfirmOnchainSignerButton = ({
+  account,
+}: ConfirmOnchainSignerButtonType) => {
+  // const [signature, setSignature] = useState('');
+  const { openAccountModal } = useAccountModal();
+  const { signTypedDataAsync } = useSignTypedData();
 
-    const { address } = useAccount();
-    const { data: idOfUser, error: idOfUserError } = useReadContract({
-        ...ID_REGISTRY,
-        chainId: 10,
-        functionName: address ? 'idOf' : undefined,
-        args: address ? [address] : undefined
-    });
+  const chainId = getChainId(config);
+  const { switchChain } = useSwitchChain();
+  const [addKeyTx, setAddKeyTx] = useState<`0x${string}`>();
 
-    if (idOfUserError) console.log('idOfUserError', idOfUserError);
+  const { address } = useAccount();
+  const { data: idOfUser, error: idOfUserError } = useReadContract({
+    ...ID_REGISTRY,
+    chainId: 10,
+    functionName: address ? "idOf" : undefined,
+    args: address ? [address] : undefined,
+  });
 
-    const enabled = !isEmpty(account) && !isEmpty(account?.data) && signature !== '';
-    const appAccount = mnemonicToAccount(APP_MNENOMIC);
-    const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
+  const isWalletOwnerOfFid = idOfUser !== 0n;
+  if (idOfUserError) console.log("idOfUserError", idOfUserError);
 
-    useEffect(() => {
-        const getSignature = async () => {
-            const res = await appAccount.signTypedData({
-                domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
-                types: {
-                    SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
-                },
-                primaryType: "SignedKeyRequest",
-                message: {
-                    requestFid: BigInt(APP_FID),
-                    key: account.publicKey as `0x${string}`,
-                    deadline: BigInt(deadline),
-                },
-            });
+  const { setAccountActive } = useAccountStore();
+  const appAccount = mnemonicToAccount(APP_MNENOMIC);
+  const enabled = !isEmpty(account);
+  const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
 
-            setSignature(res);
-            console.log('getSignature done', res);
-        };
+  const getSignature = useCallback(async () => {
+    if (!account || !account.publicKey) return;
+    return getSignedKeyRequestMetadataFromAppAccount(
+      account.publicKey,
+      deadline
+    );
+  }, [account, deadline]);
 
-        getSignature();
-    }, [account, deadline]);
+  const {
+    data: addKeyTxReceipt,
+    isSuccess: isAddKeyTxSuccess,
+    isLoading: isAddKeyTxLoading,
+    isPending: addKeySignPending,
+    error: addKeyError,
+  } = useWaitForTransactionReceipt({ hash: addKeyTx });
 
-    const { config: addKeyConfig, error: prepareToAddKeyError } = usePrepareContractWrite({
-        ...KEY_REGISTRY,
-        chainId: 10,
-        functionName: enabled ? 'add' : undefined,
-        args: [
+  useEffect(() => {
+    const setupAccount = async () => {
+      if (!isAddKeyTxLoading || !isWalletOwnerOfFid) return;
+
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const user = (
+        await neynarClient.fetchBulkUsers([Number(idOfUser)], {
+          viewerFid: Number(APP_FID!),
+        })
+      ).users[0];
+      await setAccountActive(account.id, user.username, {
+        platform_account_id: user.fid.toString(),
+      });
+      hydrate();
+    };
+    if (isAddKeyTxSuccess) {
+      setupAccount();
+    }
+  }, [idOfUser, isAddKeyTxSuccess]);
+
+  console.log(
+    "addKeyTxReceipt",
+    addKeyTxReceipt,
+    "isAddKeyTxSuccess",
+    isAddKeyTxSuccess,
+    "isAddKeyTxLoading",
+    isAddKeyTxLoading,
+    "addKeySignPending",
+    addKeySignPending,
+    "addKeyError",
+    addKeyError
+  );
+
+  const onClick = async () => {
+    if (chainId !== 10) {
+      switchChain?.({ chainId: 10 });
+    } else if (!isWalletOwnerOfFid) {
+      openAccountModal?.();
+    } else {
+      try {
+        const signature = await getSignature();
+        if (!signature) {
+          throw new Error("Failed to get signature to confirm onchain account");
+        }
+        console.log("signature", signature);
+        const addKeyTx = await writeContract(config, {
+          ...KEY_GATEWAY,
+          functionName: "add",
+          args: [
             1,
             account.publicKey as `0x${string}`,
             1,
-            enabled
-                ? encodeAbiParameters(SIGNED_KEY_REQUEST_TYPE_V2, [
-                    {
-                        requestFid: BigInt(APP_FID),
-                        requestSigner: appAccount.address,
-                        signature: signature as `0x${string}`,
-                        deadline: BigInt(deadline),
-                    }
-                ])
-                : `0x00`
-        ],
-        enabled
-    });
-
-    const {
-        write: addKey,
-        data: addKeySignResult,
-        isLoading: addKeySignPending,
-        isSuccess: addKeySignSuccess,
-        error: addKeyError
-    } = useWriteContract(addKeyConfig);
-
-    const {
-        // data: addKeyTxReceipt,
-        // isSuccess: isAddKeyTxSuccess,
-        isLoading: isAddKeyTxLoading
-    } = useWaitForTransaction({ hash: addKeySignResult?.hash });
-
-    const onClick = () => {
-        if (chain?.id !== 10) {
-            switchNetwork?.(10);
-        } else if (!idOfUser) {
-            openAccountModal?.();
-        } else {
-            addKey?.();
-        }
+            encodeAbiParameters(SIGNED_KEY_REQUEST_TYPE_V2, [
+              {
+                requestFid: BigInt(APP_FID),
+                requestSigner: appAccount.address,
+                signature: signature,
+                deadline: BigInt(deadline),
+              },
+            ]),
+          ],
+        });
+        setAddKeyTx(addKeyTx);
+      } catch (e) {
+        console.error("Error submitting message: ", e);
+      }
     }
+  };
 
-    const isPending = addKeySignPending || isAddKeyTxLoading;
-    const isError = addKeyError !== null || prepareToAddKeyError !== null;
+  const isError = addKeyError !== null;
 
-    const getButtonText = () => {
-        if (addKeySignPending) return 'Waiting for you to sign in your wallet'
-        if (isAddKeyTxLoading) return 'Waiting for onchain transaction to be confirmed'
-        if (addKeySignSuccess) return 'Confirmed onchain'
-        if (chain?.id !== 10) return 'Switch to Optimism'
-        if (!idOfUser) return 'Switch wallet'
-        if (prepareToAddKeyError) return 'Failed to prepare onchain request'
-        if (addKeyError) return 'Failed to execute onchain request'
-        return 'Confirm account onchain'
-    }
+  const getButtonText = () => {
+    // if (addKeySignPending) return 'Waiting for you to sign in your wallet'
+    if (chainId !== 10) return "Switch to Optimism";
+    if (isAddKeyTxLoading)
+      return "Waiting for onchain transaction to be confirmed";
+    if (isAddKeyTxSuccess) return "Confirmed onchain";
+    // if (prepareToAddKeyError) return 'Failed to prepare onchain request'
+    if (addKeyError) return "Failed to execute onchain request";
+    return "Confirm account onchain";
+  };
 
-    return (
-        <>
-            {address && !idOfUser && (
-                <p className="mb-2 text-sm text-foreground/70">Connected wallet {address.slice(0, 6)}...{address.slice(-6)} is not registered on Farcaster</p>
-            )}
-            <Button
-                variant="default"
-                className="w-full"
-                onClick={() => onClick()}
-                disabled={!enabled || addKeySignPending || addKeySignSuccess || isError}
-            >
-                {isPending && (
-                    <Cog6ToothIcon className="mr-1.5 h-5 w-5 text-foreground/80 animate-spin" aria-hidden="true" />
-                )}
-                {addKeySignSuccess && (
-                    <CheckIcon className="mr-1.5 h-5 w-5 text-foreground/70" aria-hidden="true" />
-                )}
-                {getButtonText()}
-            </Button>
-        </>
-    )
-}
+  return (
+    <div className="flex flex-col gap-5">
+      {!isWalletOwnerOfFid && (
+        <Label>
+          Connect a wallet that owns a Farcaster account.
+        </Label>
+      )}
+      <Button
+        variant="default"
+        className="w-full"
+        onClick={() => onClick()}
+        disabled={!enabled || !isWalletOwnerOfFid || isAddKeyTxSuccess || isError}
+      >
+        {getButtonText()}
+        {isAddKeyTxLoading && (
+          <Cog6ToothIcon
+            className="ml-1.5 h-5 w-5 text-foreground/80 animate-spin"
+            aria-hidden="true"
+          />
+        )}
+        {isAddKeyTxSuccess && (
+          <CheckCircleIcon
+            className="ml-1.5 h-6 w-6 text-green-600"
+            aria-hidden="true"
+          />
+        )}
+      </Button>
+      {!isAddKeyTxSuccess && <SwitchWalletButton />}
+    </div>
+  );
+};
 
 export default ConfirmOnchainSignerButton;
+
+// todo:
+// - fix
+// - skip getSignerRequestStatus in warpcastQR code login when this isn't actually active

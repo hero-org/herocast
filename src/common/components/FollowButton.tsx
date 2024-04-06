@@ -30,7 +30,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   }, [profile]);
 
   const updateFollowStatus = async () => {
-    if (isFollowing === undefined) return;
+    if (!selectedAccount || isFollowing === undefined) return;
 
     setIsPending(true);
     if (isFollowing) {
@@ -51,7 +51,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   };
 
   const getButtonText = () => {
-    if (!selectedAccount) return "Login to herocast";
+    if (!selectedAccount) return "Login";
     if (isPending) return "Pending";
     if (isFollowing) return "Following";
     return "Follow";

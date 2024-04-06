@@ -27,7 +27,6 @@
     ]
   },
   "dependencies": {
-    "@aptabase/react": "^0.2.2",
     "@emotion/react": "11",
     "@emotion/styled": "11",
     "@farcaster/auth-kit": "^0.2.1",
