@@ -141,7 +141,7 @@
     "@types/node": "^18.7.15",
     "@types/ramda": "^0.29.11",
     "@types/react-dom": "^18.2.17",
-    "@typescript-eslint/eslint-plugin": "^6.5.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.5.0",
     "autoprefixer": "^10.4.14",
     "buffer": "^6.0.3",
