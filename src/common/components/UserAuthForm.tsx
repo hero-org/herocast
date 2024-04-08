@@ -36,14 +36,9 @@ const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 export type UserAuthFormValues = z.infer<typeof UserAuthFormSchema>;
 
 const UserAuthFormSchema = z.object({
-  email: z
-    .string()
-    .min(2, {
-      message: "Username must be at least 1 characters.",
-    })
-    .max(30, {
-      message: "Username must not be longer than 30 characters.",
-    }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
   password: z.string().min(6, {
     message: "Password must be at least 8 characters.",
   }),
@@ -120,7 +115,8 @@ export function UserAuthForm({ className }: { className: string }) {
         type: "manual",
         message: error.message,
       });
-      console.error(error);
+      console.error("login error", error);
+      setIsLoading(false);
       return;
     }
 
@@ -136,19 +132,21 @@ export function UserAuthForm({ className }: { className: string }) {
     setIsLoading(true);
     const { email, password } = form.getValues();
     const { data, error } = await supabase.auth.signUp({ email, password });
+    console.log(data, error);
 
     if (error) {
       form.setError("password", {
         type: "manual",
         message: error.message,
       });
-      console.error(error);
+      console.error("signup error", error);
+      setIsLoading(false);
       return;
+    } else {
+      posthog.identify(data?.user?.id, { email });
+      router.push("/welcome");
+      setIsLoading(false);
     }
-
-    posthog.identify(data?.user?.id, { email });
-    router.push("/welcome");
-    setIsLoading(false);
   }
 
   async function resetPassword() {
