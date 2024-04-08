@@ -205,6 +205,7 @@ const store = (set: StoreSet) => ({
         console.error("Failed to sync account name from protocol to DB", error);
       }
     });
+    await new Promise(resolve => setTimeout(resolve, 500)); // sleep to avoid rate limiting
   },
   removeAccount: (idx: number) => {
     set(async (state) => {
