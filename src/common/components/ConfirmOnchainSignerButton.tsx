@@ -86,6 +86,7 @@ const ConfirmOnchainSignerButton = ({
   });
 
   const isWalletOwnerOfFid = idOfUser !== 0n;
+  const isConnectedToOptimism = address && chainId === 10;
   if (idOfUserError) console.log("idOfUserError", idOfUserError);
 
   const { setAccountActive } = useAccountStore();
@@ -196,7 +197,7 @@ const ConfirmOnchainSignerButton = ({
   return (
     <div className="flex flex-col gap-5">
       {!isWalletOwnerOfFid && (
-        <Label>
+        <Label className="font-semibold text-red-600">
           Connect a wallet that owns a Farcaster account.
         </Label>
       )}
@@ -204,7 +205,7 @@ const ConfirmOnchainSignerButton = ({
         variant="default"
         className="w-full"
         onClick={() => onClick()}
-        disabled={!enabled || !isWalletOwnerOfFid || isAddKeyTxSuccess || isError}
+        disabled={!enabled || (isConnectedToOptimism && !isWalletOwnerOfFid) || isAddKeyTxSuccess || isError}
       >
         {getButtonText()}
         {isAddKeyTxLoading && (
