@@ -112,7 +112,7 @@ export default function Feed() {
       isEmpty(feed) ||
       showCastThreadView ||
       feed.length < DEFAULT_FEED_PAGE_SIZE ||
-      !account.platformAccountId
+      !account?.platformAccountId
     )
       return;
 
@@ -308,13 +308,14 @@ export default function Feed() {
       <div className="m-8 flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
         <BigOptionSelector
           options={[
-            !account.platformAccountId && {
-              title: "Continue to connect to herocast",
-              description:
-                "Finish connecting your Farcaster account with your web3 wallet or by scanning a QR code.",
-              buttonText: "Continue",
-              onClick: () => router.push("/accounts"),
-            },
+            account &&
+              !account.platformAccountId && {
+                title: "Continue to connect to herocast",
+                description:
+                  "Finish connecting your Farcaster account with your web3 wallet or by scanning a QR code.",
+                buttonText: "Continue",
+                onClick: () => router.push("/accounts"),
+              },
             {
               title: "I have a Farcaster account",
               description:
@@ -333,8 +334,11 @@ export default function Feed() {
               title: "Browse trending feed",
               description:
                 "No need to signup if you just want to checkout herocast",
-              buttonText: "Create new account",
-              onClick: () => setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING),
+              buttonText: "Trending Feed →",
+              onClick: () => {
+                getFeed({ parentUrl: CUSTOM_CHANNELS.TRENDING, fid: "1" });
+                setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
+              }
             },
           ]}
         />
