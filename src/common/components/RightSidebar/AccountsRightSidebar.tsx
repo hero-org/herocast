@@ -13,7 +13,10 @@ import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
 import { useRouter } from "next/router";
-import { AccountPlatformType } from "@/common/constants/accounts";
+import {
+  AccountPlatformType,
+  AccountStatusType,
+} from "@/common/constants/accounts";
 
 type AccountsRightSidebarProps = {
   showChannels?: boolean;
@@ -79,49 +82,61 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     }
   };
 
+  const onClickAccount = (idx: number, isActive: boolean) => {
+    if (isActive) {
+      setCurrentAccountIdx(idx);
+    } else {
+      router.push(`/accounts`);
+    }
+  };
+
   const renderAccounts = () => (
     <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
       <ul role="list" className="mx-4 divide-y divide-white/5">
-        {accounts.map((account: AccountObjectType, idx: number) => (
-          <li
-            key={`${account.name}-${account.id}`}
-            className="px-2 py-2 sm:px-3 lg:px-4"
-          >
-            <HotkeyTooltipWrapper hotkey={`Ctrl + ${idx + 1}`} side="left">
-              <div
-                onClick={() =>
-                  account.status === "active" && setCurrentAccountIdx(idx)
-                }
-                className="flex items-center gap-x-3 cursor-pointer group"
+        {accounts.map((account: AccountObjectType, idx: number) => {
+          const isActive = account.status === AccountStatusType.active;
+          return (
+            <li
+              key={`${account.name}-${account.id}`}
+              className="px-2 py-2 sm:px-3 lg:px-4"
+            >
+              <HotkeyTooltipWrapper
+                hotkey={isActive ? `Ctrl + ${idx + 1}` : "Finish onboarding"}
+                side="left"
               >
-                {account.user?.pfp_url && (
-                  <img
-                    src={account.user?.pfp_url}
-                    alt=""
+                <div
+                  onClick={() => onClickAccount(idx, isActive)}
+                  className="flex items-center gap-x-3 cursor-pointer group"
+                >
+                  {account.user?.pfp_url && (
+                    <img
+                      src={account.user?.pfp_url}
+                      alt=""
+                      className={classNames(
+                        idx === selectedAccountIdx
+                          ? "border-gray-100"
+                          : "grayscale border-gray-400 hover:border-gray-300",
+                        "-mr-1 -mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+                      )}
+                    />
+                  )}
+                  <h3
                     className={classNames(
                       idx === selectedAccountIdx
-                        ? "border-gray-100"
-                        : "grayscale border-gray-400 hover:border-gray-300",
-                      "-mr-1 -mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+                        ? "text-foreground"
+                        : "text-foreground/60",
+                      "flex-auto truncate text-sm font-normal leading-6"
                     )}
-                  />
-                )}
-                <h3
-                  className={classNames(
-                    idx === selectedAccountIdx
-                      ? "text-foreground"
-                      : "text-foreground/60",
-                    "flex-auto truncate text-sm font-normal leading-6"
-                  )}
-                >
-                  {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
-                </h3>
-                {renderStatus(account.status)}
-                {renderAccountPlatformIndicator(account.platform)}
-              </div>
-            </HotkeyTooltipWrapper>
-          </li>
-        ))}
+                  >
+                    {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
+                  </h3>
+                  {renderStatus(account.status)}
+                  {renderAccountPlatformIndicator(account.platform)}
+                </div>
+              </HotkeyTooltipWrapper>
+            </li>
+          );
+        })}
       </ul>
     </Tooltip.Provider>
   );

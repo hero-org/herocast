@@ -136,7 +136,10 @@ const FrameEmbed = ({
   return (
     <div className="mt-4">
       {cast.frames.map((frame, idx) => (
-        <div key={`frame-${frame.index}`} className="mt-4">
+        <div
+          key={`frame-${cast.hash}-${frame.url}-${idx}`}
+          className="mt-4"
+        >
           {renderFrame(frame, isSelected, nrFrames === 1)}
         </div>
       ))}
