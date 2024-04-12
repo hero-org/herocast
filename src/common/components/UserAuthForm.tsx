@@ -184,7 +184,7 @@ export function UserAuthForm({ className }: { className: string }) {
                     <FormControl>
                       <Input
                         className="text-white"
-                        placeholder="hellno@yesyes.xyz"
+                        placeholder="vitalik@home.xyz"
                         disabled={isLoading}
                         {...field}
                       />

@@ -217,12 +217,12 @@ export default function Settings() {
                   fid: {item.platformAccountId}
                 </p>
               )}
-              <Button
+              {/* <Button
                 variant="secondary"
                 onClick={() => onClickManageAccount(item)}
               >
                 Manage
-              </Button>
+              </Button> */}
               <AlertDialogDemo
                 buttonText={`Remove`}
                 onClick={() => removeAccount(idx)}
