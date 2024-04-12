@@ -18,6 +18,8 @@ import FollowButton from "../../src/common/components/FollowButton";
 import { useAccountStore } from "../../src/stores/useAccountStore";
 import { useDataStore } from "../../src/stores/useDataStore";
 
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
+
 export async function getStaticProps({ params: { slug } }) {
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
   let user: any = {};
@@ -91,7 +93,7 @@ export default function Profile({ profile }) {
   const { accounts, selectedAccountIdx } = useAccountStore();
 
   const selectedAccount = accounts[selectedAccountIdx];
-  const userFid = Number(selectedAccount?.platformAccountId);
+  const userFid = Number(selectedAccount?.platformAccountId) || APP_FID;
 
   const onSelectCast = (idx: number) => {
     setSelectedFeedIdx(idx);
