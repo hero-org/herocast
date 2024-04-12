@@ -12,7 +12,6 @@ import isEmpty from "lodash.isempty";
 import { CastThreadView } from "../../src/common/components/CastThreadView";
 import { DEFAULT_FEED_PAGE_SIZE } from "../../src/common/helpers/neynar";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
-import RecommendedProfilesCard from "../../src/common/components/RecommendedProfilesCard";
 import { Key } from "ts-key-enum";
 import ReplyModal from "../../src/common/components/ReplyModal";
 import EmbedsModal from "../../src/common/components/EmbedsModal";
@@ -26,6 +25,7 @@ import {
 } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Loading } from "../../src/common/components/Loading";
 import uniqBy from "lodash.uniqby";
+import BigOptionSelector from "@/common/components/BigOptionSelector";
 
 type FeedsType = {
   [key: string]: CastWithInteractions[];
@@ -53,8 +53,13 @@ export default function Feed() {
     delay: 100,
   });
 
-  const { accounts, selectedAccountIdx, selectedChannelUrl, hydratedAt } =
-    useAccountStore();
+  const {
+    accounts,
+    selectedAccountIdx,
+    selectedChannelUrl,
+    setSelectedChannelUrl,
+    hydratedAt,
+  } = useAccountStore();
 
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
@@ -107,7 +112,7 @@ export default function Feed() {
       isEmpty(feed) ||
       showCastThreadView ||
       feed.length < DEFAULT_FEED_PAGE_SIZE ||
-      !account.platformAccountId
+      !account?.platformAccountId
     )
       return;
 
@@ -204,7 +209,7 @@ export default function Feed() {
   };
 
   useEffect(() => {
-    if (account && !showCastThreadView) {
+    if (account?.platformAccountId && !showCastThreadView) {
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid });
     }
@@ -296,10 +301,49 @@ export default function Feed() {
     );
   };
 
-  const renderRecommendedProfiles = () =>
+  const renderWelcomeMessage = () =>
     feed.length === 0 &&
     hydratedAt &&
-    !isLoadingFeed && <RecommendedProfilesCard />;
+    !isLoadingFeed && (
+      <div className="m-8 flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
+        <BigOptionSelector
+          options={[
+            account &&
+              !account.platformAccountId && {
+                title: "Continue to connect to herocast",
+                description:
+                  "Finish connecting your Farcaster account with your web3 wallet or by scanning a QR code.",
+                buttonText: "Continue",
+                onClick: () => router.push("/accounts"),
+              },
+            {
+              title: "I have a Farcaster account",
+              description:
+                "I signed up for Farcaster before and want to connect my account to herocast.",
+              buttonText: "Connect my account",
+              onClick: () => router.push("/accounts"),
+            },
+            {
+              title: "I am new to Farcaster",
+              description:
+                "I want to create a new account on Farcaster with herocast.",
+              buttonText: "Create new account",
+              onClick: () => router.push("/farcaster-signup"),
+            },
+            {
+              title: "Browse trending feed",
+              description:
+                "No need to signup if you just want to checkout herocast",
+              buttonText: "Trending Feed →",
+              onClick: () => {
+                getFeed({ parentUrl: CUSTOM_CHANNELS.TRENDING, fid: "1" });
+                setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
+              }
+            },
+          ]}
+        />
+      </div>
+    );
 
   const renderContent = () => (
     <>
@@ -314,7 +358,7 @@ export default function Feed() {
         ) : (
           <>
             {renderFeed()}
-            {renderRecommendedProfiles()}
+            {renderWelcomeMessage()}
             {feed.length > 0 &&
               feed.length >= DEFAULT_FEED_PAGE_SIZE &&
               renderLoadMoreButton()}

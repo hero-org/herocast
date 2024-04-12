@@ -205,6 +205,7 @@ const store = (set: StoreSet) => ({
         console.error("Failed to sync account name from protocol to DB", error);
       }
     });
+    await new Promise(resolve => setTimeout(resolve, 500)); // sleep to avoid rate limiting
   },
   removeAccount: (idx: number) => {
     set(async (state) => {
@@ -454,20 +455,21 @@ const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
         channels: channels,
       }
     })
-    // get pfpUrl for each account based on platformAccountId which is fid
-    const neynarClient = new NeynarAPIClient(
-      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-    );
-
-    const fids = accounts.map((account) => Number(account.platformAccountId!));
-    const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
-    accounts = accounts.map((account) => {
-      const user = users.find((user) => user.fid === Number(account.platformAccountId));
-      if (user) {
-        account.user = user;
-      }
-      return account;
-    });
+    const fids = accounts.filter((account) => account.platformAccountId).map((account) => Number(account.platformAccountId!));
+    if (fids.length) {
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
+      accounts = accounts.map((account) => {
+        const user = users.find((user) => user.fid === Number(account.platformAccountId));
+        if (user) {
+          account.user = user;
+        }
+        return account;
+      });
+    }
+    return accounts;
   }
 
   const localOnlyAccounts = useAccountStore.getState().accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);

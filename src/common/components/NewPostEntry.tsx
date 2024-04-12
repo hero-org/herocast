@@ -6,7 +6,6 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
 import {
-  Embed,
   ModManifest,
   fetchUrlMetadata,
   handleAddEmbed,
@@ -14,8 +13,6 @@ import {
   handleSetInput,
 } from "@mod-protocol/core";
 import {
-  Channel,
-  getFarcasterChannels,
   getFarcasterMentions,
 } from "@mod-protocol/farcaster";
 import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
@@ -23,7 +20,6 @@ import { CastLengthUIIndicator } from "@mod-protocol/react-ui-shadcn/dist/compon
 import debounce from "lodash.debounce";
 import { Button } from "@/components/ui/button";
 import { MentionList } from "@mod-protocol/react-ui-shadcn/dist/components/mention-list";
-import { ChannelList } from "@mod-protocol/react-ui-shadcn/dist/components/channel-list";
 import { take } from "lodash";
 import { ChannelPicker } from "./ChannelPicker";
 import {
@@ -31,18 +27,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CreationMod, RichEmbed } from "@mod-protocol/react";
-import {
-  creationMods,
-  defaultRichEmbedMod,
-  creationModsExperimental,
-} from "@mod-protocol/mod-registry";
-import { ModsSearch } from "@mod-protocol/react-ui-shadcn/dist/components/creation-mods-search";
+import { CreationMod } from "@mod-protocol/react";
+import { creationMods } from "@mod-protocol/mod-registry";
 import { renderers } from "@mod-protocol/react-ui-shadcn/dist/renderers";
 import map from "lodash.map";
 import { renderEmbedForUrl } from "./Embeds";
-import ImgurUpload from "@mods/imgur-upload";
 import { PhotoIcon } from "@heroicons/react/20/solid";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { ChannelList } from "./ChannelList";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -50,11 +43,26 @@ const debouncedGetMentions = debounce(getMentions, 200, {
   leading: true,
   trailing: false,
 });
-const getModChannels = getFarcasterChannels(API_URL);
-const debouncedGetModChannels = debounce(getModChannels, 200, {
-  leading: true,
-  trailing: true,
-});
+const neynarClient = new NeynarAPIClient(
+  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+);
+
+const getChannels = async (query: string): Promise<Channel[]> => {
+  console.log("getChannels", query);
+
+  let channels: Channel[] = [];
+  if (query.length < 2) return [];
+  channels = (await neynarClient.searchChannels(query))?.channels ?? [];
+  return take(channels, 10);
+};
+
+const getAllChannels = async (): Promise<Channel[]> => {
+  return (await neynarClient.fetchAllChannels())?.channels ?? [];
+};
+// const debouncedGetModChannels = debounce(getModChannels, 200, {
+//   leading: true,
+//   trailing: true,
+// });
 const getUrlMetadata = fetchUrlMetadata(API_URL);
 
 const onError = (err) => {
@@ -82,13 +90,13 @@ export default function NewPostEntry({
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const hasEmbeds = draft?.embeds && draft.embeds.length > 0;
 
-  const getChannels = async (query: string): Promise<Channel[]> => {
-    const modChannels =
-      query && query.length > 2
-        ? await debouncedGetModChannels(query, true)
-        : [];
-    return take(modChannels, 10);
-  };
+  // const getChannels = async (query: string): Promise<Channel[]> => {
+  //   const modChannels =
+  //     query && query.length > 2
+  //       ? await debouncedGetModChannels(query, true)
+  //       : [];
+  //   return take(modChannels, 10);
+  // };
 
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
@@ -180,7 +188,8 @@ export default function NewPostEntry({
           {!isReply && !hideChannel && (
             <div className="text-foreground/80">
               <ChannelPicker
-                getChannels={getModChannels}
+                getChannels={getChannels}
+                getAllChannels={getAllChannels}
                 onSelect={setChannel}
                 value={getChannel()}
               />

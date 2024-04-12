@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import AlertDialogDemo from "../../src/common/components/AlertDialog";
-import HelpCard from "../../src/common/components/HelpCard";
-import { classNames } from "../../src/common/helpers/css";
-import { Button } from "../../src/components/ui/button";
+import AlertDialogDemo from "@/common/components/AlertDialog";
+import HelpCard from "@/common/components/HelpCard";
+import { classNames } from "@/common/helpers/css";
+import { Button } from "@/components/ui/button";
 import {
   AccountObjectType,
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
@@ -10,20 +10,20 @@ import {
   channelCommands,
   hydrate,
   useAccountStore,
-} from "../../src/stores/useAccountStore";
-import { newPostCommands } from "../../src/stores/useNewPostStore";
+} from "@/stores/useAccountStore";
+import { newPostCommands } from "@/stores/useNewPostStore";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
-import { getNavigationCommands } from "../../src/getNavigationCommands";
-import AccountSettingsModal from "../../src/common/components/AccountSettingsModal";
+import { getNavigationCommands } from "@/getNavigationCommands";
+import AccountManagementModal from "@/common/components/AccountManagement/AccountManagementModal";
 import { useAccount } from "wagmi";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { AccountPlatformType } from "../../src/common/constants/accounts";
-import { Loading } from "../../src/common/components/Loading";
+import { AccountPlatformType } from "@/common/constants/accounts";
+import { Loading } from "@/common/components/Loading";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
-import { getUsernameForFid, updateUsername } from "../../src/common/helpers/farcaster";
+import { getUsernameForFid, updateUsername } from "@/common/helpers/farcaster";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
-import { createClient } from "../../src/common/helpers/supabase/component";
+import { createClient } from "@/common/helpers/supabase/component";
 import { usePostHog } from "posthog-js/react";
 
 type SimpleCommand = {
@@ -33,9 +33,10 @@ type SimpleCommand = {
 
 export default function Settings() {
   const router = useRouter();
-  const supabase = createClient()
+  const supabase = createClient();
   const posthog = usePostHog();
 
+  const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] =
@@ -69,7 +70,7 @@ export default function Settings() {
       resetStore();
       setUser(null);
       await supabase.auth.signOut();
-      posthog.reset()
+      posthog.reset();
     }
 
     router.push("/login");
@@ -85,7 +86,10 @@ export default function Settings() {
   };
 
   const refreshAccountNames = async () => {
-    Promise.all(accounts.map((account) => updateAccountUsername(account.id)))
+    setIsLoading(true);
+    await Promise.all(
+      accounts.map(async (account) => await updateAccountUsername(account.id))
+    )
       .then(() => {
         console.log("All account names refreshed successfully");
         hydrate();
@@ -93,6 +97,7 @@ export default function Settings() {
       .catch((error) =>
         console.error("Error refreshing account names:", error)
       );
+    setIsLoading(false);
   };
 
   const renderInfoSection = () => {
@@ -173,10 +178,16 @@ export default function Settings() {
         <Button
           variant="outline"
           className="h-8"
+          disabled={isLoading}
           onClick={() => refreshAccountNames()}
         >
           Reload accounts
-          <ArrowPathIcon className="ml-1 w-4 h-4" />
+          <ArrowPathIcon
+            className={classNames(
+              isLoading ? "animate-spin" : "",
+              "ml-1 w-4 h-4"
+            )}
+          />
         </Button>
       </div>
       {!hydratedAt && <Loading />}
@@ -206,12 +217,12 @@ export default function Settings() {
                   fid: {item.platformAccountId}
                 </p>
               )}
-              <Button
+              {/* <Button
                 variant="secondary"
                 onClick={() => onClickManageAccount(item)}
               >
                 Manage
-              </Button>
+              </Button> */}
               <AlertDialogDemo
                 buttonText={`Remove`}
                 onClick={() => removeAccount(idx)}
@@ -222,7 +233,7 @@ export default function Settings() {
       </ul>
       <HelpCard />
       {renderInfoSection()}
-      <AccountSettingsModal
+      <AccountManagementModal
         account={selectedAccount}
         open={open}
         setOpen={setOpen}

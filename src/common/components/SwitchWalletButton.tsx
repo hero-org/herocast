@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -7,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
-export default function SwitchWalletButton() {
+const SwitchWalletButton = () => {
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
   const { address } = useAccount();
@@ -31,3 +29,5 @@ export default function SwitchWalletButton() {
     </div>
   );
 }
+
+export default SwitchWalletButton;

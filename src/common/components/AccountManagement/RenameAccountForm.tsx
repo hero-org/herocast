@@ -27,10 +27,10 @@ import {
   setUserDataInProtocol,
   updateUsername,
   validateUsernameIsAvailable,
-} from "../helpers/farcaster";
+} from "@/common/helpers/farcaster";
 import { getAddress } from "viem";
 import { AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from "@/stores/useAccountStore";
-import { AccountPlatformType } from "../constants/accounts";
+import { AccountPlatformType } from "@/common/constants/accounts";
 import {
   Cog6ToothIcon,
   ExclamationCircleIcon,

@@ -24,6 +24,8 @@ type BigOptionSelectorProps = {
 
 const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
   const renderOption = (option: OptionSelectorType) => {
+    if (!option) return null;
+
     return (
       <Card key={option.title} className="max-w-sm col-span-1">
         <CardHeader>
@@ -33,7 +35,11 @@ const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
         {option.content ? <CardContent>{option.content}</CardContent> : null}
         {option.buttonText ? (
           <CardFooter>
-            <Button className="w-full" disabled={option.disabled} onClick={() => option.onClick()}>
+            <Button
+              className="w-full"
+              disabled={option.disabled}
+              onClick={() => option.onClick()}
+            >
               {option.buttonText}
             </Button>
           </CardFooter>
