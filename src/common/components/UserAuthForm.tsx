@@ -30,6 +30,7 @@ import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { v4 as uuidv4 } from "uuid";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
+import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -44,7 +45,13 @@ const UserAuthFormSchema = z.object({
   }),
 });
 
-export function UserAuthForm({ className }: { className: string }) {
+export function UserAuthForm({
+  signupOnly,
+  className,
+}: {
+  signupOnly: boolean;
+  className: string;
+}) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
   const supabase = createClient();
@@ -174,13 +181,16 @@ export function UserAuthForm({ className }: { className: string }) {
     <div className={cn("grid gap-6", className)}>
       <Form {...form}>
         <form>
-          <div className="grid gap-2">
-            <div className="grid gap-1">
+          <div className="grid gap-4">
+            <div className="grid gap-4">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
+                    <Label className="text-gray-200" htmlFor="email">
+                      Email
+                    </Label>
                     <FormControl>
                       <Input
                         className="text-white"
@@ -193,14 +203,14 @@ export function UserAuthForm({ className }: { className: string }) {
                   </FormItem>
                 )}
               />
-              <Label className="sr-only" htmlFor="email">
-                Email
-              </Label>
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
+                    <Label className="text-gray-200" htmlFor="email">
+                      Password
+                    </Label>
                     <FormControl>
                       <Input
                         className="text-white"
@@ -254,31 +264,40 @@ export function UserAuthForm({ className }: { className: string }) {
       <div className="text-center">
         {userMessage && <Label className="text-gray-200">{userMessage}</Label>}
       </div>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+      {signupOnly ? (
+        <Button variant="default" onClick={() => router.push("/feed")}>
+          <ArrowLeftIcon className="h-5 w-5 mr-2" /> Back to using read-only
+          account
+        </Button>
+      ) : (
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-gray-900 px-2 text-muted-foreground">
+              or continue with
+            </span>
+          </div>
         </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="bg-gray-900 px-2 text-muted-foreground">
-            or continue with
-          </span>
+      )}
+      {!signupOnly && (
+        <div className="flex flex-col space-y-4 items-center justify-center text-white">
+          {!isAuthenticated && !isLoading ? (
+            <SignInButton hideSignOut />
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="py-4 text-white bg-[#7C65C1] rounded-md"
+              disabled={isLoading}
+            >
+              <Loading />
+            </Button>
+          )}
         </div>
-      </div>
-      <div className="flex flex-col space-y-4 items-center justify-center text-white">
-        {!isAuthenticated && !isLoading ? (
-          <SignInButton hideSignOut />
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="py-4 text-white bg-[#7C65C1] rounded-md"
-            disabled={isLoading}
-          >
-            <Loading />
-          </Button>
-        )}
-      </div>
+      )}
     </div>
   );
 }

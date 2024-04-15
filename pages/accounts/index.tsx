@@ -210,7 +210,7 @@ export default function Accounts() {
         <Button
           className="w-full"
           variant="default"
-          onClick={() => openWindow(`${process.env.NEXT_PUBLIC_URL}/login`)}
+          onClick={() => openWindow(`${process.env.NEXT_PUBLIC_URL}/login?signupOnly=true`)}
         >
           Switch to a full account
         </Button>

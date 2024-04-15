@@ -41,7 +41,6 @@ export function SidebarNav({
             onClick={() => onClick(item.key)}
             key={item.key}
             variant="ghost"
-            // disabled={!enabled}
             className={classNames(
               enabled ? "text-foreground/40 hover:bg-transparent hover:underline" : "",
               item.key === step ? "bg-muted hover:bg-muted" : "",

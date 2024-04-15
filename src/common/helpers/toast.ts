@@ -3,9 +3,9 @@ import truncate from "lodash.truncate";
 
 export const toastInfoReadOnlyMode = () => {
     toast.info('You\'re using a readonly account', {
-        description: '<a href="/login">Switch to a full account to start casting ↗️</a>',
+        description: '<a href="/login?signupOnly=true">Switch to a full account to start casting ↗️</a>',
         descriptionClassName: "underline",
-        duration: 7000
+        duration: 7500
     })
 }
 

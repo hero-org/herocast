@@ -35,7 +35,6 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
         description="Get started with herocast"
         onClick={() => router.push("/accounts")}
         submitText="Connect account"
-        icon={UserPlusIcon}
       />
     </div>
   );
@@ -82,9 +81,15 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     }
   };
 
-  const onClickAccount = (idx: number, isActive: boolean) => {
+  const onClickAccount = (
+    idx: number,
+    isActive: boolean,
+    isReadOnly: boolean
+  ) => {
     if (isActive) {
       setCurrentAccountIdx(idx);
+    } else if (isReadOnly) {
+      router.push(`/login?signupOnly=true`);
     } else {
       router.push(`/accounts`);
     }
@@ -95,17 +100,22 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
       <ul role="list" className="mx-4 divide-y divide-white/5">
         {accounts.map((account: AccountObjectType, idx: number) => {
           const isActive = account.status === AccountStatusType.active;
+          const isReadOnly =
+            account.platform === AccountPlatformType.farcaster_local_readonly;
+          const getTooltipText = () => {
+            if (isReadOnly) {
+              return "Local, read-only account";
+            }
+            return isActive ? `Ctrl + ${idx + 1}` : "Finish onboarding";
+          };
           return (
             <li
               key={`${account.name}-${account.id}`}
               className="px-2 py-2 sm:px-3 lg:px-4"
             >
-              <HotkeyTooltipWrapper
-                hotkey={isActive ? `Ctrl + ${idx + 1}` : "Finish onboarding"}
-                side="left"
-              >
+              <HotkeyTooltipWrapper hotkey={getTooltipText()} side="left">
                 <div
-                  onClick={() => onClickAccount(idx, isActive)}
+                  onClick={() => onClickAccount(idx, isActive, isReadOnly)}
                   className="flex items-center gap-x-3 cursor-pointer group"
                 >
                   {account.user?.pfp_url && (

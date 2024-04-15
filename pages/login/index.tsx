@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { openWindow } from "@/common/helpers/navigation";
 import Link from "next/link";
 import clsx from "clsx";
+import { useRouter } from 'next/router'
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
@@ -14,24 +15,25 @@ const authKitConfig = {
 };
 
 export default function Login() {
+  const router = useRouter();
+  const signupOnly = router?.query?.signupOnly === 'true';
   const renderAuthForm = () => (
     <div className="mt-10 text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
-      <UserAuthForm />
+      <UserAuthForm signupOnly={signupOnly}/>
     </div>
   );
 
-  const showLandingPageInfo = true;
 
   return (
     <AuthKitProvider config={authKitConfig}>
       <div className="w-full max-w-full min-h-screen">
         <div
           className={clsx(
-            showLandingPageInfo ? "grid lg:max-w-none lg:grid-cols-2 lg:px-0" : "mx-auto bg-gray-900",
+            !signupOnly ? "grid lg:max-w-none lg:grid-cols-2 lg:px-0" : "mx-auto bg-gray-900",
             "relative w-full h-screen flex-col items-center"
           )}
         >
-          {showLandingPageInfo && (
+          {!signupOnly && (
             <div className="relative h-full flex-col bg-muted p-10 text-foreground flex">
               <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-l from-gray-900 via-gray-700 to-stone-500" />
               <div className="relative z-20 flex items-center text-lg font-medium text-gray-200">
