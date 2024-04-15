@@ -6,6 +6,7 @@ import ChangeBioForm from "./ChangeBioForm";
 
 type AccountManagementProps = {
   account: AccountObjectType;
+  onSuccess?: () => void;
 };
 
 enum AccountManagementTab {
@@ -29,10 +30,8 @@ const AccountManagementTabs = [
   },
 ];
 
-const AccountManagement = ({ account }: AccountManagementProps) => {
+const AccountManagement = ({ account, onSuccess }: AccountManagementProps) => {
   const [currentTab, setCurrentTab] = React.useState<AccountManagementTab>();
-
-  console.log("currentTab", currentTab);
 
   const renderChangeNameTab = () => {
     return (
@@ -53,7 +52,7 @@ const AccountManagement = ({ account }: AccountManagementProps) => {
   const renderChangeBioTab = () => {
     return (
       <TabsContent value={AccountManagementTab.CHANGE_BIO}>
-        <ChangeBioForm account={account} />
+        <ChangeBioForm account={account} onSuccess={onSuccess} />
       </TabsContent>
     );
   };

@@ -12,41 +12,36 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { UserDataType } from "@farcaster/hub-web";
 import { setUserDataInProtocol } from "@/common/helpers/farcaster";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import {
-  Cog6ToothIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/20/solid";
+import { AccountObjectType } from "@/stores/useAccountStore";
+import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { optimism } from "viem/chains";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 export type ChangeBioFormValues = z.infer<typeof ChangeBioFormSchema>;
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 const ChangeBioFormSchema = z.object({
-  bio: z.string().max(128, {
-    message: "Username must not be longer than 30 characters.",
+  bio: z.string().max(256, {
+    message: "Bio must not be longer than 256 characters.",
   }),
 });
 
-const ChangeBioForm = ({
-  account,
-  onSuccess,
-}: {
-  onSuccess?: (data: ChangeBioFormValues) => void;
+type ChangeBioFormProps = {
   account: AccountObjectType;
-}) => {
+  onSuccess?: () => void;
+};
+
+const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
   const [isPending, setIsPending] = useState(false);
   const [userInProtocol, setUserInProtocol] = useState<User>();
-  const { address, chainId, isConnected } = useAccount();
-  const { switchChain } = useSwitchChain();
+  const { address, chainId } = useAccount();
 
   const client = useWalletClient({
     account: address,
@@ -57,7 +52,7 @@ const ChangeBioForm = ({
     resolver: zodResolver(ChangeBioFormSchema),
     mode: "onSubmit",
   });
-  const canSubmitForm = !isPending && isConnected && chainId === optimism.id;
+  const canSubmitForm = !isPending && chainId === optimism.id;
 
   useEffect(() => {
     const getUserInProtocol = async () => {
@@ -70,7 +65,6 @@ const ChangeBioForm = ({
           { viewerFid: APP_FID! }
         )
       ).users[0];
-      console.log('user', user)
       if (user) {
         setUserInProtocol(user);
       }
@@ -85,6 +79,15 @@ const ChangeBioForm = ({
     if (!address || !client || !userInProtocol) return;
 
     const { bio } = data;
+
+    if (bio === userInProtocol?.profile?.bio?.text) {
+      form.setError("bio", {
+        type: "manual",
+        message: "Please enter a new bio.",
+      });
+      return;
+    }
+
     setIsPending(true);
 
     try {
@@ -94,6 +97,12 @@ const ChangeBioForm = ({
         UserDataType.BIO,
         bio
       );
+      toast.success("Bio changed successfully", {
+        description: "takes a while before it shows on Warpcast",
+        duration: 5000,
+        closeButton: true,
+      });
+      onSuccess?.();
     } catch (e) {
       console.error("ChangeBio error", e);
       form.setError("bio", {
@@ -142,36 +151,11 @@ const ChangeBioForm = ({
           )}
           <p>Update bio</p>
         </Button>
-        {chainId !== optimism.id && (
-          <Button
-            type="button"
-            variant="default"
-            className="ml-4"
-            onClick={() => switchChain({ chainId: optimism.id })}
-          >
-            Switch to Optimism
-          </Button>
-        )}
       </form>
     </Form>
   );
 
-  return (
-    <div className="flex flex-col gap-y-4">
-      {isConnected ? (
-        renderForm()
-      ) : (
-        <div className="flex flex-row text-center items-center space-x-4">
-          <div className="flex px-4 py-1.5 rounded-md bg-foreground/10 border border-gray-500 text-warning">
-            <ExclamationCircleIcon className="h-4 w-4 mr-2 mt-1" />
-            <p className="text-foreground text-[15px] leading-normal">
-              Connect your wallet to rename your account.
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return <div className="flex flex-col gap-y-4">{renderForm()}</div>;
 };
 
 export default ChangeBioForm;

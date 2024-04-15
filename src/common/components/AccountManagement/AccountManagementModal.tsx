@@ -44,7 +44,7 @@ const AccountManagementModal = ({
   );
 
   const renderEditableAccountContent = () => (
-    <AccountManagement account={account} />
+    <AccountManagement account={account} onSuccess={() => setOpen(false)}/>
   );
 
   return (
