@@ -18,6 +18,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -188,13 +189,11 @@ export function UserAuthForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <Label className="text-gray-200" htmlFor="email">
-                      Email
-                    </Label>
+                    <FormLabel className="text-gray-200">Email</FormLabel>
                     <FormControl>
                       <Input
                         className="text-white"
-                        placeholder="vitalik@home.xyz"
+                        placeholder="vitalik@ethereum.org"
                         disabled={isLoading}
                         {...field}
                       />
@@ -208,9 +207,7 @@ export function UserAuthForm({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <Label className="text-gray-200" htmlFor="email">
-                      Password
-                    </Label>
+                    <FormLabel className="text-gray-200">Password</FormLabel>
                     <FormControl>
                       <Input
                         className="text-white"
@@ -265,7 +262,7 @@ export function UserAuthForm({
         {userMessage && <Label className="text-gray-200">{userMessage}</Label>}
       </div>
       {signupOnly ? (
-        <Button variant="default" onClick={() => router.push("/feed")}>
+        <Button variant="default" onClick={() => router.back()}>
           <ArrowLeftIcon className="h-5 w-5 mr-2" /> Back to using read-only
           account
         </Button>

@@ -36,6 +36,7 @@ import mentionPlugin, {
 import { toast } from "sonner";
 import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
+import Image from "next/image";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -451,11 +452,12 @@ export const CastRow = ({
                   username={cast.author.username}
                   userFid={userFid}
                 >
-                  <span className="flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-48 lg:max-w-full">
+                  <span className="flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                     {cast.author.display_name || cast.author.displayName}
                     <span className="hidden font-normal lg:ml-1 lg:block">
                       (@{cast.author.username})
                     </span>
+                    <span>{cast.author.power_badge && <img src="/images/ActiveBadge.webp" className="ml-2 mt-0.5 h-[17px] w-[17px]" alt="power badge" />}</span>
                   </span>
                 </ProfileHoverCard>
                 {showChannel && channel && (

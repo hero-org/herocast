@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { AccountObjectType } from "@/stores/useAccountStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RenameAccountForm from "./RenameAccountForm";
+import ChangeBioForm from "./ChangeBioForm";
 
 type AccountManagementProps = {
   account: AccountObjectType;
@@ -13,10 +14,25 @@ enum AccountManagementTab {
   CHANGE_BIO = "Change_Bio",
 }
 
+const AccountManagementTabs = [
+  {
+    key: AccountManagementTab.CHANGE_NAME,
+    label: "Change Name",
+  },
+  {
+    key: AccountManagementTab.CHANGE_PROFILE_PICTURE,
+    label: "Change Profile Picture",
+  },
+  {
+    key: AccountManagementTab.CHANGE_BIO,
+    label: "Change Bio",
+  },
+];
+
 const AccountManagement = ({ account }: AccountManagementProps) => {
-  const [currentTab, setCurrentTab] = React.useState<AccountManagementTab>(
-    AccountManagementTab.CHANGE_NAME
-  );
+  const [currentTab, setCurrentTab] = React.useState<AccountManagementTab>();
+
+  console.log("currentTab", currentTab);
 
   const renderChangeNameTab = () => {
     return (
@@ -37,7 +53,7 @@ const AccountManagement = ({ account }: AccountManagementProps) => {
   const renderChangeBioTab = () => {
     return (
       <TabsContent value={AccountManagementTab.CHANGE_BIO}>
-        Make changes to your account here. BIO
+        <ChangeBioForm account={account} />
       </TabsContent>
     );
   };
@@ -47,11 +63,12 @@ const AccountManagement = ({ account }: AccountManagementProps) => {
       <Tabs
         onValueChange={(v) => setCurrentTab(v as AccountManagementTab)}
         className="w-[500px]"
+        defaultValue={AccountManagementTab.CHANGE_BIO}
       >
         <TabsList className="grid w-full grid-cols-3">
-          {Object.values(AccountManagementTab).map((tab) => (
-            <TabsTrigger key={tab} value={tab}>
-              {tab.replaceAll("_", " ")}
+          {AccountManagementTabs.map((tab) => (
+            <TabsTrigger key={tab.key} value={tab.key}>
+              {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>

@@ -19,7 +19,7 @@ import {
   getSignatureForUsernameProof,
   getTimestamp,
   setUserDataInProtocol,
-  updateUsername,
+  updateUsernameOffchain,
   validateUsernameIsAvailable,
 } from "../helpers/farcaster";
 import { getAddress, toHex } from "viem";
@@ -164,7 +164,7 @@ const RegisterFarcasterUsernameForm = ({
 
     // register new username
 
-    const result = await updateUsername({
+    const result = await updateUsernameOffchain({
       timestamp,
       owner,
       fromFid: "0",

@@ -163,8 +163,7 @@ export default function Settings() {
       <div className="flex flex-row gap-4">
         <SwitchWalletButton />
         <Button
-          type="button"
-          variant="destructive"
+          variant="default"
           onClick={() => onLogout()}
           className="w-20"
         >
@@ -217,12 +216,12 @@ export default function Settings() {
                   fid: {item.platformAccountId}
                 </p>
               )}
-              {/* <Button
+              <Button
                 variant="secondary"
                 onClick={() => onClickManageAccount(item)}
               >
                 Manage
-              </Button> */}
+              </Button>
               <AlertDialogDemo
                 buttonText={`Remove`}
                 onClick={() => removeAccount(idx)}
