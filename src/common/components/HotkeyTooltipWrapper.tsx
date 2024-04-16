@@ -30,7 +30,6 @@ const HotkeyTooltipWrapper = ({
         sideOffset={5}
       >
         {hotkey}
-        <TooltipArrow className="fill-muted" />
       </TooltipContent>
     </Tooltip>
   );

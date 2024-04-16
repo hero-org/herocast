@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { useAccount } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { UserDataType } from "@farcaster/hub-web";
 import { setUserDataInProtocol } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "@/stores/useAccountStore";
@@ -22,27 +22,35 @@ import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
-export type ChangeBioFormValues = z.infer<typeof ChangeBioFormSchema>;
+type ChangeDisplayNameFormValues = z.infer<typeof ChangeDisplayNameFormSchema>;
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
-const ChangeBioFormSchema = z.object({
-  bio: z.string().max(256, {
-    message: "Bio must not be longer than 256 characters.",
+const validateMaxBytes32 = (value: string) => {
+  console.log('value', value, new TextEncoder().encode(value).length);
+  return new TextEncoder().encode(value).length <= 32;
+};
+
+const ChangeDisplayNameFormSchema = z.object({
+  displayName: z.string().refine(validateMaxBytes32, {
+    message: "Display name must not be longer than 32 bytes.",
   }),
 });
 
-type ChangeBioFormProps = {
+type ChangeDisplayNameFormProps = {
   account: AccountObjectType;
   onSuccess?: () => void;
 };
 
-const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
+const ChangeDisplayNameForm = ({
+  account,
+  onSuccess,
+}: ChangeDisplayNameFormProps) => {
   const [isPending, setIsPending] = useState(false);
   const [userInProtocol, setUserInProtocol] = useState<User>();
 
-  const form = useForm<ChangeBioFormValues>({
-    resolver: zodResolver(ChangeBioFormSchema),
+  const form = useForm<ChangeDisplayNameFormValues>({
+    resolver: zodResolver(ChangeDisplayNameFormSchema),
     mode: "onSubmit",
   });
   const canSubmitForm = !isPending && userInProtocol;
@@ -68,15 +76,15 @@ const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
     }
   }, [account.platformAccountId]);
 
-  const changeBio = async (data) => {
+  const changeDisplayName = async (data) => {
     if (!userInProtocol) return;
 
-    const { bio } = data;
+    const { displayName } = data;
 
-    if (bio === userInProtocol?.profile?.bio?.text) {
-      form.setError("bio", {
+    if (displayName === userInProtocol?.display_name) {
+      form.setError("displayName", {
         type: "manual",
-        message: "Please enter a new bio.",
+        message: "Please enter a new display name.",
       });
       return;
     }
@@ -87,19 +95,19 @@ const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
       await setUserDataInProtocol(
         account.privateKey!,
         Number(account.platformAccountId!),
-        UserDataType.BIO,
-        bio
+        UserDataType.DISPLAY,
+        displayName
       );
-      toast.success("Bio changed successfully", {
+      toast.success("Display name changed successfully", {
         duration: 5000,
         closeButton: true,
       });
       onSuccess?.();
     } catch (e) {
-      console.error("ChangeBio error", e);
-      form.setError("bio", {
+      console.error("ChangeDisplayName error", e);
+      form.setError("displayName", {
         type: "manual",
-        message: `Error setting bio -> ${e}`,
+        message: `Error setting displayName -> ${e}`,
       });
     } finally {
       setIsPending(false);
@@ -108,22 +116,25 @@ const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
 
   const renderForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(changeBio)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(changeDisplayName)}
+        className="space-y-4"
+      >
         <FormField
           control={form.control}
-          name="bio"
+          name="displayName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New bio</FormLabel>
+              <FormLabel>New display name</FormLabel>
               <FormControl>
                 <Textarea
-                  defaultValue={userInProtocol?.profile?.bio?.text}
-                  placeholder="Your new bio..."
+                  defaultValue={userInProtocol?.display_name}
+                  placeholder="Your new display name..."
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                This will be your new public bio on Farcaster.
+                This will be your new public display name on Farcaster.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -141,7 +152,7 @@ const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
               aria-hidden="true"
             />
           )}
-          <p>Update bio</p>
+          <p>Update display name</p>
         </Button>
       </form>
     </Form>
@@ -150,4 +161,4 @@ const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
   return <div className="flex flex-col gap-y-4">{renderForm()}</div>;
 };
 
-export default ChangeBioForm;
+export default ChangeDisplayNameForm;

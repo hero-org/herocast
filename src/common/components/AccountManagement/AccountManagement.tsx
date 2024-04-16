@@ -3,6 +3,9 @@ import { AccountObjectType } from "@/stores/useAccountStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RenameAccountForm from "./RenameAccountForm";
 import ChangeBioForm from "./ChangeBioForm";
+import ChangeDisplayNameForm from "./ChangeDisplayNameForm";
+import ImgurUpload from "../ImgurUpload";
+import ChangeProfilePictureForm from "./ChangeProfilePictureForm";
 
 type AccountManagementProps = {
   account: AccountObjectType;
@@ -10,67 +13,69 @@ type AccountManagementProps = {
 };
 
 enum AccountManagementTab {
-  CHANGE_NAME = "Change_Name",
-  CHANGE_PROFILE_PICTURE = "Change_Profile_Picture",
-  CHANGE_BIO = "Change_Bio",
+  NAME = "NAME",
+  PROFILE_PICTURE = "PROFILE_PICTURE",
+  BIO = "BIO",
+  DISPLAY_NAME = "DISPLAY_NAME",
 }
 
 const AccountManagementTabs = [
   {
-    key: AccountManagementTab.CHANGE_NAME,
-    label: "Change Name",
+    key: AccountManagementTab.DISPLAY_NAME,
+    label: "Display Name",
   },
   {
-    key: AccountManagementTab.CHANGE_PROFILE_PICTURE,
-    label: "Change Profile Picture",
+    key: AccountManagementTab.PROFILE_PICTURE,
+    label: "Profile Picture",
   },
   {
-    key: AccountManagementTab.CHANGE_BIO,
-    label: "Change Bio",
+    key: AccountManagementTab.BIO,
+    label: "Bio",
+  },
+  {
+    key: AccountManagementTab.NAME,
+    label: "Name",
   },
 ];
 
 const AccountManagement = ({ account, onSuccess }: AccountManagementProps) => {
-  const [currentTab, setCurrentTab] = React.useState<AccountManagementTab>();
-
   const renderChangeNameTab = () => {
     return (
-      <TabsContent value={AccountManagementTab.CHANGE_NAME}>
+      <TabsContent value={AccountManagementTab.NAME}>
         <RenameAccountForm account={account} />
       </TabsContent>
     );
   };
 
-  const renderChangeProfilePictureTab = () => {
-    return (
-      <TabsContent value={AccountManagementTab.CHANGE_PROFILE_PICTURE}>
-        Make changes to your account here. PFP
-      </TabsContent>
-    );
-  };
+  const renderChangeProfilePictureTab = () => (
+    <TabsContent value={AccountManagementTab.PROFILE_PICTURE}>
+      <ChangeProfilePictureForm account={account} onSuccess={onSuccess} />
+    </TabsContent>
+  );
 
-  const renderChangeBioTab = () => {
-    return (
-      <TabsContent value={AccountManagementTab.CHANGE_BIO}>
-        <ChangeBioForm account={account} onSuccess={onSuccess} />
-      </TabsContent>
-    );
-  };
+  const renderChangeBioTab = () => (
+    <TabsContent value={AccountManagementTab.BIO}>
+      <ChangeBioForm account={account} onSuccess={onSuccess} />
+    </TabsContent>
+  );
+
+  const renderChangeDisplayNameTab = () => (
+    <TabsContent value={AccountManagementTab.DISPLAY_NAME}>
+      <ChangeDisplayNameForm account={account} onSuccess={onSuccess} />
+    </TabsContent>
+  );
 
   return (
     <div>
-      <Tabs
-        onValueChange={(v) => setCurrentTab(v as AccountManagementTab)}
-        className="w-[500px]"
-        defaultValue={AccountManagementTab.CHANGE_BIO}
-      >
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs className="w-[500px]" defaultValue={AccountManagementTab.BIO}>
+        <TabsList className="grid w-full grid-cols-4 gap-x-2">
           {AccountManagementTabs.map((tab) => (
             <TabsTrigger key={tab.key} value={tab.key}>
               {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
+        {renderChangeDisplayNameTab()}
         {renderChangeNameTab()}
         {renderChangeProfilePictureTab()}
         {renderChangeBioTab()}

@@ -25,7 +25,7 @@ import {
   getTimestamp,
   getUsernameForFid,
   setUserDataInProtocol,
-  updateUsername,
+  updateUsernameOffchain,
   validateUsernameIsAvailable,
 } from "@/common/helpers/farcaster";
 import { getAddress } from "viem";
@@ -182,7 +182,7 @@ const RenameAccountForm = ({
           throw new Error("Failed to get signature to unregister username");
         }
         // unregister old username
-        await updateUsername({
+        await updateUsernameOffchain({
           timestamp,
           owner,
           toFid: "0",
@@ -211,7 +211,7 @@ const RenameAccountForm = ({
 
       // register new username
 
-      const result = await updateUsername({
+      const result = await updateUsernameOffchain({
         timestamp,
         owner,
         fromFid: "0",
@@ -226,7 +226,7 @@ const RenameAccountForm = ({
       await setUserDataInProtocol(
         account.privateKey!,
         Number(account.platformAccountId!),
-        UserDataType.DISPLAY,
+        UserDataType.USERNAME,
         username
       );
       updateAccountUsername(account.id!);
