@@ -9,14 +9,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-type OptionSelectorType = {
-  title: string;
-  description: string;
-  buttonText: string;
-  content?: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-};
+type OptionSelectorType =
+  | {
+      title: string;
+      description: string;
+      buttonText?: string;
+      content?: React.ReactNode;
+      onClick?: () => void;
+      disabled?: boolean;
+    }
+  | undefined;
 
 type BigOptionSelectorProps = {
   options: OptionSelectorType[];
@@ -25,6 +27,7 @@ type BigOptionSelectorProps = {
 const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
   const renderOption = (option: OptionSelectorType) => {
     if (!option) return null;
+    if (!option.content && !option.buttonText) return null;
 
     return (
       <Card key={option.title} className="max-w-sm col-span-1">
