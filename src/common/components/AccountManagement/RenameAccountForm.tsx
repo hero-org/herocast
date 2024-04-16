@@ -12,13 +12,8 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  useAccount,
-  useWalletClient,
-} from "wagmi";
-import {
-  UserDataType,
-} from "@farcaster/hub-web";
+import { useAccount, useWalletClient } from "wagmi";
+import { UserDataType } from "@farcaster/hub-web";
 import {
   getFidForAddress,
   getSignatureForUsernameProof,
@@ -29,7 +24,11 @@ import {
   validateUsernameIsAvailable,
 } from "@/common/helpers/farcaster";
 import { getAddress } from "viem";
-import { AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from "@/stores/useAccountStore";
+import {
+  AccountObjectType,
+  PENDING_ACCOUNT_NAME_PLACEHOLDER,
+  useAccountStore,
+} from "@/stores/useAccountStore";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import {
   Cog6ToothIcon,
@@ -38,7 +37,7 @@ import {
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { mainnet } from "viem/chains";
 import { switchChain } from "viem/actions";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v1";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 export type RenameAccountFormValues = z.infer<typeof RenameAccountFormSchema>;
 
@@ -84,12 +83,14 @@ const RenameAccountForm = ({
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
       const user = (
-        await neynarClient.lookupUserByFid(
-          Number(account.platformAccountId!),
-          APP_FID!
+        await neynarClient.fetchBulkUsers(
+          [Number(account.platformAccountId!)],
+          { viewerFid: APP_FID }
         )
-      ).result.user;
-      setUserInProtocol(user);
+      )?.users?.[0];
+      if (user) {
+        setUserInProtocol(user);
+      }
     };
 
     if (account.platformAccountId) {

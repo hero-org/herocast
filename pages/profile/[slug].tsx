@@ -36,7 +36,7 @@ export async function getStaticProps({ params: { slug } }) {
       user = await client.lookupUserByUsername(slug);
     }
   } catch (error) {
-    console.error("failed to get data for profile page", slug, error);
+    console.error("Failed to get data for profile page", error, slug);
     return {
       notFound: true,
     };
