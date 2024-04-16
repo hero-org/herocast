@@ -394,3 +394,7 @@ export const getSignatureForUsernameProof = async (client, address, message: {
   console.log("getSignatureForUsernameProof:", signature);
   return signature;
 };
+
+export const updateBio = async () => {
+  
+}
