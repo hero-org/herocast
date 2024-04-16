@@ -170,6 +170,12 @@ export default function Feed() {
     return FilterType.ParentUrl;
   };
 
+  const getParentUrl = (parentUrl: string | undefined) =>
+    parentUrl === CUSTOM_CHANNELS.FOLLOWING ||
+    parentUrl === CUSTOM_CHANNELS.TRENDING
+      ? undefined
+      : parentUrl;
+
   const getFeed = async ({
     fid,
     parentUrl,
@@ -187,7 +193,7 @@ export default function Feed() {
     try {
       const feedOptions = {
         filterType: getFilterType(parentUrl),
-        parentUrl,
+        parentUrl: getParentUrl(parentUrl),
         cursor,
         fid: Number(fid),
         limit: DEFAULT_FEED_PAGE_SIZE,
@@ -337,6 +343,17 @@ export default function Feed() {
             },
             {
               title: "Browse trending feed",
+              content: (
+                <iframe
+                  src="https://paragraph.xyz/@hellno/embed?minimal=true&vertical=true"
+                  width="480"
+                  height="90"
+                  style={{ border: "1px solid #EEE", background: "white" }}
+                ></iframe>
+              ),
+            },
+            {
+              title: "Follow the herocast team",
               description:
                 "No need to signup if you just want to checkout herocast",
               buttonText: "Trending Feed →",
