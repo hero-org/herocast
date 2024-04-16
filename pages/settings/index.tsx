@@ -17,14 +17,17 @@ import { useRouter } from "next/router";
 import { getNavigationCommands } from "@/getNavigationCommands";
 import AccountManagementModal from "@/common/components/AccountManagement/AccountManagementModal";
 import { useAccount } from "wagmi";
-import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import { Loading } from "@/common/components/Loading";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
-import { getUsernameForFid, updateUsername } from "@/common/helpers/farcaster";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { createClient } from "@/common/helpers/supabase/component";
 import { usePostHog } from "posthog-js/react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 type SimpleCommand = {
   name: string;
@@ -41,7 +44,6 @@ export default function Settings() {
   const [open, setOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] =
     useState<AccountObjectType | null>(null);
-  const { address, isConnected } = useAccount();
 
   const {
     hydratedAt,
@@ -118,29 +120,36 @@ export default function Settings() {
     );
 
     return (
-      <div className="w-2/3 mt-20 overflow-hidden">
-        <div className="border-b border-border">
-          <h1 className="text-xl font-semibold leading-7 text-foreground/80">
-            Hotkeys / Keyboard Shortcuts
-          </h1>
-        </div>
-        <div className="border-t border-muted">
-          <dl className="divide-y divide-muted">
-            {commandsWithShortcuts.map((command) => (
-              <div
-                key={`command-${command.name}`}
-                className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4"
-              >
-                <dt className="text-sm text-foreground/60">{command.name}</dt>
-                {command.shortcut && (
-                  <dd className="mt-1 text-sm leading-6 font-semibold text-foreground sm:col-span-1 sm:mt-0">
-                    {command.shortcut.replace(/\+/g, " + ")}
-                  </dd>
-                )}
-              </div>
-            ))}
-          </dl>
-        </div>
+      <div className="w-full max-w-xl mt-20 overflow-hidden">
+        <div className="border-b border-border"></div>
+        <Collapsible>
+          <CollapsibleTrigger>
+            <h3 className="mt-4 text-md font-semibold leading-7 text-foreground/80">
+              Hotkeys / Keyboard Shortcuts (click to expand)
+            </h3>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="border-t border-muted">
+              <dl className="divide-y divide-muted">
+                {commandsWithShortcuts.map((command) => (
+                  <div
+                    key={`command-${command.name}`}
+                    className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4"
+                  >
+                    <dt className="text-sm text-foreground/60">
+                      {command.name}
+                    </dt>
+                    {command.shortcut && (
+                      <dd className="mt-1 text-sm leading-6 font-semibold text-foreground sm:col-span-1 sm:mt-0">
+                        {command.shortcut.replace(/\+/g, " + ")}
+                      </dd>
+                    )}
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     );
   };
@@ -162,12 +171,7 @@ export default function Settings() {
       </div>
       <div className="flex flex-row gap-4">
         <SwitchWalletButton />
-        <Button
-          type="button"
-          variant="destructive"
-          onClick={() => onLogout()}
-          className="w-20"
-        >
+        <Button variant="default" onClick={() => onLogout()} className="w-20">
           Logout
         </Button>
       </div>
@@ -217,12 +221,12 @@ export default function Settings() {
                   fid: {item.platformAccountId}
                 </p>
               )}
-              {/* <Button
+              <Button
                 variant="secondary"
                 onClick={() => onClickManageAccount(item)}
               >
                 Manage
-              </Button> */}
+              </Button>
               <AlertDialogDemo
                 buttonText={`Remove`}
                 onClick={() => removeAccount(idx)}

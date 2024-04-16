@@ -12,9 +12,7 @@ import {
   handleOpenFile,
   handleSetInput,
 } from "@mod-protocol/core";
-import {
-  getFarcasterMentions,
-} from "@mod-protocol/farcaster";
+import { getFarcasterMentions } from "@mod-protocol/farcaster";
 import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
 import { CastLengthUIIndicator } from "@mod-protocol/react-ui-shadcn/dist/components/cast-length-ui-indicator";
 import debounce from "lodash.debounce";
@@ -57,12 +55,14 @@ const getChannels = async (query: string): Promise<Channel[]> => {
 };
 
 const getAllChannels = async (): Promise<Channel[]> => {
-  return (await neynarClient.fetchAllChannels())?.channels ?? [];
+  try {
+    return (await neynarClient.fetchAllChannels())?.channels ?? [];
+  } catch (e) {
+    console.error(`Error fetching all channels: ${e}`);
+    return [];
+  }
 };
-// const debouncedGetModChannels = debounce(getModChannels, 200, {
-//   leading: true,
-//   trailing: true,
-// });
+
 const getUrlMetadata = fetchUrlMetadata(API_URL);
 
 const onError = (err) => {

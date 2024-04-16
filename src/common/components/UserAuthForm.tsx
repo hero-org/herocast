@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loading } from "./Loading";
-import { SignInButton, useProfile } from "@farcaster/auth-kit";
-import { useEffect, useState } from "react";
+import { SignInButton } from "@farcaster/auth-kit";
+import { useState } from "react";
 import { createClient } from "../helpers/supabase/component";
 import { useRouter } from "next/router";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -57,18 +58,24 @@ export function UserAuthForm({
   const supabase = createClient();
   const router = useRouter();
   const posthog = usePostHog();
-  const { isAuthenticated, profile } = useProfile();
+  const { accounts, addAccount } = useAccountStore();
+  const localAccounts = accounts.filter(
+    (account) =>
+      account.platform === AccountPlatformType.farcaster_local_readonly
+  );
 
   const form = useForm<UserAuthFormValues>({
     resolver: zodResolver(UserAuthFormSchema),
     mode: "onSubmit",
   });
 
-  const { addAccount } = useAccountStore();
-  const setupLocalAccount = async () => {
+  const setupLocalAccount = async ({ fid, username }) => {
+    if (!fid || !username) return;
+    if (localAccounts.some((a) => a.platformAccountId === fid.toString())) {
+      return;
+    }
+
     setIsLoading(true);
-    const { fid } = profile;
-    if (!fid) return;
     const neynarClient = new NeynarAPIClient(
       process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
     );
@@ -82,11 +89,11 @@ export function UserAuthForm({
     }
 
     const account = {
-      name: profile.username,
+      name: username,
       status: AccountStatusType.active,
       platform: AccountPlatformType.farcaster_local_readonly,
       platformAccountId: fid.toString(),
-      user: users[0],
+      user: users?.[0],
     };
     setUserMessage("Setting up local account...");
     await hydrateChannels();
@@ -97,15 +104,9 @@ export function UserAuthForm({
     posthog.identify(uuidv4(), { isLocalOnly: true });
 
     setUserMessage("Setup done. Welcome to the herocast experience!");
-    router.push("/feed");
+    router.push("/welcome");
     setIsLoading(false);
   };
-
-  useEffect(() => {
-    if (isAuthenticated && profile) {
-      setupLocalAccount();
-    }
-  }, [isAuthenticated, profile]);
 
   async function logIn() {
     if (!(await form.trigger())) return;
@@ -188,13 +189,11 @@ export function UserAuthForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <Label className="text-gray-200" htmlFor="email">
-                      Email
-                    </Label>
+                    <FormLabel className="text-gray-200">Email</FormLabel>
                     <FormControl>
                       <Input
                         className="text-white"
-                        placeholder="vitalik@home.xyz"
+                        placeholder="vitalik@ethereum.org"
                         disabled={isLoading}
                         {...field}
                       />
@@ -208,9 +207,7 @@ export function UserAuthForm({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <Label className="text-gray-200" htmlFor="email">
-                      Password
-                    </Label>
+                    <FormLabel className="text-gray-200">Password</FormLabel>
                     <FormControl>
                       <Input
                         className="text-white"
@@ -225,14 +222,11 @@ export function UserAuthForm({
                   </FormItem>
                 )}
               />
-              <Label className="sr-only" htmlFor="password">
-                Password
-              </Label>
             </div>
             <Button
               type="button"
               size="lg"
-              className="py-6 bg-[#7C65C1] hover:bg-[#6A4CA5]"
+              className="py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
               disabled={isLoading}
               onClick={() => logIn()}
             >
@@ -265,7 +259,7 @@ export function UserAuthForm({
         {userMessage && <Label className="text-gray-200">{userMessage}</Label>}
       </div>
       {signupOnly ? (
-        <Button variant="default" onClick={() => router.push("/feed")}>
+        <Button variant="default" onClick={() => router.back()}>
           <ArrowLeftIcon className="h-5 w-5 mr-2" /> Back to using read-only
           account
         </Button>
@@ -275,7 +269,7 @@ export function UserAuthForm({
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-gray-900 px-2 text-muted-foreground">
+            <span className="bg-gray-900 px-2 text-muted">
               or continue with
             </span>
           </div>
@@ -283,19 +277,24 @@ export function UserAuthForm({
       )}
       {!signupOnly && (
         <div className="flex flex-col space-y-4 items-center justify-center text-white">
-          {!isAuthenticated && !isLoading ? (
-            <SignInButton hideSignOut />
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="py-4 text-white bg-[#7C65C1] rounded-md"
-              disabled={isLoading}
-            >
-              <Loading />
-            </Button>
-          )}
+          <SignInButton
+            hideSignOut
+            onSuccess={({ fid, username }) =>
+              setupLocalAccount({ fid, username })
+            }
+          />
+          {/* <Button
+            type="button"
+            size="lg"
+            className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
+            disabled={isLoading}
+            onClick={() => {
+              signIn();
+              setIsOpenDialog(true);
+            }}
+          >
+            {isLoading ? "Loading..." : "Sign in with Farcaster"}{" "}
+          </Button> */}
         </div>
       )}
     </div>

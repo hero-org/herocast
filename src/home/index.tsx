@@ -303,7 +303,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                       delayDuration={50}
                       skipDelayDuration={0}
                     >
-                      <HotkeyTooltipWrapper hotkey={item.shortcut} side="right">
+                      <HotkeyTooltipWrapper hotkey={item.name} side="right">
                           <div
                             onClick={() => onClickItem(item)}
                             className={classNames(

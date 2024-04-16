@@ -7,6 +7,8 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { useRouter } from "next/navigation";
 import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
+import { AccountPlatformType } from "../constants/accounts";
+import { toastInfoReadOnlyMode } from "../helpers/toast";
 
 type FollowButtonProps = {
   username: string;
@@ -31,6 +33,13 @@ const FollowButton = ({ username }: FollowButtonProps) => {
 
   const updateFollowStatus = async () => {
     if (!selectedAccount || isFollowing === undefined) return;
+    const canSendReaction =
+      selectedAccount?.platform !==
+      AccountPlatformType.farcaster_local_readonly;
+    if (!canSendReaction) {
+      toastInfoReadOnlyMode();
+      return;
+    }
 
     setIsPending(true);
     if (isFollowing) {
@@ -60,8 +69,8 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   return (
     <Button
       size="lg"
-      variant="outline"
-      className="rounded-sm group"
+      variant="secondary"
+      className="group"
       onClick={(e) => {
         if (!selectedAccount) router.push("/login");
 

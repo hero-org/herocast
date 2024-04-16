@@ -10,7 +10,7 @@ type AlertDialogProps = {
 const AlertDialogDemo = ({ buttonText, onClick }: AlertDialogProps) => (
   <AlertDialog.Root>
     <AlertDialog.Trigger asChild>
-      <Button variant="outline">
+      <Button variant="destructive">
         {buttonText}
       </Button>        
     </AlertDialog.Trigger>

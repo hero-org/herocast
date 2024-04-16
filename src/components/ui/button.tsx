@@ -46,7 +46,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <Comp
         style={
-          variant === "default" || variant === "secondary"
+          !variant || variant === "default" || variant === "secondary"
             ? { boxShadow: "rgba(255, 255, 255, 0.25) 0px 1px 1px inset" }
             : {}
         }

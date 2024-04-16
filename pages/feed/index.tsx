@@ -25,8 +25,7 @@ import {
 } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Loading } from "../../src/common/components/Loading";
 import uniqBy from "lodash.uniqby";
-import BigOptionSelector from "@/common/components/BigOptionSelector";
-
+import WelcomeCards from "@/common/components/WelcomeCards";
 type FeedsType = {
   [key: string]: CastWithInteractions[];
 };
@@ -36,8 +35,6 @@ const neynarClient = new NeynarAPIClient(
 );
 
 export default function Feed() {
-  const router = useRouter();
-
   const [feeds, setFeeds] = useState<FeedsType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedCursor, setNextFeedCursor] = useState("");
@@ -170,6 +167,12 @@ export default function Feed() {
     return FilterType.ParentUrl;
   };
 
+  const getParentUrl = (parentUrl: string | undefined) =>
+    parentUrl === CUSTOM_CHANNELS.FOLLOWING ||
+    parentUrl === CUSTOM_CHANNELS.TRENDING
+      ? undefined
+      : parentUrl;
+
   const getFeed = async ({
     fid,
     parentUrl,
@@ -184,28 +187,33 @@ export default function Feed() {
     }
     setIsLoadingFeed(true);
 
-    const feedOptions = {
-      filterType: getFilterType(parentUrl),
-      parentUrl,
-      cursor,
-      fid: Number(fid),
-      limit: DEFAULT_FEED_PAGE_SIZE,
-    };
-    const newFeed = await neynarClient.fetchFeed(
-      getFeedType(parentUrl),
-      feedOptions
-    );
-    const feedKey = parentUrl || fid;
-    const feed = feeds[feedKey] || [];
+    try {
+      const feedOptions = {
+        filterType: getFilterType(parentUrl),
+        parentUrl: getParentUrl(parentUrl),
+        cursor,
+        fid: Number(fid),
+        limit: DEFAULT_FEED_PAGE_SIZE,
+      };
+      const newFeed = await neynarClient.fetchFeed(
+        getFeedType(parentUrl),
+        feedOptions
+      );
+      const feedKey = parentUrl || fid;
+      const feed = feeds[feedKey] || [];
 
-    setFeeds({
-      ...feeds,
-      [feedKey]: uniqBy(feed.concat(newFeed.casts), "hash"),
-    });
-    if (newFeed?.next?.cursor) {
-      setNextFeedCursor(newFeed.next.cursor);
+      setFeeds({
+        ...feeds,
+        [feedKey]: uniqBy(feed.concat(newFeed.casts), "hash"),
+      });
+      if (newFeed?.next?.cursor) {
+        setNextFeedCursor(newFeed.next.cursor);
+      }
+    } catch (e) {
+      console.error("Error fetching feed", e);
+    } finally {
+      setIsLoadingFeed(false);
     }
-    setIsLoadingFeed(false);
   };
 
   useEffect(() => {
@@ -304,46 +312,7 @@ export default function Feed() {
   const renderWelcomeMessage = () =>
     feed.length === 0 &&
     hydratedAt &&
-    !isLoadingFeed && (
-      <div className="m-8 flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <BigOptionSelector
-          options={[
-            account &&
-              !account.platformAccountId && {
-                title: "Continue to connect to herocast",
-                description:
-                  "Finish connecting your Farcaster account with your web3 wallet or by scanning a QR code.",
-                buttonText: "Continue",
-                onClick: () => router.push("/accounts"),
-              },
-            {
-              title: "I have a Farcaster account",
-              description:
-                "I signed up for Farcaster before and want to connect my account to herocast.",
-              buttonText: "Connect my account",
-              onClick: () => router.push("/accounts"),
-            },
-            {
-              title: "I am new to Farcaster",
-              description:
-                "I want to create a new account on Farcaster with herocast.",
-              buttonText: "Create new account",
-              onClick: () => router.push("/farcaster-signup"),
-            },
-            {
-              title: "Browse trending feed",
-              description:
-                "No need to signup if you just want to checkout herocast",
-              buttonText: "Trending Feed →",
-              onClick: () => {
-                getFeed({ parentUrl: CUSTOM_CHANNELS.TRENDING, fid: "1" });
-                setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
-              }
-            },
-          ]}
-        />
-      </div>
-    );
+    !isLoadingFeed && <WelcomeCards />;
 
   const renderContent = () => (
     <>

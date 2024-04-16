@@ -297,7 +297,7 @@ type UpdateUsernameParams = {
   fromFid?: string;
 };
 
-export const updateUsername = async ({ fid, fromFid, toFid, username, timestamp, owner, signature }: UpdateUsernameParams) => {
+export const updateUsernameOffchain = async ({ fid, fromFid, toFid, username, timestamp, owner, signature }: UpdateUsernameParams) => {
   console.log('updateUsername', username, fid, fromFid, toFid);
   if (!fromFid && !toFid) {
     throw new Error('fromFid or toFid must be provided');
@@ -394,3 +394,7 @@ export const getSignatureForUsernameProof = async (client, address, message: {
   console.log("getSignatureForUsernameProof:", signature);
   return signature;
 };
+
+export const updateBio = async () => {
+  
+}
