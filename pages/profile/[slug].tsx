@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 
-import { FilterType, NeynarAPIClient, isApiErrorResponse } from "@neynar/nodejs-sdk";
+import {
+  FilterType,
+  NeynarAPIClient,
+  isApiErrorResponse,
+} from "@neynar/nodejs-sdk";
 import { GetStaticPaths } from "next/types";
 import {
   AvatarImage,
@@ -40,8 +44,8 @@ export async function getStaticProps({ params: { slug } }) {
 
     return {
       notFound: true,
-    }
-    }
+    };
+  }
 
   return {
     props: {
@@ -75,7 +79,7 @@ export const getStaticPaths = (async () => {
   console.log(`preparing static profiles: ${paths.length}`);
   return {
     paths,
-    fallback: 'blocking',
+    fallback: "blocking",
   };
 }) satisfies GetStaticPaths;
 
@@ -103,15 +107,22 @@ export default function Profile({ profile }) {
     if (!profile) return;
 
     const getData = async () => {
-      const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
-      const resp = await neynarClient.fetchBulkUsers(
-        [profile.fid],
-        { viewerFid: userFid! as number},
-      )
-      if (resp?.users && resp.users.length === 1) {
-        addUserProfile({ username: profile.username, data: resp.users[0] });
+      if (!userFid) {
+        throw new Error("userFid is not set");
+      }
+
+      try {
+        const neynarClient = new NeynarAPIClient(
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        );
+        const resp = await neynarClient.fetchBulkUsers([profile.fid], {
+          viewerFid: userFid! as number,
+        });
+        if (resp?.users && resp.users.length === 1) {
+          addUserProfile({ username: profile.username, data: resp.users[0] });
+        }
+      } catch (error) {
+        console.error("Failed to fetch user profile", error);
       }
     };
 
