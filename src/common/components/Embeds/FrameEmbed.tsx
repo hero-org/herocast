@@ -90,7 +90,7 @@ const renderFrame = (
   return (
     <div className="text-xl text-foreground/70">
       <img
-        className="h-full object-cover max-h-48"
+        className="h-full object-cover max-h-48 rounded-md"
         style={{ display: "none" }}
         src={frame.image}
         alt={`Frame for ${frame.post_url}`}

@@ -1,11 +1,9 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import StepSequence from "@/common/components/Steps/StepSequence";
-import WalletLogin from "@/common/components/WalletLogin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ClipboardDocumentIcon } from "@heroicons/react/20/solid";
 import { useAccount, useReadContract } from "wagmi";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
@@ -16,9 +14,9 @@ import TransferAccountToHatsDelegator from "@/common/components/TransferAccountT
 import { openWindow } from "@/common/helpers/navigation";
 import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
-import clsx from "clsx";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { Loading } from "@/common/components/Loading";
+import ClickToCopyText from "@/common/components/ClickToCopyText";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
@@ -66,7 +64,6 @@ export default function HatsProtocolPage() {
     `0x${string}` | null
   >();
   const [infoMessage, setInfoMessage] = useState<string | null>();
-  const [didClickCopyShare, setDidClickCopyShare] = useState(false);
   const { address, isConnected } = useAccount();
   const [userInput, setUserInput] = useState<string>("");
   const [isLoadingAccount, setIsLoadingAccount] = useState(false);
@@ -213,24 +210,7 @@ export default function HatsProtocolPage() {
               Share this to invite other users:
             </p>
             <div className="flex flex-row space-x-2">
-              {didClickCopyShare && (
-                <p className="text-muted-foreground">Copied!</p>
-              )}
-              <ClipboardDocumentIcon
-                className={clsx(
-                  "h-5 w-5 ",
-                  didClickCopyShare
-                    ? "animate-pulse text-muted-foreground"
-                    : "text-foreground"
-                )}
-                onClick={() => {
-                  setDidClickCopyShare(true);
-                  navigator.clipboard.writeText(shareWithOthersText);
-                  setTimeout(() => {
-                    setDidClickCopyShare(false);
-                  }, 2000);
-                }}
-              />
+              <ClickToCopyText text={shareWithOthersText} />
             </div>
           </div>
           <div className="mt-4 flex items-center space-x-4">
