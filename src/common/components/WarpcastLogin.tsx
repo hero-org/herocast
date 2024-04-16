@@ -61,12 +61,9 @@ const WarpcastLogin = () => {
               process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
             );
             const user = (
-              await neynarClient.lookupUserByFid(
-                fid,
-                APP_FID
-              )
-            ).result.user;
-            await setAccountActive(account.id, user.username, {
+              await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
+            )?.users?.[0];
+            await setAccountActive(account.id, user?.username, {
               platform_account_id: data.userFid,
               data,
             });
