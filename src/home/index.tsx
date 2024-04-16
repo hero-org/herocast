@@ -108,7 +108,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     {
       name: "Hats Protocol",
       router: "/hats",
-      icon: <span className="grayscale group-hover:grayscale-0 text-xl h-6 w-6 shrink-0" aria-hidden="true">🧢</span>,
+      icon: <img src="/images/HatsProtocol.avif" className="grayscale group-hover:grayscale-0 h-full w-16 shrink-0" aria-hidden="true" />,
     },
     {
       name: "Settings",
