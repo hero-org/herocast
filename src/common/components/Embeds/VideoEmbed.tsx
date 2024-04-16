@@ -28,6 +28,7 @@ const VideoEmbed = ({ url }: { url: string }) => {
         width="80%"
         height="auto"
         playerRef={playerRef}
+        className="rounded-md max-w-min max-h-72 object-left"
       />
     </div>
   );

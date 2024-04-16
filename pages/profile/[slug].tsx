@@ -37,7 +37,6 @@ export async function getStaticProps({ params: { slug } }) {
     }
   } catch (error) {
     console.error("Failed to get data for profile page", error, slug);
-
     return {
       notFound: true,
     };
@@ -60,7 +59,7 @@ export const getStaticPaths = (async () => {
 
   const globalFeed = await client.fetchFeed("filter", {
     filterType: FilterType.GlobalTrending,
-    limit: 100,
+    limit: 20,
   });
 
   const paths = uniqBy(
@@ -103,14 +102,21 @@ export default function Profile({ profile }) {
     if (!profile) return;
 
     const getData = async () => {
-      const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
-      const resp = await neynarClient.fetchBulkUsers([profile.fid], {
-        viewerFid: userFid! as number,
-      });
-      if (resp?.users && resp.users.length === 1) {
-        addUserProfile({ username: profile.username, data: resp.users[0] });
+      try {
+        if (!userFid) {
+          throw new Error("userFid is not set");
+        }
+        const neynarClient = new NeynarAPIClient(
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        );
+        const resp = await neynarClient.fetchBulkUsers([profile.fid], {
+          viewerFid: userFid! as number,
+        });
+        if (resp?.users && resp.users.length === 1) {
+          addUserProfile({ username: profile.username, data: resp.users[0] });
+        }
+      } catch (error) {
+        console.error("Failed to fetch user profile", error);
       }
     };
 
