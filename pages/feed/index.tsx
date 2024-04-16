@@ -184,28 +184,33 @@ export default function Feed() {
     }
     setIsLoadingFeed(true);
 
-    const feedOptions = {
-      filterType: getFilterType(parentUrl),
-      parentUrl,
-      cursor,
-      fid: Number(fid),
-      limit: DEFAULT_FEED_PAGE_SIZE,
-    };
-    const newFeed = await neynarClient.fetchFeed(
-      getFeedType(parentUrl),
-      feedOptions
-    );
-    const feedKey = parentUrl || fid;
-    const feed = feeds[feedKey] || [];
+    try {
+      const feedOptions = {
+        filterType: getFilterType(parentUrl),
+        parentUrl,
+        cursor,
+        fid: Number(fid),
+        limit: DEFAULT_FEED_PAGE_SIZE,
+      };
+      const newFeed = await neynarClient.fetchFeed(
+        getFeedType(parentUrl),
+        feedOptions
+      );
+      const feedKey = parentUrl || fid;
+      const feed = feeds[feedKey] || [];
 
-    setFeeds({
-      ...feeds,
-      [feedKey]: uniqBy(feed.concat(newFeed.casts), "hash"),
-    });
-    if (newFeed?.next?.cursor) {
-      setNextFeedCursor(newFeed.next.cursor);
+      setFeeds({
+        ...feeds,
+        [feedKey]: uniqBy(feed.concat(newFeed.casts), "hash"),
+      });
+      if (newFeed?.next?.cursor) {
+        setNextFeedCursor(newFeed.next.cursor);
+      }
+    } catch (e) {
+      console.error("Error fetching feed", e);
+    } finally {
+      setIsLoadingFeed(false);
     }
-    setIsLoadingFeed(false);
   };
 
   useEffect(() => {
@@ -337,8 +342,8 @@ export default function Feed() {
               buttonText: "Trending Feed →",
               onClick: () => {
                 getFeed({ parentUrl: CUSTOM_CHANNELS.TRENDING, fid: "1" });
-                setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
-              }
+                setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+              },
             },
           ]}
         />

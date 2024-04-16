@@ -12,7 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { useAccount, useWalletClient } from "wagmi";
 import { UserDataType } from "@farcaster/hub-web";
 import { setUserDataInProtocol } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "@/stores/useAccountStore";
@@ -27,7 +26,6 @@ type ChangeDisplayNameFormValues = z.infer<typeof ChangeDisplayNameFormSchema>;
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 const validateMaxBytes32 = (value: string) => {
-  console.log('value', value, new TextEncoder().encode(value).length);
   return new TextEncoder().encode(value).length <= 32;
 };
 

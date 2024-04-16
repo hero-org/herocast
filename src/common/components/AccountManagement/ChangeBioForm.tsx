@@ -12,7 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { useAccount } from "wagmi";
 import { UserDataType } from "@farcaster/hub-web";
 import { setUserDataInProtocol } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "@/stores/useAccountStore";
