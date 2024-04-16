@@ -107,11 +107,10 @@ export default function Profile({ profile }) {
     if (!profile) return;
 
     const getData = async () => {
-      if (!userFid) {
-        throw new Error("userFid is not set");
-      }
-
       try {
+        if (!userFid) {
+          throw new Error("userFid is not set");
+        }
         const neynarClient = new NeynarAPIClient(
           process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
         );

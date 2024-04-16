@@ -53,7 +53,7 @@ const OpenGraphImage = ({ url }: { url: string }) => {
         <CardHeader>
         {metadata?.image && metadata?.image?.url && (
           <img
-            className="h-full object-cover max-h-48"
+            className="h-full object-cover max-h-48 rounded-md"
             src={metadata.image.url}
             alt={metadata.title}
           />
