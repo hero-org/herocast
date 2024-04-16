@@ -30,18 +30,13 @@ export async function getStaticProps({ params: { slug } }) {
   try {
     if (slug.startsWith("fid:")) {
       const fid = slug.split(":")[1];
-      user = await client.lookupUserByFid(fid);
+      user = (await client.fetchBulkUsers([fid], { viewerFid: APP_FID }))
+        .users?.[0];
     } else {
       user = await client.lookupUserByUsername(slug);
     }
   } catch (error) {
-    // isApiErrorResponse can be used to check for Neynar API errors
-    if (isApiErrorResponse(error)) {
-      console.log("API Error", error, error.response.data);
-    } else {
-      console.log("Generic Error", error);
-    }
-
+    console.error("failed to get data for profile page", slug, error);
     return {
       notFound: true,
     };
@@ -64,7 +59,7 @@ export const getStaticPaths = (async () => {
 
   const globalFeed = await client.fetchFeed("filter", {
     filterType: FilterType.GlobalTrending,
-    limit: 100,
+    limit: 20,
   });
 
   const paths = uniqBy(
