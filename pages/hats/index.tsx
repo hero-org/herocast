@@ -9,9 +9,9 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
-import SharedAccountOwnershipSetup from "@/common/components/SharedAccountOwnershipSetup";
-import TransferAccountToHatsDelegator from "@/common/components/TransferAccountToHatsDelegator";
-import { openWindow } from "@/common/helpers/navigation";
+import SharedAccountOwnershipSetup from "@/common/components/HatsProtocol/SharedAccountOwnershipSetup";
+import TransferAccountToHatsDelegator from "@/common/components/HatsProtocol/TransferAccountToHatsDelegator";
+import CreateHatsTreeForm from "@/common/components/HatsProtocol/CreateHatsTreeForm";
 import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
@@ -20,8 +20,8 @@ import ClickToCopyText from "@/common/components/ClickToCopyText";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
-  hats_protocol_setup = "HATS_PROTOCOL_SETUP",
-  hats_tree = "HATS_TREE",
+  decide_hats_protocol_setup = "DECIDE_HATS_PROTOCOL_SETUP",
+  create_hats_tree = "CREATE_HATS_TREE",
   account_ownership = "ACCOUNT_OWNERSHIP",
   transfer_ownership = "TRANSFER_OWNERSHIP",
   invite = "INVITE",
@@ -31,34 +31,37 @@ const hatsSignupSteps = [
   {
     title: "Select account",
     idx: 0,
-    key: HatsSignupNav.select_account,
+    keys: [HatsSignupNav.select_account],
   },
   {
     title: "Hats Protocol setup",
     idx: 1,
-    key: HatsSignupNav.hats_protocol_setup,
+    keys: [
+      HatsSignupNav.decide_hats_protocol_setup,
+      HatsSignupNav.create_hats_tree,
+    ],
   },
   {
     title: "Account ownership",
     idx: 2,
-    key: HatsSignupNav.account_ownership,
+    keys: [HatsSignupNav.account_ownership],
   },
   {
     title: "Transfer ownership",
     idx: 3,
-    key: HatsSignupNav.transfer_ownership,
+    keys: [HatsSignupNav.transfer_ownership],
   },
   {
     title: "Invite others",
     idx: 4,
-    key: HatsSignupNav.invite,
+    keys: [HatsSignupNav.invite],
   },
 ];
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
 export default function HatsProtocolPage() {
-  const [step, setStep] = useState<string>(hatsSignupSteps[0].key);
+  const [step, setStep] = useState<HatsSignupNav>(HatsSignupNav.select_account);
   const [accountToTransfer, setAccountToTransfer] = useState<User | null>();
   const [delegatorContractAddress, setDelegatorContractAddress] = useState<
     `0x${string}` | null
@@ -136,6 +139,7 @@ export default function HatsProtocolPage() {
           }}
         />
         <Button
+          size="lg"
           className="w-1/3"
           variant={accountToTransfer ? "outline" : "default"}
           onClick={fetchUser}
@@ -187,7 +191,7 @@ export default function HatsProtocolPage() {
           className="w-1/3"
           variant="default"
           disabled={!isConnected || !accountToTransfer}
-          onClick={() => setStep(HatsSignupNav.hats_protocol_setup)}
+          onClick={() => setStep(HatsSignupNav.decide_hats_protocol_setup)}
         >
           Continue
         </Button>
@@ -227,7 +231,7 @@ export default function HatsProtocolPage() {
     switch (step) {
       case HatsSignupNav.select_account:
         return renderSelectAccount();
-      case HatsSignupNav.hats_protocol_setup:
+      case HatsSignupNav.decide_hats_protocol_setup:
         return getStepContent(
           "Hats Protocol setup",
           "Setup your Hats tree and deploy a delegator contract",
@@ -244,13 +248,22 @@ export default function HatsProtocolPage() {
                 },
                 {
                   title: "I need a new Hats tree",
-                  description:
-                    "Start your setup with Hats Protocol in the Hats app",
-                  buttonText: "Get started ↗️",
-                  onClick: () =>
-                    openWindow(" https://app.hatsprotocol.xyz/trees/new"),
+                  description: "Start your setup with Hats Protocol right here",
+                  buttonText: "Get started",
+                  onClick: () => setStep(HatsSignupNav.create_hats_tree),
                 },
               ]}
+            />
+          </div>
+        );
+      case HatsSignupNav.create_hats_tree:
+        return getStepContent(
+          "Create a Hats tree",
+          "Create the onchain permissions tree for your shared account",
+          <div>
+            {accountToTransfer && renderAccountToTransferPreview()}
+            <CreateHatsTreeForm
+              onSuccess={() => setStep(HatsSignupNav.account_ownership)}
             />
           </div>
         );

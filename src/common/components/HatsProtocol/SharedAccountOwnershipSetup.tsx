@@ -3,8 +3,8 @@ import BigOptionSelector from "@/common/components/BigOptionSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isAddress } from "viem";
-import DeployHatsDelegatorContract from "./DeployHatsDelegatorContract";
-import { WarpcastImage } from "./PostEmbeddedContent/WarpcastImage";
+import DeployHatsDelegatorContract from "../DeployHatsDelegatorContract";
+import { WarpcastImage } from "../PostEmbeddedContent/WarpcastImage";
 
 enum OwnershipSetupSteps {
   unknown = "UNKNOWN",

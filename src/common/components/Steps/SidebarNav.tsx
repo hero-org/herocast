@@ -3,13 +3,16 @@ import { Button } from "@/components/ui/button";
 import { classNames } from "@/common/helpers/css";
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
 import findIndex from "lodash.findindex";
+import includes from "lodash.includes";
+
+export type SidebarNavItem = {
+  idx: number;
+  title: string;
+  keys: string[];
+};
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
-  items: {
-    key: string;
-    idx: number;
-    title: string;
-  }[];
+  items: SidebarNavItem[];
   step: string;
   onClick: (string) => void;
 }
@@ -22,7 +25,7 @@ export function SidebarNav({
   ...props
 }: SidebarNavProps) {
   const getIdxForStep = (step: string) => {
-    return findIndex(items, (item) => item.key === step);
+    return findIndex(items, (item) => includes(item.keys, step));
   };
   const currentStepIdx = getIdxForStep(step);
 
@@ -38,12 +41,14 @@ export function SidebarNav({
         const enabled = item.idx <= currentStepIdx;
         return (
           <Button
-            onClick={() => onClick(item.key)}
-            key={item.key}
+            onClick={() => onClick(item.keys[0])}
+            key={item.keys[0]}
             variant="ghost"
             className={classNames(
-              enabled ? "text-foreground/40 hover:bg-transparent hover:underline" : "",
-              item.key === step ? "bg-muted hover:bg-muted" : "",
+              enabled
+                ? "text-foreground/40 hover:bg-transparent hover:underline"
+                : "",
+              // item.key === step ? "bg-muted hover:bg-muted" : "",
               "justify-start truncate"
             )}
           >
@@ -52,7 +57,8 @@ export function SidebarNav({
               {item.idx < currentStepIdx && (
                 <CheckCircleIcon
                   className="h-6 w-6 text-green-600"
-                  aria-hidden="true" />
+                  aria-hidden="true"
+                />
               )}
             </div>
           </Button>

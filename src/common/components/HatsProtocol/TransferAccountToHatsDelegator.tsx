@@ -14,7 +14,7 @@ import { encodePacked, hashTypedData, keccak256, toHex } from "viem";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { getDeadline } from "@/common/helpers/farcaster";
 import { HatsFarcasterDelegatorAbi } from "@/common/constants/contracts/HatsFarcasterDelegator";
-import { openWindow } from "../helpers/navigation";
+import { openWindow } from "../../helpers/navigation";
 import {
   SIGNED_KEY_REQUEST_TYPEHASH,
   isValidSignature,
@@ -22,8 +22,8 @@ import {
 } from "@/lib/hats";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import SwitchWalletButton from "./SwitchWalletButton";
-import { ID_REGISTRY } from "../constants/contracts/id-registry";
+import SwitchWalletButton from "../SwitchWalletButton";
+import { ID_REGISTRY } from "../../constants/contracts/id-registry";
 import { Label } from "@/components/ui/label";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
