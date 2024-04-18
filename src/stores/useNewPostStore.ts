@@ -13,7 +13,7 @@ import { submitCast } from "@/common/helpers/farcaster";
 import { toHex } from "viem";
 import { CastId, Embed } from "@farcaster/hub-web";
 import { AccountPlatformType } from "@/common/constants/accounts";
-import { toastInfoReadOnlyMode } from "@/common/helpers/toast";
+import { toastInfoReadOnlyMode, toastSuccessCastPublished } from "@/common/helpers/toast";
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 
@@ -188,11 +188,11 @@ const store = (set: StoreSet) => ({
           toastInfoReadOnlyMode();
         }
 
-        await submitCast({
-          ...castBody,
-          signerPrivateKey: account.privateKey!,
-          fid: Number(account.platformAccountId),
-        });
+        // await submitCast({
+        //   ...castBody,
+        //   signerPrivateKey: account.privateKey!,
+        //   fid: Number(account.platformAccountId),
+        // });
 
         state.removePostDraft(draftIdx);
         toastSuccessCastPublished(draft.text);

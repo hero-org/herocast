@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { createClient } from "../../src/common/helpers/supabase/component";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
@@ -16,7 +15,6 @@ import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
 import ChannelsRightSidebar from "../common/components/RightSidebar/ChannelsRightSidebar";
 import { CUSTOM_CHANNELS, useAccountStore } from "../stores/useAccountStore";
-import { findParamInHashUrlPath } from "../common/helpers/navigation";
 import {
   BellIcon,
   MagnifyingGlassIcon,
@@ -42,10 +40,8 @@ type NavigationItemType = {
 
 const Home = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const supabase = createClient()
 
-  const { pathname, asPath } = router;
-  const locationHash = asPath.split("#")[1];
+  const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl } = useAccountStore();
 
@@ -108,7 +104,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     {
       name: "Hats Protocol",
       router: "/hats",
-      icon: <img src="/images/HatsProtocol.avif" className="grayscale group-hover:grayscale-0 h-full w-16 shrink-0" aria-hidden="true" />,
+      icon: <img src="/images/HatsProtocol.png" className="grayscale group-hover:grayscale-0 " aria-hidden="true" />,
     },
     {
       name: "Settings",

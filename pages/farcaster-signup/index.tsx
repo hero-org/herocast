@@ -6,8 +6,8 @@ import RegisterFarcasterUsernameForm from "@/common/components/RegisterFarcaster
 import CreateFarcasterAccount from "@/common/components/CreateFarcasterAccount";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
-import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
+import { hydrateAccounts } from "../../src/stores/useAccountStore";
 
 enum FarcasterSignupNav {
   login = "LOGIN",
@@ -93,10 +93,10 @@ export default function Welcome() {
             variant="outline"
             onClick={() => router.push("/hats")}
           >
-            Share account
+            Share this account with others
           </Button>
           <p className="mt-1 text-sm text-gray-700">
-            Use Hats Protocol 🧢 to share this account with onchain permissions
+            Use Hats Protocol to share this account with onchain permissions
           </p>
         </div>
       </div>
@@ -136,7 +136,10 @@ export default function Welcome() {
           "Create your Farcaster account",
           "Let's get you onchain",
           <CreateFarcasterAccount
-            onSuccess={() => setStep(FarcasterSignupNav.register_username)}
+            onSuccess={async () => {
+              await hydrateAccounts();
+              setStep(FarcasterSignupNav.register_username)
+            }}
           />
         );
       case FarcasterSignupNav.register_username:

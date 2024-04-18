@@ -6,6 +6,7 @@ import {
   useWaitForTransactionReceipt,
   useWalletClient,
 } from "wagmi";
+import { getBalance } from "@wagmi/core";
 import {
   BUNDLER_ADDRESS,
   ViemWalletEip712Signer,
@@ -32,7 +33,7 @@ import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 
 const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<string | null>();
+  const [error, setError] = useState<string>();
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>("0x");
   const { address, isConnected } = useAccount();
   const walletClient = useWalletClient();
@@ -109,11 +110,26 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     return true;
   };
 
+  const validateWalletHasGasOnOptimism = async (): Promise<boolean> => {
+    if (!address) return false;
+
+    const { value } = await getBalance(config, {
+      address,
+    });
+    console.log("balance", value, value > 0n);
+    return value > 0n;
+  };
+
   const createFarcasterAccount = async () => {
     console.log("createFarcasterAccount");
 
-    if (!address) return;
-    if (!validateWalletHasNoFid()) return;
+    if (!(await validateWalletHasNoFid())) return;
+    if (!(await validateWalletHasGasOnOptimism())) {
+      setError(
+        "Wallet has no gas on Optimism - please deposit some ETH to continue"
+      );
+      return;
+    }
 
     setIsPending(true);
 
@@ -160,7 +176,9 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
       );
       setIsPending(false);
       setError(
-        `Error when trying to sign register: ${JSON.stringify(registerSignatureResponse)}`
+        `Error when trying to sign register: ${JSON.stringify(
+          registerSignatureResponse
+        )}`
       );
       return;
     }
@@ -223,6 +241,8 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
       setTransactionHash(registerAccountTransactionHash);
     } catch (e) {
       console.log("error when trying to write contract", e);
+      const errorStr = String(e).split("Raw Call Arguments")[0];
+      setError(`when adding account onchain: ${errorStr}`);
       setIsPending(false);
       return;
     }

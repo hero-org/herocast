@@ -12,39 +12,59 @@ import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import FollowButton from "./FollowButton";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 type ProfileHoverCardProps = {
-  username: string;
-  userFid: string | number;
+  fid?: number;
+  username?: string;
+  viewerFid: number;
   children: React.ReactNode;
 };
 
+const neynarClient = new NeynarAPIClient(
+  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+);
+
+const getProfile = (dataStoreState, username, fid) => {
+  if (username) {
+    return get(dataStoreState.usernameToData, username);
+  } else {
+    return get(dataStoreState.fidToData, fid);
+  }
+}
+
 const ProfileHoverCard = ({
-  userFid,
+  fid,
   username,
+  viewerFid,
   children,
 }: ProfileHoverCardProps) => {
-  const { addUserProfile } = useDataStore();
-  const profile = useDataStore((state) => get(state.usernameToData, username));
+  const { addUserProfile, usernameToData } = useDataStore();
+  const profile = useDataStore((state) => getProfile(state, username, fid));
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
   });
+
+  if (!username && !fid) return null;
 
   useEffect(() => {
     if (!inView || profile) return;
 
     const getData = async () => {
       try {
-        const neynarClient = new NeynarAPIClient(
-          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-        );
-        const resp = await neynarClient.searchUser(
-          username,
-          userFid! as number
-        );
-        if (resp?.result?.users && resp.result.users.length > 0) {
-          addUserProfile({ username, data: resp.result.users[0] });
+        let users: User[] = [];
+        if (username) {
+          const resp = await neynarClient.searchUser(username, viewerFid);
+          users = resp?.result?.users;
+        } else if (fid) {
+          const resp = await neynarClient.fetchBulkUsers([fid], { viewerFid });
+          users = resp?.users;
+        }
+        if (users.length) {
+          users.forEach((user) => {
+            addUserProfile({ username: user.username, data: user });
+          });
         }
       } catch (err) {
         console.log("ProfileHoverCard: err getting data", err);
@@ -52,7 +72,7 @@ const ProfileHoverCard = ({
     };
 
     getData();
-  }, [inView, profile, userFid]);
+  }, [inView, profile, viewerFid]);
 
   const onClick = () => {
     openWindow(

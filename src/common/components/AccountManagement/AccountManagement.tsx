@@ -64,10 +64,10 @@ const AccountManagement = ({ account, onSuccess }: AccountManagementProps) => {
       <ChangeDisplayNameForm account={account} onSuccess={onSuccess} />
     </TabsContent>
   );
-
+    
   return (
     <div>
-      <Tabs className="w-[500px]" defaultValue={AccountManagementTab.BIO}>
+      <Tabs className="w-[500px]" defaultValue={AccountManagementTab.DISPLAY_NAME}>
         <TabsList className="grid w-full grid-cols-4 gap-x-2">
           {AccountManagementTabs.map((tab) => (
             <TabsTrigger key={tab.key} value={tab.key}>

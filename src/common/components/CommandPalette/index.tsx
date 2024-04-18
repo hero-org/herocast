@@ -84,7 +84,6 @@ export default function CommandPalette() {
   commands = commands.concat(nonHotkeyCommands);
 
   function onClick(command: CommandType) {
-    // console.log('onClick command', command);
     if (!command) {
       return;
     }

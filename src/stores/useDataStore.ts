@@ -87,6 +87,7 @@ type addTokenDataProps = {
 
 interface DataStoreProps {
   usernameToData: Record<string, User>;
+  fidToData: Record<number, User>,
   tokenSymbolToData: Record<string, DexPair>;
 }
 
@@ -104,10 +105,12 @@ type StoreSet = (fn: (draft: Draft<DataStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   usernameToData: {},
+  fidToData: {},
   tokenSymbolToData: {},
   addUserProfile: ({ username, data }: addUserProfileProps) => {
     set((state) => {
       state.usernameToData = { ...state.usernameToData, ...{ [username]: data } };
+      state.fidToData = { ...state.fidToData, ...{ [data.fid]: data } };
     });
   },
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => {

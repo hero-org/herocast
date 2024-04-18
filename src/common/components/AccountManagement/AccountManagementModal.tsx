@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Modal from "../Modal";
 import { AccountObjectType } from "@/stores/useAccountStore";
 import AccountManagement from "./AccountManagement";
 import { AccountPlatformType } from "@/common/constants/accounts";
-import { ArrowDownTrayIcon, Cog6ToothIcon } from "@heroicons/react/20/solid";
+import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 

@@ -35,7 +35,7 @@ const ChannelsOverview = () => {
           onClick={() => onClick()}
           className={classNames(
             selectedChannelUrl === url
-              ? "bg-background text-foreground font-normal"
+              ? "bg-background text-foreground font-semibold"
               : "text-foreground/80 hover:text-foreground/80 hover:bg-background",
               "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
               )}
@@ -94,7 +94,7 @@ const ChannelsOverview = () => {
                           )}
                         />
                       )}
-                      <span className="flex-nowrap">{channel.name}</span>
+                      <span className="flex-nowrap truncate">{channel.name}</span>
                     </div>
                   }
                   side="right"

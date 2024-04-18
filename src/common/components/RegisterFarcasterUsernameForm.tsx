@@ -25,6 +25,7 @@ import {
 import { getAddress, toHex } from "viem";
 import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
+  hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
@@ -88,6 +89,7 @@ const RegisterFarcasterUsernameForm = ({
     defaultValues: { username: "", displayName: "", bio: "" },
   });
   const { accounts, updateAccountUsername } = useAccountStore();
+  console.log("accounts", accounts);
   const pendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.active &&
@@ -199,6 +201,9 @@ const RegisterFarcasterUsernameForm = ({
         bio
       );
     }
+
+    await hydrateAccounts();
+    onSuccess?.(data);
   };
 
   const renderForm = () => (
@@ -271,6 +276,7 @@ const RegisterFarcasterUsernameForm = ({
               Switch to mainnet
             </Button>
           )}
+          <Button disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>Refresh</Button>
         </div>
       </form>
     </Form>
