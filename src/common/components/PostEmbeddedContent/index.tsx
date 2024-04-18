@@ -1,1 +1,1 @@
-export * from './ImgurImage';
+export * from './WarpcastImage';
