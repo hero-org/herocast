@@ -33,7 +33,6 @@ export const CastThreadView = ({
   setSelectedCast,
   setShowReplyModal,
 }: CastThreadViewProps) => {
-  console.log('cast', cast);
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);

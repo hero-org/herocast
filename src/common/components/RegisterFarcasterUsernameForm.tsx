@@ -89,7 +89,6 @@ const RegisterFarcasterUsernameForm = ({
     defaultValues: { username: "", displayName: "", bio: "" },
   });
   const { accounts, updateAccountUsername } = useAccountStore();
-  console.log("accounts", accounts);
   const pendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.active &&

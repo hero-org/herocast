@@ -188,11 +188,11 @@ const store = (set: StoreSet) => ({
           toastInfoReadOnlyMode();
         }
 
-        // await submitCast({
-        //   ...castBody,
-        //   signerPrivateKey: account.privateKey!,
-        //   fid: Number(account.platformAccountId),
-        // });
+        await submitCast({
+          ...castBody,
+          signerPrivateKey: account.privateKey!,
+          fid: Number(account.platformAccountId),
+        });
 
         state.removePostDraft(draftIdx);
         toastSuccessCastPublished(draft.text);
