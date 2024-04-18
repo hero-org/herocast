@@ -46,8 +46,6 @@ const neynarClient = new NeynarAPIClient(
 );
 
 const getChannels = async (query: string): Promise<Channel[]> => {
-  console.log("getChannels", query);
-
   let channels: Channel[] = [];
   if (query.length < 2) return [];
   channels = (await neynarClient.searchChannels(query))?.channels ?? [];
@@ -109,7 +107,7 @@ export default function NewPostEntry({
 
   const onSubmitPost = async (): Promise<boolean> => {
     if (draft?.text && draft.text.length > 0) {
-      await new Promise(() => publishPostDraft(draftIdx, account, onPost));
+      await publishPostDraft(draftIdx, account, onPost);
       return true;
     }
     return false;

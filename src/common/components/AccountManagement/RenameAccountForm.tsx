@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,11 +25,7 @@ import {
   validateUsernameIsAvailable,
 } from "@/common/helpers/farcaster";
 import { getAddress } from "viem";
-import {
-  AccountObjectType,
-  PENDING_ACCOUNT_NAME_PLACEHOLDER,
-  useAccountStore,
-} from "@/stores/useAccountStore";
+import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import {
   Cog6ToothIcon,
@@ -64,7 +61,6 @@ const RenameAccountForm = ({
   const [isPending, setIsPending] = useState(false);
   const [userInProtocol, setUserInProtocol] = useState<User>();
   const { address, chainId, isConnected } = useAccount();
-  const currentName = account.name;
   const { updateAccountUsername } = useAccountStore();
   const client = useWalletClient({
     account: address,
@@ -76,7 +72,7 @@ const RenameAccountForm = ({
     mode: "onSubmit",
   });
   const canSubmitForm = !isPending && isConnected && chainId === mainnet.id;
-
+  const hasUsernameInProtocol = !userInProtocol?.username.startsWith("!");
   useEffect(() => {
     const getUserInProtocol = async () => {
       const neynarClient = new NeynarAPIClient(
@@ -115,7 +111,7 @@ const RenameAccountForm = ({
     if (!address) return undefined;
 
     if (account.platform === AccountPlatformType.farcaster) {
-      getFidForAddress(address).then(async (fid) => {
+      return getFidForAddress(address).then(async (fid) => {
         console.log("fid for wallet", fid, address, account.platformAccountId!);
         if (fid === BigInt(account.platformAccountId!)) {
           console.log("wallet owns fid");
@@ -125,8 +121,9 @@ const RenameAccountForm = ({
             process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
           );
           const walletsResponse =
-            await neynarClient.lookupCustodyAddressForUser(
-              Number(account.platformAccountId)
+            await neynarClient.fetchBulkUsers(
+              [Number(account.platformAccountId)],
+              { viewerFid: APP_FID }
             );
           const custodyAddress = walletsResponse?.result?.custodyAddress;
           const message = `Your connected wallet does not own the Farcaster account. Please connect with ${custodyAddress}. You are connected with ${address}`;
@@ -147,8 +144,7 @@ const RenameAccountForm = ({
   };
 
   const renameAccount = async (data) => {
-    console.log("createFarcasterAccount", data);
-    // alert(JSON.stringify(data, null, 2));
+    console.log("renameAccount - data", data);
 
     if (!address || !client || !userInProtocol) return;
 
@@ -211,7 +207,6 @@ const RenameAccountForm = ({
       }
 
       // register new username
-
       const result = await updateUsernameOffchain({
         timestamp,
         owner,
@@ -252,19 +247,28 @@ const RenameAccountForm = ({
             <FormItem>
               <FormLabel>New username</FormLabel>
               <FormControl>
-                <Input placeholder={userInProtocol?.username} {...field} />
+                <Input
+                  placeholder={
+                    hasUsernameInProtocol
+                      ? userInProtocol?.username
+                      : "New username"
+                  }
+                  {...field}
+                />
               </FormControl>
-              {/* <FormDescription>
+              <FormDescription>
                 This will be your new public username on Farcaster.
-              </FormDescription> */}
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <p className="text-sm text-muted-foreground">
-          Renaming requires two signatures: one to unregister the old username
-          and one to register the new username.
-        </p>
+        {hasUsernameInProtocol && (
+          <p className="text-sm text-muted-foreground">
+            Renaming requires two signatures: one to unregister the old username
+            and one to register the new username.
+          </p>
+        )}
         <Button
           disabled={!canSubmitForm}
           variant="default"
@@ -277,7 +281,7 @@ const RenameAccountForm = ({
               aria-hidden="true"
             />
           )}
-          <p>Rename account</p>
+          {hasUsernameInProtocol ? "Rename account" : "Set username"}
         </Button>
         {chainId !== mainnet.id && (
           <Button
@@ -305,9 +309,14 @@ const RenameAccountForm = ({
   return (
     <div className="flex flex-col gap-y-4">
       {renderInfoBox()}
-      {currentName !== PENDING_ACCOUNT_NAME_PLACEHOLDER && (
+      {hasUsernameInProtocol ? (
         <span>
-          Your current username is <strong>{currentName}</strong>.<br />
+          Your current username is <strong>{userInProtocol?.username}</strong>.
+          <br />
+        </span>
+      ) : (
+        <span>
+          Your account does not have a username yet. You can set one now.
         </span>
       )}
       {isConnected ? (

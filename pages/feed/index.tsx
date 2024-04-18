@@ -288,6 +288,7 @@ export default function Feed() {
       fid={account.platformAccountId}
       onBack={() => setShowCastThreadView(false)}
       setSelectedCast={setSelectedCast}
+      setShowReplyModal={setShowReplyModal}
     />
   );
 

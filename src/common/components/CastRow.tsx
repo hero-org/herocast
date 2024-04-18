@@ -61,7 +61,7 @@ const renderMention = ({ attributes, content }) => {
       }}
       rel="noopener noreferrer"
     >
-      <ProfileHoverCard username={content.slice(1)} userFid={userFid}>
+      <ProfileHoverCard username={content.slice(1)} viewerFid={userFid}>
         {content}
       </ProfileHoverCard>
     </span>
@@ -449,8 +449,8 @@ export const CastRow = ({
             <div className="flex flex-row justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 <ProfileHoverCard
-                  username={cast.author.username}
-                  userFid={userFid}
+                  fid={cast.author.fid}
+                  viewerFid={userFid}
                 >
                   <span className="flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                     {cast.author.display_name || cast.author.displayName}

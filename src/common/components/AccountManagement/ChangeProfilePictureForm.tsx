@@ -23,6 +23,7 @@ import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import ImgurUpload from "../ImgurUpload";
+import { Input } from "@/components/ui/input";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -92,6 +93,11 @@ const ChangeProfilePictureForm = ({
     <div className="flex flex-col gap-y-2 max-w-sm">
       {" "}
       <ImgurUpload onSuccess={setNewPfpUrl} />
+      <Input
+        size="sm"
+        placeholder="https://i.imgur.com/..."
+        onChange={(e) => setNewPfpUrl(e.target.value)}
+      />
       <Button
         variant="default"
         type="submit"

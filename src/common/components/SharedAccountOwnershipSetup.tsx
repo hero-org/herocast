@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isAddress } from "viem";
 import DeployHatsDelegatorContract from "./DeployHatsDelegatorContract";
-import { ImgurImage } from "./PostEmbeddedContent/ImgurImage";
+import { WarpcastImage } from "./PostEmbeddedContent/WarpcastImage";
 
 enum OwnershipSetupSteps {
   unknown = "UNKNOWN",
@@ -82,7 +82,7 @@ const SharedAccountOwnershipSetup = ({
             ID for the admin role and for the caster role.
           </p>
         </div>
-        <ImgurImage url="https://i.imgur.com/pgl0n75.gif" />
+        <WarpcastImage url="https://i.imgur.com/pgl0n75.gif" />
       </div>
     </div>
   );

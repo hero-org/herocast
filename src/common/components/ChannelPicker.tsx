@@ -39,8 +39,6 @@ export function ChannelPicker(props: Props) {
     setChannels(uniqBy(newChannels, "parent_url"));
   };
 
-  console.log("query", query);
-
   useEffect(() => {
     async function getChannelResults() {
       if (query.length < 2) return;

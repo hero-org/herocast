@@ -425,7 +425,7 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
   return channelData || [];
 }
 
-const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
+export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
   console.log('hydrating accounts 🌊');
   const accountData = await getAccountsForUser(supabaseClient);
   let accounts: AccountObjectType[] = [];

@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
-import Modal from './Modal';
-import NewPostEntry from './NewPostEntry';
-import { useNewPostStore } from '@/stores/useNewPostStore';
-import { CastRow } from './CastRow';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { useAccountStore } from '@/stores/useAccountStore';
+import React, { useEffect } from "react";
+import Modal from "./Modal";
+import NewPostEntry from "./NewPostEntry";
+import { useNewPostStore } from "@/stores/useNewPostStore";
+import { CastRow } from "./CastRow";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useAccountStore } from "@/stores/useAccountStore";
 
 type CastToReplyType = {
   hash: string;
@@ -12,30 +12,37 @@ type CastToReplyType = {
     fid: number;
     display_name?: string;
     displayName?: string;
-  }
-}
+  };
+};
 
 type ReplyModalProps = {
   parentCast: CastToReplyType;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
+};
 
 const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
-  const {
-    addNewPostDraft,
-    removePostDraft
-  } = useNewPostStore();
+  const { addNewPostDraft, removePostDraft } = useNewPostStore();
 
-  const account = useAccountStore(state => state.accounts[state.selectedAccountIdx]);
+  const account = useAccountStore(
+    (state) => state.accounts[state.selectedAccountIdx]
+  );
 
-  const draftIdx = useNewPostStore(state => state.drafts && state.drafts.findIndex(draft => draft.parentCastId?.hash === parentCast?.hash));
+  const draftIdx = useNewPostStore(
+    (state) =>
+      state.drafts &&
+      state.drafts.findIndex(
+        (draft) => draft.parentCastId?.hash === parentCast?.hash
+      )
+  );
   const { drafts } = useNewPostStore();
   const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 
   useEffect(() => {
     if (draftIdx === -1 && open) {
-      addNewPostDraft({ parentCastId: { hash: parentCast?.hash, fid: parentCast?.author.fid } })
+      addNewPostDraft({
+        parentCastId: { hash: parentCast?.hash, fid: parentCast?.author.fid },
+      });
     }
     return () => {
       if (open) return;
@@ -43,27 +50,22 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
       if (draftIdx !== -1) {
         removePostDraft(draftIdx);
       }
-    }
-  }, [draftIdx, open])
+    };
+  }, [draftIdx, open]);
 
-  useHotkeys(
-    'esc', 
-    () => setOpen(false), [open], 
-    {
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-      enabled: open,
-    }
-    );
+  useHotkeys("esc", () => setOpen(false), [open], {
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+    enabled: open,
+  });
 
-  const getTitle = () => `Reply to ${parentCast?.author.display_name || parentCast?.author.displayName} as ${account?.name}`
+  const getTitle = () =>
+    `Reply to ${
+      parentCast?.author.display_name || parentCast?.author.displayName
+    } as ${account?.name}`;
 
   return (
-    <Modal
-      title={getTitle()}
-      open={open}
-      setOpen={setOpen}
-    >
+    <Modal title={getTitle()} open={open} setOpen={setOpen}>
       <div className="mt-2 overflow-auto">
         {open && draftIdx !== -1 && (
           <div
@@ -72,18 +74,16 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
           >
             <div className="mb-4">
               {parentCast && (
-                <CastRow
-                  cast={parentCast}
-                  isSelected
-                  disableEmbeds
-                />
+                <CastRow cast={parentCast} isSelected disableEmbeds />
               )}
             </div>
             <div className="flex">
               <NewPostEntry
                 draft={draft}
                 draftIdx={draftIdx}
-                onPost={() => setOpen(false)}
+                onPost={() => {
+                  setOpen(false);
+                }}
                 hideChannel
               />
             </div>
@@ -91,7 +91,7 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
         )}
       </div>
     </Modal>
-  )
+  );
 };
 
 export default ReplyModal;
