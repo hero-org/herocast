@@ -267,6 +267,9 @@ const RegisterFarcasterUsernameForm = ({
           <Button disabled={!canSubmitForm} type="submit">
             Register username
           </Button>
+          <Button disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>
+            Refresh
+          </Button>
           {chainId !== mainnet.id && (
             <Button
               variant="default"
@@ -275,7 +278,6 @@ const RegisterFarcasterUsernameForm = ({
               Switch to mainnet
             </Button>
           )}
-          <Button disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>Refresh</Button>
         </div>
       </form>
     </Form>
