@@ -192,6 +192,7 @@ export function UserAuthForm({
                     <FormLabel className="text-gray-200">Email</FormLabel>
                     <FormControl>
                       <Input
+                        variantSize="lg"
                         className="text-white"
                         placeholder="vitalik@ethereum.org"
                         disabled={isLoading}
@@ -210,6 +211,7 @@ export function UserAuthForm({
                     <FormLabel className="text-gray-200">Password</FormLabel>
                     <FormControl>
                       <Input
+                        variantSize="lg"
                         className="text-white"
                         placeholder="************"
                         disabled={isLoading}
@@ -230,7 +232,7 @@ export function UserAuthForm({
               disabled={isLoading}
               onClick={() => logIn()}
             >
-              {isLoading ? <Loading /> : "Sign In with Email"}
+              {isLoading ? <Loading className="text-white" /> : "Sign In with Email"}
             </Button>
             <div className="flex items-center justify-center space-x-2">
               <Button

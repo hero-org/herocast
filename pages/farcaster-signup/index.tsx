@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { hydrateAccounts } from "../../src/stores/useAccountStore";
+import SidebarNavItem from "@/common/components/Steps/SidebarNav";
 
 enum FarcasterSignupNav {
   login = "LOGIN",
@@ -17,31 +18,31 @@ enum FarcasterSignupNav {
   explainer = "EXPLAINER",
 }
 
-const onboardingNavItems = [
+const onboardingNavItems: SidebarNavItem[] = [
   {
     title: "Login",
     idx: 0,
-    key: FarcasterSignupNav.login,
+    keys: [FarcasterSignupNav.login],
   },
   {
     title: "Connect wallet",
     idx: 1,
-    key: FarcasterSignupNav.connect_wallet,
+    keys: [FarcasterSignupNav.connect_wallet],
   },
   {
     title: "Create account onchain",
     idx: 2,
-    key: FarcasterSignupNav.create_account_onchain,
+    keys: [FarcasterSignupNav.create_account_onchain],
   },
   {
     title: "Register username",
     idx: 3,
-    key: FarcasterSignupNav.register_username,
+    keys: [FarcasterSignupNav.register_username],
   },
   {
     title: "Let's go",
     idx: 3,
-    key: FarcasterSignupNav.explainer,
+    keys: [FarcasterSignupNav.explainer],
   },
 ];
 
@@ -99,13 +100,6 @@ export default function Welcome() {
             Use Hats Protocol to share this account with onchain permissions
           </p>
         </div>
-      </div>
-      <div className="mt-12 space-y-4">
-        {/* <div className="w-[500px]">
-          <AspectRatio ratio={16 / 9}>
-            // can fill in video embed explainer here
-          </AspectRatio>
-        </div> */}
       </div>
     </div>
   );

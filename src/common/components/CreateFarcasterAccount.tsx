@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   useAccount,
   useReadContract,
+  useSwitchChain,
   useWaitForTransactionReceipt,
   useWalletClient,
 } from "wagmi";
@@ -30,13 +31,17 @@ import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { generateKeyPair } from "../helpers/warpcastLogin";
 import { writeContract } from "@wagmi/core";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
+import { optimism } from "viem/chains";
 
 const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string>();
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>("0x");
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const walletClient = useWalletClient();
+  const { switchChain } = useSwitchChain();
+
+  const canCreateAccount = !isPending && isConnected && chain?.id === 10;
 
   const { accounts, addAccount, setAccountActive } = useAccountStore();
   const pendingAccounts = accounts.filter(
@@ -120,9 +125,24 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     return value > 0n;
   };
 
+  const validateChainId = (): boolean => {
+    if (chain?.id !== 10) {
+      setError("Please switch to the Optimism chain to continue");
+      return false;
+    }
+    return true;
+  };
+
   const createFarcasterAccount = async () => {
     console.log("createFarcasterAccount");
 
+    if (!address) return;
+
+    if (!isConnected) {
+      setError("Please connect your wallet to continue");
+      return;
+    }
+    if (!validateChainId()) return;
     if (!(await validateWalletHasNoFid())) return;
     if (!(await validateWalletHasGasOnOptimism())) {
       setError(
@@ -171,8 +191,8 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     });
     if (registerSignatureResponse.isErr()) {
       console.log(
-        "error when trying to sign register",
-        registerSignatureResponse
+        `error when trying to sign register 
+        ${JSON.stringify(registerSignatureResponse)}`
       );
       setIsPending(false);
       setError(
@@ -261,7 +281,7 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
       </p>
       <Button
         variant="default"
-        disabled={isPending}
+        disabled={!canCreateAccount}
         onClick={() => createFarcasterAccount()}
       >
         Create account
@@ -274,6 +294,15 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
           </div>
         )}
       </Button>
+      {chain?.id !== optimism.id && (
+        <Button
+          className="ml-4"
+          variant="default"
+          onClick={() => switchChain({ chainId: optimism.id })}
+        >
+          Switch to Optimism
+        </Button>
+      )}
       {isPending && (
         <Button
           variant="outline"
