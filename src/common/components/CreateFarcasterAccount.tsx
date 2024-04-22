@@ -270,7 +270,7 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
 
   return (
     <div className="w-3/4 space-y-4">
-      <p className="text-[0.8rem] text-muted-foreground">
+      <p className="text-md text-muted-foreground">
         This will require two wallet signatures and one on-chain transaction.{" "}
         <br />
         You need to have ETH on Optimism to pay gas for the transaction and the

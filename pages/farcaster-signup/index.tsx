@@ -48,7 +48,7 @@ const onboardingNavItems: SidebarNavItem[] = [
 
 export default function Welcome() {
   const { isConnected } = useAccount();
-  const [step, setStep] = useState<string>(onboardingNavItems[1].key);
+  const [step, setStep] = useState<FarcasterSignupNav>(FarcasterSignupNav.connect_wallet);
   const router = useRouter();
 
   useEffect(() => {
@@ -109,7 +109,14 @@ export default function Welcome() {
       case FarcasterSignupNav.login:
         return getStepContent(
           "Login",
-          "Congrats, you are already logged in to herocast."
+          "Congrats, you are already logged in to herocast.",
+          <div className="flex flex-col gap-4">
+            <Button
+              onClick={() => setStep(FarcasterSignupNav.connect_wallet)}
+            >
+              Next step
+            </Button>
+          </div>
         );
       case FarcasterSignupNav.connect_wallet:
         return getStepContent(

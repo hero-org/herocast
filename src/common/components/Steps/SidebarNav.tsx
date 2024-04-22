@@ -25,6 +25,7 @@ export function SidebarNav({
   ...props
 }: SidebarNavProps) {
   const getIdxForStep = (step: string) => {
+    console.log('getIdxForStep', step, items);
     return findIndex(items, (item) => includes(item.keys, step));
   };
   const currentStepIdx = getIdxForStep(step);
