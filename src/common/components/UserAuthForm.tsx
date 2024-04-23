@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loading } from "./Loading";
-import { SignInButton } from "@farcaster/auth-kit";
+import { SignInButton, useProfile } from "@farcaster/auth-kit";
 import { useState } from "react";
 import { createClient } from "../helpers/supabase/component";
 import { useRouter } from "next/router";
@@ -58,7 +58,21 @@ export function UserAuthForm({
   const supabase = createClient();
   const router = useRouter();
   const posthog = usePostHog();
+  const {
+    isAuthenticated,
+    profile: { username, fid },
+  } = useProfile();
+
   const { accounts, addAccount } = useAccountStore();
+
+  React.useEffect(() => {
+    console.log("useEffect", isAuthenticated, username, fid);
+    if (isAuthenticated && username && fid) {
+      console.log('calling setupLocalAccount')
+      setupLocalAccount({ fid, username });
+    }
+  }, [isAuthenticated, username, fid]);
+
   const localAccounts = accounts.filter(
     (account) =>
       account.platform === AccountPlatformType.farcaster_local_readonly
@@ -70,39 +84,54 @@ export function UserAuthForm({
   });
 
   const setupLocalAccount = async ({ fid, username }) => {
+    console.log('calling setupLocalAccount', fid, username, localAccounts)
+
     if (!fid || !username) return;
-    if (localAccounts.some((a) => a.platformAccountId === fid.toString())) {
-      return;
-    }
 
+    const hasLocalAccountCreated = localAccounts.some((a) => a.platformAccountId === fid.toString());
     setIsLoading(true);
-    const neynarClient = new NeynarAPIClient(
-      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-    );
+    let account;
+    if (hasLocalAccountCreated) {
+      account = localAccounts.find((a) => a.platformAccountId === fid.toString());
+    } else {
+      setUserMessage("Setting up local account...");
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+  
+      const users = (
+        await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
+      ).users;
+      if (!users.length) {
+        console.error("No users found for fid: ", fid);
+        return;
+      }
+  
+      account = {
+        name: username,
+        status: AccountStatusType.active,
+        platform: AccountPlatformType.farcaster_local_readonly,
+        platformAccountId: fid.toString(),
+        user: users?.[0],
+      };
+      await addAccount({
+        account,
+        localOnly: true,
+      });
+    }
 
-    const users = (
-      await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
-    ).users;
-    if (!users.length) {
-      console.error("No users found for fid: ", fid);
+    await hydrateChannels();
+    console.log("before signin anon account", account);
+    const { data, error } = await supabase.auth.signInAnonymously();
+    console.log("after signin anon account", data, error);
+    if (error) {
+      console.error("login anonymously error", error);
+      setUserMessage("Error setting up local account.");
+      setIsLoading(false);
       return;
     }
 
-    const account = {
-      name: username,
-      status: AccountStatusType.active,
-      platform: AccountPlatformType.farcaster_local_readonly,
-      platformAccountId: fid.toString(),
-      user: users?.[0],
-    };
-    setUserMessage("Setting up local account...");
-    await hydrateChannels();
-    await addAccount({
-      account,
-      localOnly: true,
-    });
-    posthog.identify(uuidv4(), { isLocalOnly: true });
-
+    posthog.identify(data?.user?.id, { isLocalOnly: true });
     setUserMessage("Setup done. Welcome to the herocast experience!");
     router.push("/welcome");
     setIsLoading(false);
@@ -187,7 +216,9 @@ export function UserAuthForm({
   return (
     <div className={cn("grid gap-6", className)}>
       <div className="flex justify-center text-center">
-        {userMessage && <Label className="w-2/3 text-md text-gray-100">{userMessage}</Label>}
+        {userMessage && (
+          <Label className="w-2/3 text-md text-gray-100">{userMessage}</Label>
+        )}
       </div>
       <Form {...form}>
         <form>
@@ -283,24 +314,18 @@ export function UserAuthForm({
       )}
       {!signupOnly && (
         <div className="flex flex-col space-y-4 items-center justify-center text-white">
-          <SignInButton
-            hideSignOut
-            onSuccess={({ fid, username }) =>
-              setupLocalAccount({ fid, username })
-            }
-          />
-          {/* <Button
-            type="button"
-            size="lg"
-            className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
-            disabled={isLoading}
-            onClick={() => {
-              signIn();
-              setIsOpenDialog(true);
-            }}
-          >
-            {isLoading ? "Loading..." : "Sign in with Farcaster"}{" "}
-          </Button> */}
+          {!isAuthenticated ? (
+            <SignInButton hideSignOut />
+          ) : (
+            <Button
+              type="button"
+              size="lg"
+              className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
+              disabled
+            >
+              Signed in with Farcaster ☑️
+            </Button>
+          )}
         </div>
       )}
     </div>
