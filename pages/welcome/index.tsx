@@ -8,7 +8,7 @@ export default function Welcome() {
       <div className="space-y-6 p-10 pb-16 block">
         <div className="space-y-1 max-w-lg">
           <h2 className="text-2xl font-bold tracking-tight">Welcome to herocast</h2>
-          <p className="text-muted-foreground">herocast is a client for Farcaster with focus on keyboard-first desktop experience for power users and teams</p>
+          <p className="text-muted-foreground">Build, engage and grow on Farcaster. Faster.</p>
         </div>
         <Separator className="my-6" />
         <WelcomeCards />
