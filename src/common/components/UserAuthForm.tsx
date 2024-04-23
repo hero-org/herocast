@@ -66,9 +66,7 @@ export function UserAuthForm({
   const { accounts, addAccount } = useAccountStore();
 
   React.useEffect(() => {
-    console.log("useEffect", isAuthenticated, username, fid);
     if (isAuthenticated && username && fid) {
-      console.log('calling setupLocalAccount')
       setupLocalAccount({ fid, username });
     }
   }, [isAuthenticated, username, fid]);
@@ -84,8 +82,6 @@ export function UserAuthForm({
   });
 
   const setupLocalAccount = async ({ fid, username }) => {
-    console.log('calling setupLocalAccount', fid, username, localAccounts)
-
     if (!fid || !username) return;
 
     const hasLocalAccountCreated = localAccounts.some((a) => a.platformAccountId === fid.toString());
@@ -121,11 +117,8 @@ export function UserAuthForm({
     }
 
     await hydrateChannels();
-    console.log("before signin anon account", account);
     const { data, error } = await supabase.auth.signInAnonymously();
-    console.log("after signin anon account", data, error);
     if (error) {
-      console.error("login anonymously error", error);
       setUserMessage("Error setting up local account.");
       setIsLoading(false);
       return;
