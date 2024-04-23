@@ -3,44 +3,61 @@ import BigOptionSelector from "@/common/components/BigOptionSelector";
 import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import { useRouter } from "next/router";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
+
 const WelcomeCards = () => {
   const router = useRouter();
 
   const { accounts, setSelectedChannelUrl } = useAccountStore();
 
+  const hasAccounts = accounts.length > 0;
   const hasPendingAccount = accounts.some(
     (account) => account.status === AccountStatusType.pending
   );
-  const isReadOnly = accounts.every(
-    (account) =>
-      account.platform === AccountPlatformType.farcaster_local_readonly
-  );
+  const isReadOnly =
+    hasAccounts &&
+    accounts.every(
+      (account) =>
+        account.platform === AccountPlatformType.farcaster_local_readonly
+    );
   return (
     <div className="m-8 flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
       <BigOptionSelector
         options={[
           hasPendingAccount
-            ? undefined
-            : {
+            ? {
                 title: "Continue to connect to herocast",
                 description:
                   "Finish connecting your Farcaster account with your web3 wallet or by scanning a QR code.",
                 buttonText: "Continue",
                 onClick: () => router.push("/accounts"),
-              },
+              }
+            : undefined,
           {
             title: "Got a Farcaster account?",
             description:
               "If you signed up for Farcaster and want to connect it to herocast.",
-            buttonText: "Connect my account",
+            buttonText: "Connect account",
             onClick: () => router.push("/accounts"),
           },
           {
             title: "New to Farcaster?",
-            description: "Create a new Farcaster account with herocast.",
+            description:
+              "Create a new Farcaster account with your web3 wallet in herocast.",
             buttonText: "Create new account",
             onClick: () => router.push("/farcaster-signup"),
           },
+          isReadOnly
+            ? {
+                title: "Browse trending feed",
+                description:
+                  "No need to signup if you just want to checkout herocast",
+                buttonText: "Trending Feed →",
+                onClick: () => {
+                  setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+                  router.push("/feed");
+                },
+              }
+            : undefined,
           isReadOnly
             ? {
                 title: "Follow the herocast team on Paragraph",
@@ -56,16 +73,6 @@ const WelcomeCards = () => {
                 ),
               }
             : undefined,
-          {
-            title: "Browse trending feed",
-            description:
-              "No need to signup if you just want to checkout herocast",
-            buttonText: "Trending Feed →",
-            onClick: () => {
-              setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
-              router.push("/feed");
-            },
-          },
         ]}
       />
     </div>

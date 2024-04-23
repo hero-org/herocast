@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loading } from "./Loading";
-import { SignInButton } from "@farcaster/auth-kit";
+import { SignInButton, useProfile } from "@farcaster/auth-kit";
 import { useState } from "react";
 import { createClient } from "../helpers/supabase/component";
 import { useRouter } from "next/router";
@@ -58,7 +58,19 @@ export function UserAuthForm({
   const supabase = createClient();
   const router = useRouter();
   const posthog = usePostHog();
+  const {
+    isAuthenticated,
+    profile: { username, fid },
+  } = useProfile();
+
   const { accounts, addAccount } = useAccountStore();
+
+  React.useEffect(() => {
+    if (isAuthenticated && username && fid) {
+      setupLocalAccount({ fid, username });
+    }
+  }, [isAuthenticated, username, fid]);
+
   const localAccounts = accounts.filter(
     (account) =>
       account.platform === AccountPlatformType.farcaster_local_readonly
@@ -71,38 +83,48 @@ export function UserAuthForm({
 
   const setupLocalAccount = async ({ fid, username }) => {
     if (!fid || !username) return;
-    if (localAccounts.some((a) => a.platformAccountId === fid.toString())) {
-      return;
-    }
 
+    const hasLocalAccountCreated = localAccounts.some((a) => a.platformAccountId === fid.toString());
     setIsLoading(true);
-    const neynarClient = new NeynarAPIClient(
-      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-    );
+    let account;
+    if (hasLocalAccountCreated) {
+      account = localAccounts.find((a) => a.platformAccountId === fid.toString());
+    } else {
+      setUserMessage("Setting up local account...");
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+  
+      const users = (
+        await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
+      ).users;
+      if (!users.length) {
+        console.error("No users found for fid: ", fid);
+        return;
+      }
+  
+      account = {
+        name: username,
+        status: AccountStatusType.active,
+        platform: AccountPlatformType.farcaster_local_readonly,
+        platformAccountId: fid.toString(),
+        user: users?.[0],
+      };
+      await addAccount({
+        account,
+        localOnly: true,
+      });
+    }
 
-    const users = (
-      await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
-    ).users;
-    if (!users.length) {
-      console.error("No users found for fid: ", fid);
+    await hydrateChannels();
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) {
+      setUserMessage("Error setting up local account.");
+      setIsLoading(false);
       return;
     }
 
-    const account = {
-      name: username,
-      status: AccountStatusType.active,
-      platform: AccountPlatformType.farcaster_local_readonly,
-      platformAccountId: fid.toString(),
-      user: users?.[0],
-    };
-    setUserMessage("Setting up local account...");
-    await hydrateChannels();
-    await addAccount({
-      account,
-      localOnly: true,
-    });
-    posthog.identify(uuidv4(), { isLocalOnly: true });
-
+    posthog.identify(data?.user?.id, { isLocalOnly: true });
     setUserMessage("Setup done. Welcome to the herocast experience!");
     router.push("/welcome");
     setIsLoading(false);
@@ -139,7 +161,13 @@ export function UserAuthForm({
 
     setIsLoading(true);
     const { email, password } = form.getValues();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/api/auth/confirm?type=signup&next=/welcome`,
+      },
+    });
     console.log(data, error);
 
     if (error) {
@@ -152,7 +180,7 @@ export function UserAuthForm({
       return;
     } else {
       posthog.identify(data?.user?.id, { email });
-      router.push("/welcome");
+      setUserMessage("Account created. Please check your email to continue");
       setIsLoading(false);
     }
   }
@@ -180,6 +208,11 @@ export function UserAuthForm({
 
   return (
     <div className={cn("grid gap-6", className)}>
+      <div className="flex justify-center text-center">
+        {userMessage && (
+          <Label className="w-2/3 text-md text-gray-100">{userMessage}</Label>
+        )}
+      </div>
       <Form {...form}>
         <form>
           <div className="grid gap-4">
@@ -226,7 +259,7 @@ export function UserAuthForm({
             <Button
               type="button"
               size="lg"
-              className="py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+              className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
               disabled={isLoading}
               onClick={() => logIn()}
             >
@@ -255,9 +288,6 @@ export function UserAuthForm({
           </div>
         </form>
       </Form>
-      <div className="text-center">
-        {userMessage && <Label className="text-gray-200">{userMessage}</Label>}
-      </div>
       {signupOnly ? (
         <Button variant="default" onClick={() => router.back()}>
           <ArrowLeftIcon className="h-5 w-5 mr-2" /> Back to using read-only
@@ -277,24 +307,18 @@ export function UserAuthForm({
       )}
       {!signupOnly && (
         <div className="flex flex-col space-y-4 items-center justify-center text-white">
-          <SignInButton
-            hideSignOut
-            onSuccess={({ fid, username }) =>
-              setupLocalAccount({ fid, username })
-            }
-          />
-          {/* <Button
-            type="button"
-            size="lg"
-            className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
-            disabled={isLoading}
-            onClick={() => {
-              signIn();
-              setIsOpenDialog(true);
-            }}
-          >
-            {isLoading ? "Loading..." : "Sign in with Farcaster"}{" "}
-          </Button> */}
+          {!isAuthenticated ? (
+            <SignInButton hideSignOut />
+          ) : (
+            <Button
+              type="button"
+              size="lg"
+              className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
+              disabled
+            >
+              Signed in with Farcaster ☑️
+            </Button>
+          )}
         </div>
       )}
     </div>

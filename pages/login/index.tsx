@@ -107,13 +107,9 @@ export default function Login() {
           >
             <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] md:w-[450px]">
               <div className="flex flex-col space-y-2 text-center">
-                <h1 className="text-5xl lg:text-3xl font-semibold tracking-tight text-gray-100">
+                <h1 className="text-5xl lg:text-3xl font-semibold tracking-tight text-white">
                   Welcome to herocast
                 </h1>
-                <p className="px-8 text-center text-md text-gray-400">
-                  Your herocast account can be used to connect multiple
-                  Farcaster accounts.
-                </p>
               </div>
               {renderAuthForm()}
             </div>
