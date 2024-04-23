@@ -23,13 +23,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "baseUrl": ".",
     "incremental": true,
     "types": [
       "node",
       "react/next",
       "react-dom/next"
     ],
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "src/*"
@@ -40,11 +40,9 @@
     "src",
     "./dist/types/**/*.ts",
     "./next-env.d.ts",
-    ".next/types/**/*.ts"
-    // "./**/*.ts",
-    // "./**/*.tsx",
-    // "./src",
-    // "./src/**/*.tsx"
+    ".next/types/**/*.ts",
+    "./**/*.ts",
+    "./**/*.tsx",
   ],
   "exclude": [
     "node_modules",
