@@ -139,7 +139,13 @@ export function UserAuthForm({
 
     setIsLoading(true);
     const { email, password } = form.getValues();
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${location.origin}/auth/confirm?type=signup&next=/welcome`,
+      },
+    });
     console.log(data, error);
 
     if (error) {
@@ -152,7 +158,7 @@ export function UserAuthForm({
       return;
     } else {
       posthog.identify(data?.user?.id, { email });
-      router.push("/welcome");
+      setUserMessage("Account created. Please check your email to continue");
       setIsLoading(false);
     }
   }
@@ -180,6 +186,9 @@ export function UserAuthForm({
 
   return (
     <div className={cn("grid gap-6", className)}>
+      <div className="flex justify-center text-center">
+        {userMessage && <Label className="w-2/3 text-md text-gray-100">{userMessage}</Label>}
+      </div>
       <Form {...form}>
         <form>
           <div className="grid gap-4">
@@ -255,9 +264,6 @@ export function UserAuthForm({
           </div>
         </form>
       </Form>
-      <div className="text-center">
-        {userMessage && <Label className="text-gray-200">{userMessage}</Label>}
-      </div>
       {signupOnly ? (
         <Button variant="default" onClick={() => router.back()}>
           <ArrowLeftIcon className="h-5 w-5 mr-2" /> Back to using read-only
