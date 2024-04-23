@@ -17,7 +17,7 @@ export default function EmptyStateWithAction({ title, description, icon, hideBut
       <p className="mt-1 text-sm text-foreground/80">{description}</p>
       {!hideButton && <div className="mt-6">
         <Button
-          type="button"
+          variant="outline"
           onClick={() => onClick()}
         >
           {/* {icon && <icon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />} */}

@@ -143,7 +143,7 @@ export function UserAuthForm({
       email,
       password,
       options: {
-        emailRedirectTo: `${location.origin}/auth/confirm?type=signup&next=/welcome`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/confirm?type=signup&next=/welcome`,
       },
     });
     console.log(data, error);
