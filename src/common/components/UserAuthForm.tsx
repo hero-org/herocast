@@ -259,7 +259,7 @@ export function UserAuthForm({
             <Button
               type="button"
               size="lg"
-              className="py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+              className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
               disabled={isLoading}
               onClick={() => logIn()}
             >
