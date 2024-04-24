@@ -4,19 +4,19 @@ import StepSequence from "@/common/components/Steps/StepSequence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount } from "wagmi";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
-import SharedAccountOwnershipSetup from "@/common/components/HatsProtocol/SharedAccountOwnershipSetup";
 import TransferAccountToHatsDelegator from "@/common/components/HatsProtocol/TransferAccountToHatsDelegator";
 import CreateHatsTreeForm from "@/common/components/HatsProtocol/CreateHatsTreeForm";
-import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { Loading } from "@/common/components/Loading";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import SharedAccountOwnershipSetup, { OwnershipSetupSteps } from "@/common/components/HatsProtocol/SharedAccountOwnershipSetup";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
@@ -66,18 +66,16 @@ export default function HatsProtocolPage() {
   const [delegatorContractAddress, setDelegatorContractAddress] = useState<
     `0x${string}` | null
   >();
+  const [
+    sharedAccountOwnershipDefaultStep,
+    setSharedAccountOwnershipDefaultStep,
+  ] = useState<OwnershipSetupSteps>(OwnershipSetupSteps.unknown);
   const [infoMessage, setInfoMessage] = useState<string | null>();
   const { address, isConnected } = useAccount();
   const [userInput, setUserInput] = useState<string>("");
   const [isLoadingAccount, setIsLoadingAccount] = useState(false);
   const shareWithOthersText = `Join my shared Farcaster account with delegator contract
   address ${delegatorContractAddress} and FID ${accountToTransfer?.fid}`;
-
-  const { data: fidOfUser, error: idOfUserError } = useReadContract({
-    ...ID_REGISTRY,
-    functionName: address ? "idOf" : undefined,
-    args: address ? [address] : undefined,
-  });
 
   const fetchUser = async () => {
     if (!userInput) return;
@@ -112,13 +110,17 @@ export default function HatsProtocolPage() {
 
   const getStepContent = (
     title: string,
-    description: string,
+    description: ReactNode | string,
     children?: ReactNode
   ) => (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        {typeof description === "string" ? (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        ) : (
+          description
+        )}
       </div>
       <Separator />
       {children}
@@ -129,6 +131,7 @@ export default function HatsProtocolPage() {
     <div className="flex flex-col space-y-2">
       <div className="flex items-center space-x-2">
         <Input
+          variantSize="lg"
           className="w-72"
           placeholder="herocast"
           value={userInput}
@@ -240,17 +243,17 @@ export default function HatsProtocolPage() {
             <BigOptionSelector
               options={[
                 {
+                  title: "I need a new Hats tree",
+                  description: "Start your setup with Hats Protocol right here",
+                  buttonText: "Get started",
+                  onClick: () => setStep(HatsSignupNav.create_hats_tree),
+                },
+                {
                   title: "I have created a Hats tree",
                   description: "Continue with the setup in herocast",
                   buttonText: "I have a Hats tree",
                   disabled: isEmpty(accountToTransfer),
                   onClick: () => setStep(HatsSignupNav.account_ownership),
-                },
-                {
-                  title: "I need a new Hats tree",
-                  description: "Start your setup with Hats Protocol right here",
-                  buttonText: "Get started",
-                  onClick: () => setStep(HatsSignupNav.create_hats_tree),
                 },
               ]}
             />
@@ -258,12 +261,24 @@ export default function HatsProtocolPage() {
         );
       case HatsSignupNav.create_hats_tree:
         return getStepContent(
-          "Create a Hats tree",
-          "Create the onchain permissions tree for your shared account",
+          "Setup onchain permissions for your shared account",
+          <a
+            href="https://docs.hatsprotocol.xyz/"
+            className="flex text-sm text-muted-foreground hover:underline"
+          >
+            Learn more about Hats Protocol{" "}
+            <ArrowTopRightOnSquareIcon className="ml-1 mt-px h-4 w-4" />
+          </a>,
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <CreateHatsTreeForm
-              onSuccess={() => setStep(HatsSignupNav.account_ownership)}
+              onSuccess={() => {
+                console.log("HatsProtocolPage create_hats_tree onSuccess");
+                setSharedAccountOwnershipDefaultStep(
+                  OwnershipSetupSteps.new_tree
+                );
+                setStep(HatsSignupNav.account_ownership);
+              }}
             />
           </div>
         );
@@ -274,6 +289,7 @@ export default function HatsProtocolPage() {
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <SharedAccountOwnershipSetup
+              defaultStep={sharedAccountOwnershipDefaultStep}
               onSuccess={() => setStep(HatsSignupNav.transfer_ownership)}
               delegatorContractAddress={delegatorContractAddress}
               setDelegatorContractAddress={setDelegatorContractAddress}

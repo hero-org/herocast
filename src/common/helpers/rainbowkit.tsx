@@ -29,6 +29,16 @@ export const config = getDefaultConfig({
   appName: "herocast",
   projectId: "b34f1019e33e832831871e41741f13fc",
   chains: [optimism],
+  transports: {
+    [optimism.id]: optimismHttp,
+  },
+});
+
+export const mainnetConfig = createConfig({
+  chains: [mainnet],
+  transports: {
+    [mainnet.id]: mainnetHttp,
+  },
 });
 
 export const rainbowKitTheme = midnightTheme({

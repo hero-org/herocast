@@ -13,11 +13,16 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { AccountObjectType } from "@/stores/useAccountStore";
-import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import {
+  ArrowTopRightOnSquareIcon,
+  Cog6ToothIcon,
+} from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 import { isAddress } from "viem";
 import { Input } from "@/components/ui/input";
+import { getEnsAddress, getEnsName } from "@wagmi/core";
+import { mainnetConfig } from "@/common/helpers/rainbowkit";
+import { normalize } from "viem/ens";
 
 enum CREATE_HATS_TREE_FORM_STEP {
   DEFAULT = "DEFAULT",
@@ -26,24 +31,80 @@ enum CREATE_HATS_TREE_FORM_STEP {
   ERROR = "ERROR",
 }
 
-const CreateHatsTreeFormSchema = z.object({
-  adminHatAddress: z.string(),
-  //   .refine(isAddress, {
-  //     message: "Invalid address",
-  //   }),
-  casterHatAddresses: z.array(
-    z.object({
-      address: z.string(),
-      // .refine(isAddress, {
-      //   message: "Invalid address",
-      // }),
-      id: z.string(),
-    })
-  ),
-  // .nonempty(),
-});
+const getAddressFromEnsName = async (name) => {
+  const ensAddress = await getEnsAddress(mainnetConfig, {
+    name: normalize(name),
+  });
+  return ensAddress;
+};
 
-// type CreateHatsTreeFormValues = z.infer<typeof CreateHatsTreeFormSchema>;
+const getEnsNameForAddress = async (address) => {
+  const ensName = await getEnsName(mainnetConfig, {
+    address,
+  });
+  return ensName;
+};
+
+const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
+  const [ensName, setEnsName] = useState<string | null>(null);
+  const [address, setAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (addressOrName && addressOrName.endsWith(".eth")) {
+      getAddressFromEnsName(addressOrName).then((ensAddress) => {
+        setAddress(ensAddress);
+      });
+      return;
+    }
+
+    if (isAddress(addressOrName)) {
+      getEnsNameForAddress(addressOrName).then((ensName) => {
+        setEnsName(ensName);
+      });
+    }
+
+    return () => {
+      setEnsName(null);
+      setAddress(null);
+    };
+  }, [addressOrName]);
+
+  if (!addressOrName) return null;
+
+  return (
+    (ensName || address) && (
+      <a
+        href={`https://etherscan.io/address/${addressOrName}`}
+        target="_blank"
+        rel="noreferrer"
+        className="flex text-sm hover:underline"
+      >
+        {ensName || address}{" "}
+        <ArrowTopRightOnSquareIcon className="ml-1 mt-0.5 h-4 w-4" />
+      </a>
+    )
+  );
+};
+
+const isValidFormAddressInput = (input: string) => {
+  return isAddress(input) || input.endsWith(".eth");
+};
+
+const CreateHatsTreeFormSchema = z.object({
+  adminHatAddress: z.string().refine(isValidFormAddressInput, {
+    message: "Invalid address",
+  }),
+  casterHatAddresses: z
+    .array(
+      z.object({
+        address: z.string().refine(isValidFormAddressInput, {
+          message: "Invalid address",
+        }),
+        id: z.string(),
+      })
+    )
+    .nonempty(),
+});
 
 type CasterHatAddress = z.infer<
   typeof CreateHatsTreeFormSchema
@@ -53,6 +114,7 @@ const casterHatAddressesInitial: CasterHatAddress[] = [
   { id: "1", address: "0x" },
   { id: "2", address: "0x" },
 ];
+
 type CreateHatsTreeFormProps = {
   account: AccountObjectType;
   onSuccess?: () => void;
@@ -82,13 +144,9 @@ const CreateHatsTreeForm = ({
     CREATE_HATS_TREE_FORM_STEP.DEFAULT
   );
   const [isPending, setIsPending] = useState(false);
-  //   const [casterHatAddresses, setCasterHatAddresses] = useState<
-  //     CasterHatAddress[]
-  //   >(() => casterHatAddressesInitial);
 
   const form = useZodForm({
     schema: CreateHatsTreeFormSchema,
-    // resolver: zodResolver(CreateHatsTreeFormSchema),
     mode: "onChange",
     defaultValues: { casterHatAddresses: casterHatAddressesInitial },
   });
@@ -96,19 +154,18 @@ const CreateHatsTreeForm = ({
   const { fields, append, remove } = useFieldArray({
     name: "casterHatAddresses",
     control: form.control,
+    rules: {},
   });
 
   const onHatsTreeCreated = () => {
     toast.success("Created your Hats tree successfully", {
-      duration: 5000,
-      closeButton: true,
+      duration: 7000,
     });
     onSuccess?.();
   };
 
   useEffect(() => {
     if (formState === CREATE_HATS_TREE_FORM_STEP.PENDING_ONCHAIN_CONFIRMATION) {
-      // wait for 3 seconds then switch to success
       setTimeout(() => {
         setFormState(CREATE_HATS_TREE_FORM_STEP.SUCCESS);
       }, 3000);
@@ -125,6 +182,10 @@ const CreateHatsTreeForm = ({
   const createHatsTree = async (data) => {
     console.log("createHatsTree", data);
 
+    // if addresses are ENS names, resolve them to addresses with:
+    // if (address.endsWith(".eth")) {
+    //    getAddressFromEnsName(address)
+    // }
     setIsPending(true);
 
     try {
@@ -151,10 +212,12 @@ const CreateHatsTreeForm = ({
             <FormItem>
               <FormLabel>Admin Address</FormLabel>
               <FormControl>
-                <Input className="w-3/4" placeholder="0x..." {...field} />
+                <Input className="w-96" placeholder="0x..." {...field} />
               </FormControl>
-              <FormDescription>
-                This address will have the ability to manage the tree.
+              <EnsLookupLabel addressOrName={field.value} />
+              <FormDescription className="w-96">
+                This address will be able to change all permissions and has the
+                broadest authority.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -162,39 +225,30 @@ const CreateHatsTreeForm = ({
         />
         <div className="flex flex-col gap-y-4">
           {fields.map((field, index) => {
-            const errorForField =
-              form.formState.errors?.casterHatAddresses?.[index]?.address;
             return (
               <div className="flex flex-row" key={field.id}>
                 <FormField
-                  name={`casterHatAddresses.${field.id}.address` as const}
+                  name={`casterHatAddresses.${index}.address` as const}
                   render={({ field }) => (
                     <FormItem className="w-full" {...field}>
-                      <FormLabel>Caster Hat Address {index + 1}</FormLabel>
+                      <FormLabel>Caster Hat {index + 1}</FormLabel>
                       <FormControl>
-                        <Input placeholder="0x..." {...field} />
+                        <Input
+                          className="w-96"
+                          placeholder="0x..."
+                          {...field}
+                        />
                       </FormControl>
-                      <FormDescription>
-                        {errorForField?.message ?? <>&nbsp;</>}
+                      <EnsLookupLabel addressOrName={field.value} />
+                      <FormDescription className="w-96">
+                        This address will be able to read and write from the
+                        shared account.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                {index === 0 ? (
-                  <Button
-                    variant="outline"
-                    className="ml-4 mt-7 w-36"
-                    onClick={() =>
-                      append({
-                        id: String(fields.length + 1),
-                        address: "0x",
-                      })
-                    }
-                  >
-                    Add more
-                  </Button>
-                ) : (
+                {index > 0 && (
                   <Button
                     variant="outline"
                     onClick={() => remove(index)}
@@ -206,12 +260,24 @@ const CreateHatsTreeForm = ({
               </div>
             );
           })}
+          <Button
+            variant="outline"
+            className="w-48"
+            onClick={() =>
+              append({
+                id: String(fields.length + 1),
+                address: "0x",
+              })
+            }
+          >
+            Add more casters
+          </Button>
         </div>
         <Button
           disabled={!canSubmitForm}
           variant="default"
           type="submit"
-          className="w-74"
+          className="w-48"
         >
           {isPending && (
             <Cog6ToothIcon
@@ -219,7 +285,7 @@ const CreateHatsTreeForm = ({
               aria-hidden="true"
             />
           )}
-          <p>Create permissions onchain</p>
+          <p>Create Hats tree</p>
         </Button>
       </form>
     </Form>
@@ -230,6 +296,7 @@ const CreateHatsTreeForm = ({
       case CREATE_HATS_TREE_FORM_STEP.DEFAULT:
         return renderForm();
       case CREATE_HATS_TREE_FORM_STEP.PENDING_ONCHAIN_CONFIRMATION:
+        // can insert pending information about what is happening here
         return <p>Waiting for onchain confirmation...</p>;
       case CREATE_HATS_TREE_FORM_STEP.SUCCESS:
         return (

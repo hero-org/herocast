@@ -104,7 +104,7 @@ const DeployHatsDelegatorContract = ({
   delegatorContractAddress,
   setDelegatorContractAddress,
 }: {
-  onSuccess: () => null;
+  onSuccess: () => void;
   delegatorContractAddress: `0x${string}`;
   setDelegatorContractAddress: (address: `0x${string}`) => void;
 }) => {

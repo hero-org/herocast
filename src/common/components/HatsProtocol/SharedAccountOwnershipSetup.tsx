@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,26 +6,42 @@ import { isAddress } from "viem";
 import DeployHatsDelegatorContract from "../DeployHatsDelegatorContract";
 import { WarpcastImage } from "../PostEmbeddedContent/WarpcastImage";
 
-enum OwnershipSetupSteps {
+export enum OwnershipSetupSteps {
   unknown = "UNKNOWN",
-  unprepared = "UNPREPARED",
+  new_tree = "NEW_TREE",
   existing_tree = "EXISTING_TREE",
 }
 
-const SharedAccountOwnershipSetup = ({
+type SharedAccountOwnershipSetupProps = {
+  onSuccess: () => void;
+  delegatorContractAddress: `0x${string}`;
+  setDelegatorContractAddress: (address: string) => void;
+  defaultStep?: OwnershipSetupSteps;
+};
+
+export const SharedAccountOwnershipSetup = ({
   onSuccess,
   delegatorContractAddress,
   setDelegatorContractAddress,
-}) => {
+  defaultStep,
+}: SharedAccountOwnershipSetupProps) => {
   const [state, setState] = useState<OwnershipSetupSteps>(
-    OwnershipSetupSteps.unknown
+    defaultStep || OwnershipSetupSteps.unknown
   );
+
+  useEffect(() => {
+    if (defaultStep && defaultStep !== state) {
+      setState(defaultStep);
+    }
+  }, [defaultStep]);
+
+  console.log("SharedAccountOwnershipSetup", state, defaultStep);
 
   const renderStep = () => {
     switch (state) {
       case OwnershipSetupSteps.unknown:
         return renderUnknownStep();
-      case OwnershipSetupSteps.unprepared:
+      case OwnershipSetupSteps.new_tree:
         return renderUnpreparedStep();
       case OwnershipSetupSteps.existing_tree:
         return renderExistingTreeStep();
@@ -56,10 +72,10 @@ const SharedAccountOwnershipSetup = ({
   const renderExistingTreeStep = () => (
     <div className="flex flex-col space-x-2 lg:flex-row lg:space-x-8">
       <div className="w-1/2">
-      <DeployHatsDelegatorContract
-        onSuccess={onSuccess}
-        delegatorContractAddress={delegatorContractAddress}
-        setDelegatorContractAddress={setDelegatorContractAddress}
+        <DeployHatsDelegatorContract
+          onSuccess={onSuccess}
+          delegatorContractAddress={delegatorContractAddress}
+          setDelegatorContractAddress={setDelegatorContractAddress}
         />
       </div>
       <div className="w-1/2 mt-4 lg:mt-0">
