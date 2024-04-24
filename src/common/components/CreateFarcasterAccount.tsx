@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import {
   useAccount,
   useReadContract,
+  useSendTransaction,
+  useSignTypedData,
+  useSwitchChain,
   useWaitForTransactionReceipt,
   useWalletClient,
 } from "wagmi";
@@ -28,8 +31,10 @@ import {
 } from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { generateKeyPair } from "../helpers/warpcastLogin";
-import { writeContract } from "@wagmi/core";
+
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
+import { glideClient } from "../helpers/glide";
+import { NoPaymentOptionsError } from "@paywithglide/glide-js";
 
 const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [isPending, setIsPending] = useState(false);
@@ -37,6 +42,9 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>("0x");
   const { address, isConnected } = useAccount();
   const walletClient = useWalletClient();
+  const { switchChainAsync } = useSwitchChain();
+  const { sendTransactionAsync } = useSendTransaction();
+  const { signTypedDataAsync } = useSignTypedData();
 
   const { accounts, addAccount, setAccountActive } = useAccountStore();
   const pendingAccounts = accounts.filter(
@@ -124,12 +132,6 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     console.log("createFarcasterAccount");
 
     if (!(await validateWalletHasNoFid())) return;
-    if (!(await validateWalletHasGasOnOptimism())) {
-      setError(
-        "Wallet has no gas on Optimism - please deposit some ETH to continue"
-      );
-      return;
-    }
 
     setIsPending(true);
 
@@ -208,7 +210,14 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     const addSignature = toHex(addSignatureResponse.value);
 
     try {
-      const registerAccountTransactionHash = await writeContract(config, {
+      if (!address) {
+        throw new Error("No address");
+      }
+
+      const registerAccountTransactionHash = await glideClient.writeContract({
+        account: address,
+        chainId: 10,
+
         address: BUNDLER_ADDRESS,
         abi: bundlerABI,
         functionName: "register",
@@ -232,6 +241,10 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
           0n,
         ],
         value: price,
+
+        switchChainAsync,
+        sendTransactionAsync,
+        signTypedDataAsync,
       });
       console.log(
         "registerAccountTransactionHash",
@@ -240,6 +253,14 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       setTransactionHash(registerAccountTransactionHash);
     } catch (e) {
+      if (e instanceof NoPaymentOptionsError) {
+        setError(
+          "Wallet has no tokens to pay for transaction. Please add tokens to your wallet.",
+        );
+        setIsPending(false);
+        return;
+      }
+
       console.log("error when trying to write contract", e);
       const errorStr = String(e).split("Raw Call Arguments")[0];
       setError(`when adding account onchain: ${errorStr}`);
@@ -253,8 +274,9 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
       <p className="text-[0.8rem] text-muted-foreground">
         This will require two wallet signatures and one on-chain transaction.{" "}
         <br />
-        You need to have ETH on Optimism to pay gas for the transaction and the
-        Farcaster platform fee. Farcaster platform fee (yearly) right now is{" "}
+        You can pay for the transaction and Farcaster platform fee with ETH or
+        other tokens on Base, Optimism, Arbitrum, Polygon, or Ethereum.
+        Farcaster platform fee (yearly) right now is{" "}
         {price
           ? `~${parseFloat(formatEther(price)).toFixed(5)} ETH.`
           : "loading..."}
@@ -290,6 +312,13 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
           </p>
         </div>
       )}
+
+      <div>
+        <a href="https://paywithglide.xyz" target="_blank" rel="noreferrer" className="text-sm cursor-pointer text-muted-foreground text-font-medium hover:underline hover:text-blue-500/70">
+          Payments powered by Glide
+        </a>
+      </div>
+
     </div>
   );
 };
