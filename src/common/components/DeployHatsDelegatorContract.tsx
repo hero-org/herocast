@@ -33,11 +33,11 @@ import {
   Registry,
   checkAndEncodeArgs,
 } from "@hatsprotocol/modules-sdk";
-import { optimism } from "wagmi/chains";
 import { getCustomRegistry } from "../../lib/hats";
 import { openWindow } from "@/common/helpers/navigation";
 import { HatsModuleFactoryAbi } from "@/common/constants/contracts/HatsModuleFactory";
 import { AddressSchema } from "@hatsprotocol/modules-sdk/dist/schemas";
+import { optimismChainId } from "../helpers/env";
 
 const HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS: `0x${string}` = '0xa947334c33dadca4bcbb396395ecfd66601bb38c';
 // const HATS_MODULE_FACTORY_ADDRESS: `0x${string}` = '0xfE661c01891172046feE16D3a57c3Cf456729efA';
@@ -120,7 +120,7 @@ const DeployHatsDelegatorContract = ({
     },
   });
   const walletClient = useWalletClient({
-    chainId: optimism.id,
+    chainId: optimismChainId,
   });
   const { address } = useAccount();
 

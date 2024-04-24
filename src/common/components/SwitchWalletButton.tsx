@@ -1,31 +1,37 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { useAccountModal, useConnectModal} from "@rainbow-me/rainbowkit";
+import { useAccount, useDisconnect } from "wagmi";
 
 const SwitchWalletButton = () => {
+  const { disconnect }       = useDisconnect()
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
-  const { address } = useAccount();
-  const [description, setDescription] = React.useState<string>("");
+  const { address, isConnected } = useAccount();
+  const [ isClient, setIsClient ] = useState<boolean>(false);
 
   useEffect(() => {
-    if (address) {
-      setDescription(`Connected with wallet: ${address}`);
-    }
-  }, [address]);
+    setIsClient(true)
+  }, [])
 
   return (
     <div className="flex flex-col">
+      { (isClient && isConnected) && (
+        <Button
+          variant="destructive"
+          onClick={() => disconnect() }
+        >Disconnect</Button>
+      )
+      }
+      
       <Button
         variant="outline"
+        className={`${(isClient && isConnected) ? 'mt-2' : ''}`}
         onClick={() => openConnectModal?.() || openAccountModal?.()}
       >
-        Connect / Switch wallet
+        {`${(isClient && isConnected) ? `Connected to ${address}` : 'Connect wallet' }`}
       </Button>
-      <Label className="mt-2">{description}</Label>
     </div>
   );
 }

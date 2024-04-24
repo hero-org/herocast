@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { hydrateAccounts } from "../../src/stores/useAccountStore";
+import { getFidForAddress } from "@/common/helpers/farcaster";
 
 enum FarcasterSignupNav {
   login = "LOGIN",
@@ -46,19 +47,21 @@ const onboardingNavItems = [
 ];
 
 export default function Welcome() {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const [step, setStep] = useState<string>(onboardingNavItems[1].key);
+  const [isAddressValid, setIsAddressValid] = useState<Boolean>(false);
   const router = useRouter();
+  const [error, setError] = useState<string>();
 
   useEffect(() => {
-    if (isConnected && step === FarcasterSignupNav.connect_wallet) {
+    if (isConnected && step === FarcasterSignupNav.connect_wallet && isAddressValid) {
       setStep(FarcasterSignupNav.create_account_onchain);
     }
 
     if (!isConnected && step === FarcasterSignupNav.create_account_onchain) {
       setStep(FarcasterSignupNav.connect_wallet);
     }
-  }, [isConnected]);
+  }, [isConnected, isAddressValid]);
 
   const getStepContent = (
     title: string,
@@ -74,6 +77,27 @@ export default function Welcome() {
       {children}
     </div>
   );
+
+  useEffect(() => {
+    validateWalletHasNoFid();
+  }, [isConnected, address]);
+
+  const validateWalletHasNoFid = async (): Promise<void> => {
+    setError('') // reset
+    if (!isConnected || !address) {
+      return;
+    }
+
+    const fid = await getFidForAddress(address);
+    if (fid) {
+      setError(
+        `Wallet ${address} already has a registered FID: ${fid}. Please connect to another wallet that is not registered to an account to continue.`
+      );
+      setIsAddressValid(false);
+    } else {
+      setIsAddressValid(true);
+    }
+  };
 
   const renderExplainer = () => (
     <div>
@@ -123,12 +147,27 @@ export default function Welcome() {
           "We will create a Farcaster account onchain in the next step.",
           <div className="flex flex-col gap-4">
             <SwitchWalletButton />
+            <Separator />
             <Button
-              disabled={!isConnected}
+              disabled={!isConnected || !isAddressValid}
               onClick={() => setStep(FarcasterSignupNav.create_account_onchain)}
             >
               Next step
             </Button>
+            {!isAddressValid && (
+              <div className="flex flex-start items-center mt-2">
+                <p className="text-wrap break-all	text-sm text-red-500">
+                  {error}
+                </p>
+              </div>
+            )}
+            {error && isAddressValid && (
+              <div className="flex flex-start items-center mt-2">
+                <p className="text-wrap break-all	text-sm text-red-500">
+                  Error: {error}
+                </p>
+              </div>
+            )}
           </div>
         );
       case FarcasterSignupNav.create_account_onchain:
@@ -136,6 +175,7 @@ export default function Welcome() {
           "Create your Farcaster account",
           "Let's get you onchain",
           <CreateFarcasterAccount
+            isAddressValid={isAddressValid}
             onSuccess={async () => {
               await hydrateAccounts();
               setStep(FarcasterSignupNav.register_username)

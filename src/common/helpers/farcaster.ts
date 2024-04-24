@@ -4,8 +4,7 @@ import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-c
 import { Address, encodeAbiParameters, toBytes } from "viem";
 import { publicClient } from "./rainbowkit";
 import { mnemonicToAccount } from "viem/accounts";
-import { readContract } from "viem/actions";
-import { optimism } from "viem/chains";
+import { optimismChainId } from "./env";
 
 export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 
@@ -190,12 +189,15 @@ export async function isValidSignedKeyRequest(
   return res;
 }
 
-export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey: `0x${string}`, deadline: bigint | number) => {
+export const getSignedKeyRequestMetadataFromAppAccount = async (chainId: number, signerPublicKey: `0x${string}`, deadline: bigint | number) => {
   const appAccount = mnemonicToAccount(process.env.NEXT_PUBLIC_APP_MNENOMIC!);
   const fid = BigInt(process.env.NEXT_PUBLIC_APP_FID!);
 
   const signature = await appAccount.signTypedData({
-    domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
+    domain: {
+      ...SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
+      chainId,
+    },
     types: {
       SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
     },
@@ -245,7 +247,7 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey:
 const IdContract = {
   abi: idRegistryABI,
   address: ID_REGISTRY_ADDRESS,
-  chain: optimism,
+  chain: 10,
 };
 
 export const getFidForAddress = async (address: `0x${string}`): Promise<bigint | undefined> => {
