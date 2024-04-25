@@ -46,6 +46,7 @@ interface CastRowProps {
   cast: CastWithInteractions | CastType;
   showChannel?: boolean;
   onSelect?: () => void;
+  onReply?: () => void;
   isSelected?: boolean;
   isThreadView?: boolean;
   disableEmbeds?: boolean;
@@ -143,6 +144,7 @@ export const CastRow = ({
   isSelected,
   showChannel,
   onSelect,
+  onReply,
   isThreadView = false,
   disableEmbeds = false,
 }: CastRowProps) => {
@@ -260,7 +262,7 @@ export const CastRow = ({
   };
 
   const onClickReaction = async (key: CastReactionType, isActive: boolean) => {
-    if (key !== CastReactionType.recasts && key !== CastReactionType.likes) {
+    if (key === CastReactionType.links) {
       return;
     }
 
@@ -271,11 +273,15 @@ export const CastRow = ({
     }
 
     if (!canSendReaction) {
-      toastInfoReadOnlyMode()
+      toastInfoReadOnlyMode();
       return;
     }
 
     try {
+      if (key === CastReactionType.replies) {
+        onReply?.();
+        return;
+      }
       const reactionBodyType: "like" | "recast" =
         key === CastReactionType.likes ? "like" : "recast";
       const reaction = {
@@ -367,6 +373,18 @@ export const CastRow = ({
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
             );
+          } else if (key === "replies" && isSelected) {
+            return (
+              <Tooltip.Provider
+                key={`cast-${cast.hash}-${key}-${reaction}`}
+                delayDuration={50}
+                skipDelayDuration={0}
+              >
+                <HotkeyTooltipWrapper hotkey="R" side="bottom">
+                  {reaction}
+                </HotkeyTooltipWrapper>
+              </Tooltip.Provider>
+            );
           } else {
             return reaction;
           }
@@ -407,7 +425,8 @@ export const CastRow = ({
     ) : null;
 
   const renderEmbeds = () =>
-    cast.embeds && cast.embeds.length > 0 && (
+    cast.embeds &&
+    cast.embeds.length > 0 && (
       <div className="mt-4">
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
@@ -448,16 +467,21 @@ export const CastRow = ({
           <div className="flex flex-col w-full">
             <div className="flex flex-row justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
-                <ProfileHoverCard
-                  fid={cast.author.fid}
-                  viewerFid={userFid}
-                >
+                <ProfileHoverCard fid={cast.author.fid} viewerFid={userFid}>
                   <span className="flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                     {cast.author.display_name || cast.author.displayName}
                     <span className="hidden font-normal lg:ml-1 lg:block">
                       (@{cast.author.username})
                     </span>
-                    <span>{cast.author.power_badge && <img src="/images/ActiveBadge.webp" className="ml-2 mt-0.5 h-[17px] w-[17px]" alt="power badge" />}</span>
+                    <span>
+                      {cast.author.power_badge && (
+                        <img
+                          src="/images/ActiveBadge.webp"
+                          className="ml-2 mt-0.5 h-[17px] w-[17px]"
+                          alt="power badge"
+                        />
+                      )}
+                    </span>
                   </span>
                 </ProfileHoverCard>
                 {showChannel && channel && (
