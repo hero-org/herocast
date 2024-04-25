@@ -125,7 +125,8 @@ $ next dev
 
 Click to open the localhost link and it should start compiling.
 
-If the compiling fails and cannot compile because of some missing (unset) .env variables, double-check the spelling of the env variable name (copy/paste from the examples, to be sure).
+If the compiling fails and cannot compile because of some missing (unset) .env variables, double-check the spelling of the env variable name (copy/paste from the examples, to be sure). Be sure to check all of the ones you set yourself (it may not be the one)
+its complaining about.
 
 And congratulations, you now have a local version of herocast working!
 
