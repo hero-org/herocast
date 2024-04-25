@@ -111,12 +111,19 @@ export const CastThreadView = ({
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const { conversation } = await neynarClient.lookupCastConversation(cast.hash, CastParamType.Hash, {replyDepth: 1, includeChronologicalParentCasts: true });
-      const {direct_replies: replies, ...castObjectWithoutReplies} = conversation.cast;
+      const { conversation } = await neynarClient.lookupCastConversation(
+        cast.hash,
+        CastParamType.Hash,
+        { replyDepth: 1, includeChronologicalParentCasts: true }
+      );
+      const { direct_replies: replies, ...castObjectWithoutReplies } =
+        conversation.cast;
       if (replies) {
         setCasts([castObjectWithoutReplies].concat(replies));
       } else {
-        const castResponse = await neynarClient.lookUpCastByHash(cast.hash, {viewerFid: Number(fid)});
+        const castResponse = await neynarClient.lookUpCastByHash(cast.hash, {
+          viewerFid: Number(fid),
+        });
         setCasts([castResponse.result.cast]);
       }
 
@@ -187,7 +194,7 @@ export const CastThreadView = ({
                   }
                 />
                 {cast?.children && cast.children.length > 0 && depth < 2 && (
-                  <div className={clsx(depth === 1 ? "hidden xl:block": "")}>
+                  <div className={clsx(depth === 1 ? "hidden xl:block" : "")}>
                     <SelectableListWithHotkeys
                       data={cast.children}
                       selectedIdx={selectedCastIdx}
@@ -225,31 +232,11 @@ export const CastThreadView = ({
     />
   );
 
-  const renderReplyButton = (cast: CastType) => {
-    if (!cast) return null;
-    const onClick = () => {
-      setSelectedCast(cast);
-      setShowReplyModal(true);
-    }
-    return (
-    <Button variant="outline" className="mt-4 ml-10 mr-4" onClick={() => onClick()}>
-      Reply
-      <span className="ml-3 flex-none text-xs text-gray-200 bg-gray-600 px-2 py-1 rounded-md">
-        <kbd className="font-mono">r</kbd>
-      </span>
-    </Button>
-  )
-    }
-
   const renderThread = () => (
     <div className="flow-root">
       {renderFeed()}
-      {renderReplyButton(casts[selectedCastIdx])}
       {false && draftIdx !== -1 && (
-        <div
-          className="mt-4 mr-4"
-          key={`new-post-parentHash-${cast?.hash}`}
-        >
+        <div className="mt-4 mr-4" key={`new-post-parentHash-${cast?.hash}`}>
           <NewPostEntry
             draft={draft}
             draftIdx={draftIdx}
@@ -264,10 +251,10 @@ export const CastThreadView = ({
 
   return (
     <div className="flex flex-col text-foreground/80 text-lg">
-      {isLoading ? <Loading className="ml-4" /> : renderThread()}
       {!isLoading && onBack && (
         <div className="mb-4">{renderGoBackButton()}</div>
       )}
+      {isLoading ? <Loading className="ml-4" /> : renderThread()}
     </div>
   );
 };
