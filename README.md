@@ -50,7 +50,11 @@ xcopy .env.example .env.development.local
  
 
  ### Neynar API KEY
- Once you've purchased the basic plan, the API Key is on the main page at the top.
+ Go to [Neynar's Dev Portal](https://dev.neynar.com/) and signup for the cheapest plan.
+
+ Once you've got access to the dashboard, the API Key is on the main page at the top "Neynar API key". 
+ 
+ Copy to clipboard.
  ```bash
   ...
   NEXT_PUBLIC_NEYNAR_API_KEY = 'neynar-api-key-here'
@@ -58,6 +62,8 @@ xcopy .env.example .env.development.local
  ```
 
  ### Alchemy API Key
+ Go to [Alchemy's website and get your API Key](https://alchemy.com).
+ 
  1. If you have not created an account, create a new account, select the "Free" option.
  2. When selecting chains you will develop on, only Optimism is required, but you can select others if you want.
  3. Then fill out whatever you feel is neccessary, and no need to get the bonus compute units (but feel free to).
