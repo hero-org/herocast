@@ -229,7 +229,7 @@ export default function Settings() {
               </Button>
               <AlertDialogDemo
                 buttonText={`Remove`}
-                onClick={() => removeAccount(idx)}
+                onClick={() => removeAccount(item.id)}
               />
             </div>
           </li>
