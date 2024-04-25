@@ -33,10 +33,8 @@ import mentionPlugin, {
   cashtagPlugin,
   channelPlugin,
 } from "../helpers/linkify";
-import { toast } from "sonner";
 import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
-import Image from "next/image";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);

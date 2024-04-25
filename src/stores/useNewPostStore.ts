@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CommandType } from "../../src/common/constants/commands";
 import { PlusCircleIcon, TagIcon, TrashIcon } from "@heroicons/react/24/outline";
@@ -205,7 +205,12 @@ const store = (set: StoreSet) => ({
     });
   },
 });
-export const useNewPostStore = create<NewPostStore>()(devtools(mutative(store)));
+export const useNewPostStore = create<NewPostStore>()(persist(mutative(store),
+  {
+    'name': 'herocast-post-store',
+    storage: createJSONStorage(() => sessionStorage),
+  })
+);
 
 export const newPostCommands: CommandType[] = [
   {
