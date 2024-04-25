@@ -16,7 +16,6 @@ import { Key } from "ts-key-enum";
 import ReplyModal from "../../src/common/components/ReplyModal";
 import EmbedsModal from "../../src/common/components/EmbedsModal";
 import { useInView } from "react-intersection-observer";
-import { useRouter } from "next/router";
 import { Button } from "../../src/components/ui/button";
 import { FilterType, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import {
@@ -238,6 +237,10 @@ export default function Feed() {
         cast={item as CastType}
         isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
+        onReply={() => {
+          setSelectedCast(item);
+          setShowReplyModal(true);
+        }}
         showChannel
       />
     </li>
