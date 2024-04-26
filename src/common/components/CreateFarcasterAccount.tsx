@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+
 import {
   useAccount,
   useReadContract,
@@ -30,13 +32,19 @@ import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { generateKeyPair } from "../helpers/warpcastLogin";
 import { writeContract } from "@wagmi/core";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
+import { ChainSelector } from "./ChainSelector";
 
 const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string>();
   const [transactionHash, setTransactionHash] = useState<`0x${string}`>("0x");
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId } = useAccount();
   const walletClient = useWalletClient();
+  const [isChainSelected, setIsChainSelected] = useState(false);
+
+  const handleChainSelectionChange = (value: boolean) => {
+    setIsChainSelected(value);
+  } ;
 
   const { accounts, addAccount, setAccountActive } = useAccountStore();
   const pendingAccounts = accounts.filter(
@@ -110,12 +118,22 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     return true;
   };
 
-  const validateWalletHasGasOnOptimism = async (): Promise<boolean> => {
+  const getWalletBalance = async (): Promise<any> => {
     if (!address) return false;
 
     const { value } = await getBalance(config, {
       address,
+      chainId,
     });
+
+    return value;
+  }
+
+  const validateWalletHasGas = async (): Promise<boolean> => {
+    if (!address) return false;
+
+    const value = await getWalletBalance();
+    
     console.log("balance", value, value > 0n);
     return value > 0n;
   };
@@ -124,7 +142,7 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
     console.log("createFarcasterAccount");
 
     if (!(await validateWalletHasNoFid())) return;
-    if (!(await validateWalletHasGasOnOptimism())) {
+    if (!(await validateWalletHasGas())) {
       setError(
         "Wallet has no gas on Optimism - please deposit some ETH to continue"
       );
@@ -253,18 +271,31 @@ const CreateFarcasterAccount = ({ onSuccess }: { onSuccess?: () => void }) => {
       <p className="text-[0.8rem] text-muted-foreground">
         This will require two wallet signatures and one on-chain transaction.{" "}
         <br />
-        You need to have ETH on Optimism to pay gas for the transaction and the
-        Farcaster platform fee. Farcaster platform fee (yearly) right now is{" "}
+        <br />
+        You need to have ETH on Optimism, Base, Zora, or Arbitrum One to pay gas for the transaction and the
+        Farcaster platform fee.
+        <br/>
+        <br />
+        The Farcaster platform fee (yearly) right now is{" "}
         {price
           ? `~${parseFloat(formatEther(price)).toFixed(5)} ETH.`
           : "loading..."}
       </p>
+
+        <Separator />
+        <p className="text-[0.8rem] text-muted-foreground">
+          Select a chain to use to pay for these fees:
+        </p>
+        <ChainSelector handleChainSelection={handleChainSelectionChange} />
+
+        <Separator />
+      
       <Button
         variant="default"
-        disabled={isPending}
+        disabled={isPending || !isChainSelected}
         onClick={() => createFarcasterAccount()}
       >
-        Create account
+        {isChainSelected ? 'Create account' : 'Select Chain' }
         {isPending && (
           <div className="pointer-events-none ml-3">
             <Cog6ToothIcon

@@ -282,7 +282,7 @@ export default function Accounts() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Sign in with Web3 wallet</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Pay with ETH on Optimism to connect with herocast
+              Pay with ETH to connect with herocast
             </CardDescription>
           </CardHeader>
           <CardContent>
