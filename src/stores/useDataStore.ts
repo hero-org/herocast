@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 
 type TokenInfo = {
@@ -86,12 +86,14 @@ type addTokenDataProps = {
 };
 
 interface DataStoreProps {
+  selectedCast?: CastWithInteractions;
   usernameToData: Record<string, User>;
   fidToData: Record<number, User>,
   tokenSymbolToData: Record<string, DexPair>;
 }
 
 interface DataStoreActions {
+  updateSelectedCast: (cast: CastWithInteractions) => void;
   addUserProfile: ({ username, data }: addUserProfileProps) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
 }
@@ -104,9 +106,15 @@ export const mutative = (config) =>
 type StoreSet = (fn: (draft: Draft<DataStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
+  selectedCast: null,
   usernameToData: {},
   fidToData: {},
   tokenSymbolToData: {},
+  updateSelectedCast: (cast: CastWithInteractions) => {
+    set((state) => {
+      state.selectedCast = cast;
+    });
+  },
   addUserProfile: ({ username, data }: addUserProfileProps) => {
     set((state) => {
       state.usernameToData = { ...state.usernameToData, ...{ [username]: data } };

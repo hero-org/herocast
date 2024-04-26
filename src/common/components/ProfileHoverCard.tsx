@@ -13,6 +13,7 @@ import get from "lodash.get";
 import FollowButton from "./FollowButton";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { getUserDataForFidOrUsername } from "../helpers/neynar";
 
 type ProfileHoverCardProps = {
   fid?: number;
@@ -31,7 +32,7 @@ const getProfile = (dataStoreState, username, fid) => {
   } else {
     return get(dataStoreState.fidToData, fid);
   }
-}
+};
 
 const ProfileHoverCard = ({
   fid,
@@ -52,22 +53,15 @@ const ProfileHoverCard = ({
     if (!inView || profile) return;
 
     const getData = async () => {
-      try {
-        let users: User[] = [];
-        if (username) {
-          const resp = await neynarClient.searchUser(username, viewerFid);
-          users = resp?.result?.users;
-        } else if (fid) {
-          const resp = await neynarClient.fetchBulkUsers([fid], { viewerFid });
-          users = resp?.users;
-        }
-        if (users.length) {
-          users.forEach((user) => {
-            addUserProfile({ username: user.username, data: user });
-          });
-        }
-      } catch (err) {
-        console.log("ProfileHoverCard: err getting data", err);
+      const users = await getUserDataForFidOrUsername({
+        username,
+        fid,
+        viewerFid,
+      });
+      if (users.length) {
+        users.forEach((user) => {
+          addUserProfile({ username: user.username, data: user });
+        });
       }
     };
 
@@ -100,7 +94,7 @@ const ProfileHoverCard = ({
           </div>
           <div>
             <h2 className="text-md font-semibold">{profile?.display_name}</h2>
-            <h3 className="text-sm font-regular">@{username}</h3>
+            <h3 className="text-sm font-regular">@{profile?.username}</h3>
           </div>
           {profile ? (
             <>

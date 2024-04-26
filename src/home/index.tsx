@@ -42,7 +42,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   const { pathname } = router;
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl } = useAccountStore();
 
   const getFeedTitle = () => {
@@ -134,7 +133,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const onClickItem = (item: NavigationItemType) => {
     if (pathname === "/login") return;
     router.push(item.router);
-    setSidebarOpen(false);
   };
 
   const navItem = navigation.find((item) => item.router === pathname) || {
@@ -172,11 +170,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="h-full bg-background">
-      <Transition.Root show={sidebarOpen} as={Fragment}>
+      <Transition.Root show={true} as={Fragment}>
         <Dialog
           as="div"
           className="relative z-5 lg:hidden"
-          onClose={setSidebarOpen}
+          onClose={() => null}
         >
           <Transition.Child
             as={Fragment}
@@ -214,7 +212,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     <button
                       type="button"
                       className="-m-2.5 p-2.5"
-                      onClick={() => setSidebarOpen(false)}
                     >
                       <span className="sr-only">Close sidebar</span>
                       <XMarkIcon

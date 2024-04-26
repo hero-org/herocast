@@ -17,6 +17,9 @@ import {
   AccountPlatformType,
   AccountStatusType,
 } from "@/common/constants/accounts";
+import { useDataStore } from "@/stores/useDataStore";
+import ProfileHoverCard from "../ProfileHoverCard";
+import ProfileInfo from "./ProfileInfo";
 
 type AccountsRightSidebarProps = {
   showChannels?: boolean;
@@ -27,6 +30,9 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
 
   const { accounts, selectedAccountIdx, setCurrentAccountIdx } =
     useAccountStore();
+  const { selectedCast } = useDataStore();
+
+  const selectedAccount = accounts[selectedAccountIdx];
 
   const renderEmptyState = () => (
     <div className="ml-6">
@@ -159,9 +165,17 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     );
   };
 
+  const renderSidebarInfoForSelectedCast = () => {
+    if (!selectedCast) return null;
+    return <div className="m-4">
+      <ProfileInfo fid={selectedCast.author.fid} viewerFid={selectedAccount.platformAccountId} />
+      </div>
+  };
+
   return (
     <aside className="min-h-full bg-background md:fixed md:bottom-0 md:right-0 md:top-16 md:w-48 lg:w-64 md:border-l md:border-foreground/5">
       <div className="">
+        {renderSidebarInfoForSelectedCast()}
         <SidebarHeader title="Accounts" />
         {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
         {showChannels && renderChannels()}

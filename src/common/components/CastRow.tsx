@@ -388,20 +388,28 @@ export const CastRow = ({
           }
         })}
         {linksCount && !isOnchainLink ? (
-          <a
-            tabIndex={-1}
-            href={cast.embeds[0].url}
-            target="_blank"
-            rel="noreferrer"
-            className="cursor-pointer"
+          <Tooltip.Provider
+            key={`cast-${cast.hash}-link`}
+            delayDuration={50}
+            skipDelayDuration={0}
           >
-            {renderReaction(
-              CastReactionType.links,
-              linksCount > 1,
-              linksCount ?? undefined,
-              getIconForCastReactionType(CastReactionType.links)
-            )}
-          </a>
+            <HotkeyTooltipWrapper hotkey="O" side="bottom">
+              <a
+                tabIndex={-1}
+                href={cast.embeds[0].url}
+                target="_blank"
+                rel="noreferrer"
+                className="cursor-pointer"
+              >
+                {renderReaction(
+                  CastReactionType.links,
+                  linksCount > 1,
+                  linksCount ?? undefined,
+                  getIconForCastReactionType(CastReactionType.links)
+                )}
+              </a>
+            </HotkeyTooltipWrapper>
+          </Tooltip.Provider>
         ) : null}
       </div>
     );

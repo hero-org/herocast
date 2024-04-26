@@ -10,7 +10,6 @@ import get from "lodash.get";
 import { CastRow } from "../../src/common/components/CastRow";
 import isEmpty from "lodash.isempty";
 import { CastThreadView } from "../../src/common/components/CastThreadView";
-import { DEFAULT_FEED_PAGE_SIZE } from "../../src/common/helpers/neynar";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
 import ReplyModal from "../../src/common/components/ReplyModal";
@@ -25,10 +24,12 @@ import {
 import { Loading } from "../../src/common/components/Loading";
 import uniqBy from "lodash.uniqby";
 import WelcomeCards from "@/common/components/WelcomeCards";
+import { useDataStore } from "@/stores/useDataStore";
 type FeedsType = {
   [key: string]: CastWithInteractions[];
 };
 
+const DEFAULT_FEED_PAGE_SIZE = 10;
 const neynarClient = new NeynarAPIClient(
   process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
 );
@@ -41,8 +42,6 @@ export default function Feed() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
-  const [selectedCast, setSelectedCast] =
-    useState<CastWithInteractions | null>();
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
@@ -53,9 +52,10 @@ export default function Feed() {
     accounts,
     selectedAccountIdx,
     selectedChannelUrl,
-    setSelectedChannelUrl,
     hydratedAt,
   } = useAccountStore();
+
+  const { selectedCast, updateSelectedCast } = useDataStore();
 
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
@@ -92,8 +92,8 @@ export default function Feed() {
 
   useEffect(() => {
     if (!showCastThreadView) {
-      setSelectedCast(feed[selectedFeedIdx]);
-
+      updateSelectedCast(feed[selectedFeedIdx]);
+      
       if (selectedFeedIdx === 0) {
         window.scrollTo(0, 0);
       } else if (selectedFeedIdx === feed.length - 1) {
@@ -238,7 +238,7 @@ export default function Feed() {
         isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
         onReply={() => {
-          setSelectedCast(item);
+          updateSelectedCast(item);
           setShowReplyModal(true);
         }}
         showChannel
@@ -290,7 +290,7 @@ export default function Feed() {
       cast={feed[selectedFeedIdx]}
       fid={account.platformAccountId}
       onBack={() => setShowCastThreadView(false)}
-      setSelectedCast={setSelectedCast}
+      setSelectedCast={updateSelectedCast}
       setShowReplyModal={setShowReplyModal}
     />
   );
@@ -314,9 +314,7 @@ export default function Feed() {
   };
 
   const renderWelcomeMessage = () =>
-    feed.length === 0 &&
-    hydratedAt &&
-    !isLoadingFeed && <WelcomeCards />;
+    feed.length === 0 && hydratedAt && !isLoadingFeed && <WelcomeCards />;
 
   const renderContent = () => (
     <>
