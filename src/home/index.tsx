@@ -6,10 +6,7 @@ import {
   PlusCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import {
-  Bars3Icon,
-  UserPlusIcon,
-} from "@heroicons/react/20/solid";
+import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
 import { classNames } from "../common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
@@ -24,11 +21,10 @@ import {
 import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
-import {
-  TooltipProvider,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 import { Toaster } from "@/components/ui/sonner";
+import { createClient } from "@/common/helpers/supabase/component";
 
 type NavigationItemType = {
   name: string;
@@ -40,10 +36,19 @@ type NavigationItemType = {
 
 const Home = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const supabaseClient = createClient();
 
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl } = useAccountStore();
+
+  useEffect(() => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        router.push("/login");
+      }
+    });
+  }, []);
 
   const getFeedTitle = () => {
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
@@ -70,22 +75,26 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       getTitle: getFeedTitle,
       shortcut: "Shift + F",
     },
-    { 
+    {
       name: "New Post",
-      router: "/post", 
-      icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />, 
-      shortcut: "C" 
+      router: "/post",
+      icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      shortcut: "C",
     },
     {
       name: "Search",
       router: "/search",
-      icon: <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      icon: (
+        <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+      ),
       shortcut: "/",
     },
     {
       name: "Channels",
       router: "/channels",
-      icon: <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      icon: (
+        <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+      ),
       shortcut: "Shift + C",
     },
     {
@@ -104,7 +113,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     {
       name: "Hats Protocol",
       router: "/hats",
-      icon: <img src="/images/HatsProtocol.png" className="grayscale group-hover:grayscale-0 " aria-hidden="true" />,
+      icon: (
+        <img
+          src="/images/HatsProtocol.png"
+          className="grayscale group-hover:grayscale-0 "
+          aria-hidden="true"
+        />
+      ),
     },
     {
       name: "Settings",
@@ -237,10 +252,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     </h2>
                   </div>
                   <nav className="flex flex-1 flex-col">
-                    <ul
-                      role="list"
-                      className="flex flex-1 flex-col gap-y-7"
-                    >
+                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
                       <li>
                         <ul role="list" className="-mx-2 space-y-1">
                           {navigation.map((item) => (
@@ -281,38 +293,28 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
               herocast
             </h2>
-            <img
-              className="h-8 w-auto"
-              src={herocastImg.src}
-              alt="herocast"
-            />
+            <img className="h-8 w-auto" src={herocastImg.src} alt="herocast" />
           </div>
           <div className="h-full min-h-full flex flex-col justify-between">
             <nav className="mt-0">
-              <ul
-                role="list"
-                className="flex flex-col items-center space-y-1"
-              >
+              <ul role="list" className="flex flex-col items-center space-y-1">
                 {navigation.map((item) => (
                   <li key={item.name}>
-                    <TooltipProvider
-                      delayDuration={50}
-                      skipDelayDuration={0}
-                    >
+                    <TooltipProvider delayDuration={50} skipDelayDuration={0}>
                       <HotkeyTooltipWrapper hotkey={item.name} side="right">
-                          <div
-                            onClick={() => onClickItem(item)}
-                            className={classNames(
-                              item.router === pathname
-                                ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                              "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                            )}
-                          >
-                            {item.icon}
-                            <span className="sr-only">{item.name}</span>
-                          </div>
-                        </HotkeyTooltipWrapper>
+                        <div
+                          onClick={() => onClickItem(item)}
+                          className={classNames(
+                            item.router === pathname
+                              ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                            "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                          )}
+                        >
+                          {item.icon}
+                          <span className="sr-only">{item.name}</span>
+                        </div>
+                      </HotkeyTooltipWrapper>
                     </TooltipProvider>
                   </li>
                 ))}
@@ -375,9 +377,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         </div>
         <main
           className={classNames(
-            sidebarType === RIGHT_SIDEBAR_ENUM.NONE
-              ? ""
-              : "md:pr-48 lg:pr-64"
+            sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "md:pr-48 lg:pr-64"
           )}
         >
           <div className="w-full max-w-full min-h-screen flex justify-between">
