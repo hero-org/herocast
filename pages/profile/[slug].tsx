@@ -113,7 +113,7 @@ export default function Profile({ profile }) {
           viewerFid: userFid! as number,
         });
         if (resp?.users && resp.users.length === 1) {
-          addUserProfile({ username: profile.username, data: resp.users[0] });
+          addUserProfile({ user: resp.users[0] });
         }
       } catch (error) {
         console.error("Failed to fetch user profile", error);

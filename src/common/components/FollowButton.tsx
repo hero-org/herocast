@@ -21,7 +21,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   const selectedAccount = accounts[selectedAccountIdx];
 
   const [isPending, setIsPending] = useState(false);
-  const profile = useDataStore((state) => get(state.usernameToData, username));
+  const profile = useDataStore((state) => get(state.fidToData, get(state.usernameToFid, username)));
 
   useEffect(() => {
     if (!profile) return;

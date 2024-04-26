@@ -22,13 +22,9 @@ type ProfileHoverCardProps = {
   children: React.ReactNode;
 };
 
-const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-);
-
 const getProfile = (dataStoreState, username, fid) => {
   if (username) {
-    return get(dataStoreState.usernameToData, username);
+    return get(dataStoreState.fidToData, get(dataStoreState.usernameToFid, username));
   } else {
     return get(dataStoreState.fidToData, fid);
   }
@@ -40,7 +36,7 @@ const ProfileHoverCard = ({
   viewerFid,
   children,
 }: ProfileHoverCardProps) => {
-  const { addUserProfile, usernameToData } = useDataStore();
+  const { addUserProfile } = useDataStore();
   const profile = useDataStore((state) => getProfile(state, username, fid));
   const { ref, inView } = useInView({
     threshold: 0,
@@ -60,7 +56,7 @@ const ProfileHoverCard = ({
       });
       if (users.length) {
         users.forEach((user) => {
-          addUserProfile({ username: user.username, data: user });
+          addUserProfile({ user });
         });
       }
     };

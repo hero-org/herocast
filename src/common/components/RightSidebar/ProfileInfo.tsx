@@ -24,7 +24,7 @@ const ProfileInfo = ({
       });
       if (users.length) {
         users.forEach((user) => {
-          addUserProfile({ username: user.username, data: user });
+          addUserProfile({ user });
         });
       }
     };
@@ -51,26 +51,30 @@ const ProfileInfo = ({
             {profile.active_status && (
               <img
                 src="/images/ActiveBadge.webp"
-                className="ml-2 mt-0.5 h-[17px] w-[17px]"
+                className="mt-0.5 h-[17px] w-[17px]"
                 alt="power badge"
               />
             )}
           </span>
-          <p className="flex pt-2 text-sm break-words">
+          <div className="flex flex-col pt-2 text-sm text-muted-foreground">
+            <p>
+              <span className="font-semibold text-foreground">
+                {profile?.following_count}
+                &nbsp;
+              </span>
+              following
+            </p>
+            <p>
+              <span className="font-semibold text-foreground">
+                {profile?.follower_count}
+                &nbsp;
+              </span>
+              followers
+            </p>
+          </div>
+           <p className="flex pt-2 text-sm break-words">
             {profile?.profile?.bio?.text}
           </p>
-          <div className="flex items-center pt-2 text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">
-              {profile?.following_count}
-              &nbsp;
-            </span>
-            following
-            <span className="ml-2 font-semibold text-foreground">
-              {profile?.follower_count}
-              &nbsp;
-            </span>
-            followers
-          </div>
         </>
       ) : (
         <Loading />

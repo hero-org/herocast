@@ -76,8 +76,7 @@ export type DexPair = {
 };
 
 type addUserProfileProps = {
-  username: string;
-  data: User;
+  user: User;
 };
 
 type addTokenDataProps = {
@@ -87,14 +86,14 @@ type addTokenDataProps = {
 
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;
-  usernameToData: Record<string, User>;
+  usernameToFid: Record<string, number>;
   fidToData: Record<number, User>,
   tokenSymbolToData: Record<string, DexPair>;
 }
 
 interface DataStoreActions {
   updateSelectedCast: (cast: CastWithInteractions) => void;
-  addUserProfile: ({ username, data }: addUserProfileProps) => void;
+  addUserProfile: ({ user }: addUserProfileProps) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
 }
 
@@ -107,7 +106,7 @@ type StoreSet = (fn: (draft: Draft<DataStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   selectedCast: null,
-  usernameToData: {},
+  usernameToFid: {},
   fidToData: {},
   tokenSymbolToData: {},
   updateSelectedCast: (cast: CastWithInteractions) => {
@@ -115,10 +114,10 @@ const store = (set: StoreSet) => ({
       state.selectedCast = cast;
     });
   },
-  addUserProfile: ({ username, data }: addUserProfileProps) => {
+  addUserProfile: ({ user }: addUserProfileProps) => {
     set((state) => {
-      state.usernameToData = { ...state.usernameToData, ...{ [username]: data } };
-      state.fidToData = { ...state.fidToData, ...{ [data.fid]: data } };
+      state.usernameToFid = { ...state.usernameToFid, ...{ [user.username]: user.fid } };
+      state.fidToData = { ...state.fidToData, ...{ [user.fid]: user } };
     });
   },
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => {
