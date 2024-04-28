@@ -35,6 +35,7 @@ import mentionPlugin, {
 } from "../helpers/linkify";
 import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
+import Frame from "@/components/ui/frame";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -437,7 +438,7 @@ export const CastRow = ({
     );
 
   const renderFrame = () =>
-    hasFrame ? <FrameEmbed cast={cast} isSelected={isSelected} /> : null;
+    hasFrame ? <Frame homeFrameUrl={cast?.frames[0]?.frames_url} account={selectedAccount} /> : null;
 
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
