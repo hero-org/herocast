@@ -9,6 +9,7 @@ import {
 import { signFrameAction, FarcasterSigner } from '@frames.js/render/farcaster'
 import { useFrame } from "@frames.js/render/use-frame";
 import {AccountObjectType} from "@/stores/useAccountStore";
+import { useAccount } from "wagmi";
 
 export function FrameImageNext(
     props: ImgHTMLAttributes<HTMLImageElement> & { src: string }
@@ -25,9 +26,11 @@ export function FrameImageNext(
 }
 
 
-export default function Frame( { homeFrameUrl, account } : { homeFrameUrl: string, account?: AccountObjectType }) {
+export default function Frame({ homeFrameUrl, account } : { homeFrameUrl: string, account?: AccountObjectType }) {
+    const { address } = useAccount();
+
     const farcasterSigner: FarcasterSigner | undefined = account ? {
-        fid: account?.id,
+        fid: Number(account?.platformAccountId),
         status: account?.status,
         publicKey: account?.publicKey,
         privateKey: account?.privateKey,
@@ -35,7 +38,7 @@ export default function Frame( { homeFrameUrl, account } : { homeFrameUrl: strin
 
     const frameState = useFrame({
         homeframeUrl: homeFrameUrl,
-        connectedAddress: account?.publicKey,
+        connectedAddress: address,
         frameActionProxy: "/api/frames",
         frameGetProxy: "/api/frames",
         frameContext: fallbackFrameContext,
