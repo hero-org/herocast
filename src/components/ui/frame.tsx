@@ -39,10 +39,11 @@ export default function Frame( { homeFrameUrl, account } : { homeFrameUrl: strin
         frameGetProxy: "/api/frames",
         frameContext: fallbackFrameContext,
         signerState: {
+            // keep true, some frame buttons are just links, setting this to true doesn't let you press them
             hasSigner: true,
             signer: farcasterSigner,
             onSignerlessFramePress: () => {
-                alert("A frame button was pressed without a signer. Perhaps you want to prompt a login");
+                alert("A frame button was pressed without a signer.");
             },
             signFrameAction: signFrameAction,
         },
