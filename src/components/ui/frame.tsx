@@ -26,15 +26,16 @@ export function FrameImageNext(
 
 
 export default function Frame( { homeFrameUrl, account } : { homeFrameUrl: string, account?: AccountObjectType }) {
-    const farcasterSigner: FarcasterSigner = {
+    const farcasterSigner: FarcasterSigner | undefined = account ? {
         fid: account?.id,
         status: account?.status,
         publicKey: account?.publicKey,
         privateKey: account?.privateKey,
-    };
+    } : undefined;
 
     const frameState = useFrame({
         homeframeUrl: homeFrameUrl,
+        connectedAddress: account?.publicKey,
         frameActionProxy: "/api/frames",
         frameGetProxy: "/api/frames",
         frameContext: fallbackFrameContext,
