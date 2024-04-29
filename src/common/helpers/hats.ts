@@ -49,11 +49,15 @@ export async function createInitialTree(
   // prepare call data
   const mintTopHatCallData = hatsClient.mintTopHatCallData({
     target: topHatWearer,
-    details: "temp",
+    details:
+      "ipfs://bafkreigaukdc2xuamzhrdkpabcuu2lwrqmjizdcxazkffrlzpkxgytet2q",
+    imageURI:
+      "ipfs://bafkreieuvcanr3amnqgxletyb5lf5zfc7siu4ovu4odpm2axipnmnf5hce",
   });
   const createAutoAdminHatCallData = hatsClient.createHatCallData({
     admin: nextTopHatID,
-    details: "test",
+    details:
+      "ipfs://bafkreihe2rxghtnomgaxs5fv2suxog6bdxkgxxifik7z6gtu65mi3oycue",
     maxSupply: 1,
     eligibility: "0x0000000000000000000000000000000000004A75",
     toggle: "0x0000000000000000000000000000000000004A75",
@@ -61,7 +65,8 @@ export async function createInitialTree(
   });
   const createCasterHatCallData = hatsClient.createHatCallData({
     admin: autoAdminHatId,
-    details: "test",
+    details:
+      "ipfs://bafkreig57vwo6ai2cetmrkhgmjpwx36sfwsqqht4moiecbubv52ckzssui",
     maxSupply: 100,
     eligibility: "0x0000000000000000000000000000000000004A75",
     toggle: "0x0000000000000000000000000000000000004A75",
