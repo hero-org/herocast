@@ -7,14 +7,26 @@ import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../../src/common/components/HotkeyTooltipWrapper";
 import { Button } from "../../src/components/ui/button";
+import { useRouter } from "next/router";
 
 export default function NewPost() {
   const [showToast, setShowToast] = useState(false);
 
   const { addNewPostDraft, removeAllPostDrafts } = useNewPostStore();
   const { drafts } = useNewPostStore();
+  const router = useRouter();
 
   useEffect(() => {
+    let text = router?.query?.text;
+    if (text) {
+      if (typeof text !== 'string') {
+        text = text.find(t => t) ;
+      }
+      if (text) {
+        addNewPostDraft({ text });
+        return;
+      }
+    }
     if (drafts.length === 0) {
       addNewPostDraft({});
     }
