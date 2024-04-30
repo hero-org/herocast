@@ -30,7 +30,7 @@ export function createHatsClient(chainId: number): HatsClient {
 
 export async function createInitialTree(
   account: `0x${string}`,
-  topHatWearer: `0x${string}`,
+  casterAdmin: `0x${string}`,
   casters: `0x${string}`[]
 ): Promise<bigint> {
   const hatsClient = createHatsClient(10);
@@ -42,15 +42,18 @@ export async function createInitialTree(
   const autoAdminHatId = hatIdHexToDecimal(
     (nextTopHatIdHex.substring(0, 10) + "0001").padEnd(66, "0")
   );
-  const casterHatId = hatIdHexToDecimal(
+  const casterAdminHatId = hatIdHexToDecimal(
     (nextTopHatIdHex.substring(0, 10) + "00010001").padEnd(66, "0")
   );
+  const casterHatId = hatIdHexToDecimal(
+    (nextTopHatIdHex.substring(0, 10) + "000100010001").padEnd(66, "0")
+  );
 
-  // prepare call data
+  // prepare call data for hats creation
   const mintTopHatCallData = hatsClient.mintTopHatCallData({
-    target: topHatWearer,
+    target: account,
     details:
-      "ipfs://bafkreigaukdc2xuamzhrdkpabcuu2lwrqmjizdcxazkffrlzpkxgytet2q",
+      "ipfs://bafkreigzbdvqbv23xj7jjyqcxkgsuvbs4q4apshris6x5awflhdkvizjdy",
     imageURI:
       "ipfs://bafkreieuvcanr3amnqgxletyb5lf5zfc7siu4ovu4odpm2axipnmnf5hce",
   });
@@ -63,18 +66,29 @@ export async function createInitialTree(
     toggle: "0x0000000000000000000000000000000000004A75",
     mutable: true,
   });
-  const createCasterHatCallData = hatsClient.createHatCallData({
+  const createCasterAdminHatCallData = hatsClient.createHatCallData({
     admin: autoAdminHatId,
     details:
-      "ipfs://bafkreig57vwo6ai2cetmrkhgmjpwx36sfwsqqht4moiecbubv52ckzssui",
+      "ipfs://bafkreiax5tjyhestv5op33cje6yrhsaylnblu7t6tl7w25qmhl4cojpap4",
+    maxSupply: 5,
+    eligibility: "0x0000000000000000000000000000000000004A75",
+    toggle: "0x0000000000000000000000000000000000004A75",
+    mutable: true,
+  });
+  const createCasterHatCallData = hatsClient.createHatCallData({
+    admin: casterAdminHatId,
+    details:
+      "ipfs://bafkreig325iyeqwpzigo4anb2qjzux5lu4gww4ewna23pbtluys52pmtcy",
     maxSupply: 100,
     eligibility: "0x0000000000000000000000000000000000004A75",
     toggle: "0x0000000000000000000000000000000000004A75",
     mutable: true,
   });
+
+  // prepare call data for hats minting
   const mintHatsCallData = hatsClient.batchMintHatsCallData({
-    hatIds: Array(casters.length).fill(casterHatId),
-    wearers: casters,
+    hatIds: [...Array(casters.length).fill(casterHatId), casterAdminHatId],
+    wearers: [...casters, casterAdmin],
   });
 
   // create the tree
@@ -83,6 +97,7 @@ export async function createInitialTree(
     calls: [
       mintTopHatCallData,
       createAutoAdminHatCallData,
+      createCasterAdminHatCallData,
       createCasterHatCallData,
       mintHatsCallData,
     ],
