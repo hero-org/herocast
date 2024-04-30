@@ -4,10 +4,10 @@ import CastEmbed from "./CastEmbed";
 import TweetEmbed from "./TweetEmbed";
 import NounsBuildEmbed from "./NounsBuildEmbed";
 import ParagraphXyzEmbed from "./ParagraphXyzEmbed";
-import OpenGraphImage from "./OpenGraphImage";
 import { isImageUrl } from "@/common/helpers/text";
 import VideoEmbed from "./VideoEmbed";
 import { WarpcastImage } from "../PostEmbeddedContent";
+import FrameEmbed from "./FrameEmbed";
 
 type CastEmbed = {
   url?: string;
@@ -43,7 +43,7 @@ export const renderEmbedForUrl = ({ url, cast_id }: CastEmbed) => {
   } else if (url.includes("paragraph.xyz") || url.includes("pgrph.xyz")) {
     return <ParagraphXyzEmbed url={url} />;
   } else if (!isImageUrl(url)) {
-    return <OpenGraphImage url={url} />;
+    return <FrameEmbed url={url} />;
   } else {
     return null;
   }

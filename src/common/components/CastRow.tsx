@@ -162,7 +162,6 @@ export const CastRow = ({
   const canSendReaction =
     selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
   const now = new Date();
-  const hasFrame = cast.frames && cast.frames.length > 0;
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
@@ -436,8 +435,6 @@ export const CastRow = ({
       </div>
     );
 
-  const renderFrame = () =>
-    hasFrame ? <FrameEmbed cast={cast} isSelected={isSelected} /> : null;
 
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
@@ -516,8 +513,7 @@ export const CastRow = ({
               </div>
             </div>
             {renderCastReactions(cast)}
-            {!disableEmbeds && !hasFrame && renderEmbeds()}
-            {renderFrame()}
+            {!disableEmbeds && renderEmbeds()}
           </div>
         </div>
       </div>

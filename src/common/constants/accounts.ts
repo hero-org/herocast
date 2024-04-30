@@ -5,6 +5,11 @@ export enum AccountStatusType {
   removed = "removed",
 }
 
+export const framesJsAccountStatusMap = {
+  pending: "pending_approval",
+  active: "approved",
+};
+
 export enum AccountPlatformType {
   farcaster = "farcaster",
   farcaster_hats_protocol = "farcaster-hats-protocol",
