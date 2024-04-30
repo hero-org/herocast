@@ -234,8 +234,8 @@ const CreateHatsTreeForm = ({
               </FormControl>
               <EnsLookupLabel addressOrName={field.value} />
               <FormDescription className="w-96">
-                This address will be able to change all permissions and has the
-                broadest authority.
+                This address will be able to add or remove people from the
+                shared account.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -249,7 +249,7 @@ const CreateHatsTreeForm = ({
                   name={`casterHatAddresses.${index}.address` as const}
                   render={({ field }) => (
                     <FormItem className="w-full" {...field}>
-                      <FormLabel>Caster Hat {index + 1}</FormLabel>
+                      <FormLabel>Caster Address {index + 1}</FormLabel>
                       <FormControl>
                         <Input
                           className="w-96"
