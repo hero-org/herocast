@@ -5,7 +5,7 @@ import {
   RectangleGroupIcon,
   UserPlusIcon,
 } from "@heroicons/react/20/solid";
-import { ArrowDownTrayIcon, NewspaperIcon } from "@heroicons/react/24/solid";
+import { NewspaperIcon } from "@heroicons/react/24/solid";
 import {
   JoinedHerocastPostDraft,
   useNewPostStore,
@@ -42,10 +42,10 @@ import HelpCard from "../../src/common/components/HelpCard";
 import { useIsMounted } from "../../src/common/helpers/hooks";
 import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { openWindow } from "../../src/common/helpers/navigation";
 import ConfirmOnchainSignerButton from "../../src/common/components/ConfirmOnchainSignerButton";
 import SwitchWalletButton from "../../src/common/components/SwitchWalletButton";
 import { getTimestamp } from "@/common/helpers/farcaster";
+import SignupForNonLocalAccountCard from "@/common/components/SignupForNonLocalAccountCard";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -191,32 +191,6 @@ export default function Accounts() {
     addNewPostDraft(JoinedHerocastPostDraft);
     router.push("/post");
   };
-
-  const renderSignupForNonLocalAccount = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl flex">
-          You are using a readonly account{" "}
-          <ArrowDownTrayIcon className="ml-2 mt-1 w-6 h-6" />
-        </CardTitle>
-        <CardDescription>
-          A readonly account is great for browsing, but you need a full account
-          to start casting and interact with others on Farcaster.
-        </CardDescription>
-      </CardHeader>
-      <CardFooter>
-        <Button
-          className="w-full"
-          variant="default"
-          onClick={() =>
-            openWindow(`${process.env.NEXT_PUBLIC_URL}/login?signupOnly=true`)
-          }
-        >
-          Switch to a full account
-        </Button>
-      </CardFooter>
-    </Card>
-  );
 
   const renderCreateSignerStep = () => (
     <Card>
@@ -384,7 +358,9 @@ export default function Accounts() {
         renderDoneStep()}
       <div className="w-full flex flex-col gap-5">
         {hasOnlyLocalAccounts ? (
-          <div className="flex">{renderSignupForNonLocalAccount()}</div>
+          <div className="flex">
+            <SignupForNonLocalAccountCard />
+          </div>
         ) : (
           <>
             <div className="max-w-md lg:max-w-lg">
