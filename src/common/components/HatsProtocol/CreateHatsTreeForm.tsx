@@ -23,6 +23,13 @@ import { Input } from "@/components/ui/input";
 import { getEnsAddress, getEnsName } from "@wagmi/core";
 import { mainnetConfig } from "@/common/helpers/rainbowkit";
 import { normalize } from "viem/ens";
+import {
+  treeIdToTopHatId,
+  hatIdDecimalToHex,
+  hatIdHexToDecimal,
+} from "@hatsprotocol/sdk-v1-core";
+import { createInitialTree } from "@/common/helpers/hats";
+import { useAccount } from "wagmi";
 
 enum CREATE_HATS_TREE_FORM_STEP {
   DEFAULT = "DEFAULT",
@@ -49,6 +56,7 @@ const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
   const [ensName, setEnsName] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
 
+  /* 
   useEffect(() => {
     if (addressOrName && addressOrName.endsWith(".eth")) {
       getAddressFromEnsName(addressOrName).then((ensAddress) => {
@@ -68,6 +76,7 @@ const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
       setAddress(null);
     };
   }, [addressOrName]);
+  */
 
   if (!addressOrName) return null;
 
@@ -144,6 +153,8 @@ const CreateHatsTreeForm = ({
     CREATE_HATS_TREE_FORM_STEP.DEFAULT
   );
   const [isPending, setIsPending] = useState(false);
+  const [casterHat, setCasterHat] = useState<bigint | undefined>(undefined);
+  const { address } = useAccount();
 
   const form = useZodForm({
     schema: CreateHatsTreeFormSchema,
@@ -189,9 +200,16 @@ const CreateHatsTreeForm = ({
     setIsPending(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      const casterHat = await createInitialTree(
+        address as `0x${string}`,
+        data.adminHatAddress as `0x${string}`,
+        data.casterHatAddresses.map((obj) => obj.address) as `0x${string}`[]
+      );
+      setCasterHat(casterHat);
+
       setFormState(CREATE_HATS_TREE_FORM_STEP.PENDING_ONCHAIN_CONFIRMATION);
     } catch (e) {
+      console.log("Error:", e);
       form.setError("adminHatAddress", {
         type: "manual",
         message: `Error creating hats tree -> ${e}`,
@@ -216,8 +234,8 @@ const CreateHatsTreeForm = ({
               </FormControl>
               <EnsLookupLabel addressOrName={field.value} />
               <FormDescription className="w-96">
-                This address will be able to change all permissions and has the
-                broadest authority.
+                This address will be able to add or remove people from the
+                shared account.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -231,7 +249,7 @@ const CreateHatsTreeForm = ({
                   name={`casterHatAddresses.${index}.address` as const}
                   render={({ field }) => (
                     <FormItem className="w-full" {...field}>
-                      <FormLabel>Caster Hat {index + 1}</FormLabel>
+                      <FormLabel>Caster Address {index + 1}</FormLabel>
                       <FormControl>
                         <Input
                           className="w-96"
