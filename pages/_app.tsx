@@ -24,14 +24,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const supabaseClient = createClient();
 
   useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      if (!session && router.pathname !== "/login") {
-        router.push("/login");
-      }
-    });
-  }, []);
-
-  useEffect(() => {
     const handleRouteChange = () => posthog?.capture("$pageview");
     router.events.on("routeChangeComplete", handleRouteChange);
 
