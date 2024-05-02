@@ -14,6 +14,7 @@ import { PostHogProvider } from "posthog-js/react";
 import { loadPosthogAnalytics } from "../src/lib/analytics";
 import { useRouter } from "next/router";
 import { createClient } from "@/common/helpers/supabase/component";
+import includes from "lodash.includes";
 
 const posthog = loadPosthogAnalytics();
 const queryClient = new QueryClient();
@@ -33,9 +34,19 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      if (session && router.pathname !== "/feed") {
+      const isLoggedInUser = !!session;
+      const shouldForwardLoggedInUser = includes(
+        ["/", "/login"],
+        router.pathname
+      );
+      const shouldForwardLoggedOutUser =
+        router.pathname !== "/login" &&
+        router.pathname.startsWith("/profile") &&
+        router.pathname.startsWith("/cast");
+
+      if (isLoggedInUser && shouldForwardLoggedInUser) {
         router.push("/feed");
-      } else if (!session && router.pathname !== "/login") {
+      } else if (!isLoggedInUser && shouldForwardLoggedOutUser) {
         router.push("/login");
       }
     });

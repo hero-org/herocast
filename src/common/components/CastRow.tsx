@@ -492,9 +492,7 @@ export const CastRow = ({
                   </span>
                 )}
                 <a
-                  href={`https://warpcast.com/${
-                    cast.author.username
-                  }/${cast.hash.slice(0, 8)}`}
+                  href={`${process.env.NEXT_PUBLIC_URL}/cast/${cast.hash}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm leading-5 text-foreground/50"
