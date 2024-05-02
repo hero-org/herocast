@@ -7,6 +7,8 @@ module.exports = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
     "./node_modules/@mod-protocol/react-ui-shadcn/dist/**/*.{ts,tsx,css,js}",
+    "./node_modules/frames.js/dist/render/next/*.{ts,tsx,js,css}",
+    "./node_modules/frames.js/dist/render/*.{ts,tsx,js,css}",
   ],
   theme: {
     container: {
