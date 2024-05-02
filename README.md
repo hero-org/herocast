@@ -29,3 +29,7 @@ a protocol for decentralized social apps: https://www.farcaster.xyz
 
 ### DB scheme: accounts
 reminder: key is an edcsa key not a 'normal' EVM address
+
+## Contact
+
+hellno [Warpcast](https://warpcast.com/hellno.eth)
