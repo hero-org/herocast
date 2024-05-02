@@ -39,3 +39,10 @@ export async function middleware(req: NextRequest) {
 
     return NextResponse.next();
 }
+
+
+export const config = {
+    unstable_allowDynamic: [
+        "/node_modules/@protobufjs/inquire/index.js",
+    ],
+};
