@@ -17,6 +17,7 @@
 | [0xSemicolon](https://github.com/0xSemicolon) | |
 | [tusharsoni](https://github.com/tusharsoni) | |
 | [tjsturos](https://github.com/tjsturos) | |
+| [gershido](https://github.com/gershido) | |
 | [hellno](https://github.com/hellno) | [hellno](https://warpcast.com/hellno) |
 
 ## I would like to join this list. How can I help the project?
