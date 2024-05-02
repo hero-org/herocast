@@ -16,7 +16,6 @@ import { useRouter } from "next/router";
 import { createClient } from "@/common/helpers/supabase/component";
 
 const posthog = loadPosthogAnalytics();
-
 const queryClient = new QueryClient();
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -31,6 +30,16 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       router.events.off("routeChangeComplete", handleRouteChange);
     };
   }, []);
+
+  useEffect(() => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      if (session && router.pathname !== "/feed") {
+        router.push("/feed");
+      } else if (!session && router.pathname !== "/login") {
+        router.push("/login");
+      }
+    });
+  }, [router]);
 
   const children = (
     <PostHogProvider client={posthog}>

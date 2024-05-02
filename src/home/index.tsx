@@ -24,7 +24,6 @@ import herocastImg from "../../public/images/logo.png";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 import { Toaster } from "@/components/ui/sonner";
-import { createClient } from "@/common/helpers/supabase/component";
 
 type NavigationItemType = {
   name: string;
@@ -36,19 +35,10 @@ type NavigationItemType = {
 
 const Home = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const supabaseClient = createClient();
 
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl } = useAccountStore();
-
-  useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push("/login");
-      }
-    });
-  }, []);
 
   const getFeedTitle = () => {
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
