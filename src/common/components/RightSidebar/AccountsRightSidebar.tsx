@@ -25,9 +25,10 @@ type AccountsRightSidebarProps = {
 const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
   const router = useRouter();
 
-  const { accounts, selectedAccountIdx, setCurrentAccountIdx } =
+  const { hydratedAt, accounts, selectedAccountIdx, setCurrentAccountIdx } =
     useAccountStore();
 
+  const hasAccounts = !isEmpty(accounts);
   const renderEmptyState = () => (
     <div className="ml-6">
       <EmptyStateWithAction
@@ -163,7 +164,8 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     <aside className="min-h-full bg-background md:fixed md:bottom-0 md:right-0 md:top-16 md:w-48 lg:w-64 md:border-l md:border-foreground/5">
       <div className="">
         <SidebarHeader title="Accounts" />
-        {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
+        {hydratedAt && !hasAccounts && renderEmptyState()}
+        {hasAccounts && renderAccounts()}
         {showChannels && renderChannels()}
       </div>
     </aside>

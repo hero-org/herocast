@@ -19,7 +19,8 @@ type CashtagHoverCardProps = {
   children: React.ReactNode;
 };
 
-const DEX_SCREENER_API_ENDPOINT = 'https://api.dexscreener.com/latest/dex/search/?q=';
+const DEX_SCREENER_API_ENDPOINT =
+  "https://api.dexscreener.com/latest/dex/search/?q=";
 
 const CashtagHoverCard = ({
   userFid,
@@ -27,7 +28,9 @@ const CashtagHoverCard = ({
   children,
 }: CashtagHoverCardProps) => {
   const { addTokenData } = useDataStore();
-  const tokenData = useDataStore((state) => get(state.tokenSymbolToData, tokenSymbol));
+  const tokenData = useDataStore((state) =>
+    get(state.tokenSymbolToData, tokenSymbol)
+  );
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
@@ -45,8 +48,16 @@ const CashtagHoverCard = ({
           return;
         }
 
-        const tradingPairs = data.pairs.filter((pair) => pair.baseToken.symbol === tokenSymbol);
-        const pairsSortedByLiquidity = tradingPairs.sort((a, b) => b.liquidity.usd - a.liquidity.usd);
+        const tradingPairs = data.pairs.filter(
+          (pair) => pair.baseToken.symbol === tokenSymbol
+        );
+        if (!tradingPairs.length) {
+          return;
+        }
+
+        const pairsSortedByLiquidity = tradingPairs.sort(
+          (a, b) => b.liquidity.usd - a.liquidity.usd
+        );
         const mostLiquidityPair: DexPair = pairsSortedByLiquidity[0];
 
         if (mostLiquidityPair) {
@@ -76,16 +87,16 @@ const CashtagHoverCard = ({
         </span>
       </div>
     );
-  }
+  };
   const renderPriceChanges = (priceChange: PriceChange) => {
     return (
       <dl className="grid grid-cols-3 gap-x-2 gap-y-2 text-center">
-        {renderPriceChangeRow('5MIN', `${priceChange.m5}%`)}
-        {renderPriceChangeRow('1H', `${priceChange.h1}%`)}
-        {renderPriceChangeRow('24H', `${priceChange.h24}%`)}
+        {renderPriceChangeRow("5MIN", `${priceChange.m5}%`)}
+        {renderPriceChangeRow("1H", `${priceChange.h1}%`)}
+        {renderPriceChangeRow("24H", `${priceChange.h24}%`)}
       </dl>
-    )
-  }
+    );
+  };
 
   return (
     <HoverCard openDelay={0.1}>
@@ -98,10 +109,16 @@ const CashtagHoverCard = ({
         className="border border-gray-400 overflow-hidden"
       >
         <div className="space-y-1">
-          {tokenData ? (<div>
-            <h2 className="text-md font-semibold">{tokenData?.priceUsd} USD</h2>
-            <h3 className="text-sm font-regular">{tokenData?.baseToken.name}</h3>
-          </div>) : (
+          {tokenData ? (
+            <div>
+              <h2 className="text-md font-semibold">
+                {tokenData?.priceUsd} USD
+              </h2>
+              <h3 className="text-sm font-regular">
+                {tokenData?.baseToken.name}
+              </h3>
+            </div>
+          ) : (
             <h2 className="text-md font-semibold">{tokenSymbol}</h2>
           )}
           {tokenData ? (
@@ -110,12 +127,13 @@ const CashtagHoverCard = ({
                 Price: {tokenData?.priceUsd} USD
               </p>
               <p className="flex text-md break-words">
-                1 USD ~= {(1.0 / parseFloat(tokenData?.priceUsd)).toFixed(2)} {tokenSymbol}
+                1 USD ~= {(1.0 / parseFloat(tokenData?.priceUsd)).toFixed(2)}{" "}
+                {tokenSymbol}
               </p>
               {renderPriceChanges(tokenData.priceChange)}
               <Button className="" variant="outline">
                 <ArrowTopRightOnSquareIcon className="w-4 h-4 mr-2" />
-                DexScreener 
+                DexScreener
               </Button>
             </>
           ) : (

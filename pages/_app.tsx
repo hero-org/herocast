@@ -15,6 +15,42 @@ import { loadPosthogAnalytics } from "../src/lib/analytics";
 import { useRouter } from "next/router";
 import { createClient } from "@/common/helpers/supabase/component";
 import includes from "lodash.includes";
+import localFont from "next/font/local";
+
+const satoshi = localFont({
+  src: [
+    {
+      path: "../src/assets/fonts/Satoshi-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../src/assets/fonts/Satoshi-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../src/assets/fonts/Satoshi-Italic.woff2",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../src/assets/fonts/Satoshi-BoldItalic.woff2",
+      weight: "700",
+      style: "italic",
+    },
+    {
+      path: "../src/assets/fonts/Satoshi-MediumItalic.woff2",
+      weight: "600",
+      style: "italic",
+    },
+    {
+      path: "../src/assets/fonts/Satoshi-Medium.woff2",
+      weight: "600",
+      style: "normal",
+    },
+  ],
+});
 
 const posthog = loadPosthogAnalytics();
 const queryClient = new QueryClient();
@@ -34,7 +70,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
-    console.log("_app useEffect", JSON.stringify(router));
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       const isLoggedInUser = !!session;
       const shouldForwardLoggedInUser = includes(["/", "/login"], asPath);
@@ -43,39 +78,29 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         asPath.startsWith("/profile") &&
         asPath.startsWith("/cast");
 
-      console.log(
-        "_app isLoggedInUser",
-        isLoggedInUser,
-        "shouldForwardLoggedInUser",
-        shouldForwardLoggedInUser,
-        "shouldForwardLoggedOutUser",
-        shouldForwardLoggedOutUser
-      );
       if (isLoggedInUser && shouldForwardLoggedInUser) {
-        console.log("_app pushing /feed");
-        // router.push("/feed");
         window.location.href = "/feed";
       } else if (!isLoggedInUser && shouldForwardLoggedOutUser) {
-        console.log("_app pushing /login");
-        // router.push("/login");
         window.location.href = "/login";
       }
     });
   }, [asPath]);
 
   const children = (
-    <PostHogProvider client={posthog}>
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider theme={rainbowKitTheme}>
-            <CommandPalette />
-            <Home>
-              <Component {...pageProps} />
-            </Home>
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </PostHogProvider>
+    <main className={satoshi.className}>
+      <PostHogProvider client={posthog}>
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider theme={rainbowKitTheme}>
+              <CommandPalette />
+              <Home>
+                <Component {...pageProps} />
+              </Home>
+            </RainbowKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </PostHogProvider>
+    </main>
   );
 
   return (

@@ -161,14 +161,6 @@ export default function NewPostEntry({
     });
   }, [text, embeds, channel]);
 
-  // useEffect(() => {
-  //   console.log('useEffect', draft.text, draftIdx)
-  //   if (draft.text !== text) {
-  //     console.log('XYZ', text, draft.text)
-  //     setText(draft.text);
-  //   }
-  // }, [draft.text, draftIdx]);
-
   return (
     <div
       className="flex flex-col items-start min-w-full w-full h-full"

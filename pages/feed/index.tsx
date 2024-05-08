@@ -314,9 +314,7 @@ export default function Feed() {
   };
 
   const renderWelcomeMessage = () =>
-    feed.length === 0 &&
-    hydratedAt &&
-    !isLoadingFeed && <WelcomeCards />;
+    feed.length === 0 && hydratedAt && !isLoadingFeed && <WelcomeCards />;
 
   const renderContent = () => (
     <>
