@@ -29,7 +29,6 @@ type FrameArgs = {
 };
 
 const FrameEmbed = ({ url }: FrameArgs) => {
-  console.log("FrameEmbed url:", url);
   const { selectedAccountIdx, accounts } = useAccountStore();
   const account: AccountObjectType | undefined = accounts[selectedAccountIdx];
 
