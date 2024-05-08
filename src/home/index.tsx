@@ -21,8 +21,6 @@ import {
 import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 import { Toaster } from "@/components/ui/sonner";
 import Link from "next/link";
 
@@ -281,7 +279,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex grow flex-col min-h-full gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-white/5">
           <div className="flex h-16 shrink-0 items-center">
-            <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
+            <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
               herocast
             </h2>
           </div>
@@ -290,22 +288,18 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               <ul role="list" className="flex flex-1 flex-col space-y-1">
                 {navigation.map((item) => (
                   <li key={item.name}>
-                    <TooltipProvider delayDuration={50} skipDelayDuration={0}>
-                      <HotkeyTooltipWrapper hotkey={item.name} side="right">
-                        <Link
-                          href={item.router}
-                          className={classNames(
-                            item.router === pathname
-                              ? "text-foreground bg-foreground/10"
-                              : "text-foreground/70 hover:text-foreground hover:bg-foreground/30",
-                            "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
-                          )}
-                        >
-                          {item.icon}
-                          {item.name}
-                        </Link>
-                      </HotkeyTooltipWrapper>
-                    </TooltipProvider>
+                    <Link
+                      href={item.router}
+                      className={classNames(
+                        item.router === pathname
+                          ? "text-foreground bg-foreground/10"
+                          : "text-foreground/70 hover:text-foreground hover:bg-foreground/30",
+                        "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
+                      )}
+                    >
+                      {item.icon}
+                      {item.name}
+                    </Link>
                   </li>
                 ))}
               </ul>
