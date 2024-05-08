@@ -34,7 +34,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
-    console.log("_app useEffect", router);
+    console.log("_app useEffect", JSON.stringify(router));
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       const isLoggedInUser = !!session;
       const shouldForwardLoggedInUser = includes(["/", "/login"], pathname);
@@ -54,11 +54,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       if (isLoggedInUser && shouldForwardLoggedInUser) {
         console.log("_app pushing /feed");
         router.push("/feed");
-        router.reload();
       } else if (!isLoggedInUser && shouldForwardLoggedOutUser) {
         console.log("_app pushing /login");
         router.push("/login");
-        router.reload();
       }
     });
   }, [pathname]);
