@@ -187,17 +187,35 @@ export default function Feed() {
     setIsLoadingFeed(true);
 
     try {
-      const feedOptions = {
-        filterType: getFilterType(parentUrl),
-        parentUrl: getParentUrl(parentUrl),
+      let feedOptions = {
         cursor,
-        fid: Number(fid),
         limit: DEFAULT_FEED_PAGE_SIZE,
       };
-      const newFeed = await neynarClient.fetchFeed(
-        getFeedType(parentUrl),
-        feedOptions
-      );
+
+      let newFeed;
+      if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
+        newFeed = await neynarClient.fetchUserFollowingFeed(
+          Number(fid),
+          feedOptions
+        );
+      } else {
+        feedOptions = {
+          ...feedOptions,
+          filterType: getFilterType(parentUrl),
+          parentUrl: getParentUrl(parentUrl),
+          fid: Number(fid),
+        } as {
+          cursor: string | undefined;
+          limit: number;
+          filterType: FilterType;
+          parentUrl: string;
+          fid: number;
+        };
+        newFeed = await neynarClient.fetchFeed(
+          getFeedType(parentUrl),
+          feedOptions
+        );
+      }
       const feedKey = parentUrl || fid;
       const feed = feeds[feedKey] || [];
 

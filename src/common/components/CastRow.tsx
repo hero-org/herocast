@@ -26,7 +26,6 @@ import { ErrorBoundary } from "@sentry/react";
 import { renderEmbedForUrl } from "./Embeds";
 import ProfileHoverCard from "./ProfileHoverCard";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/openapi/models/cast-with-interactions";
-import FrameEmbed from "./Embeds/FrameEmbed";
 import { registerPlugin } from "linkifyjs";
 import CashtagHoverCard from "./CashtagHoverCard";
 import mentionPlugin, {
@@ -35,7 +34,6 @@ import mentionPlugin, {
 } from "../helpers/linkify";
 import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
-import Frame from "@/common/components/Frame";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -436,6 +434,20 @@ export const CastRow = ({
       </div>
     );
 
+  const renderRecastBadge = () => {
+    const shouldShowBadge =
+      cast?.inclusion_context &&
+      cast?.inclusion_context?.is_following_recaster &&
+      !cast?.inclusion_context?.is_following_author;
+
+    if (!shouldShowBadge) return null;
+    return (
+      <span className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-gray-400/10 px-1.5 py-0.5 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-400/30">
+        <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+      </span>
+    );
+  };
+
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
   const timeAgo = timeDiff(now, new Date(cast.timestamp));
@@ -484,6 +496,7 @@ export const CastRow = ({
                     {channel.name}
                   </span>
                 )}
+                {renderRecastBadge()}
               </div>
               <div className="flex flex-row">
                 {cast.timestamp && (
