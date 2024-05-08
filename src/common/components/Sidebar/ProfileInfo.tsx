@@ -5,6 +5,7 @@ import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import FollowButton from "../FollowButton";
 import { Loading } from "../Loading";
+import { formatLargeNumber } from "../../helpers/text";
 
 const ProfileInfo = ({
   fid,
@@ -51,7 +52,7 @@ const ProfileInfo = ({
             {profile.active_status && (
               <img
                 src="/images/ActiveBadge.webp"
-                className="mt-0.5 h-[17px] w-[17px]"
+                className="mt-0.5 h-[15px] w-[15px]"
                 alt="power badge"
               />
             )}
@@ -59,14 +60,14 @@ const ProfileInfo = ({
           <div className="flex flex-col pt-2 text-sm text-muted-foreground">
             <p>
               <span className="font-semibold text-foreground">
-                {profile?.following_count}
+                {formatLargeNumber(profile?.following_count)}
                 &nbsp;
               </span>
               following
             </p>
             <p>
               <span className="font-semibold text-foreground">
-                {profile?.follower_count}
+                {formatLargeNumber(profile?.follower_count)}
                 &nbsp;
               </span>
               followers

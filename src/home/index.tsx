@@ -275,7 +275,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64 lg:overflow-y-auto lg:bg-background border-r border-muted">
         {/* Sidebar component, swap this element with another sidebar if you like */}
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-white/5">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6">
           <div className="flex h-16 shrink-0 items-center">
             <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
               herocast
@@ -300,14 +300,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     </div>
                   </li>
                 ))}
+                <ThemeToggle />
               </ul>
             </nav>
           </div>
-          <div>
-            <ThemeToggle />
-          </div>
         </div>
-        <AccountsOverview />
+        <div className="mt-4">
+          <AccountsOverview />
+        </div>
       </div>
 
       <div className="lg:pl-64">
