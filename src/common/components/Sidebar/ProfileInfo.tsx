@@ -34,7 +34,7 @@ const ProfileInfo = ({
 
   return (
     <div className="space-y-2 min-h-72">
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-row gap-x-2 justify-between">
         <Avatar>
           <AvatarImage src={profile?.pfp_url} />
           <AvatarFallback>{profile?.username.slice(0, 2)}</AvatarFallback>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   HoverCard,
   HoverCardContent,
@@ -11,8 +11,6 @@ import { useInView } from "react-intersection-observer";
 import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import FollowButton from "./FollowButton";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { getUserDataForFidOrUsername } from "../helpers/neynar";
 
 type ProfileHoverCardProps = {
@@ -77,7 +75,7 @@ const ProfileHoverCard = ({
       </HoverCardTrigger>
       <HoverCardContent
         onClick={onClick}
-        side="right"
+        side="bottom"
         className="border border-gray-400 overflow-hidden"
       >
         <div className="space-y-2">

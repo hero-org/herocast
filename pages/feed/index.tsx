@@ -3,25 +3,25 @@ import {
   AccountObjectType,
   CUSTOM_CHANNELS,
   useAccountStore,
-} from "../../src/stores/useAccountStore";
-import { CastType } from "../../src/common/constants/farcaster";
+} from "@/stores/useAccountStore";
+import { CastType } from "@/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import get from "lodash.get";
-import { CastRow } from "../../src/common/components/CastRow";
+import { CastRow } from "@/common/components/CastRow";
 import isEmpty from "lodash.isempty";
-import { CastThreadView } from "../../src/common/components/CastThreadView";
-import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
+import { CastThreadView } from "@/common/components/CastThreadView";
+import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
-import ReplyModal from "../../src/common/components/ReplyModal";
-import EmbedsModal from "../../src/common/components/EmbedsModal";
+import ReplyModal from "@/common/components/ReplyModal";
+import EmbedsModal from "@/common/components/EmbedsModal";
 import { useInView } from "react-intersection-observer";
-import { Button } from "../../src/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { FilterType, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import {
   CastWithInteractions,
   FeedType,
 } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { Loading } from "../../src/common/components/Loading";
+import { Loading } from "@/common/components/Loading";
 import uniqBy from "lodash.uniqby";
 import WelcomeCards from "@/common/components/WelcomeCards";
 import { useDataStore } from "@/stores/useDataStore";
@@ -38,7 +38,7 @@ export default function Feed() {
   const [feeds, setFeeds] = useState<FeedsType>({});
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [nextFeedCursor, setNextFeedCursor] = useState("");
-  const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
+  const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
@@ -48,12 +48,8 @@ export default function Feed() {
     delay: 100,
   });
 
-  const {
-    accounts,
-    selectedAccountIdx,
-    selectedChannelUrl,
-    hydratedAt,
-  } = useAccountStore();
+  const { accounts, selectedAccountIdx, selectedChannelUrl, hydratedAt } =
+    useAccountStore();
 
   const { selectedCast, updateSelectedCast } = useDataStore();
 
@@ -79,28 +75,27 @@ export default function Feed() {
   const feed = feedKey ? get(feeds, feedKey, []) : [];
 
   const onOpenLinkInCast = (idx: number) => {
-    // const cast = feed[idx];
-    // if (cast?.embeds?.length === 0) return;
-
     setShowEmbedsModal(true);
   };
 
   const onSelectCast = (idx: number) => {
-    setSelectedFeedIdx(idx);
+    setSelectedCastIdx(idx);
     setShowCastThreadView(true);
   };
 
   useEffect(() => {
     if (!showCastThreadView) {
-      updateSelectedCast(feed[selectedFeedIdx]);
-      
-      if (selectedFeedIdx === 0) {
+      if (selectedCastIdx === 0) {
         window.scrollTo(0, 0);
-      } else if (selectedFeedIdx === feed.length - 1) {
+      } else if (selectedCastIdx === feed.length - 1) {
         window.scrollTo(0, document.body.scrollHeight);
       }
     }
-  }, [selectedFeedIdx, showCastThreadView]);
+  }, [selectedCastIdx, showCastThreadView]);
+
+  useEffect(() => {
+    updateSelectedCast(feed[selectedCastIdx]);
+  }, [selectedCastIdx, selectedChannelUrl, feed]);
 
   useEffect(() => {
     if (
@@ -108,19 +103,18 @@ export default function Feed() {
       isEmpty(feed) ||
       showCastThreadView ||
       feed.length < DEFAULT_FEED_PAGE_SIZE ||
-      !account?.platformAccountId
+      !account?.platformAccountId ||
+      !inView
     )
       return;
 
-    if (inView) {
-      getFeed({
-        fid: account.platformAccountId!,
-        parentUrl: selectedChannelUrl,
-        cursor: nextFeedCursor,
-      });
-    }
+    getFeed({
+      fid: account.platformAccountId!,
+      parentUrl: selectedChannelUrl,
+      cursor: nextFeedCursor,
+    });
   }, [
-    selectedFeedIdx,
+    selectedCastIdx,
     feed,
     account,
     selectedChannelUrl,
@@ -243,7 +237,7 @@ export default function Feed() {
   useEffect(() => {
     setShowReplyModal(false);
     setShowCastThreadView(false);
-    setSelectedFeedIdx(0);
+    setSelectedCastIdx(0);
   }, [selectedChannelUrl]);
 
   const renderRow = (item: any, idx: number) => (
@@ -253,7 +247,7 @@ export default function Feed() {
     >
       <CastRow
         cast={item as CastType}
-        isSelected={selectedFeedIdx === idx}
+        isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
         onReply={() => {
           updateSelectedCast(item);
@@ -294,8 +288,8 @@ export default function Feed() {
   const renderFeed = () => (
     <SelectableListWithHotkeys
       data={feed}
-      selectedIdx={selectedFeedIdx}
-      setSelectedIdx={setSelectedFeedIdx}
+      selectedIdx={selectedCastIdx}
+      setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
       onExpand={onOpenLinkInCast}
       onSelect={onSelectCast}
@@ -305,7 +299,7 @@ export default function Feed() {
 
   const renderThread = () => (
     <CastThreadView
-      cast={feed[selectedFeedIdx]}
+      cast={feed[selectedCastIdx]}
       fid={account.platformAccountId}
       onBack={() => setShowCastThreadView(false)}
       setSelectedCast={updateSelectedCast}

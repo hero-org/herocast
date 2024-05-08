@@ -3,10 +3,10 @@ import {
   AccountObjectType,
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   useAccountStore,
-} from "../../../../src/stores/useAccountStore";
-import { ArrowDownTrayIcon, UserPlusIcon } from "@heroicons/react/24/outline";
-import EmptyStateWithAction from "../../../../src/common/components/EmptyStateWithAction";
-import { classNames } from "../../../../src/common/helpers/css";
+} from "@/stores/useAccountStore";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
+import { classNames } from "@/common/helpers/css";
 import isEmpty from "lodash.isempty";
 import ChannelsOverview from "./ChannelsOverview";
 import { SidebarHeader } from "./SidebarHeader";
@@ -18,14 +18,9 @@ import {
   AccountStatusType,
 } from "@/common/constants/accounts";
 import { useDataStore } from "@/stores/useDataStore";
-import ProfileHoverCard from "../ProfileHoverCard";
 import ProfileInfo from "./ProfileInfo";
 
-type AccountsRightSidebarProps = {
-  showChannels?: boolean;
-};
-
-const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
+const AccountsOverview = () => {
   const router = useRouter();
 
   const { hydratedAt, accounts, selectedAccountIdx, setCurrentAccountIdx } =
@@ -33,18 +28,6 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
   const { selectedCast } = useDataStore();
 
   const selectedAccount = accounts[selectedAccountIdx];
-
-  const hasAccounts = !isEmpty(accounts);
-  const renderEmptyState = () => (
-    <div className="ml-6">
-      <EmptyStateWithAction
-        title="Connect Farcaster accounts"
-        description="Get started with herocast"
-        onClick={() => router.push("/accounts")}
-        submitText="Connect account"
-      />
-    </div>
-  );
 
   const renderStatus = (status: string) => {
     switch (status) {
@@ -101,7 +84,6 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
       router.push(`/accounts`);
     }
   };
-
   const renderAccounts = () => (
     <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
       <ul role="list" className="mx-4 divide-y divide-white/5">
@@ -158,32 +140,12 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     </Tooltip.Provider>
   );
 
-  const renderChannels = () => {
-    return (
-      <div className="mt-4">
-        <ChannelsOverview />
-      </div>
-    );
-  };
-
-  const renderSidebarInfoForSelectedCast = () => {
-    if (!selectedCast) return null;
-    return <div className="m-4">
-      <ProfileInfo fid={selectedCast.author.fid} viewerFid={selectedAccount.platformAccountId} />
-      </div>
-  };
-
   return (
-    <aside className="min-h-full bg-background md:fixed md:bottom-0 md:right-0 md:top-16 md:w-48 lg:w-64 md:border-l md:border-foreground/5">
-      <div className="">
-        {renderSidebarInfoForSelectedCast()}
-        <SidebarHeader title="Accounts" />
-        {hydratedAt && !hasAccounts && renderEmptyState()}
-        {hasAccounts && renderAccounts()}
-        {showChannels && renderChannels()}
-      </div>
-    </aside>
+    <div>
+      <SidebarHeader title="Accounts" />
+      {renderAccounts()}
+    </div>
   );
 };
 
-export default AccountsRightSidebar;
+export default AccountsOverview;

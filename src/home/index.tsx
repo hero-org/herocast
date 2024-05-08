@@ -7,11 +7,11 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
-import { classNames } from "../common/helpers/css";
+import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
-import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
-import ChannelsRightSidebar from "../common/components/RightSidebar/ChannelsRightSidebar";
-import { CUSTOM_CHANNELS, useAccountStore } from "../stores/useAccountStore";
+import RightSidebar from "@/common/components/Sidebar/RightSidebar";
+import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
+import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import {
   BellIcon,
   MagnifyingGlassIcon,
@@ -21,10 +21,9 @@ import {
 import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 import { Toaster } from "@/components/ui/sonner";
 import Link from "next/link";
+import AccountsOverview from "../common/components/Sidebar/AccountsOverview";
 
 type NavigationItemType = {
   name: string;
@@ -107,7 +106,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       icon: (
         <img
           src="/images/HatsProtocol.png"
-          className="grayscale group-hover:grayscale-0 "
+          className="h-5 w-5 grayscale group-hover:grayscale-0 "
           aria-hidden="true"
         />
       ),
@@ -154,9 +153,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const renderRightSidebar = () => {
     switch (sidebarType) {
       case RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS:
-        return <AccountsRightSidebar showChannels />;
+        return <RightSidebar showChannels showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.ACCOUNTS:
-        return <AccountsRightSidebar />;
+        return <RightSidebar />;
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.NONE:
@@ -169,8 +168,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         );
     }
   };
-
-  const renderAccountSidebar = () => <AccountsRightSidebar />;
 
   if (pathname === "/login") {
     return children;
@@ -265,7 +262,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                         </ul>
                       </li>
                       <ThemeToggle />
-                      {renderAccountSidebar()}
                     </ul>
                   </nav>
                 </div>
@@ -279,34 +275,29 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64 lg:overflow-y-auto lg:bg-background border-r border-muted">
         {/* Sidebar component, swap this element with another sidebar if you like */}
-        <div className="flex grow flex-col min-h-full gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-white/5">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-white/5">
           <div className="flex h-16 shrink-0 items-center">
             <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
               herocast
             </h2>
-            <img className="h-8 w-auto" src={herocastImg.src} alt="herocast" />
           </div>
-          <div className="h-full min-h-full flex flex-col justify-between">
+          <div className="flex flex-col justify-between">
             <nav className="mt-0">
-              <ul role="list" className="flex flex-col items-center space-y-1">
+              <ul role="list" className="flex flex-col items-left space-y-1">
                 {navigation.map((item) => (
                   <li key={item.name}>
-                    <TooltipProvider delayDuration={50} skipDelayDuration={0}>
-                      <HotkeyTooltipWrapper hotkey={item.name} side="right">
-                        <div
-                          onClick={() => onClickItem(item)}
-                          className={classNames(
-                            item.router === pathname
-                              ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                            "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                          )}
-                        >
-                          {item.icon}
-                          <span className="sr-only">{item.name}</span>
-                        </div>
-                      </HotkeyTooltipWrapper>
-                    </TooltipProvider>
+                    <div
+                      onClick={() => onClickItem(item)}
+                      className={classNames(
+                        item.router === pathname
+                          ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                        "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                      )}
+                    >
+                      {item.icon}
+                      <span className="">{item.name}</span>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -316,6 +307,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             <ThemeToggle />
           </div>
         </div>
+        <AccountsOverview />
       </div>
 
       <div className="lg:pl-64">
