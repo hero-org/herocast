@@ -26,7 +26,6 @@ import { ErrorBoundary } from "@sentry/react";
 import { renderEmbedForUrl } from "./Embeds";
 import ProfileHoverCard from "./ProfileHoverCard";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/openapi/models/cast-with-interactions";
-import FrameEmbed from "./Embeds/FrameEmbed";
 import { registerPlugin } from "linkifyjs";
 import CashtagHoverCard from "./CashtagHoverCard";
 import mentionPlugin, {
@@ -162,7 +161,6 @@ export const CastRow = ({
   const canSendReaction =
     selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
   const now = new Date();
-  const hasFrame = cast.frames && cast.frames.length > 0;
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
@@ -444,8 +442,19 @@ export const CastRow = ({
       </div>
     );
 
-  const renderFrame = () =>
-    hasFrame ? <FrameEmbed cast={cast} isSelected={isSelected} /> : null;
+  const renderRecastBadge = () => {
+    const shouldShowBadge =
+      cast?.inclusion_context &&
+      cast?.inclusion_context?.is_following_recaster &&
+      !cast?.inclusion_context?.is_following_author;
+
+    if (!shouldShowBadge) return null;
+    return (
+      <span className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-gray-400/10 px-1.5 py-0.5 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-400/30">
+        <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+      </span>
+    );
+  };
 
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
@@ -495,6 +504,7 @@ export const CastRow = ({
                     {channel.name}
                   </span>
                 )}
+                {renderRecastBadge()}
               </div>
               <div className="flex flex-row">
                 {cast.timestamp && (
@@ -503,9 +513,7 @@ export const CastRow = ({
                   </span>
                 )}
                 <a
-                  href={`https://warpcast.com/${
-                    cast.author.username
-                  }/${cast.hash.slice(0, 8)}`}
+                  href={`${process.env.NEXT_PUBLIC_URL}/cast/${cast.hash}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm leading-5 text-foreground/50"
@@ -524,8 +532,7 @@ export const CastRow = ({
               </div>
             </div>
             {renderCastReactions(cast)}
-            {!disableEmbeds && !hasFrame && renderEmbeds()}
-            {renderFrame()}
+            {!disableEmbeds && renderEmbeds()}
           </div>
         </div>
       </div>

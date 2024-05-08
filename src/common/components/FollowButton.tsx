@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { followUser, unfollowUser } from "../helpers/farcaster";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import { AccountPlatformType } from "../constants/accounts";
