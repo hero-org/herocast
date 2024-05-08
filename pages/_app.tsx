@@ -53,10 +53,12 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       );
       if (isLoggedInUser && shouldForwardLoggedInUser) {
         console.log("_app pushing /feed");
-        router.push("/feed");
+        // router.push("/feed");
+        window.location.href = "/feed";
       } else if (!isLoggedInUser && shouldForwardLoggedOutUser) {
         console.log("_app pushing /login");
-        router.push("/login");
+        // router.push("/login");
+        window.location.href = "/login";
       }
     });
   }, [pathname]);
