@@ -73,7 +73,7 @@ const ProfileInfo = ({
               followers
             </p>
           </div>
-           <p className="flex pt-2 text-sm break-words">
+           <p className="flex pt-2 text-sm break-words pr-4 overflow-x-hidden">
             {profile?.profile?.bio?.text}
           </p>
         </>
