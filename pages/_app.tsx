@@ -22,6 +22,7 @@ const queryClient = new QueryClient();
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const supabaseClient = createClient();
+  const { pathname } = router;
 
   useEffect(() => {
     const handleRouteChange = () => posthog?.capture("$pageview");
@@ -33,17 +34,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
-    console.log("_app useEffect", router.pathname);
+    console.log("_app useEffect", router);
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       const isLoggedInUser = !!session;
-      const shouldForwardLoggedInUser = includes(
-        ["/", "/login"],
-        router.pathname
-      );
+      const shouldForwardLoggedInUser = includes(["/", "/login"], pathname);
       const shouldForwardLoggedOutUser =
-        router.pathname !== "/login" &&
-        router.pathname.startsWith("/profile") &&
-        router.pathname.startsWith("/cast");
+        pathname !== "/login" &&
+        pathname.startsWith("/profile") &&
+        pathname.startsWith("/cast");
 
       console.log(
         "_app isLoggedInUser",
@@ -56,12 +54,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       if (isLoggedInUser && shouldForwardLoggedInUser) {
         console.log("_app pushing /feed");
         router.push("/feed");
+        router.reload();
       } else if (!isLoggedInUser && shouldForwardLoggedOutUser) {
         console.log("_app pushing /login");
         router.push("/login");
+        router.reload();
       }
     });
-  }, [router.pathname]);
+  }, [pathname]);
 
   const children = (
     <PostHogProvider client={posthog}>
