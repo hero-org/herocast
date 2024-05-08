@@ -18,6 +18,7 @@ const mainnetHttp = http(
 //     [optimism.id]: optimismHttp,
 //     [mainnet.id]: mainnetHttp,
 //   },
+//   ssr: true,
 // });
 
 export const publicClient = createPublicClient({
@@ -29,6 +30,7 @@ export const config = getDefaultConfig({
   appName: "herocast",
   projectId: "b34f1019e33e832831871e41741f13fc",
   chains: [optimism],
+  ssr: true,
 });
 
 export const rainbowKitTheme = midnightTheme({
