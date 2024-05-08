@@ -41,12 +41,12 @@ const satoshi = localFont({
     },
     {
       path: "../src/assets/fonts/Satoshi-MediumItalic.woff2",
-      weight: "500",
+      weight: "600",
       style: "italic",
     },
     {
       path: "../src/assets/fonts/Satoshi-Medium.woff2",
-      weight: "500",
+      weight: "600",
       style: "normal",
     },
   ],
@@ -70,7 +70,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
-    console.log("_app useEffect", JSON.stringify(router));
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       const isLoggedInUser = !!session;
       const shouldForwardLoggedInUser = includes(["/", "/login"], asPath);
@@ -79,21 +78,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         asPath.startsWith("/profile") &&
         asPath.startsWith("/cast");
 
-      console.log(
-        "_app isLoggedInUser",
-        isLoggedInUser,
-        "shouldForwardLoggedInUser",
-        shouldForwardLoggedInUser,
-        "shouldForwardLoggedOutUser",
-        shouldForwardLoggedOutUser
-      );
       if (isLoggedInUser && shouldForwardLoggedInUser) {
-        console.log("_app pushing /feed");
-        // router.push("/feed");
         window.location.href = "/feed";
       } else if (!isLoggedInUser && shouldForwardLoggedOutUser) {
-        console.log("_app pushing /login");
-        // router.push("/login");
         window.location.href = "/login";
       }
     });
