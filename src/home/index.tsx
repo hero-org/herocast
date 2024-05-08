@@ -105,7 +105,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       icon: (
         <img
           src="/images/HatsProtocol.png"
-          className="grayscale group-hover:grayscale-0 "
+          className="h-5 w-5 grayscale group-hover:grayscale-0 "
           aria-hidden="true"
         />
       ),
