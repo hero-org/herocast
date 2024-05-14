@@ -5,7 +5,6 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
-import { openWindow } from "../helpers/navigation";
 import { classNames } from "../helpers/css";
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import * as Tooltip from "@radix-ui/react-tooltip";
@@ -16,7 +15,6 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 type CastThreadViewProps = {
   cast: { hash: string; author: { fid: string } };
   onBack?: () => void;
-  fid?: string;
   isActive?: boolean;
   setSelectedCast?: (cast: CastWithInteractions) => void;
   setShowReplyModal: (show: boolean) => void;
@@ -25,7 +23,6 @@ type CastThreadViewProps = {
 export const CastThreadView = ({
   cast,
   onBack,
-  fid,
   isActive,
   setSelectedCast,
   setShowReplyModal,
@@ -74,8 +71,6 @@ export const CastThreadView = ({
   useEffect(() => {
     if (selectedCastIdx === 0) {
       window.scrollTo(0, 0);
-    } else if (selectedCastIdx === casts.length - 1) {
-      window.scrollTo(0, document.body.scrollHeight);
     }
   }, [selectedCastIdx]);
 
@@ -137,24 +132,14 @@ export const CastThreadView = ({
     };
   }, [cast?.hash]);
 
-  const onOpenLinkInCast = () => {
-    const castInThread = casts[selectedCastIdx];
-    if (castInThread?.embeds?.length === 0) return;
-
-    const url = castInThread.embeds[0].url;
-    openWindow(url);
-  };
-
-  const renderRow = (
-    cast: CastWithInteractions & { children: CastWithInteractions[] },
-    idx: number
-  ) => {
+  const renderRow = (cast: CastWithInteractions, idx: number) => {
     const isRowSelected = selectedCastIdx === idx;
 
     return (
       <li
         key={`cast-thread-${cast.hash}`}
         className={classNames(idx === selectedCastIdx ? "" : "")}
+        onClick={() => setSelectedCastIdx(idx)}
       >
         <div className="relative pl-4">
           {/* this is the left line */}
@@ -187,8 +172,6 @@ export const CastThreadView = ({
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
-      onSelect={() => onOpenLinkInCast()}
-      onExpand={() => null}
       isActive={isActive}
     />
   );

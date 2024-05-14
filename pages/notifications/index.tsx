@@ -240,7 +240,6 @@ const Notifications = () => {
             hash: selectedParentCast.hash,
             author: selectedParentCast.author,
           }}
-          fid={viewerFid}
           isActive={!isLeftColumnSelected}
           setSelectedCast={(cast) => {
             setSelectedCast(cast);
