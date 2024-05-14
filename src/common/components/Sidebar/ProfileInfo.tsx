@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getUserDataForFidOrUsername } from "../../helpers/neynar";
 import { useDataStore } from "@/stores/useDataStore";
@@ -35,47 +35,60 @@ const ProfileInfo = ({
 
   return (
     <div className="space-y-2 min-h-72">
-      <div className="flex flex-row gap-x-2 justify-between">
+      <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1">
+        {profile?.display_name}
+      </h2>
+      <div className="flex flex-row gap-x-2">
         <Avatar>
           <AvatarImage src={profile?.pfp_url} />
           <AvatarFallback>{profile?.username.slice(0, 2)}</AvatarFallback>
         </Avatar>
-        <FollowButton username={profile?.username} />
+        <div>
+          <h3 className="-mt-0.5 text-sm font-regular">
+            @{profile?.username}{" "}
+          </h3>
+          <h3 className="text-sm font-regular text-muted-foreground flex flex-row">
+            <span>
+              {profile?.power_badge && (
+                <img
+                  src="/images/ActiveBadge.webp"
+                  className="mt-0.5 mr-1.5 h-[15px] w-[15px]"
+                  alt="power badge"
+                />
+              )}
+            </span>
+          </h3>
+        </div>
       </div>
-      <div>
-        <h2 className="text-md font-semibold">{profile?.display_name}</h2>
-        <h3 className="text-sm font-regular">@{profile?.username} </h3>
-      </div>
+      <FollowButton username={profile?.username} />
       {profile ? (
         <>
-          <span>
-            {profile.active_status && (
-              <img
-                src="/images/ActiveBadge.webp"
-                className="mt-0.5 h-[15px] w-[15px]"
-                alt="power badge"
-              />
-            )}
-          </span>
+          <p className="flex pt-2 text-sm break-words pr-4 overflow-x-hidden">
+            {profile.profile?.bio?.text}
+          </p>
           <div className="flex flex-col pt-2 text-sm text-muted-foreground">
             <p>
               <span className="font-semibold text-foreground">
-                {formatLargeNumber(profile?.following_count)}
+                {profile.fid}
+                &nbsp;
+              </span>
+              fid
+            </p>
+            <p>
+              <span className="font-semibold text-foreground">
+                {formatLargeNumber(profile.following_count)}
                 &nbsp;
               </span>
               following
             </p>
             <p>
               <span className="font-semibold text-foreground">
-                {formatLargeNumber(profile?.follower_count)}
+                {formatLargeNumber(profile.follower_count)}
                 &nbsp;
               </span>
               followers
             </p>
           </div>
-           <p className="flex pt-2 text-sm break-words pr-4 overflow-x-hidden">
-            {profile?.profile?.bio?.text}
-          </p>
         </>
       ) : (
         <Loading />

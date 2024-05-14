@@ -12,6 +12,7 @@ import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import FollowButton from "./FollowButton";
 import { getUserDataForFidOrUsername } from "../helpers/neynar";
+import { formatLargeNumber } from "../helpers/text";
 
 type ProfileHoverCardProps = {
   fid?: number;
@@ -22,7 +23,10 @@ type ProfileHoverCardProps = {
 
 const getProfile = (dataStoreState, username, fid) => {
   if (username) {
-    return get(dataStoreState.fidToData, get(dataStoreState.usernameToFid, username));
+    return get(
+      dataStoreState.fidToData,
+      get(dataStoreState.usernameToFid, username)
+    );
   } else {
     return get(dataStoreState.fidToData, fid);
   }
@@ -97,12 +101,12 @@ const ProfileHoverCard = ({
               </p>
               <div className="flex items-center pt-2 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">
-                  {profile?.following_count}
+                  {formatLargeNumber(profile.following_count)}
                   &nbsp;
                 </span>
                 following
                 <span className="ml-2 font-semibold text-foreground">
-                  {profile?.follower_count}
+                  {formatLargeNumber(profile?.follower_count)}
                   &nbsp;
                 </span>
                 followers

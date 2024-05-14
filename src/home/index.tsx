@@ -122,15 +122,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
     switch (pathname) {
       case "/feed":
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/post":
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/channels":
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
-      case "/accounts":
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/notifications":
-        return RIGHT_SIDEBAR_ENUM.NONE;
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
     }
@@ -152,10 +150,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const renderRightSidebar = () => {
     switch (sidebarType) {
-      case RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS:
+      case RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR:
         return <RightSidebar showChannels showAuthorInfo />;
-      case RIGHT_SIDEBAR_ENUM.ACCOUNTS:
-        return <RightSidebar />;
+      case RIGHT_SIDEBAR_ENUM.CAST_INFO:
+        return <RightSidebar showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.NONE:

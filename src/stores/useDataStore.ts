@@ -110,7 +110,6 @@ const store = (set: StoreSet) => ({
   fidToData: {},
   tokenSymbolToData: {},
   updateSelectedCast: (cast: CastWithInteractions) => {
-    console.log('updateSelectedCast');
     set((state) => {
       state.selectedCast = cast;
     });

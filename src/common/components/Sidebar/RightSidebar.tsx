@@ -1,22 +1,11 @@
 import React from "react";
 import {
-  AccountObjectType,
-  PENDING_ACCOUNT_NAME_PLACEHOLDER,
   useAccountStore,
 } from "@/stores/useAccountStore";
-import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
-import { classNames } from "@/common/helpers/css";
 import isEmpty from "lodash.isempty";
 import ChannelsOverview from "./ChannelsOverview";
-import { SidebarHeader } from "./SidebarHeader";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
 import { useRouter } from "next/router";
-import {
-  AccountPlatformType,
-  AccountStatusType,
-} from "@/common/constants/accounts";
 import { useDataStore } from "@/stores/useDataStore";
 import ProfileInfo from "./ProfileInfo";
 
@@ -55,10 +44,10 @@ const RightSidebar = ({ showChannels, showAuthorInfo }: RightSidebarProps) => {
   };
 
   const renderAuthorInfo = () => {
-    if (!showAuthorInfo || !selectedCast ) return null;
+    if (!showAuthorInfo || !selectedCast) return null;
 
     return (
-      <div className="m-4">
+      <div className="mt-2 mx-4">
         <ProfileInfo
           fid={selectedCast.author.fid}
           viewerFid={Number(selectedAccount.platformAccountId)}

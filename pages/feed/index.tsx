@@ -4,7 +4,6 @@ import {
   CUSTOM_CHANNELS,
   useAccountStore,
 } from "@/stores/useAccountStore";
-import { CastType } from "@/common/constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import get from "lodash.get";
 import { CastRow } from "@/common/components/CastRow";
@@ -246,7 +245,7 @@ export default function Feed() {
       className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl"
     >
       <CastRow
-        cast={item as CastType}
+        cast={item}
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
         onReply={() => {

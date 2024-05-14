@@ -25,7 +25,7 @@ import Linkify from "linkify-react";
 import { ErrorBoundary } from "@sentry/react";
 import { renderEmbedForUrl } from "./Embeds";
 import ProfileHoverCard from "./ProfileHoverCard";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/openapi/models/cast-with-interactions";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { registerPlugin } from "linkifyjs";
 import CashtagHoverCard from "./CashtagHoverCard";
 import mentionPlugin, {
@@ -40,7 +40,7 @@ registerPlugin("cashtag", cashtagPlugin);
 registerPlugin("channel", channelPlugin);
 
 interface CastRowProps {
-  cast: CastWithInteractions | CastType;
+  cast: CastWithInteractions;
   showChannel?: boolean;
   onSelect?: () => void;
   onReply?: () => void;
@@ -142,8 +142,8 @@ export const CastRow = ({
   showChannel,
   onSelect,
   onReply,
-  isThreadView = false,
   disableEmbeds = false,
+  isThreadView = false,
 }: CastRowProps) => {
   const {
     accounts,
@@ -466,14 +466,15 @@ export const CastRow = ({
       <div
         onClick={() => onSelect && onSelect()}
         className={classNames(
-          "py-4 px-2 md:pl-4 lg:pl-6",
-          isSelected ? "bg-foreground/5" : "cursor-pointer",
+          "py-4 px-2",
+          isSelected ? "bg-foreground/10" : "cursor-pointer",
           isSelected
             ? "border-l-1 border-foreground/10"
             : "border-l-1 border-transparent",
           "lg:ml-0 grow rounded-r-sm"
         )}
       >
+        {isThreadView && <div className="absolute bg-foreground/10 -ml-2 mt-[1.2rem] h-[1.5px] w-4" />}
         <div className="flex items-top gap-x-4">
           <img
             className="relative h-10 w-10 flex-none bg-background rounded-full"
