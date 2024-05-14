@@ -3,6 +3,7 @@ import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
+export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
 type TokenInfo = {
   imageUrl: string;
@@ -87,7 +88,7 @@ type addTokenDataProps = {
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;
   usernameToFid: Record<string, number>;
-  fidToData: Record<number, User>,
+  fidToData: Record<number, User & { updatedAt: number }>,
   tokenSymbolToData: Record<string, DexPair>;
 }
 
@@ -117,7 +118,8 @@ const store = (set: StoreSet) => ({
   addUserProfile: ({ user }: addUserProfileProps) => {
     set((state) => {
       state.usernameToFid = { ...state.usernameToFid, ...{ [user.username]: user.fid } };
-      state.fidToData = { ...state.fidToData, ...{ [user.fid]: user } };
+      const userObject = { ...user, updatedAt: Date.now() };
+      state.fidToData = { ...state.fidToData, ...{ [user.fid]: userObject } };
     });
   },
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => {

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getUserDataForFidOrUsername } from "../../helpers/neynar";
-import { useDataStore } from "@/stores/useDataStore";
+import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import FollowButton from "../FollowButton";
 import { Loading } from "../Loading";
@@ -29,9 +29,10 @@ const ProfileInfo = ({
         });
       }
     };
-
-    getData();
-  }, [fid, viewerFid]);
+    if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
+      getData();
+    }
+  }, [fid, viewerFid, profile]);
 
   return (
     <div className="space-y-2 min-h-72">
@@ -60,7 +61,6 @@ const ProfileInfo = ({
           </h3>
         </div>
       </div>
-      <FollowButton username={profile?.username} />
       {profile ? (
         <>
           <p className="flex pt-2 text-sm break-words pr-4 overflow-x-hidden">

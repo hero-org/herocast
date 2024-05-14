@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { openWindow } from "../helpers/navigation";
 import { Loading } from "./Loading";
 import { useInView } from "react-intersection-observer";
-import { useDataStore } from "@/stores/useDataStore";
+import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import FollowButton from "./FollowButton";
 import { getUserDataForFidOrUsername } from "../helpers/neynar";
@@ -63,7 +63,9 @@ const ProfileHoverCard = ({
       }
     };
 
-    getData();
+    if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
+      getData();
+    }
   }, [inView, profile, viewerFid]);
 
   const onClick = () => {

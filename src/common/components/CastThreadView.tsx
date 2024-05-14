@@ -160,8 +160,7 @@ export const CastThreadView = ({
           {/* this is the left line */}
           <div
             className={classNames(
-              "border-l-2",
-              idx === 0 ? "-ml-8" : "",
+              idx === 0 ? "-ml-8" : "border-l-2",
               isActive && isRowSelected
                 ? "border-muted-background"
                 : "border-foreground/10",
@@ -173,7 +172,7 @@ export const CastThreadView = ({
                 cast={cast}
                 showChannel={selectedChannelUrl === null}
                 isSelected={selectedCastIdx === idx}
-                isThreadView
+                isThreadView={idx > 0}
               />
             </div>
           </div>
