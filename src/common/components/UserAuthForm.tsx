@@ -299,7 +299,7 @@ export function UserAuthForm({
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-gray-900 px-2 text-muted">
+            <span className="bg-gray-900 px-2 text-muted-foreground">
               or continue with
             </span>
           </div>
