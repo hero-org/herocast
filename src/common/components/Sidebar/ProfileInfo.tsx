@@ -41,7 +41,9 @@ const ProfileInfo = ({
       </h2>
       <div className="flex flex-row gap-x-2">
         <Avatar>
-          <AvatarImage src={profile?.pfp_url} />
+          <AvatarImage
+            src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${profile?.pfp_url}`}
+          />
           <AvatarFallback>{profile?.username.slice(0, 2)}</AvatarFallback>
         </Avatar>
         <div>

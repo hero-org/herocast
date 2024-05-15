@@ -7,6 +7,7 @@ import { framesJsAccountStatusMap } from "@/common/constants/accounts";
 import Image from "next/image";
 import type { ImgHTMLAttributes } from "react";
 import { isUndefined } from "lodash";
+import { WarpcastImage } from "../PostEmbeddedContent";
 
 // Due to issue with FrameImageNext from @frame.js/render/next
 // Implement the exact same thing again
@@ -60,7 +61,16 @@ const FrameEmbed = ({ url }: FrameArgs) => {
     },
   });
 
-  return <FrameUI frameState={frameState} FrameImage={FrameImageNext} />;
+  const { status, frame } = frameState?.frame?.frame ?? {};
+  const hasFrameError = status === "failure";
+  if (hasFrameError) {
+    return frame.ogImage ? <WarpcastImage url={frame.ogImage} /> : null;
+  }
+  return (
+    <div className="w-72">
+      <FrameUI frameState={frameState} FrameImage={FrameImageNext} />
+    </div>
+  );
 };
 
 export default FrameEmbed;

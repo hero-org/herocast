@@ -19,13 +19,15 @@ type CastEmbed = {
 };
 
 export const renderEmbedForUrl = ({ url, cast_id }: CastEmbed) => {
-
   if (cast_id) {
     return <CastEmbed castId={cast_id} />;
   }
   if (!url) return null;
 
-  if (url.includes("i.imgur.com") || url.startsWith('https://imagedelivery.net')) {
+  if (
+    url.includes("i.imgur.com") ||
+    url.startsWith("https://imagedelivery.net")
+  ) {
     return <WarpcastImage url={url} />;
   } else if (url.startsWith('"chain:')) {
     return <OnchainEmbed url={url} />;

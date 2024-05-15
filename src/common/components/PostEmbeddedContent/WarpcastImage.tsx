@@ -4,8 +4,11 @@ import { PhotoIcon } from "@heroicons/react/24/solid";
 const getImageViaCdnUrl = (imgUrl: string) => {
   if (imgUrl.startsWith("https://imagedelivery.net")) return imgUrl;
 
-  const fileSuffix = imgUrl.split(".").slice(-1)[0];
-  return `https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_${fileSuffix}/${imgUrl}`;
+  if (imgUrl.includes("imgur.com")) {
+    const fileSuffix = imgUrl.split(".").slice(-1)[0];
+    return `https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_${fileSuffix}/${imgUrl}`;
+  }
+  return imgUrl;
 };
 
 export const WarpcastImage = ({ url }: { url: string }) => {
