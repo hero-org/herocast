@@ -57,7 +57,6 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
   const [registerSignature, setRegisterSignature] = useState<Hex>();
   const [addSignature, setAddSignature] = useState<Hex>();
   const [savedPublicKey, setPublicKey] = useState<Hex>();
-  const [savedPrivateKey, setPrivateKey] = useState<Hex>();
   const [registerMetaData, setRegisterMetaData] = useState<Hex>();
   const [deadline, setDeadline] = useState<bigint>();
 
@@ -67,6 +66,8 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       account.status === AccountStatusType.pending &&
       account.platform === AccountPlatformType.farcaster
   );
+
+  console.log('DEBUG pendingAccounts', pendingAccounts.length, pendingAccounts)
 
   const chainId = optimismChainId;
 
@@ -121,6 +122,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
   };
 
   const registerAccount = async () => {
+    // todo: use pending account instead of savedPublicKey
     if (
       !registerSignature
       || !savedPublicKey
@@ -226,21 +228,21 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       }
     }
 
-    let generatedPublicKey, generatedPrivateKey;
+    let signerPublicKey, signerPrivateKey;
     if (!pendingAccounts || pendingAccounts.length === 0) {
+      console.log('DEBUG found no pending account, creating a new one in DB')
       const { publicKey, privateKey } = await generateKeyPair();
-      generatedPublicKey = bytesToHexString(publicKey)._unsafeUnwrap();
-      generatedPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
-      setPublicKey(generatedPublicKey);
-      setPrivateKey(generatedPrivateKey);
+      signerPublicKey = bytesToHexString(publicKey)._unsafeUnwrap();
+      signerPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
+      setPublicKey(signerPublicKey);
 
       try {
         await addAccount({
           account: {
             status: AccountStatusType.pending,
             platform: AccountPlatformType.farcaster,
-            publicKey: generatedPublicKey,
-            privateKey: generatedPrivateKey,
+            publicKey: signerPublicKey,
+            privateKey: signerPrivateKey,
           },
         });
       } catch (e) {
@@ -250,8 +252,10 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
         return;
       }
     } else {
+      console.log('DEBUG has existing pending account, so using this one from DB', pendingAccounts[0].publicKey)
+      signerPublicKey = pendingAccounts[0].publicKey!;
+      signerPrivateKey = pendingAccounts[0].privateKey!;
       setPublicKey(pendingAccounts[0].publicKey);
-      setPrivateKey(pendingAccounts[0].privateKey!);
     }
 
     const nonce = await readNoncesFromKeyGateway(address!);
@@ -288,12 +292,11 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
 
     const metadata = await getSignedKeyRequestMetadataFromAppAccount(
       chainId,
-      generatedPublicKey,
+      signerPublicKey,
       registerDeadline
     );
-
+    
     setRegisterMetaData(metadata);
-
     try {
       const addSignature = await walletClient.data?.signTypedData({
         ...KEY_GATEWAY_EIP_712_TYPES,
@@ -305,7 +308,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
         message: {
           owner: address!,
           keyType: 1,
-          key: generatedPublicKey,
+          key: signerPublicKey,
           metadataType: 1,
           metadata,
           nonce,
@@ -331,7 +334,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
         <br /><br />
         The yearly Farcaster platform fee at the moment is{" "}
         {price && price > 0n
-          ? `~${parseFloat(formatEther(price)).toFixed(15)} ETH.`
+          ? `~${parseFloat(formatEther(price)).toFixed(8)} ETH.`
           : <Loading isInline={true} />}
       </p>
       <Separator />

@@ -30,7 +30,7 @@ export const publicClient = createPublicClient({
 export const config = getDefaultConfig({
   appName: "herocast",
   projectId: "b34f1019e33e832831871e41741f13fc",
-  chains: isDev() ? [Chains.OptimismTestnet, Chains.BaseTestnet] : [optimism, mainnet, base, arbitrum, polygon],
+  chains: isDev() ? [optimism, mainnet, Chains.OptimismTestnet, Chains.BaseTestnet] : [optimism, mainnet, base, arbitrum, polygon],
 });
 
 export const rainbowKitTheme = midnightTheme({

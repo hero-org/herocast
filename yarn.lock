@@ -1207,10 +1207,10 @@
     "@parcel/watcher-win32-ia32" "2.4.1"
     "@parcel/watcher-win32-x64" "2.4.1"
 
-"@paywithglide/glide-js@^0.6.2":
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/@paywithglide/glide-js/-/glide-js-0.6.2.tgz#7ec5d679a7d789f636c2d7cc9a99e33a07a6a376"
-  integrity sha512-4oPZeCd7yQHFRQRRb8XRScvLeRP3fzQuEBMHrTCueRbz3gzjXk6RxtNJHG/91Wdhjnty5UuO9RjNu4oNuyBxdA==
+"@paywithglide/glide-js@^0.7.2":
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/@paywithglide/glide-js/-/glide-js-0.7.2.tgz#4f0b62a687a12346a10fcc97a7ac0957a5354917"
+  integrity sha512-9IWNwLaKxoX2TZeSRGxVNQBTUrhsx5K8onuQjIjvHVig1NfNPWNfipClyyM1R/FF/q6UFjmVpqxk3qaP/CYiGA==
   dependencies:
     viem "^2.9.6"
 
