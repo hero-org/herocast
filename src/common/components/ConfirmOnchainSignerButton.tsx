@@ -25,6 +25,7 @@ import { getSignedKeyRequestMetadataFromAppAccount } from "../helpers/farcaster"
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Label } from "@/components/ui/label";
 import { optimismChainId } from "../helpers/env";
+import { Cog6ToothIcon, CheckCircleIcon } from "@heroicons/react/20/solid";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC!;
@@ -115,7 +116,7 @@ const ConfirmOnchainSignerButton = ({
       );
       const user = (
         await neynarClient.fetchBulkUsers([Number(idOfUser)], {
-          viewerFid: Number(APP_FID!),
+          viewerFid: Number(APP_FID),
         })
       ).users[0];
       await setAccountActive(account.id, user.username, {

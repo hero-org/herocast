@@ -50,7 +50,7 @@ export function ChainSelector({
     const { address, isConnected } = useAccount();
     const [open, setOpen] = useState(false)
     const [paymentOptions, setPaymentOptions] = useState<PaymentOption[]>([]);
-    const [isLoading, setIsLoading] = useState<Boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const updatePaymentOptions = async (): Promise<void> => {
         if (!address || !registerSignature || !publicKey || !metadata || !deadline) return;

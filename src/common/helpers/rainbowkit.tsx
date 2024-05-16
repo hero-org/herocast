@@ -1,7 +1,7 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultConfig, midnightTheme } from "@rainbow-me/rainbowkit";
 import { optimism, mainnet, base, arbitrum, polygon } from "@wagmi/core/chains";
-import { http, createConfig } from "@wagmi/core";
+import { http } from "@wagmi/core";
 import { createPublicClient } from "viem";
 import { isDev } from "./env";
 import { Chains } from "@paywithglide/glide-js";
@@ -27,10 +27,17 @@ export const publicClient = createPublicClient({
   transport: optimismHttp,
 });
 
+export const publicClientTestnet = createPublicClient({
+  chain: Chains.OptimismTestnet,
+  transport: http(),
+});
+
 export const config = getDefaultConfig({
   appName: "herocast",
   projectId: "b34f1019e33e832831871e41741f13fc",
-  chains: isDev() ? [optimism, mainnet, Chains.OptimismTestnet, Chains.BaseTestnet] : [optimism, mainnet, base, arbitrum, polygon],
+  chains: isDev()
+    ? [mainnet, Chains.OptimismTestnet, Chains.BaseTestnet]
+    : [optimism, mainnet, base, arbitrum, polygon],
 });
 
 export const rainbowKitTheme = midnightTheme({

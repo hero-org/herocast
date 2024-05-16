@@ -225,7 +225,7 @@ const RenameAccountForm = ({
         UserDataType.USERNAME,
         username
       );
-      updateAccountUsername(account.id!);
+      updateAccountUsername(account.id);
     } catch (e) {
       console.error("renameAccount error", e);
       form.setError("username", {

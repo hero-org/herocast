@@ -52,17 +52,15 @@ export function PaymentSelector({
     const { address, isConnected } = useAccount();
     const [open, setOpen] = useState(false)
     const [paymentOptions, setPaymentOptions] = useState<PaymentOption[]>([]);
-    const [isLoading, setIsLoading] = useState<Boolean>(false);
-    const [isRetry, setIsRetry] = useState<Boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isRetry, setIsRetry] = useState<boolean>(false);
 
     const updatePaymentOptions = async (): Promise<void> => {
-        console.log(address, registerSignature, publicKey, metadata, deadline)
         if (!address || !registerSignature || !publicKey || !metadata || !deadline) return;
         console.log('updatePaymentOptions', registerPrice)
         setIsLoading(true);
         setIsRetry(false);
         try {
-
             const paymentOptions = await getGlidePaymentOptions({
                 chainId,
                 address,
@@ -73,7 +71,7 @@ export function PaymentSelector({
                 deadline,
                 price: registerPrice,
             });
-            console.log("paymentOptions", paymentOptions)
+            console.log("glide paymentOptions", paymentOptions)
             setPaymentOptions(paymentOptions);
             setIsLoading(false);
         } catch (error: any) {

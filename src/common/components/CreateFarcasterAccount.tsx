@@ -43,17 +43,17 @@ import { PaymentOption } from "node_modules/@paywithglide/glide-js/dist/types";
 import { optimismChainId } from "../helpers/env";
 import { config } from "../helpers/rainbowkit";
 
-const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () => void, isAddressValid: Boolean }) => {
+const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () => void, isAddressValid: boolean }) => {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string>();
   const [transactionHash, setTransactionHash] = useState<Hex>("0x");
   const { address, isConnected, chain } = useAccount();
   const walletClient = useWalletClient();
-  const { switchChainAsync, switchChain } = useSwitchChain();
+  const { switchChainAsync } = useSwitchChain();
   const { sendTransactionAsync } = useSendTransaction();
   const { signTypedDataAsync } = useSignTypedData();
   const [paymentOption, setPaymentOption] = useState<PaymentOption>();
-  const [areTransactionsSigned, setAreTransactionsSigned] = useState<Boolean>(false);
+  const [areTransactionsSigned, setAreTransactionsSigned] = useState<boolean>(false);
   const [registerSignature, setRegisterSignature] = useState<Hex>();
   const [addSignature, setAddSignature] = useState<Hex>();
   const [savedPublicKey, setPublicKey] = useState<Hex>();
@@ -67,9 +67,10 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       account.platform === AccountPlatformType.farcaster
   );
 
-  console.log('DEBUG pendingAccounts', pendingAccounts.length, pendingAccounts)
-
+  
   const chainId = optimismChainId;
+  console.log('DEBUG pendingAccounts', pendingAccounts.length, pendingAccounts)
+  console.log('DEBUG chainId', chainId)
 
   const { data: price } = useReadContract({
     chainId,
@@ -104,9 +105,9 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
     if (!(transactionResult && pendingAccounts.length > 0)) return false;
     try {
       const fid = await getFidForAddress(address!)
-  
+      console.log('DEBUG fid', fid)
       if (fid) {
-        const accountId = pendingAccounts[0].id!;
+        const accountId = pendingAccounts[0].id;
         setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
           platform_account_id: fid.toString(),
           data: { signupViaHerocast: true },
@@ -146,7 +147,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       }
 
       setIsPending(true);
-
+      console.log('DEBUG registerAccount', address, chainId, paymentOption?.paymentCurrency, price, BUNDLER_ADDRESS, bundlerABI, registerSignature, addSignature, deadline, savedPublicKey, registerMetaData)
       const registerAccountTransactionHash = await glideClient.writeContract({
         account: address,
         chainId,
@@ -157,9 +158,9 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
         functionName: "register",
         args: [
           {
-            to: address!,
+            to: address,
             recovery: WARPCAST_RECOVERY_PROXY,
-            sig: registerSignature!,
+            sig: registerSignature,
             deadline,
           },
           [

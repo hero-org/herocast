@@ -146,7 +146,7 @@ const TransferAccountToHatsDelegator = ({
   const [onchainTransactionHash, setOnchainTransactionHash] =
     useState<`0x${string}`>("0x");
 
-  const fid = BigInt(user.fid!);
+  const fid = BigInt(user.fid);
 
   const { signTypedDataAsync } = useSignTypedData();
 
@@ -259,7 +259,7 @@ const TransferAccountToHatsDelegator = ({
     if (!address) return;
 
     const hasConnectedValidSignerAddress = await isValidSigner(
-      toAddress!,
+      toAddress,
       SIGNED_KEY_REQUEST_TYPEHASH,
       address
     );

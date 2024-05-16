@@ -7,8 +7,8 @@ import { PaymentOption } from "node_modules/@paywithglide/glide-js/dist/types";
 import { isDev } from "./env";
 
 
-const chains = isDev() 
-  ? [Chains.BaseTestnet, Chains.OptimismTestnet] 
+const chains = isDev()
+  ? [Chains.BaseTestnet, Chains.OptimismTestnet, Chains.Optimism, Chains.Ethereum, Chains.Base, Chains.Arbitrum, Chains.Avalanche, Chains.Polygon, Chains.Zora]
   : [Chains.Optimism, Chains.Ethereum, Chains.Base, Chains.Arbitrum, Chains.Avalanche, Chains.Polygon, Chains.Zora];
 
 
@@ -45,36 +45,36 @@ export const getGlidePaymentOptions = async ({
     || !addSignature
     || !price
   ) return [];
-    return await glideClient.listPaymentOptions({
-      transaction: {
-        chainId: `eip155:${chainId}`,
-        to: BUNDLER_ADDRESS,
-        value: toHex(price),
-        input: encodeFunctionData({
-          abi: bundlerABI,
-          functionName: "register",
-          args: [
+  return await glideClient.listPaymentOptions({
+    transaction: {
+      chainId: `eip155:${chainId}`,
+      to: BUNDLER_ADDRESS,
+      value: toHex(price),
+      input: encodeFunctionData({
+        abi: bundlerABI,
+        functionName: "register",
+        args: [
+          {
+            to: address,
+            recovery: WARPCAST_RECOVERY_PROXY,
+            deadline,
+            sig: registerSignature
+          },
+          [
             {
-              to: address,
-              recovery: WARPCAST_RECOVERY_PROXY,
+              keyType: 1,
+              key: publicKey,
+              metadataType: 1,
+              metadata,
+              sig: addSignature,
               deadline,
-              sig: registerSignature
             },
-            [
-              {
-                keyType: 1,
-                key: publicKey,
-                metadataType: 1,
-                metadata,
-                sig: addSignature,
-                deadline,
-              },
-            ],
-            0n
           ],
-        }),
-      },
-      payerWalletAddress: address,
-    });
+          0n
+        ],
+      }),
+    },
+    payerWalletAddress: address,
+  });
 };
 

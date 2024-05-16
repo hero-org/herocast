@@ -314,7 +314,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     const activateAccount = async () => {
       setState(HatsProtocolSignupSteps[4]);
       const username = await getUsernameForFid(Number(fid));
-      setAccountActive(hatsProtocolPendingAccounts[0].id!, username, {
+      setAccountActive(hatsProtocolPendingAccounts[0].id, username, {
         platform_account_id: fid.toString(),
         data: {},
       });
