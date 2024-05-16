@@ -5,10 +5,7 @@ import {
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import { classNames } from "@/common/helpers/css";
-import isEmpty from "lodash.isempty";
-import ChannelsOverview from "./ChannelsOverview";
 import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
@@ -17,15 +14,12 @@ import {
   AccountPlatformType,
   AccountStatusType,
 } from "@/common/constants/accounts";
-import { useDataStore } from "@/stores/useDataStore";
-import ProfileInfo from "./ProfileInfo";
 
 const AccountsOverview = () => {
   const router = useRouter();
 
   const { hydratedAt, accounts, selectedAccountIdx, setCurrentAccountIdx } =
     useAccountStore();
-  const { selectedCast } = useDataStore();
 
   const selectedAccount = accounts[selectedAccountIdx];
 
@@ -102,7 +96,7 @@ const AccountsOverview = () => {
               key={`${account.name}-${account.id}`}
               className="px-2 py-2 sm:px-3 lg:px-4"
             >
-              <HotkeyTooltipWrapper hotkey={getTooltipText()} side="left">
+              <HotkeyTooltipWrapper hotkey={getTooltipText()} side="top">
                 <div
                   onClick={() => onClickAccount(idx, isActive, isReadOnly)}
                   className="flex items-center gap-x-3 cursor-pointer group"

@@ -222,12 +222,16 @@ export default function NewPostEntry({
             onClick={() => setCurrentMod(creationMods[0])}
           >
             <PhotoIcon className="mr-1 w-5 h-5" />
-            Add image
+            Add
           </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
-          <Button variant="outline" onClick={onPost}>Remove</Button>
-          <Button type="submit">Cast</Button>
+          <Button variant="outline" onClick={onPost}>
+            Remove
+          </Button>
+          <Button type="submit" className="line-clamp-1 w-40 truncate">
+            Cast{account ? ` as ${account.name}` : ""}
+          </Button>
         </div>
       </form>
       {hasEmbeds && (
