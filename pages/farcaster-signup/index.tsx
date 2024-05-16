@@ -49,7 +49,7 @@ const onboardingNavItems = [
 export default function Welcome() {
   const { isConnected, address } = useAccount();
   const [step, setStep] = useState<string>(onboardingNavItems[1].key);
-  const [isAddressValid, setIsAddressValid] = useState<Boolean>(false);
+  const [isAddressValid, setIsAddressValid] = useState<boolean>(false);
   const router = useRouter();
   const [error, setError] = useState<string>();
 
