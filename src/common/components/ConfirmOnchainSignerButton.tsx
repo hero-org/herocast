@@ -143,7 +143,6 @@ const ConfirmOnchainSignerButton = ({
   );
 
   const onClick = async () => {
-    console.log("2", optimismChainId)
     if (chainId !== optimismChainId) {
       switchChain?.({ chainId: optimismChainId });
     } else if (!isWalletOwnerOfFid) {

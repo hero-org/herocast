@@ -114,7 +114,7 @@ const RegisterFarcasterUsernameForm = ({
   const registerFarcasterUsername = async (
     data: z.infer<typeof FarcasterAccountSetupFormSchema>
   ) => {
-    console.log("createFarcasterAccount", data);
+    console.log("registerFarcasterUsername", data);
 
     if (!address) {
       form.setError("username", {
@@ -128,7 +128,7 @@ const RegisterFarcasterUsernameForm = ({
     setIsPending(true);
     const owner = getAddress(address);
     const { username, bio } = data;
-    console.log("RegisterFarcasterAccount", data);
+
     let displayName = data.displayName;
     if (!displayName) {
       displayName = username;

@@ -43,7 +43,13 @@ import { PaymentOption } from "node_modules/@paywithglide/glide-js/dist/types";
 import { optimismChainId } from "../helpers/env";
 import { config } from "../helpers/rainbowkit";
 
-const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () => void, isAddressValid: boolean }) => {
+const CreateFarcasterAccount = ({
+  onSuccess,
+  isAddressValid,
+}: {
+  onSuccess?: () => void;
+  isAddressValid: boolean;
+}) => {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string>();
   const [transactionHash, setTransactionHash] = useState<Hex>("0x");
@@ -53,7 +59,8 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
   const { sendTransactionAsync } = useSendTransaction();
   const { signTypedDataAsync } = useSignTypedData();
   const [paymentOption, setPaymentOption] = useState<PaymentOption>();
-  const [areTransactionsSigned, setAreTransactionsSigned] = useState<boolean>(false);
+  const [didSignTransactions, setDidSignTransactions] =
+    useState<boolean>(false);
   const [registerSignature, setRegisterSignature] = useState<Hex>();
   const [addSignature, setAddSignature] = useState<Hex>();
   const [savedPublicKey, setPublicKey] = useState<Hex>();
@@ -67,10 +74,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       account.platform === AccountPlatformType.farcaster
   );
 
-  
   const chainId = optimismChainId;
-  console.log('DEBUG pendingAccounts', pendingAccounts.length, pendingAccounts)
-  console.log('DEBUG chainId', chainId)
 
   const { data: price } = useReadContract({
     chainId,
@@ -84,8 +88,8 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
     hash: transactionHash,
     config,
     query: {
-      enabled: transactionHash != '0x'
-    }
+      enabled: transactionHash != "0x",
+    },
   });
 
   useEffect(() => {
@@ -104,8 +108,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
     );
     if (!(transactionResult && pendingAccounts.length > 0)) return false;
     try {
-      const fid = await getFidForAddress(address!)
-      console.log('DEBUG fid', fid)
+      const fid = await getFidForAddress(address!);
       if (fid) {
         const accountId = pendingAccounts[0].id;
         setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
@@ -123,16 +126,17 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
   };
 
   const registerAccount = async () => {
-    // todo: use pending account instead of savedPublicKey
     if (
-      !registerSignature
-      || !savedPublicKey
-      || !address
-      || !registerMetaData
-      || !deadline
-      || !addSignature
+      !registerSignature ||
+      !savedPublicKey ||
+      !address ||
+      !registerMetaData ||
+      !deadline ||
+      !addSignature
     ) {
-      setError("Something went wrong setting up the glide payment transaction!");
+      setError(
+        "Something went wrong setting up the glide payment transaction!"
+      );
       return;
     }
 
@@ -147,7 +151,6 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       }
 
       setIsPending(true);
-      console.log('DEBUG registerAccount', address, chainId, paymentOption?.paymentCurrency, price, BUNDLER_ADDRESS, bundlerABI, registerSignature, addSignature, deadline, savedPublicKey, registerMetaData)
       const registerAccountTransactionHash = await glideClient.writeContract({
         account: address,
         chainId,
@@ -188,7 +191,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
     } catch (e) {
       if (e instanceof NoPaymentOptionsError) {
         setError(
-          "Wallet has no tokens to pay for transaction. Please add tokens to your wallet.",
+          "Wallet has no tokens to pay for transaction. Please add tokens to your wallet."
         );
         setIsPending(false);
         return;
@@ -200,29 +203,34 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       setIsPending(false);
       return;
     }
-  }
+  };
 
   const switchNetwork = async () => {
-    setError('')
+    setError("");
     try {
       const result = await switchChainAsync({
-        chainId
+        chainId,
       });
       if (result.id !== chainId) {
-        setError(`Expecting switch to ${chainId}.  Switched to ${result.id} instead.`);
+        setError(
+          `Expecting switch to ${chainId}.  Switched to ${result.id} instead.`
+        );
       } else {
         return true;
       }
     } catch (e: any) {
-      setError('You must switch networks to get available payment methods: '+  JSON.stringify(e))
+      setError(
+        "You must switch networks to get available payment methods: " +
+          JSON.stringify(e)
+      );
     }
     return false;
-  }
+  };
 
   const getSignatures = async () => {
     setIsPending(true);
 
-    if (isConnected && (chain?.id !== chainId)) {
+    if (isConnected && chain?.id !== chainId) {
       const isConnected = await switchNetwork();
       if (!isConnected) {
         return;
@@ -231,7 +239,6 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
 
     let signerPublicKey, signerPrivateKey;
     if (!pendingAccounts || pendingAccounts.length === 0) {
-      console.log('DEBUG found no pending account, creating a new one in DB')
       const { publicKey, privateKey } = await generateKeyPair();
       signerPublicKey = bytesToHexString(publicKey)._unsafeUnwrap();
       signerPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
@@ -253,7 +260,6 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
         return;
       }
     } else {
-      console.log('DEBUG has existing pending account, so using this one from DB', pendingAccounts[0].publicKey)
       signerPublicKey = pendingAccounts[0].publicKey!;
       signerPrivateKey = pendingAccounts[0].privateKey!;
       setPublicKey(pendingAccounts[0].publicKey);
@@ -276,8 +282,8 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
           recovery: WARPCAST_RECOVERY_PROXY,
           nonce,
           deadline: registerDeadline,
-        }
-      })
+        },
+      });
       if (!registerSignature) {
         throw new Error("No signature");
       }
@@ -285,9 +291,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       setRegisterSignature(registerSignature);
     } catch (e) {
       setIsPending(false);
-      setError(
-        `Error when trying to sign register: ${JSON.stringify(e)}`
-      );
+      setError(`Error when trying to sign register: ${JSON.stringify(e)}`);
       return;
     }
 
@@ -296,7 +300,7 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       signerPublicKey,
       registerDeadline
     );
-    
+
     setRegisterMetaData(metadata);
     try {
       const addSignature = await walletClient.data?.signTypedData({
@@ -314,10 +318,10 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
           metadata,
           nonce,
           deadline: registerDeadline,
-        }
+        },
       });
       setAddSignature(addSignature);
-      setAreTransactionsSigned(true);
+      setDidSignTransactions(true);
     } catch (e) {
       console.log("error when trying to sign add", e);
       setError(`Error when trying to sign add: ${e}`);
@@ -328,22 +332,27 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
   return (
     <div className="w-3/4 space-y-4">
       <p className="text-[0.8rem] text-muted-foreground">
-        Creating an account will require two wallet signatures and one on-chain transaction.{" "}
-        <br /><br />
+        Creating an account will require two wallet signatures and one on-chain
+        transaction. <br />
+        <br />
         You can pay for the transaction and Farcaster platform fee with ETH or
         other tokens on Base, Optimism, Arbitrum, Polygon, or Ethereum.
-        <br /><br />
+        <br />
+        <br />
         The yearly Farcaster platform fee at the moment is{" "}
-        {price && price > 0n
-          ? `~${parseFloat(formatEther(price)).toFixed(8)} ETH.`
-          : <Loading isInline={true} />}
+        {price && price > 0n ? (
+          `~${parseFloat(formatEther(price)).toFixed(8)} ETH.`
+        ) : (
+          <Loading isInline />
+        )}
       </p>
       <Separator />
       <p className="text-[0.8rem] text-muted-foreground">
-        First sign the transactions, this will then find the tokens that you can pay with.
+        First sign the transactions, this will then find the tokens that you can
+        pay with.
       </p>
-      {areTransactionsSigned
-        ? <PaymentSelector
+      {didSignTransactions ? (
+        <PaymentSelector
           registerPrice={price}
           chainId={chainId}
           registerSignature={registerSignature}
@@ -355,7 +364,8 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
           publicKey={savedPublicKey}
           setError={setError}
         />
-        : <Button
+      ) : (
+        <Button
           onClick={() => getSignatures()}
           disabled={isPending || !isAddressValid || !price}
         >
@@ -368,12 +378,14 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
               />
             </div>
           )}
-        </Button>}
-        
+        </Button>
+      )}
+
       {!isAddressValid && (
         <div className="flex flex-start items-center mt-2">
           <p className="text-wrap break-all	text-sm text-red-500">
-            The wallet address you are connected to already has an account. Go back and connect another address.
+            The wallet address you are connected to already has an account. Go
+            back and connect another address.
           </p>
         </div>
       )}
@@ -383,12 +395,12 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
       </p>
       <Button
         variant="outline"
-        disabled={!areTransactionsSigned || !paymentOption}
+        disabled={!didSignTransactions || !paymentOption}
         onClick={() => registerAccount()}
       >
         Pay & Register
       </Button>
-      {(!areTransactionsSigned && isPending) && (
+      {!didSignTransactions && isPending && (
         <Button
           variant="outline"
           className="ml-4"
@@ -404,14 +416,17 @@ const CreateFarcasterAccount = ({ onSuccess, isAddressValid }: { onSuccess?: () 
           </p>
         </div>
       )}
-      
 
       <div>
-        <a href="https://paywithglide.xyz" target="_blank" rel="noreferrer" className="text-sm cursor-pointer text-muted-foreground text-font-medium hover:underline hover:text-blue-500/70">
+        <a
+          href="https://paywithglide.xyz"
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm cursor-pointer text-muted-foreground text-font-medium hover:underline hover:text-blue-500/70"
+        >
           Payments powered by Glide
         </a>
       </div>
-
     </div>
   );
 };
