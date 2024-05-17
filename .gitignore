@@ -100,3 +100,6 @@ edgefunctions/supabase/.temp
 
 dist/
 .vercel
+
+# Sentry Config File
+.sentryclirc

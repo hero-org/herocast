@@ -1,18 +1,17 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import StepSequence from "@/common/components/Steps/StepSequence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAccount, useReadContract } from "wagmi";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { useAccount } from "wagmi";
+import { NeynarAPIClient, convertToV2User } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
 import SharedAccountOwnershipSetup from "@/common/components/SharedAccountOwnershipSetup";
 import TransferAccountToHatsDelegator from "@/common/components/TransferAccountToHatsDelegator";
 import { openWindow } from "@/common/helpers/navigation";
-import { ID_REGISTRY } from "../../src/common/constants/contracts/id-registry";
 import isEmpty from "lodash.isempty";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { Loading } from "@/common/components/Loading";
@@ -70,11 +69,16 @@ export default function HatsProtocolPage() {
   const shareWithOthersText = `Join my shared Farcaster account with delegator contract
   address ${delegatorContractAddress} and FID ${accountToTransfer?.fid}`;
 
-  const { data: fidOfUser, error: idOfUserError } = useReadContract({
-    ...ID_REGISTRY,
-    functionName: address ? "idOf" : undefined,
-    args: address ? [address] : undefined,
-  });
+  const getUserByFid = async (fid: number): Promise<User | undefined> => {
+    const neynarClient = new NeynarAPIClient(
+      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+    );
+    const viewerFid = Number(APP_FID);
+    const res = await neynarClient.fetchBulkUsers([fid], {
+      viewerFid,
+    });
+    return res?.users?.[0];
+  };
 
   const fetchUser = async () => {
     if (!userInput) return;
@@ -85,19 +89,32 @@ export default function HatsProtocolPage() {
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
 
+      const viewerFid = Number(APP_FID);
       let fid: number | undefined;
       const isNumeric = /^-?\d+$/.test(userInput);
       if (isNumeric) {
         fid = Number(userInput);
-        const res = await neynarClient.fetchBulkUsers([fid], {
-          viewerFid: Number(APP_FID),
-        });
-        console.log("res", res);
-        setAccountToTransfer(res?.users?.[0]);
+        setAccountToTransfer(await getUserByFid(fid));
       } else {
-        const res = await neynarClient.searchUser(userInput, parseInt(APP_FID));
-        console.log("res", res);
-        setAccountToTransfer(res.result?.users?.[0]);
+        const userSearchTerm = userInput.replace("@", "").trim();
+        let user: User | undefined;
+        try {
+          const userByUsername = await neynarClient.lookupUserByUsername(
+            userSearchTerm,
+            viewerFid
+          );
+          if (userByUsername?.result?.user) {
+            user = convertToV2User(userByUsername.result.user);
+          }
+        } catch (error) {
+          /* neynar throws if lookupUserByUsername fails, but it's okay */
+        }
+
+        if (!user) {
+          const res = await neynarClient.searchUser(userSearchTerm, viewerFid);
+          user = res?.result?.users?.[0];
+        }
+        setAccountToTransfer(user);
       }
     } catch (error) {
       console.error(error);
@@ -126,7 +143,7 @@ export default function HatsProtocolPage() {
     <div className="flex flex-col space-y-2">
       <div className="flex items-center space-x-2">
         <Input
-          className="w-72"
+          className="w-72 h-9"
           placeholder="herocast"
           value={userInput}
           onChange={(e) => {

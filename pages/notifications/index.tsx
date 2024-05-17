@@ -8,10 +8,11 @@ import { CastThreadView } from "../../src/common/components/CastThreadView";
 import isEmpty from "lodash.isempty";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
-import { CastType } from "../../src/common/constants/farcaster";
 import ReplyModal from "../../src/common/components/ReplyModal";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { useDataStore } from "@/stores/useDataStore";
+import { Loading } from "@/common/components/Loading";
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
@@ -70,6 +71,7 @@ const Notifications = () => {
   );
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [selectedCast, setSelectedCast] = useState<CastType | null>(null);
+  const { updateSelectedCast } = useDataStore();
 
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId
@@ -190,7 +192,7 @@ const Notifications = () => {
           <div className="flex items-center justify-between gap-x-4">
             <p className="text-sm font-semibold leading-6 text-foreground/80">
               {item.author.username}
-              <span className="ml-1 text-foreground/70">
+              <span className="ml-1 text-foreground/70 break-words">
                 {item.type === NotificationTypeEnum["cast-reply"]
                   ? "replied"
                   : "mentioned you"}
@@ -213,43 +215,36 @@ const Notifications = () => {
 
   const renderLeftColumn = () => {
     return (
-      <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
-        <div
-          className={classNames(
-            "overflow-hidden rounded-sm border bg-background",
-            isLeftColumnSelected ? "border-gray-400" : "border-gray-800"
-          )}
-        >
-          <div className="divide-y divide-white/5">
-            <SelectableListWithHotkeys
-              data={notifications}
-              selectedIdx={selectedNotificationIdx}
-              setSelectedIdx={setSelectedNotificationIdx}
-              renderRow={(item: NotificationType, idx: number) =>
-                renderNotificationRow(item, idx)
-              }
-              onSelect={(idx) => setSelectedNotificationIdx(idx)}
-              onExpand={() => null}
-              isActive={isLeftColumnSelected && !showReplyModal}
-              disableScroll
-            />
-          </div>
-        </div>
+      <div className="divide-y divide-white/5">
+        <SelectableListWithHotkeys
+          data={notifications}
+          selectedIdx={selectedNotificationIdx}
+          setSelectedIdx={setSelectedNotificationIdx}
+          renderRow={(item: NotificationType, idx: number) =>
+            renderNotificationRow(item, idx)
+          }
+          onSelect={(idx) => setSelectedNotificationIdx(idx)}
+          onExpand={() => null}
+          isActive={isLeftColumnSelected && !showReplyModal}
+          disableScroll
+        />
       </div>
     );
   };
 
   const renderMainContent = () => {
     return !isEmpty(selectedParentCast) ? (
-      <div className="mt-2">
+      <div className="">
         <CastThreadView
           cast={{
             hash: selectedParentCast.hash,
             author: selectedParentCast.author,
           }}
-          fid={viewerFid}
           isActive={!isLeftColumnSelected}
-          setSelectedCast={setSelectedCast}
+          setSelectedCast={(cast) => {
+            setSelectedCast(cast);
+            updateSelectedCast(cast);
+          }}
           setShowReplyModal={setShowReplyModal}
         />
       </div>
@@ -264,13 +259,11 @@ const Notifications = () => {
         notification?.parentHash ||
         notification?.hash;
 
-      // getParentCast(hash)
-
       const author = notification?.author;
       if (!hash) return;
 
       setSelectedParentCast({ hash, author });
-      setSelectedCast(notification as CastType);
+      setSelectedCast(notification);
     }
   }, [selectedNotificationIdx, isLoading]);
 
@@ -284,18 +277,26 @@ const Notifications = () => {
 
   return (
     <div className="flex min-h-screen min-w-full flex-col">
-      {/* {renderHeader()} */}
       {isLoading && (
         <div className="text-foreground flex-1 flex items-center justify-center">
-          <div className="loader">Loading...</div>
+          <Loading />
         </div>
       )}
       {navigation === NotificationNavigationEnum.mentions ? (
         <div className="mx-auto flex w-full max-w-7xl items-start">
-          {renderLeftColumn()}
+          <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
+            <div
+              className={classNames(
+                "overflow-hidden rounded-sm border",
+                isLeftColumnSelected ? "border-gray-400" : "border-gray-800"
+              )}
+            >
+              {renderLeftColumn()}
+            </div>
+          </div>
           <main
             className={classNames(
-              "hidden md:block flex-1 ml-4 border",
+              "hidden md:block flex-1 border-r border-t",
               !isLeftColumnSelected ? "border-gray-400" : "border-gray-800"
             )}
           >

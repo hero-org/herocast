@@ -8,6 +8,7 @@ const SwitchWalletButton = () => {
   const { disconnect } = useDisconnect();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
+  
   const { address, isConnected } = useAccount();
   const [isClient, setIsClient] = useState<boolean>(false);
 
@@ -29,7 +30,10 @@ const SwitchWalletButton = () => {
         onClick={() => openConnectModal?.() || openAccountModal?.()}
       >
         {`${
-          isClient && isConnected ? `Connected to ${address}` : "Connect wallet"
+          isClient && isConnected ? `Connected to ${address.substring(
+          0,
+          6
+        )}...${address.substring(address.length - 4, address.length)}` : "Connect wallet"
         }`}
       </Button>
     </div>

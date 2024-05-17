@@ -14,14 +14,6 @@ const mainnetHttp = http(
   `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
 );
 
-// export const wagmiConfig = createConfig({
-//   chains: [optimism, mainnet],
-//   transports: {
-//     [optimism.id]: optimismHttp,
-//     [mainnet.id]: mainnetHttp,
-//   },
-// });
-
 export const publicClient = createPublicClient({
   chain: optimism,
   transport: optimismHttp,

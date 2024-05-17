@@ -81,7 +81,7 @@ export type AccountObjectType = {
   platformAccountId?: string;
   privateKey?: `0x${string}`;
   createdAt?: string;
-  data?: { deeplinkUrl?: string, signerToken?: string };
+  data?: { deeplinkUrl?: string, signerToken?: string, deadline?: number };
   channels: AccountChannelType[];
   user?: User;
 }
@@ -100,7 +100,7 @@ interface AccountStoreActions {
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => void;
   updateAccountUsername: (accountId: UUID) => void;
-  removeAccount: (idx: number) => void;
+  removeAccount: (id: string) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setSelectedChannelUrl: (url: string | null) => void;
   setSelectedChannelByName: (name: string) => void;
@@ -141,6 +141,7 @@ const store = (set: StoreSet) => ({
       });
       return;
     } else {
+      console.log('adding account to DB', account)
       await supabaseClient
         .from('accounts')
         .insert({
@@ -210,17 +211,18 @@ const store = (set: StoreSet) => ({
     });
     await new Promise(resolve => setTimeout(resolve, 500)); // sleep to avoid rate limiting
   },
-  removeAccount: (idx: number) => {
-    set(async (state) => {
-      await supabaseClient
-        .from('accounts')
-        .update({ status: AccountStatusType.removed })
-        .eq('id', state.accounts[idx].id)
-        .select()
-        .then(({ error, data }) => {
-          // console.log('response removeAccount - data', data, 'error', error);
-        });
+  removeAccount: async (id: string) => {
+    await supabaseClient
+      .from('accounts')
+      .update({ status: AccountStatusType.removed })
+      .eq('id', id)
+      .select()
+      .then(({ error, data }) => {
+        console.log('removeAccount - data', data, 'error', error);
+      });
 
+    set((state) => {
+      const idx = state.accounts.findIndex((account) => account.id === id);
       const copy = [...state.accounts];
       copy.splice(idx, 1);
       state.accounts = copy;
@@ -463,14 +465,18 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
-      accounts = accounts.map((account) => {
-        const user = users.find((user) => user.fid === Number(account.platformAccountId));
-        if (user) {
-          account.user = user;
-        }
-        return account;
-      });
+      try {
+        const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
+        accounts = accounts.map((account) => {
+          const user = users.find((user) => user.fid === Number(account.platformAccountId));
+          if (user) {
+            account.user = user;
+          }
+          return account;
+        });
+      } catch (e) {
+        console.log('error failed to fetch user metadata', e);
+      }
     }
     return accounts;
   }

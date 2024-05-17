@@ -155,3 +155,15 @@ reminder: key is an edcsa key not a 'normal' EVM address
 
 ## Testing Transactions
 Running transaction testing on a test network is critical for making sure transactions work as intended before they are used on live servers.
+
+## License
+
+Distributed under the AGPLv3 License. See LICENSE for more information.
+
+## Contact
+
+hellno [Warpcast](https://warpcast.com/hellno.eth)
+
+Website: https://herocast.xyz
+
+Github: https://github.com/hellno/herocast

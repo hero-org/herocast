@@ -34,6 +34,7 @@ import { PhotoIcon } from "@heroicons/react/20/solid";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { ChannelList } from "./ChannelList";
+import isEmpty from "lodash.isempty";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -87,7 +88,13 @@ export default function NewPostEntry({
   const { updatePostDraft, publishPostDraft } = useNewPostStore();
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const hasEmbeds = draft?.embeds && draft.embeds.length > 0;
+  const [initialText, setInitialText] = React.useState<string>();
 
+  useEffect(() => {
+    if (draft?.text && isEmpty(draft.mentionsToFids)) {
+      setInitialText(draft.text);
+    }
+  }, []);
   // const getChannels = async (query: string): Promise<Channel[]> => {
   //   const modChannels =
   //     query && query.length > 2
@@ -100,10 +107,6 @@ export default function NewPostEntry({
     (state) => state.accounts[state.selectedAccountIdx]
   );
   const isReply = draft?.parentCastId !== undefined;
-
-  const onChange = (cast: DraftType) => {
-    updatePostDraft(draftIdx, cast);
-  };
 
   const onSubmitPost = async (): Promise<boolean> => {
     if (draft?.text && draft.text.length > 0) {
@@ -130,6 +133,7 @@ export default function NewPostEntry({
     handleSubmit,
     setText,
   } = useEditor({
+    initialText,
     fetchUrlMetadata: getUrlMetadata,
     onError,
     onSubmit: onSubmitPost,
@@ -149,19 +153,13 @@ export default function NewPostEntry({
   const channel = getChannel();
 
   useEffect(() => {
-    onChange({
+    updatePostDraft(draftIdx, {
       ...draft,
       text,
       embeds,
       parentUrl: channel?.parent_url || undefined,
     });
   }, [text, embeds, channel]);
-
-  useEffect(() => {
-    if (draft.text !== text) {
-      setText(draft.text);
-    }
-  }, [draft.text, draftIdx]);
 
   return (
     <div
@@ -200,7 +198,6 @@ export default function NewPostEntry({
             }}
           >
             <PopoverTrigger></PopoverTrigger>
-            {/* <ModsSearch mods={creationMods} onSelect={setCurrentMod} /> */}
             <PopoverContent className="w-[400px]" align="start">
               <div className="space-y-4">
                 <h4 className="font-medium leading-none">{currentMod?.name}</h4>
@@ -209,7 +206,6 @@ export default function NewPostEntry({
                   input={getText()}
                   embeds={getEmbeds()}
                   api={API_URL}
-                  // user={user}
                   variant="creation"
                   manifest={currentMod}
                   renderers={renderers}
@@ -226,11 +222,16 @@ export default function NewPostEntry({
             onClick={() => setCurrentMod(creationMods[0])}
           >
             <PhotoIcon className="mr-1 w-5 h-5" />
-            Add image
+            Add
           </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
-          <Button type="submit">Cast</Button>
+          <Button variant="outline" onClick={onPost}>
+            Remove
+          </Button>
+          <Button type="submit" className="line-clamp-1 w-40 truncate">
+            Cast{account ? ` as ${account.name}` : ""}
+          </Button>
         </div>
       </form>
       {hasEmbeds && (

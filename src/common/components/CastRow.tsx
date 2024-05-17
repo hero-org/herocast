@@ -25,27 +25,25 @@ import Linkify from "linkify-react";
 import { ErrorBoundary } from "@sentry/react";
 import { renderEmbedForUrl } from "./Embeds";
 import ProfileHoverCard from "./ProfileHoverCard";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1/openapi/models/cast-with-interactions";
-import FrameEmbed from "./Embeds/FrameEmbed";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { registerPlugin } from "linkifyjs";
 import CashtagHoverCard from "./CashtagHoverCard";
 import mentionPlugin, {
   cashtagPlugin,
   channelPlugin,
 } from "../helpers/linkify";
-import { toast } from "sonner";
 import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
-import Image from "next/image";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
 registerPlugin("channel", channelPlugin);
 
 interface CastRowProps {
-  cast: CastWithInteractions | CastType;
+  cast: CastWithInteractions;
   showChannel?: boolean;
   onSelect?: () => void;
+  onReply?: () => void;
   isSelected?: boolean;
   isThreadView?: boolean;
   disableEmbeds?: boolean;
@@ -143,8 +141,9 @@ export const CastRow = ({
   isSelected,
   showChannel,
   onSelect,
-  isThreadView = false,
+  onReply,
   disableEmbeds = false,
+  isThreadView = false,
 }: CastRowProps) => {
   const {
     accounts,
@@ -162,7 +161,6 @@ export const CastRow = ({
   const canSendReaction =
     selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
   const now = new Date();
-  const hasFrame = cast.frames && cast.frames.length > 0;
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
@@ -260,7 +258,7 @@ export const CastRow = ({
   };
 
   const onClickReaction = async (key: CastReactionType, isActive: boolean) => {
-    if (key !== CastReactionType.recasts && key !== CastReactionType.likes) {
+    if (key === CastReactionType.links) {
       return;
     }
 
@@ -271,11 +269,15 @@ export const CastRow = ({
     }
 
     if (!canSendReaction) {
-      toastInfoReadOnlyMode()
+      toastInfoReadOnlyMode();
       return;
     }
 
     try {
+      if (key === CastReactionType.replies) {
+        onReply?.();
+        return;
+      }
       const reactionBodyType: "like" | "recast" =
         key === CastReactionType.likes ? "like" : "recast";
       const reaction = {
@@ -367,25 +369,45 @@ export const CastRow = ({
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
             );
+          } else if (key === "replies" && isSelected) {
+            return (
+              <Tooltip.Provider
+                key={`cast-${cast.hash}-${key}-${reaction}`}
+                delayDuration={50}
+                skipDelayDuration={0}
+              >
+                <HotkeyTooltipWrapper hotkey="R" side="bottom">
+                  {reaction}
+                </HotkeyTooltipWrapper>
+              </Tooltip.Provider>
+            );
           } else {
             return reaction;
           }
         })}
         {linksCount && !isOnchainLink ? (
-          <a
-            tabIndex={-1}
-            href={cast.embeds[0].url}
-            target="_blank"
-            rel="noreferrer"
-            className="cursor-pointer"
+          <Tooltip.Provider
+            key={`cast-${cast.hash}-link`}
+            delayDuration={50}
+            skipDelayDuration={0}
           >
-            {renderReaction(
-              CastReactionType.links,
-              linksCount > 1,
-              linksCount ?? undefined,
-              getIconForCastReactionType(CastReactionType.links)
-            )}
-          </a>
+            <HotkeyTooltipWrapper hotkey="O" side="bottom">
+              <a
+                tabIndex={-1}
+                href={cast.embeds[0].url}
+                target="_blank"
+                rel="noreferrer"
+                className="cursor-pointer"
+              >
+                {renderReaction(
+                  CastReactionType.links,
+                  linksCount > 1,
+                  linksCount ?? undefined,
+                  getIconForCastReactionType(CastReactionType.links)
+                )}
+              </a>
+            </HotkeyTooltipWrapper>
+          </Tooltip.Provider>
         ) : null}
       </div>
     );
@@ -407,7 +429,8 @@ export const CastRow = ({
     ) : null;
 
   const renderEmbeds = () =>
-    cast.embeds && cast.embeds.length > 0 && (
+    cast.embeds &&
+    cast.embeds.length > 0 && (
       <div className="mt-4">
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
@@ -419,8 +442,19 @@ export const CastRow = ({
       </div>
     );
 
-  const renderFrame = () =>
-    hasFrame ? <FrameEmbed cast={cast} isSelected={isSelected} /> : null;
+  const renderRecastBadge = () => {
+    const shouldShowBadge =
+      cast?.inclusion_context &&
+      cast?.inclusion_context?.is_following_recaster &&
+      !cast?.inclusion_context?.is_following_author;
+
+    if (!shouldShowBadge) return null;
+    return (
+      <span className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-gray-400/10 px-1.5 py-0.5 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-400/30">
+        <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+      </span>
+    );
+  };
 
   const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
   const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
@@ -432,14 +466,15 @@ export const CastRow = ({
       <div
         onClick={() => onSelect && onSelect()}
         className={classNames(
-          "py-4 px-2 md:pl-4 lg:pl-6",
-          isSelected ? "bg-foreground/5" : "cursor-pointer",
+          "py-4 px-2",
+          isSelected ? "bg-foreground/10" : "cursor-pointer",
           isSelected
             ? "border-l-1 border-foreground/10"
             : "border-l-1 border-transparent",
           "lg:ml-0 grow rounded-r-sm"
         )}
       >
+        {isThreadView && <div className="absolute bg-foreground/10 -ml-2 mt-[1.2rem] h-[1.5px] w-4" />}
         <div className="flex items-top gap-x-4">
           <img
             className="relative h-10 w-10 flex-none bg-background rounded-full"
@@ -448,16 +483,21 @@ export const CastRow = ({
           <div className="flex flex-col w-full">
             <div className="flex flex-row justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
-                <ProfileHoverCard
-                  fid={cast.author.fid}
-                  viewerFid={userFid}
-                >
+                <ProfileHoverCard fid={cast.author.fid} viewerFid={userFid}>
                   <span className="flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                     {cast.author.display_name || cast.author.displayName}
                     <span className="hidden font-normal lg:ml-1 lg:block">
                       (@{cast.author.username})
                     </span>
-                    <span>{cast.author.power_badge && <img src="/images/ActiveBadge.webp" className="ml-2 mt-0.5 h-[17px] w-[17px]" alt="power badge" />}</span>
+                    <span>
+                      {cast.author.power_badge && (
+                        <img
+                          src="/images/ActiveBadge.webp"
+                          className="ml-2 mt-0.5 h-[17px] w-[17px]"
+                          alt="power badge"
+                        />
+                      )}
+                    </span>
                   </span>
                 </ProfileHoverCard>
                 {showChannel && channel && (
@@ -465,6 +505,7 @@ export const CastRow = ({
                     {channel.name}
                   </span>
                 )}
+                {renderRecastBadge()}
               </div>
               <div className="flex flex-row">
                 {cast.timestamp && (
@@ -473,9 +514,7 @@ export const CastRow = ({
                   </span>
                 )}
                 <a
-                  href={`https://warpcast.com/${
-                    cast.author.username
-                  }/${cast.hash.slice(0, 8)}`}
+                  href={`${process.env.NEXT_PUBLIC_URL}/cast/${cast.hash}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm leading-5 text-foreground/50"
@@ -494,8 +533,7 @@ export const CastRow = ({
               </div>
             </div>
             {renderCastReactions(cast)}
-            {!disableEmbeds && !hasFrame && renderEmbeds()}
-            {renderFrame()}
+            {!disableEmbeds && renderEmbeds()}
           </div>
         </div>
       </div>

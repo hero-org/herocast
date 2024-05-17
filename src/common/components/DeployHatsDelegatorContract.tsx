@@ -8,15 +8,33 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAccount, useSignTypedData, useWalletClient } from "wagmi";
+import {
+  useAccount,
+  useSignTypedData,
+  useSwitchChain,
+  useWalletClient,
+} from "wagmi";
 import { Input } from "@/components/ui/input";
-import { ID_GATEWAY_ADDRESS, KEY_GATEWAY_ADDRESS, KEY_REGISTRY_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, idRegistryABI } from "@farcaster/hub-web";
+import {
+  ID_GATEWAY_ADDRESS,
+  KEY_GATEWAY_ADDRESS,
+  KEY_REGISTRY_ADDRESS,
+  SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
+  idRegistryABI,
+} from "@farcaster/hub-web";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { ID_REGISTRY_ADDRESS } from "@farcaster/hub-web";
 import { publicClient } from "@/common/helpers/rainbowkit";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { z } from "zod";
-import { Address, getAddress, hexToBigInt, parseEventLogs, toHex, zeroAddress } from "viem";
+import {
+  Address,
+  getAddress,
+  hexToBigInt,
+  parseEventLogs,
+  toHex,
+  zeroAddress,
+} from "viem";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -39,9 +57,9 @@ import { HatsModuleFactoryAbi } from "@/common/constants/contracts/HatsModuleFac
 import { AddressSchema } from "@hatsprotocol/modules-sdk/dist/schemas";
 import { optimismChainId } from "../helpers/env";
 
-const HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS: `0x${string}` = '0xa947334c33dadca4bcbb396395ecfd66601bb38c';
+const HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS: `0x${string}` =
+  "0xa947334c33dadca4bcbb396395ecfd66601bb38c";
 // const HATS_MODULE_FACTORY_ADDRESS: `0x${string}` = '0xfE661c01891172046feE16D3a57c3Cf456729efA';
-
 
 enum DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS {
   "CONNECT_WALLET",
@@ -116,17 +134,18 @@ const DeployHatsDelegatorContract = ({
     useState<`0x${string}`>("0x");
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
-    defaultValues: {
-    },
+    defaultValues: {},
   });
   const walletClient = useWalletClient({
     chainId: optimismChainId,
   });
-  const { address } = useAccount();
-
+  const { address, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
   const transactionResult = useWaitForTransactionReceipt({
     hash: onchainTransactionHash,
   });
+
+  const canSubmitForm = chainId === optimism.id && !!address;
 
   useEffect(() => {
     if (onchainTransactionHash === "0x") return;
@@ -150,12 +169,15 @@ const DeployHatsDelegatorContract = ({
     // const casterHatId = hexToBigInt(form.getValues().casterHatId as `0x${string}`);
     // const adminHatId = hexToBigInt(form.getValues().adminHatId as `0x${string}`);
     const { casterHatId, adminHatId } = form.getValues();
-    const immutableArgs = [BigInt(adminHatId), ID_GATEWAY_ADDRESS, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, KEY_REGISTRY_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS];
+    const immutableArgs = [
+      BigInt(adminHatId),
+      ID_GATEWAY_ADDRESS,
+      ID_REGISTRY_ADDRESS,
+      KEY_GATEWAY_ADDRESS,
+      KEY_REGISTRY_ADDRESS,
+      SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
+    ];
     const mutableArgs = [zeroAddress];
-
-    console.log("form.getValues()", form.getValues());
-    console.log("immutableArgs", immutableArgs);
-
 
     const hatsModulesClient = new HatsModulesClient({
       publicClient,
@@ -229,9 +251,21 @@ const DeployHatsDelegatorContract = ({
             </FormItem>
           )}
         />
-        <Button variant="default" type="submit">
-          Deploy contract
-        </Button>
+        <div className="flex flex-row gap-x-2">
+          <Button variant="default" type="submit" disabled={!canSubmitForm}>
+            Deploy contract
+          </Button>
+          {chainId !== optimism.id && (
+            <Button
+              type="button"
+              variant="default"
+              className=""
+              onClick={() => switchChain?.({ chainId: optimism.id })}
+            >
+              Switch to OP mainnet
+            </Button>
+          )}
+        </div>
       </form>
     </Form>
   );
@@ -256,7 +290,7 @@ const DeployHatsDelegatorContract = ({
       case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.EXECUTE_ONCHAIN:
         return (
           <div className="flex flex-col">
-            <div className="w-2/3">{renderForm()}</div>
+            <div className="w-full">{renderForm()}</div>
           </div>
         );
       case DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.CONFIRMED:

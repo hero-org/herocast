@@ -6,7 +6,7 @@ export const QrCode = ({ deepLink }: { deepLink: string }) => {
   return (
     <div className="mt-2">
       <QRCode value={deepLink} />
-      <p className="mt-4 flex flex-col text-md max-w-fit">
+      <div className="mt-4 flex flex-col text-md max-w-fit">
         <span className="text-foreground/70 space-y-4">
           Problems scanning QR code? Open this link in your Warpcast app:{" "}
           <a
@@ -19,7 +19,7 @@ export const QrCode = ({ deepLink }: { deepLink: string }) => {
           </a>
           <ClickToCopyText text={deepLink} />
         </span>
-      </p>
+      </div>
     </div>
   );
 };
