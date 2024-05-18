@@ -30,6 +30,7 @@ export const config = getDefaultConfig({
   chains: isDev()
     ? [mainnet, Chains.OptimismTestnet, Chains.BaseTestnet]
     : [optimism, mainnet, base, arbitrum, polygon],
+  ssr: true,
 });
 
 export const rainbowKitTheme = midnightTheme({
