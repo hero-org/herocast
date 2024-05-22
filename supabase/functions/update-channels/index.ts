@@ -18,6 +18,12 @@ type ChannelType = {
   name: string;
   source: string;
   icon_url: string | null;
+  description: string | null;
+  data: {
+    leadFid?: string | null;
+    moderatorFid?: string | null;
+    followerCount?: number | null;
+  } | null;
 }
 
 serve(async (req) => {
@@ -50,6 +56,7 @@ serve(async (req) => {
       name: channel.channel_name,
       icon_url: channel.token_metadata?.image && channel.token_metadata?.itemMediaType == 2 ? channel.token_metadata?.image : null,
       source: `${channel.username} on Hypeshot`,
+      description: channel.description || null
     })));
 
     const resWarpcast = await (await fetch(WARPCAST_CHANNELS_ENDPOINT, {
@@ -66,6 +73,12 @@ serve(async (req) => {
       name: channel.name,
       icon_url: channel.imageUrl,
       source: 'Warpcast',
+      description: channel.description || null,
+      data: channel.leadFid || channel.followerCount || channel.moderatorFid ? {
+        leadFid: channel.leadFid || undefined,
+        moderatorFid: channel.moderatorFid || undefined,
+        followerCount: channel.followerCount || undefined
+      } : null,
     })));
 
     let existingChannels = [];
