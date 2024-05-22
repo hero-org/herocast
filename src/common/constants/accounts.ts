@@ -10,3 +10,8 @@ export enum AccountPlatformType {
   farcaster_hats_protocol = "farcaster-hats-protocol",
   farcaster_local_readonly = "farcaster-local-readonly",
 }
+
+export const framesJsAccountStatusMap = {
+  pending: "pending_approval",
+  active: "approved",
+};

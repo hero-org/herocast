@@ -462,14 +462,18 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
-      accounts = accounts.map((account) => {
-        const user = users.find((user) => user.fid === Number(account.platformAccountId));
-        if (user) {
-          account.user = user;
-        }
-        return account;
-      });
+      try {
+        const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
+        accounts = accounts.map((account) => {
+          const user = users.find((user) => user.fid === Number(account.platformAccountId));
+          if (user) {
+            account.user = user;
+          }
+          return account;
+        });
+      } catch (e) {
+        console.log('error failed to fetch user metadata', e);
+      }
     }
     return accounts;
   }

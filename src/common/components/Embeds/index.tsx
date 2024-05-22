@@ -8,6 +8,7 @@ import OpenGraphImage from "./OpenGraphImage";
 import { isImageUrl } from "@/common/helpers/text";
 import VideoEmbed from "./VideoEmbed";
 import { WarpcastImage } from "../PostEmbeddedContent";
+import FrameEmbed from "./FrameEmbed";
 
 type CastEmbed = {
   url?: string;
@@ -18,13 +19,15 @@ type CastEmbed = {
 };
 
 export const renderEmbedForUrl = ({ url, cast_id }: CastEmbed) => {
-
   if (cast_id) {
     return <CastEmbed castId={cast_id} />;
   }
   if (!url) return null;
 
-  if (url.includes("i.imgur.com") || url.startsWith('https://imagedelivery.net')) {
+  if (
+    url.includes("i.imgur.com") ||
+    url.startsWith("https://imagedelivery.net")
+  ) {
     return <WarpcastImage url={url} />;
   } else if (url.startsWith('"chain:')) {
     return <OnchainEmbed url={url} />;
@@ -43,7 +46,7 @@ export const renderEmbedForUrl = ({ url, cast_id }: CastEmbed) => {
   } else if (url.includes("paragraph.xyz") || url.includes("pgrph.xyz")) {
     return <ParagraphXyzEmbed url={url} />;
   } else if (!isImageUrl(url)) {
-    return <OpenGraphImage url={url} />;
+    return <FrameEmbed url={url} />;
   } else {
     return null;
   }

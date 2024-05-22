@@ -26,8 +26,9 @@
     "incremental": true,
     "types": [
       "node",
-      "react/next",
-      "react-dom/next"
+      "react",
+      "react-dom",
+      "next"
     ],
     "baseUrl": ".",
     "paths": {

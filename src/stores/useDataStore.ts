@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
+export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
 type TokenInfo = {
   imageUrl: string;
@@ -76,8 +77,7 @@ export type DexPair = {
 };
 
 type addUserProfileProps = {
-  username: string;
-  data: User;
+  user: User;
 };
 
 type addTokenDataProps = {
@@ -86,13 +86,15 @@ type addTokenDataProps = {
 };
 
 interface DataStoreProps {
-  usernameToData: Record<string, User>;
-  fidToData: Record<number, User>,
+  selectedCast?: CastWithInteractions;
+  usernameToFid: Record<string, number>;
+  fidToData: Record<number, User & { updatedAt: number }>,
   tokenSymbolToData: Record<string, DexPair>;
 }
 
 interface DataStoreActions {
-  addUserProfile: ({ username, data }: addUserProfileProps) => void;
+  updateSelectedCast: (cast: CastWithInteractions) => void;
+  addUserProfile: ({ user }: addUserProfileProps) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
 }
 
@@ -104,13 +106,20 @@ export const mutative = (config) =>
 type StoreSet = (fn: (draft: Draft<DataStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
-  usernameToData: {},
+  selectedCast: null,
+  usernameToFid: {},
   fidToData: {},
   tokenSymbolToData: {},
-  addUserProfile: ({ username, data }: addUserProfileProps) => {
+  updateSelectedCast: (cast: CastWithInteractions) => {
     set((state) => {
-      state.usernameToData = { ...state.usernameToData, ...{ [username]: data } };
-      state.fidToData = { ...state.fidToData, ...{ [data.fid]: data } };
+      state.selectedCast = cast;
+    });
+  },
+  addUserProfile: ({ user }: addUserProfileProps) => {
+    set((state) => {
+      state.usernameToFid = { ...state.usernameToFid, ...{ [user.username]: user.fid } };
+      const userObject = { ...user, updatedAt: Date.now() };
+      state.fidToData = { ...state.fidToData, ...{ [user.fid]: userObject } };
     });
   },
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => {

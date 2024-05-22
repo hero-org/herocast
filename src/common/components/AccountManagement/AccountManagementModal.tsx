@@ -5,7 +5,7 @@ import AccountManagement from "./AccountManagement";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 type AccountManagementModalProps = {
   account: AccountObjectType;

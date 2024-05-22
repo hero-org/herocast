@@ -29,3 +29,15 @@ a protocol for decentralized social apps: https://www.farcaster.xyz
 
 ### DB scheme: accounts
 reminder: key is an edcsa key not a 'normal' EVM address
+
+## License
+
+Distributed under the AGPLv3 License. See LICENSE for more information.
+
+## Contact
+
+hellno [Warpcast](https://warpcast.com/hellno.eth)
+
+Website: https://herocast.xyz
+
+Github: https://github.com/hellno/herocast

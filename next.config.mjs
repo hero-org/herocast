@@ -14,8 +14,12 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
+        hostname: "*",
+        protocol: "http",
+      },
+      {
+        hostname: "*",
+        protocol: "https",
       },
     ],
   },
@@ -23,6 +27,11 @@ const nextConfig = {
     return [
       {
         source: '/demo',
+        destination: '/login',
+        permanent: true,
+      },
+      {
+        source: '/',
         destination: '/login',
         permanent: true,
       },
