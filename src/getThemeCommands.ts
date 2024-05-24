@@ -2,7 +2,7 @@
 import { CommandType } from './common/constants/commands';
 import { ArrowPathRoundedSquareIcon, ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/20/solid';
 
-export const getThemeCommands = (theme: string, setTheme: (theme: string) => void): CommandType[] => (
+export const getThemeCommands = (theme?: string, setTheme?: (theme: string) => void): CommandType[] => theme && setTheme ? (
     [
         {
             name: 'Switch to Light Theme',
@@ -35,4 +35,4 @@ export const getThemeCommands = (theme: string, setTheme: (theme: string) => voi
             }
         }
     ]
-)
+) : [];

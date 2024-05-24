@@ -61,6 +61,9 @@ const FrameEmbed = ({ url }: FrameArgs) => {
     },
   });
 
+  if (!frameState || !frameState.frame || !('frame' in frameState.frame)) {
+    return null;
+  }
   const { status, frame } = frameState?.frame?.frame ?? {};
   const hasFrameError = status === "failure";
   if (hasFrameError) {

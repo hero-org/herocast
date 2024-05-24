@@ -26,6 +26,8 @@ import SwitchWalletButton from "./SwitchWalletButton";
 import { ID_REGISTRY } from "../constants/contracts/id-registry";
 import { Label } from "@/components/ui/label";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { Chains } from "@paywithglide/glide-js";
+import { optimismChainId } from "../helpers/env";
 
 const readNonces = async (account: `0x${string}`) => {
   if (!account) return BigInt(0);
@@ -144,7 +146,7 @@ const TransferAccountToHatsDelegator = ({
   const [onchainTransactionHash, setOnchainTransactionHash] =
     useState<`0x${string}`>("0x");
 
-  const fid = BigInt(user.fid!);
+  const fid = BigInt(user.fid);
 
   const { signTypedDataAsync } = useSignTypedData();
 
@@ -159,7 +161,7 @@ const TransferAccountToHatsDelegator = ({
   } = useReadContract({
     address: toAddress,
     abi: HatsFarcasterDelegatorAbi,
-    chainId: 10,
+    chainId: optimismChainId,
     functionName: toAddress ? "receivable" : undefined,
     args: toAddress ? [fid] : undefined,
   });
@@ -257,7 +259,7 @@ const TransferAccountToHatsDelegator = ({
     if (!address) return;
 
     const hasConnectedValidSignerAddress = await isValidSigner(
-      toAddress!,
+      toAddress,
       SIGNED_KEY_REQUEST_TYPEHASH,
       address
     );
