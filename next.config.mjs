@@ -42,20 +42,19 @@ const nextConfig = {
     ]
   },
 }
-export default nextConfig;
 
-// export default withSentryConfig(nextConfig,
-//   {
-//     silent: true,
-//     org: "herocast-xyz",
-//     project: "herocast",
-//   }, {
-//   // For all available options, see:
-//   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+export default withSentryConfig(nextConfig,
+  {
+    silent: true,
+    org: "herocast-xyz",
+    project: "herocast",
+  }, {
+  // For all available options, see:
+  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-//   // Upload a larger set of source maps for prettier stack traces (increases build time)
-//   widenClientFileUpload: true,
-//   // Hides source maps from generated client bundles
-//   hideSourceMaps: true,
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
+  // Hides source maps from generated client bundles
+  hideSourceMaps: true,
 
-// });
+});
