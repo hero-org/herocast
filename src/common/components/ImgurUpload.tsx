@@ -54,7 +54,7 @@ const ImgurUpload = ({ onSuccess }: ImgurUploadProps) => {
       .then((response) => {
         if (response.success) {
           setUploadProgress(100);
-          onSuccess?.(response.data.link);
+          onSuccess?.();
         } else {
           setError(`Failed to upload - ${response.data}`);
         }

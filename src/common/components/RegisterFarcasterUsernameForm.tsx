@@ -13,12 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  useAccount,
-  useSignTypedData,
-  useSwitchChain,
-  useWalletClient,
-} from "wagmi";
+import { useAccount, useSignTypedData, useWalletClient } from "wagmi";
 import {
   getFidForAddress,
   getSignatureForUsernameProof,
@@ -37,7 +32,6 @@ import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { mainnet } from "viem/chains";
 import { UserDataType } from "@farcaster/hub-web";
 import { switchChain } from "viem/actions";
-import { AccountSelector } from "./AccountSelector";
 
 export type FarcasterAccountSetupFormValues = z.infer<
   typeof FarcasterAccountSetupFormSchema
@@ -83,9 +77,9 @@ const RegisterFarcasterUsernameForm = ({
   onSuccess: (data: FarcasterAccountSetupFormValues) => void;
 }) => {
   const [isPending, setIsPending] = useState(false);
+  const [fid, setFid] = useState<bigint | null>();
   const [error, setError] = useState<string | null>();
   const { address, chainId, isConnected } = useAccount();
-  const { switchChainAsync } = useSwitchChain();
   const client = useWalletClient({
     account: address,
     chainId: mainnet.id,
@@ -94,11 +88,29 @@ const RegisterFarcasterUsernameForm = ({
     resolver: zodResolver(FarcasterAccountSetupFormSchema),
     defaultValues: { username: "", displayName: "", bio: "" },
   });
-  const { updateAccountUsername } = useAccountStore();
-  const account = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
+  const { accounts, updateAccountUsername } = useAccountStore();
+  const pendingAccounts = accounts.filter(
+    (account) =>
+      account.status === AccountStatusType.active &&
+      account.platform === AccountPlatformType.farcaster &&
+      account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER
   );
+
   const canSubmitForm = !isPending && isConnected && chainId === mainnet.id;
+
+  useEffect(() => {
+    getFidForAddress(address!)
+      .then(setFid)
+      .catch((e) => setError(e.message));
+  }, [address]);
+
+  useEffect(() => {
+    if (pendingAccounts.length === 0) {
+      setError("No pending accounts found");
+    } else {
+      setError(null);
+    }
+  }, [pendingAccounts]);
 
   const validateUsername = async (username: string): Promise<boolean> => {
     const isValidNewUsername = await validateUsernameIsAvailable(username);
@@ -114,21 +126,24 @@ const RegisterFarcasterUsernameForm = ({
   const registerFarcasterUsername = async (
     data: z.infer<typeof FarcasterAccountSetupFormSchema>
   ) => {
-    console.log("registerFarcasterUsername", data);
+    console.log("createFarcasterAccount", data);
 
-    if (!address) {
-      form.setError("username", {
-        type: "manual",
-        message: "Connect your wallet to continue",
-      });
+    if (!address || !fid) return;
+    if (!validateUsername(data.username)) return;
+
+    const account = pendingAccounts.filter(
+      (account) => account.platformAccountId === String(fid!)
+    )?.[0];
+    if (!account) {
+      setError("No pending account found");
       return;
     }
-    if (!validateUsername(data.username)) return;
+    console.log("account", account);
 
     setIsPending(true);
     const owner = getAddress(address);
     const { username, bio } = data;
-
+    console.log("RegusterFarcasterAccount", data);
     let displayName = data.displayName;
     if (!displayName) {
       displayName = username;
@@ -154,8 +169,8 @@ const RegisterFarcasterUsernameForm = ({
       timestamp,
       owner,
       fromFid: "0",
-      toFid: account.platformAccountId!.toString(),
-      fid: account.platformAccountId!.toString(),
+      toFid: fid.toString(),
+      fid: fid.toString(),
       username: username,
       signature: registerSignature,
     });
@@ -168,7 +183,7 @@ const RegisterFarcasterUsernameForm = ({
       UserDataType.DISPLAY,
       username
     );
-    updateAccountUsername(account.id);
+    updateAccountUsername(account.id!);
 
     await setUserDataInProtocol(
       account.privateKey!,
@@ -254,27 +269,20 @@ const RegisterFarcasterUsernameForm = ({
           </Button>
           {chainId !== mainnet.id && (
             <Button
-              type="button"
               variant="default"
-              onClick={() => switchChainAsync({ chainId: mainnet.id })}
+              onClick={() => switchChain(client!, { id: mainnet.id })}
             >
               Switch to mainnet
             </Button>
           )}
+          <Button disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>Refresh</Button>
         </div>
       </form>
     </Form>
   );
 
   return (
-    <div className="w-3/4 lg:w-full space-y-4">
-      <AccountSelector
-        accountFilter={(account) =>
-          account.status === "active" &&
-          account.platform === AccountPlatformType.farcaster &&
-          account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER
-        }
-      />
+    <div className="w-2/3">
       {renderForm()}
       {error && (
         <div className="flex flex-start items-center mt-2">

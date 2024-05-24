@@ -28,6 +28,7 @@ import {
 } from "@/stores/useAccountStore";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
+import { v4 as uuidv4 } from "uuid";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
@@ -50,7 +51,7 @@ export function UserAuthForm({
   className,
 }: {
   signupOnly: boolean;
-  className?: string;
+  className: string;
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
@@ -298,7 +299,7 @@ export function UserAuthForm({
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-gray-900 px-2 text-muted-foreground">
+            <span className="bg-gray-900 px-2 text-muted">
               or continue with
             </span>
           </div>

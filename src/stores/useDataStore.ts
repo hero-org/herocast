@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';

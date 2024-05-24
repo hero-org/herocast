@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/require-await */
-
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
@@ -157,7 +154,7 @@ const store = (set: StoreSet) => ({
   publishPostDraft: async (draftIdx: number, account: AccountObjectType, onPost?: () => null): Promise<void> => {
     set(async (state) => {
       const draft = state.drafts[draftIdx];
-      
+
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody: {
@@ -186,6 +183,7 @@ const store = (set: StoreSet) => ({
           }
         }
 
+
         if (account.platform === AccountPlatformType.farcaster_local_readonly) {
           toastInfoReadOnlyMode();
         }
@@ -202,6 +200,7 @@ const store = (set: StoreSet) => ({
         if (onPost) onPost();
       } catch (error) {
         console.log('caught error in newPostStore', error)
+        return `Error when posting ${error}`;
       }
     });
   },

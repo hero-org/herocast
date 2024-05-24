@@ -92,8 +92,8 @@ export const getSignerRequestStatus = async (signerToken: string) => {
 
 const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
   const { publicKey, privateKey } = await generateKeyPair();
-  const hexStringPublicKey = bytesToHexString(publicKey)._unsafeUnwrap();
-  const hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
+  const hexStringPublicKey = bytesToHexString(publicKey)._unsafeUnwrap() as `0x${string}`;
+  const hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap() as `0x${string}`;
 
   const appAccount = mnemonicToAccount(APP_MNENOMIC!);
   const requestFid = APP_FID;
@@ -106,7 +106,7 @@ const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
     primaryType: "SignedKeyRequest",
     message: {
       requestFid: BigInt(requestFid!),
-      key: hexStringPublicKey,
+      key: hexStringPublicKey as `0x${string}`,
       deadline: BigInt(deadline),
     },
   });

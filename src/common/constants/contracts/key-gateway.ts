@@ -1,5 +1,3 @@
-import { optimismChainId } from "@/common/helpers/env";
-
 const KEY_GATEWAY_ADDRESS =
   '0x00000000fC56947c7E7183f8Ca4B62398CaAdf0B' as `0x${string}`;
 
@@ -295,5 +293,5 @@ const KEY_GATEWAY_ABI = [
 export const KEY_GATEWAY = {
   address: KEY_GATEWAY_ADDRESS,
   abi: KEY_GATEWAY_ABI,
-  chainId: optimismChainId,
+  chainId: 10,
 };

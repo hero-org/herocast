@@ -14,10 +14,57 @@ import { getUrlsInText } from "../../src/common/helpers/text";
 import {
   CastWithInteractions,
   UserObjectEnum,
-  ReactionLike,
-  ReactionRecast,
 } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { ActiveStatus } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-recommendation";
+
+type CastWithInteractions = {
+  author: {
+    fid: number;
+    username: string;
+    displayName: string;
+    pfp_url: string;
+    object: "user";
+    display_name: string;
+    custody_address: string;
+    profile: {
+      bio: {
+        text: string;
+        mentioned_profiles: never[];
+      };
+    };
+    follower_count: number;
+    following_count: number;
+    verifications: any[];
+    verified_addresses: {
+      eth_addresses: any[];
+      sol_addresses: any[];
+    };
+    active_status: "active";
+  };
+  hash: string;
+  parent_author: {
+    fid: number;
+    username: string;
+    displayName: string;
+    pfp_url: string;
+  };
+  parent_hash: string;
+  parent_url: string;
+  reactions: {
+    count: number;
+    type: string;
+    likes: number;
+    recasts: number;
+  };
+  text: string;
+  thread_hash: string;
+  timestamp: string;
+  embeds: string[];
+  replies: {
+    count: number;
+  };
+  mentioned_profiles: never[];
+};
 
 function transformToCastType(
   searchCasts: SearchResultCast[]
@@ -42,7 +89,6 @@ function transformToCastType(
       verifications: [],
       verified_addresses: { eth_addresses: [], sol_addresses: [] },
       active_status: ActiveStatus.Active,
-      power_badge: true,
     },
     hash: searchCast.merkleRoot,
     parent_author: {
@@ -56,24 +102,21 @@ function transformToCastType(
     reactions: {
       count: searchCast.meta.reactions.count,
       type: searchCast.meta.reactions.type,
-      likes: [] as ReactionLike[],
-      recasts: [] as ReactionRecast[],
-      likes_count: searchCast.meta.reactions.count,
-      recasts_count: searchCast.meta.reactions.count,
+      likes: 0,
+      recasts: 0,
     },
     text: searchCast.body.data.text,
     thread_hash: searchCast.body.data.threadMerkleRoot,
     timestamp: new Date(searchCast.body.publishedAt).toISOString(),
-    embeds: getUrlsInText(searchCast.body.data.text),
+    embeds: getUrlsInText(searchCast.body.data.text).map((url) => url.url),
     replies: { count: searchCast.meta.numReplyChildren },
     mentioned_profiles: [],
-    root_parent_url: "",
   }));
 }
 
 export default function Search() {
   const [search, setSearch] = useState("");
-  const [casts, setCasts] = useState<CastWithInteractions[]>([]);
+  const [casts, setCasts] = useState<CastType[]>([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -102,7 +145,7 @@ export default function Search() {
     };
   }, [debouncedSearch]);
 
-  const renderSearchResultRow = (row: CastWithInteractions, idx: number) => (
+  const renderSearchResultRow = (row: CastType, idx: number) => (
     <li
       key={row.hash}
       className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl"
