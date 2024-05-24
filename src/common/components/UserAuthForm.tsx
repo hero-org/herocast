@@ -50,7 +50,7 @@ export function UserAuthForm({
   className,
 }: {
   signupOnly: boolean;
-  className: string;
+  className?: string;
 }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
