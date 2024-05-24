@@ -272,7 +272,7 @@ export default function Feed() {
       ref={buttonRef}
       onClick={() =>
         getFeed({
-          fid: account.platformAccountId,
+          fid: account.platformAccountId!,
           parentUrl: selectedChannelUrl,
           cursor: nextFeedCursor,
         })
@@ -299,7 +299,6 @@ export default function Feed() {
   const renderThread = () => (
     <CastThreadView
       cast={feed[selectedCastIdx]}
-      fid={account.platformAccountId}
       onBack={() => setShowCastThreadView(false)}
       setSelectedCast={updateSelectedCast}
       setShowReplyModal={setShowReplyModal}
@@ -310,7 +309,7 @@ export default function Feed() {
     <ReplyModal
       open={showReplyModal}
       setOpen={() => setShowReplyModal(false)}
-      parentCast={selectedCast}
+      parentCast={selectedCast!}
     />
   );
 
@@ -319,7 +318,7 @@ export default function Feed() {
       <EmbedsModal
         open={showEmbedsModal}
         setOpen={() => setShowEmbedsModal(false)}
-        cast={selectedCast}
+        cast={selectedCast!}
       />
     );
   };

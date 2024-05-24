@@ -79,7 +79,7 @@ const ChangeProfilePictureForm = ({
       {" "}
       <ImgurUpload onSuccess={setNewPfpUrl} />
       <Input
-        size="sm"
+        variantSize="sm"
         placeholder="https://i.imgur.com/..."
         onChange={(e) => setNewPfpUrl(e.target.value)}
       />

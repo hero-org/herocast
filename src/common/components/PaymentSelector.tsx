@@ -27,7 +27,7 @@ export interface RegistrationTransactionData {
   metadata?: Hex;
   deadline?: bigint;
   price?: bigint;
-  chainId: number;
+  chainId?: number;
 }
 
 export function PaymentSelector({

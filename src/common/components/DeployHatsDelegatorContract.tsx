@@ -145,7 +145,7 @@ const DeployHatsDelegatorContract = ({
     hash: onchainTransactionHash,
   });
 
-  const canSubmitForm = chainId === optimism.id && !!address;
+  const canSubmitForm = chainId === optimismChainId && !!address;
 
   useEffect(() => {
     if (onchainTransactionHash === "0x") return;
@@ -178,8 +178,8 @@ const DeployHatsDelegatorContract = ({
       SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
     ];
     const mutableArgs = [zeroAddress];
-
     const hatsModulesClient = new HatsModulesClient({
+      // @ts-expect-error - type mismatch
       publicClient,
       walletClient: walletClient.data!,
     });
@@ -204,9 +204,14 @@ const DeployHatsDelegatorContract = ({
       });
       console.log("createInstanceResult", createInstanceResult);
       setOnchainTransactionHash(createInstanceResult.transactionHash);
-    } catch (e) {
-      console.error(e);
-      setErrorMessage(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        console.error(e);
+        setErrorMessage(e.message);
+      } else {
+        console.error("An unknown error occurred", e);
+        setErrorMessage("An unknown error occurred");
+      }
       setState(HatsProtocolSignupSteps[3]);
     }
   };
@@ -255,12 +260,12 @@ const DeployHatsDelegatorContract = ({
           <Button variant="default" type="submit" disabled={!canSubmitForm}>
             Deploy contract
           </Button>
-          {chainId !== optimism.id && (
+          {chainId !== optimismChainId && (
             <Button
               type="button"
               variant="default"
               className=""
-              onClick={() => switchChain?.({ chainId: optimism.id })}
+              onClick={() => switchChain?.({ chainId: optimismChainId })}
             >
               Switch to OP mainnet
             </Button>

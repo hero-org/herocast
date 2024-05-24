@@ -154,8 +154,8 @@ const RegisterFarcasterUsernameForm = ({
       timestamp,
       owner,
       fromFid: "0",
-      toFid: fid.toString(),
-      fid: fid.toString(),
+      toFid: account.platformAccountId!.toString(),
+      fid: account.platformAccountId!.toString(),
       username: username,
       signature: registerSignature,
     });

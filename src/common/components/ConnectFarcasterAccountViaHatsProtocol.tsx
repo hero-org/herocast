@@ -219,7 +219,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         return;
       }
     } else {
-      hexStringPublicKey = hatsProtocolPendingAccounts[0].publicKey;
+      hexStringPublicKey = hatsProtocolPendingAccounts[0].publicKey!;
       hexStringPrivateKey = hatsProtocolPendingAccounts[0].privateKey!;
     }
 
