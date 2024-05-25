@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import {
   AccountObjectType,
   CUSTOM_CHANNELS,
@@ -24,6 +25,9 @@ import { Loading } from "@/common/components/Loading";
 import uniqBy from "lodash.uniqby";
 import WelcomeCards from "@/common/components/WelcomeCards";
 import { useDataStore } from "@/stores/useDataStore";
+import { Input } from "@/components/ui/input";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+
 type FeedsType = {
   [key: string]: CastWithInteractions[];
 };
@@ -41,7 +45,8 @@ export default function Feed() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
-  const [userFid, setUserFid] = useState("11115"); // Default fid
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
@@ -58,20 +63,22 @@ export default function Feed() {
   const getFeedKey = ({
     selectedChannelUrl,
     account,
+    searchQuery,
   }: {
     selectedChannelUrl: string | null;
     account: AccountObjectType;
+    searchQuery: string;
   }) => {
     if (selectedChannelUrl) {
       return selectedChannelUrl;
-    } else if (account) {
-      return userFid;
+    } else if (account && searchQuery) {
+      return searchQuery;
     } else {
       return null;
     }
   };
 
-  const feedKey = getFeedKey({ selectedChannelUrl, account });
+  const feedKey = getFeedKey({ selectedChannelUrl, account, searchQuery });
   const feed = feedKey ? get(feeds, feedKey, []) : [];
 
   const onOpenLinkInCast = (idx: number) => {
@@ -108,7 +115,7 @@ export default function Feed() {
       return;
 
     getFeed({
-      fid: userFid,
+      username: searchQuery,
       parentUrl: selectedChannelUrl,
       cursor: nextFeedCursor,
     });
@@ -119,8 +126,18 @@ export default function Feed() {
     selectedChannelUrl,
     inView,
     isLoadingFeed,
+    searchQuery,
   ]);
 
+  useEffect(() => {
+    const username = router.query.username;
+    if (username) {
+      setSearchQuery(username);
+      setNextFeedCursor(""); // Reset cursor for new search
+      setFeeds({}); // Clear previous feeds
+      getFeed({ parentUrl: selectedChannelUrl, username });
+    }
+  }, [router.query.username, selectedChannelUrl]);
   useHotkeys(
     [Key.Escape, "§"],
     () => {
@@ -166,11 +183,11 @@ export default function Feed() {
       : parentUrl;
 
   const getFeed = async ({
-    fid,
+    username,
     parentUrl,
     cursor,
   }: {
-    fid: string;
+    username: string;
     parentUrl?: string;
     cursor?: string;
   }) => {
@@ -187,30 +204,34 @@ export default function Feed() {
 
       let newFeed;
       if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
-        newFeed = await neynarClient.fetchUserFollowingFeed(
-          Number(fid),
-          feedOptions
-        );
+        const response = await neynarClient.lookupUserByUsername(username);
+        const user = response?.result.user;
+        if (user) {
+          newFeed = await neynarClient.fetchUserFollowingFeed(
+            user.fid,
+            feedOptions
+          );
+        }
       } else {
         feedOptions = {
           ...feedOptions,
           filterType: getFilterType(parentUrl),
           parentUrl: getParentUrl(parentUrl),
-          fid: Number(fid),
+          username,
         } as {
           cursor: string | undefined;
           limit: number;
           filterType: FilterType;
           parentUrl: string;
-          fid: number;
+          username: string;
         };
         newFeed = await neynarClient.fetchFeed(
           getFeedType(parentUrl),
           feedOptions
         );
       }
-      const feedKey = parentUrl || fid;
-      const feed = feeds[feedKey] || [];
+      const feedKey = parentUrl || username;
+      const feed = cursor ? feeds[feedKey] || [] : []; // Only use existing feed if cursor is provided
 
       setFeeds({
         ...feeds,
@@ -225,10 +246,6 @@ export default function Feed() {
       setIsLoadingFeed(false);
     }
   };
-
-  useEffect(() => {
-    getFeed({ parentUrl: selectedChannelUrl, fid: userFid });
-  }, [account, selectedChannelUrl, showCastThreadView, userFid]);
 
   useEffect(() => {
     setShowReplyModal(false);
@@ -269,13 +286,13 @@ export default function Feed() {
       ref={buttonRef}
       onClick={() =>
         getFeed({
-          fid: userFid,
+          username: searchQuery,
           parentUrl: selectedChannelUrl,
           cursor: nextFeedCursor,
         })
       }
       variant="outline"
-      className="ml-4 my-4 "
+      className="ml-4 my-4"
     >
       {getButtonText()}
     </Button>
@@ -296,7 +313,6 @@ export default function Feed() {
   const renderThread = () => (
     <CastThreadView
       cast={feed[selectedCastIdx]}
-      fid={userFid}
       onBack={() => setShowCastThreadView(false)}
       setSelectedCast={updateSelectedCast}
       setShowReplyModal={setShowReplyModal}
@@ -349,5 +365,74 @@ export default function Feed() {
     </>
   );
 
-  return renderContent();
+  const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      try {
+        setIsLoadingFeed(true);
+        const response = await neynarClient.lookupUserByUsername(searchQuery);
+        const user = response?.result.user;
+        if (user) {
+          setSearchQuery(user.username);
+          setNextFeedCursor(""); // Reset cursor for new search
+          setFeeds({}); // Clear previous feeds
+          router.push(`/new/feed?username=${user.username}`);
+          await getFeed({
+            parentUrl: selectedChannelUrl,
+            username: user.username,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user by username:", error);
+      } finally {
+        setIsLoadingFeed(false);
+      }
+    }
+  };
+
+  return (
+    <>
+      <div className="flex flex-col w-full max-w-4xl mx-auto p-4 md:p-6">
+        <div className="w-full ">
+          <label htmlFor="feed-search" className="sr-only">
+            Search
+          </label>
+          <div className="relative text-foreground/80 focus-within:text-foreground/80">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <MagnifyingGlassIcon className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <Input
+              id="feed-search"
+              className="block w-full rounded-md border-0 bg-white/20 py-2.5 pl-10 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/30 focus:text-foreground focus:ring-0 focus:placeholder:text-gray-200 sm:text-sm sm:leading-6"
+              placeholder="Enter a Farcaster username"
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+            />
+          </div>
+        </div>
+        {renderContent()}
+      </div>
+    </>
+  );
+}
+
+function SearchIcon(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
 }
