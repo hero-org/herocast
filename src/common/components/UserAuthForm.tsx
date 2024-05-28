@@ -313,10 +313,16 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             Enter your new password below
           </span>
         );
+      case ViewState.SIGNUP:
+        return (
+          <span className="text-md text-muted-foreground">
+            Enter your email to signup
+          </span>
+        );
       default:
         return (
           <span className="text-md text-muted-foreground">
-            Enter your email below to login to your account
+            Enter your email to login
           </span>
         );
     }
@@ -325,8 +331,8 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   return (
     <div className="grid gap-6">
       <Form {...form}>
-        <form>
           {renderViewHelpText()}
+        <form>
           <div className="flex">
             {userMessage && (
               <span className="text-md text-muted-foreground">
