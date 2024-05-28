@@ -2,13 +2,8 @@ import "@farcaster/auth-kit/styles.css";
 import React from "react";
 import { UserAuthForm } from "@/common/components/UserAuthForm";
 import { AuthKitProvider } from "@farcaster/auth-kit";
-import { openWindow } from "@/common/helpers/navigation";
-import clsx from "clsx";
 import { useRouter } from "next/router";
-import FarcasterIcon from "@/common/components/icons/FarcasterIcon";
-import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,8 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
@@ -35,20 +28,29 @@ export default function Login() {
   );
 
   return (
-    <div className="mt-18 flex items-center justify-center py-12">
-      <AuthKitProvider config={authKitConfig}>
-        <Card className="mx-auto max-w-sm">
-          <CardHeader>
-            <CardTitle className="text-2xl">Welcome to herocast</CardTitle>
-            <CardDescription>
-              Enter your email below to login to your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {renderAuthForm()}
-          </CardContent>
-        </Card>
-      </AuthKitProvider>
+    <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+      <div className="mt-18 flex items-center justify-center py-12">
+        <AuthKitProvider config={authKitConfig}>
+          <Card className="mx-auto max-w-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl">Welcome to herocast</CardTitle>
+              <CardDescription>
+                Enter your email below to login to your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>{renderAuthForm()}</CardContent>
+          </Card>
+        </AuthKitProvider>
+      </div>
+      <div className="hidden bg-muted lg:block">
+        <img
+          src="/images/herocast-app-screenshot.png"
+          alt="herocast-app-screenshot"
+          width="1920"
+          height="1080"
+          className="h-full w-full object-cover dark:brightness-[0.8]"
+        />
+      </div>
     </div>
   );
 }

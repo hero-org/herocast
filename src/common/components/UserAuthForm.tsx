@@ -51,13 +51,7 @@ enum ViewState {
   FORGOT = "forgot",
 }
 
-export function UserAuthForm({
-  signupOnly,
-  className,
-}: {
-  signupOnly: boolean;
-  className: string;
-}) {
+export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
   const supabase = createClient();
@@ -226,11 +220,11 @@ export function UserAuthForm({
         buttonAction = resetPassword;
         break;
       case ViewState.LOGIN:
-        buttonText = "Sign In with Email";
+        buttonText = "Sign In";
         buttonAction = logIn;
         break;
       case ViewState.SIGNUP:
-        buttonText = "Sign Up with Email";
+        buttonText = "Sign Up";
         buttonAction = signUp;
         break;
     }
@@ -273,7 +267,7 @@ export function UserAuthForm({
   };
 
   return (
-    <div className={cn("grid gap-6", className)}>
+    <div className="grid gap-6">
       <Form {...form}>
         <form>
           <div className="flex">
@@ -323,15 +317,17 @@ export function UserAuthForm({
               )}
             </div>
             {renderSubmitButton()}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={isLoading}
-              onClick={() => setView(ViewState.FORGOT)}
-            >
-              Forgot Password?
-            </Button>
+            {view !== ViewState.FORGOT && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full shadow-none rounded-lg"
+                disabled={isLoading}
+                onClick={() => setView(ViewState.FORGOT)}
+              >
+                Forgot Password?
+              </Button>
+            )}
             {renderViewSwitchText()}
             <div className="flex items-center justify-center space-x-2"></div>
           </div>
