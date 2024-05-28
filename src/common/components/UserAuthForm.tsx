@@ -28,7 +28,6 @@ import {
 } from "@/stores/useAccountStore";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
-import { v4 as uuidv4 } from "uuid";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
@@ -45,6 +44,12 @@ const UserAuthFormSchema = z.object({
     message: "Password must be at least 8 characters.",
   }),
 });
+
+enum ViewState {
+  LOGIN = "login",
+  SIGNUP = "signup",
+  FORGOT = "forgot",
+}
 
 export function UserAuthForm({
   signupOnly,
@@ -63,6 +68,7 @@ export function UserAuthForm({
     profile: { username, fid },
   } = useProfile();
 
+  const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
   const { accounts, addAccount } = useAccountStore();
 
   React.useEffect(() => {
@@ -84,17 +90,21 @@ export function UserAuthForm({
   const setupLocalAccount = async ({ fid, username }) => {
     if (!fid || !username) return;
 
-    const hasLocalAccountCreated = localAccounts.some((a) => a.platformAccountId === fid.toString());
+    const hasLocalAccountCreated = localAccounts.some(
+      (a) => a.platformAccountId === fid.toString()
+    );
     setIsLoading(true);
     let account;
     if (hasLocalAccountCreated) {
-      account = localAccounts.find((a) => a.platformAccountId === fid.toString());
+      account = localAccounts.find(
+        (a) => a.platformAccountId === fid.toString()
+      );
     } else {
       setUserMessage("Setting up local account...");
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-  
+
       const users = (
         await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
       ).users;
@@ -102,7 +112,7 @@ export function UserAuthForm({
         console.error("No users found for fid: ", fid);
         return;
       }
-  
+
       account = {
         name: username,
         status: AccountStatusType.active,
@@ -200,21 +210,77 @@ export function UserAuthForm({
     await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${process.env.NEXT_PUBLIC_URL}/login`,
     });
-    setUserMessage("Password reset email sent.");
+    setUserMessage("Password reset email sent");
     setIsLoading(false);
   }
 
   useHotkeys(Key.Enter, logIn, [form.getValues()], { enableOnFormTags: true });
 
+  const renderSubmitButton = () => {
+    let buttonText = "";
+    let buttonAction = () => {};
+
+    switch (view) {
+      case ViewState.FORGOT:
+        buttonText = "Reset Password";
+        buttonAction = resetPassword;
+        break;
+      case ViewState.LOGIN:
+        buttonText = "Sign In with Email";
+        buttonAction = logIn;
+        break;
+      case ViewState.SIGNUP:
+        buttonText = "Sign Up with Email";
+        buttonAction = signUp;
+        break;
+    }
+    return (
+      <Button
+        type="button"
+        size="lg"
+        className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+        disabled={isLoading}
+        onClick={buttonAction}
+      >
+        {isLoading ? <Loading className="text-white" /> : buttonText}
+      </Button>
+    );
+  };
+
+  const renderViewSwitchText = () => {
+    switch (view) {
+      case ViewState.LOGIN:
+        return (
+          <div
+            className="mt-2 text-center text-sm hover:cursor-pointer"
+            onClick={() => setView(ViewState.SIGNUP)}
+          >
+            Don&apos;t have an account?{" "}
+            <span className="underline">Sign up</span>
+          </div>
+        );
+      case ViewState.FORGOT:
+      case ViewState.SIGNUP:
+        return (
+          <div
+            className="mt-2 text-center text-sm hover:cursor-pointer"
+            onClick={() => setView(ViewState.LOGIN)}
+          >
+            Already have an account? <span className="underline">Log in</span>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className={cn("grid gap-6", className)}>
-      <div className="flex justify-center text-center">
-        {userMessage && (
-          <Label className="w-2/3 text-md text-gray-100">{userMessage}</Label>
-        )}
-      </div>
       <Form {...form}>
         <form>
+          <div className="flex">
+            {userMessage && (
+              <Label className="text-md text-foreground">{userMessage}</Label>
+            )}
+          </div>
           <div className="grid gap-4">
             <div className="grid gap-4">
               <FormField
@@ -222,10 +288,10 @@ export function UserAuthForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-200">Email</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        className="text-white"
+                        type="email"
                         placeholder="vitalik@ethereum.org"
                         disabled={isLoading}
                         {...field}
@@ -235,56 +301,39 @@ export function UserAuthForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-200">Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="text-white"
-                        placeholder="************"
-                        disabled={isLoading}
-                        autoComplete="current-password"
-                        type="password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {view !== ViewState.FORGOT && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={isLoading}
+                          autoComplete="current-password"
+                          type="password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
+            {renderSubmitButton()}
             <Button
               type="button"
-              size="lg"
-              className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+              variant="outline"
+              className="w-full"
               disabled={isLoading}
-              onClick={() => logIn()}
+              onClick={() => setView(ViewState.FORGOT)}
             >
-              {isLoading ? <Loading /> : "Sign In with Email"}
+              Forgot Password?
             </Button>
-            <div className="flex items-center justify-center space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="text-gray-100 border-gray-500 w-full"
-                disabled={isLoading}
-                onClick={() => signUp()}
-              >
-                Signup
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="text-gray-100 border-gray-500 w-full"
-                disabled={isLoading}
-                onClick={() => resetPassword()}
-              >
-                Forgot Password?
-              </Button>
-            </div>
+            {renderViewSwitchText()}
+            <div className="flex items-center justify-center space-x-2"></div>
           </div>
         </form>
       </Form>
@@ -299,7 +348,7 @@ export function UserAuthForm({
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-gray-900 px-2 text-muted">
+            <span className="bg-card px-2 text-muted-foreground">
               or continue with
             </span>
           </div>
