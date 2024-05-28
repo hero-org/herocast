@@ -22,7 +22,6 @@ import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
 import { Toaster } from "@/components/ui/sonner";
-import Link from "next/link";
 import AccountsOverview from "../common/components/Sidebar/AccountsOverview";
 
 type NavigationItemType = {

@@ -13,6 +13,7 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { useDataStore } from "@/stores/useDataStore";
 import { Loading } from "@/common/components/Loading";
+import { CastType } from "@/common/constants/farcaster";
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
