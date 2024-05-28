@@ -1,21 +1,12 @@
 import React, { useEffect, useState } from "react";
 
-import {
-  FilterType,
-  NeynarAPIClient,
-} from "@neynar/nodejs-sdk";
-import { GetStaticPaths } from "next/types";
-import {
-  AvatarImage,
-  AvatarFallback,
-  Avatar,
-} from "@/components/ui/avatar";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
 import { CardHeader, Card } from "@/components/ui/card";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import uniqBy from "lodash.uniqby";
 import { useHotkeys } from "react-hotkeys-hook";
 import FollowButton from "@/common/components/FollowButton";
 import { useAccountStore } from "@/stores/useAccountStore";
@@ -23,7 +14,7 @@ import { useDataStore } from "@/stores/useDataStore";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
-export async function getStaticProps({ params: { slug } }) {
+export async function getServerSideProps({ params: { slug } }) {
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
   let user: any = {};
   try {
@@ -53,29 +44,29 @@ export async function getStaticProps({ params: { slug } }) {
   };
 }
 
-export const getStaticPaths = (async () => {
-  const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+// export const getStaticPaths = (async () => {
+//   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
-  const globalFeed = await client.fetchFeed("filter", {
-    filterType: FilterType.GlobalTrending,
-    limit: 20,
-  });
+//   const globalFeed = await client.fetchFeed("filter", {
+//     filterType: FilterType.GlobalTrending,
+//     limit: 20,
+//   });
 
-  const paths = uniqBy(
-    globalFeed.casts.map(({ author }) => ({
-      params: {
-        slug: author.username,
-      },
-    })),
-    "params.slug"
-  );
+//   const paths = uniqBy(
+//     globalFeed.casts.map(({ author }) => ({
+//       params: {
+//         slug: author.username,
+//       },
+//     })),
+//     "params.slug"
+//   );
 
-  console.log(`preparing static profiles: ${paths.length}`);
-  return {
-    paths,
-    fallback: "blocking",
-  };
-}) satisfies GetStaticPaths;
+//   console.log(`preparing static profiles: ${paths.length}`);
+//   return {
+//     paths,
+//     fallback: "blocking",
+//   };
+// }) satisfies GetStaticPaths;
 
 enum FeedTypeEnum {
   "casts" = "Casts",
