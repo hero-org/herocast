@@ -34,7 +34,7 @@ export default function Login() {
       <div className="mt-18 flex items-center justify-center py-12">
         <AuthKitProvider config={authKitConfig}>
           <Card className="mx-auto min-w-80 max-w-80">
-            <CardHeader>
+            <CardHeader className="pb-2">
               <CardTitle className="text-2xl">Welcome to herocast</CardTitle>
             </CardHeader>
             <CardContent>{renderAuthForm()}</CardContent>
