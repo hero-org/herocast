@@ -29,7 +29,7 @@
   "dependencies": {
     "@emotion/react": "11",
     "@emotion/styled": "11",
-    "@farcaster/auth-kit": "^0.2.1",
+    "@farcaster/auth-kit": "^0.3.1",
     "@farcaster/hub-web": "^0.8.0",
     "@frames.js/render": "^0.2.6",
     "@gumlet/react-hls-player": "^1.0.1",

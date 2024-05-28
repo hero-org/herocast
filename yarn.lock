@@ -57,10 +57,17 @@
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.24.5.tgz#4a4d5ab4315579e5398a82dcf636ca80c3392790"
   integrity sha512-EOv5IK8arwh3LI47dz1b0tKUb/1uhHAnHJOrjgtQMIpu1uXd9mlFrJg9IUgGUgZ41Ch0K8REPTYpO7B76b4vJg==
 
-"@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.18.3", "@babel/runtime@^7.20.6", "@babel/runtime@^7.21.0", "@babel/runtime@^7.22.5", "@babel/runtime@^7.23.2", "@babel/runtime@^7.24.1", "@babel/runtime@^7.5.5":
+"@babel/runtime@^7.11.2", "@babel/runtime@^7.13.10", "@babel/runtime@^7.18.3", "@babel/runtime@^7.20.6", "@babel/runtime@^7.21.0", "@babel/runtime@^7.22.5", "@babel/runtime@^7.23.2", "@babel/runtime@^7.24.1", "@babel/runtime@^7.5.5":
   version "7.24.5"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.5.tgz#230946857c053a36ccc66e1dd03b17dd0c4ed02c"
   integrity sha512-Nms86NXrsaeU9vbBJKni6gXiEXZ4CVpYVzEjDH9Sb8vmZ3UljyA1GSOJl/6LGPO8EHLuSF9H+IxNXHPX8QHJ4g==
+  dependencies:
+    regenerator-runtime "^0.14.0"
+
+"@babel/runtime@^7.12.5":
+  version "7.24.6"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.6.tgz#5b76eb89ad45e2e4a0a8db54c456251469a3358e"
+  integrity sha512-Ja18XcETdEl5mzzACGd+DKgaGJzPTCow7EglgwTmHdwokzDFYh/MHua6lU6DV/hjF2IaOJ4oX2nqnjG7RElKOw==
   dependencies:
     regenerator-runtime "^0.14.0"
 
@@ -415,10 +422,10 @@
     neverthrow "^6.1.0"
     siwe "^2.1.4"
 
-"@farcaster/auth-kit@^0.2.1":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@farcaster/auth-kit/-/auth-kit-0.2.2.tgz#9f33ee7b2781ee844c9cda4e863151a94d2519ff"
-  integrity sha512-ryhSgj5AZPs3g0jok+4bheYxWLa3z5BXt3g0DMpHBlhQ0qL6iDwcKArb/m2JT2M7PH/C6rMR4R/aVjVCzBb+Zg==
+"@farcaster/auth-kit@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@farcaster/auth-kit/-/auth-kit-0.3.1.tgz#77523b3551132a319643552a69f281db3337e45d"
+  integrity sha512-BlT5rgyIFy6/Lle4nrDOUrvz0GaHdQduStuEWc5KuU6Dub/NsKrliEJVDo1MzfJGh3DLOq1nz+7L2A00VU+UnQ==
   dependencies:
     "@farcaster/auth-client" "^0.1.1"
     "@vanilla-extract/css" "^1.14.0"
@@ -426,10 +433,10 @@
     qrcode "^1.5.3"
     react-remove-scroll "^2.5.7"
 
-"@farcaster/core@^0.14.0", "@farcaster/core@^0.14.8":
-  version "0.14.11"
-  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.14.11.tgz#ccc1b7d3ba0135d70cea690655e050ef679a454b"
-  integrity sha512-QyN1GR8cR37h0UzPl3b8X+JZx2ua8Lim8JyTD0xWpCNHX3s10nSqvFgbEDpaPNuM9Nl7YAnyW+EPoLGbEe9RMA==
+"@farcaster/core@^0.14.12":
+  version "0.14.12"
+  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.14.12.tgz#2d579786e88fa806acc492c10e0b29803aa560fe"
+  integrity sha512-BnjraGxEmEAFt0kLULGdO/K6K1F/33UvoCKbd1A7f04JDgtorXAYDbKU4f6oa3FtOgqNHolWvADWRp5ZNG0Dew==
   dependencies:
     "@noble/curves" "^1.0.0"
     "@noble/hashes" "^1.3.0"
@@ -448,12 +455,23 @@
     neverthrow "^6.0.0"
     viem "^1.12.2"
 
-"@farcaster/hub-web@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.8.0.tgz#eddfc3b97aa7e317caf04ae9a11b2f56b6623eda"
-  integrity sha512-bVSXvCAtcxCIVtrtlrTs2IAHiiSj2SAVgwFO4+VQFAW0kKJu67fke9trPn9v8/MR8Tn7JcNTUNYHgkp+Zr9khA==
+"@farcaster/core@^0.14.8":
+  version "0.14.11"
+  resolved "https://registry.yarnpkg.com/@farcaster/core/-/core-0.14.11.tgz#ccc1b7d3ba0135d70cea690655e050ef679a454b"
+  integrity sha512-QyN1GR8cR37h0UzPl3b8X+JZx2ua8Lim8JyTD0xWpCNHX3s10nSqvFgbEDpaPNuM9Nl7YAnyW+EPoLGbEe9RMA==
   dependencies:
-    "@farcaster/core" "^0.14.0"
+    "@noble/curves" "^1.0.0"
+    "@noble/hashes" "^1.3.0"
+    bs58 "^5.0.0"
+    neverthrow "^6.0.0"
+    viem "^1.12.2"
+
+"@farcaster/hub-web@^0.8.0":
+  version "0.8.9"
+  resolved "https://registry.yarnpkg.com/@farcaster/hub-web/-/hub-web-0.8.9.tgz#5d635bf68395b458ad26d9a48d88f11b0259c224"
+  integrity sha512-9vTbyl7f6ennAZ8F/hzmSYOz42twi3DHreYPdYNz9HalTJyeaLuqU4nPFYF8MgwLR+aEXyAUHfyyw7uZIr3OVg==
+  dependencies:
+    "@farcaster/core" "^0.14.12"
     "@improbable-eng/grpc-web" "^0.15.0"
     rxjs "^7.8.0"
 
@@ -3315,16 +3333,16 @@
     outdent "^0.8.0"
 
 "@vanilla-extract/css@^1.14.0":
-  version "1.15.1"
-  resolved "https://registry.yarnpkg.com/@vanilla-extract/css/-/css-1.15.1.tgz#cf68cb95cdb521056af9ebf7907694806ae89228"
-  integrity sha512-puAfTKAUtsMr2+D+grQNjU5umsdw9zdVgQflUlbzS/tGORaAHdgaYz7jfKPmz1c4ZcpJ6uFNOiI50NDOAzzhyg==
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/@vanilla-extract/css/-/css-1.15.2.tgz#a6607be211197236e39b8213e0dba870e2a8f821"
+  integrity sha512-Bi61iCAtojCuqvV+FYaF5i69vBjuMQJpHPdpgKYyQvx+e2Hp79V0ELglyYOdcyg9Wh0k0MFwgCDipVd7EloTXQ==
   dependencies:
     "@emotion/hash" "^0.9.0"
-    "@vanilla-extract/private" "^1.0.4"
+    "@vanilla-extract/private" "^1.0.5"
     css-what "^6.1.0"
     cssesc "^3.0.0"
     csstype "^3.0.7"
-    dedent "^1.5.1"
+    dedent "^1.5.3"
     deep-object-diff "^1.1.9"
     deepmerge "^4.2.2"
     media-query-parser "^2.0.2"
@@ -3338,10 +3356,15 @@
   dependencies:
     "@vanilla-extract/private" "^1.0.3"
 
-"@vanilla-extract/private@^1.0.3", "@vanilla-extract/private@^1.0.4":
+"@vanilla-extract/private@^1.0.3":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@vanilla-extract/private/-/private-1.0.4.tgz#35946b917d6b9774a2b9bc725c63c9341049c79b"
   integrity sha512-8FGD6AejeC/nXcblgNCM5rnZb9KXa4WNkR03HCWtdJBpANjTgjHEglNLFnhuvdQ78tC6afaxBPI+g7F2NX3tgg==
+
+"@vanilla-extract/private@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@vanilla-extract/private/-/private-1.0.5.tgz#8c08ac4851f4cc89a3dcdb858d8938e69b1481c4"
+  integrity sha512-6YXeOEKYTA3UV+RC8DeAjFk+/okoNz/h88R+McnzA2zpaVqTR/Ep+vszkWYlGBcMNO7vEkqbq5nT/JMMvhi+tw==
 
 "@vanilla-extract/sprinkles@1.6.1":
   version "1.6.1"
@@ -3977,9 +4000,9 @@ anymatch@^3.1.3, anymatch@~3.1.2:
     picomatch "^2.0.4"
 
 apg-js@^4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/apg-js/-/apg-js-4.3.0.tgz#2c55d3f1aa6b90be5d3c6539f346cf2c726702c3"
-  integrity sha512-8U8MULS+JocCnm11bfrVS4zxtAcE3uOiCAI21SnjDrV9LNhMSGwTGGeko3QfyK1JLWwT7KebFqJMB2puzfdFMQ==
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/apg-js/-/apg-js-4.4.0.tgz#09dcecab0731fbde233b9f2352fdd2d07e56b2cf"
+  integrity sha512-fefmXFknJmtgtNEXfPwZKYkMFX4Fyeyz+fNF6JWp87biGOPslJbCBVU158zvKRZfHBKnJDy8CMM40oLFGkXT8Q==
 
 app-module-path@^2.2.0:
   version "2.2.0"
@@ -4903,7 +4926,7 @@ decode-uri-component@^0.2.2:
   resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.2.tgz#e69dbe25d37941171dd540e024c444cd5188e1e9"
   integrity sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==
 
-dedent@^1.5.1:
+dedent@^1.5.3:
   version "1.5.3"
   resolved "https://registry.yarnpkg.com/dedent/-/dedent-1.5.3.tgz#99aee19eb9bae55a67327717b6e848d0bf777e5a"
   integrity sha512-NHQtfOOW68WD8lgypbLA5oT+Bt0xXJhiYvoR6SmmNXZfpzOGXwdKWmcwG8N7PwVVWV3eF/68nmD9BaJSsTBhyQ==
@@ -8148,9 +8171,9 @@ pathe@^1.1.1, pathe@^1.1.2:
   integrity sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==
 
 picocolors@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/picocolors/-/picocolors-1.0.0.tgz#cb5bdc74ff3f51892236eaf79d68bc44564ab81c"
-  integrity sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/picocolors/-/picocolors-1.0.1.tgz#a8ad579b571952f0e5d25892de5445bcfe25aaa1"
+  integrity sha512-anP1Z8qwhkbmu7MFP5iTt+wQKXgwzf7zTyGlcdzabySa9vd0Xt392U0rVmz9poOaBj0uHJKyyo9/upk0HrEQew==
 
 picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.3.1:
   version "2.3.1"
@@ -8888,9 +8911,9 @@ react-remove-scroll@2.5.7:
     use-sidecar "^1.1.2"
 
 react-remove-scroll@^2.5.7:
-  version "2.5.9"
-  resolved "https://registry.yarnpkg.com/react-remove-scroll/-/react-remove-scroll-2.5.9.tgz#6a38e7d46043abc2c6b0fb39db650b9f2e38be3e"
-  integrity sha512-bvHCLBrFfM2OgcrpPY2YW84sPdS2o2HKWJUf1xGyGLnSoEnOTOBpahIarjRuYtN0ryahCeP242yf+5TrBX/pZA==
+  version "2.5.10"
+  resolved "https://registry.yarnpkg.com/react-remove-scroll/-/react-remove-scroll-2.5.10.tgz#5fae456a23962af6d3c38ca1978bcfe0806c4061"
+  integrity sha512-m3zvBRANPBw3qxVVjEIPEQinkcwlFZ4qyomuWVpNJdv4c6MvHfXV0C3L9Jx5rr3HeBHKNRX+1jreB5QloDIJjA==
   dependencies:
     react-remove-scroll-bar "^2.3.6"
     react-style-singleton "^2.2.1"
