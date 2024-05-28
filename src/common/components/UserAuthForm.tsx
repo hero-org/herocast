@@ -1,6 +1,6 @@
+"use client";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,7 @@ import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
+import includes from "lodash.includes";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -49,11 +50,14 @@ enum ViewState {
   LOGIN = "login",
   SIGNUP = "signup",
   FORGOT = "forgot",
+  RESET = "reset",
 }
 
 export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
+  const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
+
   const supabase = createClient();
   const router = useRouter();
   const posthog = usePostHog();
@@ -62,8 +66,13 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     profile: { username, fid },
   } = useProfile();
 
-  const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
   const { accounts, addAccount } = useAccountStore();
+
+  React.useEffect(() => {
+    if (router.query?.view) {
+      setView(router.query.view as ViewState);
+    }
+  }, [router.query?.view]);
 
   React.useEffect(() => {
     if (isAuthenticated && username && fid) {
@@ -80,6 +89,8 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     resolver: zodResolver(UserAuthFormSchema),
     mode: "onSubmit",
   });
+
+  useHotkeys(Key.Enter, logIn, [form.getValues()], { enableOnFormTags: true });
 
   const setupLocalAccount = async ({ fid, username }) => {
     if (!fid || !username) return;
@@ -130,7 +141,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     posthog.identify(data?.user?.id, { isLocalOnly: true });
     setUserMessage("Setup done. Welcome to the herocast experience!");
-    router.push("/welcome");
+    router.push("/feed");
     setIsLoading(false);
   };
 
@@ -157,7 +168,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     posthog.identify(data?.user?.id, { email });
     await hydrate();
     router.push("/feed");
-    setIsLoading(false);
   }
 
   async function signUp() {
@@ -168,11 +178,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/api/auth/confirm?type=signup&next=/welcome`,
-      },
     });
-    console.log(data, error);
 
     if (error) {
       form.setError("password", {
@@ -189,8 +195,9 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
   }
 
-  async function resetPassword() {
+  const resetPassword = async () => {
     const { email } = form.getValues();
+
     if (!email) {
       form.setError("email", {
         type: "manual",
@@ -204,11 +211,33 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${process.env.NEXT_PUBLIC_URL}/login`,
     });
-    setUserMessage("Password reset email sent");
+    setUserMessage("Sent password reset email to you");
+    setView(ViewState.LOGIN);
     setIsLoading(false);
-  }
+  };
 
-  useHotkeys(Key.Enter, logIn, [form.getValues()], { enableOnFormTags: true });
+  const submitNewPassword = async () => {
+    const { email, password } = form.getValues();
+
+    const { data, error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      alert("There was an error updating your password.");
+      setUserMessage("There was an error updating your password.");
+      form.setError("password", {
+        type: "manual",
+        message: error.message,
+      });
+      return;
+    }
+    if (data?.user) alert("Password updated successfully!");
+
+    setUserMessage("Logging you in...");
+    posthog.identify(data?.user?.id, { email });
+    await hydrate();
+    router.push("/feed");
+    setIsLoading(false);
+  };
 
   const renderSubmitButton = () => {
     let buttonText = "";
@@ -226,6 +255,10 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       case ViewState.SIGNUP:
         buttonText = "Sign Up";
         buttonAction = signUp;
+        break;
+      case ViewState.RESET:
+        buttonText = "Set New Password";
+        buttonAction = submitNewPassword;
         break;
     }
     return (
@@ -266,13 +299,39 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
   };
 
+  const renderViewHelpText = () => {
+    switch (view) {
+      case ViewState.FORGOT:
+        return (
+          <span className="text-md text-muted-foreground">
+            Forgot your password? Enter your email below to reset it
+          </span>
+        );
+      case ViewState.RESET:
+        return (
+          <span className="text-md text-muted-foreground">
+            Enter your new password below
+          </span>
+        );
+      default:
+        return (
+          <span className="text-md text-muted-foreground">
+            Enter your email below to login to your account
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="grid gap-6">
       <Form {...form}>
         <form>
+          {renderViewHelpText()}
           <div className="flex">
             {userMessage && (
-              <Label className="text-md text-foreground">{userMessage}</Label>
+              <span className="text-md text-muted-foreground">
+                {userMessage}
+              </span>
             )}
           </div>
           <div className="grid gap-4">
@@ -317,7 +376,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
               )}
             </div>
             {renderSubmitButton()}
-            {view !== ViewState.FORGOT && (
+            {!includes([ViewState.FORGOT, ViewState.RESET], view) && (
               <Button
                 type="button"
                 variant="outline"
@@ -329,16 +388,10 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
               </Button>
             )}
             {renderViewSwitchText()}
-            <div className="flex items-center justify-center space-x-2"></div>
           </div>
         </form>
       </Form>
-      {signupOnly ? (
-        <Button variant="default" onClick={() => router.back()}>
-          <ArrowLeftIcon className="h-5 w-5 mr-2" /> Back to using read-only
-          account
-        </Button>
-      ) : (
+      {!signupOnly && (
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />

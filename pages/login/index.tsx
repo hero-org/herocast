@@ -20,10 +20,12 @@ const authKitConfig = {
 
 export default function Login() {
   const router = useRouter();
-  const signupOnly = router?.query?.signupOnly === "true";
+  const { signupOnly, view} = router.query;
+  
+  const showOnlySignup = signupOnly === "true" || view === "reset";
   const renderAuthForm = () => (
     <div className="text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
-      <UserAuthForm signupOnly={signupOnly} />
+      <UserAuthForm signupOnly={showOnlySignup} />
     </div>
   );
 
@@ -31,12 +33,9 @@ export default function Login() {
     <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
       <div className="mt-18 flex items-center justify-center py-12">
         <AuthKitProvider config={authKitConfig}>
-          <Card className="mx-auto max-w-sm">
+          <Card className="mx-auto min-w-80 max-w-80">
             <CardHeader>
               <CardTitle className="text-2xl">Welcome to herocast</CardTitle>
-              <CardDescription>
-                Enter your email below to login to your account
-              </CardDescription>
             </CardHeader>
             <CardContent>{renderAuthForm()}</CardContent>
           </Card>
