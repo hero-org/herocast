@@ -45,7 +45,7 @@ const ConnectAccountPage = () => {
   const pendingAccount = pendingAccounts[0];
 
   return (
-    <div className="w-full h-screen flex flex-col justify-center items-center">
+    <div className="mx-auto flex flex-col justify-center items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
         <h2 className="text-4xl font-bold tracking-tight">
           Welcome to herocast
@@ -60,15 +60,8 @@ const ConnectAccountPage = () => {
                 <CardTitle className="text-2xl">
                   Sign in with Warpcast
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Pay with Warps in Warpcast to connect with herocast
-                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center">
-                <span>
-                  Scan the QR code with your mobile camera app to sign in via
-                  Warpcast.
-                </span>
                 <QrCode
                   deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
                 />

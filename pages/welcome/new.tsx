@@ -6,11 +6,9 @@ import {
 } from "@/common/constants/accounts";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Button } from "@/components/ui/button";
@@ -35,7 +33,7 @@ const CreateAccountPage = () => {
 
   const onCreateNewAccount = async () => {
     if (hasPendingNewAccounts) {
-      router.push("/new/welcome/connect");
+      router.push("/welcome/connect");
       return;
     }
 
@@ -63,7 +61,7 @@ const CreateAccountPage = () => {
       });
       // Artificial delay to ensure the account has the pending state before navigating
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      router.push("/new/welcome/connect");
+      router.push("/welcome/connect");
     } catch (e) {
       console.error("Error when trying to add account", e);
     } finally {
