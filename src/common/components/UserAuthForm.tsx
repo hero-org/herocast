@@ -1,6 +1,6 @@
+"use client";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,10 +28,10 @@ import {
 } from "@/stores/useAccountStore";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
-import { v4 as uuidv4 } from "uuid";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
+import includes from "lodash.includes";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -46,15 +46,18 @@ const UserAuthFormSchema = z.object({
   }),
 });
 
-export function UserAuthForm({
-  signupOnly,
-  className,
-}: {
-  signupOnly: boolean;
-  className: string;
-}) {
+enum ViewState {
+  LOGIN = "login",
+  SIGNUP = "signup",
+  FORGOT = "forgot",
+  RESET = "reset",
+}
+
+export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
+  const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
+
   const supabase = createClient();
   const router = useRouter();
   const posthog = usePostHog();
@@ -64,6 +67,12 @@ export function UserAuthForm({
   } = useProfile();
 
   const { accounts, addAccount } = useAccountStore();
+
+  React.useEffect(() => {
+    if (router.query?.view) {
+      setView(router.query.view as ViewState);
+    }
+  }, [router.query?.view]);
 
   React.useEffect(() => {
     if (isAuthenticated && username && fid) {
@@ -81,20 +90,26 @@ export function UserAuthForm({
     mode: "onSubmit",
   });
 
+  useHotkeys(Key.Enter, logIn, [form.getValues()], { enableOnFormTags: true });
+
   const setupLocalAccount = async ({ fid, username }) => {
     if (!fid || !username) return;
 
-    const hasLocalAccountCreated = localAccounts.some((a) => a.platformAccountId === fid.toString());
+    const hasLocalAccountCreated = localAccounts.some(
+      (a) => a.platformAccountId === fid.toString()
+    );
     setIsLoading(true);
     let account;
     if (hasLocalAccountCreated) {
-      account = localAccounts.find((a) => a.platformAccountId === fid.toString());
+      account = localAccounts.find(
+        (a) => a.platformAccountId === fid.toString()
+      );
     } else {
       setUserMessage("Setting up local account...");
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-  
+
       const users = (
         await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })
       ).users;
@@ -102,7 +117,7 @@ export function UserAuthForm({
         console.error("No users found for fid: ", fid);
         return;
       }
-  
+
       account = {
         name: username,
         status: AccountStatusType.active,
@@ -126,7 +141,7 @@ export function UserAuthForm({
 
     posthog.identify(data?.user?.id, { isLocalOnly: true });
     setUserMessage("Setup done. Welcome to the herocast experience!");
-    router.push("/welcome");
+    router.push("/feed");
     setIsLoading(false);
   };
 
@@ -153,7 +168,6 @@ export function UserAuthForm({
     posthog.identify(data?.user?.id, { email });
     await hydrate();
     router.push("/feed");
-    setIsLoading(false);
   }
 
   async function signUp() {
@@ -164,11 +178,7 @@ export function UserAuthForm({
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/api/auth/confirm?type=signup&next=/welcome`,
-      },
     });
-    console.log(data, error);
 
     if (error) {
       form.setError("password", {
@@ -185,8 +195,9 @@ export function UserAuthForm({
     }
   }
 
-  async function resetPassword() {
+  const resetPassword = async () => {
     const { email } = form.getValues();
+
     if (!email) {
       form.setError("email", {
         type: "manual",
@@ -200,21 +211,135 @@ export function UserAuthForm({
     await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${process.env.NEXT_PUBLIC_URL}/login`,
     });
-    setUserMessage("Password reset email sent.");
+    setUserMessage("Sent password reset email to you");
+    setView(ViewState.LOGIN);
     setIsLoading(false);
-  }
+  };
 
-  useHotkeys(Key.Enter, logIn, [form.getValues()], { enableOnFormTags: true });
+  const submitNewPassword = async () => {
+    const { email, password } = form.getValues();
+
+    const { data, error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      alert("There was an error updating your password.");
+      setUserMessage("There was an error updating your password.");
+      form.setError("password", {
+        type: "manual",
+        message: error.message,
+      });
+      return;
+    }
+    if (data?.user) alert("Password updated successfully!");
+
+    setUserMessage("Logging you in...");
+    posthog.identify(data?.user?.id, { email });
+    await hydrate();
+    router.push("/feed");
+    setIsLoading(false);
+  };
+
+  const renderSubmitButton = () => {
+    let buttonText = "";
+    let buttonAction = () => {};
+
+    switch (view) {
+      case ViewState.FORGOT:
+        buttonText = "Reset Password";
+        buttonAction = resetPassword;
+        break;
+      case ViewState.LOGIN:
+        buttonText = "Sign In";
+        buttonAction = logIn;
+        break;
+      case ViewState.SIGNUP:
+        buttonText = "Sign Up";
+        buttonAction = signUp;
+        break;
+      case ViewState.RESET:
+        buttonText = "Set New Password";
+        buttonAction = submitNewPassword;
+        break;
+    }
+    return (
+      <Button
+        type="button"
+        size="lg"
+        className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+        disabled={isLoading}
+        onClick={buttonAction}
+      >
+        {isLoading ? <Loading className="text-white" /> : buttonText}
+      </Button>
+    );
+  };
+
+  const renderViewSwitchText = () => {
+    switch (view) {
+      case ViewState.LOGIN:
+        return (
+          <div
+            className="mt-2 text-center text-sm hover:cursor-pointer"
+            onClick={() => setView(ViewState.SIGNUP)}
+          >
+            Don&apos;t have an account?{" "}
+            <span className="underline">Sign up</span>
+          </div>
+        );
+      case ViewState.FORGOT:
+      case ViewState.SIGNUP:
+        return (
+          <div
+            className="mt-2 text-center text-sm hover:cursor-pointer"
+            onClick={() => setView(ViewState.LOGIN)}
+          >
+            Already have an account? <span className="underline">Log in</span>
+          </div>
+        );
+    }
+  };
+
+  const renderViewHelpText = () => {
+    switch (view) {
+      case ViewState.FORGOT:
+        return (
+          <span className="text-md text-muted-foreground">
+            Forgot your password? Enter your email below to reset it
+          </span>
+        );
+      case ViewState.RESET:
+        return (
+          <span className="text-md text-muted-foreground">
+            Enter your new password below
+          </span>
+        );
+      case ViewState.SIGNUP:
+        return (
+          <span className="text-md text-muted-foreground">
+            Enter your email to signup
+          </span>
+        );
+      default:
+        return (
+          <span className="text-md text-muted-foreground">
+            Enter your email to login
+          </span>
+        );
+    }
+  };
 
   return (
-    <div className={cn("grid gap-6", className)}>
-      <div className="flex justify-center text-center">
-        {userMessage && (
-          <Label className="w-2/3 text-md text-gray-100">{userMessage}</Label>
-        )}
-      </div>
+    <div className="grid gap-6">
       <Form {...form}>
+          {renderViewHelpText()}
         <form>
+          <div className="flex">
+            {userMessage && (
+              <span className="text-md text-muted-foreground">
+                {userMessage}
+              </span>
+            )}
+          </div>
           <div className="grid gap-4">
             <div className="grid gap-4">
               <FormField
@@ -222,10 +347,10 @@ export function UserAuthForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-200">Email</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        className="text-white"
+                        type="email"
                         placeholder="vitalik@ethereum.org"
                         disabled={isLoading}
                         {...field}
@@ -235,71 +360,50 @@ export function UserAuthForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-200">Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="text-white"
-                        placeholder="************"
-                        disabled={isLoading}
-                        autoComplete="current-password"
-                        type="password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {view !== ViewState.FORGOT && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={isLoading}
+                          autoComplete="current-password"
+                          type="password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
-            <Button
-              type="button"
-              size="lg"
-              className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
-              disabled={isLoading}
-              onClick={() => logIn()}
-            >
-              {isLoading ? <Loading /> : "Sign In with Email"}
-            </Button>
-            <div className="flex items-center justify-center space-x-2">
+            {renderSubmitButton()}
+            {!includes([ViewState.FORGOT, ViewState.RESET], view) && (
               <Button
                 type="button"
                 variant="outline"
-                className="text-gray-100 border-gray-500 w-full"
+                className="w-full shadow-none rounded-lg"
                 disabled={isLoading}
-                onClick={() => signUp()}
-              >
-                Signup
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="text-gray-100 border-gray-500 w-full"
-                disabled={isLoading}
-                onClick={() => resetPassword()}
+                onClick={() => setView(ViewState.FORGOT)}
               >
                 Forgot Password?
               </Button>
-            </div>
+            )}
+            {renderViewSwitchText()}
           </div>
         </form>
       </Form>
-      {signupOnly ? (
-        <Button variant="default" onClick={() => router.back()}>
-          <ArrowLeftIcon className="h-5 w-5 mr-2" /> Back to using read-only
-          account
-        </Button>
-      ) : (
+      {!signupOnly && (
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-gray-900 px-2 text-muted">
+            <span className="bg-card px-2 text-muted-foreground">
               or continue with
             </span>
           </div>

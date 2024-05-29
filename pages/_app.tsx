@@ -72,15 +72,12 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     supabaseClient.auth.getSession().then(({ data: { session } }) => {
       const isLoggedInUser = !!session;
-      const shouldForwardLoggedInUser = includes(["/", "/login"], asPath);
       const shouldForwardLoggedOutUser =
         asPath !== "/login" &&
         asPath.startsWith("/profile") &&
         asPath.startsWith("/cast");
 
-      if (isLoggedInUser && shouldForwardLoggedInUser) {
-        window.location.href = "/feed";
-      } else if (!isLoggedInUser && shouldForwardLoggedOutUser) {
+      if (!isLoggedInUser && shouldForwardLoggedOutUser) {
         window.location.href = "/login";
       }
     });
