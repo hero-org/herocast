@@ -82,7 +82,9 @@ jobs:
     #       src-tauri/target/release/**/*
     - name: Sentry Release
       if: github.ref == 'refs/heads/main'
-      uses: getsentry/action-release@v1.4.1
+      uses: getsentry/action-release@v1.7
+      with:
+        ignore_missing: true
       env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
