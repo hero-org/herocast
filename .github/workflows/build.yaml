@@ -24,12 +24,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Setup Rust cache
-      uses: actions/cache@v3
-      with:
-        key: ${{ matrix.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
-        path: |
-          ~/.cargo
+    # - name: Setup Rust cache
+    #   uses: actions/cache@v3
+    #   with:
+    #     key: ${{ matrix.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+    #     path: |
+    #       ~/.cargo
 
     - name: Install Node.js
       uses: actions/setup-node@v3
@@ -82,9 +82,9 @@ jobs:
     #       src-tauri/target/release/**/*
     - name: Sentry Release
       if: github.ref == 'refs/heads/main'
-      uses: getsentry/action-release@v1.7
+      uses: getsentry/action-release@v1.7.0
       with:
-        ignore_missing: true
+          ignore_missing: true
       env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
