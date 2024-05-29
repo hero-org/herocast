@@ -9,40 +9,106 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
-import { hydrate, useAccountStore } from "@/stores/useAccountStore";
+import {
+  AccountObjectType,
+  hydrate,
+  useAccountStore,
+} from "@/stores/useAccountStore";
 import { useAccount } from "wagmi";
 import ConfirmOnchainSignerButton from "@/common/components/ConfirmOnchainSignerButton";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
-import { Separator } from "@/components/ui/separator";
 import { QrCode } from "@/common/components/QrCode";
+import { getTimestamp } from "@/common/helpers/farcaster";
+import {
+  WarpcastLoginStatus,
+  getWarpcastSignerStatus,
+} from "@/common/helpers/warpcastLogin";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { useIsMounted } from "@/common/helpers/hooks";
+import { useRouter } from "next/router";
+
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 const ConnectAccountPage = () => {
+  const router = useRouter();
   const { isConnected } = useAccount();
-  const { accounts } = useAccountStore();
+  const { accounts, removeAccount, setAccountActive } = useAccountStore();
   const [isHydrated, setIsHydrated] = useState(false);
+  const isMounted = useIsMounted();
 
   useEffect(() => {
     hydrate();
     setIsHydrated(true);
   }, []);
 
-  if (!isHydrated) {
-    return null;
-  }
-
   const pendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.pending &&
       account.platform === AccountPlatformType.farcaster
   );
+  const pendingAccount = pendingAccounts?.[0];
+
+  const checkStatusAndActiveAccount = async (
+    pendingAccount: AccountObjectType
+  ) => {
+    if (!pendingAccount?.data?.signerToken) return;
+
+    const deadline = pendingAccount.data?.deadline;
+    if (deadline && getTimestamp() > deadline) {
+      await removeAccount(pendingAccount.id);
+      return;
+    }
+
+    const { status, data } = await getWarpcastSignerStatus(
+      pendingAccount.data.signerToken
+    );
+    if (status === WarpcastLoginStatus.success) {
+      const fid = data.userFid;
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const user = (
+        await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID! })
+      ).users[0];
+      await setAccountActive(pendingAccount.id, user.username, {
+        platform_account_id: user.fid.toString(),
+        data,
+      });
+      await hydrate();
+      router.push('welcome/success')
+    }
+  };
+
+  const pollForSigner = async (accountId: string) => {
+    let tries = 0;
+    while (tries < 60) {
+      tries += 1;
+      await new Promise((r) => setTimeout(r, 2000));
+
+      const account = useAccountStore
+        .getState()
+        .accounts.find((account) => account.id === accountId);
+      if (!account) return;
+      if (!isMounted()) return;
+
+      await checkStatusAndActiveAccount(account);
+    }
+  };
+
+  useEffect(() => {
+    if (pendingAccount) {
+      pendingAccounts.forEach((account) => pollForSigner(account.id));
+    }
+  }, [pendingAccount]);
+
+  if (!isHydrated) {
+    return null;
+  }
 
   if (pendingAccounts.length === 0) {
     return null;
   }
-
-  const pendingAccount = pendingAccounts[0];
 
   return (
     <div className="mx-auto flex flex-col justify-center items-center">
@@ -97,11 +163,9 @@ const ConnectAccountPage = () => {
                   <SwitchWalletButton />
                 )}
               </CardContent>
-              <CardFooter></CardFooter>
             </Card>
           </div>
         </div>
-        <Separator className="my-6" />
       </div>
     </div>
   );

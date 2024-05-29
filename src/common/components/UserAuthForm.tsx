@@ -190,7 +190,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       return;
     } else {
       posthog.identify(data?.user?.id, { email });
-      setUserMessage("Account created. Welcome to the herocast experience!");
+      setUserMessage("Welcome to the herocast experience!");
       router.push("/welcome/new");
       setIsLoading(false);
     }
