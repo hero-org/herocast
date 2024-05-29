@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { RefObject, useEffect } from "react";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { DraftType } from "../constants/farcaster";
@@ -95,13 +95,6 @@ export default function NewPostEntry({
       setInitialText(draft.text);
     }
   }, []);
-  // const getChannels = async (query: string): Promise<Channel[]> => {
-  //   const modChannels =
-  //     query && query.length > 2
-  //       ? await debouncedGetModChannels(query, true)
-  //       : [];
-  //   return take(modChannels, 10);
-  // };
 
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
@@ -164,7 +157,7 @@ export default function NewPostEntry({
   return (
     <div
       className="flex flex-col items-start min-w-full w-full h-full"
-      ref={ref}
+      ref={ref as RefObject<HTMLDivElement>}
       tabIndex={-1}
     >
       <form onSubmit={handleSubmit} className="w-full">
@@ -186,7 +179,9 @@ export default function NewPostEntry({
               <ChannelPicker
                 getChannels={getChannels}
                 getAllChannels={getAllChannels}
+                // @ts-expect-error - mod protocol channel type mismatch
                 onSelect={setChannel}
+                // @ts-expect-error - mod protocol channel type mismatch
                 value={getChannel()}
               />
             </div>
@@ -207,7 +202,7 @@ export default function NewPostEntry({
                   embeds={getEmbeds()}
                   api={API_URL}
                   variant="creation"
-                  manifest={currentMod}
+                  manifest={currentMod!}
                   renderers={renderers}
                   onOpenFileAction={handleOpenFile}
                   onExitAction={() => setCurrentMod(null)}

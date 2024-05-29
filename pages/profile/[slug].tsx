@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
 
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
+import {
+  AvatarImage,
+  AvatarFallback,
+  Avatar,
+} from "@/components/ui/avatar";
 import { CardHeader, Card } from "@/components/ui/card";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import uniqBy from "lodash.uniqby";
 import { useHotkeys } from "react-hotkeys-hook";
-import FollowButton from "../../src/common/components/FollowButton";
-import { useAccountStore } from "../../src/stores/useAccountStore";
-import { useDataStore } from "../../src/stores/useDataStore";
+import FollowButton from "@/common/components/FollowButton";
+import { useAccountStore } from "@/stores/useAccountStore";
+import { useDataStore } from "@/stores/useDataStore";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 

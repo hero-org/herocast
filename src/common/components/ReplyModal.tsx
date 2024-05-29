@@ -2,18 +2,9 @@ import React, { useEffect } from "react";
 import Modal from "./Modal";
 import NewPostEntry from "./NewPostEntry";
 import { useNewPostStore } from "@/stores/useNewPostStore";
-import { CastRow } from "./CastRow";
+import { CastRow, CastToReplyType } from "./CastRow";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useAccountStore } from "@/stores/useAccountStore";
-
-type CastToReplyType = {
-  hash: string;
-  author: {
-    fid: number;
-    display_name?: string;
-    displayName?: string;
-  };
-};
 
 type ReplyModalProps = {
   parentCast: CastToReplyType;
@@ -41,7 +32,7 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
   useEffect(() => {
     if (draftIdx === -1 && open) {
       addNewPostDraft({
-        parentCastId: { hash: parentCast?.hash, fid: parentCast?.author.fid },
+        parentCastId: { hash: parentCast?.hash, fid: parentCast?.author.fid.toString() },
       });
     }
     return () => {
