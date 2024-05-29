@@ -44,7 +44,5 @@ export async function middleware(req: NextRequest) {
 export const config = {
     unstable_allowDynamic: [
         "/node_modules/@protobufjs/inquire/index.js",
-        "/node_modules/scheduler/cjs/**",
-        "/node_modules/frames.js/**"
     ],
 };

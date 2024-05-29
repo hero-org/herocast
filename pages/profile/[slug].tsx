@@ -11,7 +11,6 @@ import { SelectableListWithHotkeys } from "@/common/components/SelectableListWit
 import { CastRow } from "@/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import uniqBy from "lodash.uniqby";
 import { useHotkeys } from "react-hotkeys-hook";
 import FollowButton from "@/common/components/FollowButton";
 import { useAccountStore } from "@/stores/useAccountStore";
