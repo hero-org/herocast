@@ -3,10 +3,14 @@ import { encodeAbiParameters } from "viem";
 import {
   useAccount,
   useReadContract,
+  useSignTypedData,
+  useSimulateContract,
   useSwitchChain,
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { Button } from "@/components/ui/button";
+import { KEY_REGISTRY } from "../constants/contracts/key-registry";
+import { CheckCircleIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
 import { ID_REGISTRY } from "../constants/contracts/id-registry";
 import { mnemonicToAccount } from "viem/accounts";
 import {
@@ -24,8 +28,6 @@ import { KEY_GATEWAY } from "../constants/contracts/key-gateway";
 import { getSignedKeyRequestMetadataFromAppAccount } from "../helpers/farcaster";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Label } from "@/components/ui/label";
-import { optimismChainId } from "../helpers/env";
-import { Cog6ToothIcon, CheckCircleIcon } from "@heroicons/react/20/solid";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC!;
@@ -67,7 +69,9 @@ type ConfirmOnchainSignerButtonType = {
 const ConfirmOnchainSignerButton = ({
   account,
 }: ConfirmOnchainSignerButtonType) => {
+  // const [signature, setSignature] = useState('');
   const { openAccountModal } = useAccountModal();
+  const { signTypedDataAsync } = useSignTypedData();
 
   const chainId = getChainId(config);
   const { switchChain } = useSwitchChain();
@@ -76,13 +80,13 @@ const ConfirmOnchainSignerButton = ({
   const { address } = useAccount();
   const { data: idOfUser, error: idOfUserError } = useReadContract({
     ...ID_REGISTRY,
-    chainId: optimismChainId,
+    chainId: 10,
     functionName: address ? "idOf" : undefined,
     args: address ? [address] : undefined,
   });
 
   const isWalletOwnerOfFid = idOfUser !== 0n;
-  const isConnectedToOptimism = address && chainId === optimismChainId;
+  const isConnectedToOptimism = address && chainId === 10;
   if (idOfUserError) console.log("idOfUserError", idOfUserError);
 
   const { setAccountActive } = useAccountStore();
@@ -93,7 +97,6 @@ const ConfirmOnchainSignerButton = ({
   const getSignature = useCallback(async () => {
     if (!account || !account.publicKey) return;
     return getSignedKeyRequestMetadataFromAppAccount(
-      chainId,
       account.publicKey,
       deadline
     );
@@ -116,7 +119,7 @@ const ConfirmOnchainSignerButton = ({
       );
       const user = (
         await neynarClient.fetchBulkUsers([Number(idOfUser)], {
-          viewerFid: Number(APP_FID),
+          viewerFid: Number(APP_FID!),
         })
       ).users[0];
       await setAccountActive(account.id, user.username, {
@@ -143,8 +146,8 @@ const ConfirmOnchainSignerButton = ({
   );
 
   const onClick = async () => {
-    if (chainId !== optimismChainId) {
-      switchChain?.({ chainId: optimismChainId });
+    if (chainId !== 10) {
+      switchChain?.({ chainId: 10 });
     } else if (!isWalletOwnerOfFid) {
       openAccountModal?.();
     } else {
@@ -182,7 +185,7 @@ const ConfirmOnchainSignerButton = ({
 
   const getButtonText = () => {
     // if (addKeySignPending) return 'Waiting for you to sign in your wallet'
-    if (chainId !== optimismChainId) return "Switch to Optimism";
+    if (chainId !== 10) return "Switch to Optimism";
     if (isAddKeyTxLoading)
       return "Waiting for onchain transaction to be confirmed";
     if (isAddKeyTxSuccess) return "Confirmed onchain";

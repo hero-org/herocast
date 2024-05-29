@@ -2,6 +2,7 @@ import NewPostEntry from "../../src/common/components/NewPostEntry";
 import { classNames } from "../../src/common/helpers/css";
 import { useNewPostStore } from "../../src/stores/useNewPostStore";
 import React, { useEffect, useState } from "react";
+import CustomToast from "../../src/common/components/CustomToast";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../../src/common/components/HotkeyTooltipWrapper";

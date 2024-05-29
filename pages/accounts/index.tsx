@@ -121,6 +121,7 @@ export default function Accounts() {
       setIsLoading(true);
       await addAccount({
         account: {
+          id: null,
           platformAccountId: undefined,
           status: AccountStatusType.pending,
           platform: AccountPlatformType.farcaster,
@@ -286,7 +287,7 @@ export default function Accounts() {
           </CardHeader>
           <CardContent>
             {isConnected ? (
-              <ConfirmOnchainSignerButton account={pendingAccount!} />
+              <ConfirmOnchainSignerButton account={pendingAccount} />
             ) : (
               <SwitchWalletButton />
             )}

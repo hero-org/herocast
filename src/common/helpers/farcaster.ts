@@ -2,9 +2,10 @@ import axios from "axios";
 import { CastAddBody, Embed, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, UserDataType, ViemLocalEip712Signer, hexStringToBytes, idRegistryABI, keyGatewayABI, makeCastAdd, makeUserDataAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
 import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
 import { Address, encodeAbiParameters, toBytes } from "viem";
-import { publicClient, publicClientTestnet } from "./rainbowkit";
+import { publicClient } from "./rainbowkit";
 import { mnemonicToAccount } from "viem/accounts";
-import { isDev, optimismChainId } from "./env";
+import { readContract } from "viem/actions";
+import { optimism } from "viem/chains";
 
 export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 
@@ -38,9 +39,9 @@ type RemoveReactionParams = {
 }
 
 const getDataOptions = (fid: number) => ({
-  fid: fid,
-  network: 1,
-}
+    fid: fid,
+    network: 1,
+  }
 );
 
 export const removeReaction = async ({ authorFid, privateKey, reaction }: RemoveReactionParams) => {
@@ -189,15 +190,12 @@ export async function isValidSignedKeyRequest(
   return res;
 }
 
-export const getSignedKeyRequestMetadataFromAppAccount = async (chainId: number, signerPublicKey: `0x${string}`, deadline: bigint | number) => {
+export const getSignedKeyRequestMetadataFromAppAccount = async (signerPublicKey: `0x${string}`, deadline: bigint | number) => {
   const appAccount = mnemonicToAccount(process.env.NEXT_PUBLIC_APP_MNENOMIC!);
   const fid = BigInt(process.env.NEXT_PUBLIC_APP_FID!);
 
   const signature = await appAccount.signTypedData({
-    domain: {
-      ...SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
-      chainId,
-    },
+    domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
     types: {
       SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
     },
@@ -247,19 +245,15 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (chainId: number,
 const IdContract = {
   abi: idRegistryABI,
   address: ID_REGISTRY_ADDRESS,
-  chain: 10,
+  chain: optimism,
 };
 
 export const getFidForAddress = async (address: `0x${string}`): Promise<bigint | undefined> => {
-  if (!address) return;
-
-  const client = isDev() ? publicClientTestnet : publicClient;
-
-  return (await client.readContract({
+  return (await publicClient.readContract({
     ...IdContract,
     functionName: 'idOf',
     args: [address],
-  }));
+  })) as bigint;
 };
 
 const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';
@@ -375,7 +369,7 @@ const EIP_712_USERNAME_DOMAIN = {
   name: "Farcaster name verification",
   version: "1",
   chainId: 1,
-  verifyingContract: "0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1" as Address,
+  verifyingContract: "0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1" as Address, 
 };
 
 const USERNAME_PROOF_EIP_712_TYPES = {
@@ -402,5 +396,5 @@ export const getSignatureForUsernameProof = async (client, address, message: {
 };
 
 export const updateBio = async () => {
-
+  
 }

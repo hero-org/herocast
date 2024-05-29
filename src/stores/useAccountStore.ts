@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-
 import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
 import { ChannelType } from "../../src/common/constants/channels";
 import { CommandType } from "../../src/common/constants/commands";
@@ -377,7 +374,7 @@ const store = (set: StoreSet) => ({
                 console.log('failed to update channel', channels[oldIndex].id)
                 return;
               }
-            })
+            });
         }
       }
       state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
@@ -659,7 +656,7 @@ const getChannelCommands = () => {
   return channelCommands;
 }
 
-const getCurrentChannelIndex = (channelUrl: string, channels: ChannelType[]) => {
+const getCurrentChannelIndex = (channelUrl: string, channels) => {
   const customChannelIdx = CUSTOM_CHANNEL_TO_IDX[channelUrl];
   if (customChannelIdx !== undefined) return customChannelIdx;
 

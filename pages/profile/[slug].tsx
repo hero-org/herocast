@@ -8,9 +8,9 @@ import { CastRow } from "@/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useHotkeys } from "react-hotkeys-hook";
-import FollowButton from "@/common/components/FollowButton";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { useDataStore } from "@/stores/useDataStore";
+import FollowButton from "../../src/common/components/FollowButton";
+import { useAccountStore } from "../../src/stores/useAccountStore";
+import { useDataStore } from "../../src/stores/useDataStore";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 

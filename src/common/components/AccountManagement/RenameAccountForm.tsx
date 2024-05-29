@@ -120,11 +120,12 @@ const RenameAccountForm = ({
           const neynarClient = new NeynarAPIClient(
             process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
           );
-          const walletsResponse = await neynarClient.fetchBulkUsers(
-            [Number(account.platformAccountId)],
-            { viewerFid: APP_FID }
-          );
-          const custodyAddress = walletsResponse?.users?.[0]?.custody_address;
+          const walletsResponse =
+            await neynarClient.fetchBulkUsers(
+              [Number(account.platformAccountId)],
+              { viewerFid: APP_FID }
+            );
+          const custodyAddress = walletsResponse?.result?.custodyAddress;
           const message = `Your connected wallet does not own the Farcaster account. Please connect with ${custodyAddress}. You are connected with ${address}`;
           console.log(message);
           form.setError("username", {
@@ -224,7 +225,7 @@ const RenameAccountForm = ({
         UserDataType.USERNAME,
         username
       );
-      updateAccountUsername(account.id);
+      updateAccountUsername(account.id!);
     } catch (e) {
       console.error("renameAccount error", e);
       form.setError("username", {

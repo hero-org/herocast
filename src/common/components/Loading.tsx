@@ -1,25 +1,8 @@
 import clsx from "clsx";
 import React from "react";
 
-interface LoadingProps {
-  className?: string;
-  isInline?: boolean;
-  loadingMessage?: string;
-}
-
-export const Loading = ({
-  className,
-  isInline = false,
-  loadingMessage = "Loading",
-}: LoadingProps) =>
-  isInline ? (
-    <span className={clsx(className, "my-4 font-semibold text-foreground")}>
-      {loadingMessage}
-      <span className="animate-pulse">...</span>
-    </span>
-  ) : (
-    <p className={clsx(className, "my-4 font-semibold text-foreground")}>
-      {loadingMessage}
-      <span className="animate-pulse">...</span>
-    </p>
-  );
+export const Loading = ({ className }: { className?: string }) => (
+  <p className={clsx(className, "my-4 font-semibold text-foreground")}>
+    Loading<span className="animate-pulse">...</span>
+  </p>
+);

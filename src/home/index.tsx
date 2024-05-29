@@ -40,10 +40,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { allChannels, selectedChannelUrl } = useAccountStore();
 
   const getFeedTitle = () => {
-    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
       return "Following Feed";
     }
-    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING.toString()) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING) {
       return "Trending Feed";
     }
 

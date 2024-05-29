@@ -1,41 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount } from "wagmi";
 
 const SwitchWalletButton = () => {
-  const { disconnect } = useDisconnect();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
-  
-  const { address, isConnected } = useAccount();
-  const [isClient, setIsClient] = useState<boolean>(false);
+  const { status, address } = useAccount();
+  const x = useAccount();
+  const [description, setDescription] = React.useState<string>("");
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    if (address) {
+      setDescription(
+        `Connected with wallet: ${address.substring(
+          0,
+          6
+        )}...${address.substring(address.length - 4, address.length)} - status: ${status}`
+      );
+    }
+  }, [address, status]);
+
+  const onClick = () => {
+    if (status === "connected") {
+      openAccountModal?.();
+    } else {
+      openConnectModal?.();
+    }
+  };
 
   return (
     <div className="flex flex-col">
-      {isClient && isConnected && (
-        <Button variant="destructive" onClick={() => disconnect()}>
-          Disconnect
-        </Button>
-      )}
-
-      <Button
-        variant="outline"
-        className={`${isClient && isConnected ? "mt-2" : ""}`}
-        onClick={() => openConnectModal?.() || openAccountModal?.()}
-      >
-        {`${
-          isClient && isConnected ? `Connected to ${address.substring(
-          0,
-          6
-        )}...${address.substring(address.length - 4, address.length)}` : "Connect wallet"
-        }`}
+      <Button variant="outline" onClick={onClick} className="w-full max-w-sm">
+        Connect / Switch wallet
       </Button>
+      <Label className="mt-2">{description}</Label>
     </div>
   );
 };
