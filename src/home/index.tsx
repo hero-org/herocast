@@ -24,6 +24,7 @@ import herocastImg from "../../public/images/logo.png";
 import { Toaster } from "@/components/ui/sonner";
 import Link from "next/link";
 import AccountsOverview from "../common/components/Sidebar/AccountsOverview";
+import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
 
 type NavigationItemType = {
   name: string;
@@ -304,7 +305,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
         <div className="mt-4">
-          <AccountsOverview />
+          <AccountSwitcher />
         </div>
       </div>
 

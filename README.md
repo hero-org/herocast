@@ -27,12 +27,37 @@ a protocol for decentralized social apps: https://www.farcaster.xyz
 ...coming back soon via [tauri](https://tauri.app/)...
 
 
-### DB scheme: accounts
+### Misc
+#### DB scheme: accounts
 reminder: key is an edcsa key not a 'normal' EVM address
+
+#### Troubleshooting local DB errors
+
+```psql
+GRANT
+EXECUTE
+  ON FUNCTION pgsodium.crypto_aead_det_encrypt (bytea, bytea, bytea, bytea) TO authenticated;
+
+GRANT
+EXECUTE
+  ON FUNCTION pgsodium.crypto_aead_det_encrypt (bytea, bytea, uuid, bytea) TO authenticated;
+
+GRANT
+EXECUTE
+  ON FUNCTION pgsodium.crypto_aead_det_decrypt (bytea, bytea, bytea, bytea) TO authenticated;
+
+GRANT
+EXECUTE
+  ON FUNCTION pgsodium.crypto_aead_det_decrypt (bytea, bytea, uuid, bytea) TO authenticated;
+
+GRANT
+  pgsodium_keyiduser TO authenticated;
+```
 
 ## License
 
 Distributed under the AGPLv3 License. See LICENSE for more information.
+
 
 ## Contact
 
@@ -41,3 +66,4 @@ hellno [Warpcast](https://warpcast.com/hellno.eth)
 Website: https://herocast.xyz
 
 Github: https://github.com/hellno/herocast
+
