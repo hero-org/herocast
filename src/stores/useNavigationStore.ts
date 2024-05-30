@@ -3,10 +3,13 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 interface NavigationStoreProps {
+  isReplyModalOpen: boolean;
   isCommandPaletteOpen: boolean;
 }
 
 interface NavigationStoreActions {
+  openReplyModal: () => void;
+  closeReplyModal: () => void;
   closeCommandPallete: () => void;
   toggleCommandPalette: () => void;
   toAccounts: () => void;
@@ -25,6 +28,17 @@ type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   isCommandPaletteOpen: false,
+  isReplyModalOpen: false,
+  openReplyModal: () => {
+    set((state) => {
+      state.isReplyModalOpen = true;
+    });
+  },
+  closeReplyModal: () => {
+    set((state) => {
+      state.isReplyModalOpen = false;
+    });
+  },
   closeCommandPallete: () => {
     set((state) => {
       state.isCommandPaletteOpen = false;

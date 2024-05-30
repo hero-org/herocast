@@ -75,6 +75,7 @@ type NewPostEntryProps = {
   draft?: DraftType;
   draftIdx: number;
   onPost?: () => void;
+  onRemove?: () => void;
   hideChannel?: boolean;
   disableAutofocus?: boolean;
 };
@@ -83,6 +84,7 @@ export default function NewPostEntry({
   draft,
   draftIdx,
   onPost,
+  onRemove,
   hideChannel,
 }: NewPostEntryProps) {
   const { updatePostDraft, publishPostDraft } = useNewPostStore();
@@ -226,7 +228,7 @@ export default function NewPostEntry({
           </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
-          <Button variant="outline" onClick={onPost}>
+          <Button variant="outline" type="button" onClick={onRemove}>
             Remove
           </Button>
           <Button type="submit" className="line-clamp-1 w-40 truncate">

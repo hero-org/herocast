@@ -2,17 +2,22 @@ import NewPostEntry from "../../src/common/components/NewPostEntry";
 import { classNames } from "../../src/common/helpers/css";
 import { useNewPostStore } from "../../src/stores/useNewPostStore";
 import React, { useEffect, useState } from "react";
-import CustomToast from "../../src/common/components/CustomToast";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../../src/common/components/HotkeyTooltipWrapper";
 import { Button } from "../../src/components/ui/button";
+import { CastRow } from "@/common/components/CastRow";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { useAccountStore } from "@/stores/useAccountStore";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 export default function NewPost() {
-  const [showToast, setShowToast] = useState(false);
-
-  const { addNewPostDraft, removeAllPostDrafts } = useNewPostStore();
+  const { addNewPostDraft, removePostDraft, removeAllPostDrafts } =
+    useNewPostStore();
   const { drafts } = useNewPostStore();
+  const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
+  const { accounts, selectedAccountIdx } = useAccountStore();
+  const selectedAccount = accounts[selectedAccountIdx];
 
   useEffect(() => {
     if (drafts.length === 0) {
@@ -20,13 +25,48 @@ export default function NewPost() {
     }
   }, []);
 
+  useEffect(() => {
+    const parentCastIds = drafts
+      .map((draft) => draft?.parentCastId?.hash)
+      .filter(Boolean) as string[];
+
+    const fetchParentCasts = async () => {
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const res = await neynarClient.fetchBulkCasts(parentCastIds, {
+        viewerFid: selectedAccount?.platformAccountId,
+      });
+      setParentCasts(res?.result?.casts);
+    };
+    if (parentCastIds.length) {
+      fetchParentCasts();
+    }
+  }, [drafts]);
+
+  const renderDraft = (draft, draftIdx) => {
+    const parentCast = parentCasts.find(
+      (cast) => cast.hash === draft.parentCastId?.hash
+    );
+    return (
+      <div key={draftIdx} className="pt-4 pb-6">
+        {parentCast && <CastRow cast={parentCast} />}
+        <NewPostEntry
+          draft={draft}
+          key={`draft-${draftIdx}`}
+          draftIdx={draftIdx}
+          onRemove={() => removePostDraft(draftIdx)}
+        />
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="ml-3 flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
         <div className="ml-1 mt-2 w-full flex items-center justify-between">
           <div className="text-foreground/80 font-semibold">
-            You have {drafts.length}{" "}
-            {drafts.length !== 1 ? "drafts" : "draft"}
+            You have {drafts.length} {drafts.length !== 1 ? "drafts" : "draft"}
           </div>
           <div className="flex ml-8 lg:ml-0">
             <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
@@ -49,9 +89,7 @@ export default function NewPost() {
               disabled={drafts.length === 0}
               onClick={() => removeAllPostDrafts()}
               className={classNames(
-                drafts.length > 0
-                  ? "cursor-pointer"
-                  : "cursor-default",
+                drafts.length > 0 ? "cursor-pointer" : "cursor-default",
                 "inline-flex items-center"
               )}
             >
@@ -64,24 +102,7 @@ export default function NewPost() {
           </div>
         </div>
         <div className="divide-y">
-          {drafts.map((draft, draftIdx) => (
-            <div key={draftIdx} className="pt-4 pb-6">
-              {draft.parentCastId?.hash && (
-                <div className="text-foreground/70 text-sm mb-2">
-                  Replying to{" "}
-                  <span className="text-foreground/80">
-                    @{draft.parentCastId?.hash}
-                  </span>
-                </div>
-              )}
-              <NewPostEntry
-                draft={draft}
-                key={`draft-${draftIdx}`}
-                draftIdx={draftIdx}
-                onPost={() => null}
-              />
-            </div>
-          ))}
+          {drafts.map((draft, draftIdx) => renderDraft(draft, draftIdx))}
         </div>
       </div>
     </>
