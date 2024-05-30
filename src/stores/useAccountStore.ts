@@ -98,6 +98,7 @@ interface AccountStoreActions {
   setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => void;
   updateAccountUsername: (accountId: UUID) => void;
   removeAccount: (id: string) => void;
+  setCurrentAccountById: (platformAccountId: string) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setSelectedChannelUrl: (url: string | null) => void;
   setSelectedChannelByName: (name: string) => void;
@@ -228,6 +229,16 @@ const store = (set: StoreSet) => ({
   setCurrentAccountIdx: (idx: number) => {
     set((state) => {
       state.selectedAccountIdx = idx;
+    });
+  },
+  setCurrentAccountById: (accountId: string) => {
+    set((state) => {
+      const idx = state.accounts.findIndex((account) => account.id === accountId);
+      console.log('setCurrentAccountById', accountId, 'idx', idx);
+
+      if (idx >= 0) {
+        state.selectedAccountIdx = idx;
+      }
     });
   },
   setSelectedChannelUrl: (url: string) => {
