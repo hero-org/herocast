@@ -25,15 +25,15 @@ type AccountSelectorProps = {
 };
 
 export function AccountSelector({ accountFilter }: AccountSelectorProps) {
-  const { address, isConnected } = useAccount();
-  const { selectedAccountIdx, setCurrentAccountIdx } = useAccountStore();
+  const { selectedAccountIdx, setCurrentAccountById } = useAccountStore();
   const accounts = useAccountStore((state) => state.accounts).filter(
     (account) => (accountFilter ? accountFilter(account) : true)
   );
 
-  const selectedAccount = accounts[selectedAccountIdx];
+  const selectedAccount = useAccountStore((state) => state.accounts)[
+    selectedAccountIdx
+  ];
   const [open, setOpen] = useState(false);
-
   return accounts.length === 0 ? (
     <div className="py-3">
       <Button variant="secondary" onClick={() => hydrateAccounts()}>
@@ -74,7 +74,7 @@ export function AccountSelector({ accountFilter }: AccountSelectorProps) {
                 key={account.id}
                 value={account.id}
                 onSelect={async () => {
-                  setCurrentAccountIdx(idx);
+                  setCurrentAccountById(account.id);
                   setOpen(false);
                 }}
               >

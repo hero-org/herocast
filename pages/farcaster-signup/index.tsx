@@ -83,7 +83,7 @@ export default function Welcome() {
   }, [isConnected, address]);
 
   const validateWalletHasNoFid = async (): Promise<void> => {
-    setError('') // reset
+    setError('')
     if (!isConnected || !address) {
       return;
     }
@@ -123,13 +123,6 @@ export default function Welcome() {
             Use Hats Protocol to share this account with onchain permissions
           </p>
         </div>
-      </div>
-      <div className="mt-12 space-y-4">
-        {/* <div className="w-[500px]">
-          <AspectRatio ratio={16 / 9}>
-            // can fill in video embed explainer here
-          </AspectRatio>
-        </div> */}
       </div>
     </div>
   );
@@ -183,7 +176,6 @@ export default function Welcome() {
           />
         );
       case FarcasterSignupNav.register_username:
-        // skipped for now
         return getStepContent(
           "Register your username",
           "Submit name and bio of your Farcaster account",

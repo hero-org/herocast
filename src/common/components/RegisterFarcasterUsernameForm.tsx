@@ -13,11 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  useAccount,
-  useSwitchChain,
-  useWalletClient,
-} from "wagmi";
+import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
 import {
   getSignatureForUsernameProof,
   getTimestamp,
@@ -33,8 +29,9 @@ import {
 } from "@/stores/useAccountStore";
 import { AccountPlatformType } from "../constants/accounts";
 import { mainnet } from "viem/chains";
-import { UserDataType } from "@farcaster/hub-web";
+import { validations, UserDataType } from "@farcaster/hub-web";
 import { AccountSelector } from "./AccountSelector";
+import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 
 export type FarcasterAccountSetupFormValues = z.infer<
   typeof FarcasterAccountSetupFormSchema
@@ -98,6 +95,14 @@ const RegisterFarcasterUsernameForm = ({
   const canSubmitForm = !isPending && isConnected && chainId === mainnet.id;
 
   const validateUsername = async (username: string): Promise<boolean> => {
+    const validationResults = validations.validateFname(username);
+    if (validationResults.isErr()) {
+      form.setError("username", {
+        type: "manual",
+        message: validationResults.error.message,
+      });
+      return false;
+    }
     const isValidNewUsername = await validateUsernameIsAvailable(username);
     if (!isValidNewUsername) {
       form.setError("username", {
@@ -120,7 +125,7 @@ const RegisterFarcasterUsernameForm = ({
       });
       return;
     }
-    if (!validateUsername(data.username)) return;
+    if (!(await validateUsername(data.username))) return;
 
     setIsPending(true);
     setError(null);
@@ -165,7 +170,7 @@ const RegisterFarcasterUsernameForm = ({
       await setUserDataInProtocol(
         account.privateKey!,
         Number(account.platformAccountId!),
-        UserDataType.DISPLAY,
+        UserDataType.USERNAME,
         username
       );
       updateAccountUsername(account.id);
@@ -241,10 +246,7 @@ const RegisterFarcasterUsernameForm = ({
             <FormItem>
               <FormLabel>Bio</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Building x | Love to y | Find me at z"
-                  {...field}
-                />
+                <Input placeholder="building x and love to y" {...field} />
               </FormControl>
               <FormDescription>
                 This will be your public bio / account description.
@@ -255,6 +257,12 @@ const RegisterFarcasterUsernameForm = ({
         />
         <div className="flex flex-col space-y-2">
           <Button disabled={!canSubmitForm} type="submit">
+            {isPending && (
+              <Cog6ToothIcon
+                className="mr-2 h-5 w-5 animate-spin"
+                aria-hidden="true"
+              />
+            )}
             Register username
           </Button>
           {chainId !== mainnet.id && (
