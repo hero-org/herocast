@@ -31,9 +31,9 @@ export default function Frame({ homeFrameUrl, account } : { homeFrameUrl: string
 
     const farcasterSigner: FarcasterSigner | undefined = account ? {
         fid: Number(account?.platformAccountId),
-        status: account?.status,
-        publicKey: account?.publicKey,
-        privateKey: account?.privateKey,
+        status: 'approved',
+        publicKey: account.publicKey!,
+        privateKey: account.privateKey!,
     } : undefined;
 
     const frameState = useFrame({

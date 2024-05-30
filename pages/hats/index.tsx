@@ -58,7 +58,7 @@ const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
 export default function HatsProtocolPage() {
   const [step, setStep] = useState<string>(hatsSignupSteps[0].key);
-  const [accountToTransfer, setAccountToTransfer] = useState<User | null>();
+  const [accountToTransfer, setAccountToTransfer] = useState<User>();
   const [delegatorContractAddress, setDelegatorContractAddress] = useState<
     `0x${string}` | null
   >();
@@ -147,7 +147,7 @@ export default function HatsProtocolPage() {
           placeholder="herocast"
           value={userInput}
           onChange={(e) => {
-            if (accountToTransfer) setAccountToTransfer(null);
+            if (accountToTransfer) setAccountToTransfer(undefined);
             if (infoMessage) setInfoMessage(null);
             setUserInput(e.target.value);
           }}
@@ -291,7 +291,7 @@ export default function HatsProtocolPage() {
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <TransferAccountToHatsDelegator
-              user={accountToTransfer}
+              user={accountToTransfer!}
               onSuccess={() => setStep(HatsSignupNav.invite)}
               toAddress={delegatorContractAddress!}
             />

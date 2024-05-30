@@ -22,7 +22,6 @@ import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
 import { Toaster } from "@/components/ui/sonner";
-import Link from "next/link";
 import AccountsOverview from "../common/components/Sidebar/AccountsOverview";
 
 type NavigationItemType = {
@@ -41,10 +40,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { allChannels, selectedChannelUrl } = useAccountStore();
 
   const getFeedTitle = () => {
-    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
       return "Following Feed";
     }
-    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING.toString()) {
       return "Trending Feed";
     }
 

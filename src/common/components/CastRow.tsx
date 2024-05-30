@@ -39,8 +39,22 @@ registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
 registerPlugin("channel", channelPlugin);
 
+export type CastToReplyType = {
+  hash: string;
+  author: {
+    fid: number;
+    display_name?: string;
+    displayName?: string;
+  };
+};
+
 interface CastRowProps {
-  cast: CastWithInteractions;
+  cast: CastWithInteractions & {
+    inclusion_context?: {
+      is_following_recaster: boolean;
+      is_following_author: boolean;
+    };
+  } | CastToReplyType;
   showChannel?: boolean;
   onSelect?: () => void;
   onReply?: () => void;
@@ -164,15 +178,11 @@ export const CastRow = ({
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
-    const recastsCount =
-      cast.reactions?.recasts?.length || cast.recasts?.count || 0;
-    const likesCount =
-      cast.reactions?.likes?.length || cast.reactions?.count || 0;
+    const recastsCount = cast.reactions?.recasts?.length || 0;
+    const likesCount = cast.reactions?.likes?.length || 0;
 
-    const likeFids =
-      cast.reactions?.fids || map(cast.reactions?.likes, "fid") || [];
-    const recastFids =
-      cast.recasts?.fids || map(cast.reactions?.recasts, "fid") || [];
+    const likeFids = map(cast.reactions?.likes, "fid") || [];
+    const recastFids = map(cast.reactions?.recasts, "fid") || [];
     return {
       [CastReactionType.replies]: { count: repliesCount },
       [CastReactionType.recasts]: {
@@ -323,11 +333,11 @@ export const CastRow = ({
     );
   };
 
-  const renderCastReactions = (cast: CastType) => {
+  const renderCastReactions = (cast: CastWithInteractions) => {
     const linksCount = cast?.embeds ? cast.embeds.length : 0;
     const isOnchainLink =
-      linksCount > 0 && cast.embeds[0].url
-        ? cast.embeds[0].url.startsWith('"chain:')
+      linksCount > 0 && 'url' in cast.embeds[0]
+        ? cast.embeds[0].url.startsWith('chain:')
         : false;
 
     return (
@@ -394,7 +404,7 @@ export const CastRow = ({
             <HotkeyTooltipWrapper hotkey="O" side="bottom">
               <a
                 tabIndex={-1}
-                href={cast.embeds[0].url}
+                href={'url' in cast.embeds[0] ? cast.embeds[0].url : '#'}
                 target="_blank"
                 rel="noreferrer"
                 className="cursor-pointer"
@@ -414,7 +424,7 @@ export const CastRow = ({
   };
 
   const getText = () =>
-    cast.text ? (
+    'text' in cast && cast.text ? (
       <ErrorBoundary>
         <Linkify
           as="span"
@@ -428,25 +438,30 @@ export const CastRow = ({
       </ErrorBoundary>
     ) : null;
 
-  const renderEmbeds = () =>
-    cast.embeds &&
-    cast.embeds.length > 0 && (
+  const renderEmbeds = () => {
+    if (!('embeds' in cast) || !cast.embeds.length) {
+      return null;
+    }
+
+    return (
       <div className="mt-4">
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
-            <div key={`${cast.hash}-embed-${embed.url}`}>
+            // @ts-expect-error - type mismatch, this works
+            <div key={`${cast.hash}-embed-${embed.cast_id ?? embed.url}`}>
               {renderEmbedForUrl(embed)}
             </div>
           ))}
         </ErrorBoundary>
       </div>
     );
+  }
 
   const renderRecastBadge = () => {
     const shouldShowBadge =
-      cast?.inclusion_context &&
-      cast?.inclusion_context?.is_following_recaster &&
-      !cast?.inclusion_context?.is_following_author;
+      'inclusion_context' in cast &&
+      cast.inclusion_context?.is_following_recaster &&
+      !cast.inclusion_context?.is_following_author;
 
     if (!shouldShowBadge) return null;
     return (
@@ -456,10 +471,9 @@ export const CastRow = ({
     );
   };
 
-  const channel = showChannel ? getChannelForParentUrl(cast.parent_url) : null;
-  const authorPfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
-  const timeAgo = timeDiff(now, new Date(cast.timestamp));
-  const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
+  const channel = showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null;
+  const timeAgo = 'timestamp' in cast ? timeDiff(now, new Date(cast.timestamp)) : [0, 'seconds'];
+  const timeAgoStr = localize(Number(timeAgo[0]), timeAgo[1].toString());
 
   return (
     <div className="flex min-w-full w-full max-w-2xl">
@@ -474,18 +488,20 @@ export const CastRow = ({
           "lg:ml-0 grow rounded-r-sm"
         )}
       >
-        {isThreadView && <div className="absolute bg-foreground/10 -ml-2 mt-[1.2rem] h-[1.5px] w-4" />}
+        {isThreadView && (
+          <div className="absolute bg-foreground/10 -ml-2 mt-[1.2rem] h-[1.5px] w-4" />
+        )}
         <div className="flex items-top gap-x-4">
           <img
             className="relative h-10 w-10 flex-none bg-background rounded-full"
-            src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${authorPfpUrl}`}
+            src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
           />
           <div className="flex flex-col w-full">
             <div className="flex flex-row justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 <ProfileHoverCard fid={cast.author.fid} viewerFid={userFid}>
                   <span className="flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
-                    {cast.author.display_name || cast.author.displayName}
+                    {cast.author.display_name}
                     <span className="hidden font-normal lg:ml-1 lg:block">
                       (@{cast.author.username})
                     </span>
@@ -508,7 +524,7 @@ export const CastRow = ({
                 {renderRecastBadge()}
               </div>
               <div className="flex flex-row">
-                {cast.timestamp && (
+                {'timestamp' in cast && cast.timestamp && (
                   <span className="text-sm leading-5 text-foreground/50">
                     {timeAgoStr}
                   </span>
@@ -532,7 +548,7 @@ export const CastRow = ({
                 {getText()}
               </div>
             </div>
-            {renderCastReactions(cast)}
+            {renderCastReactions(cast as CastWithInteractions)}
             {!disableEmbeds && renderEmbeds()}
           </div>
         </div>
