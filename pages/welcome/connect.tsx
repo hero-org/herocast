@@ -76,7 +76,7 @@ const ConnectAccountPage = () => {
         data,
       });
       await hydrate();
-      router.push('welcome/success')
+      router.push('/welcome/success')
     }
   };
 
