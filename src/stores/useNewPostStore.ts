@@ -48,6 +48,28 @@ export const JoinedHerocastViaHatsProtocolDraft: DraftType = {
   mentionsToFids: { 'herocast': '18665', 'hatsprotocol': '18484' }
 }
 
+export const LaunchCasterScoutDraft: DraftType = {
+  text: `@launch via @herocast 
+   `,
+  status: DraftStatus.writing,
+  mentionsToFids: { 'launch': '2864', 'herocast': '18665' }
+}
+
+export const BountyCasterBotDraft: DraftType = {
+  text: `Description (be specific on details and any criteria for completing e.g. favorite answer wins, apply to work on this, X number of claims available) 
+  Amount (USDC, ETH, OP, Warps, degen, higher, or SOL)
+  Deadline (optional, defaults to 2 weeks)
+  @bountybot posted via @herocast`,
+  status: DraftStatus.writing,
+  mentionsToFids: { 'bountybot': '20596', 'herocast': '18665' }
+}
+
+export const RemindMeBotDraft: DraftType = {
+  text: "@remindme 1 day",
+  status: DraftStatus.writing,
+  mentionsToFids: { 'remindme': '2684' }
+}
+
 type addNewPostDraftProps = {
   text?: string
   parentUrl?: string
