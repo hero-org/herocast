@@ -249,7 +249,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         buttonAction = resetPassword;
         break;
       case ViewState.LOGIN:
-        buttonText = "Sign In";
+        buttonText = "Continue";
         buttonAction = logIn;
         break;
       case ViewState.SIGNUP:

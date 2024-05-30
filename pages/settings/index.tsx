@@ -170,7 +170,7 @@ export default function Settings() {
         </span>
       </div>
         <Button variant="default" onClick={() => onLogout()} className="w-20">
-          Logout
+          Log out
         </Button>
       <div className="flex flex-row gap-4">
         <SwitchWalletButton />
