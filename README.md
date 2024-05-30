@@ -1,7 +1,7 @@
 # herocast
 
 [![build](https://github.com/hellno/herocast/actions/workflows/build.yaml/badge.svg)](https://github.com/hellno/herocast/actions/workflows/build.yaml)
-![herocast_cartridge_landscape](https://github.com/hellno/herocast/assets/686075/f6925730-6e41-4729-93c0-4ce617b15aee)
+![herocast_logo_wide](https://github.com/hero-org/.github/blob/main/assets/herocast-logo.png?raw=true)
 
 herocast is Farcaster’s leading open source client. Our goal is to decentralize power on the internet, faster. While we develop herocast.xyz as a standalone product to help professionals get stuff done on-chain we invite you to use our open source codebase to contribute to the mission with your personal flavor.
 
