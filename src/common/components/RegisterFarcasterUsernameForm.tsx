@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,28 +15,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   useAccount,
-  useSignTypedData,
   useSwitchChain,
   useWalletClient,
 } from "wagmi";
 import {
-  getFidForAddress,
   getSignatureForUsernameProof,
   getTimestamp,
   setUserDataInProtocol,
   updateUsernameOffchain,
   validateUsernameIsAvailable,
 } from "../helpers/farcaster";
-import { getAddress, toHex } from "viem";
+import { getAddress } from "viem";
 import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
-import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
+import { AccountPlatformType } from "../constants/accounts";
 import { mainnet } from "viem/chains";
 import { UserDataType } from "@farcaster/hub-web";
-import { switchChain } from "viem/actions";
 import { AccountSelector } from "./AccountSelector";
 
 export type FarcasterAccountSetupFormValues = z.infer<
@@ -126,68 +123,76 @@ const RegisterFarcasterUsernameForm = ({
     if (!validateUsername(data.username)) return;
 
     setIsPending(true);
-    const owner = getAddress(address);
-    const { username, bio } = data;
+    setError(null);
 
-    let displayName = data.displayName;
-    if (!displayName) {
-      displayName = username;
-    }
+    try {
+      const owner = getAddress(address);
+      const { username, bio } = data;
 
-    const timestamp = getTimestamp();
-    const registerSignature = await getSignatureForUsernameProof(
-      client,
-      address,
-      {
-        name: username,
-        owner,
-        timestamp: BigInt(timestamp),
+      let displayName = data.displayName;
+      if (!displayName) {
+        displayName = username;
       }
-    );
-    if (!registerSignature) {
-      throw new Error("Failed to get signature to register username");
-    }
 
-    // register new username
+      const timestamp = getTimestamp();
+      const registerSignature = await getSignatureForUsernameProof(
+        client,
+        address,
+        {
+          name: username,
+          owner,
+          timestamp: BigInt(timestamp),
+        }
+      );
+      if (!registerSignature) {
+        setIsPending(false);
+        throw new Error("Failed to get signature to register username");
+      }
 
-    const result = await updateUsernameOffchain({
-      timestamp,
-      owner,
-      fromFid: "0",
-      toFid: account.platformAccountId!.toString(),
-      fid: account.platformAccountId!.toString(),
-      username: username,
-      signature: registerSignature,
-    });
-    console.log("updateUsername result", result);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+      // register new username
+      const result = await updateUsernameOffchain({
+        timestamp,
+        owner,
+        fromFid: "0",
+        toFid: account.platformAccountId!.toString(),
+        fid: account.platformAccountId!.toString(),
+        username: username,
+        signature: registerSignature,
+      });
+      console.log("updateUsername result", result);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    await setUserDataInProtocol(
-      account.privateKey!,
-      Number(account.platformAccountId!),
-      UserDataType.DISPLAY,
-      username
-    );
-    updateAccountUsername(account.id);
-
-    await setUserDataInProtocol(
-      account.privateKey!,
-      Number(account.platformAccountId!),
-      UserDataType.DISPLAY,
-      displayName
-    );
-
-    if (bio) {
       await setUserDataInProtocol(
         account.privateKey!,
         Number(account.platformAccountId!),
-        UserDataType.BIO,
-        bio
+        UserDataType.DISPLAY,
+        username
       );
-    }
+      updateAccountUsername(account.id);
 
-    await hydrateAccounts();
-    onSuccess?.(data);
+      await setUserDataInProtocol(
+        account.privateKey!,
+        Number(account.platformAccountId!),
+        UserDataType.DISPLAY,
+        displayName
+      );
+
+      if (bio) {
+        await setUserDataInProtocol(
+          account.privateKey!,
+          Number(account.platformAccountId!),
+          UserDataType.BIO,
+          bio
+        );
+      }
+
+      await hydrateAccounts();
+      onSuccess?.(data);
+    } catch (e) {
+      console.error("Failed to register username", e);
+      setError("Failed to register username");
+      setIsPending(false);
+    }
   };
 
   const renderForm = () => (
