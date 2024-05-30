@@ -41,7 +41,7 @@ const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
             <Button
               className="w-full"
               disabled={option.disabled}
-              onClick={() => option.onClick()}
+              onClick={() => option.onClick?.()}
             >
               {option.buttonText}
             </Button>
