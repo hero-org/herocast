@@ -43,14 +43,6 @@ cp .env.example .env.development.local
 xcopy .env.example .env.development.local
 ```
 5. Getting your ENV variables set
- 
- ### Glide API Key
- Go to [Glide's website](https://paywithglide.xyz/) and sign up with your email.
-
- They will respond shortly with an API key (it appears to be manually done).
-
- They will want to know which contracts to enable for the API key, just let them know you are with `herocast` and that they should
- already be whitelisted.
 
  ### Neynar API KEY
  Go to [Neynar's Dev Portal](https://dev.neynar.com/) and signup for the cheapest plan.
