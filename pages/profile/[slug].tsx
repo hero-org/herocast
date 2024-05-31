@@ -7,29 +7,36 @@ import { SelectableListWithHotkeys } from "@/common/components/SelectableListWit
 import { CastRow } from "@/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useHotkeys } from "react-hotkeys-hook";
 import FollowButton from "@/common/components/FollowButton";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
-export async function getServerSideProps({ params: { slug } }) {
+export const getServerSideProps = (async ({ params: { slug } }) => {
+  console.log('Profile getServerSideProps slug', slug);
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
   let user: any = {};
+  console.log('1 pre try')
   try {
     if (slug.startsWith("fid:")) {
+      console.log('fid:')
       const fid = slug.split(":")[1];
       user = (await client.fetchBulkUsers([fid], { viewerFid: APP_FID }))
-        .users?.[0];
+      .users?.[0];
+      console.log('has user1:', user)
     } else {
+      console.log('username:')
       user = await client.lookupUserByUsername(slug);
+      console.log('has user2:', user)
     }
   } catch (error) {
     console.error("Failed to get data for profile page", error, slug);
     return {
       props: {
-        profile: null,
+        profile: undefined,
         error: `Failed to get data for profile page: ${JSON.stringify(error)}`
       },
     };
@@ -40,38 +47,13 @@ export async function getServerSideProps({ params: { slug } }) {
       profile: user.result.user,
     },
   };
-}
-
-// export const getStaticPaths = (async () => {
-//   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-
-//   const globalFeed = await client.fetchFeed("filter", {
-//     filterType: FilterType.GlobalTrending,
-//     limit: 20,
-//   });
-
-//   const paths = uniqBy(
-//     globalFeed.casts.map(({ author }) => ({
-//       params: {
-//         slug: author.username,
-//       },
-//     })),
-//     "params.slug"
-//   );
-
-//   console.log(`preparing static profiles: ${paths.length}`);
-//   return {
-//     paths,
-//     fallback: "blocking",
-//   };
-// }) satisfies GetStaticPaths;
+}) satisfies GetServerSideProps<{ profile?: User, error?: string }>
 
 enum FeedTypeEnum {
   "casts" = "Casts",
   "likes" = "Likes",
 }
-
-export default function Profile({ profile, error }) {
+export default function Profile({ profile, error }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
@@ -203,7 +185,7 @@ export default function Profile({ profile, error }) {
     <div>
       <Card className="max-w-2xl mx-auto bg-transparent border-none shadow-none">
         <CardHeader className="flex space-y-0">
-          <div className="flex space-x-4 grid grid-cols-2 lg:grid-cols-3">
+          <div className="grid space-x-4 grid-cols-2 lg:grid-cols-3">
             <div className="col-span-1 lg:col-span-2">
               <Avatar className="h-14 w-14">
                 <AvatarImage alt="User avatar" src={profile.pfp.url} />
