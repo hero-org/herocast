@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import {
-  AvatarImage,
-  AvatarFallback,
-  Avatar,
-} from "@/components/ui/avatar";
+import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
 import { CardHeader, Card } from "@/components/ui/card";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
@@ -40,11 +36,6 @@ export async function getServerSideProps({ params: { slug } }) {
     props: {
       profile: user.result.user,
     },
-
-    // Next.js will attempt to re-generate the page:
-    // - When a request comes in
-    // - At most once every 60 seconds
-    revalidate: 60,
   };
 }
 
@@ -117,23 +108,6 @@ export default function Profile({ profile }) {
     getData();
   }, [profile, userFid]);
 
-  useHotkeys(
-    ["tab", "shift+tab"],
-    () => {
-      setFeedType(
-        feedType === FeedTypeEnum.casts
-          ? FeedTypeEnum.likes
-          : FeedTypeEnum.casts
-      );
-      setSelectedFeedIdx(0);
-      window.scrollTo(0, 0);
-    },
-    [feedType],
-    {
-      preventDefault: true,
-    }
-  );
-
   useEffect(() => {
     if (!profile) return;
 
@@ -205,14 +179,6 @@ export default function Profile({ profile }) {
                 onClick={() => setFeedType(FeedTypeEnum[key])}
               >
                 {FeedTypeEnum[key]}
-                {feedType !== FeedTypeEnum[key] && (
-                  <div className="ml-4 text-foreground/80 hidden md:block">
-                    Switch with &nbsp;
-                    <kbd className="px-1.5 py-1 text-xs border rounded-lg bg-foreground/80 text-background/80">
-                      Tab
-                    </kbd>
-                  </div>
-                )}
               </TabsTrigger>
             );
           })}
