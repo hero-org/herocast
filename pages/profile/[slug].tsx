@@ -10,34 +10,28 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FollowButton from "@/common/components/FollowButton";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
-import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
+import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 export const getServerSideProps = (async ({ params: { slug } }) => {
-  console.log('Profile getServerSideProps slug', slug);
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
   let user: any = {};
-  console.log('1 pre try')
   try {
     if (slug.startsWith("fid:")) {
-      console.log('fid:')
       const fid = slug.split(":")[1];
       user = (await client.fetchBulkUsers([fid], { viewerFid: APP_FID }))
-      .users?.[0];
-      console.log('has user1:', user)
+        .users?.[0];
     } else {
-      console.log('username:')
       user = await client.lookupUserByUsername(slug);
-      console.log('has user2:', user)
     }
   } catch (error) {
     console.error("Failed to get data for profile page", error, slug);
     return {
       props: {
         profile: undefined,
-        error: `Failed to get data for profile page: ${JSON.stringify(error)}`
+        error: `Failed to get data for profile page: ${JSON.stringify(error)}`,
       },
     };
   }
@@ -47,13 +41,16 @@ export const getServerSideProps = (async ({ params: { slug } }) => {
       profile: user.result.user,
     },
   };
-}) satisfies GetServerSideProps<{ profile?: User, error?: string }>
+}) satisfies GetServerSideProps<{ profile?: User; error?: string }>;
 
 enum FeedTypeEnum {
   "casts" = "Casts",
   "likes" = "Likes",
 }
-export default function Profile({ profile, error }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Profile({
+  profile,
+  error,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
