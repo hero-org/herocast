@@ -3,7 +3,6 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loading } from "./Loading";
 import { SignInButton, useProfile } from "@farcaster/auth-kit";
 import { useState } from "react";
@@ -32,6 +31,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import includes from "lodash.includes";
+import { User } from "@supabase/supabase-js";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -51,13 +51,10 @@ enum ViewState {
   SIGNUP = "signup",
   FORGOT = "forgot",
   RESET = "reset",
+  LOGGED_IN = "logged_in",
 }
 
 export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [userMessage, setUserMessage] = useState<string>("");
-  const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
-
   const supabase = createClient();
   const router = useRouter();
   const posthog = usePostHog();
@@ -65,14 +62,40 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     isAuthenticated,
     profile: { username, fid },
   } = useProfile();
+  const { accounts, addAccount, resetStore } = useAccountStore();
 
-  const { accounts, addAccount } = useAccountStore();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [userMessage, setUserMessage] = useState<string>("");
+  const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
+  const [user, setUser] = useState<User | null>(null);
+
+  const form = useForm<UserAuthFormValues>({
+    resolver: zodResolver(UserAuthFormSchema),
+    mode: "onSubmit",
+  });
+
+  useHotkeys(Key.Enter, signUp, [form.getValues()], { enableOnFormTags: true });
 
   React.useEffect(() => {
     if (router.query?.view) {
       setView(router.query.view as ViewState);
     }
   }, [router.query?.view]);
+
+  React.useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user && user.email) {
+        setUser(user);
+        setView(ViewState.LOGGED_IN);
+        form.setValue("email", user.email);
+      }
+    };
+
+    getUser();
+  }, []);
 
   React.useEffect(() => {
     if (isAuthenticated && username && fid) {
@@ -84,13 +107,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     (account) =>
       account.platform === AccountPlatformType.farcaster_local_readonly
   );
-
-  const form = useForm<UserAuthFormValues>({
-    resolver: zodResolver(UserAuthFormSchema),
-    mode: "onSubmit",
-  });
-
-  useHotkeys(Key.Enter, logIn, [form.getValues()], { enableOnFormTags: true });
 
   const setupLocalAccount = async ({ fid, username }) => {
     if (!fid || !username) return;
@@ -171,6 +187,16 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   }
 
   async function signUp() {
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.getSession();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    console.log("sessionData", sessionData);
+    console.log("sessionError", sessionError);
+
+    console.log("user", user);
+    return;
     if (!(await form.trigger())) return;
 
     setIsLoading(true);
@@ -261,6 +287,10 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         buttonText = "Set New Password";
         buttonAction = submitNewPassword;
         break;
+      case ViewState.LOGGED_IN:
+        buttonText = "Continue";
+        buttonAction = () => router.push("/feed");
+        break;
     }
     return (
       <Button
@@ -300,6 +330,19 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
   };
 
+  const logOut = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      resetStore();
+      setUser(null);
+      await supabase.auth.signOut();
+      posthog.reset();
+    }
+  };
+
   const renderViewHelpText = () => {
     switch (view) {
       case ViewState.FORGOT:
@@ -320,6 +363,12 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             Enter your email to signup
           </span>
         );
+      case ViewState.LOGGED_IN:
+        return (
+          <span className="text-md text-muted-foreground">
+            You are logged in as {user?.email}
+          </span>
+        );
       default:
         return (
           <span className="text-md text-muted-foreground">
@@ -332,7 +381,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   return (
     <div className="grid gap-6">
       <Form {...form}>
-          {renderViewHelpText()}
+        {renderViewHelpText()}
         <form>
           <div className="flex">
             {userMessage && (
@@ -342,37 +391,19 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             )}
           </div>
           <div className="grid gap-4">
-            <div className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="vitalik@ethereum.org"
-                        disabled={isLoading}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {view !== ViewState.FORGOT && (
+            {view !== ViewState.LOGGED_IN && (
+              <div className="grid gap-4">
                 <FormField
                   control={form.control}
-                  name="password"
+                  name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
+                          type="email"
+                          placeholder="vitalik@ethereum.org"
                           disabled={isLoading}
-                          autoComplete="current-password"
-                          type="password"
                           {...field}
                         />
                       </FormControl>
@@ -380,10 +411,30 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                     </FormItem>
                   )}
                 />
-              )}
-            </div>
+                {!includes([ViewState.FORGOT, ViewState.LOGGED_IN], view) && (
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            disabled={isLoading}
+                            autoComplete="current-password"
+                            type="password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            )}
             {renderSubmitButton()}
-            {!includes([ViewState.FORGOT, ViewState.RESET], view) && (
+            {includes([ViewState.SIGNUP, ViewState.LOGIN], view) && (
               <Button
                 type="button"
                 variant="outline"
@@ -394,37 +445,48 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                 Forgot Password?
               </Button>
             )}
+            {view === ViewState.LOGGED_IN && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full shadow-none rounded-lg"
+                disabled={isLoading}
+                onClick={() => logOut()}
+              >
+                Not you? Log out
+              </Button>
+            )}
             {renderViewSwitchText()}
           </div>
         </form>
       </Form>
-      {!signupOnly && (
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
+      {!signupOnly && view !== ViewState.LOGGED_IN && (
+        <>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-2 text-muted-foreground">
+                or continue with
+              </span>
+            </div>
           </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-card px-2 text-muted-foreground">
-              or continue with
-            </span>
+          <div className="flex flex-col space-y-4 items-center justify-center text-white">
+            {!isAuthenticated ? (
+              <SignInButton hideSignOut />
+            ) : (
+              <Button
+                type="button"
+                size="lg"
+                className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
+                disabled
+              >
+                Signed in with Farcaster ☑️
+              </Button>
+            )}
           </div>
-        </div>
-      )}
-      {!signupOnly && (
-        <div className="flex flex-col space-y-4 items-center justify-center text-white">
-          {!isAuthenticated ? (
-            <SignInButton hideSignOut />
-          ) : (
-            <Button
-              type="button"
-              size="lg"
-              className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
-              disabled
-            >
-              Signed in with Farcaster ☑️
-            </Button>
-          )}
-        </div>
+        </>
       )}
     </div>
   );
