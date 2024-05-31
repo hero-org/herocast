@@ -28,7 +28,10 @@ export async function getServerSideProps({ params: { slug } }) {
   } catch (error) {
     console.error("Failed to get data for profile page", error, slug);
     return {
-      notFound: true,
+      props: {
+        profile: null,
+        error: `Failed to get data for profile page: ${JSON.stringify(error)}`
+      },
     };
   }
 
@@ -68,7 +71,7 @@ enum FeedTypeEnum {
   "likes" = "Likes",
 }
 
-export default function Profile({ profile }) {
+export default function Profile({ profile, error }) {
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
@@ -233,6 +236,14 @@ export default function Profile({ profile }) {
       {renderFeed()}
     </div>
   );
+
+  if (error) {
+    return (
+      <div className="mt-6 max-w-3xl lg:flex lg:px-8">
+        <h2>Error: {error}</h2>
+      </div>
+    );
+  }
 
   return !profile ? renderEmptyState() : renderProfile();
 }
