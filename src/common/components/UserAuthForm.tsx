@@ -1,4 +1,3 @@
-"use client";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
-import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import includes from "lodash.includes";
 import { User } from "@supabase/supabase-js";
 
@@ -187,16 +185,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   }
 
   async function signUp() {
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    console.log("sessionData", sessionData);
-    console.log("sessionError", sessionError);
-
-    console.log("user", user);
-    return;
     if (!(await form.trigger())) return;
 
     setIsLoading(true);
@@ -207,12 +195,17 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     });
 
     if (error) {
-      form.setError("password", {
-        type: "manual",
-        message: error.message,
-      });
-      console.error("signup error", error);
-      setIsLoading(false);
+      if (error.message === "User already registered") {
+        logIn();
+      } else {
+        form.setError("password", {
+          type: "manual",
+          message: error.message,
+        });
+        console.error("signup error", error);
+        setIsLoading(false);
+      }
+
       return;
     } else {
       posthog.identify(data?.user?.id, { email });
@@ -340,6 +333,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       setUser(null);
       await supabase.auth.signOut();
       posthog.reset();
+      setView(ViewState.LOGIN);
     }
   };
 
