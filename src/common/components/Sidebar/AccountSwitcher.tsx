@@ -32,6 +32,7 @@ import {
 } from "@/stores/useAccountStore";
 import map from "lodash.map";
 import { AccountPlatformType } from "@/common/constants/accounts";
+import { Badge } from "@/components/ui/badge";
 
 const groups = [
   {
@@ -79,37 +80,40 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
 
     return (
       <CommandGroup key={group.label} heading={group.label}>
-        {map(accountsByPlatform[group.key], (account: AccountObjectType) => (
-          <CommandItem
-            key={account.id}
-            onSelect={() => {
-              setCurrentAccountById(account.id);
-              setOpen(false);
-            }}
-            className="text-sm"
-          >
-            <Avatar className="mr-2 h-5 w-5">
-              <AvatarImage
-                src={account.user?.pfp_url}
-                alt={account.name}
-                className="grayscale"
-              />
-              <AvatarFallback>HC</AvatarFallback>
-            </Avatar>
-            {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
-            {account.status !== "active" && (
-              <span className={"ml-5 flex-none text-sm text-foreground/70"}>
-                {account.status}
-              </span>
-            )}
-            <CheckIcon
+        {map(
+          accountsByPlatform[group.key],
+          (account: AccountObjectType, idx: number) => (
+            <CommandItem
+              key={account.id}
+              onSelect={() => {
+                setCurrentAccountById(account.id);
+                setOpen(false);
+              }}
               className={cn(
-                "ml-auto h-4 w-4",
-                selectedAccount.id === account.id ? "opacity-100" : "opacity-0"
+                "text-sm truncate",
+                selectedAccount.id === account.id &&
+                  "bg-muted-foreground hover:bg-muted-foreground/90"
               )}
-            />
-          </CommandItem>
-        ))}
+            >
+              <Avatar className="mr-2 h-5 w-5">
+                <AvatarImage
+                  src={account.user?.pfp_url}
+                  alt={account.name}
+                  className={cn(
+                    selectedAccount.id !== account.id && "grayscale"
+                  )}
+                />
+                <AvatarFallback>HC</AvatarFallback>
+              </Avatar>
+              {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
+              {idx < 9 && (
+                <Badge variant="outline" className="ml-auto">
+                  Ctrl + {idx + 1}
+                </Badge>
+              )}
+            </CommandItem>
+          )
+        )}
       </CommandGroup>
     );
   };
