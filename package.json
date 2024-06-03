@@ -36,7 +36,7 @@
     "@hatsprotocol/modules-sdk": "^0.15.2",
     "@headlessui/react": "^1.7.16",
     "@heroicons/react": "^2.0.18",
-    "@hookform/resolvers": "^3.3.4",
+    "@hookform/resolvers": "^3.4.2",
     "@mod-protocol/mod-registry": "^0.1.0",
     "@mod-protocol/react": "^0.2.0",
     "@mod-protocol/react-editor": "^0.1.0",
