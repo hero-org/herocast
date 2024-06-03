@@ -10,6 +10,8 @@ export type CommandType = {
   aliases: string[]
   enabled?: boolean | ((keyboardEvent: KeyboardEvent, hotkeysEvent: HotkeysEvent) => boolean)
   icon?: ForwardRefExoticComponent<Omit<SVGProps<SVGSVGElement>, "ref"> & RefAttributes<SVGSVGElement>>
+  iconUrl?: string,
   options?: Options,
-  navigateTo?: string
+  navigateTo?: string,
+  data?: any,
 }

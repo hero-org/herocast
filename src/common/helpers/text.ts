@@ -10,7 +10,9 @@ export const isImageUrl = (url: string): boolean => {
   return url.match(/\.(jpeg|jpg|gif|png)$/) != null;
 }
 
-export const formatLargeNumber = (num: number): string => {
+export const formatLargeNumber = (num?: number): string => {
+  if (!num) return "0";
+
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + "M";
   } else if (num >= 2000) {

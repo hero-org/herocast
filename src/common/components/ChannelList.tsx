@@ -16,7 +16,6 @@ type Props = {
 
 export const ChannelList = forwardRef<ChannelListRef, Props>((props, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  console.log('props', props);
   const selectItem = (index: number) => {
     const item = props.items[index];
 

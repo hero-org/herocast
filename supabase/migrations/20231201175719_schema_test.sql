@@ -94,7 +94,9 @@ CREATE TABLE IF NOT EXISTS "public"."channel" (
     "icon_url" "text",
     "url" "text",
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "source" "text"
+    "source" "text",
+    "description" "text",
+    "data" "jsonb"
 );
 
 ALTER TABLE "public"."channel" OWNER TO "postgres";

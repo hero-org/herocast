@@ -24,6 +24,7 @@ import { getUsernameForFid } from "@/common/helpers/farcaster";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
+const CHANNEL_UPDATE_RELEASE_DATE = 1717413090288;
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 export enum CUSTOM_CHANNELS {
@@ -504,7 +505,7 @@ export const hydrateChannels = async () => {
   let allChannels: ChannelType[] = state.allChannels;
   let hydratedAt = state.hydratedAt;
 
-  const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE;
+  const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE || state.hydratedAt < CHANNEL_UPDATE_RELEASE_DATE;
   if (shouldRehydrate) {
     allChannels = await fetchAllChannels();
     hydratedAt = Date.now();
