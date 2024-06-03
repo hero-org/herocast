@@ -1,87 +1,106 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useMemo, useState } from "react";
 import { CommandType } from "../../../common/constants/commands";
 import { classNames } from "../../../common/helpers/css";
-import { accountCommands, channelCommands, useAccountStore } from '../../../stores/useAccountStore';
+import {
+  accountCommands,
+  channelCommands,
+  useAccountStore,
+} from "../../../stores/useAccountStore";
 import { useNavigationStore } from "../../../stores/useNavigationStore";
 import { newPostCommands } from "../../../stores/useNewPostStore";
-import { Combobox, Dialog, Transition } from '@headlessui/react';
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
-import { FaceSmileIcon } from '@heroicons/react/24/outline';
+import { Combobox, Dialog, Transition } from "@headlessui/react";
+import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import { FaceSmileIcon } from "@heroicons/react/24/outline";
 import commandScore from "command-score";
-import { useHotkeys } from 'react-hotkeys-hook';
-import { useRouter } from 'next/router';
-import { getNavigationCommands } from '@/getNavigationCommands';
-import { useTheme } from 'next-themes';
-import { getThemeCommands } from '@/getThemeCommands';
+import { useHotkeys } from "react-hotkeys-hook";
+import { useRouter } from "next/router";
+import { getNavigationCommands } from "@/getNavigationCommands";
+import { useTheme } from "next-themes";
+import { getThemeCommands } from "@/getThemeCommands";
+import { formatLargeNumber } from "@/common/helpers/text";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
-
 export default function CommandPalette() {
   const router = useRouter();
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState("");
 
-  const {
-    isCommandPaletteOpen,
-    closeCommandPallete,
-    toggleCommandPalette,
-  } = useNavigationStore();
+  const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } =
+    useNavigationStore();
 
-  const {
-    setSelectedChannelUrl,
-    allChannels
-  } = useAccountStore();
+  const { setSelectedChannelUrl, allChannels } = useAccountStore();
 
-  useHotkeys(['meta+k'], () => {
-    toggleCommandPalette();
-  }, [isCommandPaletteOpen], {
-    enableOnFormTags: true,
-  })
-
-  const { theme, setTheme } = useTheme()
-  const themeCommands = getThemeCommands(theme, setTheme);
-  const navigationCommands = getNavigationCommands({ router });
-
-  let commands: CommandType[] = [
-    ...navigationCommands,
-    ...newPostCommands,
-    ...accountCommands,
-    ...channelCommands,
-    ...themeCommands,
-  ];
-
-  for (const command of commands) {
-    if (!command.shortcut) {
-      continue;
+  useHotkeys(
+    ["meta+k"],
+    () => {
+      toggleCommandPalette();
+    },
+    [isCommandPaletteOpen],
+    {
+      enableOnFormTags: true,
     }
+  );
 
-    useHotkeys(command.shortcut.replace('cmd', 'meta'), () => {
-      if (command.navigateTo) {
-        router.push(command.navigateTo);
+  const setupHotkeysForCommands = (commands: CommandType[]) => {
+    for (const command of commands) {
+      if (!command.shortcut) {
+        continue;
       }
-      command.action();
-    }, [], {
-      ...(command.options ? command.options : {}),
-      splitKey: '-',
-      enabled: command.enabled || true, // this obv doesn't work
-    })
-  }
 
-  const nonHotkeyCommands: CommandType[] = [];
-  allChannels.map((channel) => {
-    nonHotkeyCommands.push({
-      name: channel.name,
-      action: () => {
-        setSelectedChannelUrl(channel.url);
-      },
-      shortcut: '',
-      aliases: [],
-      options: {
-        enableOnFormTags: false,
-      },
+      useHotkeys(
+        command.shortcut.replace("cmd", "meta"),
+        () => {
+          if (command.navigateTo) {
+            router.push(command.navigateTo);
+          }
+          command.action();
+        },
+        [],
+        {
+          ...(command.options ? command.options : {}),
+          splitKey: "-",
+          enabled: command.enabled || true, // this obv doesn't work
+        }
+      );
+    }
+  };
+
+  const { theme, setTheme } = useTheme();
+
+  const getCommands = (): CommandType[] => {
+    const themeCommands = getThemeCommands(theme, setTheme);
+    const navigationCommands = getNavigationCommands({ router });
+
+    let commands = [
+      ...navigationCommands,
+      ...newPostCommands,
+      ...accountCommands,
+      ...channelCommands,
+      ...themeCommands,
+    ];
+
+    const nonHotkeyCommands: CommandType[] = [];
+    allChannels.map((channel) => {
+      nonHotkeyCommands.push({
+        name: `${channel.name} channel (${formatLargeNumber(channel.data?.followerCount)})`,
+        action: () => {
+          setSelectedChannelUrl(channel.url);
+        },
+        shortcut: "",
+        aliases: [],
+        options: {
+          enableOnFormTags: false,
+        },
+        iconUrl: channel.icon_url,
+        data: channel.data,
+      });
     });
-  });
-  commands = commands.concat(nonHotkeyCommands);
+    commands = commands.concat(nonHotkeyCommands);
+    return commands;
+  };
+
+  const commands = useMemo(() => getCommands(), [theme, allChannels]);
+  setupHotkeysForCommands(commands);
 
   function onClick(command: CommandType) {
     if (!command) {
@@ -94,26 +113,43 @@ export default function CommandPalette() {
     closeCommandPallete();
   }
 
-
   const getFilteredCommands = () => {
-    return commands.map((command: CommandType) => {
-      const scores = [command.name, ...command.aliases].map((alias: string) => {
-        return commandScore(alias, query);
-      });
-      return {
-        ...command,
-        score: Math.max(...scores),
-      }
-    }).filter((command: CommandType & { score: number }) => {
-      return command.score > MIN_SCORE_THRESHOLD;
-    }).slice(0, 7);
-  }
+    return (
+      commands
+        .map((command: CommandType) => {
+          const scores = [command.name, ...command.aliases].map(
+            (alias: string) => {
+              return commandScore(alias, query);
+            }
+          );
+          return {
+            ...command,
+            score: Math.max(...scores),
+          };
+        })
+        .filter((command: CommandType & { score: number }) => {
+          return command.score > MIN_SCORE_THRESHOLD;
+        })
+        // if there are channels in the commands we should rank them by follower count
+        .sort((a, b) => {
+          if (a.data?.followerCount && b.data?.followerCount) {
+            return b.data.followerCount - a.data.followerCount;
+          }
+          return 0;
+        })
+        .slice(0, 25)
+    );
+  };
 
-  const filteredCommands =
-    query === '' ? [] : getFilteredCommands();
+  const filteredCommands = query?.length ? getFilteredCommands() : [];
 
   return (
-    <Transition.Root show={isCommandPaletteOpen} as={Fragment} afterLeave={() => setQuery('')} appear>
+    <Transition.Root
+      show={isCommandPaletteOpen}
+      as={Fragment}
+      afterLeave={() => setQuery("")}
+      appear
+    >
       <Dialog as="div" className="relative z-10" onClose={toggleCommandPalette}>
         <Transition.Child
           as={Fragment}
@@ -138,7 +174,11 @@ export default function CommandPalette() {
             leaveTo="opacity-0 scale-98"
           >
             <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-lg bg-background shadow-lg border border-border transition-all">
-              <Combobox onChange={(e: any) => { onClick(e) }}>
+              <Combobox
+                onChange={(e: any) => {
+                  onClick(e);
+                }}
+              >
                 <div className="relative">
                   <MagnifyingGlassIcon
                     className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-foreground/80"
@@ -151,65 +191,63 @@ export default function CommandPalette() {
                   />
                 </div>
 
-                {(query === '' || filteredCommands.length > 0) && (
+                {(query === "" || filteredCommands.length > 0) && (
                   <Combobox.Options
                     static
                     className="max-h-80 scroll-py-2 divide-y divide-gray-500 divide-opacity-20 overflow-y-auto"
                   >
-                    {/* <li className="p-2">
-                      <ul className="text-sm text-foreground/70">
-                        {(query !== '' && filteredActions.length > 0).map((action) => (
-                          <Combobox.Option
-                            key={action.id}
-                            value={action.name}
-                            className={({ active }) =>
-                              classNames(
-                                'flex cursor-default select-none items-center rounded-md px-3 py-2',
-                                active && 'bg-background text-foreground'
-                              )
-                            }
-                          >
-                            {({ active }) => (
-                              <>
-                                <FolderIcon
-                                  className={classNames('h-6 w-6 flex-none', active ? 'text-foreground' : 'text-foreground/80')}
-                                  aria-hidden="true"
-                                />
-                                <span className="ml-3 flex-auto truncate">{action.name}</span>
-                                {active && <span className="ml-3 flex-none text-foreground/70">Jump to...</span>}
-                              </>
-                            )}
-                          </Combobox.Option>
-                        ))}
-                      </ul>
-                    </li> */}
                     <li className="p-2">
                       <h2 className="sr-only">Quick actions</h2>
                       <ul className="text-sm text-foreground/70">
-                        {(filteredCommands.length > 0 && filteredCommands || commands.slice(0, 7)).map((action) => (
+                        {(
+                          (filteredCommands.length > 0 && filteredCommands) ||
+                          commands.slice(0, 7)
+                        ).map((action) => (
                           <Combobox.Option
                             key={action.name}
                             value={action}
                             onClick={() => onClick(action)}
                             className={({ active }) =>
                               classNames(
-                                'flex cursor-default select-none items-center rounded-sm px-3 py-2',
-                                active ? 'bg-foreground/5 text-foreground' : 'text-foreground/80'
+                                "flex cursor-default select-none items-center rounded-sm px-3 py-2",
+                                active
+                                  ? "bg-foreground/5 text-foreground"
+                                  : "text-foreground/80"
                               )
                             }
                           >
                             {({ active }) => (
                               <>
-                                {action.icon && <action.icon
-                                  className={classNames('h-6 w-6 flex-none', active ? 'text-foreground' : 'text-foreground/80')}
-                                  aria-hidden="true"
-                                />}
+                                {action.icon && (
+                                  <action.icon
+                                    className={classNames(
+                                      "h-6 w-6 flex-none",
+                                      active
+                                        ? "text-foreground"
+                                        : "text-foreground/80"
+                                    )}
+                                    aria-hidden="true"
+                                  />
+                                )}
+                                {action.iconUrl && (
+                                  <img
+                                    src={action.iconUrl}
+                                    alt=""
+                                    className={classNames(
+                                      "mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+                                    )}
+                                  />
+                                )}
                                 <span className="ml-3 flex-auto truncate">
                                   {action.name}
                                 </span>
-                                {action.shortcut && (<span className="ml-3 flex-none text-xs px-2 py-1 rounded-md bg-muted text-primary border-foreground/60">
-                                  <kbd className="font-mono">{action.shortcut}</kbd>
-                                </span>)}
+                                {action.shortcut && (
+                                  <span className="ml-3 flex-none text-xs px-2 py-1 rounded-md bg-muted text-primary border-foreground/60">
+                                    <kbd className="font-mono">
+                                      {action.shortcut}
+                                    </kbd>
+                                  </span>
+                                )}
                               </>
                             )}
                           </Combobox.Option>
@@ -219,11 +257,15 @@ export default function CommandPalette() {
                   </Combobox.Options>
                 )}
 
-                {query !== '' && filteredCommands.length === 0 && (
+                {query !== "" && filteredCommands.length === 0 && (
                   <div className="px-6 py-14 text-center sm:px-14">
-                    <FaceSmileIcon className="mx-auto h-6 w-6 text-foreground/80" aria-hidden="true" />
+                    <FaceSmileIcon
+                      className="mx-auto h-6 w-6 text-foreground/80"
+                      aria-hidden="true"
+                    />
                     <p className="mt-4 text-sm text-gray-200">
-                      nothing found - submit feedback if something should be here
+                      nothing found - submit feedback if something should be
+                      here
                     </p>
                   </div>
                 )}
@@ -233,5 +275,5 @@ export default function CommandPalette() {
         </div>
       </Dialog>
     </Transition.Root>
-  )
+  );
 }
