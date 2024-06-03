@@ -1,13 +1,19 @@
 import React, { Fragment, useMemo, useState } from "react";
-import { CommandType } from "../../../common/constants/commands";
-import { classNames } from "../../../common/helpers/css";
+import { CommandType } from "@/common/constants/commands";
+import { classNames } from "@/common/helpers/css";
 import {
   accountCommands,
   channelCommands,
   useAccountStore,
-} from "../../../stores/useAccountStore";
-import { useNavigationStore } from "../../../stores/useNavigationStore";
-import { newPostCommands } from "../../../stores/useNewPostStore";
+} from "@/stores/useAccountStore";
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import {
+  BountyCasterBotDraft,
+  LaunchCasterScoutDraft,
+  RemindMeBotDraft,
+  newPostCommands,
+  useNewPostStore,
+} from "@/stores/useNewPostStore";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/24/outline";
@@ -83,7 +89,9 @@ export default function CommandPalette() {
     const nonHotkeyCommands: CommandType[] = [];
     allChannels.map((channel) => {
       nonHotkeyCommands.push({
-        name: `${channel.name} channel (${formatLargeNumber(channel.data?.followerCount)})`,
+        name: `${channel.name} channel (${formatLargeNumber(
+          channel.data?.followerCount
+        )})`,
         action: () => {
           setSelectedChannelUrl(channel.url);
         },
@@ -112,7 +120,7 @@ export default function CommandPalette() {
         },
       };
     };
-  
+
     const addNewPostDraftWithSelectedCast = (draft) => {
       const { selectedCast } = useDataStore.getState();
       if (!selectedCast) {
@@ -129,29 +137,33 @@ export default function CommandPalette() {
       const { openReplyModal } = useNavigationStore.getState();
       openReplyModal();
     };
-  
+
     const launchCastAction = () => {
       addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft);
     };
-  
+
     const postNewBountyAction = () => {
       const { addNewPostDraft } = useNewPostStore.getState();
       addNewPostDraft(BountyCasterBotDraft);
     };
-  
+
     const remindMeAction = () => {
       addNewPostDraftWithSelectedCast(RemindMeBotDraft);
     };
-  
+
     const farcasterBotCommands: CommandType[] = [
       createFarcasterBotCommand(
         "Launch this cast on Launchcaster",
         launchCastAction
       ),
-      createFarcasterBotCommand("Post new bounty", postNewBountyAction, "/post"),
+      createFarcasterBotCommand(
+        "Post new bounty",
+        postNewBountyAction,
+        "/post"
+      ),
       createFarcasterBotCommand("Remind me about this", remindMeAction),
     ];
-    
+
     commands = commands.concat(farcasterBotCommands);
     commands = commands.concat(nonHotkeyCommands);
     return commands;
