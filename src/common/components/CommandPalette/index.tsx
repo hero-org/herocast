@@ -18,6 +18,7 @@ import { getNavigationCommands } from "@/getNavigationCommands";
 import { useTheme } from "next-themes";
 import { getThemeCommands } from "@/getThemeCommands";
 import { formatLargeNumber } from "@/common/helpers/text";
+import { useDataStore } from "@/stores/useDataStore";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -95,6 +96,63 @@ export default function CommandPalette() {
         data: channel.data,
       });
     });
+
+    const createFarcasterBotCommand = (
+      name: string,
+      action: () => void,
+      navigateTo?: string
+    ) => {
+      return {
+        name,
+        action,
+        navigateTo,
+        aliases: [],
+        options: {
+          enableOnFormTags: false,
+        },
+      };
+    };
+  
+    const addNewPostDraftWithSelectedCast = (draft) => {
+      const { selectedCast } = useDataStore.getState();
+      if (!selectedCast) {
+        return;
+      }
+      const { addNewPostDraft } = useNewPostStore.getState();
+      addNewPostDraft({
+        ...draft,
+        parentCastId: {
+          fid: selectedCast.author.fid.toString(),
+          hash: selectedCast.hash,
+        },
+      });
+      const { openReplyModal } = useNavigationStore.getState();
+      openReplyModal();
+    };
+  
+    const launchCastAction = () => {
+      addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft);
+    };
+  
+    const postNewBountyAction = () => {
+      const { addNewPostDraft } = useNewPostStore.getState();
+      addNewPostDraft(BountyCasterBotDraft);
+    };
+  
+    const remindMeAction = () => {
+      addNewPostDraftWithSelectedCast(RemindMeBotDraft);
+    };
+  
+    const farcasterBotCommands: CommandType[] = [
+      createFarcasterBotCommand(
+        "Launch this cast on Launchcaster",
+        launchCastAction
+      ),
+      createFarcasterBotCommand("Post new bounty", postNewBountyAction, "/post"),
+      createFarcasterBotCommand("Remind me about this", remindMeAction),
+    ];
+    
+    commands = commands.concat(farcasterBotCommands);
     commands = commands.concat(nonHotkeyCommands);
     return commands;
   };

@@ -1,10 +1,6 @@
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
-const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-);
-
 type getUserDataForFidOrUsernameProps = {
   username?: string;
   fid?: number;
@@ -13,6 +9,10 @@ type getUserDataForFidOrUsernameProps = {
 
 export const getUserDataForFidOrUsername = async ({ username, fid, viewerFid }: getUserDataForFidOrUsernameProps): Promise<User[]> => {
   try {
+    const neynarClient = new NeynarAPIClient(
+      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+    );
+
     let users: User[] = [];
     if (username) {
       const resp = await neynarClient.searchUser(username, viewerFid);

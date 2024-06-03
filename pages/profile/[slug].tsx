@@ -1,30 +1,21 @@
 import React, { useEffect, useState } from "react";
 
-import {
-  FilterType,
-  NeynarAPIClient,
-  isApiErrorResponse,
-} from "@neynar/nodejs-sdk";
-import { GetStaticPaths } from "next/types";
-import {
-  AvatarImage,
-  AvatarFallback,
-  Avatar,
-} from "../../src/components/ui/avatar";
-import { CardHeader, Card } from "../../src/components/ui/card";
-import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
-import { CastRow } from "../../src/common/components/CastRow";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
+import { CardHeader, Card } from "@/components/ui/card";
+import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
+import { CastRow } from "@/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
-import { Tabs, TabsList, TabsTrigger } from "../../src/components/ui/tabs";
-import uniqBy from "lodash.uniqby";
-import { useHotkeys } from "react-hotkeys-hook";
-import FollowButton from "../../src/common/components/FollowButton";
-import { useAccountStore } from "../../src/stores/useAccountStore";
-import { useDataStore } from "../../src/stores/useDataStore";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FollowButton from "@/common/components/FollowButton";
+import { useAccountStore } from "@/stores/useAccountStore";
+import { useDataStore } from "@/stores/useDataStore";
+import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
-export async function getStaticProps({ params: { slug } }) {
+export const getServerSideProps = (async ({ params: { slug } }) => {
   const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
   let user: any = {};
   try {
@@ -38,7 +29,10 @@ export async function getStaticProps({ params: { slug } }) {
   } catch (error) {
     console.error("Failed to get data for profile page", error, slug);
     return {
-      notFound: true,
+      props: {
+        profile: undefined,
+        error: `Failed to get data for profile page: ${JSON.stringify(error)}`,
+      },
     };
   }
 
@@ -46,44 +40,17 @@ export async function getStaticProps({ params: { slug } }) {
     props: {
       profile: user.result.user,
     },
-
-    // Next.js will attempt to re-generate the page:
-    // - When a request comes in
-    // - At most once every 60 seconds
-    revalidate: 60,
   };
-}
-
-export const getStaticPaths = (async () => {
-  const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-
-  const globalFeed = await client.fetchFeed("filter", {
-    filterType: FilterType.GlobalTrending,
-    limit: 20,
-  });
-
-  const paths = uniqBy(
-    globalFeed.casts.map(({ author }) => ({
-      params: {
-        slug: author.username,
-      },
-    })),
-    "params.slug"
-  );
-
-  console.log(`preparing static profiles: ${paths.length}`);
-  return {
-    paths,
-    fallback: "blocking",
-  };
-}) satisfies GetStaticPaths;
+}) satisfies GetServerSideProps<{ profile?: User; error?: string }>;
 
 enum FeedTypeEnum {
   "casts" = "Casts",
   "likes" = "Likes",
 }
-
-export default function Profile({ profile }) {
+export default function Profile({
+  profile,
+  error,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
@@ -122,23 +89,6 @@ export default function Profile({ profile }) {
 
     getData();
   }, [profile, userFid]);
-
-  useHotkeys(
-    ["tab", "shift+tab"],
-    () => {
-      setFeedType(
-        feedType === FeedTypeEnum.casts
-          ? FeedTypeEnum.likes
-          : FeedTypeEnum.casts
-      );
-      setSelectedFeedIdx(0);
-      window.scrollTo(0, 0);
-    },
-    [feedType],
-    {
-      preventDefault: true,
-    }
-  );
 
   useEffect(() => {
     if (!profile) return;
@@ -211,14 +161,6 @@ export default function Profile({ profile }) {
                 onClick={() => setFeedType(FeedTypeEnum[key])}
               >
                 {FeedTypeEnum[key]}
-                {feedType !== FeedTypeEnum[key] && (
-                  <div className="ml-4 text-foreground/80 hidden md:block">
-                    Switch with &nbsp;
-                    <kbd className="px-1.5 py-1 text-xs border rounded-lg bg-foreground/80 text-background/80">
-                      Tab
-                    </kbd>
-                  </div>
-                )}
               </TabsTrigger>
             );
           })}
@@ -240,7 +182,7 @@ export default function Profile({ profile }) {
     <div>
       <Card className="max-w-2xl mx-auto bg-transparent border-none shadow-none">
         <CardHeader className="flex space-y-0">
-          <div className="flex space-x-4 grid grid-cols-2 lg:grid-cols-3">
+          <div className="grid space-x-4 grid-cols-2 lg:grid-cols-3">
             <div className="col-span-1 lg:col-span-2">
               <Avatar className="h-14 w-14">
                 <AvatarImage alt="User avatar" src={profile.pfp.url} />
@@ -273,6 +215,14 @@ export default function Profile({ profile }) {
       {renderFeed()}
     </div>
   );
+
+  if (error) {
+    return (
+      <div className="mt-6 max-w-3xl lg:flex lg:px-8">
+        <h2>Error: {error}</h2>
+      </div>
+    );
+  }
 
   return !profile ? renderEmptyState() : renderProfile();
 }

@@ -61,7 +61,7 @@ const ChangeDisplayNameForm = ({
       const user = (
         await neynarClient.fetchBulkUsers(
           [Number(account.platformAccountId!)],
-          { viewerFid: APP_FID! }
+          { viewerFid: APP_FID }
         )
       ).users[0];
       if (user) {

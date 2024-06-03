@@ -21,8 +21,7 @@
   "rules": {
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "react/prop-types": "off",
-    "@next/next/no-img-element": "off"
+    "react/prop-types": "off"
   },
   "settings": {
     "react": {

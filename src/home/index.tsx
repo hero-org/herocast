@@ -4,6 +4,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
+  UserGroupIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
@@ -22,7 +23,6 @@ import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
 import { Toaster } from "@/components/ui/sonner";
-import Link from "next/link";
 import AccountsOverview from "../common/components/Sidebar/AccountsOverview";
 
 type NavigationItemType = {
@@ -41,10 +41,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { allChannels, selectedChannelUrl } = useAccountStore();
 
   const getFeedTitle = () => {
-    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
       return "Following Feed";
     }
-    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING.toString()) {
       return "Trending Feed";
     }
 
@@ -101,15 +101,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       shortcut: "Shift + N",
     },
     {
-      name: "Hats Protocol",
+      name: "Shared Accounts",
       router: "/hats",
-      icon: (
-        <img
-          src="/images/HatsProtocol.png"
-          className="h-5 w-5 grayscale group-hover:grayscale-0 "
-          aria-hidden="true"
-        />
-      ),
+      icon: <UserGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
     },
     {
       name: "Settings",

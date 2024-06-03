@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/require-await */
+
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
@@ -43,6 +46,28 @@ export const JoinedHerocastViaHatsProtocolDraft: DraftType = {
   text: "I just joined @herocast via @hatsprotocol",
   status: DraftStatus.writing,
   mentionsToFids: { 'herocast': '18665', 'hatsprotocol': '18484' }
+}
+
+export const LaunchCasterScoutDraft: DraftType = {
+  text: `@launch via @herocast 
+   `,
+  status: DraftStatus.writing,
+  mentionsToFids: { 'launch': '2864', 'herocast': '18665' }
+}
+
+export const BountyCasterBotDraft: DraftType = {
+  text: `Description (be specific on details and any criteria for completing e.g. favorite answer wins, apply to work on this, X number of claims available) 
+  Amount (USDC, ETH, OP, Warps, degen, higher, or SOL)
+  Deadline (optional, defaults to 2 weeks)
+  @bountybot posted via @herocast`,
+  status: DraftStatus.writing,
+  mentionsToFids: { 'bountybot': '20596', 'herocast': '18665' }
+}
+
+export const RemindMeBotDraft: DraftType = {
+  text: "@remindme 1 day",
+  status: DraftStatus.writing,
+  mentionsToFids: { 'remindme': '2684' }
 }
 
 type addNewPostDraftProps = {
@@ -154,7 +179,7 @@ const store = (set: StoreSet) => ({
   publishPostDraft: async (draftIdx: number, account: AccountObjectType, onPost?: () => null): Promise<void> => {
     set(async (state) => {
       const draft = state.drafts[draftIdx];
-
+      
       try {
         state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody: {
@@ -183,7 +208,6 @@ const store = (set: StoreSet) => ({
           }
         }
 
-
         if (account.platform === AccountPlatformType.farcaster_local_readonly) {
           toastInfoReadOnlyMode();
         }
@@ -200,7 +224,6 @@ const store = (set: StoreSet) => ({
         if (onPost) onPost();
       } catch (error) {
         console.log('caught error in newPostStore', error)
-        return `Error when posting ${error}`;
       }
     });
   },

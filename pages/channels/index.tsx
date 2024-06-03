@@ -35,7 +35,7 @@ export default function Channels() {
     updatedPinnedChannelIndices({ oldIndex, newIndex });
   };
 
-  const handleSearchChange = (e: event) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value.toLowerCase());
   };
 

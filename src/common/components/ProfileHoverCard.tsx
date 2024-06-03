@@ -70,7 +70,7 @@ const ProfileHoverCard = ({
 
   const onClick = () => {
     openWindow(
-      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`
+      `https://warpcast.com/${profile?.username || username}`
     );
   };
 

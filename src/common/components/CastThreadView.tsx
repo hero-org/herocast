@@ -13,7 +13,7 @@ import { CastParamType, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 type CastThreadViewProps = {
-  cast: { hash: string; author: { fid: string } };
+  cast: { hash: string; author: { fid: number } };
   onBack?: () => void;
   isActive?: boolean;
   setSelectedCast?: (cast: CastWithInteractions) => void;
@@ -41,15 +41,15 @@ export const CastThreadView = ({
     if (casts.length === 0) return [];
 
     const castTree = casts.reduce((acc, cast) => {
-      if (!cast?.parentHash) {
+      if (!cast?.parent_hash) {
         acc.push(cast);
       } else {
-        const parentCast = casts.find((c) => c.hash === cast.parentHash);
-        if (parentCast) {
+        const parentCast = casts.find((c) => c.hash === cast.parent_hash);
+        if (parentCast && 'children' in parentCast && typeof parentCast.children !== 'undefined') {
           if (!parentCast.children) {
-            parentCast.children = [];
+            parentCast.children = [] as CastWithInteractions[];
           }
-          parentCast.children.push(cast);
+          (parentCast.children as CastWithInteractions[]).push(cast);
         }
       }
       return acc;
@@ -124,7 +124,7 @@ export const CastThreadView = ({
     setSelectedCastIdx(0);
     loadData();
     addNewPostDraft({
-      parentCastId: { hash: cast.hash, fid: cast.author.fid },
+      parentCastId: { hash: cast.hash, fid: cast.author.fid.toString() },
     });
 
     return () => {
@@ -171,7 +171,7 @@ export const CastThreadView = ({
       data={castTree}
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
-      renderRow={(item: any, idx: number) => renderRow(item, idx)}
+      renderRow={(item: CastWithInteractions, idx: number) => renderRow(item, idx)}
       isActive={isActive}
     />
   );
