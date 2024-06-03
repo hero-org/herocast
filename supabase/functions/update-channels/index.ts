@@ -3,14 +3,12 @@
 // This enables autocomplete, go to definition, etc.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { findSingle } from "https://deno.land/std@0.168.0/collections/find_single.ts"
 import { corsHeaders } from '../_shared/cors.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 
 console.log("Hello from updating channels!")
 
-const HYPESHOT_API_ENDPOINT = 'https://www.hypeshot.io/api/getChannels';
 const WARPCAST_CHANNELS_ENDPOINT = 'https://api.warpcast.com/v2/all-channels';
 
 type ChannelType = {
@@ -38,27 +36,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
     let newChannels: ChannelType[] = [];
-    const {
-      data: { user },
-    } = await supabaseClient.auth.getUser()
-    console.log('user is:', user);
-
-    const res = await fetch(HYPESHOT_API_ENDPOINT, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    const data = await res.json();
-    console.log('Total nr. of Hypeshot channels from API:', data.items.length);
-    newChannels = newChannels.concat(data.items.map((channel: any) => ({
-      url: channel.parent,
-      name: channel.channel_name,
-      icon_url: channel.token_metadata?.image && channel.token_metadata?.itemMediaType == 2 ? channel.token_metadata?.image : null,
-      source: `${channel.username} on Hypeshot`,
-      description: channel.description || null
-    })));
-
     const resWarpcast = await (await fetch(WARPCAST_CHANNELS_ENDPOINT, {
       method: 'GET',
       headers: {
@@ -67,7 +44,7 @@ serve(async (req) => {
     })).json();
     const warpcastChannels = resWarpcast?.result?.channels || [];
     console.log('Total nr. of Warpcast channels from API:', warpcastChannels.length);
-    
+
     newChannels = newChannels.concat(warpcastChannels.map((channel: any) => ({
       url: channel.url,
       name: channel.name,
@@ -81,51 +58,21 @@ serve(async (req) => {
       } : null,
     })));
 
-    let existingChannels = [];
-    let hasMoreChannels = false;
-    console.log('fetching existing channels in DB');
-    do {
-      const start = existingChannels.length;
-      const end = start + 999;
-      const { data, error, count } = await supabaseClient
+    // chunk the newChannels array to avoid hitting the 1000 row limit
+    for (let i = 0; i < newChannels.length; i += 999) {
+      const newChannelsChunk = newChannels.slice(i, i + 999);
+      await supabaseClient
         .from('channel')
-        .select('*', { count: 'exact' })
-        .range(start, end);
-      
-      // console.log(`existing channels request (${start}, ${end}), got ${count} rows, error ${error}`);
-      if (error) throw error;
-      existingChannels = existingChannels.concat(data);
-      hasMoreChannels = data.length > 0;
-    } while (hasMoreChannels);
-    console.log('existingChannels in DB:', existingChannels.length);
-
-    let insertCount = 0;
-    for (const newChannel of newChannels) {
-      const hasExistingChannel = findSingle(existingChannels, (channel) => channel.url === newChannel.url);
-      // const existingChannelData = await supabaseClient
-      //   .from('channel')
-      //   .select('*')
-      //   .eq('url', newChannel.url)
-      //   .then(({ data, error }) => {
-      //     if (error) throw error
-      //     console.log('checking for existing channel', newChannel.url, 'data', data, error)
-      //     return data;
-      //   })
-      // const hasExistingChannel = existingChannelData.length > 0;
-      if (!hasExistingChannel) {
-        await supabaseClient
-          .from('channel')
-          .insert(newChannel)
-          .then(({ error, data }) => {
-            console.log('insert response - data', data, 'error', error);
-            if (error) throw error
-            insertCount++;
-          })
-      }
+        .upsert(newChannelsChunk, { onConflict: 'url', ignoreDuplicates: false })
+        .then(({ error }) => {
+          if (error) throw error
+        })
     }
+    const { count: channelCount } = await supabaseClient
+      .from('channel')
+      .select('*', { count: 'exact', head: true }) || 0;
 
-    const message = `from ${newChannels.length} results, added or updated ${insertCount} new channels`;
-    console.log(message);
+    const message = `${newChannels.length} channels from Warpcast. Total channels in DB: ${channelCount}`
     const returnData = {
       message,
     }
