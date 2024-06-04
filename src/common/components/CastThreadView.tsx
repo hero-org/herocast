@@ -82,9 +82,10 @@ export const CastThreadView = ({
         CastParamType.Hash,
         { replyDepth: 1, includeChronologicalParentCasts: true }
       );
-      const { direct_replies: replies, ...castObjectWithoutReplies } =
-        conversation.cast;
-      if (replies) {
+
+      if (conversation?.cast?.direct_replies) {
+        const { direct_replies: replies, ...castObjectWithoutReplies } =
+          conversation.cast;
         setCasts([castObjectWithoutReplies].concat(replies));
       } else {
         const castResponse = await neynarClient.lookUpCastByHashOrWarpcastUrl(
