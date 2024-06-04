@@ -276,7 +276,7 @@ export const CastRow = ({
 
     if (key === CastReactionType.likes) {
       setDidLike(!isActive);
-    } else {
+    } else if (key === CastReactionType.recasts){
       setDidRecast(!isActive);
     }
 
