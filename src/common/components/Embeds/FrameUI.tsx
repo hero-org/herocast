@@ -136,8 +136,6 @@ export function FrameUI({
     return null;
   }
 
-  console.log("currentFrame", currentFrame);
-
   if (
     currentFrame.status === "done" &&
     currentFrame.frameResult.status === "failure" &&
@@ -265,7 +263,6 @@ export function FrameUI({
                 cursor: isLoading ? undefined : "pointer",
               }}
               onClick={(e) => {
-                console.log("onClick in FrameUI");
                 e.preventDefault();
                 Promise.resolve(
                   frameState.onButtonPress(
