@@ -198,7 +198,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   });
 
   useEffect(() => {
-    console.log("useEffect router.query.view", router.query?.view);
     if (router.query?.view) {
       setView(router.query.view as ViewState);
     }
@@ -210,16 +209,10 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
   useEffect(() => {
     const getUser = async () => {
-      console.log("useEffect getUser");
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user && user.email) {
-        console.log(
-          "useEffect getUser set user, router.query",
-          user,
-          router.query
-        );
         setUser(user);
         form.setValue("email", user.email);
       }
