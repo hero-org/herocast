@@ -3,21 +3,22 @@ import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
+// UPDATE REPLY MODAL:
+// it's not about a reply, it's about a new cast
+// it can have a parent -> then it's a reply
+// it can have an embed -> then it's a quote
+
+
 interface NavigationStoreProps {
-  isReplyModalOpen: boolean;
+  isNewCastModalOpen: boolean;
   isCommandPaletteOpen: boolean;
 }
 
 interface NavigationStoreActions {
-  openReplyModal: () => void;
-  closeReplyModal: () => void;
+  openNewCastModal: () => void;
+  closeNewCastModal: () => void;
   closeCommandPallete: () => void;
   toggleCommandPalette: () => void;
-  toAccounts: () => void;
-  toFeed: () => void;
-  toReplies: () => void;
-  toNewPost: () => void;
-  toSettings: () => void;
 }
 
 export interface NavigationStore extends NavigationStoreProps, NavigationStoreActions { }
@@ -29,15 +30,15 @@ type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   isCommandPaletteOpen: false,
-  isReplyModalOpen: false,
-  openReplyModal: () => {
+  isNewCastModalOpen: false,
+  openNewCastModal: () => {
     set((state) => {
-      state.isReplyModalOpen = true;
+      state.isNewCastModalOpen = true;
     });
   },
-  closeReplyModal: () => {
+  closeNewCastModal: () => {
     set((state) => {
-      state.isReplyModalOpen = false;
+      state.isNewCastModalOpen = false;
     });
   },
   closeCommandPallete: () => {
@@ -47,7 +48,6 @@ const store = (set: StoreSet) => ({
   },
   toggleCommandPalette: () => {
     set((state) => {
-      // console.log('useNavStore: toggleCommandPalette');
       state.isCommandPaletteOpen = !state.isCommandPaletteOpen;
     });
   },

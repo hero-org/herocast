@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loading } from "./Loading";
 import { SignInButton, useProfile } from "@farcaster/auth-kit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "../helpers/supabase/component";
 import { useRouter } from "next/router";
 import { z } from "zod";
@@ -72,22 +72,148 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     mode: "onSubmit",
   });
 
-  useHotkeys(Key.Enter, signUp, [form.getValues()], { enableOnFormTags: true });
+  async function signUp() {
+    if (!(await form.trigger())) return;
 
-  React.useEffect(() => {
+    setIsLoading(true);
+    const { email, password } = form.getValues();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      if (error.message === "User already registered") {
+        logIn();
+      } else {
+        form.setError("password", {
+          type: "manual",
+          message: error.message,
+        });
+        console.error("signup error", error);
+        setIsLoading(false);
+      }
+
+      return;
+    } else {
+      posthog.identify(data?.user?.id, { email });
+      setUserMessage("Welcome to the herocast experience!");
+      router.push("/welcome/new");
+      setIsLoading(false);
+    }
+  }
+
+  const resetPassword = async () => {
+    const { email } = form.getValues();
+
+    if (!email) {
+      form.setError("email", {
+        type: "manual",
+        message: "Email is required.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_URL}/login`,
+    });
+    setUserMessage("Sent password reset email to you");
+    setView(ViewState.LOGIN);
+    setIsLoading(false);
+  };
+
+  const submitNewPassword = async () => {
+    form.clearErrors();
+    const { email, password } = form.getValues();
+
+    const { data, error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      setUserMessage("There was an error updating your password.");
+      form.setError("password", {
+        type: "manual",
+        message: error.message,
+      });
+      return;
+    }
+    if (data?.user) {
+      setUserMessage("Success! Logging you in...");
+      posthog.identify(data?.user?.id, { email });
+      await hydrate();
+      router.push("/feed");
+      setIsLoading(false);
+    } else {
+      setUserMessage("Something went wrong. Please try again.");
+      return;
+    }
+  };
+
+  const logIn = async () => {
+    if (!(await form.trigger())) return;
+
+    setIsLoading(true);
+    const { email, password } = form.getValues();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      form.setError("password", {
+        type: "manual",
+        message: error.message,
+      });
+      console.error("login error", error);
+      setIsLoading(false);
+      return;
+    }
+
+    posthog.identify(data?.user?.id, { email });
+    await hydrate();
+    router.push("/feed");
+  };
+
+  const getButtonAction = () => {
+    switch (view) {
+      case ViewState.FORGOT:
+        return resetPassword;
+      case ViewState.LOGIN:
+        return logIn;
+      case ViewState.SIGNUP:
+        return signUp;
+      case ViewState.RESET:
+        return submitNewPassword;
+      case ViewState.LOGGED_IN:
+        return () => router.push("/feed");
+      default:
+        return () => {};
+    }
+  };
+
+  const buttonAction = getButtonAction();
+  useHotkeys(Key.Enter, buttonAction, [form.getValues()], {
+    enableOnFormTags: true,
+  });
+
+  useEffect(() => {
     if (router.query?.view) {
       setView(router.query.view as ViewState);
     }
-  }, [router.query?.view]);
 
-  React.useEffect(() => {
+    if (user && router.query?.view !== ViewState.RESET) {
+      setView(ViewState.LOGGED_IN);
+    }
+  }, [router.query?.view, user]);
+
+  useEffect(() => {
     const getUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user && user.email) {
         setUser(user);
-        setView(ViewState.LOGGED_IN);
         form.setValue("email", user.email);
       }
     };
@@ -95,7 +221,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     getUser();
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated && username && fid) {
       setupLocalAccount({ fid, username });
     }
@@ -159,130 +285,24 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     setIsLoading(false);
   };
 
-  async function logIn() {
-    if (!(await form.trigger())) return;
-
-    setIsLoading(true);
-    const { email, password } = form.getValues();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      form.setError("password", {
-        type: "manual",
-        message: error.message,
-      });
-      console.error("login error", error);
-      setIsLoading(false);
-      return;
-    }
-
-    posthog.identify(data?.user?.id, { email });
-    await hydrate();
-    router.push("/feed");
-  }
-
-  async function signUp() {
-    if (!(await form.trigger())) return;
-
-    setIsLoading(true);
-    const { email, password } = form.getValues();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) {
-      if (error.message === "User already registered") {
-        logIn();
-      } else {
-        form.setError("password", {
-          type: "manual",
-          message: error.message,
-        });
-        console.error("signup error", error);
-        setIsLoading(false);
-      }
-
-      return;
-    } else {
-      posthog.identify(data?.user?.id, { email });
-      setUserMessage("Welcome to the herocast experience!");
-      router.push("/welcome/new");
-      setIsLoading(false);
-    }
-  }
-
-  const resetPassword = async () => {
-    const { email } = form.getValues();
-
-    if (!email) {
-      form.setError("email", {
-        type: "manual",
-        message: "Email is required.",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_URL}/login`,
-    });
-    setUserMessage("Sent password reset email to you");
-    setView(ViewState.LOGIN);
-    setIsLoading(false);
-  };
-
-  const submitNewPassword = async () => {
-    const { email, password } = form.getValues();
-
-    const { data, error } = await supabase.auth.updateUser({ password });
-
-    if (error) {
-      alert("There was an error updating your password.");
-      setUserMessage("There was an error updating your password.");
-      form.setError("password", {
-        type: "manual",
-        message: error.message,
-      });
-      return;
-    }
-    if (data?.user) alert("Password updated successfully!");
-
-    setUserMessage("Logging you in...");
-    posthog.identify(data?.user?.id, { email });
-    await hydrate();
-    router.push("/feed");
-    setIsLoading(false);
-  };
-
   const renderSubmitButton = () => {
     let buttonText = "";
-    let buttonAction = () => {};
 
     switch (view) {
       case ViewState.FORGOT:
         buttonText = "Reset Password";
-        buttonAction = resetPassword;
         break;
       case ViewState.LOGIN:
         buttonText = "Continue";
-        buttonAction = logIn;
         break;
       case ViewState.SIGNUP:
         buttonText = "Sign Up";
-        buttonAction = signUp;
         break;
       case ViewState.RESET:
         buttonText = "Set New Password";
-        buttonAction = submitNewPassword;
         break;
       case ViewState.LOGGED_IN:
         buttonText = "Continue";
-        buttonAction = () => router.push("/feed");
         break;
     }
     return (
@@ -291,7 +311,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         size="lg"
         className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
         disabled={isLoading}
-        onClick={buttonAction}
+        onClick={() => buttonAction()}
       >
         {isLoading ? <Loading className="text-white" /> : buttonText}
       </Button>

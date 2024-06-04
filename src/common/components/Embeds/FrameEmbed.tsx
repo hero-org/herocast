@@ -62,7 +62,7 @@ const FrameEmbed = ({ url }: FrameArgs) => {
     },
   });
 
-  const { status, frame } = frameState?.frame?.frame ?? {};
+  const { status, frame } = frameState?.currentFrameStackItem?.frameResult ?? {};
   const hasFrameError = status === "failure";
   if (hasFrameError) {
     return frame.ogImage ? <WarpcastImage url={frame.ogImage} /> : null;
