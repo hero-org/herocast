@@ -1,8 +1,9 @@
 import { Embed } from "@farcaster/hub-web";
+import type { FarcasterEmbed } from '@mod-protocol/farcaster';
 
 export type ParentCastIdType = {
-  fid: string;
-  hash: string;
+  fid: number;
+  hash: Uint8Array;
 }
 
 export enum DraftStatus {
@@ -13,7 +14,8 @@ export enum DraftStatus {
 
 export type DraftType = PostType & {
   status: DraftStatus,
-  mentionsToFids?: { [key: string]: string }
+  mentionsToFids?: { [key: string]: string },
+  embeds?: FarcasterEmbed[],
 };
 
 export type PostType = {
@@ -43,6 +45,7 @@ export enum CastReactionType {
   likes = 'likes',
   recasts = 'recasts',
   replies = 'replies',
+  quote = 'quote',
   links = 'links',
 }
 

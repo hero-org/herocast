@@ -8,13 +8,20 @@ import { devtools } from "zustand/middleware";
 // it can have a parent -> then it's a reply
 // it can have an embed -> then it's a quote
 
+export enum CastModalView {
+  New = "new",
+  Reply = "reply",
+  Quote = "quote",
+}
 
 interface NavigationStoreProps {
   isNewCastModalOpen: boolean;
+  castModalView: CastModalView;
   isCommandPaletteOpen: boolean;
 }
 
 interface NavigationStoreActions {
+  setCastModalView: (view: CastModalView) => void;
   openNewCastModal: () => void;
   closeNewCastModal: () => void;
   closeCommandPallete: () => void;
@@ -31,6 +38,12 @@ type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 const store = (set: StoreSet) => ({
   isCommandPaletteOpen: false,
   isNewCastModalOpen: false,
+  castModalView: "new",
+  setCastModalView: (view: CastModalView) => {
+    set((state) => {
+      state.castModalView = view;
+    });
+  },
   openNewCastModal: () => {
     set((state) => {
       state.isNewCastModalOpen = true;

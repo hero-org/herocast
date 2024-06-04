@@ -14,9 +14,11 @@ import {
 } from '@mod-protocol/farcaster';
 import { submitCast } from "@/common/helpers/farcaster";
 import { toHex } from "viem";
-import { CastId, Embed } from "@farcaster/hub-web";
+import { CastId } from "@farcaster/hub-web";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import { toastInfoReadOnlyMode, toastSuccessCastPublished } from "@/common/helpers/toast";
+import { Embed } from "@standard-crypto/farcaster-js-hub-rest";
+import type { FarcasterEmbed } from '@mod-protocol/farcaster';
 
 const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
 
@@ -49,8 +51,7 @@ export const JoinedHerocastViaHatsProtocolDraft: DraftType = {
 }
 
 export const LaunchCasterScoutDraft: DraftType = {
-  text: `@launch via @herocast 
-   `,
+  text: `@launch `,
   status: DraftStatus.writing,
   mentionsToFids: { 'launch': '2864', 'herocast': '18665' }
 }
@@ -73,7 +74,8 @@ export const RemindMeBotDraft: DraftType = {
 type addNewPostDraftProps = {
   text?: string
   parentUrl?: string
-  parentCastId?: ParentCastIdType
+  parentCastId?: ParentCastIdType,
+  embeds?: FarcasterEmbed[]
 };
 
 
@@ -84,7 +86,7 @@ interface NewPostStoreProps {
 interface NewPostStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
-  addNewPostDraft: ({ text, parentCastId, parentUrl }: addNewPostDraftProps) => void;
+  addNewPostDraft: ({ text, parentCastId, parentUrl, embeds }: addNewPostDraftProps) => void;
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number, onlyIfEmpty?: boolean) => void;
   removeAllPostDrafts: () => void;
@@ -100,10 +102,11 @@ type StoreSet = (fn: (draft: Draft<NewPostStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   drafts: [],
-  addNewPostDraft: ({ text, parentUrl, parentCastId }: addNewPostDraftProps) => {
+  addNewPostDraft: ({ text, parentUrl, parentCastId, embeds }: addNewPostDraftProps) => {
     set((state) => {
-      const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId };
-      if (!text && !parentUrl && !parentCastId) {
+      console.log('ADD NEW POST DRAFT CALLED !!!!!!!!!!!')
+      if (!text && !parentUrl && !parentCastId && !embeds) {
+        // check if there is an existing empty draft
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
           if (!draft.text) {
@@ -112,6 +115,7 @@ const store = (set: StoreSet) => ({
         }
       }
       if (parentUrl || parentCastId) {
+        // check if there is an existing draft for the same parent
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
           if ((parentUrl && parentUrl === draft.parentUrl) ||
@@ -121,6 +125,8 @@ const store = (set: StoreSet) => ({
         }
       }
 
+      const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId, embeds };
+      console.log('newDraft created', newDraft)
       state.drafts = [...state.drafts, newDraft];
     });
   },
@@ -131,6 +137,7 @@ const store = (set: StoreSet) => ({
   },
   updatePostDraft: (draftIdx: number, draft: DraftType) => {
     set((state) => {
+      console.log("UPDATE POST DRAFT CALLED! !!!!!!!!!!!!", draft)
       state.drafts = [
         ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
         draft,
@@ -178,6 +185,11 @@ const store = (set: StoreSet) => ({
   },
   publishPostDraft: async (draftIdx: number, account: AccountObjectType, onPost?: () => null): Promise<void> => {
     set(async (state) => {
+      if (account.platform === AccountPlatformType.farcaster_local_readonly) {
+        toastInfoReadOnlyMode();
+        return;
+      }
+
       const draft = state.drafts[draftIdx];
       
       try {
@@ -198,6 +210,7 @@ const store = (set: StoreSet) => ({
           parentCastHash: draft.parentCastId?.hash,
         });
 
+        console.log('castBody', castBody);
         if (!castBody) {
           throw new Error('Failed to prepare cast');
         }
@@ -208,15 +221,11 @@ const store = (set: StoreSet) => ({
           }
         }
 
-        if (account.platform === AccountPlatformType.farcaster_local_readonly) {
-          toastInfoReadOnlyMode();
-        }
-
-        await submitCast({
-          ...castBody,
-          signerPrivateKey: account.privateKey!,
-          fid: Number(account.platformAccountId),
-        });
+        // await submitCast({
+        //   ...castBody,
+        //   signerPrivateKey: account.privateKey!,
+        //   fid: Number(account.platformAccountId),
+        // });
 
         state.removePostDraft(draftIdx);
         toastSuccessCastPublished(draft.text);

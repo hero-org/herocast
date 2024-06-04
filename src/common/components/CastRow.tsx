@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { castTextStyle, classNames } from "../../../src/common/helpers/css";
 import {
-  CastType,
   CastReactionType,
 } from "../../../src/common/constants/farcaster";
 import { ChannelType } from "../../../src/common/constants/channels";
@@ -11,6 +10,7 @@ import {
   ArrowTopRightOnSquareIcon,
   ChatBubbleLeftIcon,
   HeartIcon,
+  ChatBubbleLeftRightIcon
 } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
 import { localize, timeDiff } from "../helpers/date";
@@ -60,6 +60,7 @@ interface CastRowProps {
   showChannel?: boolean;
   onSelect?: () => void;
   onReply?: () => void;
+  onQuote?: () => void;
   isSelected?: boolean;
   isThreadView?: boolean;
   disableEmbeds?: boolean;
@@ -158,6 +159,7 @@ export const CastRow = ({
   showChannel,
   onSelect,
   onReply,
+  onQuote,
   disableEmbeds = false,
   isThreadView = false,
 }: CastRowProps) => {
@@ -258,6 +260,10 @@ export const CastRow = ({
             aria-hidden="true"
           />
         );
+      case CastReactionType.quote:
+        return (
+          <ChatBubbleLeftRightIcon className={className} aria-hidden="true" />
+        );
       case CastReactionType.replies:
         return <ChatBubbleLeftIcon className={className} aria-hidden="true" />;
       case CastReactionType.links:
@@ -290,6 +296,12 @@ export const CastRow = ({
         onReply?.();
         return;
       }
+
+      if (key === CastReactionType.quote) {
+        onQuote?.();
+        return;
+      }
+
       const reactionBodyType: "like" | "recast" =
         key === CastReactionType.likes ? "like" : "recast";
       const reaction = {
@@ -421,6 +433,20 @@ export const CastRow = ({
             </HotkeyTooltipWrapper>
           </Tooltip.Provider>
         ) : null}
+        <Tooltip.Provider
+          key={`cast-${cast.hash}-quote`}
+          delayDuration={50}
+          skipDelayDuration={0}
+        >
+          <HotkeyTooltipWrapper hotkey="Q" side="bottom">
+            {renderReaction(
+              CastReactionType.quote,
+              true,
+              undefined,
+              getIconForCastReactionType(CastReactionType.quote)
+            )}
+          </HotkeyTooltipWrapper>
+        </Tooltip.Provider>
       </div>
     );
   };
@@ -446,7 +472,7 @@ export const CastRow = ({
     }
 
     return (
-      <div className="mt-4">
+      <div className="mt-4" onClick={(e) => e.preventDefault()}>
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
             // @ts-expect-error - type mismatch, this works
@@ -486,6 +512,11 @@ export const CastRow = ({
   return (
     <div className="flex min-w-full w-full max-w-2xl">
       <div
+        onClick={(event) => {
+          if (event.target !== event.currentTarget) return;
+          event.stopPropagation();
+          onSelect && onSelect();
+        }}
         className={classNames(
           "py-4 px-2",
           isSelected ? "bg-foreground/10" : "cursor-pointer",

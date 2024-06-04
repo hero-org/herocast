@@ -143,6 +143,17 @@ export default function NewPostEntry({
     }),
   });
 
+  // todo: this is a hack
+  // initial draft might have embeds that are not yet in the editor
+  // we need to set them on initial render so we don't overwrite them later
+
+  useEffect(() => {
+    console.log('NewPostEntry useEffect draftEmbedsSetting', draft.embeds)
+    if (draft.embeds) {
+      setEmbeds(draft.embeds);
+    }
+  }, [draft.embeds]);
+
   const text = getText();
   const embeds = getEmbeds();
   const channel = getChannel();
