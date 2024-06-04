@@ -276,7 +276,7 @@ export const CastRow = ({
 
     if (key === CastReactionType.likes) {
       setDidLike(!isActive);
-    } else if (key === CastReactionType.recasts){
+    } else if (key === CastReactionType.recasts) {
       setDidRecast(!isActive);
     }
 
@@ -486,7 +486,6 @@ export const CastRow = ({
   return (
     <div className="flex min-w-full w-full max-w-2xl">
       <div
-        onClick={() => onSelect && onSelect()}
         className={classNames(
           "py-4 px-2",
           isSelected ? "bg-foreground/10" : "cursor-pointer",
@@ -550,13 +549,12 @@ export const CastRow = ({
                 </a>
               </div>
             </div>
-            <div className="">
-              <div
-                className="mt-2 w-full max-w-xl text-md text-foreground break-words lg:break-normal"
-                style={castTextStyle}
-              >
-                {getText()}
-              </div>
+            <div
+              onClick={() => onSelect && onSelect()}
+              className="mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
+              style={castTextStyle}
+            >
+              {getText()}
             </div>
             {renderCastReactions(cast as CastWithInteractions)}
             {!disableEmbeds && renderEmbeds()}
