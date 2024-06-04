@@ -102,6 +102,7 @@ export default function CommandPalette() {
         },
         iconUrl: channel.icon_url,
         data: channel.data,
+        navigateTo: "/feed",
       });
     });
 
