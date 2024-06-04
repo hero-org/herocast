@@ -77,25 +77,22 @@ export const CastThreadView = ({
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const { conversation } = await neynarClient.lookupCastConversation(
-        cast.hash,
-        CastParamType.Hash,
-        { replyDepth: 1, includeChronologicalParentCasts: true }
-      );
-
-      if (conversation?.cast?.direct_replies) {
-        const { direct_replies: replies, ...castObjectWithoutReplies } =
-          conversation.cast;
-        setCasts([castObjectWithoutReplies].concat(replies));
-      } else {
-        const castResponse = await neynarClient.lookUpCastByHashOrWarpcastUrl(
+      try {
+        const { conversation } = await neynarClient.lookupCastConversation(
           cast.hash,
-          CastParamType.Hash
+          CastParamType.Hash,
+          { replyDepth: 1, includeChronologicalParentCasts: true }
         );
-        setCasts([castResponse.cast]);
+        if (conversation?.cast?.direct_replies) {
+          const { direct_replies: replies, ...castObjectWithoutReplies } =
+            conversation.cast;
+          setCasts([castObjectWithoutReplies].concat(replies));
+        }
+      } catch (err) {
+        console.error(`Error fetching cast thread: ${err}`);
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
     if (!cast) return;
