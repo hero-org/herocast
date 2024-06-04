@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FrameUI, fallbackFrameContext } from "@frames.js/render";
+import { fallbackFrameContext } from "@frames.js/render";
 import { signFrameAction } from "@frames.js/render/farcaster";
 import { useFrame } from "@frames.js/render/use-frame";
 import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
@@ -8,6 +8,7 @@ import Image from "next/image";
 import type { ImgHTMLAttributes } from "react";
 import { isUndefined } from "lodash";
 import { WarpcastImage } from "../PostEmbeddedContent";
+import { FrameUI } from "./FrameUI";
 
 // Due to issue with FrameImageNext from @frame.js/render/next
 // Implement the exact same thing again
@@ -60,10 +61,6 @@ const FrameEmbed = ({ url }: FrameArgs) => {
       signFrameAction: signFrameAction,
     },
   });
-
-  if (!frameState || !frameState.frame || !("frame" in frameState.frame)) {
-    return null;
-  }
 
   const { status, frame } = frameState?.frame?.frame ?? {};
   const hasFrameError = status === "failure";

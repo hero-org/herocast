@@ -31,7 +31,7 @@
     "@emotion/styled": "11",
     "@farcaster/auth-kit": "^0.3.1",
     "@farcaster/hub-web": "^0.8.0",
-    "@frames.js/render": "^0.2.6",
+    "@frames.js/render": "^0.2.12",
     "@gumlet/react-hls-player": "^1.0.1",
     "@hatsprotocol/modules-sdk": "^0.15.2",
     "@headlessui/react": "^1.7.16",

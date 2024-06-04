@@ -215,6 +215,7 @@ export default function NewPostEntry({
             </PopoverContent>
           </Popover>
           <Button
+            type="button"
             variant="outline"
             onClick={() => setCurrentMod(creationMods[0])}
           >

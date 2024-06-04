@@ -49,12 +49,14 @@ export type CastToReplyType = {
 };
 
 interface CastRowProps {
-  cast: CastWithInteractions & {
-    inclusion_context?: {
-      is_following_recaster: boolean;
-      is_following_author: boolean;
-    };
-  } | CastToReplyType;
+  cast:
+    | (CastWithInteractions & {
+        inclusion_context?: {
+          is_following_recaster: boolean;
+          is_following_author: boolean;
+        };
+      })
+    | CastToReplyType;
   showChannel?: boolean;
   onSelect?: () => void;
   onReply?: () => void;
@@ -274,7 +276,7 @@ export const CastRow = ({
 
     if (key === CastReactionType.likes) {
       setDidLike(!isActive);
-    } else {
+    } else if (key === CastReactionType.recasts) {
       setDidRecast(!isActive);
     }
 
@@ -336,8 +338,8 @@ export const CastRow = ({
   const renderCastReactions = (cast: CastWithInteractions) => {
     const linksCount = cast?.embeds ? cast.embeds.length : 0;
     const isOnchainLink =
-      linksCount > 0 && 'url' in cast.embeds[0]
-        ? cast.embeds[0].url.startsWith('chain:')
+      linksCount > 0 && "url" in cast.embeds[0]
+        ? cast.embeds[0].url.startsWith("chain:")
         : false;
 
     return (
@@ -404,7 +406,7 @@ export const CastRow = ({
             <HotkeyTooltipWrapper hotkey="O" side="bottom">
               <a
                 tabIndex={-1}
-                href={'url' in cast.embeds[0] ? cast.embeds[0].url : '#'}
+                href={"url" in cast.embeds[0] ? cast.embeds[0].url : "#"}
                 target="_blank"
                 rel="noreferrer"
                 className="cursor-pointer"
@@ -424,7 +426,7 @@ export const CastRow = ({
   };
 
   const getText = () =>
-    'text' in cast && cast.text ? (
+    "text" in cast && cast.text ? (
       <ErrorBoundary>
         <Linkify
           as="span"
@@ -439,7 +441,7 @@ export const CastRow = ({
     ) : null;
 
   const renderEmbeds = () => {
-    if (!('embeds' in cast) || !cast.embeds.length) {
+    if (!("embeds" in cast) || !cast.embeds.length) {
       return null;
     }
 
@@ -455,11 +457,11 @@ export const CastRow = ({
         </ErrorBoundary>
       </div>
     );
-  }
+  };
 
   const renderRecastBadge = () => {
     const shouldShowBadge =
-      'inclusion_context' in cast &&
+      "inclusion_context" in cast &&
       cast.inclusion_context?.is_following_recaster &&
       !cast.inclusion_context?.is_following_author;
 
@@ -471,14 +473,19 @@ export const CastRow = ({
     );
   };
 
-  const channel = showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null;
-  const timeAgo = 'timestamp' in cast ? timeDiff(now, new Date(cast.timestamp)) : [0, 'seconds'];
+  const channel =
+    showChannel && "parent_url" in cast
+      ? getChannelForParentUrl(cast.parent_url)
+      : null;
+  const timeAgo =
+    "timestamp" in cast
+      ? timeDiff(now, new Date(cast.timestamp))
+      : [0, "seconds"];
   const timeAgoStr = localize(Number(timeAgo[0]), timeAgo[1].toString());
 
   return (
     <div className="flex min-w-full w-full max-w-2xl">
       <div
-        onClick={() => onSelect && onSelect()}
         className={classNames(
           "py-4 px-2",
           isSelected ? "bg-foreground/10" : "cursor-pointer",
@@ -524,13 +531,15 @@ export const CastRow = ({
                 {renderRecastBadge()}
               </div>
               <div className="flex flex-row">
-                {'timestamp' in cast && cast.timestamp && (
+                {"timestamp" in cast && cast.timestamp && (
                   <span className="text-sm leading-5 text-foreground/50">
                     {timeAgoStr}
                   </span>
                 )}
                 <a
-                  href={`https://warpcast.com/${cast.author.username}/${cast.hash.slice(0, 10)}`}
+                  href={`https://warpcast.com/${
+                    cast.author.username
+                  }/${cast.hash.slice(0, 10)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm leading-5 text-foreground/50"
@@ -540,13 +549,12 @@ export const CastRow = ({
                 </a>
               </div>
             </div>
-            <div className="">
-              <div
-                className="mt-2 w-full max-w-xl text-md text-foreground break-words lg:break-normal"
-                style={castTextStyle}
-              >
-                {getText()}
-              </div>
+            <div
+              onClick={() => onSelect && onSelect()}
+              className="mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
+              style={castTextStyle}
+            >
+              {getText()}
             </div>
             {renderCastReactions(cast as CastWithInteractions)}
             {!disableEmbeds && renderEmbeds()}

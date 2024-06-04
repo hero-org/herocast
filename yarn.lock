@@ -491,13 +491,13 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.2.tgz#d8bae93ac8b815b2bd7a98078cf91e2724ef11e5"
   integrity sha512-J4yDIIthosAsRZ5CPYP/jQvUAQtlZTTD/4suA08/FEnlxqW3sKS9iAhgsa9VYLZ6vDHn/ixJgIqRQPotoBjxIw==
 
-"@frames.js/render@^0.2.6":
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/@frames.js/render/-/render-0.2.6.tgz#2b02e636181742e39f495bb00bb7b27d2f214b83"
-  integrity sha512-4m88wVs805gxhOiXn5Etc1k9GCjmS8wWF1+qaRwzs3FsqHtcsmcc8i2w888xJYWcTW8nygEfJfLCLTMqG/Otmg==
+"@frames.js/render@^0.2.12":
+  version "0.2.12"
+  resolved "https://registry.yarnpkg.com/@frames.js/render/-/render-0.2.12.tgz#044afdde1c27e6e65db50abeb2822785b164cd4f"
+  integrity sha512-Jw97jkwAYUSZYQUD7L+VgJwvDgrshdlMH0MUdCL7uizFFyyYLXGfp/jaxfUt5nDG0wRFd4+mF5+lp+qKRWzUOg==
   dependencies:
     "@farcaster/core" "^0.14.7"
-    frames.js "^0.15.3"
+    frames.js "^0.16.5"
 
 "@gumlet/react-hls-player@^1.0.1":
   version "1.0.1"
@@ -6015,10 +6015,10 @@ fraction.js@^4.3.7:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.3.7.tgz#06ca0085157e42fda7f9e726e79fefc4068840f7"
   integrity sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==
 
-frames.js@^0.15.3:
-  version "0.15.3"
-  resolved "https://registry.yarnpkg.com/frames.js/-/frames.js-0.15.3.tgz#cb75c6038d66ef6c633edfdfed205060bcbd5c6a"
-  integrity sha512-u6y+VjX0sSD5QsP0iu8eLsK25kpRPQvhFEKUZjriXJCSLxYazecDESNrZcecmp0nXHvFlNOqMEt6eU45H0tHoA==
+frames.js@^0.16.5:
+  version "0.16.5"
+  resolved "https://registry.yarnpkg.com/frames.js/-/frames.js-0.16.5.tgz#5c501198e93a35db01837c11e764aa6a00d250f1"
+  integrity sha512-GhN96mU29d5torOTNbXEpv8PPGVA7E3gqzxr/NEZ7+ZQLajTN+uF0/jZGf/5z2axAdR7R8uVmq5buSF8CGAtUA==
   dependencies:
     "@vercel/og" "^0.6.2"
     cheerio "^1.0.0-rc.12"

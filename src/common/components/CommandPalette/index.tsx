@@ -96,12 +96,13 @@ export default function CommandPalette() {
           setSelectedChannelUrl(channel.url);
         },
         shortcut: "",
-        aliases: [],
+        aliases: ["/" + channel.name.split("/").pop()],
         options: {
           enableOnFormTags: false,
         },
         iconUrl: channel.icon_url,
         data: channel.data,
+        navigateTo: "/feed",
       });
     });
 

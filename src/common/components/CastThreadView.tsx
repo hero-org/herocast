@@ -11,6 +11,7 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button } from "@/components/ui/button";
 import { CastParamType, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { cn } from "@/lib/utils";
 
 type CastThreadViewProps = {
   cast: { hash: string; author: { fid: number } };
@@ -31,36 +32,13 @@ export const CastThreadView = ({
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
 
+  const { selectedChannelUrl } = useAccountStore();
+  const { addNewPostDraft, removePostDraft } = useNewPostStore();
   const draftIdx = useNewPostStore(
     (state) =>
       state.drafts &&
       state.drafts.findIndex((draft) => draft.parentCastId?.hash === cast?.hash)
   );
-
-  const castTree = useMemo(() => {
-    if (casts.length === 0) return [];
-
-    const castTree = casts.reduce((acc, cast) => {
-      if (!cast?.parent_hash) {
-        acc.push(cast);
-      } else {
-        const parentCast = casts.find((c) => c.hash === cast.parent_hash);
-        if (parentCast && 'children' in parentCast && typeof parentCast.children !== 'undefined') {
-          if (!parentCast.children) {
-            parentCast.children = [] as CastWithInteractions[];
-          }
-          (parentCast.children as CastWithInteractions[]).push(cast);
-        }
-      }
-      return acc;
-    }, [] as CastWithInteractions[]);
-
-    return castTree;
-  }, [casts]);
-
-  const { selectedChannelUrl } = useAccountStore();
-
-  const { addNewPostDraft, removePostDraft } = useNewPostStore();
 
   useEffect(() => {
     if (!cast || casts.length === 0 || !setSelectedCast) return;
@@ -99,24 +77,22 @@ export const CastThreadView = ({
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const { conversation } = await neynarClient.lookupCastConversation(
-        cast.hash,
-        CastParamType.Hash,
-        { replyDepth: 1, includeChronologicalParentCasts: true }
-      );
-      const { direct_replies: replies, ...castObjectWithoutReplies } =
-        conversation.cast;
-      if (replies) {
-        setCasts([castObjectWithoutReplies].concat(replies));
-      } else {
-        const castResponse = await neynarClient.lookUpCastByHashOrWarpcastUrl(
+      try {
+        const { conversation } = await neynarClient.lookupCastConversation(
           cast.hash,
-          CastParamType.Hash
+          CastParamType.Hash,
+          { replyDepth: 1, includeChronologicalParentCasts: true }
         );
-        setCasts([castResponse.cast]);
+        if (conversation?.cast?.direct_replies) {
+          const { direct_replies: replies, ...castObjectWithoutReplies } =
+            conversation.cast;
+          setCasts([castObjectWithoutReplies].concat(replies));
+        }
+      } catch (err) {
+        console.error(`Error fetching cast thread: ${err}`);
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
     if (!cast) return;
@@ -145,14 +121,22 @@ export const CastThreadView = ({
           {/* this is the left line */}
           <div
             className={classNames(
-              idx === 0 ? "-ml-8" : "border-l-2",
-              isActive && isRowSelected
-                ? "border-muted-background"
+              idx === 0 ? "-ml-[26px]" : "border-l-2",
+              isRowSelected
+                ? "border-muted-foreground"
                 : "border-foreground/10",
               "relative flex items-start"
             )}
           >
             <div className="min-w-0 flex-1">
+              {idx === 0 && (
+                <div
+                  className={cn(
+                    isRowSelected ? "bg-muted-foreground" : "bg-foreground/10",
+                    "absolute top-8 left-[26px] h-[calc(100%-32px)] w-0.5"
+                  )}
+                />
+              )}
               <CastRow
                 cast={cast}
                 showChannel={selectedChannelUrl === null}
@@ -168,10 +152,12 @@ export const CastThreadView = ({
 
   const renderFeed = () => (
     <SelectableListWithHotkeys
-      data={castTree}
+      data={casts}
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
-      renderRow={(item: CastWithInteractions, idx: number) => renderRow(item, idx)}
+      renderRow={(item: CastWithInteractions, idx: number) =>
+        renderRow(item, idx)
+      }
       isActive={isActive}
     />
   );
