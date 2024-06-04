@@ -42,7 +42,7 @@ const CastEmbed = ({ url, castId }: { url?: string, castId?: { hash: string, fid
       key={`onchain-embed-${url}`}
       className="border border-gray-600 rounded-sm"
     >
-      <CastRow cast={cast} showChannel />
+      <CastRow cast={cast} showChannel disableEmbeds />
     </div>
   );
 }
