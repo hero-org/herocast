@@ -5,6 +5,8 @@ import { useNewPostStore } from "@/stores/useNewPostStore";
 import { CastRow, CastToReplyType } from "./CastRow";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useAccountStore } from "@/stores/useAccountStore";
+import { AccountSelector } from "./AccountSelector";
+import { AccountStatusType } from "../constants/accounts";
 
 type ReplyModalProps = {
   parentCast: CastToReplyType;
@@ -32,7 +34,10 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
   useEffect(() => {
     if (draftIdx === -1 && open) {
       addNewPostDraft({
-        parentCastId: { hash: parentCast?.hash, fid: parentCast?.author.fid.toString() },
+        parentCastId: {
+          hash: parentCast?.hash,
+          fid: parentCast?.author.fid.toString(),
+        },
       });
     }
     return () => {
@@ -50,10 +55,16 @@ const ReplyModal = ({ parentCast, open, setOpen }: ReplyModalProps) => {
     enabled: open,
   });
 
-  const getTitle = () =>
-    `Reply to ${
-      parentCast?.author.display_name || parentCast?.author.displayName
-    } as ${account?.name}`;
+  const getTitle = () => (
+    <span className="flex items-center">
+      Reply to $
+      {parentCast?.author.display_name || parentCast?.author.displayName} as
+      <AccountSelector
+        className="ml-2 w-1/2"
+        accountFilter={(account) => account.status === AccountStatusType.active}
+      />
+    </span>
+  );
 
   return (
     <Modal title={getTitle()} open={open} setOpen={setOpen}>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { CheckIcon, CaretSortIcon } from "@radix-ui/react-icons";
 
@@ -13,7 +13,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useAccount } from "wagmi";
 import {
   AccountObjectType,
   hydrateAccounts,
@@ -21,10 +20,11 @@ import {
 } from "@/stores/useAccountStore";
 
 type AccountSelectorProps = {
+  className?: string;
   accountFilter?: (account: AccountObjectType) => boolean;
 };
 
-export function AccountSelector({ accountFilter }: AccountSelectorProps) {
+export function AccountSelector({ className, accountFilter }: AccountSelectorProps) {
   const { selectedAccountIdx, setCurrentAccountById } = useAccountStore();
   const accounts = useAccountStore((state) => state.accounts).filter(
     (account) => (accountFilter ? accountFilter(account) : true)
@@ -47,7 +47,7 @@ export function AccountSelector({ accountFilter }: AccountSelectorProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full max-w-[450px] justify-between"
+          className={cn("w-full max-w-[450px] justify-between", className)}
         >
           {selectedAccount ? (
             <div className="flex">
