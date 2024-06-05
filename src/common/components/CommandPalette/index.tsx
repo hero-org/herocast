@@ -139,8 +139,8 @@ export default function CommandPalette() {
         },
       });
 
-      const { openReplyModal } = useNavigationStore.getState();
-      openReplyModal();
+      const { openNewCastModal } = useNavigationStore.getState();
+      openNewCastModal();
     };
 
     const launchCastAction = () => {
