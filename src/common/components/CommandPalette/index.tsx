@@ -234,7 +234,7 @@ export default function CommandPalette() {
           <div className="fixed inset-0 bg-muted/95 transition-opacity" />
         </Transition.Child>
 
-        <div className="fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 md:p-20">
+        <div className="fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 sm:pt-20 md:p-20">
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-10"
