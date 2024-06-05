@@ -135,8 +135,8 @@ export default function CommandPalette() {
           hash: selectedCast.hash,
         },
       });
-      const { openReplyModal } = useNavigationStore.getState();
-      openReplyModal();
+      const { openNewCastModal } = useNavigationStore.getState();
+      openNewCastModal();
     };
 
     const launchCastAction = () => {

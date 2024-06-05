@@ -41,7 +41,7 @@ export default function Feed() {
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
-  const { isReplyModalOpen, openReplyModal, closeReplyModal } =
+  const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } =
     useNavigationStore();
 
   const { ref: buttonRef, inView } = useInView({
@@ -128,22 +128,22 @@ export default function Feed() {
     () => {
       setShowCastThreadView(false);
     },
-    [showCastThreadView, isReplyModalOpen, showEmbedsModal],
+    [showCastThreadView, isNewCastModalOpen, showEmbedsModal],
     {
       enableOnFormTags: true,
       enableOnContentEditable: true,
-      enabled: showCastThreadView && !isReplyModalOpen && !showEmbedsModal,
+      enabled: showCastThreadView && !isNewCastModalOpen && !showEmbedsModal,
     }
   );
 
   useHotkeys(
     "r",
     () => {
-      openReplyModal();
+      openNewCastModal();
     },
-    [openReplyModal],
+    [openNewCastModal],
     {
-      enabled: !isReplyModalOpen,
+      enabled: !isNewCastModalOpen,
       enableOnFormTags: false,
       preventDefault: true,
     }
@@ -236,7 +236,7 @@ export default function Feed() {
   }, [account, selectedChannelUrl, showCastThreadView]);
 
   useEffect(() => {
-    closeReplyModal();
+    closeNewCastModal();
     setShowCastThreadView(false);
     setSelectedCastIdx(0);
   }, [selectedChannelUrl]);
@@ -252,7 +252,7 @@ export default function Feed() {
         onSelect={() => onSelectCast(idx)}
         onReply={() => {
           updateSelectedCast(item);
-          openReplyModal();
+          openNewCastModal();
         }}
         showChannel
       />
@@ -294,7 +294,7 @@ export default function Feed() {
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
       onExpand={onOpenLinkInCast}
       onSelect={onSelectCast}
-      isActive={!(showCastThreadView || isReplyModalOpen || showEmbedsModal)}
+      isActive={!(showCastThreadView || isNewCastModalOpen || showEmbedsModal)}
     />
   );
 
@@ -304,15 +304,15 @@ export default function Feed() {
       onBack={() => setShowCastThreadView(false)}
       setSelectedCast={updateSelectedCast}
       setShowReplyModal={(show: boolean) =>
-        show ? openReplyModal() : closeReplyModal()
+        show ? openNewCastModal() : closeNewCastModal()
       }
     />
   );
 
   const renderReplyModal = () => (
     <ReplyModal
-      open={isReplyModalOpen}
-      setOpen={() => closeReplyModal()}
+      open={isNewCastModalOpen}
+      setOpen={() => closeNewCastModal()}
       parentCast={selectedCast!}
     />
   );
