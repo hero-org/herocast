@@ -24,9 +24,9 @@ const findDraftIdForLinkedCast = (castModalView, drafts, linkedCast) => {
     console.log('drafts.length', drafts)
     console.log('drafts.castId.hash', drafts.map(draft => draft?.embeds?.length ? toHex(draft?.embeds?.[0]?.castId.hash) : undefined))
     console.log('linkedCast.hash', linkedCast?.hash)
-    return drafts.findIndex((draft) => draft?.embeds?.length && toHex(draft?.embeds?.[0]?.castId.hash) === linkedCast?.hash);
+    return drafts.findIndex((draft) => draft?.embeds?.length && draft?.embeds?.[0]?.castId.hash === linkedCast?.hash);
   } else if (castModalView === CastModalView.Reply) {
-    return drafts.findIndex((draft) => draft.parentCastId && toHex(draft.parentCastId?.hash) === linkedCast?.hash);
+    return drafts.findIndex((draft) => draft.parentCastId && draft.parentCastId?.hash === linkedCast?.hash);
   } else {
     // any empty draft
     return drafts.findIndex((draft) => !draft.text && !draft.embeds?.length && !draft.parentCastId);
@@ -47,7 +47,7 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
         addNewPostDraft({});
       } else {
         const castObj = {
-          hash: toBytes(linkedCast.hash),
+          hash: linkedCast.hash,
           fid: linkedCast.author.fid,
         };
         const options =
@@ -75,8 +75,7 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
 
   const getTitle = () => {
     const verb = castModalView === CastModalView.Quote ? "Quote" : "Reply to";
-    const username =
-      linkedCast?.author.display_name || linkedCast?.author.displayName;
+    const username = `@${linkedCast?.author.username}`;
     const action = linkedCast ? `${verb} ${username}` : "New post";
     return (
       <span className="flex items-center">
@@ -100,7 +99,7 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
             key={`new-post-parentHash-${linkedCast?.hash}`}
           >
             <div className="mb-4">
-              {linkedCast && (
+              {linkedCast && castModalView === CastModalView.Reply && (
                 <CastRow cast={linkedCast} isSelected disableEmbeds />
               )}
             </div>
@@ -111,7 +110,7 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
                 onPost={() => {
                   setOpen(false);
                 }}
-                hideChannel
+                hideChannel={linkedCast && castModalView === CastModalView.Reply}
               />
             </div>
           </div>

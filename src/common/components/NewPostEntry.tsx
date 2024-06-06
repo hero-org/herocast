@@ -146,23 +146,28 @@ export default function NewPostEntry({
   // todo: this is a hack
   // initial draft might have embeds that are not yet in the editor
   // we need to set them on initial render so we don't overwrite them later
-
   useEffect(() => {
     console.log('NewPostEntry useEffect draftEmbedsSetting', draft.embeds)
     if (draft.embeds) {
       setEmbeds(draft.embeds);
     }
-  }, [draft.embeds]);
+  }, []);
 
   const text = getText();
   const embeds = getEmbeds();
+  console.log('NewPostEntry embeds', embeds)
   const channel = getChannel();
 
+  const [counter, setCounter] = React.useState(0);
   useEffect(() => {
+    if (counter > 0) {
+      return;
+    }
+    setCounter(1);
     updatePostDraft(draftIdx, {
       ...draft,
       text,
-      embeds,
+      embeds, 
       parentUrl: channel?.parent_url || undefined,
     });
   }, [text, embeds, channel]);
@@ -244,9 +249,9 @@ export default function NewPostEntry({
         </div>
       </form>
       {hasEmbeds && (
-        <div className="mt-8 rounded-md bg-muted px-4 max-w-xl break-all">
+        <div className="mt-8 rounded-md bg-muted p-4 max-w-xl break-all">
           {map(draft.embeds, (embed) => (
-            <div key={`cast-embed-${embed.url}`}>
+            <div key={`cast-embed-${embed.url || embed.hash}`}>
               {renderEmbedForUrl(embed)}
             </div>
           ))}

@@ -43,8 +43,7 @@ export type CastToReplyType = {
   hash: string;
   author: {
     fid: number;
-    display_name?: string;
-    displayName?: string;
+    username: string;
   };
 };
 
