@@ -25,6 +25,7 @@ import herocastImg from "../../public/images/logo.png";
 import { Toaster } from "@/components/ui/sonner";
 import AccountsOverview from "../common/components/Sidebar/AccountsOverview";
 import { cn } from "@/lib/utils";
+import { Loading } from "@/common/components/Loading";
 
 type NavigationItemType = {
   name: string;
@@ -39,7 +40,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { allChannels, selectedChannelUrl } = useAccountStore();
+  const { allChannels, selectedChannelUrl, hydratedAt } = useAccountStore();
 
   const getFeedTitle = () => {
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
@@ -373,6 +374,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           )}
         >
           <div className="w-full max-w-full min-h-screen flex justify-between">
+            {!hydratedAt && <Loading loadingMessage="Loading herocast" />}
             {children}
           </div>
           {renderRightSidebar()}
