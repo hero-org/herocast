@@ -1,7 +1,7 @@
 import axios from "axios";
 import { CastAddBody, Embed, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, UserDataType, ViemLocalEip712Signer, hexStringToBytes, idRegistryABI, keyGatewayABI, makeCastAdd, makeUserDataAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
 import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
-import { Address, encodeAbiParameters, toBytes } from "viem";
+import { Address, encodeAbiParameters, toBytes, toHex } from "viem";
 import { publicClient, publicClientTestnet } from "./rainbowkit";
 import { mnemonicToAccount } from "viem/accounts";
 import { isDev, optimismChainId } from "./env";
@@ -134,6 +134,7 @@ export const submitCast = async ({
         hash: bytes,
       };
     }, (err) => {
+      console.log('submitCast parentCastId error', err);
       throw err;
     });
   }

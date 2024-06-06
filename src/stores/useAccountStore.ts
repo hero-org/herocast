@@ -238,7 +238,6 @@ const store = (set: StoreSet) => ({
   setCurrentAccountById: (accountId: string) => {
     set((state) => {
       const idx = state.accounts.findIndex((account) => account.id === accountId);
-      console.log('setCurrentAccountById', accountId, 'idx', idx);
 
       if (idx >= 0) {
         state.selectedAccountIdx = idx;

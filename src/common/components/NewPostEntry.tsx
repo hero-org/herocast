@@ -112,7 +112,7 @@ export default function NewPostEntry({
     return false;
   };
 
-  const ref = useHotkeys("meta+enter", onSubmitPost, [draft, account], {
+  const ref = useHotkeys("meta+enter", onSubmitPost, [onSubmitPost, draft, account], {
     enableOnFormTags: true,
   });
 

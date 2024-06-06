@@ -183,7 +183,7 @@ const store = (set: StoreSet) => ({
           getMentionFidsByUsernames: getMentionFids,
           parentUrl: draft.parentUrl,
           parentCastFid: draft.parentCastId ? Number(draft.parentCastId.fid) : undefined,
-          parentCastHash: draft.parentCastId ? toHex(draft.parentCastId.hash) : undefined,
+          parentCastHash: draft.parentCastId ? draft.parentCastId.hash : undefined,
         });
 
         if (!castBody) {
