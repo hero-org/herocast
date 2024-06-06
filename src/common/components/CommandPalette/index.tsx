@@ -8,12 +8,14 @@ import {
 } from "@/stores/useAccountStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import {
-  BountyCasterBotDraft,
-  LaunchCasterScoutDraft,
-  RemindMeBotDraft,
   newPostCommands,
   useNewPostStore,
 } from "@/stores/useNewPostStore";
+import { LaunchCasterScoutDraft } from "@/common/constants/postDrafts";
+import { BountyCasterBotDraft } from "@/common/constants/postDrafts";
+import { RemindMeBotDraft } from "@/common/constants/postDrafts";
+import { PayCasterBotRequestDraft } from "@/common/constants/postDrafts";
+import { PayCasterBotPayDraft } from "@/common/constants/postDrafts";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/24/outline";
@@ -25,6 +27,7 @@ import { useTheme } from "next-themes";
 import { getThemeCommands } from "@/getThemeCommands";
 import { formatLargeNumber } from "@/common/helpers/text";
 import { useDataStore } from "@/stores/useDataStore";
+import { DraftType } from "@/common/constants/farcaster";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -122,7 +125,7 @@ export default function CommandPalette() {
       };
     };
 
-    const addNewPostDraftWithSelectedCast = (draft) => {
+    const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
       const { selectedCast } = useDataStore.getState();
       if (!selectedCast) {
         return;
@@ -135,12 +138,21 @@ export default function CommandPalette() {
           hash: selectedCast.hash,
         },
       });
+
       const { openNewCastModal } = useNavigationStore.getState();
       openNewCastModal();
     };
 
     const launchCastAction = () => {
       addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft);
+    };
+
+    const payCasterPayAction = () => {
+      addNewPostDraftWithSelectedCast(PayCasterBotPayDraft);
+    };
+
+    const payCasterRequestAction = () => {
+      addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft);
     };
 
     const postNewBountyAction = () => {
@@ -163,6 +175,11 @@ export default function CommandPalette() {
         "/post"
       ),
       createFarcasterBotCommand("Remind me about this", remindMeAction),
+      createFarcasterBotCommand("Pay user via paybot", payCasterPayAction),
+      createFarcasterBotCommand(
+        "Request payment via paybot",
+        payCasterRequestAction
+      ),
     ];
 
     commands = commands.concat(farcasterBotCommands);

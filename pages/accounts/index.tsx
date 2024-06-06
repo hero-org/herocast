@@ -7,9 +7,9 @@ import {
 } from "@heroicons/react/20/solid";
 import { ArrowDownTrayIcon, NewspaperIcon } from "@heroicons/react/24/solid";
 import {
-  JoinedHerocastPostDraft,
   useNewPostStore,
 } from "../../src/stores/useNewPostStore";
+import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 import {
   AccountObjectType,
   hydrate,
