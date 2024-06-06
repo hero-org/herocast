@@ -4,7 +4,7 @@
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from "mutative";
-import { CommandType } from "../../src/common/constants/commands";
+import { CommandType } from "@/common/constants/commands";
 import {
   PlusCircleIcon,
   TagIcon,
@@ -15,21 +15,23 @@ import {
   DraftStatus,
   DraftType,
   ParentCastIdType,
-} from "../../src/common/constants/farcaster";
+} from "@/common/constants/farcaster";
 import {
   getMentionFidsByUsernames,
   formatPlaintextToHubCastMessage,
 } from "@mod-protocol/farcaster";
 import { submitCast } from "@/common/helpers/farcaster";
-import { toHex } from "viem";
+import { toBytes, toHex } from "viem";
 import { CastId, Embed } from "@farcaster/hub-web";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import {
+  toastErrorCastPublish,
   toastInfoReadOnlyMode,
   toastSuccessCastPublished,
 } from "@/common/helpers/toast";
-import { NewFeedbackPostDraft } from "@/common/constants/postDrafts";
-import { NewPostDraft } from "@/common/constants/postDrafts";
+import { NewFeedbackPostDraft, NewPostDraft } from "@/common/constants/postDrafts";
+import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import { CastModalView, useNavigationStore } from "./useNavigationStore";
 
 const getMentionFids = getMentionFidsByUsernames(
   process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!,
@@ -39,6 +41,7 @@ type addNewPostDraftProps = {
   text?: string;
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
+  embeds?: FarcasterEmbed[];
 };
 
 interface NewPostStoreProps {
@@ -47,15 +50,8 @@ interface NewPostStoreProps {
 
 interface NewPostStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
-  updateMentionsToFids: (
-    draftIdx: number,
-    mentionsToFids: { [key: string]: string },
-  ) => void;
-  addNewPostDraft: ({
-    text,
-    parentCastId,
-    parentUrl,
-  }: addNewPostDraftProps) => void;
+  updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
+  addNewPostDraft: ({ text, parentCastId, parentUrl, embeds }: addNewPostDraftProps) => void;
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number, onlyIfEmpty?: boolean) => void;
   removeAllPostDrafts: () => void;
@@ -75,19 +71,10 @@ type StoreSet = (fn: (draft: Draft<NewPostStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   drafts: [],
-  addNewPostDraft: ({
-    text,
-    parentUrl,
-    parentCastId,
-  }: addNewPostDraftProps) => {
+  addNewPostDraft: ({ text, parentUrl, parentCastId, embeds }: addNewPostDraftProps) => {
     set((state) => {
-      const newDraft = {
-        ...NewPostDraft,
-        text: text || "",
-        parentUrl,
-        parentCastId,
-      };
-      if (!text && !parentUrl && !parentCastId) {
+      if (!text && !parentUrl && !parentCastId && !embeds) {
+        // check if there is an existing empty draft
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
           if (!draft.text) {
@@ -96,6 +83,7 @@ const store = (set: StoreSet) => ({
         }
       }
       if (parentUrl || parentCastId) {
+        // check if there is an existing draft for the same parent
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
           if (
@@ -108,6 +96,7 @@ const store = (set: StoreSet) => ({
         }
       }
 
+      const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId, embeds };
       state.drafts = [...state.drafts, newDraft];
     });
   },
@@ -172,30 +161,30 @@ const store = (set: StoreSet) => ({
     onPost?: () => null,
   ): Promise<void> => {
     set(async (state) => {
+      if (account.platform === AccountPlatformType.farcaster_local_readonly) {
+        toastInfoReadOnlyMode();
+        return;
+      }
+
       const draft = state.drafts[draftIdx];
 
       try {
-        state.updatePostDraft(draftIdx, {
-          ...draft,
-          status: DraftStatus.publishing,
+        await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
+        const castBody: {
+          text: string;
+          embeds?: Embed[] | undefined;
+          embedsDeprecated?: string[];
+          mentions?: number[];
+          mentionsPositions?: number[];
+          parentCastId?: CastId | { fid: number, hash: string };
+        } | false = await formatPlaintextToHubCastMessage({
+          text: draft.text,
+          embeds: draft.embeds || [],
+          getMentionFidsByUsernames: getMentionFids,
+          parentUrl: draft.parentUrl,
+          parentCastFid: draft.parentCastId ? Number(draft.parentCastId.fid) : undefined,
+          parentCastHash: draft.parentCastId ? draft.parentCastId.hash : undefined,
         });
-        const castBody:
-          | {
-            text: string;
-            embeds?: Embed[];
-            embedsDeprecated?: string[];
-            mentions?: number[];
-            mentionsPositions?: number[];
-            parentCastId?: CastId | { fid: number; hash: string };
-          }
-          | false = await formatPlaintextToHubCastMessage({
-            text: draft.text,
-            embeds: draft.embeds,
-            getMentionFidsByUsernames: getMentionFids,
-            parentUrl: draft.parentUrl,
-            parentCastFid: Number(draft.parentCastId?.fid),
-            parentCastHash: draft.parentCastId?.hash,
-          });
 
         if (!castBody) {
           throw new Error("Failed to prepare cast");
@@ -206,12 +195,12 @@ const store = (set: StoreSet) => ({
             hash: toHex(castBody.parentCastId.hash),
           };
         }
-
-        if (
-          account.platform ===
-          AccountPlatformType.farcaster_local_readonly
-        ) {
-          toastInfoReadOnlyMode();
+        if (castBody.embeds) {
+          castBody.embeds.forEach(embed => {
+            if ('castId' in embed) {
+              embed.castId = { fid: Number(embed.castId.fid), hash: toBytes(embed.castId.hash) };
+            }
+          });
         }
 
         await submitCast({
@@ -225,7 +214,8 @@ const store = (set: StoreSet) => ({
 
         if (onPost) onPost();
       } catch (error) {
-        console.log("caught error in newPostStore", error);
+        console.error('caught error in newPostStore', error);
+        toastErrorCastPublish(error instanceof Error ? error.message : String(error));
       }
     });
   },
@@ -253,10 +243,12 @@ export const newPostCommands: CommandType[] = [
     name: "New Post",
     aliases: ["new cast", "write", "create", "compose", "new draft"],
     icon: PlusCircleIcon,
-    shortcut: "c",
-    action: () => useNewPostStore.getState().addNewPostDraft({}),
-    preventDefault: true,
-    navigateTo: "/post",
+    shortcut: 'c',
+    action: () => {
+      const { setCastModalView, openNewCastModal } = useNavigationStore.getState();
+      setCastModalView(CastModalView.New);
+      openNewCastModal();
+    },
     options: {
       enableOnFormTags: false,
       preventDefault: true,

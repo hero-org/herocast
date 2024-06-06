@@ -24,6 +24,7 @@ type Props = {
   onSelect: (value: Channel) => void;
   value: Channel;
   initialChannels?: Channel[];
+  disabled?: boolean;
 };
 
 export function ChannelPicker(props: Props) {
@@ -79,6 +80,7 @@ export function ChannelPicker(props: Props) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          disabled={props.disabled}
           variant="outline"
           role="combobox"
           aria-expanded={open}

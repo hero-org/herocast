@@ -15,11 +15,15 @@ type CastEmbed = {
     fid: number;
     hash: string;
   };
+  castId?: {
+    fid: number;
+    hash: string;
+  };
 };
 
-export const renderEmbedForUrl = ({ url, cast_id }: CastEmbed) => {
-  if (cast_id) {
-    return <CastEmbed castId={cast_id} />;
+export const renderEmbedForUrl = ({ url, cast_id, castId }: CastEmbed) => {
+  if (castId || cast_id) {
+    return <CastEmbed castId={castId || cast_id} />;
   }
   if (!url) return null;
 

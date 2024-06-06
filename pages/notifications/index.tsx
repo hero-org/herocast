@@ -8,7 +8,7 @@ import { CastThreadView } from "../../src/common/components/CastThreadView";
 import isEmpty from "lodash.isempty";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
-import ReplyModal from "../../src/common/components/ReplyModal";
+import NewCastModal from "../../src/common/components/NewCastModal";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { useDataStore } from "@/stores/useDataStore";
@@ -269,7 +269,7 @@ const Notifications = () => {
   }, [selectedNotificationIdx, isLoading]);
 
   const renderReplyModal = () => (
-    <ReplyModal
+    <NewCastModal
       open={showReplyModal}
       setOpen={() => setShowReplyModal(false)}
       parentCast={selectedCast}

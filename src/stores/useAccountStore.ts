@@ -238,7 +238,6 @@ const store = (set: StoreSet) => ({
   setCurrentAccountById: (accountId: string) => {
     set((state) => {
       const idx = state.accounts.findIndex((account) => account.id === accountId);
-      console.log('setCurrentAccountById', accountId, 'idx', idx);
 
       if (idx >= 0) {
         state.selectedAccountIdx = idx;
@@ -572,7 +571,7 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
     },
@@ -584,7 +583,7 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
     },
@@ -598,7 +597,7 @@ const getChannelCommands = () => {
       options: {
         enableOnFormTags: false,
       },
-      navigateTo: '/feed',
+      navigateTo: '/feeds',
       action: () => {
         const { accounts, selectedAccountIdx } = useAccountStore.getState();
         const channels = accounts[selectedAccountIdx]?.channels;
@@ -614,7 +613,7 @@ const getChannelCommands = () => {
   channelCommands.push(...[{
     name: `Switch to random channel`,
     aliases: ['random', 'lucky', 'discover'],
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       if (isEmpty(state.allChannels)) return;
@@ -626,7 +625,7 @@ const getChannelCommands = () => {
     name: 'Switch to next channel',
     aliases: ['next', 'forward'],
     shortcut: 'shift+j',
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
@@ -645,7 +644,7 @@ const getChannelCommands = () => {
     name: 'Switch to previous channel',
     aliases: ['previous', 'back'],
     shortcut: 'shift+k',
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;

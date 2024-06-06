@@ -75,8 +75,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const navigation: NavigationItemType[] = [
     {
-      name: "Feed",
-      router: "/feed",
+      name: "Feeds",
+      router: "/feeds",
       icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       getTitle: getFeedTitle,
       shortcut: "Shift + F",
@@ -131,7 +131,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
     switch (pathname) {
-      case "/feed":
+      case "/feeds":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/post":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;

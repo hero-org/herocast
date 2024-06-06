@@ -8,7 +8,7 @@ export const enum RIGHT_SIDEBAR_ENUM {
 export const enum MAIN_NAVIGATION_ENUM {
   LOGIN = 'login',
   ACCOUNTS = 'accounts',
-  FEED = 'feed',
+  FEEDS = 'feeds',
   SEARCH = 'search',
   NEW_POST = 'post',
   SETTINGS = 'settings',

@@ -6,7 +6,7 @@ import {
   channelCommands,
   useAccountStore,
 } from "@/stores/useAccountStore";
-import { useNavigationStore } from "@/stores/useNavigationStore";
+import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import {
   newPostCommands,
   useNewPostStore,
@@ -105,7 +105,7 @@ export default function CommandPalette() {
         },
         iconUrl: channel.icon_url,
         data: channel.data,
-        navigateTo: "/feed",
+        navigateTo: "/feeds",
       });
     });
 
@@ -139,7 +139,8 @@ export default function CommandPalette() {
         },
       });
 
-      const { openNewCastModal } = useNavigationStore.getState();
+      const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
+      setCastModalView(CastModalView.Reply);
       openNewCastModal();
     };
 

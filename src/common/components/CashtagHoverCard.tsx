@@ -56,7 +56,7 @@ const CashtagHoverCard = ({
         }
 
         const pairsSortedByLiquidity = tradingPairs.sort(
-          (a, b) => b.liquidity.usd - a.liquidity.usd
+          (a, b) => b.liquidity?.usd - a.liquidity?.usd
         );
         const mostLiquidityPair: DexPair = pairsSortedByLiquidity[0];
 

@@ -314,7 +314,7 @@ export default function Accounts() {
       <CardContent>
         <div className="-mx-2 -my-1.5 flex">
           <Button
-            onClick={() => router.push("/feed")}
+            onClick={() => router.push("/feeds")}
             type="button"
             variant="default"
           >

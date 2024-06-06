@@ -12,7 +12,7 @@ import isEmpty from "lodash.isempty";
 import { CastThreadView } from "@/common/components/CastThreadView";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
-import ReplyModal from "@/common/components/ReplyModal";
+import NewCastModal from "@/common/components/NewCastModal";
 import EmbedsModal from "@/common/components/EmbedsModal";
 import { useInView } from "react-intersection-observer";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,8 @@ import {
 import { Loading } from "@/common/components/Loading";
 import uniqBy from "lodash.uniqby";
 import { useDataStore } from "@/stores/useDataStore";
-import { useNavigationStore } from "@/stores/useNavigationStore";
+import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
+
 import {
   Card,
   CardContent,
@@ -77,7 +78,7 @@ export default function Feed() {
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
-  const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } =
+  const { isNewCastModalOpen, setCastModalView, openNewCastModal, closeNewCastModal } =
     useNavigationStore();
 
   const { ref: buttonRef, inView } = useInView({
@@ -187,6 +188,21 @@ export default function Feed() {
   useHotkeys(
     "r",
     () => {
+      setCastModalView(CastModalView.Reply);
+      openNewCastModal();
+    },
+    [openNewCastModal],
+    {
+      enabled: !isNewCastModalOpen,
+      enableOnFormTags: false,
+      preventDefault: true,
+    }
+  );
+
+  useHotkeys(
+    "q",
+    () => {
+      setCastModalView(CastModalView.Quote);
       openNewCastModal();
     },
     [openNewCastModal],
@@ -303,6 +319,12 @@ export default function Feed() {
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
         onReply={() => {
+          setCastModalView(CastModalView.Reply);
+          updateSelectedCast(item);
+          openNewCastModal();
+        }}
+        onQuote={() => {
+          setCastModalView(CastModalView.Quote);
           updateSelectedCast(item);
           openNewCastModal();
         }}
@@ -361,11 +383,11 @@ export default function Feed() {
     />
   );
 
-  const renderReplyModal = () => (
-    <ReplyModal
+  const renderNewCastModal = () => (
+    <NewCastModal
       open={isNewCastModalOpen}
-      setOpen={() => closeNewCastModal()}
-      parentCast={selectedCast!}
+      setOpen={(isOpen) => isOpen ? openNewCastModal() : closeNewCastModal()}
+      linkedCast={selectedCast}
     />
   );
 
@@ -430,7 +452,7 @@ export default function Feed() {
           </>
         )}
       </div>
-      {renderReplyModal()}
+      {renderNewCastModal()}
       {renderEmbedsModal()}
     </>
   );
