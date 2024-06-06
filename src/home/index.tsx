@@ -24,6 +24,7 @@ import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
 import { Toaster } from "@/components/ui/sonner";
 import AccountsOverview from "../common/components/Sidebar/AccountsOverview";
+import { cn } from "@/lib/utils";
 
 type NavigationItemType = {
   name: string;
@@ -52,7 +53,21 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       (channel) => channel.url === selectedChannelUrl
     );
     if (selectedChannelIdx !== -1) {
-      return `${allChannels[selectedChannelIdx]?.name} channel`;
+      const channel = allChannels[selectedChannelIdx];
+      return (
+        <div className="flex max-w-sm items-center">
+          {channel.icon_url && (
+            <img
+              src={channel.icon_url}
+              alt=""
+              className={cn(
+                "mr-1 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+              )}
+            />
+          )}
+          <span className="flex-nowrap truncate">{channel.name} channel</span>
+        </div>
+      );
     }
     return "Feed";
   };
@@ -303,7 +318,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <div className="lg:pl-64">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-3">
           <button
             type="button"
             className="-m-2.5 p-2.5 text-gray-700 lg:hidden"

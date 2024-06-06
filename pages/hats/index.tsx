@@ -265,7 +265,7 @@ export default function HatsProtocolPage() {
                     "Start your setup with Hats Protocol in the Hats app",
                   buttonText: "Get started ↗️",
                   onClick: () =>
-                    openWindow(" https://app.hatsprotocol.xyz/trees/new"),
+                    openWindow("https://app.hatsprotocol.xyz/trees/new"),
                 },
               ]}
             />
