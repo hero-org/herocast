@@ -104,7 +104,6 @@ const renderChannel = ({ attributes, content }) => {
     <span
       className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
       onClick={(event) => {
-        console.log('renderChannel click href', href)
         event.stopPropagation();
         setSelectedChannelByName(href);
       }}

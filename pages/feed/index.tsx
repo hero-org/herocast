@@ -73,7 +73,7 @@ const neynarClient = new NeynarAPIClient(
 export default function Feed() {
   const [feeds, setFeeds] = useState<FeedKeyToFeed>({});
   const [loadingMessage, setLoadingMessage] = useState("Loading feed");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshingPage, setIsRefreshingPage] = useState(false);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
@@ -96,8 +96,7 @@ export default function Feed() {
     setFeeds((prev) => ({
       ...prev,
       [feedKey]: {
-        ...EMPTY_FEED,
-        ...prev[feedKey],
+        ...get(prev, feedKey, EMPTY_FEED),
         [key]: value,
       },
     }));
@@ -229,7 +228,6 @@ export default function Feed() {
       return;
     }
 
-    // need to have multiple booleans for which feeds are loading
     setIsLoadingFeed(feedKey, true);
 
     try {
@@ -401,9 +399,9 @@ export default function Feed() {
         <CardFooter>
           <Button
             className="w-1/2"
-            disabled={isRefreshing}
+            disabled={isRefreshingPage}
             onClick={async () => {
-              setIsRefreshing(true);
+              setIsRefreshingPage(true);
               await hydrate();
               window.location.reload();
             }}
