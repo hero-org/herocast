@@ -160,7 +160,7 @@ export default function NewPostEntry({
 
   useEffect(() => {
     if (isPublishing) return;
-    if (draft.text === text && draft.parentUrl === channel?.parent_url) return;
+    if (draft.parentUrl === channel?.parent_url) return;
     if (draft.embeds && !embeds.length) return;
 
     updatePostDraft(draftIdx, {
@@ -254,14 +254,16 @@ export default function NewPostEntry({
           </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={onRemove}
-            disabled={isPublishing}
-          >
-            Remove
-          </Button>
+          {onRemove && (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={onRemove}
+              disabled={isPublishing}
+            >
+              Remove
+            </Button>
+          )}
           <Button
             type="submit"
             className="line-clamp-1 w-40 truncate"

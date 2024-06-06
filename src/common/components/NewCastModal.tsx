@@ -30,7 +30,7 @@ const findDraftIdForLinkedCast = (castModalView, drafts, linkedCast) => {
     );
   } else {
     return drafts.findIndex(
-      (draft) => !draft.text && !draft.embeds?.length && !draft.parentCastId
+      (draft) => !draft?.embeds?.length && !draft.parentCastId
     );
   }
 };
