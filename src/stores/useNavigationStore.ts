@@ -38,7 +38,7 @@ type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 const store = (set: StoreSet) => ({
   isCommandPaletteOpen: false,
   isNewCastModalOpen: false,
-  castModalView: "new",
+  castModalView: CastModalView.New,
   setCastModalView: (view: CastModalView) => {
     set((state) => {
       state.castModalView = view;

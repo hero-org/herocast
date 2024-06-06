@@ -1,7 +1,7 @@
 import React, { RefObject, useEffect } from "react";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { DraftType } from "../constants/farcaster";
+import { DraftStatus, DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
@@ -35,6 +35,7 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { ChannelList } from "./ChannelList";
 import isEmpty from "lodash.isempty";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -117,6 +118,8 @@ export default function NewPostEntry({
 
   if (!draft) return null;
 
+  const isPublishing = draft.status === DraftStatus.publishing;
+
   const {
     editor,
     getText,
@@ -143,11 +146,9 @@ export default function NewPostEntry({
     }),
   });
 
-  // todo: this is a hack
-  // initial draft might have embeds that are not yet in the editor
-  // we need to set them on initial render so we don't overwrite them later
   useEffect(() => {
-    console.log('NewPostEntry useEffect draftEmbedsSetting', draft.embeds)
+    // initial draft might have embeds that are not yet in the editor
+    // we need to set them on initial render so we don't overwrite them later
     if (draft.embeds) {
       setEmbeds(draft.embeds);
     }
@@ -155,22 +156,24 @@ export default function NewPostEntry({
 
   const text = getText();
   const embeds = getEmbeds();
-  console.log('NewPostEntry embeds', embeds)
   const channel = getChannel();
 
-  const [counter, setCounter] = React.useState(0);
   useEffect(() => {
-    if (counter > 0) {
-      return;
-    }
-    setCounter(1);
+    if (isPublishing) return;
+    if (draft.text === text && draft.parentUrl === channel?.parent_url) return;
+    if (draft.embeds && !embeds.length) return;
+
     updatePostDraft(draftIdx, {
       ...draft,
       text,
-      embeds, 
       parentUrl: channel?.parent_url || undefined,
     });
-  }, [text, embeds, channel]);
+  }, [text, embeds, channel, isPublishing]);
+
+  const getButtonText = () => {
+    if (isPublishing) return "Publishing...";
+    return `Cast${account ? ` as ${account.name}` : ""}`;
+  };
 
   return (
     <div
@@ -179,22 +182,32 @@ export default function NewPostEntry({
       tabIndex={-1}
     >
       <form onSubmit={handleSubmit} className="w-full">
-        <div className="p-2 border-slate-200 rounded-md border">
-          <EditorContent
-            editor={editor}
-            autoFocus
-            className="w-full h-full min-h-[150px] text-foreground/80"
-          />
-          <EmbedsEditor
-            embeds={[]}
-            setEmbeds={setEmbeds}
-            RichEmbed={() => <div />}
-          />
-        </div>
+        {isPublishing ? (
+          <div className="w-full h-full min-h-[150px]">
+            <Skeleton className="px-2 py-1 w-full h-full min-h-[150px] text-foreground/80">
+              {draft.text}
+            </Skeleton>
+          </div>
+        ) : (
+          <div className="p-2 border-slate-200 rounded-md border">
+            <EditorContent
+              editor={editor}
+              autoFocus
+              className="w-full h-full min-h-[150px] text-foreground/80"
+            />
+            <EmbedsEditor
+              embeds={[]}
+              setEmbeds={setEmbeds}
+              RichEmbed={() => <div />}
+            />
+          </div>
+        )}
+
         <div className="flex flex-row pt-2 gap-1">
           {!isReply && !hideChannel && (
             <div className="text-foreground/80">
               <ChannelPicker
+                disabled={isPublishing}
                 getChannels={getChannels}
                 getAllChannels={getAllChannels}
                 // @ts-expect-error - mod protocol channel type mismatch
@@ -233,6 +246,7 @@ export default function NewPostEntry({
           <Button
             type="button"
             variant="outline"
+            disabled={isPublishing}
             onClick={() => setCurrentMod(creationMods[0])}
           >
             <PhotoIcon className="mr-1 w-5 h-5" />
@@ -240,11 +254,20 @@ export default function NewPostEntry({
           </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
-          <Button variant="outline" type="button" onClick={onRemove}>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={onRemove}
+            disabled={isPublishing}
+          >
             Remove
           </Button>
-          <Button type="submit" className="line-clamp-1 w-40 truncate">
-            Cast{account ? ` as ${account.name}` : ""}
+          <Button
+            type="submit"
+            className="line-clamp-1 w-40 truncate"
+            disabled={isPublishing}
+          >
+            {getButtonText()}
           </Button>
         </div>
       </form>

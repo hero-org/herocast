@@ -7,7 +7,6 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { AccountSelector } from "./AccountSelector";
 import { AccountStatusType } from "../constants/accounts";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import { toBytes, toHex } from "viem";
 
 type NewCastModalProps = {
   linkedCast?: CastToReplyType;
@@ -18,31 +17,32 @@ type NewCastModalProps = {
 const findDraftIdForLinkedCast = (castModalView, drafts, linkedCast) => {
   if (!linkedCast || !drafts.length) return -1;
 
-  console.log('findDraftIdForLinkedCast', castModalView, linkedCast?.hash)
-  
   if (castModalView === CastModalView.Quote) {
-    console.log('drafts.length', drafts)
-    console.log('drafts.castId.hash', drafts.map(draft => draft?.embeds?.length ? toHex(draft?.embeds?.[0]?.castId.hash) : undefined))
-    console.log('linkedCast.hash', linkedCast?.hash)
-    return drafts.findIndex((draft) => draft?.embeds?.length && draft?.embeds?.[0]?.castId.hash === linkedCast?.hash);
+    return drafts.findIndex(
+      (draft) =>
+        draft?.embeds?.length &&
+        draft?.embeds?.[0]?.castId.hash === linkedCast?.hash
+    );
   } else if (castModalView === CastModalView.Reply) {
-    return drafts.findIndex((draft) => draft.parentCastId && draft.parentCastId?.hash === linkedCast?.hash);
+    return drafts.findIndex(
+      (draft) =>
+        draft.parentCastId && draft.parentCastId?.hash === linkedCast?.hash
+    );
   } else {
-    // any empty draft
-    return drafts.findIndex((draft) => !draft.text && !draft.embeds?.length && !draft.parentCastId);
+    return drafts.findIndex(
+      (draft) => !draft.text && !draft.embeds?.length && !draft.parentCastId
+    );
   }
-}
+};
 
 const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
   const { castModalView } = useNavigationStore();
   const { addNewPostDraft, drafts, removePostDraft } = useNewPostStore();
   const draftIdx = findDraftIdForLinkedCast(castModalView, drafts, linkedCast);
-  console.log('draftIdx', draftIdx)
   const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 
   useEffect(() => {
     if (draftIdx === -1 && open) {
-      console.log("adding new post draft in NewCastModal");
       if (!linkedCast) {
         addNewPostDraft({});
       } else {
@@ -50,11 +50,12 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
           hash: linkedCast.hash,
           fid: linkedCast.author.fid,
         };
-        const options =
-          castModalView === CastModalView.Quote
-            ? { embeds: [{ castId: castObj }] }
-            : { parentCastId: castObj };
-        console.log("draft options", options);
+        let options = {};
+        if (castModalView === CastModalView.Quote) {
+          options = { embeds: [{ castId: castObj }] };
+        } else if (castModalView === CastModalView.Reply) {
+          options = { parentCastId: castObj };
+        }
         addNewPostDraft(options);
       }
     }
@@ -74,9 +75,13 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
   });
 
   const getTitle = () => {
-    const verb = castModalView === CastModalView.Quote ? "Quote" : "Reply to";
+    let action = "New post";
     const username = `@${linkedCast?.author.username}`;
-    const action = linkedCast ? `${verb} ${username}` : "New post";
+    if (castModalView === CastModalView.Reply) {
+      action = `Reply to ${username}`;
+    } else if (castModalView === CastModalView.Quote) {
+      action = `Quote ${username}`;
+    }
     return (
       <span className="flex items-center">
         {action} as
@@ -110,7 +115,9 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
                 onPost={() => {
                   setOpen(false);
                 }}
-                hideChannel={linkedCast && castModalView === CastModalView.Reply}
+                hideChannel={
+                  linkedCast && castModalView === CastModalView.Reply
+                }
               />
             </div>
           </div>
