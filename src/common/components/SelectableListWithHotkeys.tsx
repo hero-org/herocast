@@ -44,7 +44,7 @@ export const SelectableListWithHotkeys = ({
 
 
   useHotkeys(['o', Key.Enter], () => {
-    onSelect(selectedIdx);
+    onSelect?.(selectedIdx);
   }, [selectedIdx], {
     enabled: isActive
   })

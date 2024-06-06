@@ -15,9 +15,9 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import {
-  JoinedHerocastPostDraft,
   useNewPostStore,
 } from "@/stores/useNewPostStore";
+import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 
 const WelcomeSuccessPage = () => {
   const [isLoading, setIsLoading] = useState(false);

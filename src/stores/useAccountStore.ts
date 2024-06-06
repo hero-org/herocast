@@ -253,7 +253,7 @@ const store = (set: StoreSet) => ({
   setSelectedChannelByName: (name: string) => {
     set((state) => {
       name = (name.startsWith('/') ? name.slice(1) : name).toLowerCase();
-      const channel = state.allChannels.find((channel) => channel.name === name);
+      const channel = state.allChannels.find((channel) => channel.name === name || channel.url === `https://warpcast.com/~/channel/${name}`);
       if (channel) {
         state.selectedChannelUrl = channel.url;
       }

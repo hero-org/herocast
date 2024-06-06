@@ -41,7 +41,8 @@ import {
   AccountStatusType,
 } from "@/common/constants/accounts";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { JoinedHerocastViaHatsProtocolDraft, useNewPostStore } from "@/stores/useNewPostStore";
+import { useNewPostStore } from "@/stores/useNewPostStore";
+import { JoinedHerocastViaHatsProtocolDraft } from "../constants/postDrafts";
 import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { isValidSignature, isValidSigner } from "@/lib/hats";
