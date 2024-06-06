@@ -105,7 +105,7 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
           >
             <div className="mb-4">
               {linkedCast && castModalView === CastModalView.Reply && (
-                <CastRow cast={linkedCast} isSelected disableEmbeds />
+                <CastRow cast={linkedCast} isSelected isEmbed />
               )}
             </div>
             <div className="flex">

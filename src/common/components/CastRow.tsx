@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { castTextStyle, classNames } from "../../../src/common/helpers/css";
-import {
-  CastReactionType,
-} from "../../../src/common/constants/farcaster";
+import { CastReactionType } from "../../../src/common/constants/farcaster";
 import { ChannelType } from "../../../src/common/constants/channels";
 import { useAccountStore } from "../../../src/stores/useAccountStore";
 import {
@@ -10,7 +8,7 @@ import {
   ArrowTopRightOnSquareIcon,
   ChatBubbleLeftIcon,
   HeartIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
 import { localize, timeDiff } from "../helpers/date";
@@ -34,6 +32,7 @@ import mentionPlugin, {
 } from "../helpers/linkify";
 import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
+import { cn } from "@/lib/utils";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -62,7 +61,7 @@ interface CastRowProps {
   onQuote?: () => void;
   isSelected?: boolean;
   isThreadView?: boolean;
-  disableEmbeds?: boolean;
+  isEmbed?: boolean;
 }
 
 const renderMention = ({ attributes, content }) => {
@@ -159,7 +158,7 @@ export const CastRow = ({
   onSelect,
   onReply,
   onQuote,
-  disableEmbeds = false,
+  isEmbed = false,
   isThreadView = false,
 }: CastRowProps) => {
   const {
@@ -471,7 +470,7 @@ export const CastRow = ({
     }
 
     return (
-      <div className="mt-4" onClick={(e) => e.preventDefault()}>
+      <div className="mt-4 space-y-4" onClick={(e) => e.preventDefault()}>
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
             // @ts-expect-error - type mismatch, this works
@@ -517,7 +516,7 @@ export const CastRow = ({
           onSelect && onSelect();
         }}
         className={classNames(
-          "py-4 px-2",
+          "p-3",
           isSelected ? "bg-foreground/10" : "cursor-pointer",
           isSelected
             ? "border-l-1 border-foreground/10"
@@ -529,15 +528,23 @@ export const CastRow = ({
           <div className="absolute bg-foreground/10 -ml-2 mt-[1.2rem] h-[1.5px] w-4" />
         )}
         <div className="flex items-top gap-x-4">
-          <img
-            className="relative h-10 w-10 flex-none bg-background rounded-full"
-            src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
-          />
+          {!isEmbed && (
+            <img
+              className="relative h-10 w-10 flex-none bg-background rounded-full"
+              src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
+            />
+          )}
           <div className="flex flex-col w-full">
             <div className="flex flex-row justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 <ProfileHoverCard fid={cast.author.fid} viewerFid={userFid}>
-                  <span className="flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
+                  <span className="items-center flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
+                    {isEmbed && (
+                      <img
+                        className="relative h-4 w-4 mr-1 flex-none bg-background rounded-full"
+                        src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
+                      />
+                    )}
                     {cast.author.display_name}
                     <span className="hidden font-normal lg:ml-1 lg:block">
                       (@{cast.author.username})
@@ -587,7 +594,7 @@ export const CastRow = ({
               {getText()}
             </div>
             {renderCastReactions(cast as CastWithInteractions)}
-            {!disableEmbeds && renderEmbeds()}
+            {!isEmbed && renderEmbeds()}
           </div>
         </div>
       </div>
