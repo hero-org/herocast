@@ -55,11 +55,11 @@ const WelcomeSuccessPage = () => {
             <CardContent>
               <div className="-mx-2 -my-1.5 flex">
                 <Button
-                  onClick={() => router.push("/feed")}
+                  onClick={() => router.push("/feeds")}
                   type="button"
                   variant="default"
                 >
-                  Scroll your feed
+                  Scroll your feeds
                   <NewspaperIcon
                     className="ml-1.5 mt-0.5 h-4 w-4"
                     aria-hidden="true"

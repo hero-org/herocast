@@ -54,7 +54,7 @@ const WelcomeCards = () => {
                 buttonText: "Trending Feed →",
                 onClick: () => {
                   setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
-                  router.push("/feed");
+                  router.push("/feeds");
                 },
               }
             : undefined,
