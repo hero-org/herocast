@@ -136,7 +136,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case "/post":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/channels":
-        return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
+        return RIGHT_SIDEBAR_ENUM.NONE;
       case "/notifications":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
