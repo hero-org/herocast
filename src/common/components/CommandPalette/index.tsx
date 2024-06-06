@@ -8,14 +8,14 @@ import {
 } from "@/stores/useAccountStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import {
-  BountyCasterBotDraft,
-  LaunchCasterScoutDraft,
-  PayCasterBotPayDraft,
-  PayCasterBotRequestDraft,
-  RemindMeBotDraft,
   newPostCommands,
   useNewPostStore,
 } from "@/stores/useNewPostStore";
+import { LaunchCasterScoutDraft } from "@/common/constants/postDrafts";
+import { BountyCasterBotDraft } from "@/common/constants/postDrafts";
+import { RemindMeBotDraft } from "@/common/constants/postDrafts";
+import { PayCasterBotRequestDraft } from "@/common/constants/postDrafts";
+import { PayCasterBotPayDraft } from "@/common/constants/postDrafts";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/24/outline";
