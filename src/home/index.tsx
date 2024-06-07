@@ -374,7 +374,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           )}
         >
           <div className="w-full max-w-full min-h-screen flex justify-between">
-            {!hydratedAt && <Loading loadingMessage="Loading herocast" />}
+            {!hydratedAt && (
+              <Loading className="ml-8" loadingMessage="Loading herocast" />
+            )}
             {children}
           </div>
           {renderRightSidebar()}
