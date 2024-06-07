@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
 import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
 import { ChannelType } from "../../src/common/constants/channels";
 import { CommandType } from "../../src/common/constants/commands";
@@ -21,6 +24,7 @@ import { getUsernameForFid } from "@/common/helpers/farcaster";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
+const CHANNEL_UPDATE_RELEASE_DATE = 1717413090288;
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 export enum CUSTOM_CHANNELS {
@@ -234,7 +238,6 @@ const store = (set: StoreSet) => ({
   setCurrentAccountById: (accountId: string) => {
     set((state) => {
       const idx = state.accounts.findIndex((account) => account.id === accountId);
-      console.log('setCurrentAccountById', accountId, 'idx', idx);
 
       if (idx >= 0) {
         state.selectedAccountIdx = idx;
@@ -249,7 +252,7 @@ const store = (set: StoreSet) => ({
   setSelectedChannelByName: (name: string) => {
     set((state) => {
       name = (name.startsWith('/') ? name.slice(1) : name).toLowerCase();
-      const channel = state.allChannels.find((channel) => channel.name === name);
+      const channel = state.allChannels.find((channel) => channel.name === name || channel.url === `https://warpcast.com/~/channel/${name}`);
       if (channel) {
         state.selectedChannelUrl = channel.url;
       }
@@ -385,7 +388,7 @@ const store = (set: StoreSet) => ({
                 console.log('failed to update channel', channels[oldIndex].id)
                 return;
               }
-            });
+            })
         }
       }
       state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
@@ -501,7 +504,7 @@ export const hydrateChannels = async () => {
   let allChannels: ChannelType[] = state.allChannels;
   let hydratedAt = state.hydratedAt;
 
-  const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE;
+  const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE || state.hydratedAt < CHANNEL_UPDATE_RELEASE_DATE;
   if (shouldRehydrate) {
     allChannels = await fetchAllChannels();
     hydratedAt = Date.now();
@@ -568,7 +571,7 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
     },
@@ -580,7 +583,7 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
     },
@@ -594,7 +597,7 @@ const getChannelCommands = () => {
       options: {
         enableOnFormTags: false,
       },
-      navigateTo: '/feed',
+      navigateTo: '/feeds',
       action: () => {
         const { accounts, selectedAccountIdx } = useAccountStore.getState();
         const channels = accounts[selectedAccountIdx]?.channels;
@@ -610,7 +613,7 @@ const getChannelCommands = () => {
   channelCommands.push(...[{
     name: `Switch to random channel`,
     aliases: ['random', 'lucky', 'discover'],
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       if (isEmpty(state.allChannels)) return;
@@ -622,7 +625,7 @@ const getChannelCommands = () => {
     name: 'Switch to next channel',
     aliases: ['next', 'forward'],
     shortcut: 'shift+j',
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
@@ -641,7 +644,7 @@ const getChannelCommands = () => {
     name: 'Switch to previous channel',
     aliases: ['previous', 'back'],
     shortcut: 'shift+k',
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
@@ -667,7 +670,7 @@ const getChannelCommands = () => {
   return channelCommands;
 }
 
-const getCurrentChannelIndex = (channelUrl: string, channels) => {
+const getCurrentChannelIndex = (channelUrl: string, channels: ChannelType[]) => {
   const customChannelIdx = CUSTOM_CHANNEL_TO_IDX[channelUrl];
   if (customChannelIdx !== undefined) return customChannelIdx;
 

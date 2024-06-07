@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, { RefObject, useEffect } from "react";
 import { useNewPostStore } from "@/stores/useNewPostStore";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { DraftType } from "../constants/farcaster";
+import { DraftStatus, DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
@@ -35,6 +35,7 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { ChannelList } from "./ChannelList";
 import isEmpty from "lodash.isempty";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -75,6 +76,7 @@ type NewPostEntryProps = {
   draft?: DraftType;
   draftIdx: number;
   onPost?: () => void;
+  onRemove?: () => void;
   hideChannel?: boolean;
   disableAutofocus?: boolean;
 };
@@ -83,6 +85,7 @@ export default function NewPostEntry({
   draft,
   draftIdx,
   onPost,
+  onRemove,
   hideChannel,
 }: NewPostEntryProps) {
   const { updatePostDraft, publishPostDraft } = useNewPostStore();
@@ -95,13 +98,6 @@ export default function NewPostEntry({
       setInitialText(draft.text);
     }
   }, []);
-  // const getChannels = async (query: string): Promise<Channel[]> => {
-  //   const modChannels =
-  //     query && query.length > 2
-  //       ? await debouncedGetModChannels(query, true)
-  //       : [];
-  //   return take(modChannels, 10);
-  // };
 
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
@@ -116,11 +112,13 @@ export default function NewPostEntry({
     return false;
   };
 
-  const ref = useHotkeys("meta+enter", onSubmitPost, [draft, account], {
+  const ref = useHotkeys("meta+enter", onSubmitPost, [onSubmitPost, draft, account], {
     enableOnFormTags: true,
   });
 
   if (!draft) return null;
+
+  const isPublishing = draft.status === DraftStatus.publishing;
 
   const {
     editor,
@@ -148,45 +146,73 @@ export default function NewPostEntry({
     }),
   });
 
+  useEffect(() => {
+    // initial draft might have embeds that are not yet in the editor
+    // we need to set them on initial render so we don't overwrite them later
+    if (draft.embeds) {
+      setEmbeds(draft.embeds);
+    }
+  }, []);
+
   const text = getText();
   const embeds = getEmbeds();
   const channel = getChannel();
 
   useEffect(() => {
+    if (isPublishing) return;
+    if (draft.parentUrl === channel?.parent_url) return;
+    if (draft.embeds && !embeds.length) return;
+
     updatePostDraft(draftIdx, {
       ...draft,
       text,
-      embeds,
       parentUrl: channel?.parent_url || undefined,
     });
-  }, [text, embeds, channel]);
+  }, [text, embeds, channel, isPublishing]);
+
+  const getButtonText = () => {
+    if (isPublishing) return "Publishing...";
+    return `Cast${account ? ` as ${account.name}` : ""}`;
+  };
 
   return (
     <div
       className="flex flex-col items-start min-w-full w-full h-full"
-      ref={ref}
+      ref={ref as RefObject<HTMLDivElement>}
       tabIndex={-1}
     >
       <form onSubmit={handleSubmit} className="w-full">
-        <div className="p-2 border-slate-200 rounded-md border">
-          <EditorContent
-            editor={editor}
-            autoFocus
-            className="w-full h-full min-h-[150px] text-foreground/80"
-          />
-          <EmbedsEditor
-            embeds={[]}
-            setEmbeds={setEmbeds}
-            RichEmbed={() => <div />}
-          />
-        </div>
+        {isPublishing ? (
+          <div className="w-full h-full min-h-[150px]">
+            <Skeleton className="px-2 py-1 w-full h-full min-h-[150px] text-foreground/80">
+              {draft.text}
+            </Skeleton>
+          </div>
+        ) : (
+          <div className="p-2 border-slate-200 rounded-md border">
+            <EditorContent
+              editor={editor}
+              autoFocus
+              className="w-full h-full min-h-[150px] text-foreground/80"
+            />
+            <EmbedsEditor
+              embeds={[]}
+              setEmbeds={setEmbeds}
+              RichEmbed={() => <div />}
+            />
+          </div>
+        )}
+
         <div className="flex flex-row pt-2 gap-1">
           {!isReply && !hideChannel && (
             <div className="text-foreground/80">
               <ChannelPicker
+                disabled={isPublishing}
                 getChannels={getChannels}
                 getAllChannels={getAllChannels}
+                // @ts-expect-error - mod protocol channel type mismatch
                 onSelect={setChannel}
+                // @ts-expect-error - mod protocol channel type mismatch
                 value={getChannel()}
               />
             </div>
@@ -207,7 +233,7 @@ export default function NewPostEntry({
                   embeds={getEmbeds()}
                   api={API_URL}
                   variant="creation"
-                  manifest={currentMod}
+                  manifest={currentMod!}
                   renderers={renderers}
                   onOpenFileAction={handleOpenFile}
                   onExitAction={() => setCurrentMod(null)}
@@ -218,7 +244,9 @@ export default function NewPostEntry({
             </PopoverContent>
           </Popover>
           <Button
+            type="button"
             variant="outline"
+            disabled={isPublishing}
             onClick={() => setCurrentMod(creationMods[0])}
           >
             <PhotoIcon className="mr-1 w-5 h-5" />
@@ -226,18 +254,29 @@ export default function NewPostEntry({
           </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
-          <Button variant="outline" onClick={onPost}>
-            Remove
-          </Button>
-          <Button type="submit" className="line-clamp-1 w-40 truncate">
-            Cast{account ? ` as ${account.name}` : ""}
+          {onRemove && (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={onRemove}
+              disabled={isPublishing}
+            >
+              Remove
+            </Button>
+          )}
+          <Button
+            type="submit"
+            className="line-clamp-1 w-40 truncate"
+            disabled={isPublishing}
+          >
+            {getButtonText()}
           </Button>
         </div>
       </form>
       {hasEmbeds && (
-        <div className="mt-8 rounded-md bg-muted px-4 max-w-xl break-all">
+        <div className="mt-8 rounded-md bg-muted p-4 max-w-xl break-all">
           {map(draft.embeds, (embed) => (
-            <div key={`cast-embed-${embed.url}`}>
+            <div key={`cast-embed-${embed.url || embed.hash}`}>
               {renderEmbedForUrl(embed)}
             </div>
           ))}

@@ -4,6 +4,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
+  UserGroupIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
@@ -22,15 +23,15 @@ import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
 import { Toaster } from "@/components/ui/sonner";
-import Link from "next/link";
-import AccountsOverview from "../common/components/Sidebar/AccountsOverview";
 import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
+import { cn } from "@/lib/utils";
+import { Loading } from "@/common/components/Loading";
 
 type NavigationItemType = {
   name: string;
   router: string;
   icon: any;
-  getTitle?: () => string;
+  getTitle?: () => string | JSX.Element;
   shortcut?: string;
 };
 
@@ -39,13 +40,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { allChannels, selectedChannelUrl } = useAccountStore();
+  const { allChannels, selectedChannelUrl, hydratedAt } = useAccountStore();
 
   const getFeedTitle = () => {
-    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
       return "Following Feed";
     }
-    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING.toString()) {
       return "Trending Feed";
     }
 
@@ -53,15 +54,29 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       (channel) => channel.url === selectedChannelUrl
     );
     if (selectedChannelIdx !== -1) {
-      return `${allChannels[selectedChannelIdx]?.name} channel`;
+      const channel = allChannels[selectedChannelIdx];
+      return (
+        <div className="flex max-w-sm items-center">
+          {channel.icon_url && (
+            <img
+              src={channel.icon_url}
+              alt=""
+              className={cn(
+                "mr-1 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+              )}
+            />
+          )}
+          <span className="flex-nowrap truncate">{channel.name} channel</span>
+        </div>
+      );
     }
     return "Feed";
   };
 
   const navigation: NavigationItemType[] = [
     {
-      name: "Feed",
-      router: "/feed",
+      name: "Feeds",
+      router: "/feeds",
       icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       getTitle: getFeedTitle,
       shortcut: "Shift + F",
@@ -102,15 +117,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       shortcut: "Shift + N",
     },
     {
-      name: "Hats Protocol",
+      name: "Shared Accounts",
       router: "/hats",
-      icon: (
-        <img
-          src="/images/HatsProtocol.png"
-          className="h-5 w-5 grayscale group-hover:grayscale-0 "
-          aria-hidden="true"
-        />
-      ),
+      icon: <UserGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
     },
     {
       name: "Settings",
@@ -122,12 +131,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
     switch (pathname) {
-      case "/feed":
+      case "/feeds":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/post":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/channels":
-        return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
+        return RIGHT_SIDEBAR_ENUM.NONE;
       case "/notifications":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
@@ -310,7 +319,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <div className="lg:pl-64">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-3">
           <button
             type="button"
             className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
@@ -365,6 +374,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           )}
         >
           <div className="w-full max-w-full min-h-screen flex justify-between">
+            {!hydratedAt && <Loading loadingMessage="Loading herocast" />}
             {children}
           </div>
           {renderRightSidebar()}

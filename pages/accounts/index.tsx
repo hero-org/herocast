@@ -7,9 +7,9 @@ import {
 } from "@heroicons/react/20/solid";
 import { ArrowDownTrayIcon, NewspaperIcon } from "@heroicons/react/24/solid";
 import {
-  JoinedHerocastPostDraft,
   useNewPostStore,
 } from "../../src/stores/useNewPostStore";
+import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 import {
   AccountObjectType,
   hydrate,
@@ -121,7 +121,6 @@ export default function Accounts() {
       setIsLoading(true);
       await addAccount({
         account: {
-          id: null,
           platformAccountId: undefined,
           status: AccountStatusType.pending,
           platform: AccountPlatformType.farcaster,
@@ -287,7 +286,7 @@ export default function Accounts() {
           </CardHeader>
           <CardContent>
             {isConnected ? (
-              <ConfirmOnchainSignerButton account={pendingAccount} />
+              <ConfirmOnchainSignerButton account={pendingAccount!} />
             ) : (
               <SwitchWalletButton />
             )}
@@ -315,7 +314,7 @@ export default function Accounts() {
       <CardContent>
         <div className="-mx-2 -my-1.5 flex">
           <Button
-            onClick={() => router.push("/feed")}
+            onClick={() => router.push("/feeds")}
             type="button"
             variant="default"
           >

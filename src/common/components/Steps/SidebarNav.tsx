@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { classNames } from "@/common/helpers/css";
-import { CheckCircleIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon, PlayCircleIcon } from "@heroicons/react/20/solid";
 import findIndex from "lodash.findindex";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
@@ -42,7 +42,9 @@ export function SidebarNav({
             key={item.key}
             variant="ghost"
             className={classNames(
-              enabled ? "text-foreground/40 hover:bg-transparent hover:underline" : "",
+              enabled
+                ? "text-foreground/40 hover:bg-transparent hover:underline"
+                : "",
               item.key === step ? "bg-muted hover:bg-muted" : "",
               "justify-start truncate"
             )}
@@ -52,7 +54,8 @@ export function SidebarNav({
               {item.idx < currentStepIdx && (
                 <CheckCircleIcon
                   className="h-6 w-6 text-green-600"
-                  aria-hidden="true" />
+                  aria-hidden="true"
+                />
               )}
             </div>
           </Button>

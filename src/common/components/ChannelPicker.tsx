@@ -12,11 +12,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Channel } from "@mod-protocol/farcaster";
 import { CaretDownIcon } from "@radix-ui/react-icons";
 import { take } from "lodash";
 import { useEffect } from "react";
 import uniqBy from "lodash.uniqby";
+import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 type Props = {
   getChannels: (query: string) => Promise<Channel[]>;
@@ -24,6 +24,7 @@ type Props = {
   onSelect: (value: Channel) => void;
   value: Channel;
   initialChannels?: Channel[];
+  disabled?: boolean;
 };
 
 export function ChannelPicker(props: Props) {
@@ -70,7 +71,7 @@ export function ChannelPicker(props: Props) {
       ? take(channels, 15)
       : take(
           channels.filter((channel) => {
-            return channel.name.toLowerCase().includes(query.toLowerCase());
+            return channel.name && channel.name.toLowerCase().includes(query.toLowerCase());
           }),
           10
         );
@@ -79,6 +80,7 @@ export function ChannelPicker(props: Props) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          disabled={props.disabled}
           variant="outline"
           role="combobox"
           aria-expanded={open}

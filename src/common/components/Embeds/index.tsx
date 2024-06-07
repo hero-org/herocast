@@ -4,11 +4,10 @@ import CastEmbed from "./CastEmbed";
 import TweetEmbed from "./TweetEmbed";
 import NounsBuildEmbed from "./NounsBuildEmbed";
 import ParagraphXyzEmbed from "./ParagraphXyzEmbed";
-import OpenGraphImage from "./OpenGraphImage";
-import { isImageUrl } from "@/common/helpers/text";
 import VideoEmbed from "./VideoEmbed";
 import { WarpcastImage } from "../PostEmbeddedContent";
 import FrameEmbed from "./FrameEmbed";
+import { isImageUrl } from "@/common/helpers/text";
 
 type CastEmbed = {
   url?: string;
@@ -16,11 +15,15 @@ type CastEmbed = {
     fid: number;
     hash: string;
   };
+  castId?: {
+    fid: number;
+    hash: string;
+  };
 };
 
-export const renderEmbedForUrl = ({ url, cast_id }: CastEmbed) => {
-  if (cast_id) {
-    return <CastEmbed castId={cast_id} />;
+export const renderEmbedForUrl = ({ url, cast_id, castId }: CastEmbed) => {
+  if (castId || cast_id) {
+    return <CastEmbed castId={castId || cast_id} />;
   }
   if (!url) return null;
 
