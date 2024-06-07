@@ -35,14 +35,6 @@ const RightSidebar = ({ showChannels, showAuthorInfo }: RightSidebarProps) => {
     </div>
   );
 
-  const renderChannels = () => {
-    return (
-      <div className="mt-4">
-        <ChannelsOverview />
-      </div>
-    );
-  };
-
   const renderAuthorInfo = () => {
     if (!showAuthorInfo || !selectedCast) return null;
 
@@ -61,7 +53,7 @@ const RightSidebar = ({ showChannels, showAuthorInfo }: RightSidebarProps) => {
       <div className="">
         {renderAuthorInfo()}
         {hydratedAt && !hasAccounts && renderEmptyState()}
-        {showChannels && renderChannels()}
+        {showChannels && <ChannelsOverview />}
       </div>
     </aside>
   );

@@ -4,12 +4,10 @@ import { classNames } from "@/common/helpers/css";
 import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { useRouter } from "next/router";
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
 import { Badge } from "@/components/ui/badge";
 
 const ChannelsOverview = () => {
-  const router = useRouter();
   const { selectedChannelUrl, setSelectedChannelUrl, resetSelectedChannel } =
     useAccountStore();
 
@@ -48,11 +46,9 @@ const ChannelsOverview = () => {
   };
 
   return (
-    <div className="mt-4">
+    <div className="">
       <SidebarHeader
         title="Channels"
-        actionTitle={"Manage"}
-        onClick={() => router.push("/channels")}
       />
       <ul role="list" className="mt-2 mb-12">
         {renderCustomChannel({

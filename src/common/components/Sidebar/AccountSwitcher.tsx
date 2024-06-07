@@ -106,14 +106,15 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
               <AvatarFallback>HC</AvatarFallback>
             </Avatar>
             {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
-            {(!account.name) && (
-                <Badge variant="outline" className="ml-auto">
-                  <UserGroupIcon
-                    className="h-4 w-4 shrink-0"
-                    aria-hidden="true"
-                  />
-                </Badge>
-              )}
+            {account.platform ===
+              AccountPlatformType.farcaster_hats_protocol && (
+              <Badge variant="outline" className="ml-auto">
+                <UserGroupIcon
+                  className="h-4 w-4 shrink-0"
+                  aria-hidden="true"
+                />
+              </Badge>
+            )}
             {idx < 9 && (
               <Badge variant="outline" className="ml-auto">
                 Ctrl + {idx + 1}
