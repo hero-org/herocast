@@ -299,12 +299,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     </div>
                   </li>
                 ))}
-                <ThemeToggle />
               </ul>
             </nav>
           </div>
-          <div className="mt-auto py-4">
+          <div className="mt-auto flex flex-row space-x-2 py-4">
             <AccountSwitcher />
+            <ThemeToggle />
           </div>
         </div>
       </div>

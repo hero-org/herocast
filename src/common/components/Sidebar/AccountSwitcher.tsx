@@ -3,7 +3,6 @@
 import * as React from "react";
 import {
   CaretSortIcon,
-  CheckIcon,
   PlusCircledIcon,
 } from "@radix-ui/react-icons";
 
@@ -33,19 +32,16 @@ import {
 import map from "lodash.map";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import { Badge } from "@/components/ui/badge";
+import get from "lodash.get";
 
 const groups = [
   {
-    label: "Personal Account",
-    key: AccountPlatformType.farcaster,
+    label: "Accounts",
+    platforms: [AccountPlatformType.farcaster, AccountPlatformType.farcaster_hats_protocol],
   },
   {
-    label: "Shared Account",
-    key: AccountPlatformType.farcaster_hats_protocol,
-  },
-  {
-    label: "Local Account",
-    key: AccountPlatformType.farcaster_local_readonly,
+    label: "Local Accounts",
+    platforms: [AccountPlatformType.farcaster_local_readonly],
   },
 ];
 
@@ -62,26 +58,32 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
     useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
 
-  // group list of accounts by platform
   const accountsByPlatform = accounts.reduce((acc, account) => {
-    if (!acc[account.platform]) {
-      acc[account.platform] = [];
+    const labelForAccount = groups.find((group) =>
+      group.platforms.includes(account.platform)
+    )?.label;
+    if (!labelForAccount) {
+      console.log('No label found for account', account)
+      return acc;
     }
-    acc[account.platform].push(account);
+
+    if (!acc[labelForAccount]) {
+      acc[labelForAccount] = [];
+    }
+    acc[labelForAccount].push(account);
     return acc;
   }, {});
 
-  console.log("accountsByPlatform", accountsByPlatform);
-
   const renderGroup = (group) => {
-    if (!accountsByPlatform[group.key]) {
+    const accounts = get(accountsByPlatform, group.label, []);
+    if (!accounts.length) {
       return null;
     }
 
     return (
       <CommandGroup key={group.label} heading={group.label}>
         {map(
-          accountsByPlatform[group.key],
+          accounts,
           (account: AccountObjectType, idx: number) => (
             <CommandItem
               key={account.id}
@@ -92,7 +94,7 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
               className={cn(
                 "text-sm truncate",
                 selectedAccount.id === account.id &&
-                  "bg-muted-foreground hover:bg-muted-foreground/90"
+                  "bg-muted"
               )}
             >
               <Avatar className="mr-2 h-5 w-5">
