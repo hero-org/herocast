@@ -75,17 +75,20 @@ export default function Feed() {
   const [feeds, setFeeds] = useState<FeedKeyToFeed>({});
   const [loadingMessage, setLoadingMessage] = useState("Loading feed");
   const [isRefreshingPage, setIsRefreshingPage] = useState(false);
-  const [selectedCastIdx, setSelectedCastIdx] = useState(0);
+  const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
-  const { isNewCastModalOpen, setCastModalView, openNewCastModal, closeNewCastModal } =
-    useNavigationStore();
+  const {
+    isNewCastModalOpen,
+    setCastModalView,
+    openNewCastModal,
+    closeNewCastModal,
+  } = useNavigationStore();
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
     delay: 100,
   });
-
   const { accounts, selectedAccountIdx, selectedChannelUrl, hydratedAt } =
     useAccountStore();
 
@@ -133,16 +136,18 @@ export default function Feed() {
   };
 
   useEffect(() => {
-    if (!showCastThreadView) {
-      if (selectedCastIdx === 0) {
-        window.scrollTo(0, 0);
-      } else if (selectedCastIdx === casts.length - 1) {
-        window.scrollTo(0, document.body.scrollHeight);
-      }
+    if (showCastThreadView) return;
+
+    if (selectedCastIdx === 0) {
+      window.scrollTo(0, 0);
+    } else if (selectedCastIdx === casts.length - 1) {
+      window.scrollTo(0, document.body.scrollHeight);
     }
   }, [selectedCastIdx, showCastThreadView]);
 
   useEffect(() => {
+    if (selectedCastIdx === -1 || isEmpty(casts)) return;
+
     updateSelectedCast(casts[selectedCastIdx]);
   }, [selectedCastIdx, selectedChannelUrl, casts]);
 
@@ -306,13 +311,13 @@ export default function Feed() {
   useEffect(() => {
     closeNewCastModal();
     setShowCastThreadView(false);
-    setSelectedCastIdx(0);
+    setSelectedCastIdx(-1);
   }, [selectedChannelUrl]);
 
   const renderRow = (item: any, idx: number) => (
     <li
       key={item?.hash}
-      className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full"
+      className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full"
     >
       <CastRow
         cast={item}
@@ -386,7 +391,7 @@ export default function Feed() {
   const renderNewCastModal = () => (
     <NewCastModal
       open={isNewCastModalOpen}
-      setOpen={(isOpen) => isOpen ? openNewCastModal() : closeNewCastModal()}
+      setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
       linkedCast={selectedCast}
     />
   );
@@ -436,7 +441,7 @@ export default function Feed() {
 
   const renderContent = () => (
     <>
-      <div className="min-w-full">
+      <div className="ml-8 min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
         {isLoadingFeed && isEmpty(casts) && (
           <div className="ml-4">
             <Loading loadingMessage={loadingMessage} />
