@@ -1,10 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  CaretSortIcon,
-  PlusCircledIcon,
-} from "@radix-ui/react-icons";
+import { CaretSortIcon, PlusCircledIcon } from "@radix-ui/react-icons";
 
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,11 +30,15 @@ import map from "lodash.map";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import { Badge } from "@/components/ui/badge";
 import get from "lodash.get";
+import { UserGroupIcon } from "@heroicons/react/24/outline";
 
 const groups = [
   {
     label: "Accounts",
-    platforms: [AccountPlatformType.farcaster, AccountPlatformType.farcaster_hats_protocol],
+    platforms: [
+      AccountPlatformType.farcaster,
+      AccountPlatformType.farcaster_hats_protocol,
+    ],
   },
   {
     label: "Local Accounts",
@@ -63,7 +64,7 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
       group.platforms.includes(account.platform)
     )?.label;
     if (!labelForAccount) {
-      console.log('No label found for account', account)
+      console.log("No label found for account", account);
       return acc;
     }
 
@@ -82,40 +83,44 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
 
     return (
       <CommandGroup key={group.label} heading={group.label}>
-        {map(
-          accounts,
-          (account: AccountObjectType, idx: number) => (
-            <CommandItem
-              key={account.id}
-              onSelect={() => {
-                setCurrentAccountById(account.id);
-                setOpen(false);
-              }}
-              className={cn(
-                "text-sm truncate",
-                selectedAccount.id === account.id &&
-                  "bg-muted"
-              )}
-            >
-              <Avatar className="mr-2 h-5 w-5">
-                <AvatarImage
-                  src={account.user?.pfp_url}
-                  alt={account.name}
-                  className={cn(
-                    selectedAccount.id !== account.id && "grayscale"
-                  )}
-                />
-                <AvatarFallback>HC</AvatarFallback>
-              </Avatar>
-              {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
-              {idx < 9 && (
+        {map(accounts, (account: AccountObjectType, idx: number) => (
+          <CommandItem
+            key={account.id}
+            onSelect={() => {
+              setCurrentAccountById(account.id);
+              setOpen(false);
+            }}
+            className={cn(
+              "text-sm truncate",
+              selectedAccount?.id === account.id && "bg-muted"
+            )}
+          >
+            <Avatar className="mr-2 h-5 w-5">
+              <AvatarImage
+                src={account.user?.pfp_url}
+                alt={account.name}
+                className={cn(
+                  selectedAccount?.id !== account.id && "grayscale"
+                )}
+              />
+              <AvatarFallback>HC</AvatarFallback>
+            </Avatar>
+            {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
+            {(!account.name) && (
                 <Badge variant="outline" className="ml-auto">
-                  Ctrl + {idx + 1}
+                  <UserGroupIcon
+                    className="h-4 w-4 shrink-0"
+                    aria-hidden="true"
+                  />
                 </Badge>
               )}
-            </CommandItem>
-          )
-        )}
+            {idx < 9 && (
+              <Badge variant="outline" className="ml-auto">
+                Ctrl + {idx + 1}
+              </Badge>
+            )}
+          </CommandItem>
+        ))}
       </CommandGroup>
     );
   };
@@ -131,7 +136,7 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
           className={cn("w-[220px] justify-between", className)}
         >
           {selectedAccount ? (
-            <div className="flex">
+            <div className="flex truncate">
               <Avatar className="mr-2 h-5 w-5">
                 <AvatarImage
                   src={selectedAccount.user?.pfp_url}
@@ -147,10 +152,12 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
           <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[250px] p-0">
+      <PopoverContent className="w-[256px] p-0">
         <Command>
           <CommandList>
-            <CommandInput placeholder="Search accounts..." />
+            {accounts.length > 2 && (
+              <CommandInput placeholder="Search accounts..." />
+            )}
             <CommandEmpty>No account found.</CommandEmpty>
             {groups.map(renderGroup)}
           </CommandList>

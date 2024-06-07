@@ -89,7 +89,6 @@ export default function Feed() {
     threshold: 0,
     delay: 100,
   });
-  console.log("selectedCastIdx", selectedCastIdx);
   const { accounts, selectedAccountIdx, selectedChannelUrl, hydratedAt } =
     useAccountStore();
 
