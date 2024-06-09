@@ -13,123 +13,121 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { usePathname, useSearchParams } from "next/navigation";
 
 export default function NewPost() {
-  const { addNewPostDraft, removePostDraft, removeAllPostDrafts } =
-    useNewPostStore();
-  const { drafts } = useNewPostStore();
-  const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
-  const { accounts, selectedAccountIdx } = useAccountStore();
-  const selectedAccount = accounts[selectedAccountIdx];
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
+	const { addNewPostDraft, removePostDraft, removeAllPostDrafts } =
+		useNewPostStore();
+	const { drafts } = useNewPostStore();
+	const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
+	const { accounts, selectedAccountIdx } = useAccountStore();
+	const selectedAccount = accounts[selectedAccountIdx];
+	const searchParams = useSearchParams();
+	const pathname = usePathname();
 
-  console.log(pathname);
+	// get text from query params and add to text field if it exists
+	useEffect(() => {
+		if (searchParams.has("text")) {
+			const text = searchParams.getAll("text").join(". ");
 
-  // get text from query params and add to text field if it exists
-  useEffect(() => {
-    if (searchParams.has("text")) {
-      const text = searchParams.getAll("text").join(". ");
+			if (text) {
+				addNewPostDraft({ text });
+			}
+		}
 
-      if (text) {
-        addNewPostDraft({ text });
-      }
-    }
+		if (drafts.length === 0) {
+			addNewPostDraft({});
+		}
+	}, []);
 
-    if (drafts.length === 0) {
-      addNewPostDraft({});
-    }
-  }, []);
+	// check for when user leaves page and remove drafts
+	useEffect(() => {
+		const handleRouteChange = () => {
+			if (!pathname.includes("/post") && drafts.length > 0) {
+				removePostDraft(drafts.length - 1); // remove last draft index? very questionable - find better solution?
+			}
+		};
 
-  // check for when user leaves page and remove drafts
-  useEffect(() => {
-    const handleRouteChange = () => {
-      if (!pathname.includes("/post") && drafts.length > 0) {
-        removePostDraft(drafts.length - 1); // remove last draft index? very questionable - find better solution?
-      }
-    };
+		handleRouteChange();
+	}, [pathname, searchParams]);
 
-    handleRouteChange();
-  }, [pathname, searchParams]);
+	useEffect(() => {
+		const parentCastIds = drafts
+			.map((draft) => draft?.parentCastId?.hash)
+			.filter(Boolean) as unknown as string[];
 
-  useEffect(() => {
-    const parentCastIds = drafts
-      .map((draft) => draft?.parentCastId?.hash)
-      .filter(Boolean) as unknown as string[];
+		const fetchParentCasts = async () => {
+			const neynarClient = new NeynarAPIClient(
+				process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
+			);
+			const res = await neynarClient.fetchBulkCasts(parentCastIds, {
+				viewerFid: selectedAccount?.platformAccountId,
+			});
+			setParentCasts(res?.result?.casts);
+		};
+		if (parentCastIds.length) {
+			fetchParentCasts();
+		}
+	}, [drafts]);
 
-    const fetchParentCasts = async () => {
-      const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
-      const res = await neynarClient.fetchBulkCasts(parentCastIds, {
-        viewerFid: selectedAccount?.platformAccountId,
-      });
-      setParentCasts(res?.result?.casts);
-    };
-    if (parentCastIds.length) {
-      fetchParentCasts();
-    }
-  }, [drafts]);
+	const renderDraft = (draft, draftIdx) => {
+		const parentCast = parentCasts.find(
+			(cast) => cast.hash === draft.parentCastId?.hash,
+		);
+		return (
+			<div key={draftIdx} className="pt-4 pb-6">
+				{parentCast && <CastRow cast={parentCast} />}
+				<NewPostEntry
+					draft={draft}
+					key={`draft-${draftIdx}`}
+					draftIdx={draftIdx}
+					onRemove={() => removePostDraft(draftIdx)}
+				/>
+			</div>
+		);
+	};
 
-  const renderDraft = (draft, draftIdx) => {
-    const parentCast = parentCasts.find(
-      (cast) => cast.hash === draft.parentCastId?.hash
-    );
-    return (
-      <div key={draftIdx} className="pt-4 pb-6">
-        {parentCast && <CastRow cast={parentCast} />}
-        <NewPostEntry
-          draft={draft}
-          key={`draft-${draftIdx}`}
-          draftIdx={draftIdx}
-          onRemove={() => removePostDraft(draftIdx)}
-        />
-      </div>
-    );
-  };
+	return (
+		<>
+			<div className="ml-3 flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
+				<div className="ml-1 mt-2 w-full flex items-center justify-between">
+					<div className="text-foreground/80 font-semibold">
+						You have {drafts.length} {drafts.length !== 1 ? "drafts" : "draft"}
+					</div>
+					<div className="flex ml-8 lg:ml-0">
+						<Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
+							<HotkeyTooltipWrapper hotkey={`c`} side="bottom">
+								<Button
+									onClick={() => addNewPostDraft({})}
+									className="mr-2 inline-flex items-center"
+								>
+									New draft
+									<PlusCircleIcon
+										className="hidden md:block ml-1.5 mt-0.5 h-4 w-4"
+										aria-hidden="true"
+									/>
+								</Button>
+							</HotkeyTooltipWrapper>
+						</Tooltip.Provider>
 
-  return (
-    <>
-      <div className="ml-3 flex flex-col md:w-full lg:max-w-md xl:max-w-lg">
-        <div className="ml-1 mt-2 w-full flex items-center justify-between">
-          <div className="text-foreground/80 font-semibold">
-            You have {drafts.length} {drafts.length !== 1 ? "drafts" : "draft"}
-          </div>
-          <div className="flex ml-8 lg:ml-0">
-            <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
-              <HotkeyTooltipWrapper hotkey={`c`} side="bottom">
-                <Button
-                  onClick={() => addNewPostDraft({})}
-                  className="mr-2 inline-flex items-center"
-                >
-                  New draft
-                  <PlusCircleIcon
-                    className="hidden md:block ml-1.5 mt-0.5 h-4 w-4"
-                    aria-hidden="true"
-                  />
-                </Button>
-              </HotkeyTooltipWrapper>
-            </Tooltip.Provider>
-
-            <Button
-              variant="outline"
-              disabled={drafts.length === 0}
-              onClick={() => removeAllPostDrafts()}
-              className={classNames(
-                drafts.length > 0 ? "cursor-pointer" : "cursor-default",
-                "inline-flex items-center"
-              )}
-            >
-              Remove all drafts
-              <TrashIcon
-                className="hidden md:block ml-1.5 mt-0.5 h-4 w-4"
-                aria-hidden="true"
-              />
-            </Button>
-          </div>
-        </div>
-        <div className="divide-y">
-          {drafts.map((draft, draftIdx) => renderDraft(draft, draftIdx))}
-        </div>
-      </div>
-    </>
-  );
+						<Button
+							variant="outline"
+							disabled={drafts.length === 0}
+							onClick={() => removeAllPostDrafts()}
+							className={classNames(
+								drafts.length > 0 ? "cursor-pointer" : "cursor-default",
+								"inline-flex items-center",
+							)}
+						>
+							Remove all drafts
+							<TrashIcon
+								className="hidden md:block ml-1.5 mt-0.5 h-4 w-4"
+								aria-hidden="true"
+							/>
+						</Button>
+					</div>
+				</div>
+				<div className="divide-y">
+					{drafts.map((draft, draftIdx) => renderDraft(draft, draftIdx))}
+				</div>
+			</div>
+		</>
+	);
 }
