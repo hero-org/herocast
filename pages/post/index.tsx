@@ -10,6 +10,7 @@ import { CastRow } from "@/common/components/CastRow";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export default function NewPost() {
   const { addNewPostDraft, removePostDraft, removeAllPostDrafts } =
@@ -18,17 +19,41 @@ export default function NewPost() {
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
+  console.log(pathname);
+
+  // get text from query params and add to text field if it exists
   useEffect(() => {
+    if (searchParams.has("text")) {
+      const text = searchParams.getAll("text").join(". ");
+
+      if (text) {
+        addNewPostDraft({ text });
+      }
+    }
+
     if (drafts.length === 0) {
       addNewPostDraft({});
     }
   }, []);
 
+  // check for when user leaves page and remove drafts
+  useEffect(() => {
+    const handleRouteChange = () => {
+      if (!pathname.includes("/post") && drafts.length > 0) {
+        removePostDraft(drafts.length - 1); // remove last draft index? very questionable - find better solution?
+      }
+    };
+
+    handleRouteChange();
+  }, [pathname, searchParams]);
+
   useEffect(() => {
     const parentCastIds = drafts
       .map((draft) => draft?.parentCastId?.hash)
-      .filter(Boolean) as string[];
+      .filter(Boolean) as unknown as string[];
 
     const fetchParentCasts = async () => {
       const neynarClient = new NeynarAPIClient(

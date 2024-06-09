@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
 import {
@@ -7,10 +7,7 @@ import {
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import {
-  newPostCommands,
-  useNewPostStore,
-} from "@/stores/useNewPostStore";
+import { newPostCommands, useNewPostStore } from "@/stores/useNewPostStore";
 import { LaunchCasterScoutDraft } from "@/common/constants/postDrafts";
 import { BountyCasterBotDraft } from "@/common/constants/postDrafts";
 import { RemindMeBotDraft } from "@/common/constants/postDrafts";
@@ -139,7 +136,8 @@ export default function CommandPalette() {
         },
       });
 
-      const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
+      const { openNewCastModal, setCastModalView } =
+        useNavigationStore.getState();
       setCastModalView(CastModalView.Reply);
       openNewCastModal();
     };
