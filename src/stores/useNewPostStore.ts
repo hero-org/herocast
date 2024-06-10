@@ -1,36 +1,37 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/require-await */
 
-import { create } from "zustand";
-import { createJSONStorage, devtools, persist } from "zustand/middleware";
-import { create as mutativeCreate, Draft } from "mutative";
+import { AccountPlatformType } from "@/common/constants/accounts";
 import { CommandType } from "@/common/constants/commands";
-import {
-  PlusCircleIcon,
-  TagIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
-import { AccountObjectType } from "./useAccountStore";
 import {
   DraftStatus,
   DraftType,
   ParentCastIdType,
 } from "@/common/constants/farcaster";
-import {
-  getMentionFidsByUsernames,
-  formatPlaintextToHubCastMessage,
-} from "@mod-protocol/farcaster";
+import { NewFeedbackPostDraft, NewPostDraft } from "@/common/constants/postDrafts";
 import { submitCast } from "@/common/helpers/farcaster";
-import { toBytes, toHex } from "viem";
-import { CastId, Embed } from "@farcaster/hub-web";
-import { AccountPlatformType } from "@/common/constants/accounts";
 import {
   toastErrorCastPublish,
   toastInfoReadOnlyMode,
   toastSuccessCastPublished,
 } from "@/common/helpers/toast";
-import { NewFeedbackPostDraft, NewPostDraft } from "@/common/constants/postDrafts";
+import { CastId, Embed } from "@farcaster/hub-web";
+import {
+  PlusCircleIcon,
+  TagIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import {
+  formatPlaintextToHubCastMessage,
+  getMentionFidsByUsernames,
+} from "@mod-protocol/farcaster";
+import { Draft, create as mutativeCreate } from "mutative";
+import { toBytes, toHex } from "viem";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { AccountObjectType } from "./useAccountStore";
 import { CastModalView, useNavigationStore } from "./useNavigationStore";
 
 const getMentionFids = getMentionFidsByUsernames(
@@ -60,6 +61,7 @@ interface NewPostStoreActions {
     account: AccountObjectType,
     onPost?: () => void,
   ) => Promise<string | null>;
+  removeEmptyDrafts: () => void;
 }
 
 export interface NewPostStore extends NewPostStoreProps, NewPostStoreActions { }
@@ -155,6 +157,12 @@ const store = (set: StoreSet) => ({
     set((state) => {
       state.drafts = [];
     });
+  },
+  removeEmptyDrafts: () => {
+    set((state) => {
+      // removes empty drafts, and ensure no whitespace drafts are saved
+      state.drafts = state.drafts.filter((draft) => Boolean(draft.text.trim()))
+    })
   },
   publishPostDraft: async (
     draftIdx: number,
