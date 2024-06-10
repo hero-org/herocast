@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -13,25 +13,25 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAccount, useSignTypedData, useWalletClient } from "wagmi";
+import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
 import {
-  getFidForAddress,
   getSignatureForUsernameProof,
   getTimestamp,
   setUserDataInProtocol,
   updateUsernameOffchain,
   validateUsernameIsAvailable,
 } from "../helpers/farcaster";
-import { getAddress, toHex } from "viem";
+import { getAddress } from "viem";
 import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
-import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
+import { AccountPlatformType } from "../constants/accounts";
 import { mainnet } from "viem/chains";
-import { UserDataType } from "@farcaster/hub-web";
-import { switchChain } from "viem/actions";
+import { validations, UserDataType } from "@farcaster/hub-web";
+import { AccountSelector } from "./AccountSelector";
+import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 
 export type FarcasterAccountSetupFormValues = z.infer<
   typeof FarcasterAccountSetupFormSchema
@@ -77,9 +77,9 @@ const RegisterFarcasterUsernameForm = ({
   onSuccess: (data: FarcasterAccountSetupFormValues) => void;
 }) => {
   const [isPending, setIsPending] = useState(false);
-  const [fid, setFid] = useState<bigint | null>();
   const [error, setError] = useState<string | null>();
   const { address, chainId, isConnected } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
   const client = useWalletClient({
     account: address,
     chainId: mainnet.id,
@@ -88,31 +88,21 @@ const RegisterFarcasterUsernameForm = ({
     resolver: zodResolver(FarcasterAccountSetupFormSchema),
     defaultValues: { username: "", displayName: "", bio: "" },
   });
-  const { accounts, updateAccountUsername } = useAccountStore();
-  const pendingAccounts = accounts.filter(
-    (account) =>
-      account.status === AccountStatusType.active &&
-      account.platform === AccountPlatformType.farcaster &&
-      account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER
+  const { updateAccountUsername } = useAccountStore();
+  const account = useAccountStore(
+    (state) => state.accounts[state.selectedAccountIdx]
   );
-
   const canSubmitForm = !isPending && isConnected && chainId === mainnet.id;
 
-  useEffect(() => {
-    getFidForAddress(address!)
-      .then(setFid)
-      .catch((e) => setError(e.message));
-  }, [address]);
-
-  useEffect(() => {
-    if (pendingAccounts.length === 0) {
-      setError("No pending accounts found");
-    } else {
-      setError(null);
-    }
-  }, [pendingAccounts]);
-
   const validateUsername = async (username: string): Promise<boolean> => {
+    const validationResults = validations.validateFname(username);
+    if (validationResults.isErr()) {
+      form.setError("username", {
+        type: "manual",
+        message: validationResults.error.message,
+      });
+      return false;
+    }
     const isValidNewUsername = await validateUsernameIsAvailable(username);
     if (!isValidNewUsername) {
       form.setError("username", {
@@ -126,83 +116,88 @@ const RegisterFarcasterUsernameForm = ({
   const registerFarcasterUsername = async (
     data: z.infer<typeof FarcasterAccountSetupFormSchema>
   ) => {
-    console.log("createFarcasterAccount", data);
+    console.log("registerFarcasterUsername", data);
 
-    if (!address || !fid) return;
-    if (!validateUsername(data.username)) return;
-
-    const account = pendingAccounts.filter(
-      (account) => account.platformAccountId === String(fid!)
-    )?.[0];
-    if (!account) {
-      setError("No pending account found");
+    if (!address) {
+      form.setError("username", {
+        type: "manual",
+        message: "Connect your wallet to continue",
+      });
       return;
     }
-    console.log("account", account);
+    if (!(await validateUsername(data.username))) return;
 
     setIsPending(true);
-    const owner = getAddress(address);
-    const { username, bio } = data;
-    console.log("RegusterFarcasterAccount", data);
-    let displayName = data.displayName;
-    if (!displayName) {
-      displayName = username;
-    }
+    setError(null);
 
-    const timestamp = getTimestamp();
-    const registerSignature = await getSignatureForUsernameProof(
-      client,
-      address,
-      {
-        name: username,
-        owner,
-        timestamp: BigInt(timestamp),
+    try {
+      const owner = getAddress(address);
+      const { username, bio } = data;
+
+      let displayName = data.displayName;
+      if (!displayName) {
+        displayName = username;
       }
-    );
-    if (!registerSignature) {
-      throw new Error("Failed to get signature to register username");
-    }
 
-    // register new username
+      const timestamp = getTimestamp();
+      const registerSignature = await getSignatureForUsernameProof(
+        client,
+        address,
+        {
+          name: username,
+          owner,
+          timestamp: BigInt(timestamp),
+        }
+      );
+      if (!registerSignature) {
+        setIsPending(false);
+        throw new Error("Failed to get signature to register username");
+      }
 
-    const result = await updateUsernameOffchain({
-      timestamp,
-      owner,
-      fromFid: "0",
-      toFid: fid.toString(),
-      fid: fid.toString(),
-      username: username,
-      signature: registerSignature,
-    });
-    console.log("updateUsername result", result);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+      // register new username
+      const result = await updateUsernameOffchain({
+        timestamp,
+        owner,
+        fromFid: "0",
+        toFid: account.platformAccountId!.toString(),
+        fid: account.platformAccountId!.toString(),
+        username: username,
+        signature: registerSignature,
+      });
+      console.log("updateUsername result", result);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    await setUserDataInProtocol(
-      account.privateKey!,
-      Number(account.platformAccountId!),
-      UserDataType.DISPLAY,
-      username
-    );
-    updateAccountUsername(account.id!);
-
-    await setUserDataInProtocol(
-      account.privateKey!,
-      Number(account.platformAccountId!),
-      UserDataType.DISPLAY,
-      displayName
-    );
-
-    if (bio) {
       await setUserDataInProtocol(
         account.privateKey!,
         Number(account.platformAccountId!),
-        UserDataType.BIO,
-        bio
+        UserDataType.USERNAME,
+        username
       );
-    }
+      updateAccountUsername(account.id);
 
-    await hydrateAccounts();
-    onSuccess?.(data);
+      await setUserDataInProtocol(
+        account.privateKey!,
+        Number(account.platformAccountId!),
+        UserDataType.DISPLAY,
+        displayName
+      );
+
+      if (bio) {
+        await setUserDataInProtocol(
+          account.privateKey!,
+          Number(account.platformAccountId!),
+          UserDataType.BIO,
+          bio
+        );
+      }
+
+      await hydrateAccounts();
+      onSuccess?.(data);
+    } catch (e) {
+      console.error("Failed to register username", e);
+      setError("Failed to register username");
+      setIsPending(false);
+    }
   };
 
   const renderForm = () => (
@@ -251,10 +246,7 @@ const RegisterFarcasterUsernameForm = ({
             <FormItem>
               <FormLabel>Bio</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Building x | Love to y | Find me at z"
-                  {...field}
-                />
+                <Input placeholder="building x and love to y" {...field} />
               </FormControl>
               <FormDescription>
                 This will be your public bio / account description.
@@ -265,6 +257,12 @@ const RegisterFarcasterUsernameForm = ({
         />
         <div className="flex flex-col space-y-2">
           <Button disabled={!canSubmitForm} type="submit">
+            {isPending && (
+              <Cog6ToothIcon
+                className="mr-2 h-5 w-5 animate-spin"
+                aria-hidden="true"
+              />
+            )}
             Register username
           </Button>
           <Button disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>
@@ -272,8 +270,9 @@ const RegisterFarcasterUsernameForm = ({
           </Button>
           {chainId !== mainnet.id && (
             <Button
+              type="button"
               variant="default"
-              onClick={() => switchChain(client!, { id: mainnet.id })}
+              onClick={() => switchChainAsync({ chainId: mainnet.id })}
             >
               Switch to mainnet
             </Button>
@@ -284,7 +283,14 @@ const RegisterFarcasterUsernameForm = ({
   );
 
   return (
-    <div className="w-2/3">
+    <div className="w-3/4 lg:w-full space-y-4">
+      <AccountSelector
+        accountFilter={(account) =>
+          account.status === "active" &&
+          account.platform === AccountPlatformType.farcaster &&
+          account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER
+        }
+      />
       {renderForm()}
       {error && (
         <div className="flex flex-start items-center mt-2">

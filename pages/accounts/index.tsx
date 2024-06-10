@@ -7,10 +7,14 @@ import {
 } from "@heroicons/react/20/solid";
 import { ArrowDownTrayIcon, NewspaperIcon } from "@heroicons/react/24/solid";
 import {
-  JoinedHerocastPostDraft,
   useNewPostStore,
 } from "../../src/stores/useNewPostStore";
-import { hydrate, useAccountStore } from "../../src/stores/useAccountStore";
+import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
+import {
+  AccountObjectType,
+  hydrate,
+  useAccountStore,
+} from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import {
   AccountPlatformType,
@@ -31,7 +35,6 @@ import { useAccount } from "wagmi";
 import {
   WarpcastLoginStatus,
   callCreateSignerRequest,
-  createSignerRequest,
   generateWarpcastSigner,
   getWarpcastSignerStatus,
 } from "../../src/common/helpers/warpcastLogin";
@@ -42,6 +45,7 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { openWindow } from "../../src/common/helpers/navigation";
 import ConfirmOnchainSignerButton from "../../src/common/components/ConfirmOnchainSignerButton";
 import SwitchWalletButton from "../../src/common/components/SwitchWalletButton";
+import { getTimestamp } from "@/common/helpers/farcaster";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -51,41 +55,17 @@ enum SignupStateEnum {
   "done",
 }
 
-type SignupStepType = {
-  state: SignupStateEnum;
-  title: string;
-  description: string;
-  idx: number;
-};
-
-const SignupSteps: SignupStepType[] = [
-  {
-    state: SignupStateEnum.initial,
-    title: "Start adding Farcaster accounts",
-    description: "Get started with herocast",
-    idx: 0,
-  },
-  {
-    state: SignupStateEnum.connecting,
-    title: "Connect account",
-    description: "Connect your Farcaster account to herocast",
-    idx: 1,
-  },
-  {
-    state: SignupStateEnum.done,
-    title: "Start casting",
-    description: "Start casting and browsing your feed",
-    idx: 2,
-  },
-];
-
 export default function Accounts() {
   const router = useRouter();
+  const [signupState, setSignupState] = useState<SignupStateEnum>(
+    SignupStateEnum.initial
+  );
   const [isLoading, setIsLoading] = useState(false);
   const { isConnected } = useAccount();
   const isMounted = useIsMounted();
 
-  const { accounts, addAccount, setAccountActive } = useAccountStore();
+  const { accounts, addAccount, setAccountActive, removeAccount } =
+    useAccountStore();
 
   const { addNewPostDraft } = useNewPostStore();
 
@@ -95,11 +75,12 @@ export default function Accounts() {
         account.status === AccountStatusType.active &&
         account.platform !== AccountPlatformType.farcaster_local_readonly
     ).length > 0;
-  const pendingAccounts = accounts.filter(
-    (account) =>
-      account.status === AccountStatusType.pending &&
-      account.platform === AccountPlatformType.farcaster
-  );
+  const pendingAccounts =
+    accounts.filter(
+      (account) =>
+        account.status === AccountStatusType.pending &&
+        account.platform === AccountPlatformType.farcaster
+    ) || [];
   const hasOnlyLocalAccounts =
     accounts.length &&
     accounts.every(
@@ -109,19 +90,20 @@ export default function Accounts() {
   const hasPendingNewAccounts = pendingAccounts.length > 0;
   const pendingAccount = hasPendingNewAccounts ? pendingAccounts[0] : null;
 
-  const [signupState, setSignupState] = useState<SignupStateEnum>(
-    SignupStateEnum.initial
-  );
-
   useEffect(() => {
-    if (pendingAccount && signupState === SignupStateEnum.connecting) {
-      pollForSigner();
+    if (pendingAccounts?.length && signupState === SignupStateEnum.connecting) {
+      pendingAccounts.forEach((account) => pollForSigner(account.id));
     }
-  }, [signupState, pendingAccount, isMounted]);
+  }, [signupState, pendingAccounts, isMounted]);
 
   useEffect(() => {
     if (hasPendingNewAccounts && signupState === SignupStateEnum.initial) {
       setSignupState(SignupStateEnum.connecting);
+    } else if (
+      !hasPendingNewAccounts &&
+      signupState === SignupStateEnum.connecting
+    ) {
+      setSignupState(SignupStateEnum.initial);
     }
   }, [signupState, hasPendingNewAccounts]);
 
@@ -139,36 +121,45 @@ export default function Accounts() {
       setIsLoading(true);
       await addAccount({
         account: {
-          id: null,
           platformAccountId: undefined,
           status: AccountStatusType.pending,
           platform: AccountPlatformType.farcaster,
           publicKey,
           privateKey,
-          data: { signerToken: token, deeplinkUrl },
+          data: { signerToken: token, deeplinkUrl, deadline },
         },
       });
       setIsLoading(false);
-      setSignupState(1);
+      setSignupState(SignupStateEnum.connecting);
     } catch (e) {
       console.log("error when trying to add account", e);
       setIsLoading(false);
+      setSignupState(SignupStateEnum.initial);
     }
   };
 
-  const checkStatusAndActiveAccount = async (pendingAccount) => {
+  const checkStatusAndActiveAccount = async (
+    pendingAccount: AccountObjectType
+  ) => {
     if (!pendingAccount?.data?.signerToken) return;
+
+    const deadline = pendingAccount.data?.deadline;
+    if (deadline && getTimestamp() > deadline) {
+      await removeAccount(pendingAccount.id);
+      return;
+    }
 
     const { status, data } = await getWarpcastSignerStatus(
       pendingAccount.data.signerToken
     );
-    console.log("checked signer status: ", status, data);
     if (status === WarpcastLoginStatus.success) {
       const fid = data.userFid;
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const user = (await neynarClient.fetchBulkUsers([fid], {viewerFid: APP_FID!})).users[0];
+      const user = (
+        await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID! })
+      ).users[0];
       await setAccountActive(pendingAccount.id, user.username, {
         platform_account_id: user.fid.toString(),
         data,
@@ -178,12 +169,18 @@ export default function Accounts() {
     }
   };
 
-  const pollForSigner = async () => {
+  const pollForSigner = async (accountId: string) => {
     let tries = 0;
     while (tries < 60) {
       tries += 1;
       await new Promise((r) => setTimeout(r, 2000));
-      checkStatusAndActiveAccount(pendingAccount);
+
+      const account = useAccountStore
+        .getState()
+        .accounts.find((account) => account.id === accountId);
+      if (!account) return;
+
+      await checkStatusAndActiveAccount(account);
 
       if (!isMounted()) return;
     }
@@ -210,7 +207,9 @@ export default function Accounts() {
         <Button
           className="w-full"
           variant="default"
-          onClick={() => openWindow(`${process.env.NEXT_PUBLIC_URL}/login?signupOnly=true`)}
+          onClick={() =>
+            openWindow(`${process.env.NEXT_PUBLIC_URL}/login?signupOnly=true`)
+          }
         >
           Switch to a full account
         </Button>
@@ -249,21 +248,20 @@ export default function Accounts() {
         <div className="h-fit">
           <Card className="bg-background text-foreground">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">
-                Sign in with Web3 wallet
-              </CardTitle>
+              <CardTitle className="text-2xl">Sign in with Warpcast</CardTitle>
               <CardDescription className="text-muted-foreground">
-                Pay with ETH on Optimism to connect with herocast
+                Pay with Warps in Warpcast to connect with herocast
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isConnected ? (
-                <ConfirmOnchainSignerButton account={pendingAccount} />
-              ) : (
-                <SwitchWalletButton />
-              )}
+              <span>
+                Scan the QR code with your mobile camera app to sign in via
+                Warpcast.
+              </span>
+              <QrCode
+                deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
+              />
             </CardContent>
-            <CardFooter></CardFooter>
           </Card>
         </div>
         <div className="relative mx-4">
@@ -281,20 +279,19 @@ export default function Accounts() {
         </div>
         <Card className="bg-background text-foreground">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Sign in with Warpcast</CardTitle>
+            <CardTitle className="text-2xl">Sign in with Web3 wallet</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Pay with Warps in Warpcast to connect with herocast
+              Pay with ETH on Optimism to connect with herocast
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <span>
-              Scan the QR code with your mobile camera app to sign in via
-              Warpcast.
-            </span>
-            <QrCode
-              deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
-            />
+            {isConnected ? (
+              <ConfirmOnchainSignerButton account={pendingAccount!} />
+            ) : (
+              <SwitchWalletButton />
+            )}
           </CardContent>
+          <CardFooter></CardFooter>
         </Card>
       </div>
     );
@@ -317,7 +314,7 @@ export default function Accounts() {
       <CardContent>
         <div className="-mx-2 -my-1.5 flex">
           <Button
-            onClick={() => router.push("/feed")}
+            onClick={() => router.push("/feeds")}
             type="button"
             variant="default"
           >
@@ -359,10 +356,12 @@ export default function Accounts() {
   const renderCreateNewOnchainAccountCard = () => (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Create a new Farcaster account onchain</CardTitle>
+        <CardTitle className="text-2xl">
+          Create a new Farcaster account onchain
+        </CardTitle>
         <CardDescription>
-          No need to connect with Warpcast. 
-          Sign up directly with the Farcaster protocol onchain.
+          No need to connect with Warpcast. Sign up directly with the Farcaster
+          protocol onchain.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid">

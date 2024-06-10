@@ -5,7 +5,7 @@ import { Cross2Icon } from '@radix-ui/react-icons';
 type ModalProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  title?: string;
+  title?: string | React.ReactNode;
   description?: string;
   children?: React.ReactNode;
   focusMode?: boolean;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -41,7 +41,7 @@ const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
             <Button
               className="w-full"
               disabled={option.disabled}
-              onClick={() => option.onClick()}
+              onClick={() => option.onClick?.()}
             >
               {option.buttonText}
             </Button>

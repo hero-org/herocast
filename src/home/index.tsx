@@ -4,17 +4,15 @@ import { Dialog, Transition } from "@headlessui/react";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
+  UserGroupIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import {
-  Bars3Icon,
-  UserPlusIcon,
-} from "@heroicons/react/20/solid";
-import { classNames } from "../common/helpers/css";
+import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
+import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
-import AccountsRightSidebar from "../common/components/RightSidebar/AccountsRightSidebar";
-import ChannelsRightSidebar from "../common/components/RightSidebar/ChannelsRightSidebar";
-import { CUSTOM_CHANNELS, useAccountStore } from "../stores/useAccountStore";
+import RightSidebar from "@/common/components/Sidebar/RightSidebar";
+import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
+import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import {
   BellIcon,
   MagnifyingGlassIcon,
@@ -24,17 +22,16 @@ import {
 import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import herocastImg from "../../public/images/logo.png";
-import {
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 import { Toaster } from "@/components/ui/sonner";
+import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
+import { cn } from "@/lib/utils";
+import { Loading } from "@/common/components/Loading";
 
 type NavigationItemType = {
   name: string;
   router: string;
   icon: any;
-  getTitle?: () => string;
+  getTitle?: () => string | JSX.Element;
   shortcut?: string;
 };
 
@@ -43,13 +40,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { allChannels, selectedChannelUrl } = useAccountStore();
+  const { allChannels, selectedChannelUrl, hydratedAt } = useAccountStore();
 
   const getFeedTitle = () => {
-    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
       return "Following Feed";
     }
-    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING) {
+    if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING.toString()) {
       return "Trending Feed";
     }
 
@@ -57,35 +54,53 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       (channel) => channel.url === selectedChannelUrl
     );
     if (selectedChannelIdx !== -1) {
-      return `${allChannels[selectedChannelIdx]?.name} channel`;
+      const channel = allChannels[selectedChannelIdx];
+      return (
+        <div className="flex max-w-sm items-center">
+          {channel.icon_url && (
+            <img
+              src={channel.icon_url}
+              alt=""
+              className={cn(
+                "mr-1 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+              )}
+            />
+          )}
+          <span className="flex-nowrap truncate">{channel.name} channel</span>
+        </div>
+      );
     }
     return "Feed";
   };
 
   const navigation: NavigationItemType[] = [
     {
-      name: "Feed",
-      router: "/feed",
+      name: "Feeds",
+      router: "/feeds",
       icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       getTitle: getFeedTitle,
       shortcut: "Shift + F",
     },
-    { 
+    {
       name: "New Post",
-      router: "/post", 
-      icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />, 
-      shortcut: "C" 
+      router: "/post",
+      icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      shortcut: "C",
     },
     {
       name: "Search",
       router: "/search",
-      icon: <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      icon: (
+        <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+      ),
       shortcut: "/",
     },
     {
       name: "Channels",
       router: "/channels",
-      icon: <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      icon: (
+        <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+      ),
       shortcut: "Shift + C",
     },
     {
@@ -102,9 +117,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       shortcut: "Shift + N",
     },
     {
-      name: "Hats Protocol",
+      name: "Shared Accounts",
       router: "/hats",
-      icon: <img src="/images/HatsProtocol.png" className="grayscale group-hover:grayscale-0 max-h-5" aria-hidden="true" />,
+      icon: <UserGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
     },
     {
       name: "Settings",
@@ -116,16 +131,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
     switch (pathname) {
-      case "/feed":
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
+      case "/feeds":
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/post":
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/channels":
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS;
-      case "/accounts":
-        return RIGHT_SIDEBAR_ENUM.ACCOUNTS;
-      case "/notifications":
         return RIGHT_SIDEBAR_ENUM.NONE;
+      case "/notifications":
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
     }
@@ -133,8 +146,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const onClickItem = (item: NavigationItemType) => {
     if (pathname === "/login") return;
-    router.push(item.router);
     setSidebarOpen(false);
+    router.push(item.router);
   };
 
   const navItem = navigation.find((item) => item.router === pathname) || {
@@ -147,10 +160,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const renderRightSidebar = () => {
     switch (sidebarType) {
-      case RIGHT_SIDEBAR_ENUM.ACCOUNTS_AND_CHANNELS:
-        return <AccountsRightSidebar showChannels />;
-      case RIGHT_SIDEBAR_ENUM.ACCOUNTS:
-        return <AccountsRightSidebar />;
+      case RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR:
+        return <RightSidebar showChannels showAuthorInfo />;
+      case RIGHT_SIDEBAR_ENUM.CAST_INFO:
+        return <RightSidebar showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.NONE:
@@ -164,8 +177,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const renderAccountSidebar = () => <AccountsRightSidebar />;
-
   if (pathname === "/login") {
     return children;
   }
@@ -176,7 +187,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         <Dialog
           as="div"
           className="relative z-5 lg:hidden"
-          onClose={setSidebarOpen}
+          onClose={() => setSidebarOpen(false)}
         >
           <Transition.Child
             as={Fragment}
@@ -237,10 +248,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     </h2>
                   </div>
                   <nav className="flex flex-1 flex-col">
-                    <ul
-                      role="list"
-                      className="flex flex-1 flex-col gap-y-7"
-                    >
+                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
                       <li>
                         <ul role="list" className="-mx-2 space-y-1">
                           {navigation.map((item) => (
@@ -262,7 +270,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                         </ul>
                       </li>
                       <ThemeToggle />
-                      {renderAccountSidebar()}
                     </ul>
                   </nav>
                 </div>
@@ -274,57 +281,45 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
       {/* Static sidebar for desktop */}
       {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:bg-background border-r border-muted">
+      <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:w-64 lg:overflow-y-auto lg:bg-background border-r border-muted">
         {/* Sidebar component, swap this element with another sidebar if you like */}
-        <div className="flex grow flex-col min-h-full gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-white/5">
+        <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
           <div className="flex h-16 shrink-0 items-center">
-            <h2 className="text-2xl font-bold leading-7 text-white sm:truncate sm:tracking-tight">
+            <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
               herocast
             </h2>
-            <img
-              className="h-8 w-auto"
-              src={herocastImg.src}
-              alt="herocast"
-            />
           </div>
-          <div className="h-full min-h-full flex flex-col justify-between">
+          <div className="flex flex-col justify-between">
             <nav className="mt-0">
-              <ul
-                role="list"
-                className="flex flex-col items-center space-y-1"
-              >
+              <ul role="list" className="flex flex-col items-left space-y-1">
                 {navigation.map((item) => (
                   <li key={item.name}>
-                    <TooltipProvider
-                      delayDuration={50}
-                      skipDelayDuration={0}
+                    <div
+                      onClick={() => onClickItem(item)}
+                      className={classNames(
+                        item.router === pathname
+                          ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                        "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                      )}
                     >
-                      <HotkeyTooltipWrapper hotkey={item.name} side="right">
-                          <div
-                            onClick={() => onClickItem(item)}
-                            className={classNames(
-                              item.router === pathname
-                                ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                              "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                            )}
-                          >
-                            {item.icon}
-                            <span className="sr-only">{item.name}</span>
-                          </div>
-                        </HotkeyTooltipWrapper>
-                    </TooltipProvider>
+                      {item.icon}
+                      <span className="">{item.name}</span>
+                    </div>
                   </li>
                 ))}
               </ul>
             </nav>
           </div>
-          <ThemeToggle />
+          <div className="mt-auto flex flex-row space-x-2 py-4">
+            <AccountSwitcher />
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
-      <div className="lg:pl-20">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+      <div className="lg:pl-64">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-3">
           <button
             type="button"
             className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
@@ -375,12 +370,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         </div>
         <main
           className={classNames(
-            sidebarType === RIGHT_SIDEBAR_ENUM.NONE
-              ? ""
-              : "md:pr-48 lg:pr-64"
+            sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "md:pr-48 lg:pr-64"
           )}
         >
           <div className="w-full max-w-full min-h-screen flex justify-between">
+            {!hydratedAt && (
+              <Loading className="ml-8" loadingMessage="Loading herocast" />
+            )}
             {children}
           </div>
           {renderRightSidebar()}

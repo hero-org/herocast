@@ -5,7 +5,6 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { TooltipArrow } from "@radix-ui/react-tooltip";
 
 type HotkeyTooltipWrapperProps = {
   hotkey?: string | React.ReactNode;

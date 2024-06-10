@@ -161,7 +161,7 @@ export default function Settings() {
           Herocast account
         </h1>
       </div>
-      <div className="flex flex-row mt-4 px-2">
+      <div className="flex flex-row mt-4 pr-2">
         <span className="text-sm font-semibold text-foreground/80 mr-2">
           Email
         </span>
@@ -169,11 +169,11 @@ export default function Settings() {
           {displayEmail}
         </span>
       </div>
+        <Button variant="default" onClick={() => onLogout()} className="w-20">
+          Log out
+        </Button>
       <div className="flex flex-row gap-4">
         <SwitchWalletButton />
-        <Button variant="default" onClick={() => onLogout()} className="w-20">
-          Logout
-        </Button>
       </div>
       <div className="flex justify-between pb-2 border-b border-gray-200">
         <h1 className="text-xl font-semibold leading-7 text-foreground/80">
@@ -229,7 +229,7 @@ export default function Settings() {
               </Button>
               <AlertDialogDemo
                 buttonText={`Remove`}
-                onClick={() => removeAccount(idx)}
+                onClick={() => removeAccount(item.id)}
               />
             </div>
           </li>

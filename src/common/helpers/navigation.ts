@@ -3,7 +3,8 @@ import { open } from '@tauri-apps/api/shell';
 
 export const openWindow = (url: string) => {
   if (!url) return;
-
+  url = url.match(/^https?:/) ? url : '//' + url;
+  
   if (RUNNING_IN_TAURI) {
     open(url);
   } else {

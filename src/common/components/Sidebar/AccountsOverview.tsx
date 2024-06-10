@@ -3,12 +3,9 @@ import {
   AccountObjectType,
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   useAccountStore,
-} from "../../../../src/stores/useAccountStore";
-import { ArrowDownTrayIcon, UserPlusIcon } from "@heroicons/react/24/outline";
-import EmptyStateWithAction from "../../../../src/common/components/EmptyStateWithAction";
-import { classNames } from "../../../../src/common/helpers/css";
-import isEmpty from "lodash.isempty";
-import ChannelsOverview from "./ChannelsOverview";
+} from "@/stores/useAccountStore";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { classNames } from "@/common/helpers/css";
 import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
@@ -18,26 +15,13 @@ import {
   AccountStatusType,
 } from "@/common/constants/accounts";
 
-type AccountsRightSidebarProps = {
-  showChannels?: boolean;
-};
-
-const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
+const AccountsOverview = () => {
   const router = useRouter();
 
-  const { accounts, selectedAccountIdx, setCurrentAccountIdx } =
+  const { hydratedAt, accounts, selectedAccountIdx, setCurrentAccountIdx } =
     useAccountStore();
 
-  const renderEmptyState = () => (
-    <div className="ml-6">
-      <EmptyStateWithAction
-        title="Connect Farcaster accounts"
-        description="Get started with herocast"
-        onClick={() => router.push("/accounts")}
-        submitText="Connect account"
-      />
-    </div>
-  );
+  const selectedAccount = accounts[selectedAccountIdx];
 
   const renderStatus = (status: string) => {
     switch (status) {
@@ -94,7 +78,6 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
       router.push(`/accounts`);
     }
   };
-
   const renderAccounts = () => (
     <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
       <ul role="list" className="mx-4 divide-y divide-white/5">
@@ -113,7 +96,7 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
               key={`${account.name}-${account.id}`}
               className="px-2 py-2 sm:px-3 lg:px-4"
             >
-              <HotkeyTooltipWrapper hotkey={getTooltipText()} side="left">
+              <HotkeyTooltipWrapper hotkey={getTooltipText()} side="top">
                 <div
                   onClick={() => onClickAccount(idx, isActive, isReadOnly)}
                   className="flex items-center gap-x-3 cursor-pointer group"
@@ -151,23 +134,12 @@ const AccountsRightSidebar = ({ showChannels }: AccountsRightSidebarProps) => {
     </Tooltip.Provider>
   );
 
-  const renderChannels = () => {
-    return (
-      <div className="mt-4">
-        <ChannelsOverview />
-      </div>
-    );
-  };
-
   return (
-    <aside className="min-h-full bg-background md:fixed md:bottom-0 md:right-0 md:top-16 md:w-48 lg:w-64 md:border-l md:border-foreground/5">
-      <div className="">
-        <SidebarHeader title="Accounts" />
-        {isEmpty(accounts) ? renderEmptyState() : renderAccounts()}
-        {showChannels && renderChannels()}
-      </div>
-    </aside>
+    <div>
+      <SidebarHeader title="Accounts" />
+      {renderAccounts()}
+    </div>
   );
 };
 
-export default AccountsRightSidebar;
+export default AccountsOverview;

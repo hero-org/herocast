@@ -1,68 +1,85 @@
 import React, { useEffect, useRef, useState } from "react";
-import { InformationCircleIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { searchForText, SearchResultCast } from "../../src/common/helpers/searchcaster";
+import {
+  InformationCircleIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
+import {
+  searchForText,
+  SearchResultCast,
+} from "../../src/common/helpers/searchcaster";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import debounce from "lodash.debounce";
 import { CastRow } from "../../src/common/components/CastRow";
-import { CastType } from "../../src/common/constants/farcaster";
 import { getUrlsInText } from "../../src/common/helpers/text";
+import {
+  CastWithInteractions,
+  UserObjectEnum,
+  ReactionLike,
+  ReactionRecast,
+} from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { ActiveStatus } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-recommendation";
 
-
-// export type CastType = {
-//   author: AuthorType
-//   hash: string
-//   parent_author: AuthorType | { fid?: string } | null
-//   parent_hash: string | null
-//   parent_url: string | null
-//   reactions: CastReactionsType
-//   text: string
-//   thread_hash: string | null
-//   timestamp: string
-//   embeds: EmbedType[]
-//   replies: { count: number }
-// }
-
-// this transform isn't perfect yet
-function transformToCastType(searchCasts: SearchResultCast[]): CastType[] {
+function transformToCastType(
+  searchCasts: SearchResultCast[]
+): CastWithInteractions[] {
   return searchCasts.map((searchCast) => ({
     author: {
-      fid: '',
+      fid: -1,
       username: searchCast.body.username,
       displayName: searchCast.meta.displayName,
       pfp_url: searchCast.meta.avatar,
+      object: UserObjectEnum.User,
+      display_name: "",
+      custody_address: "",
+      profile: {
+        bio: {
+          text: "",
+          mentioned_profiles: [],
+        },
+      },
+      follower_count: -1,
+      following_count: -1,
+      verifications: [],
+      verified_addresses: { eth_addresses: [], sol_addresses: [] },
+      active_status: ActiveStatus.Active,
+      power_badge: true,
     },
     hash: searchCast.merkleRoot,
     parent_author: {
-      fid: '',
+      fid: searchCast.meta.replyParentUsername.fid,
       username: searchCast.meta.replyParentUsername.username,
       displayName: searchCast.meta.replyParentUsername.username,
-      pfp_url: '',
+      pfp_url: "",
     },
     parent_hash: searchCast.body.data.replyParentMerkleRoot,
-    parent_url: '',
+    parent_url: "",
     reactions: {
       count: searchCast.meta.reactions.count,
       type: searchCast.meta.reactions.type,
+      likes: [] as ReactionLike[],
+      recasts: [] as ReactionRecast[],
+      likes_count: searchCast.meta.reactions.count,
+      recasts_count: searchCast.meta.reactions.count,
     },
     text: searchCast.body.data.text,
     thread_hash: searchCast.body.data.threadMerkleRoot,
     timestamp: new Date(searchCast.body.publishedAt).toISOString(),
     embeds: getUrlsInText(searchCast.body.data.text),
     replies: { count: searchCast.meta.numReplyChildren },
-  }))
+    mentioned_profiles: [],
+    root_parent_url: "",
+  }));
 }
 
-
-
 export default function Search() {
-  const [search, setSearch] = useState('');
-  const [casts, setCasts] = useState<CastType[]>([]);
+  const [search, setSearch] = useState("");
+  const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const onChange = async (text: string) => {
-    setSearch(text)
-  }
+    setSearch(text);
+  };
 
   const debouncedSearch = useRef(
     debounce(async (text) => {
@@ -77,7 +94,7 @@ export default function Search() {
     if (search.length < 3) return;
 
     debouncedSearch(search);
-  }, [search])
+  }, [search]);
 
   useEffect(() => {
     return () => {
@@ -85,9 +102,11 @@ export default function Search() {
     };
   }, [debouncedSearch]);
 
-  const renderSearchResultRow = (row: CastType, idx: number) => (
-    <li key={row.hash}
-      className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl">
+  const renderSearchResultRow = (row: CastWithInteractions, idx: number) => (
+    <li
+      key={row.hash}
+      className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl"
+    >
       <CastRow
         cast={row}
         isSelected={selectedIdx === idx}
@@ -95,7 +114,7 @@ export default function Search() {
         showChannel
       />
     </li>
-  )
+  );
 
   return (
     <div className="min-w-0 flex-1 px-12 mt-12">
@@ -121,10 +140,17 @@ export default function Search() {
       <div className="mt-8 mb-8 w-full max-w-2xl rounded-sm bg-blue-800 p-3">
         <div className="flex">
           <div className="flex-shrink-0">
-            <InformationCircleIcon className="h-5 w-5 text-blue-300" aria-hidden="true" />
+            <InformationCircleIcon
+              className="h-5 w-5 text-blue-300"
+              aria-hidden="true"
+            />
           </div>
           <div className="ml-3 flex-1 md:flex md:justify-between">
-            <p className="text-sm text-blue-300">early search prototype, liking and recasting doesn&apos;t work yet<br />use Cmd + Shift + F to cast feedback</p>
+            <p className="text-sm text-blue-300">
+              early search prototype, liking and recasting doesn&apos;t work yet
+              <br />
+              use Cmd + Shift + F to cast feedback
+            </p>
           </div>
         </div>
       </div>
@@ -147,5 +173,5 @@ export default function Search() {
         onSelect={(idx) => setSelectedIdx(idx)}
       />
     </div>
-  )
+  );
 }

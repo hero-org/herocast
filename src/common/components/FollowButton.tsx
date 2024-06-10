@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { followUser, unfollowUser } from "../helpers/farcaster";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import { AccountPlatformType } from "../constants/accounts";
@@ -21,7 +21,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   const selectedAccount = accounts[selectedAccountIdx];
 
   const [isPending, setIsPending] = useState(false);
-  const profile = useDataStore((state) => get(state.usernameToData, username));
+  const profile = useDataStore((state) => get(state.fidToData, get(state.usernameToFid, username)));
 
   useEffect(() => {
     if (!profile) return;

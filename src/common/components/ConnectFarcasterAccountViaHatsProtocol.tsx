@@ -41,7 +41,8 @@ import {
   AccountStatusType,
 } from "@/common/constants/accounts";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { JoinedHerocastViaHatsProtocolDraft, useNewPostStore } from "@/stores/useNewPostStore";
+import { useNewPostStore } from "@/stores/useNewPostStore";
+import { JoinedHerocastViaHatsProtocolDraft } from "../constants/postDrafts";
 import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { isValidSignature, isValidSigner } from "@/lib/hats";
@@ -219,7 +220,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         return;
       }
     } else {
-      hexStringPublicKey = hatsProtocolPendingAccounts[0].publicKey;
+      hexStringPublicKey = hatsProtocolPendingAccounts[0].publicKey!;
       hexStringPrivateKey = hatsProtocolPendingAccounts[0].privateKey!;
     }
 
@@ -314,7 +315,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     const activateAccount = async () => {
       setState(HatsProtocolSignupSteps[4]);
       const username = await getUsernameForFid(Number(fid));
-      setAccountActive(hatsProtocolPendingAccounts[0].id!, username, {
+      setAccountActive(hatsProtocolPendingAccounts[0].id, username, {
         platform_account_id: fid.toString(),
         data: {},
       });

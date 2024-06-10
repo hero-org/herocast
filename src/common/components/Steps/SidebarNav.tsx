@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { classNames } from "@/common/helpers/css";
-import { CheckCircleIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon, PlayCircleIcon } from "@heroicons/react/20/solid";
 import findIndex from "lodash.findindex";
 import includes from "lodash.includes";
 

@@ -56,8 +56,8 @@ const RecommendedProfilesCard = () => {
   }, []);
 
   useEffect(() => {
-    profiles.forEach((profile) => {
-      addUserProfile({ username: profile.username, data: profile });
+    profiles.forEach((user) => {
+      addUserProfile({ user });
     });
   }, [profiles]);
 

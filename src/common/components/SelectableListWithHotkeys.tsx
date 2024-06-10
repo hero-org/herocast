@@ -9,7 +9,7 @@ type SelectableListWithHotkeysProps = {
   renderRow: (item: any, idx: number) => React.ReactNode,
   selectedIdx: number,
   setSelectedIdx: (idx: number) => void,
-  onSelect: (idx: number) => void,
+  onSelect?: (idx: number) => void,
   disableScroll?: boolean,
   onExpand?: (idx: number) => void,
   isActive?: boolean,
@@ -44,7 +44,7 @@ export const SelectableListWithHotkeys = ({
 
 
   useHotkeys(['o', Key.Enter], () => {
-    onSelect(selectedIdx);
+    onSelect?.(selectedIdx);
   }, [selectedIdx], {
     enabled: isActive
   })

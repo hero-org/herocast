@@ -1,26 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { useAccount, useWalletClient } from "wagmi";
 import { UserDataType } from "@farcaster/hub-web";
 import { setUserDataInProtocol } from "@/common/helpers/farcaster";
 import { AccountObjectType } from "@/stores/useAccountStore";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { optimism } from "viem/chains";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import ImgurUpload from "../ImgurUpload";
 import { Input } from "@/components/ui/input";
@@ -51,7 +36,7 @@ const ChangeProfilePictureForm = ({
       const user = (
         await neynarClient.fetchBulkUsers(
           [Number(account.platformAccountId!)],
-          { viewerFid: APP_FID! }
+          { viewerFid: APP_FID }
         )
       ).users[0];
       if (user) {
@@ -94,7 +79,7 @@ const ChangeProfilePictureForm = ({
       {" "}
       <ImgurUpload onSuccess={setNewPfpUrl} />
       <Input
-        size="sm"
+        variantSize="sm"
         placeholder="https://i.imgur.com/..."
         onChange={(e) => setNewPfpUrl(e.target.value)}
       />

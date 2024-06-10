@@ -71,14 +71,14 @@ export const SharedAccountOwnershipSetup = ({
 
   const renderExistingTreeStep = () => (
     <div className="flex flex-col space-x-2 lg:flex-row lg:space-x-8">
-      <div className="w-1/2">
-        <DeployHatsDelegatorContract
-          onSuccess={onSuccess}
-          delegatorContractAddress={delegatorContractAddress}
-          setDelegatorContractAddress={setDelegatorContractAddress}
+      <div className="lg:w-1/2">
+      <DeployHatsDelegatorContract
+        onSuccess={onSuccess}
+        delegatorContractAddress={delegatorContractAddress}
+        setDelegatorContractAddress={setDelegatorContractAddress}
         />
       </div>
-      <div className="w-1/2 mt-4 lg:mt-0">
+      <div className="mt-4 lg:w-1/2 lg:mt-0">
         <div className="mx-0 max-w-2xl">
           <h3 className="text-lg font-semibold tracking-tight text-foreground">
             How to get your Hats IDs

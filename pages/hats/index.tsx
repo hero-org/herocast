@@ -1,16 +1,16 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import StepSequence from "@/common/components/Steps/StepSequence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAccount } from "wagmi";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import BigOptionSelector from "@/common/components/BigOptionSelector";
 import TransferAccountToHatsDelegator from "@/common/components/HatsProtocol/TransferAccountToHatsDelegator";
 import CreateHatsTreeForm from "@/common/components/HatsProtocol/CreateHatsTreeForm";
+import { NeynarAPIClient, convertToV2User } from "@neynar/nodejs-sdk";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import BigOptionSelector from "@/common/components/BigOptionSelector";
 import isEmpty from "lodash.isempty";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { Loading } from "@/common/components/Loading";
@@ -62,7 +62,7 @@ const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
 export default function HatsProtocolPage() {
   const [step, setStep] = useState<HatsSignupNav>(HatsSignupNav.select_account);
-  const [accountToTransfer, setAccountToTransfer] = useState<User | null>();
+  const [accountToTransfer, setAccountToTransfer] = useState<User>();
   const [delegatorContractAddress, setDelegatorContractAddress] = useState<
     `0x${string}` | null
   >();
@@ -77,6 +77,17 @@ export default function HatsProtocolPage() {
   const shareWithOthersText = `Join my shared Farcaster account with delegator contract
   address ${delegatorContractAddress} and FID ${accountToTransfer?.fid}`;
 
+  const getUserByFid = async (fid: number): Promise<User | undefined> => {
+    const neynarClient = new NeynarAPIClient(
+      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+    );
+    const viewerFid = Number(APP_FID);
+    const res = await neynarClient.fetchBulkUsers([fid], {
+      viewerFid,
+    });
+    return res?.users?.[0];
+  };
+
   const fetchUser = async () => {
     if (!userInput) return;
 
@@ -86,19 +97,32 @@ export default function HatsProtocolPage() {
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
 
+      const viewerFid = Number(APP_FID);
       let fid: number | undefined;
       const isNumeric = /^-?\d+$/.test(userInput);
       if (isNumeric) {
         fid = Number(userInput);
-        const res = await neynarClient.fetchBulkUsers([fid], {
-          viewerFid: Number(APP_FID),
-        });
-        console.log("res", res);
-        setAccountToTransfer(res?.users?.[0]);
+        setAccountToTransfer(await getUserByFid(fid));
       } else {
-        const res = await neynarClient.searchUser(userInput, parseInt(APP_FID));
-        console.log("res", res);
-        setAccountToTransfer(res.result?.users?.[0]);
+        const userSearchTerm = userInput.replace("@", "").trim();
+        let user: User | undefined;
+        try {
+          const userByUsername = await neynarClient.lookupUserByUsername(
+            userSearchTerm,
+            viewerFid
+          );
+          if (userByUsername?.result?.user) {
+            user = convertToV2User(userByUsername.result.user);
+          }
+        } catch (error) {
+          /* neynar throws if lookupUserByUsername fails, but it's okay */
+        }
+
+        if (!user) {
+          const res = await neynarClient.searchUser(userSearchTerm, viewerFid);
+          user = res?.result?.users?.[0];
+        }
+        setAccountToTransfer(user);
       }
     } catch (error) {
       console.error(error);
@@ -136,7 +160,7 @@ export default function HatsProtocolPage() {
           placeholder="herocast"
           value={userInput}
           onChange={(e) => {
-            if (accountToTransfer) setAccountToTransfer(null);
+            if (accountToTransfer) setAccountToTransfer(undefined);
             if (infoMessage) setInfoMessage(null);
             setUserInput(e.target.value);
           }}
@@ -303,7 +327,7 @@ export default function HatsProtocolPage() {
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <TransferAccountToHatsDelegator
-              user={accountToTransfer}
+              user={accountToTransfer!}
               onSuccess={() => setStep(HatsSignupNav.invite)}
               toAddress={delegatorContractAddress!}
             />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   HoverCard,
   HoverCardContent,
@@ -8,11 +8,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { openWindow } from "../helpers/navigation";
 import { Loading } from "./Loading";
 import { useInView } from "react-intersection-observer";
-import { useDataStore } from "@/stores/useDataStore";
+import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import FollowButton from "./FollowButton";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { getUserDataForFidOrUsername } from "../helpers/neynar";
+import { formatLargeNumber } from "../helpers/text";
 
 type ProfileHoverCardProps = {
   fid?: number;
@@ -21,17 +21,16 @@ type ProfileHoverCardProps = {
   children: React.ReactNode;
 };
 
-const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-);
-
 const getProfile = (dataStoreState, username, fid) => {
   if (username) {
-    return get(dataStoreState.usernameToData, username);
+    return get(
+      dataStoreState.fidToData,
+      get(dataStoreState.usernameToFid, username)
+    );
   } else {
     return get(dataStoreState.fidToData, fid);
   }
-}
+};
 
 const ProfileHoverCard = ({
   fid,
@@ -39,7 +38,7 @@ const ProfileHoverCard = ({
   viewerFid,
   children,
 }: ProfileHoverCardProps) => {
-  const { addUserProfile, usernameToData } = useDataStore();
+  const { addUserProfile } = useDataStore();
   const profile = useDataStore((state) => getProfile(state, username, fid));
   const { ref, inView } = useInView({
     threshold: 0,
@@ -52,31 +51,26 @@ const ProfileHoverCard = ({
     if (!inView || profile) return;
 
     const getData = async () => {
-      try {
-        let users: User[] = [];
-        if (username) {
-          const resp = await neynarClient.searchUser(username, viewerFid);
-          users = resp?.result?.users;
-        } else if (fid) {
-          const resp = await neynarClient.fetchBulkUsers([fid], { viewerFid });
-          users = resp?.users;
-        }
-        if (users.length) {
-          users.forEach((user) => {
-            addUserProfile({ username: user.username, data: user });
-          });
-        }
-      } catch (err) {
-        console.log("ProfileHoverCard: err getting data", err);
+      const users = await getUserDataForFidOrUsername({
+        username,
+        fid,
+        viewerFid,
+      });
+      if (users.length) {
+        users.forEach((user) => {
+          addUserProfile({ user });
+        });
       }
     };
 
-    getData();
+    if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
+      getData();
+    }
   }, [inView, profile, viewerFid]);
 
   const onClick = () => {
     openWindow(
-      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`
+      `https://warpcast.com/${profile?.username || username}`
     );
   };
 
@@ -87,7 +81,7 @@ const ProfileHoverCard = ({
       </HoverCardTrigger>
       <HoverCardContent
         onClick={onClick}
-        side="right"
+        side="bottom"
         className="border border-gray-400 overflow-hidden"
       >
         <div className="space-y-2">
@@ -100,7 +94,7 @@ const ProfileHoverCard = ({
           </div>
           <div>
             <h2 className="text-md font-semibold">{profile?.display_name}</h2>
-            <h3 className="text-sm font-regular">@{username}</h3>
+            <h3 className="text-sm font-regular">@{profile?.username}</h3>
           </div>
           {profile ? (
             <>
@@ -109,12 +103,12 @@ const ProfileHoverCard = ({
               </p>
               <div className="flex items-center pt-2 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">
-                  {profile?.following_count}
+                  {formatLargeNumber(profile.following_count)}
                   &nbsp;
                 </span>
                 following
                 <span className="ml-2 font-semibold text-foreground">
-                  {profile?.follower_count}
+                  {formatLargeNumber(profile?.follower_count)}
                   &nbsp;
                 </span>
                 followers

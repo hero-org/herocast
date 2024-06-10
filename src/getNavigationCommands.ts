@@ -22,11 +22,11 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
             },
         },
         {
-            name: 'Switch to Feed',
+            name: 'Switch to Feeds',
             aliases: ['scroll',],
             icon: Bars3BottomLeftIcon,
             shortcut: 'shift+f',
-            action: () => router.push('/feed'),
+            action: () => router.push('/feeds'),
             options: {
                 enableOnFormTags: false,
             },

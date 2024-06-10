@@ -12,3 +12,7 @@ export const toastInfoReadOnlyMode = () => {
 export const toastSuccessCastPublished = (text: string) => {
     toast.success('Cast published successfully', { description: truncate(text, { length: 25 }) });
 }
+
+export const toastErrorCastPublish = (err?: string) => {
+    toast.error('Error publishing cast :(', { description: err, duration: 5000 });
+}

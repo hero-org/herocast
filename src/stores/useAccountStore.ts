@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
 import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
 import { ChannelType } from "../../src/common/constants/channels";
 import { CommandType } from "../../src/common/constants/commands";
@@ -21,6 +24,7 @@ import { getUsernameForFid } from "@/common/helpers/farcaster";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
+const CHANNEL_UPDATE_RELEASE_DATE = 1717413090288;
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 export enum CUSTOM_CHANNELS {
@@ -78,7 +82,7 @@ export type AccountObjectType = {
   platformAccountId?: string;
   privateKey?: `0x${string}`;
   createdAt?: string;
-  data?: { deeplinkUrl?: string, signerToken?: string };
+  data?: { deeplinkUrl?: string, signerToken?: string, deadline?: number };
   channels: AccountChannelType[];
   user?: User;
 }
@@ -97,7 +101,8 @@ interface AccountStoreActions {
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => void;
   updateAccountUsername: (accountId: UUID) => void;
-  removeAccount: (idx: number) => void;
+  removeAccount: (id: string) => void;
+  setCurrentAccountById: (platformAccountId: string) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setSelectedChannelUrl: (url: string | null) => void;
   setSelectedChannelByName: (name: string) => void;
@@ -138,6 +143,7 @@ const store = (set: StoreSet) => ({
       });
       return;
     } else {
+      console.log('adding account to DB', account)
       await supabaseClient
         .from('accounts')
         .insert({
@@ -207,17 +213,18 @@ const store = (set: StoreSet) => ({
     });
     await new Promise(resolve => setTimeout(resolve, 500)); // sleep to avoid rate limiting
   },
-  removeAccount: (idx: number) => {
-    set(async (state) => {
-      await supabaseClient
-        .from('accounts')
-        .update({ status: AccountStatusType.removed })
-        .eq('id', state.accounts[idx].id)
-        .select()
-        .then(({ error, data }) => {
-          // console.log('response removeAccount - data', data, 'error', error);
-        });
+  removeAccount: async (id: string) => {
+    await supabaseClient
+      .from('accounts')
+      .update({ status: AccountStatusType.removed })
+      .eq('id', id)
+      .select()
+      .then(({ error, data }) => {
+        console.log('removeAccount - data', data, 'error', error);
+      });
 
+    set((state) => {
+      const idx = state.accounts.findIndex((account) => account.id === id);
       const copy = [...state.accounts];
       copy.splice(idx, 1);
       state.accounts = copy;
@@ -228,6 +235,15 @@ const store = (set: StoreSet) => ({
       state.selectedAccountIdx = idx;
     });
   },
+  setCurrentAccountById: (accountId: string) => {
+    set((state) => {
+      const idx = state.accounts.findIndex((account) => account.id === accountId);
+
+      if (idx >= 0) {
+        state.selectedAccountIdx = idx;
+      }
+    });
+  },
   setSelectedChannelUrl: (url: string) => {
     set((state) => {
       state.selectedChannelUrl = url;
@@ -236,7 +252,7 @@ const store = (set: StoreSet) => ({
   setSelectedChannelByName: (name: string) => {
     set((state) => {
       name = (name.startsWith('/') ? name.slice(1) : name).toLowerCase();
-      const channel = state.allChannels.find((channel) => channel.name === name);
+      const channel = state.allChannels.find((channel) => channel.name === name || channel.url === `https://warpcast.com/~/channel/${name}`);
       if (channel) {
         state.selectedChannelUrl = channel.url;
       }
@@ -372,7 +388,7 @@ const store = (set: StoreSet) => ({
                 console.log('failed to update channel', channels[oldIndex].id)
                 return;
               }
-            });
+            })
         }
       }
       state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
@@ -460,14 +476,18 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
-      const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
-      accounts = accounts.map((account) => {
-        const user = users.find((user) => user.fid === Number(account.platformAccountId));
-        if (user) {
-          account.user = user;
-        }
-        return account;
-      });
+      try {
+        const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
+        accounts = accounts.map((account) => {
+          const user = users.find((user) => user.fid === Number(account.platformAccountId));
+          if (user) {
+            account.user = user;
+          }
+          return account;
+        });
+      } catch (e) {
+        console.log('error failed to fetch user metadata', e);
+      }
     }
     return accounts;
   }
@@ -484,7 +504,7 @@ export const hydrateChannels = async () => {
   let allChannels: ChannelType[] = state.allChannels;
   let hydratedAt = state.hydratedAt;
 
-  const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE;
+  const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE || state.hydratedAt < CHANNEL_UPDATE_RELEASE_DATE;
   if (shouldRehydrate) {
     allChannels = await fetchAllChannels();
     hydratedAt = Date.now();
@@ -551,7 +571,7 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
     },
@@ -563,7 +583,7 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
     },
@@ -577,7 +597,7 @@ const getChannelCommands = () => {
       options: {
         enableOnFormTags: false,
       },
-      navigateTo: '/feed',
+      navigateTo: '/feeds',
       action: () => {
         const { accounts, selectedAccountIdx } = useAccountStore.getState();
         const channels = accounts[selectedAccountIdx]?.channels;
@@ -593,7 +613,7 @@ const getChannelCommands = () => {
   channelCommands.push(...[{
     name: `Switch to random channel`,
     aliases: ['random', 'lucky', 'discover'],
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       if (isEmpty(state.allChannels)) return;
@@ -605,7 +625,7 @@ const getChannelCommands = () => {
     name: 'Switch to next channel',
     aliases: ['next', 'forward'],
     shortcut: 'shift+j',
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
@@ -624,7 +644,7 @@ const getChannelCommands = () => {
     name: 'Switch to previous channel',
     aliases: ['previous', 'back'],
     shortcut: 'shift+k',
-    navigateTo: '/feed',
+    navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
@@ -650,7 +670,7 @@ const getChannelCommands = () => {
   return channelCommands;
 }
 
-const getCurrentChannelIndex = (channelUrl: string, channels) => {
+const getCurrentChannelIndex = (channelUrl: string, channels: ChannelType[]) => {
   const customChannelIdx = CUSTOM_CHANNEL_TO_IDX[channelUrl];
   if (customChannelIdx !== undefined) return customChannelIdx;
 

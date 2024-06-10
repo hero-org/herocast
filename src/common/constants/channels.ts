@@ -6,4 +6,10 @@ export type ChannelType = {
   url: string;
   icon_url?: string;
   source?: string;
+  description?: string;
+  data?: {
+    leadFid?: string;
+    moderatorFid?: string;
+    followerCount?: number;
+  };
 }

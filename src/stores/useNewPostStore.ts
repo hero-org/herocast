@@ -1,56 +1,48 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/require-await */
+
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import { create as mutativeCreate, Draft } from 'mutative';
-import { CommandType } from "../../src/common/constants/commands";
-import { PlusCircleIcon, TagIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { createJSONStorage, devtools, persist } from "zustand/middleware";
+import { create as mutativeCreate, Draft } from "mutative";
+import { CommandType } from "@/common/constants/commands";
+import {
+  PlusCircleIcon,
+  TagIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { AccountObjectType } from "./useAccountStore";
-import { DraftStatus, DraftType, ParentCastIdType } from "../../src/common/constants/farcaster";
+import {
+  DraftStatus,
+  DraftType,
+  ParentCastIdType,
+} from "@/common/constants/farcaster";
 import {
   getMentionFidsByUsernames,
   formatPlaintextToHubCastMessage,
-} from '@mod-protocol/farcaster';
+} from "@mod-protocol/farcaster";
 import { submitCast } from "@/common/helpers/farcaster";
-import { toHex } from "viem";
+import { toBytes, toHex } from "viem";
 import { CastId, Embed } from "@farcaster/hub-web";
 import { AccountPlatformType } from "@/common/constants/accounts";
-import { toastInfoReadOnlyMode, toastSuccessCastPublished } from "@/common/helpers/toast";
+import {
+  toastErrorCastPublish,
+  toastInfoReadOnlyMode,
+  toastSuccessCastPublished,
+} from "@/common/helpers/toast";
+import { NewFeedbackPostDraft, NewPostDraft } from "@/common/constants/postDrafts";
+import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import { CastModalView, useNavigationStore } from "./useNavigationStore";
 
-const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
-
-export const NewPostDraft: DraftType = {
-  text: "",
-  parentUrl: undefined,
-  parentCastId: undefined,
-  status: DraftStatus.writing,
-  mentionsToFids: {},
-};
-
-
-const NewFeedbackPostDraft: DraftType = {
-  text: "hey @hellno, feedback on @herocast: ",
-  parentUrl: "https://herocast.xyz",
-  status: DraftStatus.writing,
-  mentionsToFids: { 'herocast': '18665', 'hellno': '13596' }
-};
-
-export const JoinedHerocastPostDraft: DraftType = {
-  text: "I just joined @herocast! ",
-  status: DraftStatus.writing,
-  mentionsToFids: { 'herocast': '18665' }
-}
-
-export const JoinedHerocastViaHatsProtocolDraft: DraftType = {
-  text: "I just joined @herocast via @hatsprotocol",
-  status: DraftStatus.writing,
-  mentionsToFids: { 'herocast': '18665', 'hatsprotocol': '18484' }
-}
+const getMentionFids = getMentionFidsByUsernames(
+  process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!,
+);
 
 type addNewPostDraftProps = {
-  text?: string
-  parentUrl?: string
-  parentCastId?: ParentCastIdType
+  text?: string;
+  parentUrl?: string;
+  parentCastId?: ParentCastIdType;
+  embeds?: FarcasterEmbed[];
 };
-
 
 interface NewPostStoreProps {
   drafts: DraftType[];
@@ -59,43 +51,52 @@ interface NewPostStoreProps {
 interface NewPostStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
-  addNewPostDraft: ({ text, parentCastId, parentUrl }: addNewPostDraftProps) => void;
+  addNewPostDraft: ({ text, parentCastId, parentUrl, embeds }: addNewPostDraftProps) => void;
   addFeedbackDraft: () => void;
   removePostDraft: (draftId: number, onlyIfEmpty?: boolean) => void;
   removeAllPostDrafts: () => void;
-  publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost?: () => void) => Promise<string | null>;
+  publishPostDraft: (
+    draftIdx: number,
+    account: AccountObjectType,
+    onPost?: () => void,
+  ) => Promise<string | null>;
 }
 
 export interface NewPostStore extends NewPostStoreProps, NewPostStoreActions { }
 
-export const mutative = (config) =>
-  (set, get) => config((fn) => set(mutativeCreate(fn)), get);
+export const mutative = (config) => (set, get) =>
+  config((fn) => set(mutativeCreate(fn)), get);
 
 type StoreSet = (fn: (draft: Draft<NewPostStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   drafts: [],
-  addNewPostDraft: ({ text, parentUrl, parentCastId }: addNewPostDraftProps) => {
+  addNewPostDraft: ({ text, parentUrl, parentCastId, embeds }: addNewPostDraftProps) => {
     set((state) => {
-      const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId };
-      if (!text && !parentUrl && !parentCastId) {
+      if (!text && !parentUrl && !parentCastId && !embeds) {
+        // check if there is an existing empty draft
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
           if (!draft.text) {
-            return
+            return;
           }
         }
       }
       if (parentUrl || parentCastId) {
+        // check if there is an existing draft for the same parent
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
-          if ((parentUrl && parentUrl === draft.parentUrl) ||
-            (parentCastId && parentCastId.hash === draft.parentCastId?.hash)) {
+          if (
+            (parentUrl && parentUrl === draft.parentUrl) ||
+            (parentCastId &&
+              parentCastId.hash === draft.parentCastId?.hash)
+          ) {
             return;
           }
         }
       }
 
+      const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId, embeds };
       state.drafts = [...state.drafts, newDraft];
     });
   },
@@ -113,7 +114,10 @@ const store = (set: StoreSet) => ({
       ];
     });
   },
-  updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => {
+  updateMentionsToFids: (
+    draftIdx: number,
+    mentionsToFids: { [key: string]: string },
+  ) => {
     set((state) => {
       const draft = state.drafts[draftIdx];
       state.drafts = [
@@ -151,12 +155,21 @@ const store = (set: StoreSet) => ({
       state.drafts = [];
     });
   },
-  publishPostDraft: async (draftIdx: number, account: AccountObjectType, onPost?: () => null): Promise<void> => {
+  publishPostDraft: async (
+    draftIdx: number,
+    account: AccountObjectType,
+    onPost?: () => null,
+  ): Promise<void> => {
     set(async (state) => {
+      if (account.platform === AccountPlatformType.farcaster_local_readonly) {
+        toastInfoReadOnlyMode();
+        return;
+      }
+
       const draft = state.drafts[draftIdx];
 
       try {
-        state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
+        await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody: {
           text: string;
           embeds?: Embed[] | undefined;
@@ -166,26 +179,28 @@ const store = (set: StoreSet) => ({
           parentCastId?: CastId | { fid: number, hash: string };
         } | false = await formatPlaintextToHubCastMessage({
           text: draft.text,
-          embeds: draft.embeds,
+          embeds: draft.embeds || [],
           getMentionFidsByUsernames: getMentionFids,
           parentUrl: draft.parentUrl,
-          parentCastFid: Number(draft.parentCastId?.fid),
-          parentCastHash: draft.parentCastId?.hash,
+          parentCastFid: draft.parentCastId ? Number(draft.parentCastId.fid) : undefined,
+          parentCastHash: draft.parentCastId ? draft.parentCastId.hash : undefined,
         });
 
         if (!castBody) {
-          throw new Error('Failed to prepare cast');
+          throw new Error("Failed to prepare cast");
         }
         if (castBody.parentCastId) {
           castBody.parentCastId = {
             fid: Number(castBody.parentCastId.fid),
-            hash: toHex(castBody.parentCastId.hash)
-          }
+            hash: toHex(castBody.parentCastId.hash),
+          };
         }
-
-
-        if (account.platform === AccountPlatformType.farcaster_local_readonly) {
-          toastInfoReadOnlyMode();
+        if (castBody.embeds) {
+          castBody.embeds.forEach(embed => {
+            if ('castId' in embed) {
+              embed.castId = { fid: Number(embed.castId.fid), hash: toBytes(embed.castId.hash) };
+            }
+          });
         }
 
         await submitCast({
@@ -199,45 +214,51 @@ const store = (set: StoreSet) => ({
 
         if (onPost) onPost();
       } catch (error) {
-        console.log('caught error in newPostStore', error)
-        return `Error when posting ${error}`;
+        console.error('caught error in newPostStore', error);
+        toastErrorCastPublish(error instanceof Error ? error.message : String(error));
       }
     });
   },
 });
-export const useNewPostStore = create<NewPostStore>()(devtools(mutative(store)));
+export const useNewPostStore = create<NewPostStore>()(
+  persist(mutative(store), {
+    name: "herocast-post-store",
+    storage: createJSONStorage(() => sessionStorage),
+  }),
+);
 
 export const newPostCommands: CommandType[] = [
   {
-    name: 'Feedback (send cast to @hellno)',
-    aliases: ['opinion', 'debrief'],
+    name: "Feedback (send cast to @hellno)",
+    aliases: ["opinion", "debrief"],
     icon: TagIcon,
-    shortcut: 'cmd+shift+f',
+    shortcut: "cmd+shift+f",
     action: () => useNewPostStore.getState().addFeedbackDraft(),
-    navigateTo: '/post',
+    navigateTo: "/post",
     options: {
       enableOnFormTags: true,
     },
   },
   {
-    name: 'New Post',
-    aliases: ['new cast', 'write', 'create', 'compose', 'new draft'],
+    name: "New Post",
+    aliases: ["new cast", "write", "create", "compose", "new draft"],
     icon: PlusCircleIcon,
     shortcut: 'c',
-    action: () => useNewPostStore.getState().addNewPostDraft({}),
-    preventDefault: true,
-    navigateTo: '/post',
+    action: () => {
+      const { setCastModalView, openNewCastModal } = useNavigationStore.getState();
+      setCastModalView(CastModalView.New);
+      openNewCastModal();
+    },
     options: {
       enableOnFormTags: false,
       preventDefault: true,
     },
   },
   {
-    name: 'Remove all drafts',
-    aliases: ['cleanup'],
+    name: "Remove all drafts",
+    aliases: ["cleanup"],
     icon: TrashIcon,
     action: () => useNewPostStore.getState().removeAllPostDrafts(),
-    navigateTo: '/post',
+    navigateTo: "/post",
   },
-
 ];

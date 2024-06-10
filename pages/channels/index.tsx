@@ -35,7 +35,7 @@ export default function Channels() {
     updatedPinnedChannelIndices({ oldIndex, newIndex });
   };
 
-  const handleSearchChange = (e: event) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value.toLowerCase());
   };
 
@@ -106,9 +106,12 @@ export default function Channels() {
             <h2 className="text-lg font-medium text-foreground/80 leading-6">
               Pinned channels
             </h2>
+            <h3 className="text-sm font-medium text-foreground/80">
+              Pinned channels appear in your feeds. Drag to reorder.
+            </h3>
           </div>
         </div>
-        <ul role="list" className="mt-3 ">
+        <ul role="list" className="mt-4">
           {isEmpty(channels) ? (
             <div className="mt-0.5 h-14 col-span-2 flex rounded-sm">
               <p className="text-muted-foreground">
