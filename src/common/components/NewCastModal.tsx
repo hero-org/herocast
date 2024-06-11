@@ -15,7 +15,7 @@ type NewCastModalProps = {
 };
 
 const findDraftIdForLinkedCast = (castModalView, drafts, linkedCast) => {
-  if (!linkedCast || !drafts.length) return -1;
+  if (!drafts.length) return -1;
 
   if (castModalView === CastModalView.Quote) {
     return drafts.findIndex(
@@ -43,7 +43,7 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
 
   useEffect(() => {
     if (draftIdx === -1 && open) {
-      if (!linkedCast) {
+      if (castModalView === CastModalView.New) {
         addNewPostDraft({});
       } else {
         const castObj = {
@@ -115,9 +115,7 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
                 onPost={() => {
                   setOpen(false);
                 }}
-                hideChannel={
-                  linkedCast && castModalView === CastModalView.Reply
-                }
+                hideChannel={castModalView === CastModalView.Reply}
               />
             </div>
           </div>

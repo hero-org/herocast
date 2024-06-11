@@ -28,7 +28,7 @@ const CastEmbed = ({ url, castId }: { url?: string, castId?: { hash: string, fid
           setCast(res.cast);
         }
       } catch (err) {
-        console.error(`Error in CastEmbed: ${err}`);
+        console.log(`Error in CastEmbed: ${err} ${url} ${castId}`);
       }
     };
 

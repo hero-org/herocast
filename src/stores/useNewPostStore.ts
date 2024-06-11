@@ -77,11 +77,12 @@ const store = (set: StoreSet) => ({
         // check if there is an existing empty draft
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
-          if (!draft.text) {
+          if (!draft.text && !draft.parentUrl && !draft.parentCastId && !draft.embeds) {
             return;
           }
         }
       }
+
       if (parentUrl || parentCastId) {
         // check if there is an existing draft for the same parent
         for (let i = 0; i < state.drafts.length; i++) {
@@ -241,13 +242,15 @@ export const newPostCommands: CommandType[] = [
   },
   {
     name: "New Post",
-    aliases: ["new cast", "write", "create", "compose", "new draft"],
+    aliases: ["cast", "write", "create", "compose", "draft"],
     icon: PlusCircleIcon,
     shortcut: 'c',
+    navigateTo: "/post",
     action: () => {
-      const { setCastModalView, openNewCastModal } = useNavigationStore.getState();
-      setCastModalView(CastModalView.New);
-      openNewCastModal();
+      // need to upgrade NewCastModal to receive a draftIdx instead of a linkedCast
+      // const { setCastModalView, openNewCastModal } = useNavigationStore.getState();
+      // setCastModalView(CastModalView.New);
+      // openNewCastModal();
     },
     options: {
       enableOnFormTags: false,

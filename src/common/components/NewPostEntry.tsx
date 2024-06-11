@@ -37,7 +37,6 @@ import { ChannelList } from "./ChannelList";
 import isEmpty from "lodash.isempty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FarcasterEmbed } from "@mod-protocol/farcaster";
-import uniqBy from "lodash.uniqby";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -92,9 +91,15 @@ export default function NewPostEntry({
 }: NewPostEntryProps) {
   const { updatePostDraft, publishPostDraft } = useNewPostStore();
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
-  const hasEmbeds = draft?.embeds && draft.embeds.length > 0;
   const [initialText, setInitialText] = React.useState<string>();
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
+  const hasEmbeds = draft?.embeds && !!draft.embeds.length;
+  const [isLoaded, setIsLoaded] = React.useState(false);
+
+  const account = useAccountStore(
+    (state) => state.accounts[state.selectedAccountIdx]
+  );
+  const isReply = draft?.parentCastId !== undefined;
 
   useEffect(() => {
     if (draft?.text && isEmpty(draft.mentionsToFids)) {
@@ -104,12 +109,8 @@ export default function NewPostEntry({
     if (draft?.embeds) {
       setInitialEmbeds(draft.embeds);
     }
+    setIsLoaded(true);
   }, []);
-
-  const account = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
-  );
-  const isReply = draft?.parentCastId !== undefined;
 
   const onSubmitPost = async (): Promise<boolean> => {
     if (draft?.text && draft.text.length > 0) {
@@ -163,10 +164,9 @@ export default function NewPostEntry({
   const channel = getChannel();
 
   useEffect(() => {
+    if (!isLoaded) return;
     if (isPublishing) return;
     if (draft.parentUrl === channel?.parent_url) return;
-    // ignore useEffect call that is triggered before initialEmbeds is set
-    if (draft.embeds && !initialEmbeds) return;
 
     const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
     updatePostDraft(draftIdx, {
@@ -175,7 +175,7 @@ export default function NewPostEntry({
       embeds: newEmbeds,
       parentUrl: channel?.parent_url || undefined,
     });
-  }, [text, embeds, initialEmbeds, channel, isPublishing]);
+  }, [text, embeds, initialEmbeds, channel, isPublishing, isLoaded]);
 
   const getButtonText = () => {
     if (isPublishing) return "Publishing...";
@@ -282,7 +282,7 @@ export default function NewPostEntry({
       </form>
       {hasEmbeds && (
         <div className="mt-8 rounded-md bg-muted p-2 w-full break-all">
-          {map(uniqBy(draft.embeds, "url"), (embed) => (
+          {map(draft.embeds, (embed) => (
             <div key={`cast-embed-${embed.url || embed.hash}`}>
               {renderEmbedForUrl(embed)}
             </div>
