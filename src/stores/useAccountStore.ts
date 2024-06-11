@@ -21,6 +21,7 @@ import includes from "lodash.includes";
 import uniqBy from "lodash.uniqby";
 import { v4 as uuidv4 } from 'uuid';
 import { getUsernameForFid } from "@/common/helpers/farcaster";
+import { IndexedDBStorage } from "./StoreStorage";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
@@ -396,10 +397,11 @@ const store = (set: StoreSet) => ({
   }
 });
 
+const storage = new IndexedDBStorage("herocast-accounts-store");
 export const useAccountStore = create<AccountStore>()(persist(mutative(store),
   {
     'name': 'herocast-accounts-store',
-    storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
+    storage: createJSONStorage(() => storage), // (optional) by default, 'localStorage' is used
     partialize: (state) => ({
       allChannels: state.allChannels,
       accounts: state.accounts.map((account) => {
@@ -431,8 +433,8 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
     const { data, error, count } = await supabaseClient
       .from('channel')
       .select('*', { count: 'exact' })
+      .not('data', 'is', null)
       .range(start, end);
-
     if (error) throw error;
     channelData = channelData.concat(data);
     hasMoreChannels = data.length > 0;
@@ -522,7 +524,9 @@ export const hydrate = async () => {
   console.log('hydrating 💦');
 
   const accounts = await hydrateAccounts();
-  await hydrateChannels();
+  if (accounts.length) {
+    await hydrateChannels();
+  }
 
   useAccountStore.setState({
     ...useAccountStore.getState(),
