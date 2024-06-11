@@ -75,7 +75,6 @@ const CreateFarcasterAccount = ({
   );
 
   const chainId = optimismChainId;
-  const canCreateAccount = !isPending && isConnected && chain?.id === 10;
 
   const { data: price } = useReadContract({
     chainId,

@@ -4,38 +4,22 @@ import {
   hatIdDecimalToHex,
   hatIdHexToDecimal,
 } from "@hatsprotocol/sdk-v1-core";
-import { createPublicClient, createWalletClient, custom, http } from "viem";
+import { publicClient } from "./rainbowkit";
 import { optimism } from "viem/chains";
-import type { PublicClient } from "viem";
-
-export function createHatsClient(chainId: number): HatsClient {
-  const localPublicClient = createPublicClient({
-    chain: optimism,
-    transport: http(`http://127.0.0.1:8545`),
-  });
-
-  const localWalletClient = createWalletClient({
-    chain: optimism,
-    transport: custom(window.ethereum),
-  });
-
-  const hatsClient = new HatsClient({
-    chainId: 10,
-    publicClient: localPublicClient as PublicClient,
-    walletClient: localWalletClient,
-  });
-
-  return hatsClient;
-}
+import { PublicClient, WalletClient } from "viem";
 
 export async function createInitialTree(
   account: `0x${string}`,
   casterAdmin: `0x${string}`,
-  casters: `0x${string}`[]
-): Promise<bigint> {
-  const hatsClient = createHatsClient(10);
+  casters: `0x${string}`[],
+  walletClient: WalletClient
+): Promise<{casterHat: bigint, adminHat: bigint}> {
+  const hatsClient = new HatsClient({
+    chainId: optimism.id,
+    publicClient: publicClient as PublicClient,
+    walletClient: walletClient,
+  });
 
-  // calculate the relevant hat IDs
   const currentNumTrees = await hatsClient.getTreesCount();
   const nextTopHatID = treeIdToTopHatId(currentNumTrees + 1);
   const nextTopHatIdHex = hatIdDecimalToHex(nextTopHatID);
@@ -104,7 +88,7 @@ export async function createInitialTree(
   });
 
   if (res.status === "success") {
-    return casterHatId;
+    return { casterHat: casterHatId, adminHat: casterAdminHatId };
   } else {
     throw new Error("Tree creation failed");
   }

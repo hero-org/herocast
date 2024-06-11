@@ -17,6 +17,7 @@ import { Loading } from "@/common/components/Loading";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import SharedAccountOwnershipSetup, { OwnershipSetupSteps } from "@/common/components/HatsProtocol/SharedAccountOwnershipSetup";
+import { useHotkeys } from "react-hotkeys-hook";
 
 enum HatsSignupNav {
   select_account = "SELECT_ACCOUNT",
@@ -34,7 +35,7 @@ const hatsSignupSteps = [
     keys: [HatsSignupNav.select_account],
   },
   {
-    title: "Hats Protocol setup",
+    title: "Onchain Permissions",
     idx: 1,
     keys: [
       HatsSignupNav.decide_hats_protocol_setup,
@@ -66,6 +67,8 @@ export default function HatsProtocolPage() {
   const [delegatorContractAddress, setDelegatorContractAddress] = useState<
     `0x${string}` | null
   >();
+  const [adminHatId, setAdminHatId] = useState<bigint>();
+  const [casterHatId, setCasterHatId] = useState<bigint>();
   const [
     sharedAccountOwnershipDefaultStep,
     setSharedAccountOwnershipDefaultStep,
@@ -75,7 +78,7 @@ export default function HatsProtocolPage() {
   const [userInput, setUserInput] = useState<string>("");
   const [isLoadingAccount, setIsLoadingAccount] = useState(false);
   const shareWithOthersText = `Join my shared Farcaster account with delegator contract
-  address ${delegatorContractAddress} and FID ${accountToTransfer?.fid}`;
+  address: ${delegatorContractAddress} and FID ${accountToTransfer?.fid}`;
 
   const getUserByFid = async (fid: number): Promise<User | undefined> => {
     const neynarClient = new NeynarAPIClient(
@@ -131,6 +134,11 @@ export default function HatsProtocolPage() {
       setIsLoadingAccount(false);
     }
   };
+
+  useHotkeys("meta+enter", fetchUser, [fetchUser], {
+    enableOnFormTags: true,
+  });
+
 
   const getStepContent = (
     title: string,
@@ -237,18 +245,18 @@ export default function HatsProtocolPage() {
             All users with the Caster Hat in their wallet can now join!
           </p>
           <div className="mt-4 flex justify-between">
-            <p className="text-foreground/70">
-              Share this to invite other users:
-            </p>
             <div className="flex flex-row space-x-2">
               <ClickToCopyText text={shareWithOthersText} />
             </div>
           </div>
           <div className="mt-4 flex items-center space-x-4">
-            <p className="text-foreground py-2 px-3 bg-muted rounded-lg">
+            <p className="w-min text-foreground py-2 px-3 bg-muted rounded-lg">
               {shareWithOthersText}
             </p>
           </div>
+            <Label>
+              Share this to invite other users to join your shared account
+            </Label>
         </div>
       </div>
     );
@@ -260,23 +268,23 @@ export default function HatsProtocolPage() {
         return renderSelectAccount();
       case HatsSignupNav.decide_hats_protocol_setup:
         return getStepContent(
-          "Hats Protocol setup",
+          "Onchain Permissions",
           "Setup your Hats tree and deploy a delegator contract",
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <BigOptionSelector
+              disabled={isEmpty(accountToTransfer)}
               options={[
                 {
-                  title: "I need a new Hats tree",
-                  description: "Start your setup with Hats Protocol right here",
+                  title: "I have not used Hats Protocol before",
+                  description: "herocast will guide you through the setup",
                   buttonText: "Get started",
                   onClick: () => setStep(HatsSignupNav.create_hats_tree),
                 },
                 {
-                  title: "I have created a Hats tree",
-                  description: "Continue with the setup in herocast",
+                  title: "My organization has a Hats tree",
+                  description: "herocast helps you import your permissions",
                   buttonText: "I have a Hats tree",
-                  disabled: isEmpty(accountToTransfer),
                   onClick: () => setStep(HatsSignupNav.account_ownership),
                 },
               ]}
@@ -296,10 +304,11 @@ export default function HatsProtocolPage() {
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <CreateHatsTreeForm
-              onSuccess={() => {
-                console.log("HatsProtocolPage create_hats_tree onSuccess");
+              onSuccess={({ casterHatId, adminHatId }) => {
+                setAdminHatId(adminHatId);
+                setCasterHatId(casterHatId);
                 setSharedAccountOwnershipDefaultStep(
-                  OwnershipSetupSteps.new_tree
+                  OwnershipSetupSteps.existing_tree
                 );
                 setStep(HatsSignupNav.account_ownership);
               }}
@@ -317,6 +326,8 @@ export default function HatsProtocolPage() {
               onSuccess={() => setStep(HatsSignupNav.transfer_ownership)}
               delegatorContractAddress={delegatorContractAddress}
               setDelegatorContractAddress={setDelegatorContractAddress}
+              adminHatId={adminHatId}
+              casterHatId={casterHatId}
             />
           </div>
         );

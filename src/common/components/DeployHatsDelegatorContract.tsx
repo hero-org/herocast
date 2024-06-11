@@ -8,33 +8,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  useAccount,
-  useSignTypedData,
-  useSwitchChain,
-  useWalletClient,
-} from "wagmi";
+import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
 import { Input } from "@/components/ui/input";
 import {
   ID_GATEWAY_ADDRESS,
   KEY_GATEWAY_ADDRESS,
   KEY_REGISTRY_ADDRESS,
   SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
-  idRegistryABI,
 } from "@farcaster/hub-web";
-import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { ID_REGISTRY_ADDRESS } from "@farcaster/hub-web";
 import { publicClient } from "@/common/helpers/rainbowkit";
 import { useWaitForTransactionReceipt } from "wagmi";
 import { z } from "zod";
-import {
-  Address,
-  getAddress,
-  hexToBigInt,
-  parseEventLogs,
-  toHex,
-  zeroAddress,
-} from "viem";
+import { parseEventLogs, zeroAddress } from "viem";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -48,14 +34,13 @@ import {
 } from "@/components/ui/form";
 import {
   HatsModulesClient,
-  Registry,
   checkAndEncodeArgs,
 } from "@hatsprotocol/modules-sdk";
 import { getCustomRegistry } from "../../lib/hats";
 import { openWindow } from "@/common/helpers/navigation";
 import { HatsModuleFactoryAbi } from "@/common/constants/contracts/HatsModuleFactory";
 import { AddressSchema } from "@hatsprotocol/modules-sdk/dist/schemas";
-import { optimismChainId } from "../helpers/env";
+import { optimism } from "wagmi/chains";
 
 const HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS: `0x${string}` =
   "0xa947334c33dadca4bcbb396395ecfd66601bb38c";
@@ -105,7 +90,7 @@ const HatsProtocolSignupSteps: SignupStepType[] = [
 ];
 
 const HatId = z.custom<string>((data) => {
-  return String(data); //.startsWith("0x");
+  return String(data);
 }, "Invalid Hat ID");
 
 export type DeployHatsDelegatorContractFormValues = z.infer<
@@ -117,15 +102,21 @@ const DeployHatsDelegatorContractFormSchema = z.object({
   adminHatId: HatId,
 });
 
+type DeployHatsDelegatorContractProps = {
+  onSuccess: () => void;
+  delegatorContractAddress: `0x${string}`;
+  setDelegatorContractAddress: (address: `0x${string}`) => void;
+  adminHatId: bigint;
+  casterHatId: bigint;
+};
+
 const DeployHatsDelegatorContract = ({
   onSuccess,
   delegatorContractAddress,
   setDelegatorContractAddress,
-}: {
-  onSuccess: () => void;
-  delegatorContractAddress: `0x${string}`;
-  setDelegatorContractAddress: (address: `0x${string}`) => void;
-}) => {
+  adminHatId,
+  casterHatId,
+}: DeployHatsDelegatorContractProps) => {
   const [state, setState] = useState<SignupStepType>(
     HatsProtocolSignupSteps[0]
   );
@@ -134,10 +125,13 @@ const DeployHatsDelegatorContract = ({
     useState<`0x${string}`>("0x");
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
-    defaultValues: {},
+    defaultValues: {
+      casterHatId: casterHatId.toString(),
+      adminHatId: adminHatId.toString(),
+    },
   });
   const walletClient = useWalletClient({
-    chainId: optimismChainId,
+    chainId: optimism.id,
   });
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -145,7 +139,7 @@ const DeployHatsDelegatorContract = ({
     hash: onchainTransactionHash,
   });
 
-  const canSubmitForm = chainId === optimismChainId && !!address;
+  const canSubmitForm = chainId === optimism.id && !!address;
 
   useEffect(() => {
     if (onchainTransactionHash === "0x") return;
@@ -260,12 +254,12 @@ const DeployHatsDelegatorContract = ({
           <Button variant="default" type="submit" disabled={!canSubmitForm}>
             Deploy contract
           </Button>
-          {chainId !== optimismChainId && (
+          {chainId !== optimism.id && (
             <Button
               type="button"
               variant="default"
               className=""
-              onClick={() => switchChain?.({ chainId: optimismChainId })}
+              onClick={() => switchChain?.({ chainId: optimism.id })}
             >
               Switch to OP mainnet
             </Button>

@@ -13,23 +13,19 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { AccountObjectType } from "@/stores/useAccountStore";
-import {
-  ArrowTopRightOnSquareIcon,
-  Cog6ToothIcon,
-} from "@heroicons/react/20/solid";
+import { Cog6ToothIcon } from "@heroicons/react/20/solid";
 import { toast } from "sonner";
 import { isAddress } from "viem";
 import { Input } from "@/components/ui/input";
-import { getEnsAddress, getEnsName } from "@wagmi/core";
-import { mainnetConfig } from "@/common/helpers/rainbowkit";
-import { normalize } from "viem/ens";
-import {
-  treeIdToTopHatId,
-  hatIdDecimalToHex,
-  hatIdHexToDecimal,
-} from "@hatsprotocol/sdk-v1-core";
 import { createInitialTree } from "@/common/helpers/hats";
-import { useAccount } from "wagmi";
+import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
+import {
+  convertEnsNameToAddress,
+  convertEnsNamesToAddresses,
+} from "@/common/helpers/ens";
+import EnsLookupLabel from "../EnsLookupLabel";
+import { optimism } from "wagmi/chains";
+import SwitchWalletButton from "../SwitchWalletButton";
 
 enum CREATE_HATS_TREE_FORM_STEP {
   DEFAULT = "DEFAULT",
@@ -37,63 +33,6 @@ enum CREATE_HATS_TREE_FORM_STEP {
   SUCCESS = "SUCCESS",
   ERROR = "ERROR",
 }
-
-const getAddressFromEnsName = async (name) => {
-  const ensAddress = await getEnsAddress(mainnetConfig, {
-    name: normalize(name),
-  });
-  return ensAddress;
-};
-
-const getEnsNameForAddress = async (address) => {
-  const ensName = await getEnsName(mainnetConfig, {
-    address,
-  });
-  return ensName;
-};
-
-const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
-  const [ensName, setEnsName] = useState<string | null>(null);
-  const [address, setAddress] = useState<string | null>(null);
-
-  /* 
-  useEffect(() => {
-    if (addressOrName && addressOrName.endsWith(".eth")) {
-      getAddressFromEnsName(addressOrName).then((ensAddress) => {
-        setAddress(ensAddress);
-      });
-      return;
-    }
-
-    if (isAddress(addressOrName)) {
-      getEnsNameForAddress(addressOrName).then((ensName) => {
-        setEnsName(ensName);
-      });
-    }
-
-    return () => {
-      setEnsName(null);
-      setAddress(null);
-    };
-  }, [addressOrName]);
-  */
-
-  if (!addressOrName) return null;
-
-  return (
-    (ensName || address) && (
-      <a
-        href={`https://etherscan.io/address/${addressOrName}`}
-        target="_blank"
-        rel="noreferrer"
-        className="flex text-sm hover:underline"
-      >
-        {ensName || address}{" "}
-        <ArrowTopRightOnSquareIcon className="ml-1 mt-0.5 h-4 w-4" />
-      </a>
-    )
-  );
-};
 
 const isValidFormAddressInput = (input: string) => {
   return isAddress(input) || input.endsWith(".eth");
@@ -120,13 +59,12 @@ type CasterHatAddress = z.infer<
 >["casterHatAddresses"][number];
 
 const casterHatAddressesInitial: CasterHatAddress[] = [
-  { id: "1", address: "0x" },
-  { id: "2", address: "0x" },
+  { id: "1", address: "" },
+  { id: "2", address: "" },
 ];
 
 type CreateHatsTreeFormProps = {
-  account: AccountObjectType;
-  onSuccess?: () => void;
+  onSuccess?: ({ casterHatId, adminHatId }: { casterHatId, adminHatId}) => void;
 };
 
 function useZodForm<TSchema extends z.ZodType>(
@@ -145,21 +83,23 @@ function useZodForm<TSchema extends z.ZodType>(
   return form;
 }
 
-const CreateHatsTreeForm = ({
-  account,
-  onSuccess,
-}: CreateHatsTreeFormProps) => {
+const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
   const [formState, setFormState] = useState<CREATE_HATS_TREE_FORM_STEP>(
     CREATE_HATS_TREE_FORM_STEP.DEFAULT
   );
+  const walletClient = useWalletClient()?.data;
+  const { chains, status, switchChain, switchChainAsync } = useSwitchChain();
   const [isPending, setIsPending] = useState(false);
-  const [casterHat, setCasterHat] = useState<bigint | undefined>(undefined);
-  const { address } = useAccount();
-
+  const [casterHatId, setCasterHatId] = useState<bigint>();
+  const [adminHatId, setAdminHatId] = useState<bigint>();
+  const { isConnected, address, chainId } = useAccount();
   const form = useZodForm({
     schema: CreateHatsTreeFormSchema,
     mode: "onChange",
-    defaultValues: { casterHatAddresses: casterHatAddressesInitial },
+    defaultValues: {
+      adminHatAddress: address,
+      casterHatAddresses: casterHatAddressesInitial,
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -172,7 +112,7 @@ const CreateHatsTreeForm = ({
     toast.success("Created your Hats tree successfully", {
       duration: 7000,
     });
-    onSuccess?.();
+    onSuccess?.({ adminHatId, casterHatId });
   };
 
   useEffect(() => {
@@ -188,24 +128,42 @@ const CreateHatsTreeForm = ({
   }, [formState]);
 
   const canSubmitForm =
-    !isPending && !!form.formState.isDirty && !!form.formState.isValid;
+    !isPending &&
+    !!form.formState.isDirty &&
+    !!form.formState.isValid &&
+    chainId;
 
   const createHatsTree = async (data) => {
-    console.log("createHatsTree", data);
+    if (!walletClient) {
+      return;
+    }
 
-    // if addresses are ENS names, resolve them to addresses with:
-    // if (address.endsWith(".eth")) {
-    //    getAddressFromEnsName(address)
-    // }
     setIsPending(true);
 
+    const adminHatAddress = await convertEnsNameToAddress(data.adminHatAddress);
+    const casterHatAddresses = await convertEnsNamesToAddresses(
+      data.casterHatAddresses.map((obj) => obj.address)
+    );
+
+    data.adminHatAddress = adminHatAddress;
+    data.casterHatAddresses = data.casterHatAddresses.map((obj, index) => {
+      if (casterHatAddresses[index]) {
+        return {
+          ...obj,
+          address: casterHatAddresses[index],
+        };
+      }
+    });
+
     try {
-      const casterHat = await createInitialTree(
+      const { casterHat, adminHat } = await createInitialTree(
         address as `0x${string}`,
         data.adminHatAddress as `0x${string}`,
-        data.casterHatAddresses.map((obj) => obj.address) as `0x${string}`[]
+        data.casterHatAddresses.map((obj) => obj.address) as `0x${string}`[],
+        walletClient
       );
-      setCasterHat(casterHat);
+      setCasterHatId(casterHat);
+      setAdminHatId(adminHat);
 
       setFormState(CREATE_HATS_TREE_FORM_STEP.PENDING_ONCHAIN_CONFIRMATION);
     } catch (e) {
@@ -216,7 +174,6 @@ const CreateHatsTreeForm = ({
       });
     } finally {
       setIsPending(false);
-      form.reset(data);
     }
   };
 
@@ -281,6 +238,7 @@ const CreateHatsTreeForm = ({
           <Button
             variant="outline"
             className="w-48"
+            type="button"
             onClick={() =>
               append({
                 id: String(fields.length + 1),
@@ -291,20 +249,40 @@ const CreateHatsTreeForm = ({
             Add more casters
           </Button>
         </div>
-        <Button
-          disabled={!canSubmitForm}
-          variant="default"
-          type="submit"
-          className="w-48"
-        >
-          {isPending && (
-            <Cog6ToothIcon
-              className="mr-2 h-5 w-5 animate-spin"
-              aria-hidden="true"
-            />
+        <div className="flex flex-col gap-y-4">
+          {!isConnected && (
+            <>
+              <FormMessage className="text-red-500">
+                Connect a wallet to create a Hats tree
+              </FormMessage>
+              <SwitchWalletButton />
+            </>
           )}
-          <p>Create Hats tree</p>
-        </Button>
+          {isConnected && chainId !== optimism.id && (
+            <Button
+              type="button"
+              variant="default"
+              className="w-48"
+              onClick={() => switchChain({ chainId: optimism.id })}
+            >
+              Switch to Optimism
+            </Button>
+          )}
+          <Button
+            disabled={!canSubmitForm}
+            variant="default"
+            type="submit"
+            className="w-48"
+          >
+            {isPending && (
+              <Cog6ToothIcon
+                className="mr-2 h-5 w-5 animate-spin"
+                aria-hidden="true"
+              />
+            )}
+            <p>Create Hats tree</p>
+          </Button>
+        </div>
       </form>
     </Form>
   );
@@ -314,7 +292,6 @@ const CreateHatsTreeForm = ({
       case CREATE_HATS_TREE_FORM_STEP.DEFAULT:
         return renderForm();
       case CREATE_HATS_TREE_FORM_STEP.PENDING_ONCHAIN_CONFIRMATION:
-        // can insert pending information about what is happening here
         return <p>Waiting for onchain confirmation...</p>;
       case CREATE_HATS_TREE_FORM_STEP.SUCCESS:
         return (
@@ -324,7 +301,7 @@ const CreateHatsTreeForm = ({
               variant="default"
               type="submit"
               className="w-74 mt-4"
-              onClick={() => onSuccess?.()}
+              onClick={() => onSuccess?.({ casterHat, adminHat })}
             >
               <p>Continue</p>
             </Button>
@@ -336,6 +313,7 @@ const CreateHatsTreeForm = ({
         return null;
     }
   };
+
   return (
     <div className="max-w-lg flex flex-col gap-y-4">{renderContent()}</div>
   );

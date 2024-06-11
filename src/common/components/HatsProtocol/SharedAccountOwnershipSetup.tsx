@@ -17,6 +17,8 @@ type SharedAccountOwnershipSetupProps = {
   delegatorContractAddress: `0x${string}`;
   setDelegatorContractAddress: (address: string) => void;
   defaultStep?: OwnershipSetupSteps;
+  adminHatId?: bigint;
+  casterHatId?: bigint;
 };
 
 export const SharedAccountOwnershipSetup = ({
@@ -24,6 +26,8 @@ export const SharedAccountOwnershipSetup = ({
   delegatorContractAddress,
   setDelegatorContractAddress,
   defaultStep,
+  adminHatId,
+  casterHatId,
 }: SharedAccountOwnershipSetupProps) => {
   const [state, setState] = useState<OwnershipSetupSteps>(
     defaultStep || OwnershipSetupSteps.unknown
@@ -45,8 +49,6 @@ export const SharedAccountOwnershipSetup = ({
         return renderUnpreparedStep();
       case OwnershipSetupSteps.existing_tree:
         return renderExistingTreeStep();
-      // case OwnershipSetupSteps.delegator_contract:
-      // return renderDelegatorContractStep();
       default:
         return null;
     }
@@ -73,6 +75,8 @@ export const SharedAccountOwnershipSetup = ({
     <div className="flex flex-col space-x-2 lg:flex-row lg:space-x-8">
       <div className="lg:w-1/2">
       <DeployHatsDelegatorContract
+        adminHatId={adminHatId}
+        casterHatId={casterHatId}
         onSuccess={onSuccess}
         delegatorContractAddress={delegatorContractAddress}
         setDelegatorContractAddress={setDelegatorContractAddress}
