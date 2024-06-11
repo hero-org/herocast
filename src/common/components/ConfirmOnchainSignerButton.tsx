@@ -7,7 +7,6 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { Button } from "@/components/ui/button";
-import { ID_REGISTRY } from "../constants/contracts/id-registry";
 import { mnemonicToAccount } from "viem/accounts";
 import {
   AccountObjectType,
@@ -26,6 +25,7 @@ import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Label } from "@/components/ui/label";
 import { optimismChainId } from "../helpers/env";
 import { Cog6ToothIcon, CheckCircleIcon } from "@heroicons/react/20/solid";
+import { ID_REGISTRY_ADDRESS, idRegistryABI } from "@farcaster/hub-web";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC!;
@@ -75,7 +75,8 @@ const ConfirmOnchainSignerButton = ({
 
   const { address } = useAccount();
   const { data: idOfUser, error: idOfUserError } = useReadContract({
-    ...ID_REGISTRY,
+    abi: idRegistryABI,
+    address: ID_REGISTRY_ADDRESS,
     chainId: optimismChainId,
     functionName: address ? "idOf" : undefined,
     args: address ? [address] : undefined,
