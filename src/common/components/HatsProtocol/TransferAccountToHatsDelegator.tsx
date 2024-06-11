@@ -24,7 +24,6 @@ import { waitForTransactionReceipt } from "@wagmi/core";
 import SwitchWalletButton from "../SwitchWalletButton";
 import { Label } from "@/components/ui/label";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { optimismChainId } from "@/common/helpers/env";
 
 const readNonces = async (account: `0x${string}`) => {
   if (!account) return BigInt(0);
@@ -171,7 +170,7 @@ const TransferAccountToHatsDelegator = ({
   } = useReadContract({
     address: toAddress,
     abi: HatsFarcasterDelegatorAbi,
-    chainId: optimismChainId,
+    chainId: optimism.id,
     functionName: toAddress ? "receivable" : undefined,
     args: toAddress ? [fid] : undefined,
   });
@@ -194,7 +193,6 @@ const TransferAccountToHatsDelegator = ({
   };
 
   useEffect(() => {
-    console.log("useEffect");
     if (address && !fid) {
       setErrorMessage("FID is required");
       setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR);
@@ -239,7 +237,6 @@ const TransferAccountToHatsDelegator = ({
       });
 
       const result = await waitForTransactionReceipt(config, { hash: tx });
-      console.log("result", result);
       setStep(TransferAccountToHatsDelegatorSteps[2]);
       setStepToKey(
         TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_PREPARE_TO_RECEIVE_CONFIRMATION
@@ -477,7 +474,8 @@ const TransferAccountToHatsDelegator = ({
         return (
           <div className="flex flex-col text-foreground">
             <p>
-              Your account was successfully transferred 🥳 It is now a shared account!
+              Your account was successfully transferred 🥳 It is now a shared
+              account!
             </p>
             <Button
               variant="outline"
@@ -519,7 +517,9 @@ const TransferAccountToHatsDelegator = ({
             )}
         </div>
       )}
-      {step.state !== TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONFIRMED && <SwitchWalletButton className="w-1/2" />}
+      {step.state !== TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONFIRMED && (
+        <SwitchWalletButton className="w-1/2" />
+      )}
       <Button
         className="w-1/2"
         variant="default"

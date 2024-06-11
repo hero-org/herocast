@@ -27,7 +27,6 @@ export const getEnsNameForAddress = async (address: `0x${string}`) => {
     }
 };
 
-
 export const convertEnsNameToAddress = async (ensName: string) => {
     if (ensName.endsWith(".eth")) {
         return await getAddressFromEnsName(ensName);

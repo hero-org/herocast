@@ -39,8 +39,6 @@ export const SharedAccountOwnershipSetup = ({
     }
   }, [defaultStep]);
 
-  console.log("SharedAccountOwnershipSetup", state, defaultStep);
-
   const renderStep = () => {
     switch (state) {
       case OwnershipSetupSteps.unknown:

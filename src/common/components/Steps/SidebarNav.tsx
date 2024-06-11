@@ -48,7 +48,7 @@ export function SidebarNav({
               enabled
                 ? "text-foreground/40 hover:bg-transparent hover:underline"
                 : "",
-              // item.key === step ? "bg-muted hover:bg-muted" : "",
+              item.key === step ? "bg-muted hover:bg-muted" : "",
               "justify-start truncate"
             )}
           >

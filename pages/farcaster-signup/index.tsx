@@ -106,7 +106,7 @@ export default function Welcome() {
         You are fully onboarded to herocast 🥳
       </h3>
       <div className="w-1/2 grid grid-cols-1 items-center gap-4">
-        <Button variant="default" onClick={() => router.push("/feed")}>
+        <Button variant="default" onClick={() => router.push("/feeds")}>
           Start exploring your feed
         </Button>
         <Button variant="outline" onClick={() => router.push("/post")}>
