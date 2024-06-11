@@ -23,7 +23,6 @@ export default function NewPost() {
   const pathname = usePathname();
   const savedPathname = useRef(pathname)
 
-  // get text from query params and add to text field if it exists
   useEffect(() => {
     if (searchParams.has("text")) {
       const text = searchParams.getAll("text").join(". ");
@@ -31,10 +30,15 @@ export default function NewPost() {
       if (text) {
         addNewPostDraft({ text });
       }
+      return
+    }
+
+    if (!searchParams.has('text') && drafts.length === 0) {
+     addNewPostDraft({})
+     return
     }
   }, []);
 
-  // check for when user leaves page and remove drafts
   useEffect(() => {
     if (savedPathname.current !== pathname && drafts.length > 0) { removeEmptyDrafts() }
   }, [pathname, searchParams]);
