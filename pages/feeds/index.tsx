@@ -177,6 +177,16 @@ export default function Feed() {
     isLoadingFeed,
   ]);
 
+  const onReply = () => {
+    setCastModalView(CastModalView.Reply);
+    openNewCastModal();
+  };
+
+  const onQuote = () => {
+    setCastModalView(CastModalView.Quote);
+    openNewCastModal();
+  };
+
   useHotkeys(
     [Key.Escape, "§"],
     () => {
@@ -190,33 +200,17 @@ export default function Feed() {
     }
   );
 
-  useHotkeys(
-    "r",
-    () => {
-      setCastModalView(CastModalView.Reply);
-      openNewCastModal();
-    },
-    [openNewCastModal],
-    {
-      enabled: !isNewCastModalOpen,
-      enableOnFormTags: false,
-      preventDefault: true,
-    }
-  );
+  useHotkeys("r", onReply, [openNewCastModal], {
+    enabled: !isNewCastModalOpen,
+    enableOnFormTags: false,
+    preventDefault: true,
+  });
 
-  useHotkeys(
-    "q",
-    () => {
-      setCastModalView(CastModalView.Quote);
-      openNewCastModal();
-    },
-    [openNewCastModal],
-    {
-      enabled: !isNewCastModalOpen,
-      enableOnFormTags: false,
-      preventDefault: true,
-    }
-  );
+  useHotkeys("q", onQuote, [openNewCastModal], {
+    enabled: !isNewCastModalOpen,
+    enableOnFormTags: false,
+    preventDefault: true,
+  });
 
   const getFeedType = (parentUrl: string | undefined) =>
     parentUrl === CUSTOM_CHANNELS.FOLLOWING
@@ -323,16 +317,6 @@ export default function Feed() {
         cast={item}
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
-        onReply={() => {
-          setCastModalView(CastModalView.Reply);
-          updateSelectedCast(item);
-          openNewCastModal();
-        }}
-        onQuote={() => {
-          setCastModalView(CastModalView.Quote);
-          updateSelectedCast(item);
-          openNewCastModal();
-        }}
         showChannel
       />
     </li>
@@ -382,9 +366,8 @@ export default function Feed() {
       cast={feed[selectedCastIdx]}
       onBack={() => setShowCastThreadView(false)}
       setSelectedCast={updateSelectedCast}
-      setShowReplyModal={(show: boolean) =>
-        show ? openNewCastModal() : closeNewCastModal()
-      }
+      onReply={onReply}
+      onQuote={onQuote}
     />
   );
 

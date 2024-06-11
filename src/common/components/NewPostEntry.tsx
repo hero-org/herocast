@@ -163,25 +163,19 @@ export default function NewPostEntry({
   const channel = getChannel();
 
   useEffect(() => {
-    console.log("useEffect", text, embeds, isPublishing);
     if (isPublishing) return;
     if (draft.parentUrl === channel?.parent_url) return;
-
-    // we might have an initialEmbed, so we need to merge them
-    // if we don't have an initialEmbed, we just use the embeds
-    // this function can be triggered, because embeds can have a changing status
+    // ignore useEffect call that is triggered before initialEmbeds is set
+    if (draft.embeds && !initialEmbeds) return;
 
     const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
-
     updatePostDraft(draftIdx, {
       ...draft,
       text,
-      embeds: newEmbeds, //: [...draft.embeds, ...newEmbeds],
+      embeds: newEmbeds,
       parentUrl: channel?.parent_url || undefined,
     });
-  }, [text, embeds, channel, isPublishing]);
-
-  console.log("draft.embeds", draft.embeds);
+  }, [text, embeds, initialEmbeds, channel, isPublishing]);
 
   const getButtonText = () => {
     if (isPublishing) return "Publishing...";
@@ -210,10 +204,7 @@ export default function NewPostEntry({
             />
             <EmbedsEditor
               embeds={[]}
-              setEmbeds={(embeds) => {
-                console.log("embeds", embeds);
-                setEmbeds(embeds);
-              }}
+              setEmbeds={setEmbeds}
               RichEmbed={() => <div />}
             />
           </div>
@@ -290,7 +281,7 @@ export default function NewPostEntry({
         </div>
       </form>
       {hasEmbeds && (
-        <div className="mt-8 rounded-md bg-muted p-2 max-w-xl break-all">
+        <div className="mt-8 rounded-md bg-muted p-2 w-full break-all">
           {map(uniqBy(draft.embeds, "url"), (embed) => (
             <div key={`cast-embed-${embed.url || embed.hash}`}>
               {renderEmbedForUrl(embed)}

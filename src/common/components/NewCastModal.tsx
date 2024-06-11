@@ -21,7 +21,7 @@ const findDraftIdForLinkedCast = (castModalView, drafts, linkedCast) => {
     return drafts.findIndex(
       (draft) =>
         draft?.embeds?.length &&
-        draft?.embeds?.[0]?.castId.hash === linkedCast?.hash
+        draft?.embeds?.[0]?.castId?.hash === linkedCast?.hash
     );
   } else if (castModalView === CastModalView.Reply) {
     return drafts.findIndex(

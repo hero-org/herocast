@@ -18,7 +18,8 @@ type CastThreadViewProps = {
   onBack?: () => void;
   isActive?: boolean;
   setSelectedCast?: (cast: CastWithInteractions) => void;
-  setShowReplyModal: (show: boolean) => void;
+  onReply?: () => void;
+  onQuote?: () => void;
 };
 
 export const CastThreadView = ({
@@ -26,7 +27,6 @@ export const CastThreadView = ({
   onBack,
   isActive,
   setSelectedCast,
-  setShowReplyModal,
 }: CastThreadViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);

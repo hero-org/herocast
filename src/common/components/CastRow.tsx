@@ -33,6 +33,8 @@ import mentionPlugin, {
 import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
 import { cn } from "@/lib/utils";
+import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
+import { useDataStore } from "@/stores/useDataStore";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -57,8 +59,6 @@ interface CastRowProps {
     | CastToReplyType;
   showChannel?: boolean;
   onSelect?: () => void;
-  onReply?: () => void;
-  onQuote?: () => void;
   isSelected?: boolean;
   isThreadView?: boolean;
   isEmbed?: boolean;
@@ -156,8 +156,6 @@ export const CastRow = ({
   isSelected,
   showChannel,
   onSelect,
-  onReply,
-  onQuote,
   isEmbed = false,
   isThreadView = false,
 }: CastRowProps) => {
@@ -168,6 +166,10 @@ export const CastRow = ({
     setSelectedChannelByName,
   } = useAccountStore();
 
+  const { setCastModalView, openNewCastModal } = useNavigationStore();
+
+  const { updateSelectedCast } = useDataStore();
+
   const [didLike, setDidLike] = useState(false);
   const [didRecast, setDidRecast] = useState(false);
 
@@ -177,6 +179,18 @@ export const CastRow = ({
   const canSendReaction =
     selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
   const now = new Date();
+
+  const onReply = () => {
+    setCastModalView(CastModalView.Reply);
+    updateSelectedCast(cast);
+    openNewCastModal();
+  };
+
+  const onQuote = () => {
+    setCastModalView(CastModalView.Quote);
+    updateSelectedCast(cast);
+    openNewCastModal();
+  };
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
