@@ -21,10 +21,11 @@ type OptionSelectorType =
   | undefined;
 
 type BigOptionSelectorProps = {
+  disabled?: boolean;
   options: OptionSelectorType[];
 };
 
-const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
+const BigOptionSelector = ({ disabled, options }: BigOptionSelectorProps) => {
   const renderOption = (option: OptionSelectorType) => {
     if (!option) return null;
     if (!option.content && !option.buttonText) return null;
@@ -40,7 +41,7 @@ const BigOptionSelector = ({ options }: BigOptionSelectorProps) => {
           <CardFooter>
             <Button
               className="w-full"
-              disabled={option.disabled}
+              disabled={disabled || option.disabled}
               onClick={() => option.onClick?.()}
             >
               {option.buttonText}

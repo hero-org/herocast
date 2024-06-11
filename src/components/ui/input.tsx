@@ -8,8 +8,9 @@ const inputVariants = cva(
   {
     variants: {
       size: {
-        default: "h-12",
-        sm: "h-10",
+        lg: "h-10",
+        default: "h-9",
+        sm: "h-8",
       },
     },
     defaultVariants: {

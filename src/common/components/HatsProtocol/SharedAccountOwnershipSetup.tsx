@@ -1,36 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import BigOptionSelector from "@/common/components/BigOptionSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { isAddress } from "viem";
-import DeployHatsDelegatorContract from "./DeployHatsDelegatorContract";
-import { WarpcastImage } from "./PostEmbeddedContent/WarpcastImage";
+import DeployHatsDelegatorContract from "../DeployHatsDelegatorContract";
+import { WarpcastImage } from "../PostEmbeddedContent/WarpcastImage";
 
-enum OwnershipSetupSteps {
+export enum OwnershipSetupSteps {
   unknown = "UNKNOWN",
-  unprepared = "UNPREPARED",
+  new_tree = "NEW_TREE",
   existing_tree = "EXISTING_TREE",
 }
 
-const SharedAccountOwnershipSetup = ({
+type SharedAccountOwnershipSetupProps = {
+  onSuccess: () => void;
+  delegatorContractAddress: `0x${string}`;
+  setDelegatorContractAddress: (address: string) => void;
+  defaultStep?: OwnershipSetupSteps;
+  adminHatId?: bigint;
+  casterHatId?: bigint;
+};
+
+export const SharedAccountOwnershipSetup = ({
   onSuccess,
   delegatorContractAddress,
   setDelegatorContractAddress,
-}) => {
+  defaultStep,
+  adminHatId,
+  casterHatId,
+}: SharedAccountOwnershipSetupProps) => {
   const [state, setState] = useState<OwnershipSetupSteps>(
-    OwnershipSetupSteps.unknown
+    defaultStep || OwnershipSetupSteps.unknown
   );
+
+  useEffect(() => {
+    if (defaultStep && defaultStep !== state) {
+      setState(defaultStep);
+    }
+  }, [defaultStep]);
 
   const renderStep = () => {
     switch (state) {
       case OwnershipSetupSteps.unknown:
         return renderUnknownStep();
-      case OwnershipSetupSteps.unprepared:
+      case OwnershipSetupSteps.new_tree:
         return renderUnpreparedStep();
       case OwnershipSetupSteps.existing_tree:
         return renderExistingTreeStep();
-      // case OwnershipSetupSteps.delegator_contract:
-      // return renderDelegatorContractStep();
       default:
         return null;
     }
@@ -57,6 +73,8 @@ const SharedAccountOwnershipSetup = ({
     <div className="flex flex-col space-x-2 lg:flex-row lg:space-x-8">
       <div className="lg:w-1/2">
       <DeployHatsDelegatorContract
+        adminHatId={adminHatId}
+        casterHatId={casterHatId}
         onSuccess={onSuccess}
         delegatorContractAddress={delegatorContractAddress}
         setDelegatorContractAddress={setDelegatorContractAddress}

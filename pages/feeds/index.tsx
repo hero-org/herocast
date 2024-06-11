@@ -430,7 +430,11 @@ export default function Feed() {
             onClick={async () => {
               setIsRefreshingPage(true);
               await hydrate();
-              window.location.reload();
+              await getFeed({
+                fid: account.platformAccountId!,
+                parentUrl: selectedChannelUrl,
+              });
+              setIsRefreshingPage(false);
             }}
           >
             Refresh

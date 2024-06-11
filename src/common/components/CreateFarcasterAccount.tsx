@@ -34,8 +34,8 @@ import {
 } from "@/stores/useAccountStore";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { generateKeyPair } from "../helpers/warpcastLogin";
-
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
+import { optimism } from "viem/chains";
 import { glideClient } from "../helpers/glide";
 import { NoPaymentOptionsError } from "@paywithglide/glide-js";
 import { PaymentSelector } from "./PaymentSelector";
@@ -124,7 +124,6 @@ const CreateFarcasterAccount = ({
     }
     return false;
   };
-
   const registerAccount = async () => {
     if (
       !registerSignature ||
@@ -391,7 +390,7 @@ const CreateFarcasterAccount = ({
       )}
       <Separator />
       <p className="text-[0.8rem] text-muted-foreground">
-        Then, once your payment choice is selected, proceed with payment.
+        Chose your payment option and continue
       </p>
       <Button
         variant="outline"

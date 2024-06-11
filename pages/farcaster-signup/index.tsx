@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { hydrateAccounts } from "../../src/stores/useAccountStore";
+import { SidebarNavItem } from "@/common/components/Steps/SidebarNav";
 import { getFidForAddress } from "@/common/helpers/farcaster";
 
 enum FarcasterSignupNav {
@@ -18,37 +19,37 @@ enum FarcasterSignupNav {
   explainer = "EXPLAINER",
 }
 
-const onboardingNavItems = [
+const onboardingNavItems: SidebarNavItem[] = [
   {
     title: "Login",
     idx: 0,
-    key: FarcasterSignupNav.login,
+    keys: [FarcasterSignupNav.login],
   },
   {
     title: "Connect wallet",
     idx: 1,
-    key: FarcasterSignupNav.connect_wallet,
+    keys: [FarcasterSignupNav.connect_wallet],
   },
   {
     title: "Create account onchain",
     idx: 2,
-    key: FarcasterSignupNav.create_account_onchain,
+    keys: [FarcasterSignupNav.create_account_onchain],
   },
   {
     title: "Register username",
     idx: 3,
-    key: FarcasterSignupNav.register_username,
+    keys: [FarcasterSignupNav.register_username],
   },
   {
     title: "Let's go",
     idx: 3,
-    key: FarcasterSignupNav.explainer,
+    keys: [FarcasterSignupNav.explainer],
   },
 ];
 
 export default function Welcome() {
   const { isConnected, address } = useAccount();
-  const [step, setStep] = useState<string>(onboardingNavItems[1].key);
+  const [step, setStep] = useState<FarcasterSignupNav>(FarcasterSignupNav.connect_wallet);
   const [isAddressValid, setIsAddressValid] = useState<boolean>(false);
   const router = useRouter();
   const [error, setError] = useState<string>();
@@ -132,7 +133,14 @@ export default function Welcome() {
       case FarcasterSignupNav.login:
         return getStepContent(
           "Login",
-          "Congrats, you are already logged in to herocast."
+          "Congrats, you are already logged in to herocast.",
+          <div className="flex flex-col gap-4">
+            <Button
+              onClick={() => setStep(FarcasterSignupNav.connect_wallet)}
+            >
+              Next step
+            </Button>
+          </div>
         );
       case FarcasterSignupNav.connect_wallet:
         return getStepContent(

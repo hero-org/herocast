@@ -415,6 +415,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
+                          variantSize="lg"
                           type="email"
                           placeholder="vitalik@ethereum.org"
                           disabled={isLoading}
@@ -434,6 +435,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <Input
+                            variantSize="lg"
                             disabled={isLoading}
                             autoComplete="current-password"
                             type="password"

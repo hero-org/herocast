@@ -265,6 +265,9 @@ const RegisterFarcasterUsernameForm = ({
             )}
             Register username
           </Button>
+          <Button disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>
+            Refresh
+          </Button>
           {chainId !== mainnet.id && (
             <Button
               type="button"
