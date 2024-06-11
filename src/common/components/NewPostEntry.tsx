@@ -36,6 +36,8 @@ import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { ChannelList } from "./ChannelList";
 import isEmpty from "lodash.isempty";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { FarcasterEmbed } from "@mod-protocol/farcaster";
+import uniqBy from "lodash.uniqby";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -92,10 +94,15 @@ export default function NewPostEntry({
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const hasEmbeds = draft?.embeds && draft.embeds.length > 0;
   const [initialText, setInitialText] = React.useState<string>();
+  const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
 
   useEffect(() => {
     if (draft?.text && isEmpty(draft.mentionsToFids)) {
       setInitialText(draft.text);
+    }
+
+    if (draft?.embeds) {
+      setInitialEmbeds(draft.embeds);
     }
   }, []);
 
@@ -112,9 +119,14 @@ export default function NewPostEntry({
     return false;
   };
 
-  const ref = useHotkeys("meta+enter", onSubmitPost, [onSubmitPost, draft, account], {
-    enableOnFormTags: true,
-  });
+  const ref = useHotkeys(
+    "meta+enter",
+    onSubmitPost,
+    [onSubmitPost, draft, account],
+    {
+      enableOnFormTags: true,
+    }
+  );
 
   if (!draft) return null;
 
@@ -146,14 +158,6 @@ export default function NewPostEntry({
     }),
   });
 
-  useEffect(() => {
-    // initial draft might have embeds that are not yet in the editor
-    // we need to set them on initial render so we don't overwrite them later
-    if (draft.embeds) {
-      setEmbeds(draft.embeds);
-    }
-  }, []);
-
   const text = getText();
   const embeds = getEmbeds();
   const channel = getChannel();
@@ -161,14 +165,17 @@ export default function NewPostEntry({
   useEffect(() => {
     if (isPublishing) return;
     if (draft.parentUrl === channel?.parent_url) return;
-    if (draft.embeds && !embeds.length) return;
+    // ignore useEffect call that is triggered before initialEmbeds is set
+    if (draft.embeds && !initialEmbeds) return;
 
+    const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
     updatePostDraft(draftIdx, {
       ...draft,
       text,
+      embeds: newEmbeds,
       parentUrl: channel?.parent_url || undefined,
     });
-  }, [text, embeds, channel, isPublishing]);
+  }, [text, embeds, initialEmbeds, channel, isPublishing]);
 
   const getButtonText = () => {
     if (isPublishing) return "Publishing...";
@@ -274,8 +281,8 @@ export default function NewPostEntry({
         </div>
       </form>
       {hasEmbeds && (
-        <div className="mt-8 rounded-md bg-muted p-4 max-w-xl break-all">
-          {map(draft.embeds, (embed) => (
+        <div className="mt-8 rounded-md bg-muted p-2 w-full break-all">
+          {map(uniqBy(draft.embeds, "url"), (embed) => (
             <div key={`cast-embed-${embed.url || embed.hash}`}>
               {renderEmbedForUrl(embed)}
             </div>

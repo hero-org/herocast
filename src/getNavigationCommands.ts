@@ -72,5 +72,14 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
                 enableOnFormTags: true,
             },
         },
+        {
+            name: 'Report a Bug',
+            aliases: ['bug', 'issue', 'feedback', 'suggestion', 'complaint',],
+            icon: BellIcon,
+            action: () => window.open('https://github.com/hero-org/herocast/issues/new/choose'),
+            options: {
+                enableOnFormTags: false,
+            },
+        }
     ]
 )

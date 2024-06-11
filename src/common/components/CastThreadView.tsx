@@ -18,7 +18,8 @@ type CastThreadViewProps = {
   onBack?: () => void;
   isActive?: boolean;
   setSelectedCast?: (cast: CastWithInteractions) => void;
-  setShowReplyModal: (show: boolean) => void;
+  onReply?: () => void;
+  onQuote?: () => void;
 };
 
 export const CastThreadView = ({
@@ -26,7 +27,6 @@ export const CastThreadView = ({
   onBack,
   isActive,
   setSelectedCast,
-  setShowReplyModal,
 }: CastThreadViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
@@ -121,7 +121,7 @@ export const CastThreadView = ({
           {/* this is the left line */}
           <div
             className={classNames(
-              idx === 0 ? "-ml-[26px]" : "border-l-2",
+              idx === 0 ? "-ml-[31px]" : "border-l-2",
               isRowSelected
                 ? "border-muted-foreground"
                 : "border-foreground/10",
@@ -133,7 +133,7 @@ export const CastThreadView = ({
                 <div
                   className={cn(
                     isRowSelected ? "bg-muted-foreground" : "bg-foreground/10",
-                    "absolute top-8 left-[26px] h-[calc(100%-32px)] w-0.5"
+                    "absolute top-8 left-[31px] h-[calc(100%-32px)] w-0.5"
                   )}
                 />
               )}

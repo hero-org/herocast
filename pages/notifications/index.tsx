@@ -14,6 +14,7 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { useDataStore } from "@/stores/useDataStore";
 import { Loading } from "@/common/components/Loading";
 import { CastType } from "@/common/constants/farcaster";
+import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
@@ -56,6 +57,13 @@ enum NotificationNavigationEnum {
 }
 
 const Notifications = () => {
+  const {
+    isNewCastModalOpen,
+    setCastModalView,
+    openNewCastModal,
+    closeNewCastModal,
+  } = useNavigationStore();
+
   const [navigation, setNavigation] = useState<NotificationNavigationEnum>(
     NotificationNavigationEnum.mentions
   );
@@ -70,9 +78,7 @@ const Notifications = () => {
   const [selectedParentCast, setSelectedParentCast] = useState<CastType | null>(
     null
   );
-  const [showReplyModal, setShowReplyModal] = useState(false);
-  const [selectedCast, setSelectedCast] = useState<CastType | null>(null);
-  const { updateSelectedCast } = useDataStore();
+  const { selectedCast, updateSelectedCast } = useDataStore();
 
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId
@@ -102,7 +108,7 @@ const Notifications = () => {
 
     loadData();
 
-    setShowReplyModal(false);
+    closeNewCastModal();
     setIsLeftColumnSelected(true);
     setSelectedNotificationIdx(0);
   }, [viewerFid]);
@@ -120,18 +126,27 @@ const Notifications = () => {
     },
   ];
 
-  useHotkeys(
-    "r",
-    () => {
-      setShowReplyModal(true);
-    },
-    [showReplyModal],
-    {
-      enabled: !showReplyModal,
-      enableOnFormTags: false,
-      preventDefault: true,
-    }
-  );
+  const onReply = () => {
+    setCastModalView(CastModalView.Reply);
+    openNewCastModal();
+  };
+
+  const onQuote = () => {
+    setCastModalView(CastModalView.Quote);
+    openNewCastModal();
+  };
+
+  useHotkeys("r", onReply, [openNewCastModal], {
+    enabled: !isNewCastModalOpen,
+    enableOnFormTags: false,
+    preventDefault: true,
+  });
+
+  useHotkeys("q", onQuote, [openNewCastModal], {
+    enabled: !isNewCastModalOpen,
+    enableOnFormTags: false,
+    preventDefault: true,
+  });
 
   useHotkeys(
     ["tab", "shift+tab"],
@@ -140,7 +155,7 @@ const Notifications = () => {
     },
     [isLeftColumnSelected],
     {
-      enabled: !showReplyModal,
+      enabled: !isNewCastModalOpen,
       preventDefault: true,
     }
   );
@@ -152,7 +167,7 @@ const Notifications = () => {
     },
     [isLeftColumnSelected],
     {
-      enabled: !showReplyModal,
+      enabled: !isNewCastModalOpen,
       preventDefault: true,
     }
   );
@@ -164,7 +179,7 @@ const Notifications = () => {
     },
     [isLeftColumnSelected],
     {
-      enabled: !showReplyModal,
+      enabled: !isNewCastModalOpen,
       preventDefault: true,
     }
   );
@@ -226,7 +241,7 @@ const Notifications = () => {
           }
           onSelect={(idx) => setSelectedNotificationIdx(idx)}
           onExpand={() => null}
-          isActive={isLeftColumnSelected && !showReplyModal}
+          isActive={isLeftColumnSelected && !isNewCastModalOpen}
           disableScroll
         />
       </div>
@@ -243,10 +258,8 @@ const Notifications = () => {
           }}
           isActive={!isLeftColumnSelected}
           setSelectedCast={(cast) => {
-            setSelectedCast(cast);
             updateSelectedCast(cast);
           }}
-          setShowReplyModal={setShowReplyModal}
         />
       </div>
     ) : null;
@@ -264,15 +277,15 @@ const Notifications = () => {
       if (!hash) return;
 
       setSelectedParentCast({ hash, author });
-      setSelectedCast(notification);
+      updateSelectedCast(notification);
     }
   }, [selectedNotificationIdx, isLoading]);
 
   const renderReplyModal = () => (
     <NewCastModal
-      open={showReplyModal}
-      setOpen={() => setShowReplyModal(false)}
-      parentCast={selectedCast}
+      open={isNewCastModalOpen}
+      setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
+      linkedCast={selectedCast}
     />
   );
 

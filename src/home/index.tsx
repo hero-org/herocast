@@ -82,10 +82,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       shortcut: "Shift + F",
     },
     {
-      name: "New Post",
+      name: "Post",
       router: "/post",
       icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      shortcut: "C",
     },
     {
       name: "Search",
@@ -134,7 +133,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case "/feeds":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/post":
-        return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
+        return RIGHT_SIDEBAR_ENUM.NONE;
       case "/channels":
         return RIGHT_SIDEBAR_ENUM.NONE;
       case "/notifications":
