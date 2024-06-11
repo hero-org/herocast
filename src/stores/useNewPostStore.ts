@@ -1,4 +1,3 @@
-/* eslint-disable no-mixed-spaces-and-tabs */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/require-await */
 
@@ -160,7 +159,6 @@ const store = (set: StoreSet) => ({
   },
   removeEmptyDrafts: () => {
     set((state) => {
-      // removes empty drafts, and ensure no whitespace drafts are saved
       state.drafts = state.drafts.filter((draft) => Boolean(draft.text.trim()))
     })
   },
