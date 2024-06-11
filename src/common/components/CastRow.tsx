@@ -539,7 +539,7 @@ export const CastRow = ({
         )}
       >
         {isThreadView && (
-          <div className="absolute bg-foreground/10 -ml-2 mt-[1.2rem] h-[1.5px] w-4" />
+          <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />
         )}
         <div className="flex items-top gap-x-4">
           {!isEmbed && (

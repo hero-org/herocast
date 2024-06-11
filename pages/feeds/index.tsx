@@ -71,7 +71,7 @@ const neynarClient = new NeynarAPIClient(
   process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
 );
 
-export default function Feed() {
+export default function Feeds() {
   const [feeds, setFeeds] = useState<FeedKeyToFeed>({});
   const [loadingMessage, setLoadingMessage] = useState("Loading feed");
   const [isRefreshingPage, setIsRefreshingPage] = useState(false);
@@ -363,7 +363,7 @@ export default function Feed() {
 
   const renderThread = () => (
     <CastThreadView
-      cast={feed[selectedCastIdx]}
+      cast={casts[selectedCastIdx]}
       onBack={() => setShowCastThreadView(false)}
       setSelectedCast={updateSelectedCast}
       onReply={onReply}
