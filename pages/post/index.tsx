@@ -1,6 +1,6 @@
 import NewPostEntry from "../../src/common/components/NewPostEntry";
 import { classNames } from "../../src/common/helpers/css";
-import { useNewPostStore } from "../../src/stores/useNewPostStore";
+import { useNewPostStore } from "../../src/stores/useDraftStore";
 import React, { useEffect, useState } from "react";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";

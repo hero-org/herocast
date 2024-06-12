@@ -48,7 +48,7 @@ interface NewPostStoreProps {
   drafts: DraftType[];
 }
 
-interface NewPostStoreActions {
+interface DraftStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
   addNewPostDraft: ({ text, parentCastId, parentUrl, embeds }: addNewPostDraftProps) => void;
@@ -62,12 +62,12 @@ interface NewPostStoreActions {
   ) => Promise<string | null>;
 }
 
-export interface NewPostStore extends NewPostStoreProps, NewPostStoreActions { }
+export interface DraftStore extends NewPostStoreProps, DraftStoreActions { }
 
 export const mutative = (config) => (set, get) =>
   config((fn) => set(mutativeCreate(fn)), get);
 
-type StoreSet = (fn: (draft: Draft<NewPostStore>) => void) => void;
+type StoreSet = (fn: (draft: Draft<DraftStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   drafts: [],
@@ -221,7 +221,7 @@ const store = (set: StoreSet) => ({
     });
   },
 });
-export const useNewPostStore = create<NewPostStore>()(
+export const useNewPostStore = create<DraftStore>()(
   persist(mutative(store), {
     name: "herocast-post-store",
     storage: createJSONStorage(() => sessionStorage),

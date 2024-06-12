@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { useNewPostStore } from "@/stores/useNewPostStore";
+import { useNewPostStore } from "@/stores/useDraftStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { classNames } from "../helpers/css";

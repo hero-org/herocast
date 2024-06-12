@@ -10,7 +10,7 @@ import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import {
   newPostCommands,
   useNewPostStore,
-} from "@/stores/useNewPostStore";
+} from "@/stores/useDraftStore";
 import { LaunchCasterScoutDraft } from "@/common/constants/postDrafts";
 import { BountyCasterBotDraft } from "@/common/constants/postDrafts";
 import { RemindMeBotDraft } from "@/common/constants/postDrafts";

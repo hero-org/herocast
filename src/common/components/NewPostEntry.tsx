@@ -1,5 +1,5 @@
 import React, { RefObject, useEffect } from "react";
-import { useNewPostStore } from "@/stores/useNewPostStore";
+import { useNewPostStore } from "@/stores/useDraftStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { DraftStatus, DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";

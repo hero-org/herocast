@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import Modal from "./Modal";
 import NewPostEntry from "./NewPostEntry";
-import { useNewPostStore } from "@/stores/useNewPostStore";
+import { useNewPostStore } from "@/stores/useDraftStore";
 import { CastRow, CastToReplyType } from "./CastRow";
 import { useHotkeys } from "react-hotkeys-hook";
 import { AccountSelector } from "./AccountSelector";

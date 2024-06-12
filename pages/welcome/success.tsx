@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import {
   useNewPostStore,
-} from "@/stores/useNewPostStore";
+} from "@/stores/useDraftStore";
 import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 
 const WelcomeSuccessPage = () => {
