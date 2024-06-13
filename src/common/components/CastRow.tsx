@@ -196,8 +196,8 @@ export const CastRow = ({
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
-    const recastsCount = cast.reactions?.recasts?.length || 0;
-    const likesCount = cast.reactions?.likes?.length || 0;
+    const recastsCount = cast.reactions?.recasts_count || 0;
+    const likesCount = cast.reactions?.likes_count;
 
     const likeFids = map(cast.reactions?.likes, "fid") || [];
     const recastFids = map(cast.reactions?.recasts, "fid") || [];
