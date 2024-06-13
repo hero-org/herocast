@@ -1,6 +1,6 @@
 ALTER TABLE
     "public"."channel"
 ADD
-    COLUMN description text,
+    COLUMN IF NOT EXISTS description text,
 ADD
-    COLUMN data jsonb;
+    COLUMN IF NOT EXISTS data jsonb;

@@ -7,10 +7,7 @@ import {
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import {
-  newPostCommands,
-  useNewPostStore,
-} from "@/stores/useDraftStore";
+import { newPostCommands, useDraftStore } from "@/stores/useDraftStore";
 import { LaunchCasterScoutDraft } from "@/common/constants/postDrafts";
 import { BountyCasterBotDraft } from "@/common/constants/postDrafts";
 import { RemindMeBotDraft } from "@/common/constants/postDrafts";
@@ -28,6 +25,7 @@ import { getThemeCommands } from "@/getThemeCommands";
 import { formatLargeNumber } from "@/common/helpers/text";
 import { useDataStore } from "@/stores/useDataStore";
 import { DraftType } from "@/common/constants/farcaster";
+import { FeedbackPostDraft } from "../../constants/postDrafts";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -130,7 +128,7 @@ export default function CommandPalette() {
       if (!selectedCast) {
         return;
       }
-      const { addNewPostDraft } = useNewPostStore.getState();
+      const { addNewPostDraft } = useDraftStore.getState();
       addNewPostDraft({
         ...draft,
         parentCastId: {
@@ -139,7 +137,8 @@ export default function CommandPalette() {
         },
       });
 
-      const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
+      const { openNewCastModal, setCastModalView } =
+        useNavigationStore.getState();
       setCastModalView(CastModalView.Reply);
       openNewCastModal();
     };
@@ -157,7 +156,7 @@ export default function CommandPalette() {
     };
 
     const postNewBountyAction = () => {
-      const { addNewPostDraft } = useNewPostStore.getState();
+      const { addNewPostDraft } = useDraftStore.getState();
       addNewPostDraft(BountyCasterBotDraft);
     };
 
@@ -166,6 +165,11 @@ export default function CommandPalette() {
     };
 
     const farcasterBotCommands: CommandType[] = [
+      createFarcasterBotCommand(
+        "Feedback (send cast to @hellno)",
+        () => useDraftStore.getState().addNewPostDraft(FeedbackPostDraft),
+        "/post"
+      ),
       createFarcasterBotCommand(
         "Launch this cast on Launchcaster",
         launchCastAction

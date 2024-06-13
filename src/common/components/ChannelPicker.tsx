@@ -91,7 +91,7 @@ export function ChannelPicker(props: Props) {
             alt={props.value.name}
             width={24}
             height={24}
-            className="mr-2 -ml-2"
+            className="h-4 w-4 mr-2 -ml-2"
           />
           {props.value.name}
           <CaretDownIcon className="-mr-2 ml-2" />

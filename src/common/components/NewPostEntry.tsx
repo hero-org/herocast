@@ -1,5 +1,5 @@
-import React, { RefObject, useEffect } from "react";
-import { useNewPostStore } from "@/stores/useDraftStore";
+import React, { RefObject, useEffect, useRef } from "react";
+import { useDraftStore } from "@/stores/useDraftStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { DraftStatus, DraftType } from "../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -37,6 +37,8 @@ import { ChannelList } from "./ChannelList";
 import isEmpty from "lodash.isempty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FarcasterEmbed } from "@mod-protocol/farcaster";
+import { prepareCastBody } from "@/stores/useDraftStore";
+import { DateTimePicker } from "../../components/ui/datetime-picker";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -89,12 +91,17 @@ export default function NewPostEntry({
   onRemove,
   hideChannel,
 }: NewPostEntryProps) {
-  const { updatePostDraft, publishPostDraft } = useNewPostStore();
+  const { addScheduledDraft, updatePostDraft, publishPostDraft } =
+    useDraftStore();
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const [initialText, setInitialText] = React.useState<string>();
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
+  
+  // used to track if we switch draft to be edited in same editor
+  const draftIdxRef = useRef<number>(draftIdx); 
 
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
@@ -110,14 +117,26 @@ export default function NewPostEntry({
       setInitialEmbeds(draft.embeds);
     }
     setIsLoaded(true);
-  }, []);
+    draftIdxRef.current = draftIdx;
+  }, [draftIdx]);
 
   const onSubmitPost = async (): Promise<boolean> => {
-    if (draft?.text && draft.text.length > 0) {
+    if (!draft?.text || !draft.text.length) return false;
+
+    if (scheduleDateTime) {
+      const castBody = await prepareCastBody(draft);
+      await addScheduledDraft({
+        castBody,
+        scheduledFor: scheduleDateTime,
+      }).then(() => {
+        console.log("addScheduledDraft.then starts here");
+        setScheduleDateTime(undefined);
+        onPost?.();
+      });
+    } else {
       await publishPostDraft(draftIdx, account, onPost);
-      return true;
     }
-    return false;
+    return true;
   };
 
   const ref = useHotkeys(
@@ -129,10 +148,7 @@ export default function NewPostEntry({
     }
   );
 
-  if (!draft) return null;
-
-  const isPublishing = draft.status === DraftStatus.publishing;
-
+  const isPublishing = draft?.status === DraftStatus.publishing;
   const {
     editor,
     getText,
@@ -164,9 +180,11 @@ export default function NewPostEntry({
   const channel = getChannel();
 
   useEffect(() => {
+    console.log("useEffect", draft?.id, draftIdx, text);
+
     if (!isLoaded) return;
     if (isPublishing) return;
-    if (draft.parentUrl === channel?.parent_url) return;
+    if (draft?.parentUrl === channel?.parent_url) return;
 
     const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
     updatePostDraft(draftIdx, {
@@ -179,14 +197,19 @@ export default function NewPostEntry({
 
   const getButtonText = () => {
     if (isPublishing) return "Publishing...";
-    return `Cast${account ? ` as ${account.name}` : ""}`;
+    return `${scheduleDateTime ? "Schedule" : "Cast"}${
+      account ? ` as ${account.name}` : ""
+    }`;
   };
+
+  if (!draft) return null;
 
   return (
     <div
       className="flex flex-col items-start min-w-full w-full h-full"
       ref={ref as RefObject<HTMLDivElement>}
       tabIndex={-1}
+      key={draft.id}
     >
       <form onSubmit={handleSubmit} className="w-full">
         {isPublishing ? (
@@ -271,9 +294,17 @@ export default function NewPostEntry({
               Remove
             </Button>
           )}
+          <DateTimePicker
+            granularity="minute"
+            hourCycle={24}
+            jsDate={scheduleDateTime}
+            onJsDateChange={setScheduleDateTime}
+            showClearButton
+          />
           <Button
+            size="lg"
             type="submit"
-            className="line-clamp-1 w-40 truncate"
+            className="line-clamp-1 min-w-40 max-w-xs truncate"
             disabled={isPublishing}
           >
             {getButtonText()}

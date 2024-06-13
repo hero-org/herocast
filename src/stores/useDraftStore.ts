@@ -10,7 +10,7 @@ import {
   TagIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { AccountObjectType } from "./useAccountStore";
+import { AccountObjectType, useAccountStore } from "./useAccountStore";
 import {
   DraftStatus,
   DraftType,
@@ -29,9 +29,85 @@ import {
   toastInfoReadOnlyMode,
   toastSuccessCastPublished,
 } from "@/common/helpers/toast";
-import { NewFeedbackPostDraft, NewPostDraft } from "@/common/constants/postDrafts";
+import { NewPostDraft } from "@/common/constants/postDrafts";
 import type { FarcasterEmbed } from '@mod-protocol/farcaster';
 import { CastModalView, useNavigationStore } from "./useNavigationStore";
+import { createClient } from "@/common/helpers/supabase/component";
+import { UUID } from "crypto";
+import cloneDeep from "lodash.clonedeep";
+import { v4 as uuidv4 } from 'uuid';
+
+export const prepareCastBody = async (draft: any) => {
+  const castBody: {
+    text: string;
+    embeds?: Embed[] | undefined;
+    embedsDeprecated?: string[];
+    mentions?: number[];
+    mentionsPositions?: number[];
+    parentCastId?: CastId | { fid: number; hash: string; };
+  } | false = await formatPlaintextToHubCastMessage({
+    text: draft.text,
+    embeds: draft.embeds || [],
+    getMentionFidsByUsernames: getMentionFids,
+    parentUrl: draft.parentUrl,
+    parentCastFid: draft.parentCastId ? Number(draft.parentCastId.fid) : undefined,
+    parentCastHash: draft.parentCastId ? draft.parentCastId.hash : undefined,
+  });
+
+  if (!castBody) {
+    throw new Error("Failed to prepare cast");
+  }
+  if (castBody.parentCastId) {
+    castBody.parentCastId = {
+      fid: Number(castBody.parentCastId.fid),
+      hash: toHex(castBody.parentCastId.hash),
+    };
+  }
+  if (castBody.embeds) {
+    castBody.embeds.forEach(embed => {
+      if ('castId' in embed) {
+        embed.castId = { fid: Number(embed?.castId?.fid), hash: toBytes(embed?.castId?.hash) };
+      }
+    });
+  }
+
+  return castBody;
+}
+
+export type DraftObjectType = {
+  id: UUID;
+  data: object;
+  createdAt: string;
+  scheduledFor?: string;
+  publishedAt?: string;
+  status: DraftStatus
+}
+
+const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
+  console.log('tranformDBDraftForLocalStore', draft)
+  console.log('type of draft.data', typeof draft.data)
+  const { data } = draft;
+  return {
+    id: draft.id,
+    text: data.text || "",
+    parentUrl: data.parentUrl || undefined,
+    parentCastId: data.parentCastId ? {
+      fid: data.parentCastId.fid,
+      hash: new Uint8Array(data.parentCastId.hash)
+    } : undefined,
+    embeds: data.embeds ? data.embeds.map((embed) => ({
+      url: embed.url,
+    })) : undefined,
+    // todo: embeds can also be an array of FarcasterEmbed
+    // can also be cast_ids etc all of this stuff needs to work
+    createdAt: draft.created_at,
+    scheduledFor: draft?.scheduled_for,
+    publishedAt: draft?.published_at,
+    status: draft.status
+  };
+}
+
+
 
 const getMentionFids = getMentionFidsByUsernames(
   process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!,
@@ -44,6 +120,11 @@ type addNewPostDraftProps = {
   embeds?: FarcasterEmbed[];
 };
 
+type addScheduledDraftProps = {
+  castBody: object;
+  scheduledFor: Date;
+};
+
 interface NewPostStoreProps {
   drafts: DraftType[];
 }
@@ -52,8 +133,10 @@ interface DraftStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
   addNewPostDraft: ({ text, parentCastId, parentUrl, embeds }: addNewPostDraftProps) => void;
-  addFeedbackDraft: () => void;
-  removePostDraft: (draftId: number, onlyIfEmpty?: boolean) => void;
+  addScheduledDraft: ({ castBody, scheduledFor }: addScheduledDraftProps) => void;
+  removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => void;
+  removePostDraftById: (draftId: UUID) => void;
+  removeScheduledDraft: (draftId: UUID) => Promise<boolean>;
   removeAllPostDrafts: () => void;
   publishPostDraft: (
     draftIdx: number,
@@ -78,6 +161,7 @@ const store = (set: StoreSet) => ({
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
           if (!draft.text && !draft.parentUrl && !draft.parentCastId && !draft.embeds) {
+            console.log('found an empty draft')
             return;
           }
         }
@@ -97,13 +181,10 @@ const store = (set: StoreSet) => ({
         }
       }
 
-      const newDraft = { ...NewPostDraft, text: text || '', parentUrl, parentCastId, embeds };
+      const createdAt = Date.now();
+      const id = uuidv4();
+      const newDraft = { ...NewPostDraft, text: text || '', id, parentUrl, parentCastId, embeds, createdAt };
       state.drafts = [...state.drafts, newDraft];
-    });
-  },
-  addFeedbackDraft: () => {
-    set((state) => {
-      state.drafts.push(NewFeedbackPostDraft);
     });
   },
   updatePostDraft: (draftIdx: number, draft: DraftType) => {
@@ -151,10 +232,37 @@ const store = (set: StoreSet) => ({
       }
     });
   },
+  removePostDraftById: (draftId: UUID) => {
+    set(async (state) => {
+      const draftIdx = state.drafts.findIndex((draft) => draft.id === draftId);
+      const draft = state.drafts[draftIdx];
+      if (draft.status === DraftStatus.scheduled) {
+        const didRemove = await state.removeScheduledDraft(draftId);
+        if (!didRemove) {
+          return;
+        }
+      }
+      state.removePostDraft(draftIdx);
+    });
+  },
   removeAllPostDrafts: () => {
     set((state) => {
       state.drafts = [];
     });
+  },
+  removeScheduledDraft: async (draftId: UUID): Promise<boolean> => {
+    const supabaseClient = createClient();
+    const { data, error } = await supabaseClient
+      .from('draft')
+      .update({ status: DraftStatus.removed })
+      .eq('id', draftId)
+      .select()
+
+    if (error || !data) {
+      console.error('Failed to remove scheduled draft', error, data);
+      return false;
+    }
+    return true;
   },
   publishPostDraft: async (
     draftIdx: number,
@@ -171,44 +279,13 @@ const store = (set: StoreSet) => ({
 
       try {
         await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
-        const castBody: {
-          text: string;
-          embeds?: Embed[] | undefined;
-          embedsDeprecated?: string[];
-          mentions?: number[];
-          mentionsPositions?: number[];
-          parentCastId?: CastId | { fid: number, hash: string };
-        } | false = await formatPlaintextToHubCastMessage({
-          text: draft.text,
-          embeds: draft.embeds || [],
-          getMentionFidsByUsernames: getMentionFids,
-          parentUrl: draft.parentUrl,
-          parentCastFid: draft.parentCastId ? Number(draft.parentCastId.fid) : undefined,
-          parentCastHash: draft.parentCastId ? draft.parentCastId.hash : undefined,
-        });
+        const castBody = await prepareCastBody(draft);
 
-        if (!castBody) {
-          throw new Error("Failed to prepare cast");
-        }
-        if (castBody.parentCastId) {
-          castBody.parentCastId = {
-            fid: Number(castBody.parentCastId.fid),
-            hash: toHex(castBody.parentCastId.hash),
-          };
-        }
-        if (castBody.embeds) {
-          castBody.embeds.forEach(embed => {
-            if ('castId' in embed) {
-              embed.castId = { fid: Number(embed.castId.fid), hash: toBytes(embed.castId.hash) };
-            }
-          });
-        }
-
-        await submitCast({
-          ...castBody,
-          signerPrivateKey: account.privateKey!,
-          fid: Number(account.platformAccountId),
-        });
+        // await submitCast({
+        //   ...castBody,
+        //   signerPrivateKey: account.privateKey!,
+        //   fid: Number(account.platformAccountId),
+        // });
 
         state.removePostDraft(draftIdx);
         toastSuccessCastPublished(draft.text);
@@ -220,8 +297,53 @@ const store = (set: StoreSet) => ({
       }
     });
   },
+  addScheduledDraft: async ({ castBody, scheduledFor }) => {
+    const supabaseClient = createClient();
+
+    console.log('addScheduledDraft start', castBody, scheduledFor)
+    const accountState = useAccountStore.getState();
+    const account = accountState.accounts[accountState.selectedAccountIdx];
+    const { data, error } = await supabaseClient
+      .from('draft')
+      .insert({
+        account_id: account.id,
+        data: castBody,
+        scheduled_for: scheduledFor,
+        status: DraftStatus.scheduled,
+      })
+      .select()
+    if (error || !data) {
+      console.error('Failed to add scheduled draft', error, data);
+      return;
+    }
+    // const newDrafts = [...cloneDeep(account.drafts), tranformDBDraftForLocalStore(data[0])];
+    // if (!newDrafts.length) return;
+
+    set((state) => {
+      // console.log('addScheduledDraft end, now has drafts:', newDrafts.length)
+      state.drafts = [...state.drafts, tranformDBDraftForLocalStore(data[0])];
+    });
+  },
+  removeScheduledDraft: async (draftId: UUID): Promise<void> => {
+    const supabaseClient = createClient();
+    const { data, error } = await supabaseClient
+      .from('draft')
+      .update({ status: DraftStatus.removed })
+      .eq('id', draftId)
+      .select()
+
+    if (error || !data) {
+      console.error('Failed to remove scheduled draft', error, data);
+      return;
+    }
+
+    set((state) => {
+      const newDrafts = state.drafts.filter((draft) => draft.id !== draftId);
+      state.drafts = newDrafts;
+    });
+  },
 });
-export const useNewPostStore = create<DraftStore>()(
+export const useDraftStore = create<DraftStore>()(
   persist(mutative(store), {
     name: "herocast-post-store",
     storage: createJSONStorage(() => sessionStorage),
@@ -229,17 +351,6 @@ export const useNewPostStore = create<DraftStore>()(
 );
 
 export const newPostCommands: CommandType[] = [
-  {
-    name: "Feedback (send cast to @hellno)",
-    aliases: ["opinion", "debrief"],
-    icon: TagIcon,
-    shortcut: "cmd+shift+f",
-    action: () => useNewPostStore.getState().addFeedbackDraft(),
-    navigateTo: "/post",
-    options: {
-      enableOnFormTags: true,
-    },
-  },
   {
     name: "New Post",
     aliases: ["cast", "write", "create", "compose", "draft"],
@@ -261,7 +372,32 @@ export const newPostCommands: CommandType[] = [
     name: "Remove all drafts",
     aliases: ["cleanup"],
     icon: TrashIcon,
-    action: () => useNewPostStore.getState().removeAllPostDrafts(),
+    action: () => useDraftStore.getState().removeAllPostDrafts(),
     navigateTo: "/post",
   },
 ];
+
+const supabaseClient = createClient();
+const hydrateDrafts = async () => {
+  console.log('hydrateDrafts 📝')
+
+  // get all drafts in the database
+  supabaseClient.
+    from('draft')
+    .select('*')
+    .then(({ data, error }) => {
+      console.log('hydrateDrafts data:', data, 'error:', error)
+      if (error || !data) {
+        console.error('Failed to hydrate drafts', error, data);
+        return;
+      }
+      useDraftStore.getState().drafts = data.map(tranformDBDraftForLocalStore);
+    });
+
+  console.log('hydrateDrafts end 📝')
+}
+
+// client-side-only
+if (typeof window !== 'undefined') {
+  hydrateDrafts();
+}

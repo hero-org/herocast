@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { ArrowDownTrayIcon, NewspaperIcon } from "@heroicons/react/24/solid";
 import {
-  useNewPostStore,
+  useDraftStore,
 } from "../../src/stores/useDraftStore";
 import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 import {
@@ -67,7 +67,7 @@ export default function Accounts() {
   const { accounts, addAccount, setAccountActive, removeAccount } =
     useAccountStore();
 
-  const { addNewPostDraft } = useNewPostStore();
+  const { addNewPostDraft } = useDraftStore();
 
   const hasActiveAccounts =
     accounts.filter(

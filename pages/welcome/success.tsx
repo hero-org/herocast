@@ -15,7 +15,7 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import {
-  useNewPostStore,
+  useDraftStore,
 } from "@/stores/useDraftStore";
 import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 
@@ -23,7 +23,7 @@ const WelcomeSuccessPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { accounts, addAccount } = useAccountStore();
   const router = useRouter();
-  const { addNewPostDraft } = useNewPostStore();
+  const { addNewPostDraft } = useDraftStore();
 
   const onStartCasting = () => {
     addNewPostDraft(JoinedHerocastPostDraft);

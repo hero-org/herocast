@@ -12,7 +12,6 @@ import { PostHogProvider } from "posthog-js/react";
 import { loadPosthogAnalytics } from "../src/lib/analytics";
 import { useRouter } from "next/router";
 import { createClient } from "@/common/helpers/supabase/component";
-import includes from "lodash.includes";
 import localFont from "next/font/local";
 import CommandPalette from "../src/common/components/CommandPalette";
 import Home from "../src/home";
