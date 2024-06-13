@@ -4,8 +4,8 @@ import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { usePathname, useSearchParams } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import HotkeyTooltipWrapper from "../../src/common/components/HotkeyTooltipWrapper";
 import NewPostEntry from "../../src/common/components/NewPostEntry";
 import { classNames } from "../../src/common/helpers/css";
@@ -19,29 +19,36 @@ export default function NewPost() {
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const savedPathname = useRef(pathname)
+  const router = useRouter();
+  const [emptyDraftCreated, setEmptyDraftCreated] = useState(false)
 
   useEffect(() => {
-    if (searchParams.has("text")) {
-      const text = searchParams.getAll("text").join(". ");
-
+    if (router.isReady) {
+      const { text } = router.query
       if (text) {
-        addNewPostDraft({ text });
+        addNewPostDraft({ text: text as string })
+        return
       }
-      return
-    }
 
-    if (!searchParams.has('text') && drafts.length === 0) {
-     addNewPostDraft({})
-     return
+      if (!text && drafts.length === 0) {
+        addNewPostDraft({});
+        setEmptyDraftCreated(true)
+      }
     }
-  }, []);
+  }, [router.pathname, router.query])
 
   useEffect(() => {
-    if (savedPathname.current !== pathname && drafts.length > 0) { removeEmptyDrafts() }
-  }, [pathname, searchParams]);
+    function beforeUnloadFn(e: BeforeUnloadEvent) {
+      if (emptyDraftCreated) {
+        removeEmptyDrafts();
+      }
+      e.preventDefault();
+    }
+    window.addEventListener("beforeunload", beforeUnloadFn);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnloadFn);
+    }
+  }, [router.pathname]);
 
   useEffect(() => {
     const parentCastIds = drafts
