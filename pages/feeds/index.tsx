@@ -136,6 +136,10 @@ export default function Feeds() {
   };
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [feedKey]);
+
+  useEffect(() => {
     if (showCastThreadView) return;
 
     if (selectedCastIdx === 0) {
@@ -317,7 +321,10 @@ export default function Feeds() {
         cast={item}
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
-        showChannel
+        showChannel={
+          selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING ||
+          selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
+        }
       />
     </li>
   );

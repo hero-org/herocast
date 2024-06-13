@@ -35,6 +35,7 @@ import { toastInfoReadOnlyMode } from "../helpers/toast";
 import { cn } from "@/lib/utils";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
+import { Button } from "@/components/ui/button";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -164,6 +165,7 @@ export const CastRow = ({
     selectedAccountIdx,
     allChannels: channels,
     setSelectedChannelByName,
+    setSelectedChannelUrl,
   } = useAccountStore();
 
   const { setCastModalView, openNewCastModal } = useNavigationStore();
@@ -575,9 +577,13 @@ export const CastRow = ({
                   </span>
                 </ProfileHoverCard>
                 {showChannel && channel && (
-                  <span className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedChannelUrl(channel.url)}
+                    className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-blue-400/10  hover:bg-blue-400/20 px-1.5 py-0.5 text-xs font-medium text-blue-400 hover:text-blue-600 ring-1 ring-inset ring-blue-400/30 border-none"
+                  >
                     {channel.name}
-                  </span>
+                  </Button>
                 )}
                 {renderRecastBadge()}
               </div>

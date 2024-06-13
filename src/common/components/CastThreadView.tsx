@@ -139,7 +139,7 @@ export const CastThreadView = ({
               )}
               <CastRow
                 cast={cast}
-                showChannel={selectedChannelUrl === null}
+                showChannel
                 isSelected={selectedCastIdx === idx}
                 isThreadView={idx > 0}
               />
