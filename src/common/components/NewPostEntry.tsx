@@ -128,6 +128,7 @@ export default function NewPostEntry({
       await addScheduledDraft({
         castBody,
         scheduledFor: scheduleDateTime,
+        rawText: draft.text
       }).then(() => {
         console.log("addScheduledDraft.then starts here");
         setScheduleDateTime(undefined);

@@ -24,6 +24,7 @@ export type DraftType = {
   embeds?: FarcasterEmbed[],
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
+  accountId?: UUID;
 };
 
 // drafttype without createdAt

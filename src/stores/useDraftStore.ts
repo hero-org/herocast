@@ -22,7 +22,7 @@ import {
 } from "@mod-protocol/farcaster";
 import { submitCast } from "@/common/helpers/farcaster";
 import { toBytes, toHex } from "viem";
-import { CastId, Embed } from "@farcaster/hub-web";
+import { CastAddBody, CastId, Embed } from "@farcaster/hub-web";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import {
   toastErrorCastPublish,
@@ -31,21 +31,12 @@ import {
 } from "@/common/helpers/toast";
 import { NewPostDraft } from "@/common/constants/postDrafts";
 import type { FarcasterEmbed } from '@mod-protocol/farcaster';
-import { CastModalView, useNavigationStore } from "./useNavigationStore";
 import { createClient } from "@/common/helpers/supabase/component";
 import { UUID } from "crypto";
-import cloneDeep from "lodash.clonedeep";
 import { v4 as uuidv4 } from 'uuid';
 
-export const prepareCastBody = async (draft: any) => {
-  const castBody: {
-    text: string;
-    embeds?: Embed[] | undefined;
-    embedsDeprecated?: string[];
-    mentions?: number[];
-    mentionsPositions?: number[];
-    parentCastId?: CastId | { fid: number; hash: string; };
-  } | false = await formatPlaintextToHubCastMessage({
+export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
+  const castBody = await formatPlaintextToHubCastMessage({
     text: draft.text,
     embeds: draft.embeds || [],
     getMentionFidsByUsernames: getMentionFids,
@@ -74,6 +65,7 @@ export const prepareCastBody = async (draft: any) => {
   return castBody;
 }
 
+// todo: get this from supabase DB type
 export type DraftObjectType = {
   id: UUID;
   data: object;
@@ -81,15 +73,24 @@ export type DraftObjectType = {
   scheduledFor?: string;
   publishedAt?: string;
   status: DraftStatus
+  account_id: UUID;
 }
 
 const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
   console.log('tranformDBDraftForLocalStore', draft)
   console.log('type of draft.data', typeof draft.data)
-  const { data } = draft;
+  const { data }: { data: {
+    rawText?: string;
+    parentUrl?: string;
+    parentCastId?: {
+      fid: number;
+      hash: Uint8Array;
+    };
+    embeds?: Embed[];
+  }} = draft;
   return {
     id: draft.id,
-    text: data.text || "",
+    text: data.rawText || "",
     parentUrl: data.parentUrl || undefined,
     parentCastId: data.parentCastId ? {
       fid: data.parentCastId.fid,
@@ -103,7 +104,8 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
     createdAt: draft.created_at,
     scheduledFor: draft?.scheduled_for,
     publishedAt: draft?.published_at,
-    status: draft.status
+    status: draft.status,
+    accountId: draft.account_id,
   };
 }
 
@@ -123,6 +125,7 @@ type addNewPostDraftProps = {
 type addScheduledDraftProps = {
   castBody: object;
   scheduledFor: Date;
+  rawText: string;
 };
 
 interface NewPostStoreProps {
@@ -297,7 +300,7 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  addScheduledDraft: async ({ castBody, scheduledFor }) => {
+  addScheduledDraft: async ({ castBody, scheduledFor, rawText }) => {
     const supabaseClient = createClient();
 
     console.log('addScheduledDraft start', castBody, scheduledFor)
@@ -307,7 +310,7 @@ const store = (set: StoreSet) => ({
       .from('draft')
       .insert({
         account_id: account.id,
-        data: castBody,
+        data: { ...castBody, rawText },
         scheduled_for: scheduledFor,
         status: DraftStatus.scheduled,
       })
@@ -394,7 +397,7 @@ const hydrateDrafts = async () => {
       useDraftStore.getState().drafts = data.map(tranformDBDraftForLocalStore);
     });
 
-  console.log('hydrateDrafts end 📝')
+  console.log('hydrateDrafts done 📝')
 }
 
 // client-side-only

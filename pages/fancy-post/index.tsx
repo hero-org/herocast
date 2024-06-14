@@ -29,6 +29,7 @@ import {
   localize,
 } from "../../src/common/helpers/date";
 import { ChannelType } from "@/common/constants/channels";
+import { UUID } from "crypto";
 
 enum DraftListTab {
   writing = "writing",
@@ -45,20 +46,38 @@ const DraftListTabs = [
     key: DraftListTab.scheduled,
     label: "Scheduled",
   },
-  // {
-  //   key: DraftListTab.published,
-  //   label: "Published",
-  // },
+  {
+    key: DraftListTab.published,
+    label: "Published",
+  },
 ];
 
-const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab) => {
+const getDraftsForTab = (
+  drafts: DraftType[],
+  activeTab: DraftListTab,
+  activeAccountId?: UUID
+) => {
   switch (activeTab) {
     case DraftListTab.writing:
       return drafts.filter((draft) => draft.status === DraftStatus.writing);
     case DraftListTab.scheduled:
-      return drafts.filter((draft) => draft.status === DraftStatus.scheduled);
+      return drafts
+        .filter(
+          (draft) =>
+            draft.status === DraftStatus.scheduled &&
+            draft.accountId === activeAccountId
+        )
+        .sort(
+          (a, b) =>
+            new Date(a.scheduledFor).getTime() -
+            new Date(b.scheduledFor).getTime()
+        );
     case DraftListTab.published:
-      return drafts.filter((draft) => draft.status === DraftStatus.published);
+      return drafts.filter(
+        (draft) =>
+          draft.status === DraftStatus.published &&
+          draft.accountId === activeAccountId
+      );
     default:
       return drafts;
   }
@@ -85,8 +104,8 @@ export default function NewPost() {
 
   console.log("drafts in fancy-post", activeTab, drafts);
   const draftsForTab = useMemo(
-    () => getDraftsForTab(drafts, activeTab),
-    [drafts, activeTab]
+    () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
+    [drafts, activeTab, selectedAccount?.id]
   );
   console.log("draftsForTab", draftsForTab);
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
@@ -130,7 +149,7 @@ export default function NewPost() {
     removePostDraftById(draft.id);
   };
 
-  const getTitle =() => {
+  const getTitle = () => {
     switch (activeTab) {
       case DraftListTab.writing:
         return "New cast";
@@ -141,7 +160,7 @@ export default function NewPost() {
       default:
         return "Drafts";
     }
-  }
+  };
 
   const renderWritingDraft = (draft) => {
     if (!draft) return null;
@@ -162,15 +181,26 @@ export default function NewPost() {
 
   const renderScheduledDraft = (draft) => {
     if (!draft) return null;
-
+    const channel = getChannelForParentUrl({
+      channels: allChannels,
+      parentUrl: draft.parentUrl,
+    });
     const hasEmbeds = draft?.embeds?.length > 0;
     return (
       <div className="pt-4 pb-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center text-xs text-muted-foreground">
           <ClockIcon className="w-5 h-5" />
-          <span className="text-xs text-muted-foreground">
+          <span className="">
             Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}
           </span>
+          {channel && (
+            <p>
+              &nbsp;in&nbsp;
+              <span className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
+                {channel.name}
+              </span>
+            </p>
+          )}
         </div>
         <div className="mt-4 px-2 py-1 border rounded-lg w-full h-full min-h-[150px]">
           {draft.text}
@@ -198,7 +228,7 @@ export default function NewPost() {
       <div
         key={draft?.id || draft?.createdAt}
         className={cn(
-          "flex flex-col max-w-60 items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
+          "flex flex-col max-w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent cursor-pointer",
           draft.id === selectedDraftId && "bg-muted"
         )}
         onClick={() => {
@@ -225,9 +255,9 @@ export default function NewPost() {
               </div>
             ) : null}
             {channel && (
-              <Badge variant="outline" className="text-md">
+              <span className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
                 {channel.name}
-              </Badge>
+              </span>
             )}
             <div
               className={cn(
@@ -272,29 +302,58 @@ export default function NewPost() {
     );
   };
 
+  const renderScrollableList = (children: React.ReactElement) => (
+    <ScrollArea className="flex-1">
+      <div className="flex flex-col gap-2 pt-0">{children}</div>
+    </ScrollArea>
+  );
+
   const renderDraftList = () => {
-    return (
-      <ScrollArea className="">
-        <div className="flex flex-col gap-2 p-4 pt-0">
+    return renderScrollableList(
+      <>
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 mx-2"
+          onClick={() => {
+            addNewPostDraft({});
+          }}
+        >
+          <PlusCircleIcon className="w-5 h-5" />
+          <span>New draft</span>
+        </Button>
+        <div className="flex flex-col gap-2 p-2 pt-0">
+          {draftsForTab.map(renderDraftListPreview)}
+        </div>
+      </>
+    );
+  };
+
+  const renderScheduledList = () => {
+    return renderScrollableList(
+      <>
+        {draftsForTab.length === 0 && (
           <Button
             variant="outline"
-            className="flex items-center gap-2 w-full"
+            className="flex items-center gap-2 mx-2"
             onClick={() => {
               addNewPostDraft({});
+              setActiveTab(DraftListTab.writing);
             }}
           >
             <PlusCircleIcon className="w-5 h-5" />
             <span>New draft</span>
           </Button>
+        )}
+        <div className="flex flex-col gap-2 p-2 pt-0">
           {draftsForTab.map(renderDraftListPreview)}
         </div>
-      </ScrollArea>
+      </>
     );
   };
 
   const renderContent = () => {
     const draft = draftsForTab.find((draft) => draft.id === selectedDraftId);
-    console.log('renderContent', draftsForTab)
+    console.log("renderContent", draftsForTab);
     switch (activeTab) {
       case DraftListTab.writing:
         return renderWritingDraft(draft);
@@ -306,16 +365,6 @@ export default function NewPost() {
     }
   };
 
-  const renderScheduledList = () => {
-    return (
-      <ScrollArea className="">
-        <div className="flex flex-col gap-2 p-4 pt-0">
-          {draftsForTab.map(renderDraftListPreview)}
-        </div>
-      </ScrollArea>
-    );
-  };
-
   return (
     <div className="grid grid-cols-[300px_1fr] h-screen w-full">
       <div className="overflow-y-auto p-4">
@@ -324,10 +373,10 @@ export default function NewPost() {
             defaultValue="drafts"
             className="w-full"
             value={activeTab}
-            onValueChange={setActiveTab}
+            onValueChange={(value) => setActiveTab(value as DraftListTab)}
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center px-4 py-2 w-full">
+              <div className="flex items-center py-2 w-full">
                 <TabsList className="flex w-full">
                   {DraftListTabs.map((tab) => (
                     <TabsTrigger
@@ -355,9 +404,7 @@ export default function NewPost() {
       </div>
       <div className="flex flex-col">
         <div className="bg-white dark:bg-gray-900 p-4 border-b border-gray-200 dark:border-gray-800">
-          <h2 className="text-lg font-semibold">
-            {getTitle()}
-          </h2>
+          <h2 className="text-lg font-semibold">{getTitle()}</h2>
         </div>
         <div className="flex-1 overflow-y-auto p-4">{renderContent()}</div>
       </div>
