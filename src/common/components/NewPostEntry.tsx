@@ -126,7 +126,6 @@ export default function NewPostEntry({
         scheduledFor: scheduleDateTime,
         rawText: draft.text,
       }).then(() => {
-        console.log("addScheduledDraft.then starts here");
         setScheduleDateTime(undefined);
         onPost?.();
       });

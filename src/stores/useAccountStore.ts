@@ -130,7 +130,7 @@ export const mutative = (config) =>
 type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
 
 const supabaseClient = createClient();
-const { data: { user } } = await supabaseClient.auth.getUser();
+
 const store = (set: StoreSet) => ({
   ...initialState,
   addAccount: async (props: AddAccountProps) => {
@@ -521,6 +521,7 @@ export const hydrateChannels = async () => {
 }
 
 export const hydrate = async () => {
+  console.log('hydrating 💦');
   const accounts = await hydrateAccounts();
   if (accounts.length) {
     await hydrateChannels();
