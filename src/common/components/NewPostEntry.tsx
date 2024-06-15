@@ -127,10 +127,9 @@ export default function NewPostEntry({
         castBody,
         scheduledFor: scheduleDateTime,
         rawText: draft.text,
-      }).then(() => {
-        setScheduleDateTime(undefined);
-        onPost?.();
       });
+      setScheduleDateTime(undefined);
+      onPost?.();
     } else {
       await publishPostDraft(draftIdx, account, onPost);
     }
@@ -178,8 +177,6 @@ export default function NewPostEntry({
   const channel = getChannel();
 
   useEffect(() => {
-    console.log("useEffect", draft?.id, draftIdx, text);
-
     if (!isLoaded) return;
     if (isPublishing) return;
     if (draft?.parentUrl === channel?.parent_url) return;

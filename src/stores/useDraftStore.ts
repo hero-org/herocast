@@ -28,6 +28,7 @@ import {
   toastErrorCastPublish,
   toastInfoReadOnlyMode,
   toastSuccessCastPublished,
+  toastSuccessCastScheduled,
 } from "@/common/helpers/toast";
 import { NewPostDraft } from "@/common/constants/postDrafts";
 import type { FarcasterEmbed } from '@mod-protocol/farcaster';
@@ -253,20 +254,6 @@ const store = (set: StoreSet) => ({
       state.drafts = [];
     });
   },
-  removeScheduledDraft: async (draftId: UUID): Promise<boolean> => {
-    const supabaseClient = createClient();
-    const { data, error } = await supabaseClient
-      .from('draft')
-      .update({ status: DraftStatus.removed })
-      .eq('id', draftId)
-      .select()
-
-    if (error || !data) {
-      console.error('Failed to remove scheduled draft', error, data);
-      return false;
-    }
-    return true;
-  },
   publishPostDraft: async (
     draftIdx: number,
     account: AccountObjectType,
@@ -284,11 +271,11 @@ const store = (set: StoreSet) => ({
         await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody = await prepareCastBody(draft);
 
-        // await submitCast({
-        //   ...castBody,
-        //   signerPrivateKey: account.privateKey!,
-        //   fid: Number(account.platformAccountId),
-        // });
+        await submitCast({
+          ...castBody,
+          signerPrivateKey: account.privateKey!,
+          fid: Number(account.platformAccountId),
+        });
 
         state.removePostDraft(draftIdx);
         toastSuccessCastPublished(draft.text);
@@ -319,15 +306,15 @@ const store = (set: StoreSet) => ({
       console.error('Failed to add scheduled draft', error, data);
       return;
     }
-    // const newDrafts = [...cloneDeep(account.drafts), tranformDBDraftForLocalStore(data[0])];
-    // if (!newDrafts.length) return;
+
+    toastSuccessCastScheduled(rawText);
 
     set((state) => {
-      // console.log('addScheduledDraft end, now has drafts:', newDrafts.length)
       state.drafts = [...state.drafts, tranformDBDraftForLocalStore(data[0])];
+      console.log('addScheduledDraft end, now has drafts:', state.drafts.length)
     });
   },
-  removeScheduledDraft: async (draftId: UUID): Promise<void> => {
+  removeScheduledDraft: async (draftId: UUID): Promise<boolean> => {
     const supabaseClient = createClient();
     const { data, error } = await supabaseClient
       .from('draft')
@@ -337,13 +324,14 @@ const store = (set: StoreSet) => ({
 
     if (error || !data) {
       console.error('Failed to remove scheduled draft', error, data);
-      return;
+      return false;
     }
 
     set((state) => {
       const newDrafts = state.drafts.filter((draft) => draft.id !== draftId);
       state.drafts = newDrafts;
     });
+    return true;
   },
 });
 export const useDraftStore = create<DraftStore>()(
