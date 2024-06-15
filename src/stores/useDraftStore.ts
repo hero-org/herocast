@@ -77,8 +77,6 @@ export type DraftObjectType = {
 }
 
 const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
-  console.log('tranformDBDraftForLocalStore', draft)
-  console.log('type of draft.data', typeof draft.data)
   const { data }: { data: {
     rawText?: string;
     parentUrl?: string;
@@ -217,6 +215,7 @@ const store = (set: StoreSet) => ({
     });
   },
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => {
+    console.log('removePostDraft', draftIdx)
     set((state) => {
       if (draftIdx < 0 || draftIdx >= state.drafts.length) {
         return;

@@ -93,7 +93,6 @@ export default function Feeds() {
     useAccountStore();
 
   const { selectedCast, updateSelectedCast } = useDataStore();
-  console.log('selectedCast', selectedCast)
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
   const updateFeed = (feedKey: string, key: keyof Feed, value: any) => {

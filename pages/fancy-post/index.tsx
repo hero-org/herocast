@@ -169,7 +169,7 @@ export default function NewPost() {
       (cast) => cast.hash === draft.parentCastId?.hash
     );
     return (
-      <div className="pt-4 pb-6">
+      <div key={draft.id} className="pt-4 pb-6">
         {parentCast && <CastRow cast={parentCast} />}
         <NewPostEntry
           draft={draft}
@@ -223,7 +223,6 @@ export default function NewPost() {
       channels: allChannels,
       parentUrl: draft.parentUrl,
     });
-    console.log("channel for draft", channel, draft.parentUrl);
     return (
       <div
         key={draft?.id || draft?.createdAt}
@@ -353,7 +352,6 @@ export default function NewPost() {
 
   const renderContent = () => {
     const draft = draftsForTab.find((draft) => draft.id === selectedDraftId);
-    console.log("renderContent", draftsForTab);
     switch (activeTab) {
       case DraftListTab.writing:
         return renderWritingDraft(draft);

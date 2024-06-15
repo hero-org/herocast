@@ -4,21 +4,17 @@ import { HubRestAPIClient } from "npm:@standard-crypto/farcaster-js";
 console.log("Hello from publish-cast-from-db!")
 
 async function submitMessage({ fid, signerPrivateKey, castAddBody }: { fid: number, signerPrivateKey: string, castAddBody: any }): Promise<string> {
-  const writeClient = new HubRestAPIClient({ hubUrl: 'https://hub.farcaster.standardcrypto.vc:2281' });
-  // console.log('hubInfo:', await writeClient.getHubInfo());
-
-  console.log('castAddBody', castAddBody);
+  const writeClient = new HubRestAPIClient();
   const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
   console.log(`new cast hash: ${publishCastResponse.hash}`);
   return publishCastResponse.hash;
 }
 
-const publishFromDraftTable = async (supabaseClient, draftId) => {
+const publishDraft = async (supabaseClient, draftId) => {
   const { data: drafts, error: getDraftError } = await supabaseClient
     .from('draft')
     .select('*')
     .eq('id', draftId);
-
 
   if (getDraftError || drafts?.length !== 1) {
     console.error(getDraftError || `no draft returned for id ${draftId}`);
@@ -40,22 +36,22 @@ const publishFromDraftTable = async (supabaseClient, draftId) => {
     return;
   }
 
-  // const { error: updateDraftStatusError } = await supabaseClient
-  //   .from('draft')
-  //   .update({ status: 'publishing' })
-  //   .select('id')
-  //   .eq('id', draftId)
+  const { error: updateDraftStatusError } = await supabaseClient
+    .from('draft')
+    .update({ status: 'publishing' })
+    .select('id')
+    .eq('id', draftId)
 
-  // if (updateDraftStatusError) {
-  //   console.error(updateDraftStatusError);
-  //   return;
-  // }
+  if (updateDraftStatusError) {
+    console.error(`Failed to update draft status to publishing for id ${draftId}: ${updateDraftStatusError}`);
+    return;
+  }
 
   try {
     const castBody = draft.data;
     const account = accounts[0];
-    console.log('publishing cast', castBody, account.platform_account_id)
 
+    console.log('submit draft to protocol - draftId:', draftId, 'fid:', account.platform_account_id);
     await submitMessage({
       fid: Number(account.platform_account_id),
       signerPrivateKey: account.decrypted_private_key,
@@ -67,7 +63,7 @@ const publishFromDraftTable = async (supabaseClient, draftId) => {
       .update({ status: 'published', published_at: new Date().toISOString() })
       .select('id')
       .eq('id', draftId)
-
+    console.log('published draft id:', draftId, 'successfully!');
   } catch (e) {
     console.error(`Failed to publish draft id ${draftId}: ${e}`);
     await supabaseClient
@@ -89,30 +85,36 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    console.log('SUPABASE_URL', Deno.env.get('SUPABASE_URL'));
     const invocationTime = new Date().toISOString();
-    const next15Minutes = new Date(Date.now() + 15 * 60000).toISOString();
+    const next5Minutes = new Date(Date.now() + 5 * 60000).toISOString();
 
     const { data: drafts, error } = await supabaseClient
       .from('draft')
       .select('id')
       .eq('status', 'scheduled')
       .gte('scheduled_for', invocationTime)
-      // .lte('scheduled_for', next15Minutes)
+      .lte('scheduled_for', next5Minutes)
       .order('scheduled_for', { ascending: true })
-      .limit(1);
+
+    if (error) {
+      console.error(error);
+      return new Response(JSON.stringify({ error: error?.message }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
 
     if (!drafts || drafts?.length === 0) {
-      console.error(`No drafts to publish between: ${invocationTime} and ${next15Minutes}`);
+      console.error(`No drafts to publish between: ${invocationTime} and ${next5Minutes}`);
       return new Response("ok", {
         headers: { 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    console.log(`Drafts to publish between: ${invocationTime} and ${next15Minutes}:`, drafts, error);
+    console.log(`Drafts to publish between: ${invocationTime} and ${next5Minutes}:`, drafts.length, error);
     for (const draft of drafts) {
-      await publishFromDraftTable(supabaseClient, draft.id);
+      await publishDraft(supabaseClient, draft.id);
     }
 
     return new Response("ok", {
@@ -128,29 +130,10 @@ Deno.serve(async (req) => {
 })
 
 
-
-// todo:
-// - where does the rando parentCastId come from?!?!?!?
-//  - is it in the draft table? no
-//  - is it from castAdd?
-//  - is it from the bytes wrangling/converting? 
-
-
-// run 
+// # run 
 // supabase functions serve --debug
-// and
+// # and then
 // curl --request POST 'http://localhost:54321/functions/v1/send-scheduled-casts' \
 // --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
 // --header 'Content-Type: application/json' \
 // --data '{ "name":"Functions" }'
-
-
-
-// I tried to use directly GRPC endpoint but it fucking sucks and doesn't work
-// then I tried to import in any way directly from @standard-crypto/farcaster-js
-// - but it doesnt work by default because it's incompatible with the latest hub-nodejs version
-// - I tried to change the import to my github repository where it's fixed -> didn't work correctly in import
-
-// todo:
-// -> maybe just add a map to use a downgraded hub-nodejs version so it just compiles in any way
-// - brekaing change was the solana version change

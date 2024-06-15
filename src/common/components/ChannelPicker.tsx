@@ -80,6 +80,7 @@ export function ChannelPicker(props: Props) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          size="lg"
           disabled={props.disabled}
           variant="outline"
           role="combobox"
@@ -94,7 +95,7 @@ export function ChannelPicker(props: Props) {
             className="h-4 w-4 mr-2 -ml-2"
           />
           {props.value.name}
-          <CaretDownIcon className="-mr-2 ml-2" />
+          {/* <CaretDownIcon className="-mr-2 ml-2" /> */}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0" align="start">

@@ -99,9 +99,6 @@ export default function NewPostEntry({
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
-  
-  // used to track if we switch draft to be edited in same editor
-  const draftIdxRef = useRef<number>(draftIdx); 
 
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
@@ -117,7 +114,6 @@ export default function NewPostEntry({
       setInitialEmbeds(draft.embeds);
     }
     setIsLoaded(true);
-    draftIdxRef.current = draftIdx;
   }, [draftIdx]);
 
   const onSubmitPost = async (): Promise<boolean> => {
@@ -128,7 +124,7 @@ export default function NewPostEntry({
       await addScheduledDraft({
         castBody,
         scheduledFor: scheduleDateTime,
-        rawText: draft.text
+        rawText: draft.text,
       }).then(() => {
         console.log("addScheduledDraft.then starts here");
         setScheduleDateTime(undefined);
@@ -220,7 +216,7 @@ export default function NewPostEntry({
             </Skeleton>
           </div>
         ) : (
-          <div className="p-2 border-slate-200 rounded-md border">
+          <div className="p-2 border-slate-200 rounded-lg border">
             <EditorContent
               editor={editor}
               autoFocus
@@ -275,6 +271,7 @@ export default function NewPostEntry({
             </PopoverContent>
           </Popover>
           <Button
+            size="lg"
             type="button"
             variant="outline"
             disabled={isPublishing}
@@ -302,7 +299,9 @@ export default function NewPostEntry({
             onJsDateChange={setScheduleDateTime}
             showClearButton
           />
-          <Button
+        </div>
+        <div className="flex flex-row pt-2 gap-1">
+           <Button
             size="lg"
             type="submit"
             className="line-clamp-1 min-w-40 max-w-xs truncate"
