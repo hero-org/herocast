@@ -81,6 +81,7 @@ type NewPostEntryProps = {
   onPost?: () => void;
   onRemove?: () => void;
   hideChannel?: boolean;
+  hideSchedule?: boolean;
   disableAutofocus?: boolean;
 };
 
@@ -90,6 +91,7 @@ export default function NewPostEntry({
   onPost,
   onRemove,
   hideChannel,
+  hideSchedule,
 }: NewPostEntryProps) {
   const { addScheduledDraft, updatePostDraft, publishPostDraft } =
     useDraftStore();
@@ -243,6 +245,16 @@ export default function NewPostEntry({
               />
             </div>
           )}
+           <Button
+            className="h-10"
+            type="button"
+            variant="outline"
+            disabled={isPublishing}
+            onClick={() => setCurrentMod(creationMods[0])}
+          >
+            <PhotoIcon className="mr-1 w-5 h-5" />
+            Add
+          </Button>
           <Popover
             open={!!currentMod}
             onOpenChange={(op: boolean) => {
@@ -250,7 +262,7 @@ export default function NewPostEntry({
             }}
           >
             <PopoverTrigger></PopoverTrigger>
-            <PopoverContent className="w-[400px]" align="start">
+            <PopoverContent className="w-[300px]">
               <div className="space-y-4">
                 <h4 className="font-medium leading-none">{currentMod?.name}</h4>
                 <hr />
@@ -269,16 +281,6 @@ export default function NewPostEntry({
               </div>
             </PopoverContent>
           </Popover>
-          <Button
-            size="lg"
-            type="button"
-            variant="outline"
-            disabled={isPublishing}
-            onClick={() => setCurrentMod(creationMods[0])}
-          >
-            <PhotoIcon className="mr-1 w-5 h-5" />
-            Add
-          </Button>
           <CastLengthUIIndicator getText={getText} />
           <div className="grow"></div>
           {onRemove && (
@@ -291,15 +293,15 @@ export default function NewPostEntry({
               Remove
             </Button>
           )}
-          <DateTimePicker
+          {!hideSchedule && <DateTimePicker
             granularity="minute"
             hourCycle={24}
             jsDate={scheduleDateTime}
             onJsDateChange={setScheduleDateTime}
             showClearButton
-          />
+          />}
         </div>
-        <div className="flex flex-row pt-2 gap-1">
+        <div className="flex flex-row pt-2 justify-end">
            <Button
             size="lg"
             type="submit"
@@ -313,7 +315,7 @@ export default function NewPostEntry({
       {hasEmbeds && (
         <div className="mt-8 rounded-md bg-muted p-2 w-full break-all">
           {map(draft.embeds, (embed) => (
-            <div key={`cast-embed-${embed.url || embed.hash}`}>
+            <div key={`cast-embed-${embed?.url || embed?.hash}`}>
               {renderEmbedForUrl(embed)}
             </div>
           ))}

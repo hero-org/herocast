@@ -34,6 +34,7 @@ import type { FarcasterEmbed } from '@mod-protocol/farcaster';
 import { createClient } from "@/common/helpers/supabase/component";
 import { UUID } from "crypto";
 import { v4 as uuidv4 } from 'uuid';
+import uniqBy from "lodash.uniqby";
 
 export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
   const castBody = await formatPlaintextToHubCastMessage({
@@ -393,7 +394,9 @@ const hydrateDrafts = async () => {
         console.error('Failed to hydrate drafts', error, data);
         return;
       }
-      useDraftStore.getState().drafts = data.map(tranformDBDraftForLocalStore);
+      const state = useDraftStore.getState();
+      const dbDrafts = data.map(tranformDBDraftForLocalStore);
+      state.drafts = uniqBy([...state.drafts, ...dbDrafts], 'id'); 
     });
 
   console.log('hydrateDrafts done 📝')

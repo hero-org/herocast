@@ -71,7 +71,10 @@ export function ChannelPicker(props: Props) {
       ? take(channels, 15)
       : take(
           channels.filter((channel) => {
-            return channel.name && channel.name.toLowerCase().includes(query.toLowerCase());
+            return (
+              channel.name &&
+              channel.name.toLowerCase().includes(query.toLowerCase())
+            );
           }),
           10
         );
@@ -80,7 +83,7 @@ export function ChannelPicker(props: Props) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          size="lg"
+          className="h-10 px-4"
           disabled={props.disabled}
           variant="outline"
           role="combobox"

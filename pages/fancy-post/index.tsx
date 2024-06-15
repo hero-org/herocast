@@ -102,19 +102,17 @@ export default function NewPost() {
     DraftListTab.writing
   );
 
-  console.log("drafts in fancy-post", activeTab, drafts);
   const draftsForTab = useMemo(
     () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
     [drafts, activeTab, selectedAccount?.id]
   );
-  console.log("draftsForTab", draftsForTab);
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
 
-  // useEffect(() => {
-  //   if (drafts.length === 0) {
-  //     addNewPostDraft({});
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (drafts.length === 0) {
+      addNewPostDraft({});
+    }
+  }, []);
 
   useEffect(() => {
     // when drafts change, we want to make sure that selectedDraftId is always a valid draft id
@@ -126,24 +124,24 @@ export default function NewPost() {
     }
   }, [draftsForTab]);
 
-  // useEffect(() => {
-  //   const parentCastIds = drafts
-  //     .map((draft) => draft?.parentCastId?.hash)
-  //     .filter(Boolean) as string[];
+  useEffect(() => {
+    const parentCastIds = drafts
+      .map((draft) => draft?.parentCastId?.hash)
+      .filter(Boolean) as string[];
 
-  //   const fetchParentCasts = async () => {
-  //     const neynarClient = new NeynarAPIClient(
-  //       process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-  //     );
-  //     const res = await neynarClient.fetchBulkCasts(parentCastIds, {
-  //       viewerFid: selectedAccount?.platformAccountId,
-  //     });
-  //     setParentCasts(res?.result?.casts);
-  //   };
-  //   if (parentCastIds.length) {
-  //     fetchParentCasts();
-  //   }
-  // }, [drafts]);
+    const fetchParentCasts = async () => {
+      const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      );
+      const res = await neynarClient.fetchBulkCasts(parentCastIds, {
+        viewerFid: selectedAccount?.platformAccountId,
+      });
+      setParentCasts(res?.result?.casts);
+    };
+    if (parentCastIds.length) {
+      fetchParentCasts();
+    }
+  }, [drafts]);
 
   const onRemove = (draft) => {
     removePostDraftById(draft.id);
