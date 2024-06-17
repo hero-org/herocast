@@ -522,7 +522,6 @@ export const hydrateChannels = async () => {
 
 export const hydrate = async () => {
   console.log('hydrating 💦');
-
   const accounts = await hydrateAccounts();
   if (accounts.length) {
     await hydrateChannels();

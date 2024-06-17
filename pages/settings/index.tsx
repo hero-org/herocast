@@ -11,7 +11,7 @@ import {
   hydrate,
   useAccountStore,
 } from "@/stores/useAccountStore";
-import { newPostCommands } from "@/stores/useNewPostStore";
+import { newPostCommands } from "@/stores/useDraftStore";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { getNavigationCommands } from "@/getNavigationCommands";

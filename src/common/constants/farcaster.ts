@@ -1,5 +1,6 @@
 import { Embed } from "@farcaster/hub-web";
 import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import { UUID } from "crypto";
 
 export type ParentCastIdType = {
   fid: number;
@@ -8,22 +9,26 @@ export type ParentCastIdType = {
 
 export enum DraftStatus {
   writing = "writing",
+  scheduled = "scheduled",
   publishing = "publishing",
   published = "published",
+  removed = "removed",
 }
 
-export type DraftType = PostType & {
+export type DraftType = {
+  id: UUID,
+  text: string;
   status: DraftStatus,
+  createdAt: number,
   mentionsToFids?: { [key: string]: string },
   embeds?: FarcasterEmbed[],
-};
-
-export type PostType = {
-  text: string;
-  embeds?: Embed[];
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
-}
+  accountId?: UUID;
+};
+
+// drafttype without createdAt
+export type DraftTemplateType = Omit<DraftType, 'createdAt'>;
 
 export type AuthorType = {
   fid: string,

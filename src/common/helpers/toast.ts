@@ -16,3 +16,7 @@ export const toastSuccessCastPublished = (text: string) => {
 export const toastErrorCastPublish = (err?: string) => {
     toast.error('Error publishing cast :(', { description: err, duration: 5000 });
 }
+
+export const toastSuccessCastScheduled = (text: string) => {
+    toast.success('Cast scheduled successfully', { description: truncate(text, { length: 25 }) });
+}

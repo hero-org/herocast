@@ -489,8 +489,7 @@ export const CastRow = ({
       <div className="mt-4 space-y-4" onClick={(e) => e.preventDefault()}>
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
-            // @ts-expect-error - type mismatch, this works
-            <div key={`${cast.hash}-embed-${embed.cast_id ?? embed.url}`}>
+            <div key={`${cast.hash}-embed-${embed?.cast_id || embed?.url}`}>
               {renderEmbedForUrl(embed)}
             </div>
           ))}

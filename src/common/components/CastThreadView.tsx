@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { useNewPostStore } from "@/stores/useNewPostStore";
+import { useDraftStore } from "@/stores/useDraftStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { classNames } from "../helpers/css";
@@ -33,8 +33,8 @@ export const CastThreadView = ({
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
 
   const { selectedChannelUrl } = useAccountStore();
-  const { addNewPostDraft, removePostDraft } = useNewPostStore();
-  const draftIdx = useNewPostStore(
+  const { addNewPostDraft, removePostDraft } = useDraftStore();
+  const draftIdx = useDraftStore(
     (state) =>
       state.drafts &&
       state.drafts.findIndex((draft) => draft.parentCastId?.hash === cast?.hash)
