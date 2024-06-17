@@ -80,7 +80,7 @@
     "axios": "^1.6.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "cmdk": "^0.2.1",
+    "cmdk": "^1.0.0",
     "command-score": "^0.1.2",
     "date-fns": "^3.6.0",
     "esbuild": "^0.19.8",
