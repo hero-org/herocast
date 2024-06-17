@@ -1,15 +1,15 @@
-import NewPostEntry from "../../src/common/components/NewPostEntry";
-import { classNames } from "../../src/common/helpers/css";
-import { useDraftStore } from "../../src/stores/useDraftStore";
-import React, { useEffect, useMemo, useState } from "react";
+import NewPostEntry from "@/common/components/NewPostEntry";
+import { classNames } from "@/common/helpers/css";
+import { useDraftStore } from "@/stores/useDraftStore";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   ClockIcon,
   PlusCircleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import HotkeyTooltipWrapper from "../../src/common/components/HotkeyTooltipWrapper";
-import { Button } from "../../src/components/ui/button";
+import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
+import { Button } from "@/components/ui/button";
 import { CastRow } from "@/common/components/CastRow";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
@@ -21,15 +21,16 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { parseISO, formatDistanceToNow } from "date-fns";
-import { DraftStatus, DraftType } from "../../src/common/constants/farcaster";
+import { DraftStatus, DraftType } from "@/common/constants/farcaster";
 import map from "lodash.map";
-import { renderEmbedForUrl } from "../../src/common/components/Embeds";
+import { renderEmbedForUrl } from "@/common/components/Embeds";
 import {
   getUserLocaleDateFromIsoString,
   localize,
-} from "../../src/common/helpers/date";
+} from "@/common/helpers/date";
 import { ChannelType } from "@/common/constants/channels";
 import { UUID } from "crypto";
+import { usePathname, useSearchParams } from "next/navigation";
 
 enum DraftListTab {
   writing = "writing",
@@ -101,6 +102,9 @@ export default function NewPost() {
   const [activeTab, setActiveTab] = useState<DraftListTab>(
     DraftListTab.writing
   );
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const savedPathname = useRef(pathname);
 
   const draftsForTab = useMemo(
     () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
@@ -109,10 +113,23 @@ export default function NewPost() {
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
 
   useEffect(() => {
-    if (drafts.length === 0) {
+    console.log('searchParams', searchParams?.text);
+    if (searchParams.has("text")) {
+      const text = searchParams.getAll("text").join(". ");
+
+      if (text) {
+        addNewPostDraft({ text });
+      }
+    } else if (drafts.length === 0) {
       addNewPostDraft({});
     }
-  }, []);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (savedPathname.current !== pathname && drafts.length > 0) {
+      removeEmptyDrafts();
+    }
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     // when drafts change, we want to make sure that selectedDraftId is always a valid draft id
@@ -127,7 +144,7 @@ export default function NewPost() {
   useEffect(() => {
     const parentCastIds = drafts
       .map((draft) => draft?.parentCastId?.hash)
-      .filter(Boolean) as string[];
+      .filter(Boolean) as unknown as string[];
 
     const fetchParentCasts = async () => {
       const neynarClient = new NeynarAPIClient(
