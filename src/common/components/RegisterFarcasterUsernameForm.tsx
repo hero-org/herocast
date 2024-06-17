@@ -154,6 +154,8 @@ const RegisterFarcasterUsernameForm = ({
         throw new Error("Failed to get signature to register username");
       }
 
+      // todo: fix this can happen if account.getPlatformAccountId() is not set
+
       // register new username
       const result = await updateUsernameOffchain({
         timestamp,

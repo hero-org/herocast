@@ -12,7 +12,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CaretDownIcon } from "@radix-ui/react-icons";
 import { take } from "lodash";
 import { useEffect } from "react";
 import uniqBy from "lodash.uniqby";
@@ -71,7 +70,10 @@ export function ChannelPicker(props: Props) {
       ? take(channels, 15)
       : take(
           channels.filter((channel) => {
-            return channel.name && channel.name.toLowerCase().includes(query.toLowerCase());
+            return (
+              channel.name &&
+              channel.name.toLowerCase().includes(query.toLowerCase())
+            );
           }),
           10
         );
@@ -80,6 +82,7 @@ export function ChannelPicker(props: Props) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          className="h-10 px-4"
           disabled={props.disabled}
           variant="outline"
           role="combobox"
@@ -91,10 +94,9 @@ export function ChannelPicker(props: Props) {
             alt={props.value.name}
             width={24}
             height={24}
-            className="mr-2 -ml-2"
+            className="h-4 w-4 mr-2 -ml-2"
           />
           {props.value.name}
-          <CaretDownIcon className="-mr-2 ml-2" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0" align="start">

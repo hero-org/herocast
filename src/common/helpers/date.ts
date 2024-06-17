@@ -33,3 +33,19 @@ export function localize(value: number, str: string): string {
 
   return `${value}${str}`
 }
+
+import { parseISO, formatDistanceToNow } from "date-fns";
+
+
+export const getUserLocaleDateFromIsoString = (
+  isoString: string,
+  dateStyle: "medium" | "full" | "long" | "short" | undefined = 'medium',
+  timeStyle: "medium" | "full" | "long" | "short" | undefined = 'medium'
+) => {
+  // input format: 2024-06-14T11:34:47+00:00, e.g. from 
+  const date = parseISO(isoString);
+  return new Intl.DateTimeFormat(navigator.language, {
+    dateStyle,
+    timeStyle
+  }).format(date);
+}

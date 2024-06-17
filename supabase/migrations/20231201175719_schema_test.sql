@@ -95,7 +95,6 @@ CREATE TABLE IF NOT EXISTS "public"."channel" (
     "url" "text",
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "source" "text",
-    "description" "text",
     "data" "jsonb"
 );
 

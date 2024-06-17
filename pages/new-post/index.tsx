@@ -1,12 +1,3 @@
-import { CastRow } from "@/common/components/CastRow";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import { usePathname, useSearchParams } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
-import HotkeyTooltipWrapper from "../../src/common/components/HotkeyTooltipWrapper";
 import NewPostEntry from "../../src/common/components/NewPostEntry";
 import { classNames } from "../../src/common/helpers/css";
 import { useDraftStore } from "../../src/stores/useDraftStore";
@@ -15,46 +6,33 @@ import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../../src/common/components/HotkeyTooltipWrapper";
 import { Button } from "../../src/components/ui/button";
+import { CastRow } from "@/common/components/CastRow";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { useAccountStore } from "@/stores/useAccountStore";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 export default function NewPost() {
-  const { addNewPostDraft, removePostDraft, removeAllPostDrafts, removeEmptyDrafts } =
+  const { addNewPostDraft, removePostDraft, removeAllPostDrafts } =
     useDraftStore();
   const { drafts } = useDraftStore();
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const savedPathname = useRef(pathname)
 
   useEffect(() => {
-    if (searchParams.has("text")) {
-      const text = searchParams.getAll("text").join(". ");
-
-      if (text) {
-        addNewPostDraft({ text });
-      }
-      return
-    }
-
-    if (!searchParams.has('text') && drafts.length === 0) {
-     addNewPostDraft({})
-     return
+    if (drafts.length === 0) {
+      addNewPostDraft({});
     }
   }, []);
 
   useEffect(() => {
-    if (savedPathname.current !== pathname && drafts.length > 0) { removeEmptyDrafts() }
-  }, [pathname, searchParams]);
-
-  useEffect(() => {
     const parentCastIds = drafts
       .map((draft) => draft?.parentCastId?.hash)
-      .filter(Boolean) as unknown as string[];
+      .filter(Boolean) as string[];
 
     const fetchParentCasts = async () => {
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
         viewerFid: selectedAccount?.platformAccountId,
@@ -68,7 +46,7 @@ export default function NewPost() {
 
   const renderDraft = (draft, draftIdx) => {
     const parentCast = parentCasts.find(
-      (cast) => cast.hash === draft.parentCastId?.hash,
+      (cast) => cast.hash === draft.parentCastId?.hash
     );
     return (
       <div key={draftIdx} className="pt-4 pb-6">
@@ -112,7 +90,7 @@ export default function NewPost() {
               onClick={() => removeAllPostDrafts()}
               className={classNames(
                 drafts.length > 0 ? "cursor-pointer" : "cursor-default",
-                "inline-flex items-center",
+                "inline-flex items-center"
               )}
             >
               Remove all drafts

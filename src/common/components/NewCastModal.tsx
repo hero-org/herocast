@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import Modal from "./Modal";
 import NewPostEntry from "./NewPostEntry";
-import { useNewPostStore } from "@/stores/useNewPostStore";
+import { useDraftStore } from "@/stores/useDraftStore";
 import { CastRow, CastToReplyType } from "./CastRow";
 import { useHotkeys } from "react-hotkeys-hook";
 import { AccountSelector } from "./AccountSelector";
@@ -37,7 +37,7 @@ const findDraftIdForLinkedCast = (castModalView, drafts, linkedCast) => {
 
 const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
   const { castModalView } = useNavigationStore();
-  const { addNewPostDraft, drafts, removePostDraft } = useNewPostStore();
+  const { addNewPostDraft, drafts, removePostDraft } = useDraftStore();
   const draftIdx = findDraftIdForLinkedCast(castModalView, drafts, linkedCast);
   const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 

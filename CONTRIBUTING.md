@@ -112,6 +112,12 @@ NEXT_PUBLIC_SUPABASE_URL = '<API KEY>'
 NEXT_PUBLIC_SUPABASE_ANON_KEY = '<anon key>'
 ```
 
+- Setup accounts table signer encryption in your SQL Editor:
+  - Generate a private encryption key ```SELECT * FROM pgsodium.create_key();```
+  - Get the key id ```select id from pgsodium.valid_key limit 1;```
+  - Run ```SECURITY LABEL FOR "pgsodium" ON COLUMN "public"."accounts"."private_key" IS 'ENCRYPT WITH KEY ID <PG_SODIUM_KEY> SECURITY INVOKER'```
+
+
 ### Run the local app in development mode
 ```bash
 yarn dev
