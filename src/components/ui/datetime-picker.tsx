@@ -47,6 +47,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  today,
   CalendarDate,
   createCalendar,
   getLocalTimeZone,
@@ -382,6 +383,9 @@ const DateTimePicker = React.forwardRef<
     state.setValue(null);
     onJsDateChange?.(null);
   };
+
+  const isUnavailable = (date: Date) => date < new Date();
+
   return (
     <div
       {...groupProps}
@@ -407,9 +411,13 @@ const DateTimePicker = React.forwardRef<
         </PopoverTrigger>
         <PopoverContent ref={contentRef} className="w-full">
           <div {...dialogProps} className="space-y-3">
-            <Calendar {...calendarProps} />
+            <Calendar
+              {...calendarProps}
+              minValue={today(getLocalTimeZone())}
+            />
             {state.hasTime && (
               <TimeField
+                minValue={state.minValue}
                 granularity="minute"
                 hourCycle={24}
                 value={state.timeValue}

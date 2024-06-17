@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
-import { HubRestAPIClient } from "npm:@standard-crypto/farcaster-js";
+import { HubRestAPIClient } from "npm:@standard-crypto/farcaster-js-hub-rest";
 
-console.log("Hello from publish-cast-from-db!")
+// console.log("Hello from publish-cast-from-db!")
 
 async function submitMessage({ fid, signerPrivateKey, castAddBody }: { fid: number, signerPrivateKey: string, castAddBody: any }): Promise<string> {
-  const writeClient = new HubRestAPIClient();
+  const writeClient = new HubRestAPIClient({ hubUrl: 'https://hub.farcaster.standardcrypto.vc:2281' });
   const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
   console.log(`new cast hash: ${publishCastResponse.hash}`);
   return publishCastResponse.hash;
@@ -51,7 +51,7 @@ const publishDraft = async (supabaseClient, draftId) => {
     const castBody = draft.data;
     const account = accounts[0];
 
-    console.log('submit draft to protocol - draftId:', draftId, 'fid:', account.platform_account_id);
+    console.log('submit draft to protocol - draftId:', draftId);
     await submitMessage({
       fid: Number(account.platform_account_id),
       signerPrivateKey: account.decrypted_private_key,
@@ -85,8 +85,10 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    const invocationTime = new Date().toISOString();
-    const next5Minutes = new Date(Date.now() + 5 * 60000).toISOString();
+    const now = new Date();
+    now.setSeconds(0, 0); // Round down to the nearest full minute
+    const invocationTime = now.toISOString();
+    const next5Minutes = new Date(now.getTime() + 5 * 60000).toISOString();
 
     const { data: drafts, error } = await supabaseClient
       .from('draft')
@@ -100,12 +102,12 @@ Deno.serve(async (req) => {
       console.error(error);
       return new Response(JSON.stringify({ error: error?.message }), {
         headers: { 'Content-Type': 'application/json' },
-        status: 400,
+        status: 500,
       });
     }
 
     if (!drafts || drafts?.length === 0) {
-      console.error(`No drafts to publish between: ${invocationTime} and ${next5Minutes}`);
+      console.log(`No drafts to publish between: ${invocationTime} and ${next5Minutes}`);
       return new Response("ok", {
         headers: { 'Content-Type': 'application/json' },
         status: 200,
@@ -124,7 +126,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     return new Response(JSON.stringify({ error: error?.message }), {
       headers: { 'Content-Type': 'application/json' },
-      status: 400,
+      status: 500,
     })
   }
 })
