@@ -179,17 +179,26 @@ export default function NewPost() {
 
   const renderScheduledDraft = (draft) => {
     if (!draft) return null;
+
     const channel = getChannelForParentUrl({
       channels: allChannels,
       parentUrl: draft.parentUrl,
     });
+
+    const parentCast = parentCasts.find(
+      (cast) => cast.hash === draft.parentCastId?.hash
+    );
     const hasEmbeds = draft?.embeds?.length > 0;
     return (
       <div className="pt-4 pb-6">
         <div className="flex items-center text-xs text-muted-foreground">
           <ClockIcon className="w-5 h-5" />
-          <span className="">
-            Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}
+          <span className="ml-1">
+            Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}{" "}
+            {draft.publishedAt &&
+              `· Published at ${getUserLocaleDateFromIsoString(
+                draft.publishedAt
+              )}`}
           </span>
           {channel && (
             <p>
@@ -200,7 +209,12 @@ export default function NewPost() {
             </p>
           )}
         </div>
-        <div className="mt-4 px-2 py-1 border rounded-lg w-full h-full min-h-[150px]">
+        {parentCast && (
+          <div className="flex border p-2 mt-2">
+            {<CastRow cast={parentCast} isEmbed hideReactions />}
+          </div>
+        )}
+        <div className="mt-4 px-2 py-1 bg-muted border rounded-lg w-full h-full min-h-[60px] max-h-[150px]">
           {draft.text}
         </div>
         {hasEmbeds && (

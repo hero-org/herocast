@@ -98,10 +98,10 @@ export default function NewPostEntry({
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const [initialText, setInitialText] = React.useState<string>();
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
-  const hasEmbeds = draft?.embeds && !!draft.embeds.length;
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
-
+  
+  const hasEmbeds = draft?.embeds && !!draft.embeds.length;
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );

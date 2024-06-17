@@ -63,6 +63,7 @@ interface CastRowProps {
   isSelected?: boolean;
   isThreadView?: boolean;
   isEmbed?: boolean;
+  hideReactions?: boolean;
 }
 
 const renderMention = ({ attributes, content }) => {
@@ -159,6 +160,7 @@ export const CastRow = ({
   onSelect,
   isEmbed = false,
   isThreadView = false,
+  hideReactions = false,
 }: CastRowProps) => {
   const {
     accounts,
@@ -612,7 +614,7 @@ export const CastRow = ({
             >
               {getText()}
             </div>
-            {renderCastReactions(cast as CastWithInteractions)}
+            {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
             {!isEmbed && renderEmbeds()}
           </div>
         </div>

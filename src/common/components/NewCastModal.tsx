@@ -116,7 +116,6 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
                   setOpen(false);
                 }}
                 hideChannel={castModalView === CastModalView.Reply}
-                hideSchedule={castModalView === CastModalView.Reply}
               />
             </div>
           </div>

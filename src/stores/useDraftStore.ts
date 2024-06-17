@@ -78,22 +78,24 @@ export type DraftObjectType = {
 }
 
 const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
-  const { data }: { data: {
-    rawText?: string;
-    parentUrl?: string;
-    parentCastId?: {
-      fid: number;
-      hash: Uint8Array;
-    };
-    embeds?: Embed[];
-  }} = draft;
+  const { data }: {
+    data: {
+      rawText?: string;
+      parentUrl?: string;
+      parentCastId?: {
+        fid: number;
+        hash: Uint8Array;
+      };
+      embeds?: Embed[];
+    }
+  } = draft;
   return {
     id: draft.id,
     text: data.rawText || "",
     parentUrl: data.parentUrl || undefined,
     parentCastId: data.parentCastId ? {
       fid: data.parentCastId.fid,
-      hash: new Uint8Array(data.parentCastId.hash)
+      hash: data.parentCastId.hash,
     } : undefined,
     embeds: data.embeds ? data.embeds.map((embed) => ({
       url: embed.url,
@@ -382,7 +384,7 @@ const hydrateDrafts = async () => {
       }
       const state = useDraftStore.getState();
       const dbDrafts = data.map(tranformDBDraftForLocalStore);
-      state.drafts = uniqBy([...state.drafts, ...dbDrafts], 'id'); 
+      state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
     });
 
   console.log('hydrateDrafts done 📝')
