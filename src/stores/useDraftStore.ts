@@ -142,6 +142,7 @@ interface DraftStoreActions {
   removePostDraftById: (draftId: UUID) => void;
   removeScheduledDraft: (draftId: UUID) => Promise<boolean>;
   removeAllPostDrafts: () => void;
+  removeEmptyDrafts: () => void;
   publishPostDraft: (
     draftIdx: number,
     account: AccountObjectType,
@@ -216,6 +217,11 @@ const store = (set: StoreSet) => ({
       copy.splice(draftIdx, 1, { ...draft, mentionsToFids });
       state.drafts = copy;
     });
+  },
+  removeEmptyDrafts: () => {
+    set((state) => {
+      state.drafts = state.drafts.filter((draft) => Boolean(draft.text.trim()))
+    })
   },
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => {
     console.log('removePostDraft', draftIdx)
