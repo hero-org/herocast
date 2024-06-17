@@ -12,7 +12,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CaretDownIcon } from "@radix-ui/react-icons";
 import { take } from "lodash";
 import { useEffect } from "react";
 import uniqBy from "lodash.uniqby";
@@ -98,7 +97,6 @@ export function ChannelPicker(props: Props) {
             className="h-4 w-4 mr-2 -ml-2"
           />
           {props.value.name}
-          {/* <CaretDownIcon className="-mr-2 ml-2" /> */}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0" align="start">

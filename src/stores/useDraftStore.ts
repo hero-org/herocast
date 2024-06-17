@@ -2,12 +2,11 @@
 /* eslint-disable @typescript-eslint/require-await */
 
 import { create } from "zustand";
-import { createJSONStorage, devtools, persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from "mutative";
 import { CommandType } from "@/common/constants/commands";
 import {
   PlusCircleIcon,
-  TagIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { AccountObjectType, useAccountStore } from "./useAccountStore";
@@ -372,7 +371,6 @@ const supabaseClient = createClient();
 const hydrateDrafts = async () => {
   console.log('hydrateDrafts 📝')
 
-  // get all drafts in the database
   supabaseClient.
     from('draft')
     .select('*')
