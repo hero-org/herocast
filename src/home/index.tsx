@@ -372,10 +372,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "md:pr-48 lg:pr-64"
           )}
         >
+          {!hydratedAt && (
+            <Loading className="ml-8" loadingMessage="Loading herocast" />
+          )}
           <div className="w-full max-w-full min-h-screen flex justify-between">
-            {!hydratedAt && (
-              <Loading className="ml-8" loadingMessage="Loading herocast" />
-            )}
             {children}
           </div>
           {renderRightSidebar()}

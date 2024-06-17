@@ -39,6 +39,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { FarcasterEmbed } from "@mod-protocol/farcaster";
 import { prepareCastBody } from "@/stores/useDraftStore";
 import { DateTimePicker } from "../../components/ui/datetime-picker";
+import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -100,7 +101,7 @@ export default function NewPostEntry({
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
-  
+
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
@@ -118,8 +119,36 @@ export default function NewPostEntry({
     setIsLoaded(true);
   }, [draftIdx]);
 
+  useEffect(() => {
+    if (scheduleDateTime) {
+      const minutes = scheduleDateTime.getMinutes();
+      const remainder = minutes % 5;
+      // server only supports scheduling in 5 minute increments
+      if (remainder !== 0) {
+        const newMinutes = Math.round(minutes / 5) * 5;
+        const newDate = new Date(scheduleDateTime);
+        newDate.setMinutes(newMinutes);
+        setScheduleDateTime(newDate);
+      }
+    }
+  }, [scheduleDateTime]);
+
+  const validateScheduledDateTime = (date: Date) => {
+    if (!scheduleDateTime) return true;
+
+    if (date < new Date()) {
+      toast.info("Select a schedule time in the future");
+      return false;
+    }
+    return true;
+  };
+
   const onSubmitPost = async (): Promise<boolean> => {
     if (!draft?.text || !draft.text.length) return false;
+
+    if (!validateScheduledDateTime(scheduleDateTime)) {
+      return false;
+    }
 
     if (scheduleDateTime) {
       const castBody = await prepareCastBody(draft);
@@ -242,7 +271,7 @@ export default function NewPostEntry({
               />
             </div>
           )}
-           <Button
+          <Button
             className="h-10"
             type="button"
             variant="outline"
@@ -290,16 +319,18 @@ export default function NewPostEntry({
               Remove
             </Button>
           )}
-          {!hideSchedule && <DateTimePicker
-            granularity="minute"
-            hourCycle={24}
-            jsDate={scheduleDateTime}
-            onJsDateChange={setScheduleDateTime}
-            showClearButton
-          />}
+          {!hideSchedule && (
+            <DateTimePicker
+              granularity="minute"
+              hourCycle={24}
+              jsDate={scheduleDateTime}
+              onJsDateChange={setScheduleDateTime}
+              showClearButton
+            />
+          )}
         </div>
         <div className="flex flex-row pt-2 justify-end">
-           <Button
+          <Button
             size="lg"
             type="submit"
             className="line-clamp-1 min-w-40 max-w-xs truncate"
