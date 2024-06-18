@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useRef } from "react";
+import React, { RefObject, useEffect } from "react";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { DraftStatus, DraftType } from "../constants/farcaster";
@@ -38,7 +38,7 @@ import isEmpty from "lodash.isempty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FarcasterEmbed } from "@mod-protocol/farcaster";
 import { prepareCastBody } from "@/stores/useDraftStore";
-import { DateTimePicker } from "../../components/ui/datetime-picker";
+import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
@@ -97,9 +97,7 @@ export default function NewPostEntry({
   const { addScheduledDraft, updatePostDraft, publishPostDraft } =
     useDraftStore();
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
-  const [initialText, setInitialText] = React.useState<string>();
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
-  const [isLoaded, setIsLoaded] = React.useState(false);
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
 
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
@@ -107,17 +105,6 @@ export default function NewPostEntry({
     (state) => state.accounts[state.selectedAccountIdx]
   );
   const isReply = draft?.parentCastId !== undefined;
-
-  useEffect(() => {
-    if (draft?.text && isEmpty(draft.mentionsToFids)) {
-      setInitialText(draft.text);
-    }
-
-    if (draft?.embeds) {
-      setInitialEmbeds(draft.embeds);
-    }
-    setIsLoaded(true);
-  }, [draftIdx]);
 
   useEffect(() => {
     if (scheduleDateTime) {
@@ -186,7 +173,6 @@ export default function NewPostEntry({
     handleSubmit,
     setText,
   } = useEditor({
-    initialText,
     fetchUrlMetadata: getUrlMetadata,
     onError,
     onSubmit: onSubmitPost,
@@ -199,14 +185,35 @@ export default function NewPostEntry({
       getResults: debouncedGetMentions,
       RenderList: MentionList,
     }),
+    editorOptions: {
+      parseOptions: {
+        preserveWhitespace: "full",
+      },
+    },
   });
+
+  useEffect(() => {
+    if (!text && draft?.text && isEmpty(draft.mentionsToFids)) {
+      editor?.commands.setContent(
+        `<p>${draft.text.replace(/\n/g, "<br>")}</p>`,
+        true,
+        {
+          preserveWhitespace: "full",
+        }
+      );
+    }
+
+    if (draft?.embeds) {
+      setInitialEmbeds(draft.embeds);
+    }
+  }, [editor]);
 
   const text = getText();
   const embeds = getEmbeds();
   const channel = getChannel();
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!editor) return; // no updates before editor is initialized
     if (isPublishing) return;
     if (draft?.parentUrl === channel?.parent_url) return;
 
@@ -217,7 +224,7 @@ export default function NewPostEntry({
       embeds: newEmbeds,
       parentUrl: channel?.parent_url || undefined,
     });
-  }, [text, embeds, initialEmbeds, channel, isPublishing, isLoaded]);
+  }, [text, embeds, initialEmbeds, channel, isPublishing, editor]);
 
   const getButtonText = () => {
     if (isPublishing) return "Publishing...";

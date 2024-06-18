@@ -400,7 +400,7 @@ const store = (set: StoreSet) => ({
 const storage = new IndexedDBStorage("herocast-accounts-store");
 export const useAccountStore = create<AccountStore>()(persist(mutative(store),
   {
-    'name': 'herocast-accounts-store',
+    name: 'herocast-accounts-store',
     storage: createJSONStorage(() => storage), // (optional) by default, 'localStorage' is used
     partialize: (state) => ({
       allChannels: state.allChannels,
