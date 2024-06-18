@@ -224,7 +224,6 @@ const store = (set: StoreSet) => ({
     })
   },
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => {
-    console.log('removePostDraft', draftIdx)
     set((state) => {
       if (draftIdx < 0 || draftIdx >= state.drafts.length) {
         return;
@@ -383,7 +382,6 @@ const hydrateDrafts = async () => {
     from('draft')
     .select('*')
     .then(({ data, error }) => {
-      console.log('hydrateDrafts data:', data, 'error:', error)
       if (error || !data) {
         console.error('Failed to hydrate drafts', error, data);
         return;

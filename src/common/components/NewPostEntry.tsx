@@ -40,6 +40,7 @@ import type { FarcasterEmbed } from "@mod-protocol/farcaster";
 import { prepareCastBody } from "@/stores/useDraftStore";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { toast } from "sonner";
+import ReactDOM from "react-dom";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -99,6 +100,7 @@ export default function NewPostEntry({
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
+  const inputRef = React.useRef();
 
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
   const account = useAccountStore(
@@ -176,10 +178,29 @@ export default function NewPostEntry({
     fetchUrlMetadata: getUrlMetadata,
     onError,
     onSubmit: onSubmitPost,
-    linkClassName: "text-blue-300",
+    linkClassName: "text-blue-400",
     renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
       getResults: getChannels,
-      RenderList: ChannelList,
+      RenderList: (props) => {
+        const portalRoot = document.getElementById("new-post-entry-portal");
+        if (!portalRoot || !inputRef.current) {
+          console.error("Portal root element not found");
+          return null;
+        }
+        const rect = (inputRef.current as HTMLElement).getBoundingClientRect();
+        const style = {
+          position: "absolute",
+          top: `${rect.top - 20}px`,
+          left: `25px`,
+          zIndex: 1000,
+        } as React.CSSProperties;
+        return ReactDOM.createPortal(
+          <div style={style}>
+            <ChannelList {...props} />
+          </div>,
+          portalRoot
+        );
+      },
     }),
     renderMentionsSuggestionConfig: createRenderMentionsSuggestionConfig({
       getResults: debouncedGetMentions,
@@ -251,7 +272,9 @@ export default function NewPostEntry({
           </div>
         ) : (
           <div className="p-2 border-slate-200 rounded-lg border">
+            <div id="new-post-entry-portal"></div>
             <EditorContent
+              ref={inputRef}
               editor={editor}
               autoFocus
               className="w-full h-full min-h-[150px] text-foreground/80"
