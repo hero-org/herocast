@@ -131,7 +131,7 @@ export default function NewPostEntry({
   };
 
   const onSubmitPost = async (): Promise<boolean> => {
-    if (!draft?.text || !draft.text.length) return false;
+    if (!draft?.text && !draft?.embeds?.length) return false;
 
     if (!validateScheduledDateTime(scheduleDateTime)) {
       return false;
