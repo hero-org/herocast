@@ -32,7 +32,6 @@ import mentionPlugin, {
 } from "../helpers/linkify";
 import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
-import { cn } from "@/lib/utils";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { Button } from "@/components/ui/button";
