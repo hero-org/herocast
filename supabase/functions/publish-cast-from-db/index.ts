@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     const now = new Date();
     now.setSeconds(0, 0); // Round down to the nearest full minute
     const invocationTime = now.toISOString();
-    const next5Minutes = new Date(now.getTime() + 5 * 60000).toISOString();
+    const next5Minutes = new Date(now.getTime() + (5 * 60000) - 1).toISOString();
 
     const { data: drafts, error } = await supabaseClient
       .from('draft')
