@@ -101,15 +101,16 @@ export default function SearchPage() {
       searchTerm,
       SEARCH_LIMIT_INITIAL_LOAD
     );
-    setCastHashes(searchResults.map((cast) => cast.hash));
-    const endedAt = Date.now();
-    addSearch({
-      term: searchTerm,
-      startedAt,
-      endedAt,
-      resultsCount: searchResults.length,
-    });
-
+    if (searchResults.length > 0) {
+      setCastHashes(searchResults.map((cast) => cast.hash));
+      const endedAt = Date.now();
+      addSearch({
+        term: searchTerm,
+        startedAt,
+        endedAt,
+        resultsCount: searchResults.length,
+      });
+    }
     if (searchResults.length === SEARCH_LIMIT_INITIAL_LOAD) {
       const moreResults = await searchForText(
         searchTerm,
