@@ -46,8 +46,8 @@ const searchForText = async (searchTerm, limit?, offset?) => {
 };
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
-const SEARCH_LIMIT_INITIAL_LOAD = 5;
-const SEARCH_LIMIT_NEXT_LOAD = 20;
+const SEARCH_LIMIT_INITIAL_LOAD = 6;
+const SEARCH_LIMIT_NEXT_LOAD = 10;
 const SEARCH_LIMIT = SEARCH_LIMIT_INITIAL_LOAD + SEARCH_LIMIT_NEXT_LOAD - 1;
 
 export default function SearchPage() {
@@ -98,6 +98,14 @@ export default function SearchPage() {
       SEARCH_LIMIT_INITIAL_LOAD
     );
     setCastHashes(searchResults.map((cast) => cast.hash));
+    const endedAt = Date.now();
+    addSearch({
+      term: searchTerm,
+      startedAt,
+      endedAt,
+      resultsCount: searchResults.length,
+    });
+
     if (searchResults.length === SEARCH_LIMIT_INITIAL_LOAD) {
       const moreResults = await searchForText(
         searchTerm,
@@ -106,13 +114,6 @@ export default function SearchPage() {
       );
       setCastHashes([...castHashes, ...moreResults.map((cast) => cast.hash)]);
     }
-    const endedAt = Date.now();
-    addSearch({
-      term: searchTerm,
-      startedAt,
-      endedAt,
-      resultsCount: searchResults.length,
-    });
     setIsLoading(false);
   };
 

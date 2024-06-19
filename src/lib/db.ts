@@ -54,10 +54,14 @@ export const AppDataSource = new DataSource({
     },
 });
 
+let initialized = false;
 export const initializeDataSourceWithRetry = async (retries = 3) => {
+    if (initialized) return;
+
     while (retries) {
         try {
             await AppDataSource.initialize();
+            initialized = true;
             console.log('Data Source has been initialized!');
             break;
         } catch (err) {
