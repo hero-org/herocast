@@ -1,29 +1,33 @@
 import React from "react";
-import {
-  useAccountStore,
-} from "@/stores/useAccountStore";
+import { useAccountStore } from "@/stores/useAccountStore";
 import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
 import isEmpty from "lodash.isempty";
 import ChannelsOverview from "./ChannelsOverview";
 import { useRouter } from "next/router";
 import { useDataStore } from "@/stores/useDataStore";
 import ProfileInfo from "./ProfileInfo";
+import { useSearchStore } from "@/stores/useSearchStore";
+import SearchesOverview from "./SearchesOverview";
 
 type RightSidebarProps = {
   showChannels?: boolean;
+  showSearches?: boolean;
   showAuthorInfo?: boolean;
 };
 
-const RightSidebar = ({ showChannels, showAuthorInfo }: RightSidebarProps) => {
+const RightSidebar = ({
+  showChannels,
+  showSearches,
+  showAuthorInfo,
+}: RightSidebarProps) => {
   const router = useRouter();
 
-  const { hydratedAt, accounts, selectedAccountIdx, setCurrentAccountIdx } =
-    useAccountStore();
+  const { hydratedAt, accounts, selectedAccountIdx } = useAccountStore();
   const { selectedCast } = useDataStore();
-
   const selectedAccount = accounts[selectedAccountIdx];
 
   const hasAccounts = !isEmpty(accounts);
+
   const renderEmptyState = () => (
     <div className="ml-6">
       <EmptyStateWithAction
@@ -54,6 +58,7 @@ const RightSidebar = ({ showChannels, showAuthorInfo }: RightSidebarProps) => {
         {renderAuthorInfo()}
         {hydratedAt && !hasAccounts && renderEmptyState()}
         {showChannels && <ChannelsOverview />}
+        {showSearches && <SearchesOverview />}
       </div>
     </aside>
   );

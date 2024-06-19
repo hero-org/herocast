@@ -1,5 +1,4 @@
 import NewPostEntry from "@/common/components/NewPostEntry";
-import { classNames } from "@/common/helpers/css";
 import { useDraftStore } from "@/stores/useDraftStore";
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
@@ -7,20 +6,16 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import HotkeyTooltipWrapper from "@/common/components/HotkeyTooltipWrapper";
 import { Button } from "@/components/ui/button";
 import { CastRow } from "@/common/components/CastRow";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { parseISO, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { DraftStatus, DraftType } from "@/common/constants/farcaster";
 import map from "lodash.map";
 import { renderEmbedForUrl } from "@/common/components/Embeds";

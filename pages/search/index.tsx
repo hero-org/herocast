@@ -1,106 +1,177 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  InformationCircleIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import {
-  searchForText,
-  SearchResultCast,
-} from "../../src/common/helpers/searchcaster";
+import React, { useEffect, useState } from "react";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
-import debounce from "lodash.debounce";
 import { CastRow } from "../../src/common/components/CastRow";
-import { getUrlsInText } from "../../src/common/helpers/text";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
-  CastWithInteractions,
-  UserObjectEnum,
-  ReactionLike,
-  ReactionRecast,
-} from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { ActiveStatus } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-recommendation";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Key } from "ts-key-enum";
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { useAccountStore } from "@/stores/useAccountStore";
+import NewCastModal from "@/common/components/NewCastModal";
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import { useDataStore } from "@/stores/useDataStore";
+import isEmpty from "lodash.isempty";
+import { useSearchStore } from "@/stores/useSearchStore";
 
-function transformToCastType(
-  searchCasts: SearchResultCast[]
-): CastWithInteractions[] {
-  return searchCasts.map((searchCast) => ({
-    author: {
-      fid: -1,
-      username: searchCast.body.username,
-      displayName: searchCast.meta.displayName,
-      pfp_url: searchCast.meta.avatar,
-      object: UserObjectEnum.User,
-      display_name: "",
-      custody_address: "",
-      profile: {
-        bio: {
-          text: "",
-          mentioned_profiles: [],
-        },
-      },
-      follower_count: -1,
-      following_count: -1,
-      verifications: [],
-      verified_addresses: { eth_addresses: [], sol_addresses: [] },
-      active_status: ActiveStatus.Active,
-      power_badge: true,
-    },
-    hash: searchCast.merkleRoot,
-    parent_author: {
-      fid: searchCast.meta.replyParentUsername.fid,
-      username: searchCast.meta.replyParentUsername.username,
-      displayName: searchCast.meta.replyParentUsername.username,
-      pfp_url: "",
-    },
-    parent_hash: searchCast.body.data.replyParentMerkleRoot,
-    parent_url: "",
-    reactions: {
-      count: searchCast.meta.reactions.count,
-      type: searchCast.meta.reactions.type,
-      likes: [] as ReactionLike[],
-      recasts: [] as ReactionRecast[],
-      likes_count: searchCast.meta.reactions.count,
-      recasts_count: searchCast.meta.reactions.count,
-    },
-    text: searchCast.body.data.text,
-    thread_hash: searchCast.body.data.threadMerkleRoot,
-    timestamp: new Date(searchCast.body.publishedAt).toISOString(),
-    embeds: getUrlsInText(searchCast.body.data.text),
-    replies: { count: searchCast.meta.numReplyChildren },
-    mentioned_profiles: [],
-    root_parent_url: "",
-  }));
-}
+const getSearchUrl = (
+  searchTerm: string,
+  limit?: number,
+  offset?: number
+): string => {
+  let url = `/api/search?term=${searchTerm}`;
+  if (limit) {
+    url += `&limit=${limit}`;
+  }
+  if (offset) {
+    url += `&offset=${offset}`;
+  }
+  return url;
+};
 
-export default function Search() {
-  const [search, setSearch] = useState("");
+const searchForText = async (searchTerm, limit?, offset?) => {
+  try {
+    const response = await fetch(getSearchUrl(searchTerm, limit, offset));
+    const data = await response.json();
+    if (!data || data?.error) return [];
+    return data;
+  } catch (error) {
+    console.error("Failed to search for text", searchTerm, error);
+    return [];
+  }
+};
+
+const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+const SEARCH_LIMIT_INITIAL_LOAD = 6;
+const SEARCH_LIMIT_NEXT_LOAD = 10;
+const SEARCH_LIMIT = SEARCH_LIMIT_INITIAL_LOAD + SEARCH_LIMIT_NEXT_LOAD - 1;
+
+export default function SearchPage() {
+  const [searchTerm, setSearchTerm] = useState("");
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
-  const [selectedIdx, setSelectedIdx] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [castHashes, setCastHashes] = useState<string[]>([]);
+  const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { searches, addSearch } = useSearchStore();
+  const canSearch = searchTerm.length >= 3;
+  const { selectedCast, updateSelectedCast } = useDataStore();
+  const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } =
+    useNavigationStore();
+
+  const selectedAccount = useAccountStore(
+    (state) => state.accounts[state.selectedAccountIdx]
+  );
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get("search");
+    if (searchParam) {
+      setSearchTerm(searchParam);
+      onSearch();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedCastIdx === -1 || isEmpty(casts)) return;
+
+    updateSelectedCast(casts[selectedCastIdx]);
+  }, [selectedCastIdx, casts]);
 
   const onChange = async (text: string) => {
-    setSearch(text);
+    setSearchTerm(text);
   };
 
-  const debouncedSearch = useRef(
-    debounce(async (text) => {
-      setLoading(true);
-      const searchCasts = await searchForText(text);
-      setCasts(transformToCastType(searchCasts));
-      setLoading(false);
-    }, 200)
-  ).current;
+  const onSearch = async () => {
+    setIsLoading(true);
+    setCasts([]);
+    setCastHashes([]);
+
+    const startedAt = Date.now();
+
+    const searchResults = await searchForText(
+      searchTerm,
+      SEARCH_LIMIT_INITIAL_LOAD
+    );
+    if (searchResults.length > 0) {
+      setCastHashes(searchResults.map((cast) => cast.hash));
+      const endedAt = Date.now();
+      addSearch({
+        term: searchTerm,
+        startedAt,
+        endedAt,
+        resultsCount: searchResults.length,
+      });
+    }
+    if (searchResults.length === SEARCH_LIMIT_INITIAL_LOAD) {
+      const moreResults = await searchForText(
+        searchTerm,
+        SEARCH_LIMIT_NEXT_LOAD,
+        SEARCH_LIMIT_INITIAL_LOAD
+      );
+      setCastHashes([...castHashes, ...moreResults.map((cast) => cast.hash)]);
+    }
+    setIsLoading(false);
+  };
+
+  useHotkeys([Key.Enter, "meta+enter"], onSearch, [onSearch], {
+    enableOnFormTags: true,
+    enabled: canSearch,
+  });
 
   useEffect(() => {
-    if (search.length < 3) return;
-
-    debouncedSearch(search);
-  }, [search]);
-
-  useEffect(() => {
-    return () => {
-      debouncedSearch.cancel();
+    const fetchCasts = async (newCastHashes: string[]) => {
+      try {
+        const neynarClient = new NeynarAPIClient(
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        );
+        const apiResponse = await neynarClient.fetchBulkCasts(newCastHashes, {
+          viewerFid: Number(selectedAccount?.platformAccountId || APP_FID),
+        });
+        setCasts([...casts, ...apiResponse.result.casts]);
+      } catch (error) {
+        console.error("Failed to fetch casts", newCastHashes, error);
+      }
     };
-  }, [debouncedSearch]);
+
+    const newCastHashes = castHashes.filter(
+      (hash) => !casts.find((cast) => cast.hash === hash)
+    );
+    if (newCastHashes.length > 0) {
+      fetchCasts(newCastHashes.slice(0, 5));
+    }
+  }, [castHashes, casts]);
+
+  const renderDebugMetrics = () => (
+    <Table className="mb-8">
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]">Duration</TableHead>
+          <TableHead>Results</TableHead>
+          <TableHead>Search</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {searches.map((metric) => (
+          <TableRow key={metric.startedAt}>
+            <TableCell className="font-medium">
+              {metric.endedAt - metric.startedAt}
+            </TableCell>
+            <TableCell>{metric.resultsCount}</TableCell>
+            <TableCell>{metric.term}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 
   const renderSearchResultRow = (row: CastWithInteractions, idx: number) => (
     <li
@@ -109,11 +180,54 @@ export default function Search() {
     >
       <CastRow
         cast={row}
-        isSelected={selectedIdx === idx}
+        isSelected={selectedCastIdx === idx}
         onSelect={() => null}
         showChannel
       />
     </li>
+  );
+
+  const renderNewCastModal = () => (
+    <NewCastModal
+      open={isNewCastModalOpen}
+      setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
+      linkedCast={selectedCast}
+    />
+  );
+
+  const renderLoadMoreButton = () => (
+    <div className="flex justify-center my-8">
+      <Button
+        size="lg"
+        disabled={isLoading}
+        onClick={() => {
+          setIsLoading(true);
+          searchForText(searchTerm, SEARCH_LIMIT_NEXT_LOAD, casts.length).then(
+            (results) => {
+              setCastHashes([
+                ...castHashes,
+                ...results.map((cast) => cast.hash),
+              ]);
+              setIsLoading(false);
+            }
+          );
+        }}
+      >
+        Load More
+      </Button>
+    </div>
+  );
+
+  const renderLoadingSpinner = () => (
+    <div className="my-8 w-full max-w-2xl">
+      <div className="flex items-center justify-center">
+        <div className="flex space-x-3">
+          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-0" />
+          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-200" />
+          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-400" />
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -122,56 +236,39 @@ export default function Search() {
         <label htmlFor="desktop-search" className="sr-only">
           Search
         </label>
-        <div className="relative text-foreground/80 focus-within:text-foreground/80">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <MagnifyingGlassIcon className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <input
+        <div className="flex w-full max-w-lg items-center space-x-2">
+          <Input
+            variantSize="lg"
+            value={searchTerm}
             onChange={(e) => onChange(e.target.value)}
             id="search"
-            className="block w-full rounded-md border-0 bg-white/20 py-2.5 pl-10 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/30 focus:text-foreground focus:ring-0 focus:placeholder:text-gray-200 sm:text-sm sm:leading-6"
             placeholder="Search"
             type="search"
             name="search"
             autoFocus
+            disabled={isLoading}
           />
+          <Button
+            disabled={isLoading || !canSearch}
+            size="lg"
+            type="button"
+            onClick={() => onSearch()}
+          >
+            Search
+          </Button>
         </div>
       </div>
-      <div className="mt-8 mb-8 w-full max-w-2xl rounded-sm bg-blue-800 p-3">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <InformationCircleIcon
-              className="h-5 w-5 text-blue-300"
-              aria-hidden="true"
-            />
-          </div>
-          <div className="ml-3 flex-1 md:flex md:justify-between">
-            <p className="text-sm text-blue-300">
-              early search prototype, liking and recasting doesn&apos;t work yet
-              <br />
-              use Cmd + Shift + F to cast feedback
-            </p>
-          </div>
-        </div>
-      </div>
-      {loading && (
-        <div className="my-8 w-full max-w-2xl">
-          <div className="flex items-center justify-center">
-            <div className="flex space-x-3">
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
-            </div>
-          </div>
-        </div>
-      )}
+      {isLoading && casts.length === 0 && renderLoadingSpinner()}
       <SelectableListWithHotkeys
         data={casts}
         renderRow={renderSearchResultRow}
-        selectedIdx={selectedIdx}
-        setSelectedIdx={setSelectedIdx}
-        onSelect={(idx) => setSelectedIdx(idx)}
+        selectedIdx={selectedCastIdx}
+        setSelectedIdx={setSelectedCastIdx}
+        onSelect={(idx) => setSelectedCastIdx(idx)}
       />
+      {casts.length >= SEARCH_LIMIT &&
+        (isLoading ? renderLoadingSpinner() : renderLoadMoreButton())}
+      {renderNewCastModal()}
     </div>
   );
 }
