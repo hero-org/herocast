@@ -138,6 +138,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return RIGHT_SIDEBAR_ENUM.NONE;
       case "/notifications":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
+      case "/search":
+        return RIGHT_SIDEBAR_ENUM.SEARCH;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
     }
@@ -165,6 +167,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return <RightSidebar showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />;
+      case RIGHT_SIDEBAR_ENUM.SEARCH:
+        return <RightSidebar showSearches showAuthorInfo />
       case RIGHT_SIDEBAR_ENUM.NONE:
         return null;
       default:
