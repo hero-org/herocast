@@ -16,7 +16,6 @@ import {
 import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { isDev } from "@/common/helpers/env";
 import NewCastModal from "@/common/components/NewCastModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
@@ -39,10 +38,15 @@ const getSearchUrl = (
 };
 
 const searchForText = async (searchTerm, limit?, offset?) => {
-  const response = await fetch(getSearchUrl(searchTerm, limit, offset));
-  const data = await response.json();
-  if (!data || data?.error) return [];
-  return data;
+  try {
+    const response = await fetch(getSearchUrl(searchTerm, limit, offset));
+    const data = await response.json();
+    if (!data || data?.error) return [];
+    return data;
+  } catch (error) {
+    console.error("Failed to search for text", searchTerm, error);
+    return [];
+  }
 };
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;

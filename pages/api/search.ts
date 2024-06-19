@@ -1,6 +1,10 @@
 import { AppDataSource, Cast, initializeDataSourceWithRetry } from '@/lib/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+export const config = {
+    maxDuration: 30,
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { term } = req.query;
     let { limit, offset } = req.query;
