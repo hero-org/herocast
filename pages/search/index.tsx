@@ -65,9 +65,7 @@ export default function SearchPage() {
   const [searchCounter, setSearchCounter] = useState(0);
   const activeSearchCounter = useRef(0);
 
-  const { searches, addSearch, addList, selectedList, updateSelectedList } =
-    useListStore();
-  const listCount = useListStore((state) => state.lists.length);
+  const { searches, addSearch, addList, selectedList, lists } = useListStore();
   const canSearch = searchTerm.length >= 3;
   const { selectedCast, updateSelectedCast } = useDataStore();
   const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } =
@@ -180,7 +178,8 @@ export default function SearchPage() {
       name: searchTerm,
       type: "search",
       contents: { term: searchTerm },
-      idx: listCount,
+      // get max idx of lists
+      idx: lists.reduce((max, list) => Math.max(max, list.idx), 0) + 1,
       account_id: selectedAccount?.id,
     });
   };
@@ -331,6 +330,11 @@ export default function SearchPage() {
         </div>
       </div>
       {isLoading && casts.length === 0 && renderLoadingSpinner()}
+      {!isLoading && searchCounter > 0 && casts.length === 0 && searchTerm && (
+        <div className="mt-8 text-center text-foreground/70">
+          No results found for &apos;{searchTerm}&apos;
+        </div>
+      )}
       <SelectableListWithHotkeys
         data={casts}
         renderRow={renderSearchResultRow}

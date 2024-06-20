@@ -211,12 +211,12 @@ export type Database = {
           },
         ]
       }
-      lists: {
+      list: {
         Row: {
           account_id: string | null
           contents: Json
           created_at: string
-          id: number
+          id: string
           idx: number
           name: string
           type: Database["public"]["Enums"]["list_type"]
@@ -226,7 +226,7 @@ export type Database = {
           account_id?: string | null
           contents: Json
           created_at?: string
-          id?: number
+          id?: string
           idx: number
           name: string
           type: Database["public"]["Enums"]["list_type"]
@@ -236,7 +236,7 @@ export type Database = {
           account_id?: string | null
           contents?: Json
           created_at?: string
-          id?: number
+          id?: string
           idx?: number
           name?: string
           type?: Database["public"]["Enums"]["list_type"]
@@ -244,21 +244,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "lists_account_id_fkey"
+            foreignKeyName: "list_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lists_account_id_fkey"
+            foreignKeyName: "list_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "decrypted_accounts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "lists_user_id_fkey"
+            foreignKeyName: "list_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -728,5 +728,5 @@ export type Enums<
 // above is the generated types from the database schema
 // below is the types that are manually written, don't overwrite them
 
-export type List = Database['public']['Tables']['lists']['Row'];
-export type InsertList = Database['public']['Tables']['lists']['Insert'];
+export type List = Database['public']['Tables']['list']['Row'];
+export type InsertList = Database['public']['Tables']['list']['Insert'];

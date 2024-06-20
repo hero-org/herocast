@@ -6,9 +6,19 @@ import { useListStore } from "@/stores/useListStore";
 import { take } from "lodash";
 import sortBy from "lodash.sortby";
 import { List } from "@/common/types/database.types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { EllipsisVerticalIcon, MagnifyingGlassIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const ListsOverview = () => {
-  const { selectedList, updateSelectedList, lists } = useListStore();
+  const { selectedList, updateSelectedList, removeList, lists } =
+    useListStore();
 
   const renderList = (list: List) => {
     const shortcut = list.idx < 10 ? `Shift + ${list.idx + 1}` : "";
@@ -25,9 +35,34 @@ const ListsOverview = () => {
           )}
         >
           <span className="flex-nowrap truncate">{list.name}</span>
+          {/* 
           <Badge variant="outline" className="w-16">
             {shortcut}
-          </Badge>
+          </Badge> 
+          */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                className="rounded-lg h-8 w-6"
+              >
+                <EllipsisVerticalIcon className="h-3.5 w-3.5" />
+                <span className="sr-only">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="rounded-lg">
+              <DropdownMenuItem onClick={() => updateSelectedList(list)}>
+                <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
+                Search
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => removeList(list.id)}>
+                <TrashIcon className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </li>
     );

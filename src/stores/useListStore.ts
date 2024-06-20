@@ -26,7 +26,7 @@ interface SearchStoreProps {
 interface SearchStoreActions {
   addSearch: (search: Search) => void;
   addList: (newList: AddListType) => void;
-  removeList: (listId: number) => void;
+  removeList: (listId: UUID) => void;
   updateSelectedList: (list: List) => void;
 }
 
