@@ -95,7 +95,7 @@ interface DataStoreProps {
 }
 
 interface DataStoreActions {
-  updateSelectedCast: (cast: CastWithInteractions) => void;
+  updateSelectedCast: (cast?: CastWithInteractions) => void;
   addUserProfile: ({ user }: addUserProfileProps) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
 }
@@ -112,7 +112,7 @@ const store = (set: StoreSet) => ({
   usernameToFid: {},
   fidToData: {},
   tokenSymbolToData: {},
-  updateSelectedCast: (cast: CastWithInteractions) => {
+  updateSelectedCast: (cast?: CastWithInteractions) => {
     set((state) => {
       state.selectedCast = cast;
     });
