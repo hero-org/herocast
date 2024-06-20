@@ -95,6 +95,13 @@ export default function Feeds() {
   const { selectedCast, updateSelectedCast } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
+  useEffect(() => {
+    // if navigating away, reset the selected cast
+    return () => {
+      updateSelectedCast();
+    };
+  }, [])
+
   const updateFeed = (feedKey: string, key: keyof Feed, value: any) => {
     setFeeds((prev) => ({
       ...prev,

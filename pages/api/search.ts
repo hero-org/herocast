@@ -6,8 +6,7 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { term } = req.query;
-    let { limit, offset } = req.query;
+    let { term, limit, offset } = req.query;
 
     if (typeof term !== 'string' || term.length < 3) {
         return res.status(400).json({ error: 'Invalid search term' });
@@ -22,6 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await initializeDataSourceWithRetry();
 
+    // replaces spaces with + for tsquery
+    term = term.replace(/ /g, '+');
     try {
         const searchRepository = AppDataSource.getRepository(Cast);
         const results = await searchRepository.query(

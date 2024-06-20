@@ -2,13 +2,13 @@ import React from "react";
 import { classNames } from "@/common/helpers/css";
 import { SidebarHeader } from "./SidebarHeader";
 import { Badge } from "@/components/ui/badge";
-import { Search, useSearchStore } from "@/stores/useSearchStore";
+import { Search, useListStore } from "@/stores/useListStore";
 import { take } from "lodash";
 import sortBy from "lodash.sortby";
 import { isDev } from "@/common/helpers/env";
 
 const SearchesOverview = () => {
-  const { searches } = useSearchStore();
+  const { searches } = useListStore();
 
   const renderSearch = (search: Search) => {
     return (

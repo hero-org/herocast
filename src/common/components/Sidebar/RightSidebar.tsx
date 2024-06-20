@@ -6,18 +6,21 @@ import ChannelsOverview from "./ChannelsOverview";
 import { useRouter } from "next/router";
 import { useDataStore } from "@/stores/useDataStore";
 import ProfileInfo from "./ProfileInfo";
-import { useSearchStore } from "@/stores/useSearchStore";
+import { useListStore } from "@/stores/useListStore";
 import SearchesOverview from "./SearchesOverview";
+import ListsOverview from "./ListsOverview";
 
 type RightSidebarProps = {
   showChannels?: boolean;
   showSearches?: boolean;
   showAuthorInfo?: boolean;
+  showLists?: boolean;
 };
 
 const RightSidebar = ({
   showChannels,
   showSearches,
+  showLists,
   showAuthorInfo,
 }: RightSidebarProps) => {
   const router = useRouter();
@@ -58,6 +61,7 @@ const RightSidebar = ({
         {renderAuthorInfo()}
         {hydratedAt && !hasAccounts && renderEmptyState()}
         {showChannels && <ChannelsOverview />}
+        {showLists && <ListsOverview />}
         {showSearches && <SearchesOverview />}
       </div>
     </aside>

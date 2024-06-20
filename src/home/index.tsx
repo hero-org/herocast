@@ -168,7 +168,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.SEARCH:
-        return <RightSidebar showSearches showAuthorInfo />
+        return <RightSidebar showLists showSearches showAuthorInfo />
       case RIGHT_SIDEBAR_ENUM.NONE:
         return null;
       default:

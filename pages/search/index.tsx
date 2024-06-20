@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { CastRow } from "../../src/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
@@ -20,7 +20,8 @@ import NewCastModal from "@/common/components/NewCastModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import isEmpty from "lodash.isempty";
-import { useSearchStore } from "@/stores/useSearchStore";
+import { useListStore } from "@/stores/useListStore";
+import { PlusCircleIcon } from "@heroicons/react/24/outline";
 
 const getSearchUrl = (
   searchTerm: string,
@@ -38,6 +39,7 @@ const getSearchUrl = (
 };
 
 const searchForText = async (searchTerm, limit?, offset?) => {
+  console.log("searchForText", searchTerm, limit, offset);
   try {
     const response = await fetch(getSearchUrl(searchTerm, limit, offset));
     const data = await response.json();
@@ -60,8 +62,12 @@ export default function SearchPage() {
   const [castHashes, setCastHashes] = useState<string[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchCounter, setSearchCounter] = useState(0);
+  const activeSearchCounter = useRef(0);
 
-  const { searches, addSearch } = useSearchStore();
+  const { searches, addSearch, addList, selectedList, updateSelectedList } =
+    useListStore();
+  const listCount = useListStore((state) => state.lists.length);
   const canSearch = searchTerm.length >= 3;
   const { selectedCast, updateSelectedCast } = useDataStore();
   const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } =
@@ -76,53 +82,110 @@ export default function SearchPage() {
     const searchParam = urlParams.get("search");
     if (searchParam) {
       setSearchTerm(searchParam);
-      onSearch();
+      setTimeout(onSearch, 0);
     }
   }, []);
-
   useEffect(() => {
     if (selectedCastIdx === -1 || isEmpty(casts)) return;
 
     updateSelectedCast(casts[selectedCastIdx]);
   }, [selectedCastIdx, casts]);
 
+  useEffect(() => {
+    if (selectedList && selectedList.type === "search") {
+      const { term } = selectedList.contents as { term?: string };
+      if (term) {
+        setSearchTerm(term);
+        onSearch(term);
+      }
+    }
+  }, [selectedList]);
+
   const onChange = async (text: string) => {
     setSearchTerm(text);
   };
 
-  const onSearch = async () => {
-    setIsLoading(true);
-    setCasts([]);
-    setCastHashes([]);
+  const onSearch = useCallback(
+    async (term?: string) => {
+      const newSearchCounter = searchCounter + 1;
+      setSearchCounter(newSearchCounter);
+      activeSearchCounter.current = newSearchCounter;
 
-    const startedAt = Date.now();
+      if (!term) {
+        term = searchTerm;
+      }
+      if (term.length < 3) return;
+      console.log("onSearch", term);
+      setIsLoading(true);
+      setCasts([]);
+      setCastHashes([]);
 
-    const searchResults = await searchForText(
-      searchTerm,
-      SEARCH_LIMIT_INITIAL_LOAD
-    );
-    if (searchResults.length > 0) {
-      setCastHashes(searchResults.map((cast) => cast.hash));
-      const endedAt = Date.now();
-      addSearch({
-        term: searchTerm,
-        startedAt,
-        endedAt,
-        resultsCount: searchResults.length,
-      });
-    }
-    if (searchResults.length === SEARCH_LIMIT_INITIAL_LOAD) {
-      const moreResults = await searchForText(
-        searchTerm,
-        SEARCH_LIMIT_NEXT_LOAD,
-        SEARCH_LIMIT_INITIAL_LOAD
-      );
-      setCastHashes([...castHashes, ...moreResults.map((cast) => cast.hash)]);
-    }
-    setIsLoading(false);
+      const startedAt = Date.now();
+
+      try {
+        const searchResults = await searchForText(
+          term,
+          SEARCH_LIMIT_INITIAL_LOAD
+        );
+        if (activeSearchCounter.current !== newSearchCounter) {
+          console.log(
+            "Ignoring outdated search results for term",
+            term,
+            activeSearchCounter.current,
+            newSearchCounter
+          );
+          return;
+        }
+        if (searchResults.length > 0) {
+          setCastHashes(searchResults.map((cast) => cast.hash));
+          const endedAt = Date.now();
+          addSearch({
+            term,
+            startedAt,
+            endedAt,
+            resultsCount: searchResults.length,
+          });
+        }
+        if (searchResults.length === SEARCH_LIMIT_INITIAL_LOAD) {
+          const moreResults = await searchForText(
+            term,
+            SEARCH_LIMIT_NEXT_LOAD,
+            SEARCH_LIMIT_INITIAL_LOAD
+          );
+          if (activeSearchCounter.current !== newSearchCounter) {
+            console.log(
+              "Ignoring outdated search results for term",
+              term,
+              activeSearchCounter.current,
+              newSearchCounter
+            );
+            return;
+          }
+          setCastHashes([
+            ...castHashes,
+            ...moreResults.map((cast) => cast.hash),
+          ]);
+        }
+      } catch (error) {
+        console.error("Failed to search for text", term, error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [searchCounter, searchTerm]
+  );
+
+  const onSaveSearch = async () => {
+    await addList({
+      name: searchTerm,
+      type: "search",
+      contents: { term: searchTerm },
+      idx: listCount,
+      account_id: selectedAccount?.id,
+    });
   };
 
-  useHotkeys([Key.Enter, "meta+enter"], onSearch, [onSearch], {
+  useHotkeys([Key.Enter, "meta+enter"], () => onSearch(), [onSearch], {
     enableOnFormTags: true,
     enabled: canSearch,
   });
@@ -231,7 +294,7 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="min-w-0 flex-1 px-12 mt-12">
+    <div className="min-w-0 flex-1 p-6">
       <div className="w-full max-w-2xl">
         <label htmlFor="desktop-search" className="sr-only">
           Search
@@ -242,19 +305,28 @@ export default function SearchPage() {
             value={searchTerm}
             onChange={(e) => onChange(e.target.value)}
             id="search"
-            placeholder="Search"
+            placeholder="New search..."
             type="search"
             name="search"
             autoFocus
-            disabled={isLoading}
           />
           <Button
-            disabled={isLoading || !canSearch}
+            disabled={!canSearch}
             size="lg"
             type="button"
             onClick={() => onSearch()}
           >
             Search
+          </Button>
+          <Button
+            size="lg"
+            type="button"
+            variant="outline"
+            className="px-4"
+            onClick={() => onSaveSearch()}
+          >
+            <PlusCircleIcon className="h-5 w-5 mr-1" />
+            Save
           </Button>
         </div>
       </div>
