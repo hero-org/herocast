@@ -26,6 +26,15 @@ import { Toaster } from "@/components/ui/sonner";
 import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
 import { cn } from "@/lib/utils";
 import { Loading } from "@/common/components/Loading";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AccountPlatformType } from "@/common/constants/accounts";
 
 type NavigationItemType = {
   name: string;
@@ -41,6 +50,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl, hydratedAt } = useAccountStore();
+  const isReadOnlyUser = useAccountStore(
+    (state) =>
+      state.accounts.length === 1 &&
+      state.accounts[0].platform ===
+        AccountPlatformType.farcaster_local_readonly
+  );
 
   const getFeedTitle = () => {
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
@@ -168,7 +183,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.SEARCH:
-        return <RightSidebar showLists showSearches showAuthorInfo />
+        return <RightSidebar showLists showSearches showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.NONE:
         return null;
       default:
@@ -179,6 +194,26 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         );
     }
   };
+
+  const renderUpgradeCard = () => (
+    <Card>
+      <CardHeader className="p-2 pt-0 md:p-4">
+        <CardTitle>Upgrade to full account</CardTitle>
+        <CardDescription>
+          Unlock all features and start casting with herocast.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
+        <Button
+          size="sm"
+          className="w-full"
+          onClick={() => router.push("/login?signupOnly=true")}
+        >
+          Upgrade
+        </Button>
+      </CardContent>
+    </Card>
+  );
 
   if (pathname === "/login") {
     return children;
@@ -314,6 +349,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               </ul>
             </nav>
           </div>
+          {isReadOnlyUser && renderUpgradeCard()}
           <div className="mt-auto flex flex-row space-x-2 py-4">
             <AccountSwitcher />
             <ThemeToggle />
