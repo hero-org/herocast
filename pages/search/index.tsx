@@ -22,26 +22,45 @@ import { useDataStore } from "@/stores/useDataStore";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const getSearchUrl = (
   searchTerm: string,
   limit?: number,
-  offset?: number
+  offset?: number,
+  interval?: string,
+  orderBy?: string
 ): string => {
-  let url = `/api/search?term=${searchTerm}`;
-  if (limit) {
-    url += `&limit=${limit}`;
-  }
-  if (offset) {
-    url += `&offset=${offset}`;
-  }
+  const params = new URLSearchParams({ term: searchTerm });
+  if (limit) params.append("limit", limit.toString());
+  if (offset) params.append("offset", offset.toString());
+  if (interval) params.append("interval", interval);
+  if (orderBy) params.append("orderBy", orderBy);
+  const url = `/api/search?${params.toString()}`;
+  console.log("getSearchUrl", url);
   return url;
 };
 
-const searchForText = async (searchTerm, limit?, offset?) => {
+type SearchForTextParams = {
+  searchTerm: string;
+  limit?: number;
+  offset?: number;
+  interval?: string;
+  orderBy?: string;
+};
+
+const searchForText = async ({
+  searchTerm,
+  limit,
+  offset,
+  interval,
+  orderBy,
+}: SearchForTextParams) => {
   console.log("searchForText", searchTerm, limit, offset);
   try {
-    const response = await fetch(getSearchUrl(searchTerm, limit, offset));
+    const response = await fetch(
+      getSearchUrl(searchTerm, limit, offset, interval, orderBy)
+    );
     const data = await response.json();
     if (!data || data?.error) return [];
     return data;
@@ -82,7 +101,12 @@ export default function SearchPage() {
       setSearchTerm(searchParam);
       setTimeout(onSearch, 0);
     }
+    // if navigating away, reset the selected cast
+    return () => {
+      updateSelectedCast();
+    };
   }, []);
+
   useEffect(() => {
     if (selectedCastIdx === -1 || isEmpty(casts)) return;
 
@@ -121,10 +145,11 @@ export default function SearchPage() {
       const startedAt = Date.now();
 
       try {
-        const searchResults = await searchForText(
-          term,
-          SEARCH_LIMIT_INITIAL_LOAD
-        );
+        const searchResults = await searchForText({
+          searchTerm: term,
+          limit: SEARCH_LIMIT_INITIAL_LOAD,
+          interval: "1 day",
+        });
         if (activeSearchCounter.current !== newSearchCounter) {
           console.log(
             "Ignoring outdated search results for term",
@@ -145,11 +170,11 @@ export default function SearchPage() {
           });
         }
         if (searchResults.length === SEARCH_LIMIT_INITIAL_LOAD) {
-          const moreResults = await searchForText(
-            term,
-            SEARCH_LIMIT_NEXT_LOAD,
-            SEARCH_LIMIT_INITIAL_LOAD
-          );
+          const moreResults = await searchForText({
+            searchTerm: term,
+            limit: SEARCH_LIMIT_NEXT_LOAD,
+            orderBy: "timestamp DESC",
+          });
           if (activeSearchCounter.current !== newSearchCounter) {
             console.log(
               "Ignoring outdated search results for term",
@@ -281,12 +306,31 @@ export default function SearchPage() {
   );
 
   const renderLoadingSpinner = () => (
-    <div className="my-8 w-full max-w-2xl">
-      <div className="flex items-center justify-center">
-        <div className="flex space-x-3">
-          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-0" />
-          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-200" />
-          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-400" />
+    <div className="flex items-center justify-center">
+      <div className="flex space-x-3">
+        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-0" />
+        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-200" />
+        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce animation-delay-400" />
+      </div>
+    </div>
+  );
+
+  const renderLoading = () => (
+    <div className="my-8 w-full max-w-2xl space-y-8">
+      <div className="flex items-start space-x-4">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-1/4 rounded" />
+          <Skeleton className="h-4 w-3/4 rounded" />
+          <Skeleton className="h-4 w-1/2 rounded" />
+        </div>
+      </div>
+      <div className="flex items-start space-x-4">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-1/4 rounded" />
+          <Skeleton className="h-4 w-3/4 rounded" />
+          <Skeleton className="h-4 w-1/2 rounded" />
         </div>
       </div>
     </div>
@@ -329,12 +373,7 @@ export default function SearchPage() {
           </Button>
         </div>
       </div>
-      {isLoading && casts.length === 0 && renderLoadingSpinner()}
-      {!isLoading && searchCounter > 0 && casts.length === 0 && searchTerm && (
-        <div className="mt-8 text-center text-foreground/70">
-          No results found for &apos;{searchTerm}&apos;
-        </div>
-      )}
+      {isLoading && casts.length === 0 && renderLoading()}
       <SelectableListWithHotkeys
         data={casts}
         renderRow={renderSearchResultRow}

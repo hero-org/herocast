@@ -86,6 +86,13 @@ const Notifications = () => {
   const now = new Date();
 
   useEffect(() => {
+    // if navigating away, reset the selected cast
+    return () => {
+      updateSelectedCast();
+    };
+  }, [])
+
+  useEffect(() => {
     if (!viewerFid) return;
 
     const loadData = async () => {
