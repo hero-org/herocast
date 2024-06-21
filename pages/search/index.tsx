@@ -57,7 +57,6 @@ const searchForText = async ({
   interval,
   orderBy,
 }: SearchForTextParams) => {
-  console.log("searchForText", searchTerm, limit, offset);
   try {
     const response = await fetch(
       getSearchUrl(searchTerm, limit, offset, interval, orderBy)
@@ -114,7 +113,6 @@ export default function SearchPage() {
       updateSelectedCast();
     };
   }, []);
-
   useEffect(() => {
     if (selectedCastIdx === -1 || isEmpty(casts)) return;
 

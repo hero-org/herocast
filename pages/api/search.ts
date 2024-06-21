@@ -38,6 +38,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     LIMIT $2 OFFSET $3`;
     const vars = [term, limit, offset];
 
+    // replaces spaces with + for tsquery
+    term = term.replace(/ /g, '+');
     try {
         const queryStart = process.hrtime();
 

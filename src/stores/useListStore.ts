@@ -98,4 +98,3 @@ const store = (set: StoreSet) => ({
 
 
 export const useListStore = create<ListStore>()(devtools(mutative(store)));
-
