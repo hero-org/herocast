@@ -18,6 +18,7 @@ type AddListType = Omit<InsertList, 'user_id'>;
 interface ListStoreProps {
   searches: Search[];
   lists: List[];
+  isHydrated: boolean;
   selectedList?: List;
 }
 
@@ -41,6 +42,7 @@ const supabaseClient = createClient();
 const store = (set: StoreSet) => ({
   lists: [],
   searches: [],
+  isHydrated: false,
   selectedList: null,
   addSearch: (search: Search) => {
     set((state) => {
@@ -82,6 +84,8 @@ const store = (set: StoreSet) => ({
     });
   },
   hydrate: async () => {
+    if (useListStore.getState().isHydrated) return;
+
     try {
       const { data: lists, error } = await supabaseClient.from('list').select('*');
       if (error) {
@@ -89,6 +93,7 @@ const store = (set: StoreSet) => ({
       }
       set((state) => {
         state.lists = lists as List[];
+        state.isHydrated = true;
       });
     } catch (error) {
       console.error('Failed to hydrate ListStore:', error);

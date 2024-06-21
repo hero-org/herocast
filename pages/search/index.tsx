@@ -84,7 +84,14 @@ export default function SearchPage() {
   const [searchCounter, setSearchCounter] = useState(0);
   const activeSearchCounter = useRef(0);
 
-  const { searches, addSearch, addList, selectedList, updateSelectedList, lists } = useListStore();
+  const {
+    searches,
+    addSearch,
+    addList,
+    selectedList,
+    updateSelectedList,
+    lists,
+  } = useListStore();
   const canSearch = searchTerm.length >= 3;
   const { selectedCast, updateSelectedCast } = useDataStore();
   const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } =
@@ -101,22 +108,27 @@ export default function SearchPage() {
       setSearchTerm(searchParam);
       onSearch(searchParam);
     }
-    
+
     const listId = urlParams.get("list");
     if (listId) {
       const list = lists.find((list) => list.id === listId);
       updateSelectedList(list);
     }
-    
+
     // if navigating away, reset the selected cast
     return () => {
       updateSelectedCast();
     };
   }, []);
-  useEffect(() => {
-    if (selectedCastIdx === -1 || isEmpty(casts)) return;
 
-    updateSelectedCast(casts[selectedCastIdx]);
+  useEffect(() => {
+    if (selectedCastIdx === -1) return;
+
+    if (isEmpty(casts)) {
+      updateSelectedCast();
+    } else {
+      updateSelectedCast(casts[selectedCastIdx]);
+    }
   }, [selectedCastIdx, casts]);
 
   useEffect(() => {
@@ -289,15 +301,14 @@ export default function SearchPage() {
         disabled={isLoading}
         onClick={() => {
           setIsLoading(true);
-          searchForText(searchTerm, SEARCH_LIMIT_NEXT_LOAD, casts.length).then(
-            (results) => {
-              setCastHashes([
-                ...castHashes,
-                ...results.map((cast) => cast.hash),
-              ]);
-              setIsLoading(false);
-            }
-          );
+          searchForText({
+            searchTerm,
+            limit: SEARCH_LIMIT_NEXT_LOAD,
+            offset: castHashes.length,
+          }).then((results) => {
+            setCastHashes([...castHashes, ...results.map((cast) => cast.hash)]);
+            setIsLoading(false);
+          });
         }}
       >
         Load More
@@ -315,31 +326,44 @@ export default function SearchPage() {
     </div>
   );
 
-  const renderLoading = () => {
-    const renderSkeletonRow = () => (
+  const renderSkeletonRow = () => {
+    const randomDelay = Math.floor(Math.random() * 2000);
+    return (
       <div className="flex items-start space-x-4">
-        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton
+          className="h-8 w-8 rounded-full"
+          style={{ animationDelay: `${randomDelay}ms` }}
+        />
         <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-1/4 rounded" />
-          <Skeleton className="h-4 w-3/4 rounded" />
-          <Skeleton className="h-4 w-1/2 rounded" />
+          <Skeleton
+            className="h-4 w-1/4 rounded"
+            style={{ animationDelay: `${randomDelay}ms` }}
+          />
+          <Skeleton
+            className="h-4 w-3/4 rounded"
+            style={{ animationDelay: `${randomDelay}ms` }}
+          />
+          <Skeleton
+            className="h-4 w-1/2 rounded"
+            style={{ animationDelay: `${randomDelay}ms` }}
+          />
         </div>
       </div>
     );
-
-    return (
-      <div className="my-8 w-full max-w-2xl space-y-8">
-        {castHashes.length === 0 ? (
-          <>
-            {renderSkeletonRow()}
-            {renderSkeletonRow()}
-          </>
-        ) : (
-          castHashes.map(renderSkeletonRow)
-        )}
-      </div>
-    );
   };
+
+  const renderLoading = () => (
+    <div className="my-8 w-full max-w-2xl space-y-8">
+      {castHashes.length === 0 ? (
+        <>
+          {renderSkeletonRow()}
+          {renderSkeletonRow()}
+        </>
+      ) : (
+        castHashes.map(renderSkeletonRow)
+      )}
+    </div>
+  );
 
   return (
     <div className="min-w-0 flex-1 p-6">

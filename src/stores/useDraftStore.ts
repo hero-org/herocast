@@ -131,6 +131,7 @@ type addScheduledDraftProps = {
 
 interface NewPostStoreProps {
   drafts: DraftType[];
+  isHydrated: boolean;
 }
 
 interface DraftStoreActions {
@@ -160,6 +161,7 @@ type StoreSet = (fn: (draft: Draft<DraftStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
   drafts: [],
+  isHydrated: false,
   addNewPostDraft: ({ text, parentUrl, parentCastId, embeds }: addNewPostDraftProps) => {
     set((state) => {
       if (!text && !parentUrl && !parentCastId && !embeds) {
@@ -355,8 +357,8 @@ const store = (set: StoreSet) => ({
         const state = useDraftStore.getState();
         const dbDrafts = data.map(tranformDBDraftForLocalStore);
         state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
+        state.isHydrated = true;
       });
-
   }
 });
 export const useDraftStore = create<DraftStore>()(

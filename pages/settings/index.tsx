@@ -46,7 +46,7 @@ export default function Settings() {
     useState<AccountObjectType | null>(null);
 
   const {
-    hydratedAt,
+    isHydrated,
     accounts,
     resetStore,
     removeAccount,
@@ -194,7 +194,7 @@ export default function Settings() {
           />
         </Button>
       </div>
-      {!hydratedAt && <Loading />}
+      {!isHydrated && <Loading />}
       <ul role="list" className="divide-y divide-white/5">
         {accounts.map((item: AccountObjectType, idx: number) => (
           <li key={item.id} className="px-2 py-2">

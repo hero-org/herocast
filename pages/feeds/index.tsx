@@ -89,7 +89,7 @@ export default function Feeds() {
     threshold: 0,
     delay: 100,
   });
-  const { accounts, selectedAccountIdx, selectedChannelUrl, hydratedAt } =
+  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated } =
     useAccountStore();
 
   const { selectedCast, updateSelectedCast } = useDataStore();
@@ -100,7 +100,7 @@ export default function Feeds() {
     return () => {
       updateSelectedCast();
     };
-  }, [])
+  }, []);
 
   const updateFeed = (feedKey: string, key: keyof Feed, value: any) => {
     setFeeds((prev) => ({
@@ -404,7 +404,7 @@ export default function Feeds() {
 
   const renderWelcomeMessage = () =>
     casts.length === 0 &&
-    hydratedAt &&
+    isHydrated &&
     !isLoadingFeed && (
       <Card className="max-w-sm col-span-1 m-4">
         <CardHeader>
