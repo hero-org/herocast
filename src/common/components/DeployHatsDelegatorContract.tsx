@@ -125,10 +125,13 @@ const DeployHatsDelegatorContract = ({
     useState<`0x${string}`>("0x");
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
-    defaultValues: {
-      casterHatId: casterHatId.toString(),
-      adminHatId: adminHatId.toString(),
-    },
+    defaultValues:
+      casterHatId && adminHatId
+        ? {
+            casterHatId: casterHatId.toString(),
+            adminHatId: adminHatId.toString(),
+          }
+        : {},
   });
   const walletClient = useWalletClient({
     chainId: optimism.id,
