@@ -97,6 +97,7 @@ interface AccountStoreProps {
 }
 
 interface AccountStoreActions {
+  hydrate: () => void;
   addAccount: (props: AddAccountProps) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
@@ -394,7 +395,21 @@ const store = (set: StoreSet) => ({
       }
       state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
     });
-  }
+  },
+  hydrate: async () => {
+    console.log('hydrating 💦');
+    const accounts = await hydrateAccounts();
+    if (accounts.length) {
+      await hydrateChannels();
+    }
+
+    useAccountStore.setState({
+      ...useAccountStore.getState(),
+      accounts
+    });
+
+    console.log('done hydrating 🌊 happy casting')
+  },
 });
 
 const storage = new IndexedDBStorage("herocast-accounts-store");
@@ -518,21 +533,6 @@ export const hydrateChannels = async () => {
     hydratedAt,
   });
   console.log('done hydrating channels 🌊');
-}
-
-export const hydrate = async () => {
-  console.log('hydrating 💦');
-  const accounts = await hydrateAccounts();
-  if (accounts.length) {
-    await hydrateChannels();
-  }
-
-  useAccountStore.setState({
-    ...useAccountStore.getState(),
-    accounts
-  });
-
-  console.log('done hydrating 🌊 happy casting')
 }
 
 const switchAccountTo = (idx: number) => {
@@ -683,8 +683,3 @@ const getCurrentChannelIndex = (channelUrl: string, channels: ChannelType[]) => 
 
 export const accountCommands = getAccountCommands();
 export const channelCommands = getChannelCommands();
-
-// client-side-only
-if (typeof window !== 'undefined') {
-  hydrate();
-}

@@ -26,6 +26,7 @@ import { Toaster } from "@/components/ui/sonner";
 import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
 import { cn } from "@/lib/utils";
 import { Loading } from "@/common/components/Loading";
+import useInitializeStores from "@/common/hooks/useInitializeStores";
 
 type NavigationItemType = {
   name: string;
@@ -36,6 +37,8 @@ type NavigationItemType = {
 };
 
 const Home = ({ children }: { children: React.ReactNode }) => {
+  useInitializeStores();
+  
   const router = useRouter();
 
   const { pathname } = router;

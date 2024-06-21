@@ -148,6 +148,7 @@ interface DraftStoreActions {
     account: AccountObjectType,
     onPost?: () => void,
   ) => Promise<string | null>;
+  hydrate: () => void;
 }
 
 export interface DraftStore extends NewPostStoreProps, DraftStoreActions { }
@@ -340,6 +341,24 @@ const store = (set: StoreSet) => ({
     });
     return true;
   },
+  hydrate: async () => {
+    const supabaseClient = createClient();
+
+    supabaseClient.
+      from('draft')
+      .select('*')
+      .then(({ data, error }) => {
+        console.log('hydrateDrafts data:', data, 'error:', error)
+        if (error || !data) {
+          console.error('Failed to hydrate drafts', error, data);
+          return;
+        }
+        const state = useDraftStore.getState();
+        const dbDrafts = data.map(tranformDBDraftForLocalStore);
+        state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
+      });
+
+  }
 });
 export const useDraftStore = create<DraftStore>()(
   persist(mutative(store), {
@@ -374,29 +393,3 @@ export const newPostCommands: CommandType[] = [
     navigateTo: "/post",
   },
 ];
-
-const supabaseClient = createClient();
-const hydrateDrafts = async () => {
-  console.log('hydrateDrafts 📝')
-
-  supabaseClient.
-    from('draft')
-    .select('*')
-    .then(({ data, error }) => {
-      console.log('hydrateDrafts data:', data, 'error:', error)
-      if (error || !data) {
-        console.error('Failed to hydrate drafts', error, data);
-        return;
-      }
-      const state = useDraftStore.getState();
-      const dbDrafts = data.map(tranformDBDraftForLocalStore);
-      state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
-    });
-
-  console.log('hydrateDrafts done 📝')
-}
-
-// client-side-only
-if (typeof window !== 'undefined') {
-  hydrateDrafts();
-}

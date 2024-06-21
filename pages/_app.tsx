@@ -11,10 +11,10 @@ import { rainbowKitTheme, config } from "../src/common/helpers/rainbowkit";
 import { PostHogProvider } from "posthog-js/react";
 import { loadPosthogAnalytics } from "../src/lib/analytics";
 import { useRouter } from "next/router";
-import { createClient } from "@/common/helpers/supabase/component";
 import localFont from "next/font/local";
 import CommandPalette from "../src/common/components/CommandPalette";
 import Home from "../src/home";
+import { AuthProvider } from "@/common/context/AuthContext";
 
 const satoshi = localFont({
   src: [
@@ -56,8 +56,6 @@ const queryClient = new QueryClient();
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const supabaseClient = createClient();
-  const { asPath } = router;
 
   useEffect(() => {
     const handleRouteChange = () => posthog?.capture("$pageview");
@@ -68,30 +66,18 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     };
   }, []);
 
-  useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      const isLoggedInUser = !!session;
-      const shouldForwardLoggedOutUser =
-        asPath !== "/login" &&
-        asPath.startsWith("/profile") &&
-        asPath.startsWith("/cast");
-
-      if (!isLoggedInUser && shouldForwardLoggedOutUser) {
-        window.location.href = "/login";
-      }
-    });
-  }, [asPath]);
-
   const children = (
     <main className={satoshi.className}>
       <PostHogProvider client={posthog}>
         <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>
             <RainbowKitProvider theme={rainbowKitTheme}>
-              <CommandPalette />
-              <Home>
-                <Component {...pageProps} />
-              </Home>
+              <AuthProvider>
+                <CommandPalette />
+                <Home>
+                  <Component {...pageProps} />
+                </Home>
+              </AuthProvider>
             </RainbowKitProvider>
           </QueryClientProvider>
         </WagmiProvider>

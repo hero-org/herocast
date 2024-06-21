@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
@@ -17,20 +15,21 @@ export type Search = {
 
 type AddListType = Omit<InsertList, 'user_id'>;
 
-interface SearchStoreProps {
+interface ListStoreProps {
   searches: Search[];
   lists: List[];
-  selectedList: List | null;
+  selectedList?: List;
 }
 
-interface SearchStoreActions {
+interface ListStoreActions {
+  hydrate: () => void;
   addSearch: (search: Search) => void;
   addList: (newList: AddListType) => void;
   removeList: (listId: UUID) => void;
-  updateSelectedList: (list: List) => void;
+  updateSelectedList: (list?: List) => void;
 }
 
-export interface ListStore extends SearchStoreProps, SearchStoreActions { }
+export interface ListStore extends ListStoreProps, ListStoreActions { }
 
 export const mutative = (config) =>
   (set, get) => config((fn) => set(mutativeCreate(fn)), get);
@@ -77,29 +76,25 @@ const store = (set: StoreSet) => ({
       state.lists = state.lists.filter((list) => list.id !== listId);
     });
   },
-  updateSelectedList: (list: List) => {
+  updateSelectedList: (list?: List) => {
     set((state) => {
       state.selectedList = list;
     });
+  },
+  hydrate: async () => {
+    try {
+      const { data: lists, error } = await supabaseClient.from('list').select('*');
+      if (error) {
+        throw new Error('Failed to fetch lists from server');
+      }
+      set((state) => {
+        state.lists = lists as List[];
+      });
+    } catch (error) {
+      console.error('Failed to hydrate ListStore:', error);
+    }
   }
 });
-
-export const hydrateListStore = async () => {
-  try {
-    const { data: lists, error } = await supabaseClient.from('list').select('*');
-    if (error) {
-      throw new Error('Failed to fetch lists from server');
-    }
-    useListStore.getState().lists = lists;
-  } catch (error) {
-    console.error('Failed to hydrate ListStore:', error);
-  }
-};
-
-// client-side-only
-if (typeof window !== 'undefined') {
-  hydrateListStore();
-}
 
 
 export const useListStore = create<ListStore>()(devtools(mutative(store)));

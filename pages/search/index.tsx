@@ -23,6 +23,7 @@ import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { Skeleton } from "@/components/ui/skeleton";
+import { uniq } from "lodash";
 
 const getSearchUrl = (
   searchTerm: string,
@@ -84,7 +85,7 @@ export default function SearchPage() {
   const [searchCounter, setSearchCounter] = useState(0);
   const activeSearchCounter = useRef(0);
 
-  const { searches, addSearch, addList, selectedList, lists } = useListStore();
+  const { searches, addSearch, addList, selectedList, updateSelectedList, lists } = useListStore();
   const canSearch = searchTerm.length >= 3;
   const { selectedCast, updateSelectedCast } = useDataStore();
   const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } =
@@ -99,8 +100,15 @@ export default function SearchPage() {
     const searchParam = urlParams.get("search");
     if (searchParam) {
       setSearchTerm(searchParam);
-      setTimeout(onSearch, 0);
+      onSearch(searchParam);
     }
+    
+    const listId = urlParams.get("list");
+    if (listId) {
+      const list = lists.find((list) => list.id === listId);
+      updateSelectedList(list);
+    }
+    
     // if navigating away, reset the selected cast
     return () => {
       updateSelectedCast();
@@ -127,6 +135,10 @@ export default function SearchPage() {
     setSearchTerm(text);
   };
 
+  const addCastHashes = (newCastHashes: string[]) => {
+    setCastHashes(uniq([...castHashes, ...newCastHashes]));
+  };
+
   const onSearch = useCallback(
     async (term?: string) => {
       const newSearchCounter = searchCounter + 1;
@@ -136,8 +148,7 @@ export default function SearchPage() {
       if (!term) {
         term = searchTerm;
       }
-      if (term.length < 3) return;
-      console.log("onSearch", term);
+
       setIsLoading(true);
       setCasts([]);
       setCastHashes([]);
@@ -148,19 +159,13 @@ export default function SearchPage() {
         const searchResults = await searchForText({
           searchTerm: term,
           limit: SEARCH_LIMIT_INITIAL_LOAD,
-          interval: "1 day",
+          interval: "3 days",
         });
         if (activeSearchCounter.current !== newSearchCounter) {
-          console.log(
-            "Ignoring outdated search results for term",
-            term,
-            activeSearchCounter.current,
-            newSearchCounter
-          );
           return;
         }
         if (searchResults.length > 0) {
-          setCastHashes(searchResults.map((cast) => cast.hash));
+          addCastHashes(searchResults.map((cast) => cast.hash));
           const endedAt = Date.now();
           addSearch({
             term,
@@ -169,25 +174,16 @@ export default function SearchPage() {
             resultsCount: searchResults.length,
           });
         }
-        if (searchResults.length === SEARCH_LIMIT_INITIAL_LOAD) {
-          const moreResults = await searchForText({
-            searchTerm: term,
-            limit: SEARCH_LIMIT_NEXT_LOAD,
-            orderBy: "timestamp DESC",
-          });
-          if (activeSearchCounter.current !== newSearchCounter) {
-            console.log(
-              "Ignoring outdated search results for term",
-              term,
-              activeSearchCounter.current,
-              newSearchCounter
-            );
-            return;
-          }
-          setCastHashes([
-            ...castHashes,
-            ...moreResults.map((cast) => cast.hash),
-          ]);
+        const moreResults = await searchForText({
+          searchTerm: term,
+          limit: SEARCH_LIMIT_NEXT_LOAD,
+          orderBy: "timestamp DESC",
+        });
+        if (activeSearchCounter.current !== newSearchCounter) {
+          return;
+        }
+        if (moreResults.length > 0) {
+          addCastHashes(moreResults.map((cast) => cast.hash));
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -199,12 +195,13 @@ export default function SearchPage() {
   );
 
   const onSaveSearch = async () => {
-    await addList({
+    const newIdx = lists.reduce((max, list) => Math.max(max, list.idx), 0) + 1;
+
+    addList({
       name: searchTerm,
       type: "search",
       contents: { term: searchTerm },
-      // get max idx of lists
-      idx: lists.reduce((max, list) => Math.max(max, list.idx), 0) + 1,
+      idx: newIdx,
       account_id: selectedAccount?.id,
     });
   };
@@ -223,7 +220,12 @@ export default function SearchPage() {
         const apiResponse = await neynarClient.fetchBulkCasts(newCastHashes, {
           viewerFid: Number(selectedAccount?.platformAccountId || APP_FID),
         });
-        setCasts([...casts, ...apiResponse.result.casts]);
+        const allCasts = [...casts, ...apiResponse.result.casts];
+        const sortedCasts = allCasts.sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+        setCasts(sortedCasts);
       } catch (error) {
         console.error("Failed to fetch casts", newCastHashes, error);
       }
@@ -315,8 +317,8 @@ export default function SearchPage() {
     </div>
   );
 
-  const renderLoading = () => (
-    <div className="my-8 w-full max-w-2xl space-y-8">
+  const renderLoading = () => {
+    const renderSkeletonRow = () => (
       <div className="flex items-start space-x-4">
         <Skeleton className="h-8 w-8 rounded-full" />
         <div className="flex-1 space-y-2">
@@ -325,16 +327,21 @@ export default function SearchPage() {
           <Skeleton className="h-4 w-1/2 rounded" />
         </div>
       </div>
-      <div className="flex items-start space-x-4">
-        <Skeleton className="h-8 w-8 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-1/4 rounded" />
-          <Skeleton className="h-4 w-3/4 rounded" />
-          <Skeleton className="h-4 w-1/2 rounded" />
-        </div>
+    );
+
+    return (
+      <div className="my-8 w-full max-w-2xl space-y-8">
+        {castHashes.length === 0 ? (
+          <>
+            {renderSkeletonRow()}
+            {renderSkeletonRow()}
+          </>
+        ) : (
+          castHashes.map(renderSkeletonRow)
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-w-0 flex-1 p-6">
