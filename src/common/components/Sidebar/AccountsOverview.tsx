@@ -18,7 +18,7 @@ import {
 const AccountsOverview = () => {
   const router = useRouter();
 
-  const { hydratedAt, accounts, selectedAccountIdx, setCurrentAccountIdx } =
+  const { isHydrated, accounts, selectedAccountIdx, setCurrentAccountIdx } =
     useAccountStore();
 
   const selectedAccount = accounts[selectedAccountIdx];

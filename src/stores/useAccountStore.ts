@@ -93,10 +93,12 @@ interface AccountStoreProps {
   selectedChannelUrl: string;
   accounts: AccountObjectType[];
   allChannels: ChannelType[];
-  hydratedAt?: number; // timestamp
+  downloadedChannelsAt?: number; // timestamp
+  isHydrated: boolean;
 }
 
 interface AccountStoreActions {
+  hydrate: () => void;
   addAccount: (props: AddAccountProps) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
@@ -121,6 +123,7 @@ const initialState: AccountStoreProps = {
   allChannels: [],
   selectedAccountIdx: 0,
   selectedChannelUrl: DEFAULT_CHANNEL_URL,
+  isHydrated: false,
 };
 
 export const mutative = (config) =>
@@ -394,7 +397,24 @@ const store = (set: StoreSet) => ({
       }
       state.accounts[state.selectedAccountIdx] = { ...account, ...{ channels: newChannels } };
     });
-  }
+  },
+  hydrate: async () => {
+    if (useAccountStore.getState().isHydrated) return;
+
+    console.log('hydrating 💦');
+    const accounts = await hydrateAccounts();
+    if (accounts.length) {
+      await hydrateChannels();
+    }
+
+    useAccountStore.setState({
+      ...useAccountStore.getState(),
+      accounts,
+      isHydrated: true,
+    });
+
+    console.log('done hydrating 🌊 happy casting')
+  },
 });
 
 const storage = new IndexedDBStorage("herocast-accounts-store");
@@ -408,19 +428,8 @@ export const useAccountStore = create<AccountStore>()(persist(mutative(store),
         const { privateKey, ...rest } = account;
         return rest;
       }),
-      hydratedAt: state.hydratedAt,
+      downloadedChannelsAt: state.downloadedChannelsAt,
     }),
-    // onRehydrateStorage: (state) => {
-    // console.log('onRehydrateStorage hydration starts', state);
-    // run after hydrate
-    // return (state, error) => {
-    //   if (error) {
-    //     // console.log('onRehydrateStorage an error happened during hydration', error)
-    //   } else {
-    //     console.log('onRehydrateStorage hydration finished', state)
-    //   }
-    // }
-    // },
   }));
 
 const fetchAllChannels = async (): Promise<ChannelType[]> => {
@@ -504,35 +513,20 @@ export const hydrateChannels = async () => {
   const state = useAccountStore.getState();
 
   let allChannels: ChannelType[] = state.allChannels;
-  let hydratedAt = state.hydratedAt;
+  let downloadedChannelsAt = state.downloadedChannelsAt;
 
-  const shouldRehydrate = !allChannels.length || !state.hydratedAt || Date.now() - state.hydratedAt > TIMEDELTA_REHYDRATE || state.hydratedAt < CHANNEL_UPDATE_RELEASE_DATE;
+  const shouldRehydrate = !allChannels.length || !state.downloadedChannelsAt || Date.now() - state.downloadedChannelsAt > TIMEDELTA_REHYDRATE || state.downloadedChannelsAt < CHANNEL_UPDATE_RELEASE_DATE;
   if (shouldRehydrate) {
     allChannels = await fetchAllChannels();
-    hydratedAt = Date.now();
+    downloadedChannelsAt = Date.now();
   }
 
   useAccountStore.setState({
     ...state,
     allChannels,
-    hydratedAt,
+    downloadedChannelsAt: downloadedChannelsAt,
   });
   console.log('done hydrating channels 🌊');
-}
-
-export const hydrate = async () => {
-  console.log('hydrating 💦');
-  const accounts = await hydrateAccounts();
-  if (accounts.length) {
-    await hydrateChannels();
-  }
-
-  useAccountStore.setState({
-    ...useAccountStore.getState(),
-    accounts
-  });
-
-  console.log('done hydrating 🌊 happy casting')
 }
 
 const switchAccountTo = (idx: number) => {
@@ -683,8 +677,3 @@ const getCurrentChannelIndex = (channelUrl: string, channels: ChannelType[]) => 
 
 export const accountCommands = getAccountCommands();
 export const channelCommands = getChannelCommands();
-
-// client-side-only
-if (typeof window !== 'undefined') {
-  hydrate();
-}

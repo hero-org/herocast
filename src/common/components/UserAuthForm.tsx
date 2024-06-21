@@ -19,11 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  hydrate,
-  hydrateChannels,
-  useAccountStore,
-} from "@/stores/useAccountStore";
+import { useAccountStore } from "@/stores/useAccountStore";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -141,7 +137,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     if (data?.user) {
       setUserMessage("Success! Logging you in...");
       posthog.identify(data?.user?.id, { email });
-      await hydrate();
       router.push("/feeds");
       setIsLoading(false);
     } else {
@@ -171,7 +166,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
 
     posthog.identify(data?.user?.id, { email });
-    await hydrate();
     router.push("/feeds");
   };
 
@@ -271,7 +265,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       });
     }
 
-    await hydrateChannels();
     const { data, error } = await supabase.auth.signInAnonymously();
     if (error) {
       setUserMessage("Error setting up local account.");

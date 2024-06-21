@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   AccountObjectType,
   CUSTOM_CHANNELS,
-  hydrate,
+  hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -89,7 +89,7 @@ export default function Feeds() {
     threshold: 0,
     delay: 100,
   });
-  const { accounts, selectedAccountIdx, selectedChannelUrl, hydratedAt } =
+  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated } =
     useAccountStore();
 
   const { selectedCast, updateSelectedCast } = useDataStore();
@@ -100,7 +100,7 @@ export default function Feeds() {
     return () => {
       updateSelectedCast();
     };
-  }, [])
+  }, []);
 
   const updateFeed = (feedKey: string, key: keyof Feed, value: any) => {
     setFeeds((prev) => ({
@@ -404,7 +404,7 @@ export default function Feeds() {
 
   const renderWelcomeMessage = () =>
     casts.length === 0 &&
-    hydratedAt &&
+    isHydrated &&
     !isLoadingFeed && (
       <Card className="max-w-sm col-span-1 m-4">
         <CardHeader>
@@ -425,7 +425,7 @@ export default function Feeds() {
             disabled={isRefreshingPage}
             onClick={async () => {
               setIsRefreshingPage(true);
-              await hydrate();
+              await hydrateAccounts();
               await getFeed({
                 fid: account.platformAccountId!,
                 parentUrl: selectedChannelUrl,

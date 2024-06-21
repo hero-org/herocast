@@ -26,6 +26,7 @@ import { Toaster } from "@/components/ui/sonner";
 import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
 import { cn } from "@/lib/utils";
 import { Loading } from "@/common/components/Loading";
+import useInitializeStores from "@/common/hooks/useInitializeStores";
 import {
   Card,
   CardContent,
@@ -45,11 +46,13 @@ type NavigationItemType = {
 };
 
 const Home = ({ children }: { children: React.ReactNode }) => {
+  useInitializeStores();
+  
   const router = useRouter();
 
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { allChannels, selectedChannelUrl, hydratedAt } = useAccountStore();
+  const { allChannels, selectedChannelUrl, isHydrated } = useAccountStore();
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
@@ -412,7 +415,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "md:pr-48 lg:pr-64"
           )}
         >
-          {!hydratedAt && (
+          {!isHydrated && (
             <Loading className="ml-8" loadingMessage="Loading herocast" />
           )}
           <div className="w-full max-w-full min-h-screen flex justify-between">

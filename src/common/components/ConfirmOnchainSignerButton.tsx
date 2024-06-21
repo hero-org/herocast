@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { mnemonicToAccount } from "viem/accounts";
 import {
   AccountObjectType,
-  hydrate,
+  hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
@@ -123,7 +123,7 @@ const ConfirmOnchainSignerButton = ({
       await setAccountActive(account.id, user.username, {
         platform_account_id: user.fid.toString(),
       });
-      hydrate();
+      await hydrateAccounts();
     };
     if (isAddKeyTxSuccess) {
       setupAccount();

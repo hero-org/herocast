@@ -25,7 +25,7 @@ const RightSidebar = ({
 }: RightSidebarProps) => {
   const router = useRouter();
 
-  const { hydratedAt, accounts, selectedAccountIdx } = useAccountStore();
+  const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
   const { selectedCast } = useDataStore();
   const selectedAccount = accounts[selectedAccountIdx];
 
@@ -59,7 +59,7 @@ const RightSidebar = ({
     <aside className="min-h-full bg-background md:fixed md:bottom-0 md:right-0 md:top-16 md:w-48 lg:w-64 md:border-l md:border-foreground/5">
       <div className="">
         {renderAuthorInfo()}
-        {hydratedAt && !hasAccounts && renderEmptyState()}
+        {isHydrated && !hasAccounts && renderEmptyState()}
         {showChannels && <ChannelsOverview />}
         {showLists && <ListsOverview />}
         {showSearches && <SearchesOverview />}

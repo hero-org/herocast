@@ -22,7 +22,7 @@ export default function Channels() {
     addPinnedChannel,
     removePinnedChannel,
     accounts,
-    hydratedAt,
+    isHydrated,
     allChannels,
     updatedPinnedChannelIndices,
   } = useAccountStore();
@@ -208,7 +208,7 @@ export default function Channels() {
     );
   };
 
-  if (!hydratedAt) {
+  if (!isHydrated) {
     return null;
   }
 
