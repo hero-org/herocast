@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   AccountObjectType,
   CUSTOM_CHANNELS,
-  hydrate,
+  hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -425,7 +425,7 @@ export default function Feeds() {
             disabled={isRefreshingPage}
             onClick={async () => {
               setIsRefreshingPage(true);
-              await hydrate();
+              await hydrateAccounts();
               await getFeed({
                 fid: account.platformAccountId!,
                 parentUrl: selectedChannelUrl,

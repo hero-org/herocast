@@ -12,7 +12,7 @@ import {
 import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 import {
   AccountObjectType,
-  hydrate,
+  hydrateAccounts,
   useAccountStore,
 } from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
@@ -164,7 +164,7 @@ export default function Accounts() {
         platform_account_id: user.fid.toString(),
         data,
       });
-      await hydrate();
+      await hydrateAccounts();
       window.location.reload();
     }
   };

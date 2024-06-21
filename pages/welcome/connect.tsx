@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import {
   AccountObjectType,
-  hydrate,
+  hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { useAccount } from "wagmi";
@@ -38,7 +38,7 @@ const ConnectAccountPage = () => {
   const isMounted = useIsMounted();
 
   useEffect(() => {
-    hydrate();
+    hydrateAccounts();
     setIsHydrated(true);
   }, []);
 
@@ -75,7 +75,7 @@ const ConnectAccountPage = () => {
         platform_account_id: user.fid.toString(),
         data,
       });
-      await hydrate();
+      await hydrateAccounts();
       router.push('/welcome/success')
     }
   };

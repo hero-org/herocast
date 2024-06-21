@@ -20,7 +20,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  hydrate,
   hydrateChannels,
   useAccountStore,
 } from "@/stores/useAccountStore";
@@ -141,7 +140,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     if (data?.user) {
       setUserMessage("Success! Logging you in...");
       posthog.identify(data?.user?.id, { email });
-      await hydrate();
+      await hydrateAccounts();
       router.push("/feeds");
       setIsLoading(false);
     } else {
@@ -171,7 +170,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
 
     posthog.identify(data?.user?.id, { email });
-    await hydrate();
+    await hydrateAccounts();
     router.push("/feeds");
   };
 

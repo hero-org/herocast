@@ -8,7 +8,7 @@ import {
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   accountCommands,
   channelCommands,
-  hydrate,
+  hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { newPostCommands } from "@/stores/useDraftStore";
@@ -92,9 +92,9 @@ export default function Settings() {
     await Promise.all(
       accounts.map(async (account) => await updateAccountUsername(account.id))
     )
-      .then(() => {
+      .then(async () => {
         console.log("All account names refreshed successfully");
-        hydrate();
+        await hydrateAccounts();
       })
       .catch((error) =>
         console.error("Error refreshing account names:", error)

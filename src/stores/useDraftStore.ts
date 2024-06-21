@@ -348,7 +348,6 @@ const store = (set: StoreSet) => ({
       from('draft')
       .select('*')
       .then(({ data, error }) => {
-        console.log('hydrateDrafts data:', data, 'error:', error)
         if (error || !data) {
           console.error('Failed to hydrate drafts', error, data);
           return;
