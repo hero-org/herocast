@@ -2,7 +2,7 @@ import { AppDataSource, Cast, initializeDataSourceWithRetry } from '@/lib/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export const config = {
-    maxDuration: 30,
+    maxDuration: 20,
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -21,6 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const start = process.hrtime();
+    const timeout = setTimeout(() => {
+        res.status(503).json({ error: 'Request timed out' });
+    }, 19000); // 19 seconds to ensure it sends before the 20-second limit
 
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
@@ -52,8 +55,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log(`Query Execution Time: ${queryEnd[0] * 1000 + queryEnd[1] / 1e6} ms`);
         console.log(`Total Request Time: ${totalEnd[0] * 1000 + totalEnd[1] / 1e6} ms`);
 
+        clearTimeout(timeout); // Clear the timeout if the request completes in time
         res.status(200).json(results);
     } catch (error) {
+        clearTimeout(timeout); // Clear the timeout if the request completes in time
         console.log('error in search', error);
         res.status(500).json({ error: `Failed to fetch search results ${error}` });
     }

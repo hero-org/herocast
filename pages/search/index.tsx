@@ -169,7 +169,6 @@ export default function SearchPage() {
         const searchResults = await searchForText({
           searchTerm: term,
           limit: SEARCH_LIMIT_INITIAL_LOAD,
-          interval: "3 days",
         });
         if (activeSearchCounter.current !== newSearchCounter) {
           return;
@@ -183,17 +182,17 @@ export default function SearchPage() {
             endedAt,
             resultsCount: searchResults.length,
           });
-        }
-        const moreResults = await searchForText({
-          searchTerm: term,
-          limit: SEARCH_LIMIT_NEXT_LOAD,
-          orderBy: "timestamp DESC",
-        });
-        if (activeSearchCounter.current !== newSearchCounter) {
-          return;
-        }
-        if (moreResults.length > 0) {
-          addCastHashes(moreResults.map((cast) => cast.hash));
+          const moreResults = await searchForText({
+            searchTerm: term,
+            limit: SEARCH_LIMIT_NEXT_LOAD,
+            orderBy: "timestamp DESC",
+          });
+          if (activeSearchCounter.current !== newSearchCounter) {
+            return;
+          }
+          if (moreResults.length > 0) {
+            addCastHashes(moreResults.map((cast) => cast.hash));
+          }
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -403,6 +402,11 @@ export default function SearchPage() {
         </div>
       </div>
       {isLoading && casts.length === 0 && renderLoading()}
+      {!isLoading && searches.length > 0 && castHashes.length === 0 && (
+        <div className="text-center mt-8 text-muted-foreground">
+          No results found
+        </div>
+      )}
       <SelectableListWithHotkeys
         data={casts}
         renderRow={renderSearchResultRow}
