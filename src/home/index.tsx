@@ -43,6 +43,7 @@ type NavigationItemType = {
   icon: any;
   getTitle?: () => string | JSX.Element;
   shortcut?: string;
+  additionalPaths?: string[];
 };
 
 const Home = ({ children }: { children: React.ReactNode }) => {
@@ -121,12 +122,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       shortcut: "Shift + C",
     },
     {
-      name: "Accounts",
-      router: "/accounts",
-      icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      shortcut: "CMD + Shift + A",
-    },
-    {
       name: "Notifications",
       router: "/notifications",
       icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
@@ -134,9 +129,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       shortcut: "Shift + N",
     },
     {
-      name: "Shared Accounts",
-      router: "/hats",
-      icon: <UserGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      name: "Accounts",
+      router: "/accounts",
+      icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      shortcut: "CMD + Shift + A",
+      additionalPaths: ['/farcaster-signup', '/hats']
     },
     {
       name: "Settings",
@@ -297,7 +294,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                               <p
                                 onClick={() => onClickItem(item)}
                                 className={classNames(
-                                  item.router === pathname
+                                  item.router === pathname || item.additionalPaths?.includes(pathname)
                                     ? "text-foreground bg-foreground/10"
                                     : "text-foreground/70 hover:text-foreground hover:bg-foreground/30",
                                   "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
@@ -338,8 +335,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     <div
                       onClick={() => onClickItem(item)}
                       className={classNames(
-                        item.router === pathname
-                          ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                        item.router === pathname || item.additionalPaths?.includes(pathname)
+                        ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted",
                         "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
                       )}
@@ -370,7 +367,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             <span className="sr-only">Open sidebar</span>
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           </button>
-          <h1 className="mx-auto text-xl font-semibold leading-7 text-foreground">
+          <h1 className="ml-4 mx-auto text-2xl font-bold leading-7 text-foreground">
             {title}
           </h1>
           {/* Separator */}

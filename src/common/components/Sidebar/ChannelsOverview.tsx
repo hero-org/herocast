@@ -48,7 +48,7 @@ const ChannelsOverview = () => {
   return (
     <div className="">
       <SidebarHeader
-        title="Channels"
+        title="Feeds"
       />
       <ul role="list" className="mt-2 mb-12">
         {renderCustomChannel({
