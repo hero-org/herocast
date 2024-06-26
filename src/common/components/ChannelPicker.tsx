@@ -20,7 +20,7 @@ import { PersonIcon } from "@radix-ui/react-icons";
 import { formatLargeNumber } from "../helpers/text";
 import Fuse from "fuse.js";
 import map from "lodash.map";
-import orderBy from "lodash.orderBy";
+import orderBy from "lodash.orderby";
 
 type Props = {
   getChannels: (query: string) => Promise<Channel[]>;
