@@ -1,22 +1,21 @@
 import React, { useState } from "react";
 import { useAccountStore } from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { classNames } from "../../src/common/helpers/css";
 import { ChannelType } from "../../src/common/constants/channels";
 import Toggle from "../../src/common/components/Toggle";
 import findIndex from "lodash.findindex";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
-import includes from "lodash.includes";
 import SortableList, { SortableItem } from "react-easy-sort";
-import { useRouter } from "next/router";
 import { take } from "lodash";
+import Fuse from "fuse.js";
+import map from "lodash.map";
+import { PersonIcon } from "@radix-ui/react-icons";
+import { formatLargeNumber } from "@/common/helpers/text";
+import { Button } from "@/components/ui/button";
 
 export default function Channels() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showNewChannelModal, setShowNewChannelModal] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const router = useRouter();
 
   const {
     addPinnedChannel,
@@ -29,6 +28,15 @@ export default function Channels() {
 
   const channels = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.channels || []
+  );
+
+  const fuse = new Fuse(allChannels, {
+    keys: ["name", "url"],
+  });
+
+  const searchResults = take(
+    searchTerm ? map(fuse.search(searchTerm), "item") : allChannels,
+    50
   );
 
   const onSortEnd = (oldIndex: number, newIndex: number) => {
@@ -71,22 +79,33 @@ export default function Channels() {
             <img
               src={channel.icon_url}
               alt=""
-              className="ml-2 mt-0.5 rounded-lg border border-gray-600 h-8 w-8 flex-none bg-background"
+              className="ml-2 mt-0.5 rounded-lg border border-gray-600 h-10 w-10 flex-none bg-background"
             />
           ) : (
             <div className="ml-2" />
           )}
           <div className="flex-1 truncate pl-2 pr-4 py-2 text-sm">
-            <p className="truncate font-medium text-foreground/80">
+            <p className="truncate font-large text-foreground/80">
               {channel.name}
+              {channel.data?.followerCount && (
+                <span className="ml-1 border-l border-foreground/10 text-foreground/60">
+                  {" "}
+                  <PersonIcon className="mb-1 h-3 w-3 inline" />{" "}
+                  {formatLargeNumber(channel.data.followerCount)}
+                </span>
+              )}
             </p>
+            <p className="truncate text-foreground/60">{channel.description}</p>
           </div>
-          <Toggle
-            enabled={enabled}
-            setEnabled={() =>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
               enabled ? removePinnedChannel(channel) : addPinnedChannel(channel)
             }
-          />
+          >
+            {enabled ? "Remove" : "Pin"}
+          </Button>
         </div>
       </div>
     );
@@ -190,12 +209,7 @@ export default function Channels() {
           role="list"
           className="mt-3 mb-48 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6"
         >
-          {(searchTerm
-            ? allChannels.filter((channel) =>
-                includes(channel.name.toLowerCase(), searchTerm)
-              )
-            : take(allChannels, 50)
-          ).map((channel) => (
+          {searchResults.map((channel) => (
             <li
               key={`all-channels-${channel.id}`}
               className="col-span-1 flex rounded-md shadow-sm"

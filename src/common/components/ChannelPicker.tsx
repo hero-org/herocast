@@ -16,6 +16,11 @@ import { take } from "lodash";
 import { useEffect } from "react";
 import uniqBy from "lodash.uniqby";
 import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { PersonIcon } from "@radix-ui/react-icons";
+import { formatLargeNumber } from "../helpers/text";
+import Fuse from "fuse.js";
+import map from "lodash.map";
+import orderBy from "lodash.orderby";
 
 type Props = {
   getChannels: (query: string) => Promise<Channel[]>;
@@ -30,6 +35,7 @@ export function ChannelPicker(props: Props) {
   const { getChannels, getAllChannels, onSelect } = props;
   const [query, setQuery] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [isPending, setIsPending] = React.useState(false);
 
   const [channels, setChannels] = React.useState<Channel[]>(
     props.initialChannels ?? []
@@ -42,7 +48,15 @@ export function ChannelPicker(props: Props) {
   useEffect(() => {
     async function getChannelResults() {
       if (query.length < 2) return;
-      setChannelResults(await getChannels(query));
+
+      try {
+        setIsPending(true);
+        setChannelResults(await getChannels(query));
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsPending(false);
+      }
     }
 
     getChannelResults();
@@ -65,18 +79,20 @@ export function ChannelPicker(props: Props) {
     [onSelect, setOpen]
   );
 
-  const filteredChannels =
-    query === ""
-      ? take(channels, 15)
-      : take(
-          channels.filter((channel) => {
-            return (
-              channel.name &&
-              channel.name.toLowerCase().includes(query.toLowerCase())
-            );
-          }),
-          10
-        );
+  const fuse = new Fuse(channels, {
+    keys: ["name", "url"],
+  });
+  const filteredChannels = React.useMemo(() => {
+    if (channels.length === 0) return [];
+    if (!query) {
+      return take(channels, 10);
+    }
+
+    return take(
+      orderBy(map(fuse.search(query), "item"), "follower_count", "desc"),
+      10
+    );
+  }, [query, channels, fuse]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -106,7 +122,7 @@ export function ChannelPicker(props: Props) {
             value={query}
             onValueChange={(e) => setQuery(e)}
           />
-          <CommandEmpty>No channels found.</CommandEmpty>
+          <CommandEmpty>{isPending ? "Searching..." : "No channels found."}</CommandEmpty>
           <CommandGroup className="max-h-[300px] overflow-y-auto">
             {(channels.length === 0 ? [props.value] : filteredChannels).map(
               (channel) => (
@@ -121,9 +137,16 @@ export function ChannelPicker(props: Props) {
                     alt={channel.name}
                     width={24}
                     height={24}
-                    className="mr-2"
+                    className="mr-2 rounded-lg"
                   />
                   {channel.name}
+                  {channel.follower_count && (
+                    <span className="ml-1 border-l border-foreground/10 text-foreground/60">
+                      {" "}
+                      <PersonIcon className="ml-1 mb-1 h-3 w-3 inline" />{" "}
+                      {formatLargeNumber(channel.follower_count)}
+                    </span>
+                  )}
                 </CommandItem>
               )
             )}

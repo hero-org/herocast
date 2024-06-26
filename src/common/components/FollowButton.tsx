@@ -68,8 +68,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
 
   return (
     <Button
-      size="lg"
-      variant="secondary"
+      variant={isFollowing ? "secondary" : "default"}
       className="group"
       onClick={(e) => {
         if (!selectedAccount) router.push("/login");

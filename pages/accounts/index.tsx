@@ -6,9 +6,7 @@ import {
   UserPlusIcon,
 } from "@heroicons/react/20/solid";
 import { ArrowDownTrayIcon, NewspaperIcon } from "@heroicons/react/24/solid";
-import {
-  useDraftStore,
-} from "../../src/stores/useDraftStore";
+import { useDraftStore } from "../../src/stores/useDraftStore";
 import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 import {
   AccountObjectType,
@@ -46,6 +44,7 @@ import { openWindow } from "../../src/common/helpers/navigation";
 import ConfirmOnchainSignerButton from "../../src/common/components/ConfirmOnchainSignerButton";
 import SwitchWalletButton from "../../src/common/components/SwitchWalletButton";
 import { getTimestamp } from "@/common/helpers/farcaster";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -377,29 +376,80 @@ export default function Accounts() {
     </Card>
   );
 
+  const renderFullAccountTabs = () => (
+    <Tabs defaultValue="default">
+      <div className="flex items-center">
+        <TabsList>
+          <TabsTrigger value="default">Add accounts</TabsTrigger>
+          <TabsTrigger value="create">Create accounts</TabsTrigger>
+          <TabsTrigger value="shared">Shared accounts</TabsTrigger>
+          <TabsTrigger value="help">Help</TabsTrigger>
+        </TabsList>
+      </div>
+      <TabsContent value="default">
+        <div className="grid flex-1 items-start gap-4 sm:py-0 md:gap-8">
+          <div className="max-w-md lg:max-w-lg">
+            {signupState === SignupStateEnum.initial &&
+              renderCreateSignerStep()}
+            {signupState === SignupStateEnum.connecting &&
+              renderConnectAccountStep()}
+          </div>
+        </div>
+      </TabsContent>
+      <TabsContent value="create">
+        <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
+          {renderCreateNewOnchainAccountCard()}
+        </div>
+      </TabsContent>
+      <TabsContent value="shared">
+        <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
+          <ConnectFarcasterAccountViaHatsProtocol />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">
+                Create a shared Farcaster account
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Follow these steps to create a shared Farcaster account. Shared
+                accounts are powered by Hats Protocol 🧢.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="w-full max-w-lg"></CardContent>
+            <CardFooter className="flex flex-col">
+              <Button
+                className="w-full"
+                variant="default"
+                onClick={() => router.push("/hats")}
+              >
+                Go to setup →
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </TabsContent>
+      <TabsContent value="help">
+        <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
+          <HelpCard />
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+
   return (
-    <div className="m-4 flex flex-col gap-5">
-      {(hasActiveAccounts || signupState === SignupStateEnum.done) &&
-        renderDoneStep()}
-      <div className="w-full flex flex-col gap-5">
+    <div className="pt-4 flex min-h-screen w-full flex-col bg-muted/40">
+      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
         {hasOnlyLocalAccounts ? (
           <div className="flex">{renderSignupForNonLocalAccount()}</div>
         ) : (
-          <>
-            <div className="max-w-md lg:max-w-lg">
-              {signupState === SignupStateEnum.initial &&
-                renderCreateSignerStep()}
-              {signupState === SignupStateEnum.connecting &&
-                renderConnectAccountStep()}
-            </div>
-            <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
-              {renderCreateNewOnchainAccountCard()}
-              <HelpCard />
-            </div>
-            <ConnectFarcasterAccountViaHatsProtocol />
-          </>
+          renderFullAccountTabs()
         )}
-      </div>
+      </main>
+    </div>
+  );
+
+  return (
+    <div className="m-4 flex flex-col gap-5">
+      <div className="w-full flex flex-col gap-5"></div>
     </div>
   );
 }

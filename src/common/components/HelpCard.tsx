@@ -23,11 +23,11 @@ const HelpCard = () => (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Button variant="default" onClick={() => openWindow('https://warpcast.com/hellno')}>
                     <ChatBubbleLeftEllipsisIcon className="mr-2 h-4 w-4" />
-                    Talk to me on Warpcast
+                    Talk to us on Warpcast
                 </Button>
                 <Button variant="outline" onClick={() => openWindow('https://t.me/HELLNO_HELLNO')}>
                     <PaperAirplaneIcon className="mr-2 h-4 w-4" />
-                    Talk to me on Telegram
+                    Talk to us on Telegram
                 </Button>
             </div>
         </CardContent>
