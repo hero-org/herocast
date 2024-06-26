@@ -50,7 +50,7 @@ const ChannelsOverview = () => {
       <SidebarHeader
         title="Feeds"
       />
-      <ul role="list" className="mt-2 mb-12">
+      <ul role="list" className="mt-2 mb-36">
         {renderCustomChannel({
           name: "Follow Feed",
           shortcut: "Shift + 0",

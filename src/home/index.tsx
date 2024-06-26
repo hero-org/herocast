@@ -367,7 +367,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             <span className="sr-only">Open sidebar</span>
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           </button>
-          <h1 className="ml-4 mx-auto text-2xl font-bold leading-7 text-foreground">
+          <h1 className="ml-4 mx-auto text-xl font-bold leading-7 text-foreground">
             {title}
           </h1>
           {/* Separator */}
