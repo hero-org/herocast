@@ -1,22 +1,18 @@
 import React, { useState } from "react";
 import { useAccountStore } from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import { ChevronRightIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { classNames } from "../../src/common/helpers/css";
 import { ChannelType } from "../../src/common/constants/channels";
 import Toggle from "../../src/common/components/Toggle";
 import findIndex from "lodash.findindex";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
-import includes from "lodash.includes";
 import SortableList, { SortableItem } from "react-easy-sort";
-import { useRouter } from "next/router";
 import { take } from "lodash";
+import Fuse from "fuse.js";
+import map from "lodash.map";
 
 export default function Channels() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [showNewChannelModal, setShowNewChannelModal] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const router = useRouter();
 
   const {
     addPinnedChannel,
@@ -30,6 +26,12 @@ export default function Channels() {
   const channels = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.channels || []
   );
+
+  const fuse = new Fuse(allChannels, {
+    keys: ["name", "url"],
+  });
+
+  const searchResults = take((searchTerm ? map(fuse.search(searchTerm), 'item') : allChannels), 50)
 
   const onSortEnd = (oldIndex: number, newIndex: number) => {
     updatedPinnedChannelIndices({ oldIndex, newIndex });
@@ -190,19 +192,16 @@ export default function Channels() {
           role="list"
           className="mt-3 mb-48 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6"
         >
-          {(searchTerm
-            ? allChannels.filter((channel) =>
-                includes(channel.name.toLowerCase(), searchTerm)
-              )
-            : take(allChannels, 50)
-          ).map((channel) => (
-            <li
-              key={`all-channels-${channel.id}`}
-              className="col-span-1 flex rounded-md shadow-sm"
-            >
-              {renderChannelCard(channel)}
-            </li>
-          ))}
+          {searchResults.map(
+            (channel) => (
+              <li
+                key={`all-channels-${channel.id}`}
+                className="col-span-1 flex rounded-md shadow-sm"
+              >
+                {renderChannelCard(channel)}
+              </li>
+            )
+          )}
         </ul>
       </div>
     );

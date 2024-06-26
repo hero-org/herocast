@@ -621,15 +621,16 @@ const getChannelCommands = () => {
   {
     name: 'Switch to next channel',
     aliases: ['next', 'forward'],
-    shortcut: 'shift+j',
+    shortcuts: ['shift+j', 'shift+ArrowDown'],
     navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
       if (isEmpty(channels)) return;
+
       const currentIdx = getCurrentChannelIndex(state.selectedChannelUrl, channels);
       const nextIdx = currentIdx + 1;
-      if (nextIdx >= channels.length) return;
+      if (nextIdx >= channels.length + 2) return;
 
       if (nextIdx === 1) {
         state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
@@ -640,7 +641,7 @@ const getChannelCommands = () => {
   }, {
     name: 'Switch to previous channel',
     aliases: ['previous', 'back'],
-    shortcut: 'shift+k',
+    shortcuts: ['shift+k', 'shift+ArrowUp'],
     navigateTo: '/feeds',
     action: () => {
       const state = useAccountStore.getState();

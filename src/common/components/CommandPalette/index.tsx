@@ -51,12 +51,15 @@ export default function CommandPalette() {
 
   const setupHotkeysForCommands = (commands: CommandType[]) => {
     for (const command of commands) {
-      if (!command.shortcut) {
+      if (!command.shortcut && !command.shortcuts) {
         continue;
       }
+      const shortcuts = (command.shortcuts || [command.shortcut])
+        .map((s) => s?.replace("cmd", "meta"))
+        .filter((s) => s !== undefined);
 
       useHotkeys(
-        command.shortcut.replace("cmd", "meta"),
+        shortcuts,
         () => {
           if (command.navigateTo) {
             router.push(command.navigateTo);
