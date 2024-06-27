@@ -112,7 +112,7 @@ const ChannelsOverview = () => {
                   </div>
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
-              {idx < 8 && <Badge variant="outline" className="w-16">Shift + {idx + 2}</Badge>}
+              {idx < 8 && <Badge variant="outline" className="w-16 hidden lg:flex">Shift + {idx + 2}</Badge>}
             </div>
           </li>
         ))}

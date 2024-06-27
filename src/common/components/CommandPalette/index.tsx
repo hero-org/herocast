@@ -8,11 +8,14 @@ import {
 } from "@/stores/useAccountStore";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { newPostCommands, useDraftStore } from "@/stores/useDraftStore";
-import { LaunchCasterScoutDraft } from "@/common/constants/postDrafts";
-import { BountyCasterBotDraft } from "@/common/constants/postDrafts";
-import { RemindMeBotDraft } from "@/common/constants/postDrafts";
-import { PayCasterBotRequestDraft } from "@/common/constants/postDrafts";
-import { PayCasterBotPayDraft } from "@/common/constants/postDrafts";
+import {
+  PayCasterBotPayDraft,
+  PayCasterBotRequestDraft,
+  RemindMeBotDraft,
+  BountyCasterBotDraft,
+  LaunchCasterScoutDraft,
+  NewFeedbackPostDraft,
+} from "@/common/constants/postDrafts";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/24/outline";
@@ -25,7 +28,6 @@ import { getThemeCommands } from "@/getThemeCommands";
 import { formatLargeNumber } from "@/common/helpers/text";
 import { useDataStore } from "@/stores/useDataStore";
 import { DraftType } from "@/common/constants/farcaster";
-import { FeedbackPostDraft } from "../../constants/postDrafts";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -170,7 +172,7 @@ export default function CommandPalette() {
     const farcasterBotCommands: CommandType[] = [
       createFarcasterBotCommand(
         "Feedback (send cast to @hellno)",
-        () => useDraftStore.getState().addNewPostDraft(FeedbackPostDraft),
+        () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
         "/post"
       ),
       createFarcasterBotCommand(

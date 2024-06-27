@@ -15,6 +15,30 @@ import { useDataStore } from "@/stores/useDataStore";
 import { Loading } from "@/common/components/Loading";
 import { CastType } from "@/common/constants/farcaster";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
+import Image from "next/image";
+import Link from "next/link";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 enum NotificationTypeEnum {
   "cast-reply" = "cast-reply",
@@ -90,7 +114,7 @@ const Notifications = () => {
     return () => {
       updateSelectedCast();
     };
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (!viewerFid) return;
@@ -294,6 +318,55 @@ const Notifications = () => {
       setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
       linkedCast={selectedCast}
     />
+  );
+
+  return (
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <div className="flex flex-col sm:gap-4 sm:py-4">
+        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+          <Tabs defaultValue="mentions">
+            <div className="flex items-center">
+              <TabsList>
+                <TabsTrigger value="mentions">Mentions</TabsTrigger>
+                <TabsTrigger value="likes">Likes</TabsTrigger>
+                {/* <TabsTrigger value="draft">Follows</TabsTrigger> */}
+              </TabsList>
+              <div className="ml-auto flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                        Filter
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem checked>
+                      Power Badge
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>All</DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {/* <Button size="sm" variant="outline" className="h-8 gap-1">
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Export
+                  </span>
+                </Button>
+                <Button size="sm" className="h-8 gap-1">
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Add Product
+                  </span>
+                </Button> */}
+              </div>
+            </div>
+            <TabsContent value="mentions"></TabsContent>
+            <TabsContent value="likes"></TabsContent>
+          </Tabs>
+        </main>
+      </div>
+    </div>
   );
 
   return (

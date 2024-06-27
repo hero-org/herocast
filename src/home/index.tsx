@@ -48,7 +48,7 @@ type NavigationItemType = {
 
 const Home = ({ children }: { children: React.ReactNode }) => {
   useInitializeStores();
-  
+
   const router = useRouter();
 
   const { pathname } = router;
@@ -133,7 +133,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       router: "/accounts",
       icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       shortcut: "CMD + Shift + A",
-      additionalPaths: ['/farcaster-signup', '/hats']
+      additionalPaths: ["/farcaster-signup", "/hats"],
     },
     {
       name: "Settings",
@@ -294,7 +294,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                               <p
                                 onClick={() => onClickItem(item)}
                                 className={classNames(
-                                  item.router === pathname || item.additionalPaths?.includes(pathname)
+                                  item.router === pathname ||
+                                    item.additionalPaths?.includes(pathname)
                                     ? "text-foreground bg-foreground/10"
                                     : "text-foreground/70 hover:text-foreground hover:bg-foreground/30",
                                   "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
@@ -335,8 +336,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     <div
                       onClick={() => onClickItem(item)}
                       className={classNames(
-                        item.router === pathname || item.additionalPaths?.includes(pathname)
-                        ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                        item.router === pathname ||
+                          item.additionalPaths?.includes(pathname)
+                          ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted",
                         "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
                       )}
@@ -356,7 +358,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </div>
-
+      {/* 
       <div className="lg:pl-64">
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-3">
           <button
@@ -370,46 +372,44 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           <h1 className="ml-4 mx-auto text-xl font-bold leading-7 text-foreground">
             {title}
           </h1>
-          {/* Separator */}
-          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-            <div className="flex items-center gap-x-4 lg:gap-x-6">
-              {/* Separator */}
-              {/* <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" /> */}
-              {/* Profile dropdown */}
-              {/* <Menu as="div" className="relative">
-              <Menu.Button className="-m-1.5 flex items-center p-1.5">
-                <span className="sr-only">Open user menu</span>
-                <img
-                  className="h-8 w-8 rounded-full bg-gray-50"
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                  alt=""
-                />
-                <span className="hidden lg:flex lg:items-center">
-                  <span className="ml-4 text-sm font-semibold leading-6 text-gray-900" aria-hidden="true">
-                    Tom Cook
-                  </span>
-                  <ChevronDownIcon className="ml-2 h-5 w-5 text-gray-400" aria-hidden="true" />
-                </span>
-              </Menu.Button>
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="transform opacity-0 scale-95"
-                enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="transform opacity-100 scale-100"
-                leaveTo="transform opacity-0 scale-95"
-              >
-                <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
-                </Menu.Items>
-              </Transition>
-            </Menu> */}
-            </div>
-          </div>
         </div>
         <main
           className={classNames(
             sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "md:pr-48 lg:pr-64"
+          )}
+        >
+          {!isHydrated && (
+            <Loading className="ml-8" loadingMessage="Loading herocast" />
+          )}
+          <div className="w-full max-w-full min-h-screen flex justify-between">
+            {children}
+          </div>
+          {renderRightSidebar()}
+        </main>
+      </div>
+       */}
+      <div
+        className={cn(
+          sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && "md:pr-48 lg:pr-64",
+          "xl:pl-64"
+        )}>
+        {/* Sticky search header */}
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-white/5 bg-background px-4 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            className="-m-2.5 p-2.5 text-white xl:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <span className="sr-only">Open sidebar</span>
+            <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <h1 className="ml-4 mx-auto text-xl font-bold leading-7 text-foreground">
+            {title}
+          </h1>
+        </div>
+        <main
+          className={cn(
+            sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && "md:pr-48 lg:pr-64"
           )}
         >
           {!isHydrated && (
