@@ -24,6 +24,7 @@ import { waitForTransactionReceipt } from "@wagmi/core";
 import SwitchWalletButton from "../SwitchWalletButton";
 import { Label } from "@/components/ui/label";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { optimism } from "viem/chains";
 
 const readNonces = async (account: `0x${string}`) => {
   if (!account) return BigInt(0);
