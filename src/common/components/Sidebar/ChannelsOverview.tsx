@@ -33,8 +33,8 @@ const ChannelsOverview = () => {
           onClick={() => onClick()}
           className={classNames(
             selectedChannelUrl === url
-              ? "bg-background text-foreground font-semibold"
-              : "text-foreground/80 hover:text-foreground/80 hover:bg-background",
+              ? "text-foreground font-semibold"
+              : "text-foreground/70 hover:text-foreground",
               "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
               )}
         >

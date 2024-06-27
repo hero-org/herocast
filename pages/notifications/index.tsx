@@ -15,8 +15,6 @@ import { useDataStore } from "@/stores/useDataStore";
 import { Loading } from "@/common/components/Loading";
 import { CastType } from "@/common/constants/farcaster";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import Image from "next/image";
-import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -144,18 +142,7 @@ const Notifications = () => {
     setSelectedNotificationIdx(0);
   }, [viewerFid]);
 
-  const navigationItems = [
-    {
-      name: "Mentions & Replies",
-      onClick: () => setNavigation(NotificationNavigationEnum.mentions),
-      current: navigation == NotificationNavigationEnum.mentions,
-    },
-    {
-      name: "Reactions",
-      onClick: () => setNavigation(NotificationNavigationEnum.reactions),
-      current: navigation == NotificationNavigationEnum.reactions,
-    },
-  ];
+  console.log('notifications', notifications)
 
   const onReply = () => {
     setCastModalView(CastModalView.Reply);
@@ -225,8 +212,8 @@ const Notifications = () => {
         className={classNames(
           idx === selectedNotificationIdx
             ? "bg-muted"
-            : "cursor-pointer bg-background/80",
-          "flex gap-x-4 px-5 py-4 rounded-sm"
+            : "cursor-pointer bg-background/80 hover:bg-muted/10",
+          "flex gap-x-4 px-5 py-4 rounded-lg"
         )}
       >
         <img
@@ -320,88 +307,80 @@ const Notifications = () => {
     />
   );
 
-  return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <div className="flex flex-col sm:gap-4 sm:py-4">
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Tabs defaultValue="mentions">
-            <div className="flex items-center">
-              <TabsList>
-                <TabsTrigger value="mentions">Mentions</TabsTrigger>
-                <TabsTrigger value="likes">Likes</TabsTrigger>
-                {/* <TabsTrigger value="draft">Follows</TabsTrigger> */}
-              </TabsList>
-              <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem checked>
-                      Power Badge
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>All</DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                {/* <Button size="sm" variant="outline" className="h-8 gap-1">
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Export
-                  </span>
-                </Button>
-                <Button size="sm" className="h-8 gap-1">
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Product
-                  </span>
-                </Button> */}
-              </div>
-            </div>
-            <TabsContent value="mentions"></TabsContent>
-            <TabsContent value="likes"></TabsContent>
-          </Tabs>
-        </main>
-      </div>
-    </div>
+  const renderNotificationFilterDropdown = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-1">
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            Filter
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuCheckboxItem checked>Power Badge</DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem>All</DropdownMenuCheckboxItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   return (
-    <div className="flex min-h-screen min-w-full flex-col">
-      {isLoading && (
-        <div className="text-foreground flex-1 flex items-center justify-center">
-          <Loading />
-        </div>
-      )}
-      {navigation === NotificationNavigationEnum.mentions ? (
-        <div className="mx-auto flex w-full max-w-7xl items-start">
-          <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
-            <div
-              className={classNames(
-                "overflow-hidden rounded-sm border",
-                isLeftColumnSelected ? "border-gray-400" : "border-gray-800"
-              )}
-            >
-              {renderLeftColumn()}
+    <div className="flex min-h-screen min-w-full flex-col bg-muted/40">
+      <div className="flex flex-col sm:gap-4 sm:py-4">
+        <main className="grid flex-1 items-start gap-4 px-4 md:px-2 lg:px-0">
+          <Tabs defaultValue="mentions">
+            <div className="flex items-center md:mx-2">
+              <TabsList>
+                <TabsTrigger value="mentions">Mentions</TabsTrigger>
+                <TabsTrigger value="likes">Likes</TabsTrigger>
+              </TabsList>
+              <div className="ml-auto flex items-center gap-2">
+                {/* {renderNotificationFilterDropdown()} */}
+                {/* 
+                  <Button size="sm" variant="outline" className="h-8 gap-1">
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Export
+                    </span>
+                  </Button>
+                */}
+              </div>
             </div>
-          </div>
-          <main
-            className={classNames(
-              "hidden md:block flex-1 border-r border-t",
-              !isLeftColumnSelected ? "border-gray-400" : "border-gray-800"
-            )}
-          >
-            {renderMainContent()}
-          </main>
-        </div>
-      ) : (
-        <div className="text-foreground flex-1 flex items-center justify-center">
-          <div className="loader">Coming soon...</div>
-        </div>
-      )}
+            <TabsContent value="mentions">
+              <div className="mx-auto flex w-full max-w-7xl items-start">
+                <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
+                  <div
+                    className={classNames(
+                      "overflow-hidden rounded-lg border",
+                      isLeftColumnSelected
+                        ? "border-gray-400"
+                        : "border-gray-600"
+                    )}
+                  >
+                    {renderLeftColumn()}
+                  </div>
+                </div>
+                <main
+                  className={classNames(
+                    "hidden md:block rounded-r-lg flex-1 border-r border-t",
+                    !isLeftColumnSelected
+                      ? "border-gray-400"
+                      : "border-gray-600"
+                  )}
+                >
+                  {renderMainContent()}
+                </main>
+              </div>
+            </TabsContent>
+            <TabsContent value="likes"></TabsContent>
+          </Tabs>
+          {isLoading && (
+            <div className="text-foreground flex-1 flex items-center justify-center">
+              <Loading />
+            </div>
+          )}
+        </main>
+      </div>
       {renderReplyModal()}
     </div>
   );

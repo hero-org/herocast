@@ -1,10 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
-  UserGroupIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
@@ -125,7 +124,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       name: "Notifications",
       router: "/notifications",
       icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      getTitle: () => "Your notifications",
+      getTitle: () => "Notifications",
       shortcut: "Shift + N",
     },
     {
@@ -320,7 +319,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
       {/* Static sidebar for desktop */}
       {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-      <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:w-64 lg:overflow-y-auto lg:bg-background border-r border-muted">
+      <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:w-52 lg:overflow-y-auto lg:bg-background border-r border-muted">
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
           <div className="flex h-16 shrink-0 items-center">
@@ -358,41 +357,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </div>
-      {/* 
-      <div className="lg:pl-64">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-0 border-muted bg-background px-4 sm:gap-x-6 sm:px-6 lg:px-3">
-          <button
-            type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <span className="sr-only">Open sidebar</span>
-            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-          </button>
-          <h1 className="ml-4 mx-auto text-xl font-bold leading-7 text-foreground">
-            {title}
-          </h1>
-        </div>
-        <main
-          className={classNames(
-            sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? "" : "md:pr-48 lg:pr-64"
-          )}
-        >
-          {!isHydrated && (
-            <Loading className="ml-8" loadingMessage="Loading herocast" />
-          )}
-          <div className="w-full max-w-full min-h-screen flex justify-between">
-            {children}
-          </div>
-          {renderRightSidebar()}
-        </main>
-      </div>
-       */}
       <div
         className={cn(
           sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && "md:pr-48 lg:pr-64",
-          "xl:pl-64"
-        )}>
+          "xl:pl-52"
+        )}
+      >
         {/* Sticky search header */}
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-white/5 bg-background px-4 sm:px-6 lg:px-8">
           <button
@@ -407,11 +377,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             {title}
           </h1>
         </div>
-        <main
-          className={cn(
-            sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && "md:pr-48 lg:pr-64"
-          )}
-        >
+        <main>
           {!isHydrated && (
             <Loading className="ml-8" loadingMessage="Loading herocast" />
           )}

@@ -533,7 +533,7 @@ export const CastRow = ({
         }}
         className={classNames(
           "p-3",
-          isSelected ? "bg-foreground/10" : "cursor-pointer",
+          isSelected ? "bg-muted" : "cursor-pointer",
           isSelected
             ? "border-l-1 border-foreground/10"
             : "border-l-1 border-transparent",

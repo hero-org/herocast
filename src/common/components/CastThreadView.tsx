@@ -32,7 +32,6 @@ export const CastThreadView = ({
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
 
-  const { selectedChannelUrl } = useAccountStore();
   const { addNewPostDraft, removePostDraft } = useDraftStore();
   const draftIdx = useDraftStore(
     (state) =>
@@ -122,17 +121,14 @@ export const CastThreadView = ({
           <div
             className={classNames(
               idx === 0 ? "-ml-[31px]" : "border-l-2",
-              isRowSelected
-                ? "border-muted-foreground"
-                : "border-foreground/10",
-              "relative flex items-start"
+              "relative flex items-start border-muted"
             )}
           >
             <div className="min-w-0 flex-1">
               {idx === 0 && (
                 <div
                   className={cn(
-                    isRowSelected ? "bg-muted-foreground" : "bg-foreground/10",
+                    isRowSelected ? "bg-muted-foreground/50" : "bg-foreground/10",
                     "absolute top-8 left-[31px] h-[calc(100%-32px)] w-0.5"
                   )}
                 />
