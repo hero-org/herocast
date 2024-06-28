@@ -29,20 +29,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnectEnd = process.hrtime(start);
 
     // replaces spaces with + for tsquery
-    term = term.replace(/ /g, '+');
+    // term = term.replace(/ /g, '+');
     const query = `
     SELECT 
         hash, fid
     FROM casts 
     WHERE 
-        tsv @@ to_tsquery($1)
+        tsv @@ phraseto_tsquery($1)
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
     LIMIT $2 OFFSET $3`;
     const vars = [term, limit, offset];
 
-    // replaces spaces with + for tsquery
-    term = term.replace(/ /g, '+');
     try {
         const queryStart = process.hrtime();
 

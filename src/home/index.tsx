@@ -360,11 +360,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       <div
         className={cn(
           sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && "md:pr-48 lg:pr-64",
-          "xl:pl-52"
+          "lg:pl-52"
         )}
       >
         {/* Sticky search header */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-white/5 bg-background px-4 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-white/5 bg-background px-4 sm:px-6 md:px-2">
           <button
             type="button"
             className="-m-2.5 p-2.5 text-white xl:hidden"

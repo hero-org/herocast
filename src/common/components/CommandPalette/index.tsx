@@ -52,17 +52,26 @@ export default function CommandPalette() {
   );
 
   const setupHotkeysForCommands = (commands: CommandType[]) => {
+    const currentPage = router.pathname.split("/")[1];
+
     for (const command of commands) {
       if (!command.shortcut && !command.shortcuts) {
         continue;
       }
-      const shortcuts = (command.shortcuts || [command.shortcut])
-        .map((s) => s?.replace("cmd", "meta"))
-        .filter((s) => s !== undefined);
 
+      const shortcuts = (command.shortcuts || [command.shortcut])
+      .map((s) => s?.replace("cmd", "meta"))
+      .filter((s) => s !== undefined);
+      
+      const isEnabled = command.enabled === undefined || (typeof command.enabled === "function" ? command.enabled() : command.enabled);
       useHotkeys(
         shortcuts,
         () => {
+          console.log('command', command, currentPage)
+          if (command.page && currentPage !== command.page) {
+            return;
+          }
+          
           if (command.navigateTo) {
             router.push(command.navigateTo);
           }
@@ -72,7 +81,7 @@ export default function CommandPalette() {
         {
           ...(command.options ? command.options : {}),
           splitKey: "-",
-          enabled: command.enabled || true, // this obv doesn't work
+          enabled: isEnabled,
         }
       );
     }
@@ -108,7 +117,7 @@ export default function CommandPalette() {
         },
         iconUrl: channel.icon_url,
         data: channel.data,
-        navigateTo: "/feeds",
+        page: "feeds",
       });
     });
 

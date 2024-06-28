@@ -1,10 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { AccountObjectType } from "@/stores/useAccountStore";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RenameAccountForm from "./RenameAccountForm";
 import ChangeBioForm from "./ChangeBioForm";
 import ChangeDisplayNameForm from "./ChangeDisplayNameForm";
-import ImgurUpload from "../ImgurUpload";
 import ChangeProfilePictureForm from "./ChangeProfilePictureForm";
 
 type AccountManagementProps = {

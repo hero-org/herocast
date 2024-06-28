@@ -568,10 +568,10 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
-    navigateTo: '/feeds',
     action: () => {
       useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
     },
+    page: 'feeds',
   },
   {
     name: `Switch to trending feed`,
@@ -580,10 +580,10 @@ const getChannelCommands = () => {
     options: {
       enableOnFormTags: false,
     },
-    navigateTo: '/feeds',
     action: () => {
       useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
     },
+    page: 'feeds',
   }];
 
   for (let i = 0; i < 8; i++) {
@@ -594,7 +594,6 @@ const getChannelCommands = () => {
       options: {
         enableOnFormTags: false,
       },
-      navigateTo: '/feeds',
       action: () => {
         const { accounts, selectedAccountIdx } = useAccountStore.getState();
         const channels = accounts[selectedAccountIdx]?.channels;
@@ -604,13 +603,14 @@ const getChannelCommands = () => {
         const state = useAccountStore.getState();
         state.setSelectedChannelUrl(channels[i].url);
       },
+      page: 'feeds',
     });
   }
 
   channelCommands.push(...[{
     name: `Switch to random channel`,
     aliases: ['random', 'lucky', 'discover'],
-    navigateTo: '/feeds',
+    page: 'feeds',
     action: () => {
       const state = useAccountStore.getState();
       if (isEmpty(state.allChannels)) return;
@@ -622,7 +622,7 @@ const getChannelCommands = () => {
     name: 'Switch to next channel',
     aliases: ['next', 'forward'],
     shortcuts: ['shift+j', 'shift+ArrowDown'],
-    navigateTo: '/feeds',
+    page: 'feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
@@ -642,7 +642,7 @@ const getChannelCommands = () => {
     name: 'Switch to previous channel',
     aliases: ['previous', 'back'],
     shortcuts: ['shift+k', 'shift+ArrowUp'],
-    navigateTo: '/feeds',
+    page: 'feeds',
     action: () => {
       const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;

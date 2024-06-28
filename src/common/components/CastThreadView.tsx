@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
-import { useAccountStore } from "@/stores/useAccountStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
@@ -55,7 +54,7 @@ export const CastThreadView = ({
     <Button
       variant="outline"
       onClick={() => onBack && onBack()}
-      className="w-20 group m-2 flex items-center px-2 py-1 shadow-sm text-sm font-medium rounded-md text-foreground/80 bg-background focus:outline-none"
+      className="w-20 group flex items-center px-2 py-1 shadow-sm text-sm font-medium rounded-md text-foreground/80 bg-background focus:outline-none"
     >
       <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
         <HotkeyTooltipWrapper hotkey="Esc" side="right">

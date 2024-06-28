@@ -46,7 +46,7 @@ const RightSidebar = ({
     if (!showAuthorInfo || !selectedCast) return null;
 
     return (
-      <div className="mt-2 mx-4">
+      <div className="pt-16 mx-4">
         <ProfileInfo
           fid={selectedCast.author.fid}
           viewerFid={Number(selectedAccount.platformAccountId)}
