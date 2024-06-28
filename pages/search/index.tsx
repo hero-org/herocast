@@ -22,8 +22,8 @@ import { useDataStore } from "@/stores/useDataStore";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
-import { Skeleton } from "@/components/ui/skeleton";
 import { uniq } from "lodash";
+import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 
 const getSearchUrl = (
   searchTerm: string,
@@ -325,45 +325,18 @@ export default function SearchPage() {
     </div>
   );
 
-  const renderSkeletonRow = () => {
-    const randomDelay = Math.floor(Math.random() * 2000);
-    return (
-      <div className="flex items-start space-x-4">
-        <Skeleton
-          className="h-8 w-8 rounded-full"
-          style={{ animationDelay: `${randomDelay}ms` }}
-        />
-        <div className="flex-1 space-y-2">
-          <Skeleton
-            className="h-4 w-1/4 rounded"
-            style={{ animationDelay: `${randomDelay}ms` }}
-          />
-          <Skeleton
-            className="h-4 w-3/4 rounded"
-            style={{ animationDelay: `${randomDelay}ms` }}
-          />
-          <Skeleton
-            className="h-4 w-1/2 rounded"
-            style={{ animationDelay: `${randomDelay}ms` }}
-          />
-        </div>
-      </div>
-    );
-  };
-
   const renderLoading = () => (
     <div className="my-8 w-full max-w-2xl space-y-8">
       {castHashes.length === 0 ? (
         <>
-          {renderSkeletonRow()}
-          {renderSkeletonRow()}
+          <SkeletonCastRow />
+          <SkeletonCastRow />
         </>
       ) : (
-        castHashes.map(renderSkeletonRow)
+        castHashes.map((hash) => <SkeletonCastRow key={`skeleton-${hash}`} />)
       )}
     </div>
   );
-
   return (
     <div className="min-w-0 flex-1 p-6">
       <div className="w-full max-w-2xl">

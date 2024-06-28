@@ -10,9 +10,11 @@ import { formatLargeNumber } from "../../helpers/text";
 const ProfileInfo = ({
   fid,
   viewerFid,
+  showFollowButton
 }: {
   fid: number;
   viewerFid: number;
+  showFollowButton?: boolean;
 }) => {
   const { addUserProfile } = useDataStore();
   const profile = useDataStore((state) => get(state.fidToData, fid));
@@ -63,6 +65,7 @@ const ProfileInfo = ({
           </h3>
         </div>
       </div>
+        {showFollowButton ? <FollowButton username={profile?.username} /> : null}
       {profile ? (
         <>
           <p className="flex pt-2 text-sm break-words pr-4 overflow-x-hidden">

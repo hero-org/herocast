@@ -424,7 +424,7 @@ export default function NewPost() {
         </div>
       </div>
       <div className="flex flex-col">
-        <div className="bg-white dark:bg-gray-900 p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="p-4">
           <h2 className="text-lg font-semibold">{getTitle()}</h2>
         </div>
         <div className="flex-1 overflow-y-auto p-4">{renderContent()}</div>

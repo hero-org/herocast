@@ -465,7 +465,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
 
   const buttonLabel = getButtonLabel();
   return (
-    <div className="flex max-w-full lg:max-w-lg">
+    <div className="flex max-w-full lg:max-w-xl">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">

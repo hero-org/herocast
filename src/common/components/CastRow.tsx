@@ -197,8 +197,8 @@ export const CastRow = ({
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
-    const recastsCount = cast.reactions?.recasts_count || 0;
-    const likesCount = cast.reactions?.likes_count;
+    const recastsCount = cast.reactions?.recasts_count || cast.recasts?.count || 0;
+    const likesCount = cast.reactions?.likes_count || cast.reactions?.count || 0;
 
     const likeFids = map(cast.reactions?.likes, "fid") || [];
     const recastFids = map(cast.reactions?.recasts, "fid") || [];
@@ -490,7 +490,7 @@ export const CastRow = ({
       <div className="mt-4 space-y-4" onClick={(e) => e.preventDefault()}>
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
-            <div key={`${cast.hash}-embed-${embed?.cast_id || embed?.url}`}>
+            <div key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}>
               {renderEmbedForUrl(embed)}
             </div>
           ))}
@@ -522,7 +522,8 @@ export const CastRow = ({
       ? timeDiff(now, new Date(cast.timestamp))
       : [0, "seconds"];
   const timeAgoStr = localize(Number(timeAgo[0]), timeAgo[1].toString());
-
+  const pfpUrl = cast.author.pfp_url || cast.author.pfp.url;
+  const displayName = cast.author.display_name || cast.author.displayName;
   return (
     <div className="flex min-w-full w-full max-w-2xl">
       <div
@@ -533,7 +534,7 @@ export const CastRow = ({
         }}
         className={classNames(
           "p-3",
-          isSelected ? "bg-foreground/10" : "cursor-pointer",
+          isSelected ? "bg-muted" : "cursor-pointer",
           isSelected
             ? "border-l-1 border-foreground/10"
             : "border-l-1 border-transparent",
@@ -547,7 +548,7 @@ export const CastRow = ({
           {!isEmbed && (
             <img
               className="relative h-10 w-10 flex-none bg-background rounded-full"
-              src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
+              src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
             />
           )}
           <div className="flex flex-col w-full">
@@ -558,10 +559,10 @@ export const CastRow = ({
                     {isEmbed && (
                       <img
                         className="relative h-4 w-4 mr-1 flex-none bg-background rounded-full"
-                        src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${cast.author.pfp_url}`}
+                        src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
                       />
                     )}
-                    {cast.author.display_name}
+                    {displayName}
                     <span className="hidden font-normal lg:ml-1 lg:block">
                       (@{cast.author.username})
                     </span>

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
-import { useAccountStore } from "@/stores/useAccountStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
@@ -32,7 +31,6 @@ export const CastThreadView = ({
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
 
-  const { selectedChannelUrl } = useAccountStore();
   const { addNewPostDraft, removePostDraft } = useDraftStore();
   const draftIdx = useDraftStore(
     (state) =>
@@ -56,7 +54,7 @@ export const CastThreadView = ({
     <Button
       variant="outline"
       onClick={() => onBack && onBack()}
-      className="w-20 group m-2 flex items-center px-2 py-1 shadow-sm text-sm font-medium rounded-md text-foreground/80 bg-background focus:outline-none"
+      className="w-20 group flex items-center px-2 py-1 shadow-sm text-sm font-medium rounded-md text-foreground/80 bg-background focus:outline-none"
     >
       <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
         <HotkeyTooltipWrapper hotkey="Esc" side="right">
@@ -122,17 +120,14 @@ export const CastThreadView = ({
           <div
             className={classNames(
               idx === 0 ? "-ml-[31px]" : "border-l-2",
-              isRowSelected
-                ? "border-muted-foreground"
-                : "border-foreground/10",
-              "relative flex items-start"
+              "relative flex items-start border-muted"
             )}
           >
             <div className="min-w-0 flex-1">
               {idx === 0 && (
                 <div
                   className={cn(
-                    isRowSelected ? "bg-muted-foreground" : "bg-foreground/10",
+                    isRowSelected ? "bg-muted-foreground/50" : "bg-foreground/10",
                     "absolute top-8 left-[31px] h-[calc(100%-32px)] w-0.5"
                   )}
                 />

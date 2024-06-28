@@ -33,8 +33,8 @@ const ChannelsOverview = () => {
           onClick={() => onClick()}
           className={classNames(
             selectedChannelUrl === url
-              ? "bg-background text-foreground font-semibold"
-              : "text-foreground/80 hover:text-foreground/80 hover:bg-background",
+              ? "text-foreground font-semibold"
+              : "text-foreground/70 hover:text-foreground",
               "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
               )}
         >
@@ -112,7 +112,7 @@ const ChannelsOverview = () => {
                   </div>
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
-              {idx < 8 && <Badge variant="outline" className="w-16">Shift + {idx + 2}</Badge>}
+              {idx < 8 && <Badge variant="outline" className="w-16 hidden lg:flex">Shift + {idx + 2}</Badge>}
             </div>
           </li>
         ))}

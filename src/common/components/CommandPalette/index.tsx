@@ -8,11 +8,14 @@ import {
 } from "@/stores/useAccountStore";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { newPostCommands, useDraftStore } from "@/stores/useDraftStore";
-import { LaunchCasterScoutDraft } from "@/common/constants/postDrafts";
-import { BountyCasterBotDraft } from "@/common/constants/postDrafts";
-import { RemindMeBotDraft } from "@/common/constants/postDrafts";
-import { PayCasterBotRequestDraft } from "@/common/constants/postDrafts";
-import { PayCasterBotPayDraft } from "@/common/constants/postDrafts";
+import {
+  PayCasterBotPayDraft,
+  PayCasterBotRequestDraft,
+  RemindMeBotDraft,
+  BountyCasterBotDraft,
+  LaunchCasterScoutDraft,
+  NewFeedbackPostDraft,
+} from "@/common/constants/postDrafts";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/24/outline";
@@ -25,7 +28,6 @@ import { getThemeCommands } from "@/getThemeCommands";
 import { formatLargeNumber } from "@/common/helpers/text";
 import { useDataStore } from "@/stores/useDataStore";
 import { DraftType } from "@/common/constants/farcaster";
-import { FeedbackPostDraft } from "../../constants/postDrafts";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -50,17 +52,26 @@ export default function CommandPalette() {
   );
 
   const setupHotkeysForCommands = (commands: CommandType[]) => {
+    const currentPage = router.pathname.split("/")[1];
+
     for (const command of commands) {
       if (!command.shortcut && !command.shortcuts) {
         continue;
       }
-      const shortcuts = (command.shortcuts || [command.shortcut])
-        .map((s) => s?.replace("cmd", "meta"))
-        .filter((s) => s !== undefined);
 
+      const shortcuts = (command.shortcuts || [command.shortcut])
+      .map((s) => s?.replace("cmd", "meta"))
+      .filter((s) => s !== undefined);
+      
+      const isEnabled = command.enabled === undefined || (typeof command.enabled === "function" ? command.enabled() : command.enabled);
       useHotkeys(
         shortcuts,
         () => {
+          console.log('command', command, currentPage)
+          if (command.page && currentPage !== command.page) {
+            return;
+          }
+          
           if (command.navigateTo) {
             router.push(command.navigateTo);
           }
@@ -70,7 +81,7 @@ export default function CommandPalette() {
         {
           ...(command.options ? command.options : {}),
           splitKey: "-",
-          enabled: command.enabled || true, // this obv doesn't work
+          enabled: isEnabled,
         }
       );
     }
@@ -106,7 +117,7 @@ export default function CommandPalette() {
         },
         iconUrl: channel.icon_url,
         data: channel.data,
-        navigateTo: "/feeds",
+        page: "feeds",
       });
     });
 
@@ -170,7 +181,7 @@ export default function CommandPalette() {
     const farcasterBotCommands: CommandType[] = [
       createFarcasterBotCommand(
         "Feedback (send cast to @hellno)",
-        () => useDraftStore.getState().addNewPostDraft(FeedbackPostDraft),
+        () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
         "/post"
       ),
       createFarcasterBotCommand(

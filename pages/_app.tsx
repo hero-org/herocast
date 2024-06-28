@@ -15,6 +15,7 @@ import localFont from "next/font/local";
 import CommandPalette from "../src/common/components/CommandPalette";
 import Home from "../src/home";
 import { AuthProvider } from "@/common/context/AuthContext";
+import { cn } from "@/lib/utils";
 
 const satoshi = localFont({
   src: [
@@ -67,7 +68,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   const children = (
-    <main className={satoshi.className}>
+    <main
+      className={cn(satoshi.className)}
+      style={{
+        "-ms-overflow-style": "none",
+        "scrollbar-width": "none",
+        "-webkit-scrollbar": "none",
+      }}
+    >
       <PostHogProvider client={posthog}>
         <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>

@@ -103,9 +103,9 @@ const NewCastModal = ({ linkedCast, open, setOpen }: NewCastModalProps) => {
             className="flex flex-col max-w-full max-h-[calc(100vh-200px)]"
             key={`new-post-parentHash-${linkedCast?.hash}`}
           >
-            <div className="mb-4">
+            <div className="mb-4 rounded-lg border border-foreground/10">
               {linkedCast && castModalView === CastModalView.Reply && (
-                <CastRow cast={linkedCast} isSelected isEmbed />
+                <CastRow cast={linkedCast} isEmbed />
               )}
             </div>
             <div className="flex">

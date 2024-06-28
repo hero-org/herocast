@@ -80,14 +80,16 @@ export const SelectableListWithHotkeys = ({
   if (isEmpty(data)) return null;
 
   return <ul role="list" className="">
-    {data.map((cast: any, idx: number) =>
-      cast ? (
-        <div
-          key={`row-id-${cast?.hash || cast?.id || cast?.url || cast?.name}`}
-          ref={(selectedIdx === idx + 1) ? scollToRef : null}>
-          {renderRow(cast, idx)}
-        </div>
-      ) : null
+    {data.map((item: any, idx: number) =>
+      {
+        return item ? (
+          <div
+            key={`row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`}
+            ref={(selectedIdx === idx + 1) ? scollToRef : null}>
+            {renderRow(item, idx)}
+          </div>
+        ) : null;
+      }
     )}
     <li ref={ref} className="" />
   </ul>

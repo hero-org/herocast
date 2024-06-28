@@ -6,7 +6,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    let { term, limit, offset } = req.query;
+    const { term } = req.query;
+    let { limit, offset } = req.query;
     const { interval, orderBy } = req.query;
 
     if (typeof term !== 'string' || term.length < 3) {
@@ -28,21 +29,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
 
-    // replaces spaces with + for tsquery
-    term = term.replace(/ /g, '+');
     const query = `
     SELECT 
         hash, fid
     FROM casts 
     WHERE 
-        tsv @@ to_tsquery($1)
+        tsv @@ phraseto_tsquery($1)
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
     LIMIT $2 OFFSET $3`;
     const vars = [term, limit, offset];
 
-    // replaces spaces with + for tsquery
-    term = term.replace(/ /g, '+');
     try {
         const queryStart = process.hrtime();
 
