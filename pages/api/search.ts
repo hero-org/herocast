@@ -6,7 +6,8 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    let { term, limit, offset } = req.query;
+    const { term } = req.query;
+    let { limit, offset } = req.query;
     const { interval, orderBy } = req.query;
 
     if (typeof term !== 'string' || term.length < 3) {
@@ -28,8 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
 
-    // replaces spaces with + for tsquery
-    // term = term.replace(/ /g, '+');
     const query = `
     SELECT 
         hash, fid

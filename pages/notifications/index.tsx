@@ -19,7 +19,6 @@ import { useDataStore } from "@/stores/useDataStore";
 import { Loading } from "@/common/components/Loading";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import orderBy from "lodash.orderby";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -101,7 +100,9 @@ const Notifications = () => {
   const [activeTab, setActiveTab] = useState<NotificationTab>(
     NotificationTab.all
   );
-  const [showReactionsLimit, setShowReactionsLimit] = useState<number>(DEFAULT_SHOW_REACTIONS_LIMIT);
+  const [showReactionsLimit, setShowReactionsLimit] = useState<number>(
+    DEFAULT_SHOW_REACTIONS_LIMIT
+  );
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId
   );
@@ -202,6 +203,13 @@ const Notifications = () => {
     }
   );
 
+  useHotkeys("shift+1", () => setActiveTab(NotificationTab.all), [], {});
+  useHotkeys("shift+2", () => setActiveTab(NotificationTab.replies), [], {});
+  useHotkeys("shift+3", () => setActiveTab(NotificationTab.mentions), [], {});
+  useHotkeys("shift+4", () => setActiveTab(NotificationTab.likes), [], {});
+  useHotkeys("shift+5", () => setActiveTab(NotificationTab.recasts), [], {});
+  useHotkeys("shift+6", () => setActiveTab(NotificationTab.follows), [], {});
+
   useHotkeys(
     ["l", "o", Key.Enter, Key.ArrowRight],
     () => {
@@ -296,7 +304,12 @@ const Notifications = () => {
 
   const renderLoadMoreButton = () => (
     <div className="flex justify-center my-8">
-      <Button variant="outline" size="lg" disabled={isLoading} onClick={() => loadData()}>
+      <Button
+        variant="outline"
+        size="lg"
+        disabled={isLoading}
+        onClick={() => loadData()}
+      >
         Load More
       </Button>
     </div>
@@ -338,22 +351,26 @@ const Notifications = () => {
   const renderProfilesFromReactions = (reactions?: ReactionWithUserInfo[]) => {
     if (!reactions) return null;
 
-    const reactionFids = orderBy(reactions, ["user.follower_count"], ["desc"]).slice(0, showReactionsLimit).map((reaction) => reaction.user.fid);
+    const reactionFids = orderBy(reactions, ["user.follower_count"], ["desc"])
+      .slice(0, showReactionsLimit)
+      .map((reaction) => reaction.user.fid);
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 items-center">
-        {reactionFids && reactionFids.map((fid) => (
-          <div
-            key={fid}
-            className="flex self-start h-full gap-2 p-2 border border-muted/50"
-          >
-            <ProfileInfo
-              fid={fid}
-              viewerFid={Number(viewerFid)}
-              showFollowButton
-            />
-          </div>
-        ))}
-        {reactions.length > showReactionsLimit && renderShowMoreReactionsButton()}
+        {reactionFids &&
+          reactionFids.map((fid) => (
+            <div
+              key={fid}
+              className="flex self-start h-full gap-2 p-2 border border-muted/50"
+            >
+              <ProfileInfo
+                fid={fid}
+                viewerFid={Number(viewerFid)}
+                showFollowButton
+              />
+            </div>
+          ))}
+        {reactions.length > showReactionsLimit &&
+          renderShowMoreReactionsButton()}
       </div>
     );
   };
