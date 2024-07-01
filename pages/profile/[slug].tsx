@@ -17,7 +17,7 @@ import {
 import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
 import { useRouter } from "next/router";
 import { Loading } from "@/common/components/Loading";
-import { GetStaticPaths } from "next/types";
+import { GetStaticPaths, GetStaticProps } from "next/types";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -28,6 +28,10 @@ enum FeedTypeEnum {
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return { paths: [], fallback: true };
+};
+
+export const getStaticProps: GetStaticProps = async () => {
+  return { props: {} };
 };
 
 export default function Profile() {
