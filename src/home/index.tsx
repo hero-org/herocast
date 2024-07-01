@@ -6,7 +6,7 @@ import {
   PlusCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Bars3Icon, UserPlusIcon } from "@heroicons/react/20/solid";
+import { Bars3Icon, UserPlusIcon } from "@heroicons/react/24/solid";
 import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import RightSidebar from "@/common/components/Sidebar/RightSidebar";
@@ -20,7 +20,6 @@ import {
 } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
-import herocastImg from "../../public/images/logo.png";
 import { Toaster } from "@/components/ui/sonner";
 import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
 import { cn } from "@/lib/utils";
@@ -154,6 +153,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       case "/search":
         return RIGHT_SIDEBAR_ENUM.SEARCH;
+      case "/profile/[slug]":
+      case "/conversation/[hash]":
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
     }
@@ -172,6 +174,16 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
   const sidebarType = getSidebarForPathname(pathname);
+  console.log(
+    "sidebarType",
+    sidebarType,
+    "title",
+    title,
+    "pathname",
+    pathname,
+    "router",
+    router
+  );
 
   const renderRightSidebar = () => {
     switch (sidebarType) {
@@ -249,41 +261,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               leaveTo="-translate-x-full"
             >
               <Dialog.Panel className="relative mr-2 flex w-full max-w-64 flex-1">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-in-out duration-10"
-                  enterFrom="opacity-0"
-                  enterTo="opacity-100"
-                  leave="ease-in-out duration-10"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
-                    <button
-                      type="button"
-                      className="-m-2.5 p-2.5"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="sr-only">Close sidebar</span>
-                      <XMarkIcon
-                        className="h-6 w-6 text-foreground"
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </div>
-                </Transition.Child>
                 {/* Sidebar component, swap this element with another sidebar if you like */}
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
-                  <div className="flex h-16 shrink-0 items-center">
-                    <img
-                      className="h-8 w-auto"
-                      src={herocastImg.src}
-                      alt="herocast"
-                    />
-                    <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
-                      herocast
-                    </h2>
-                  </div>
+                <div className="mt-16 z-100 flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
                   <nav className="flex flex-1 flex-col">
                     <ul role="list" className="flex flex-1 flex-col gap-y-7">
                       <li>
@@ -295,8 +274,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                                 className={classNames(
                                   item.router === pathname ||
                                     item.additionalPaths?.includes(pathname)
-                                    ? "text-foreground bg-foreground/10"
-                                    : "text-foreground/70 hover:text-foreground hover:bg-foreground/30",
+                                    ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
                                   "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
                                 )}
                               >
@@ -363,20 +342,22 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           "lg:pl-52"
         )}
       >
-        {/* Sticky search header */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-white/5 bg-background px-4 sm:px-6 md:px-2">
-          <button
-            type="button"
-            className="-m-2.5 p-2.5 text-white xl:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <span className="sr-only">Open sidebar</span>
-            <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-          </button>
-          <h1 className="ml-4 mx-auto text-xl font-bold leading-7 text-foreground">
-            {title}
-          </h1>
-        </div>
+        {/* Sticky header */}
+        {title && (
+          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted/10 bg-background px-4 sm:px-6 md:px-2">
+            <button
+              type="button"
+              className="-m-2.5 p-2.5 text-foreground lg:hidden"
+              onClick={() => setSidebarOpen((prev) => !prev)}
+            >
+              <span className="sr-only">Open sidebar</span>
+              <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">
+              {title}
+            </h1>
+          </div>
+        )}
         <main>
           {!isHydrated && (
             <Loading className="ml-8" loadingMessage="Loading herocast" />

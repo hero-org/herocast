@@ -6,11 +6,12 @@ import get from "lodash.get";
 import FollowButton from "../FollowButton";
 import { Loading } from "../Loading";
 import { formatLargeNumber } from "../../helpers/text";
+import { openWindow } from "@/common/helpers/navigation";
 
 const ProfileInfo = ({
   fid,
   viewerFid,
-  showFollowButton
+  showFollowButton,
 }: {
   fid: number;
   viewerFid: number;
@@ -36,8 +37,15 @@ const ProfileInfo = ({
     }
   }, [fid, viewerFid, profile]);
 
+
+  const onClick = () => {
+    openWindow(
+      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`
+    );
+  };
+  
   return (
-    <div className="space-y-2 min-h-72">
+    <div className="space-y-2 min-h-72 cursor-pointer" onClick={() => onClick()}>
       <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1">
         {profile?.display_name}
       </h2>
@@ -65,7 +73,7 @@ const ProfileInfo = ({
           </h3>
         </div>
       </div>
-        {showFollowButton ? <FollowButton username={profile?.username} /> : null}
+      {showFollowButton ? <FollowButton username={profile?.username} /> : null}
       {profile ? (
         <>
           <p className="flex pt-2 text-sm break-words pr-4 overflow-x-hidden">
