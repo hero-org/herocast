@@ -27,16 +27,23 @@ enum FeedTypeEnum {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
+  console.log("profile slug getStaticPaths");
   return { paths: [], fallback: true };
 };
 
-export const getStaticProps: GetStaticProps = async () => {
-  return { props: {} };
+export const getStaticProps: GetStaticProps = async (context) => {
+  const { slug } = context.params || {};
+  console.log(`profile slug getStaticProps for ${slug}`);
+  return { props: { slug } };
 };
 
-export default function Profile() {
+interface ProfileProps {
+  slug: string;
+}
+
+export const Profile = ({ slug }: ProfileProps) => {
   const router = useRouter();
-  const { slug } = router.query as { slug?: string };
+  // const { slug } = router.query as { slug?: string };
   const username = slug?.startsWith("@") ? slug.slice(1) : slug;
 
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
@@ -200,4 +207,4 @@ export default function Profile() {
   );
 
   return router.isFallback || !profile ? renderEmptyState() : renderProfile();
-}
+};
