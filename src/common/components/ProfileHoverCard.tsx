@@ -71,7 +71,7 @@ const ProfileHoverCard = ({
       <HoverCardContent
         onClick={onClick}
         side="bottom"
-        className="border border-gray-400 overflow-hidden"
+        className="border border-gray-400 overflow-hidden cursor-pointer"
       >
         <div className="space-y-2">
           <div className="flex flex-row justify-between">

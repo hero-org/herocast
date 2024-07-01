@@ -98,6 +98,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       getTitle: getFeedTitle,
       shortcut: "Shift + F",
+      additionalPaths: ["/profile/[slug]", "/conversation/[...slug]"],
     },
     {
       name: "Post",
@@ -180,8 +181,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       }
     }
   };
+
   const title = getTitle();
-  console.log('title', title) 
   const sidebarType = getSidebarForPathname(pathname);
 
   const renderRightSidebar = () => {
@@ -358,12 +359,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         )}
         <main>
-          {!isHydrated && (
+          {!isHydrated ? (
             <Loading className="ml-8" loadingMessage="Loading herocast" />
+          ) : (
+            <div className="w-full max-w-full min-h-screen flex justify-between">
+              {children}
+            </div>
           )}
-          <div className="w-full max-w-full min-h-screen flex justify-between">
-            {children}
-          </div>
           {renderRightSidebar()}
         </main>
       </div>
