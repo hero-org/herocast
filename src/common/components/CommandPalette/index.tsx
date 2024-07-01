@@ -26,8 +26,14 @@ import { getNavigationCommands } from "@/getNavigationCommands";
 import { useTheme } from "next-themes";
 import { getThemeCommands } from "@/getThemeCommands";
 import { formatLargeNumber } from "@/common/helpers/text";
-import { useDataStore } from "@/stores/useDataStore";
 import { DraftType } from "@/common/constants/farcaster";
+import { getProfile, useDataStore } from "@/stores/useDataStore";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  FARCASTER_LOGO_URL,
+  isWarpcastUrl,
+  parseWarpcastUrl,
+} from "@/common/helpers/warpcast";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -38,7 +44,8 @@ export default function CommandPalette() {
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } =
     useNavigationStore();
 
-  const { setSelectedChannelUrl, allChannels } = useAccountStore();
+  const { allChannels, setSelectedChannelUrl, setSelectedChannelByName } =
+    useAccountStore();
 
   useHotkeys(
     ["meta+k"],
@@ -60,18 +67,22 @@ export default function CommandPalette() {
       }
 
       const shortcuts = (command.shortcuts || [command.shortcut])
-      .map((s) => s?.replace("cmd", "meta"))
-      .filter((s) => s !== undefined);
-      
-      const isEnabled = command.enabled === undefined || (typeof command.enabled === "function" ? command.enabled() : command.enabled);
+        .map((s) => s?.replace("cmd", "meta"))
+        .filter((s) => s !== undefined);
+
+      const isEnabled =
+        command.enabled === undefined ||
+        (typeof command.enabled === "function"
+          ? command.enabled()
+          : command.enabled);
       useHotkeys(
         shortcuts,
         () => {
-          console.log('command', command, currentPage)
+          console.log("command", command, currentPage);
           if (command.page && currentPage !== command.page) {
             return;
           }
-          
+
           if (command.navigateTo) {
             router.push(command.navigateTo);
           }
@@ -92,6 +103,22 @@ export default function CommandPalette() {
   const getCommands = (): CommandType[] => {
     const themeCommands = getThemeCommands(theme, setTheme);
     const navigationCommands = getNavigationCommands({ router });
+    const profileCommands = [
+      {
+        name: "Your profile",
+        action: () => {
+          const state = useAccountStore.getState();
+          const selectedAccountName =
+            state.accounts[state.selectedAccountIdx].user?.username;
+          router.push(`/profile/${selectedAccountName}`);
+        },
+        shortcut: "cmd+shift+p",
+        aliases: [],
+        options: {
+          enableOnFormTags: false,
+        },
+      },
+    ];
 
     let commands = [
       ...navigationCommands,
@@ -99,6 +126,7 @@ export default function CommandPalette() {
       ...accountCommands,
       ...channelCommands,
       ...themeCommands,
+      ...profileCommands,
     ];
 
     const nonHotkeyCommands: CommandType[] = [];
@@ -121,22 +149,6 @@ export default function CommandPalette() {
       });
     });
 
-    const createFarcasterBotCommand = (
-      name: string,
-      action: () => void,
-      navigateTo?: string
-    ) => {
-      return {
-        name,
-        action,
-        navigateTo,
-        aliases: [],
-        options: {
-          enableOnFormTags: false,
-        },
-      };
-    };
-
     const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
       const { selectedCast } = useDataStore.getState();
       if (!selectedCast) {
@@ -155,6 +167,22 @@ export default function CommandPalette() {
         useNavigationStore.getState();
       setCastModalView(CastModalView.Reply);
       openNewCastModal();
+    };
+
+    const createFarcasterBotCommand = (
+      name: string,
+      action: () => void,
+      navigateTo?: string
+    ) => {
+      return {
+        name,
+        action,
+        navigateTo,
+        aliases: [],
+        options: {
+          enableOnFormTags: false,
+        },
+      };
     };
 
     const launchCastAction = () => {
@@ -220,35 +248,117 @@ export default function CommandPalette() {
     closeCommandPallete();
   }
 
+  const getWarpcastCommandForUrl = (url: string): CommandType => {
+    const { slug, username, channel } = parseWarpcastUrl(url);
+    const name = `Go to ${slug || username || channel} from Warpcast link`;
+
+    return {
+      name,
+      aliases: [],
+      action: () => {
+        if (slug) {
+          router.push(`/conversation/${slug}`);
+        } else if (username) {
+          router.push(`/profile/${username}`);
+        } else if (channel) {
+          setSelectedChannelByName(channel);
+          router.push(`/feeds`);
+        }
+      },
+      iconUrl: FARCASTER_LOGO_URL,
+    };
+  };
+
   const getFilteredCommands = () => {
-    return (
-      commands
-        .map((command: CommandType) => {
-          const scores = [command.name, ...command.aliases].map(
-            (alias: string) => {
-              return commandScore(alias, query);
-            }
-          );
-          return {
-            ...command,
-            score: Math.max(...scores),
-          };
-        })
-        .filter((command: CommandType & { score: number }) => {
-          return command.score > MIN_SCORE_THRESHOLD;
-        })
-        // if there are channels in the commands we should rank them by follower count
-        .sort((a, b) => {
-          if (a.data?.followerCount && b.data?.followerCount) {
-            return b.data.followerCount - a.data.followerCount;
-          }
-          return 0;
-        })
-        .slice(0, 25)
-    );
+    let result = commands
+      .map((command: CommandType) => {
+        const namesToScore = [command.name, ...(command.aliases || [])];
+        const scores = namesToScore.map((alias: string) => {
+          return commandScore(alias, query);
+        });
+        return {
+          ...command,
+          score: Math.max(...scores),
+        };
+      })
+      .filter((command: CommandType & { score: number }) => {
+        return command.score > MIN_SCORE_THRESHOLD;
+      })
+      // if there are channels in the commands we should rank them by follower count
+      .sort((a, b) => {
+        if (a.data?.followerCount && b.data?.followerCount) {
+          return b.data.followerCount - a.data.followerCount;
+        }
+        return 0;
+      })
+      .slice(0, 25);
+
+    if (isWarpcastUrl(query)) {
+      result = [getWarpcastCommandForUrl(query), ...result];
+    }
+
+    const showCastHashCommand = query.startsWith("0x");
+    if (showCastHashCommand) {
+      result = [
+        {
+          name: `Go to cast ${query}`,
+          action: () => {
+            router.push(`/conversation/${query}`);
+          },
+        },
+        ...result,
+      ];
+    }
+
+    const showProfileCommand = query.startsWith("@") || result.length === 0;
+    if (showProfileCommand) {
+      const profile = getProfile(useDataStore.getState(), query.slice(1));
+
+      result = [
+        {
+          name: `Go to profile ${query}`,
+          action: () => {
+            router.push(`/profile/${query}`);
+          },
+          iconUrl: profile?.pfp_url,
+        },
+        ...result,
+      ];
+    }
+
+    return result;
   };
 
   const filteredCommands = query?.length ? getFilteredCommands() : [];
+
+  const renderIcon = (command: CommandType, active: boolean) => {
+    if (command.icon) {
+      return (
+        <command.icon
+          className={classNames(
+            "h-6 w-6 flex-none",
+            active ? "text-foreground" : "text-foreground/80"
+          )}
+          aria-hidden="true"
+        />
+      );
+    }
+    if (command.iconUrl) {
+      return (
+        <img
+          src={command.iconUrl}
+          alt=""
+          className={classNames(
+            "mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+          )}
+        />
+      );
+    }
+
+    return (
+      <Skeleton className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full" />
+    );
+  };
 
   return (
     <Transition.Root
@@ -309,11 +419,11 @@ export default function CommandPalette() {
                         {(
                           (filteredCommands.length > 0 && filteredCommands) ||
                           commands.slice(0, 7)
-                        ).map((action) => (
+                        ).map((command) => (
                           <Combobox.Option
-                            key={action.name}
-                            value={action}
-                            onClick={() => onClick(action)}
+                            key={command.name}
+                            value={command}
+                            onClick={() => onClick(command)}
                             className={({ active }) =>
                               classNames(
                                 "flex cursor-default select-none items-center rounded-sm px-3 py-2",
@@ -325,33 +435,14 @@ export default function CommandPalette() {
                           >
                             {({ active }) => (
                               <>
-                                {action.icon && (
-                                  <action.icon
-                                    className={classNames(
-                                      "h-6 w-6 flex-none",
-                                      active
-                                        ? "text-foreground"
-                                        : "text-foreground/80"
-                                    )}
-                                    aria-hidden="true"
-                                  />
-                                )}
-                                {action.iconUrl && (
-                                  <img
-                                    src={action.iconUrl}
-                                    alt=""
-                                    className={classNames(
-                                      "mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
-                                    )}
-                                  />
-                                )}
+                                {renderIcon(command, active)}
                                 <span className="ml-3 flex-auto truncate">
-                                  {action.name}
+                                  {command.name}
                                 </span>
-                                {action.shortcut && (
+                                {command.shortcut && (
                                   <span className="ml-3 flex-none text-xs px-2 py-1 rounded-md bg-muted text-primary border-foreground/60">
                                     <kbd className="font-mono">
-                                      {action.shortcut}
+                                      {command.shortcut}
                                     </kbd>
                                   </span>
                                 )}
@@ -363,14 +454,13 @@ export default function CommandPalette() {
                     </li>
                   </Combobox.Options>
                 )}
-
                 {query !== "" && filteredCommands.length === 0 && (
                   <div className="px-6 py-14 text-center sm:px-14">
                     <FaceSmileIcon
                       className="mx-auto h-6 w-6 text-foreground/80"
                       aria-hidden="true"
                     />
-                    <p className="mt-4 text-sm text-gray-200">
+                    <p className="mt-4 text-sm text-muted-foreground">
                       nothing found - submit feedback if something should be
                       here
                     </p>

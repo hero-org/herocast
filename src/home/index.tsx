@@ -52,6 +52,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl, isHydrated } = useAccountStore();
+  console.log('selectedChannelUrl', selectedChannelUrl) 
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
@@ -174,16 +175,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
   const sidebarType = getSidebarForPathname(pathname);
-  console.log(
-    "sidebarType",
-    sidebarType,
-    "title",
-    title,
-    "pathname",
-    pathname,
-    "router",
-    router
-  );
 
   const renderRightSidebar = () => {
     switch (sidebarType) {

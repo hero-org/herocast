@@ -14,39 +14,10 @@ import {
   shouldUpdateProfile,
   useDataStore,
 } from "@/stores/useDataStore";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
 import { useRouter } from "next/router";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
-
-const getProfileData = async ({ params: { slug } }) => {
-  const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-  let user: any = {};
-  try {
-    if (slug.startsWith("fid:")) {
-      const fid = slug.split(":")[1];
-      user = (await client.fetchBulkUsers([fid], { viewerFid: APP_FID }))
-        .users?.[0];
-    } else {
-      user = await client.lookupUserByUsername(slug);
-    }
-  } catch (error) {
-    console.error("Failed to get data for profile page", error, slug);
-    return {
-      props: {
-        profile: undefined,
-        error: `Failed to get data for profile page: ${JSON.stringify(error)}`,
-      },
-    };
-  }
-
-  return {
-    props: {
-      profile: user.result.user,
-    },
-  };
-};
 
 enum FeedTypeEnum {
   "casts" = "Casts",
@@ -56,11 +27,13 @@ enum FeedTypeEnum {
 export default function Profile() {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
+  const username = slug?.startsWith("@") ? slug.slice(1) : slug;
+
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
 
-  const profile = useDataStore((state) => getProfile(state, slug));
+  const profile = useDataStore((state) => getProfile(state, username));
   const { addUserProfile } = useDataStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
 
@@ -74,9 +47,10 @@ export default function Profile() {
   useEffect(() => {
     const getData = async () => {
       const users = await getUserDataForFidOrUsername({
-        username: slug,
+        username,
         viewerFid,
       });
+      console.log("users", users);
       if (users.length) {
         users.forEach((user) => {
           addUserProfile({ user });
