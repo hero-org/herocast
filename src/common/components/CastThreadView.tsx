@@ -13,7 +13,8 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { cn } from "@/lib/utils";
 
 type CastThreadViewProps = {
-  cast: { hash: string; author: { fid: number } };
+  hash?: string;
+  cast?: { hash: string; author: { fid: number } };
   onBack?: () => void;
   isActive?: boolean;
   setSelectedCast?: (cast: CastWithInteractions) => void;
@@ -22,6 +23,7 @@ type CastThreadViewProps = {
 };
 
 export const CastThreadView = ({
+  hash,
   cast,
   onBack,
   isActive,
@@ -72,12 +74,15 @@ export const CastThreadView = ({
 
   useEffect(() => {
     const loadData = async () => {
+      const threadHash = cast?.hash || hash;
+      if (!threadHash) return;
+
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
       try {
         const { conversation } = await neynarClient.lookupCastConversation(
-          cast.hash,
+          threadHash,
           CastParamType.Hash,
           { replyDepth: 1, includeChronologicalParentCasts: true }
         );
@@ -93,18 +98,18 @@ export const CastThreadView = ({
       }
     };
 
-    if (!cast) return;
-
     setSelectedCastIdx(0);
     loadData();
-    addNewPostDraft({
-      parentCastId: { hash: cast.hash, fid: cast.author.fid.toString() },
-    });
+    if (cast?.hash) {
+      addNewPostDraft({
+        parentCastId: { hash: cast.hash, fid: cast.author.fid.toString() },
+      });
+    }
 
     return () => {
       removePostDraft(draftIdx, true);
     };
-  }, [cast?.hash]);
+  }, [cast?.hash, hash]);
 
   const renderRow = (cast: CastWithInteractions, idx: number) => {
     const isRowSelected = selectedCastIdx === idx;
@@ -127,7 +132,9 @@ export const CastThreadView = ({
               {idx === 0 && (
                 <div
                   className={cn(
-                    isRowSelected ? "bg-muted-foreground/50" : "bg-foreground/10",
+                    isRowSelected
+                      ? "bg-muted-foreground/50"
+                      : "bg-foreground/10",
                     "absolute top-8 left-[31px] h-[calc(100%-32px)] w-0.5"
                   )}
                 />

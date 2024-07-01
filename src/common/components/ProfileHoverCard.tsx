@@ -9,27 +9,16 @@ import { openWindow } from "../helpers/navigation";
 import { Loading } from "./Loading";
 import { useInView } from "react-intersection-observer";
 import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
-import get from "lodash.get";
 import FollowButton from "./FollowButton";
 import { getUserDataForFidOrUsername } from "../helpers/neynar";
 import { formatLargeNumber } from "../helpers/text";
+import { getProfile } from "@/stores/useDataStore";
 
 type ProfileHoverCardProps = {
   fid?: number;
   username?: string;
   viewerFid: number;
   children: React.ReactNode;
-};
-
-const getProfile = (dataStoreState, username, fid) => {
-  if (username) {
-    return get(
-      dataStoreState.fidToData,
-      get(dataStoreState.usernameToFid, username)
-    );
-  } else {
-    return get(dataStoreState.fidToData, fid);
-  }
 };
 
 const ProfileHoverCard = ({
@@ -70,7 +59,7 @@ const ProfileHoverCard = ({
 
   const onClick = () => {
     openWindow(
-      `https://warpcast.com/${profile?.username || username}`
+      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`
     );
   };
 
