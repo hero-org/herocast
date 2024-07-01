@@ -41,7 +41,7 @@ interface ProfileProps {
   slug: string;
 }
 
-export const Profile = ({ slug }: ProfileProps) => {
+const Profile = ({ slug }: ProfileProps) => {
   const router = useRouter();
   // const { slug } = router.query as { slug?: string };
   const username = slug?.startsWith("@") ? slug.slice(1) : slug;
@@ -208,3 +208,5 @@ export const Profile = ({ slug }: ProfileProps) => {
 
   return router.isFallback || !profile ? renderEmptyState() : renderProfile();
 };
+
+export default Profile;
