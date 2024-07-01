@@ -16,6 +16,7 @@ import {
 } from "@/stores/useDataStore";
 import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
 import { useRouter } from "next/router";
+import { Loading } from "@/common/components/Loading";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -50,7 +51,7 @@ export default function Profile() {
         username,
         viewerFid,
       });
-      console.log("users", users);
+
       if (users.length) {
         users.forEach((user) => {
           addUserProfile({ user });
@@ -100,9 +101,7 @@ export default function Profile() {
   const renderEmptyState = () => (
     <div className="max-w-7xl px-6 pb-24 sm:pb-32 lg:flex lg:px-8">
       <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
-        <div className="mt-2">
-          <h2>Loading...</h2>
-        </div>
+        <Loading />
       </div>
     </div>
   );

@@ -78,7 +78,6 @@ export default function CommandPalette() {
       useHotkeys(
         shortcuts,
         () => {
-          console.log("command", command, currentPage);
           if (command.page && currentPage !== command.page) {
             return;
           }

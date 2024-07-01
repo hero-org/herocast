@@ -8,12 +8,20 @@ type ParsedWarpcastUrl = {
 };
 
 
+/**
+ * Parses a Warpcast URL and extracts relevant information such as slug, username, or channel.
+ *
+ * The function supports the following URL formats:
+ * - https://warpcast.com/~/conversations/{slug} -> Extracts the conversation slug.
+ * - https://warpcast.com/{username}/{slug} -> Extracts the username and conversation slug.
+ * - https://warpcast.com/{username} -> Extracts the profile username.
+ * - https://warpcast.com/~/channel/{channel} -> Extracts the channel name.
+ *
+ * @param {string} url - The Warpcast URL to parse.
+ * @returns {ParsedWarpcastUrl} An object containing the parsed slug, username, or channel.
+ */
 export const parseWarpcastUrl = (url: string): ParsedWarpcastUrl => {
     const query = url.replace("https://warpcast.com/", "");
-    // https://warpcast.com/~/conversations/0xa98f28f9818fd2179b26191e42903386c0a1aaec to cast
-    // https://warpcast.com/linda/0x01c360e4 to cast
-    // https://warpcast.com/metaend.eth to profile
-    // https://warpcast.com/~/channel/memes to channel
 
     let slug, username, channel;
     if (query.startsWith("~/conversations/")) {
@@ -22,7 +30,7 @@ export const parseWarpcastUrl = (url: string): ParsedWarpcastUrl => {
     } else if (query.startsWith('~/channel')) {
         channel = query.split("/").pop();
     } else if (query.includes('/0x')) {
-        slug = query
+        slug = query;
     } else {
         username = query;
     }

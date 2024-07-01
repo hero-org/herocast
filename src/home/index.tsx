@@ -52,7 +52,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl, isHydrated } = useAccountStore();
-  console.log('selectedChannelUrl', selectedChannelUrl) 
+
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
@@ -155,7 +155,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case "/search":
         return RIGHT_SIDEBAR_ENUM.SEARCH;
       case "/profile/[slug]":
-      case "/conversation/[hash]":
+      case "/conversation/[...slug]":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
@@ -168,12 +168,20 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     router.push(item.router);
   };
 
-  const navItem = navigation.find((item) => item.router === pathname) || {
-    name: "",
-    getTitle: null,
+  const getTitle = () => {
+    const navItem = navigation.find((item) => item.router === pathname);
+    if (navItem) {
+      return navItem.getTitle ? navItem.getTitle() : navItem.name;
+    } else {
+      if (pathname === "/profile/[slug]") {
+        return "Profile";
+      } else if (pathname === "/conversation/[...slug]") {
+        return "Conversation";
+      }
+    }
   };
-
-  const title = navItem.getTitle ? navItem.getTitle() : navItem.name;
+  const title = getTitle();
+  console.log('title', title) 
   const sidebarType = getSidebarForPathname(pathname);
 
   const renderRightSidebar = () => {
