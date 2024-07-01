@@ -475,15 +475,15 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-2 text-muted-foreground">
-                or continue with
-              </span>
-            </div>
           </div>
           <div className="flex flex-col space-y-4 items-center justify-center text-white">
             {!isAuthenticated ? (
-              <SignInButton hideSignOut />
+              <>
+                <span className="text-md text-muted-foreground">
+                  Sign in for quick read-only access
+                </span>
+                <SignInButton hideSignOut />
+              </>
             ) : (
               <Button
                 type="button"

@@ -197,8 +197,10 @@ export const CastRow = ({
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
-    const recastsCount = cast.reactions?.recasts_count || cast.recasts?.count || 0;
-    const likesCount = cast.reactions?.likes_count || cast.reactions?.count || 0;
+    const recastsCount =
+      cast.reactions?.recasts_count || cast.recasts?.count || 0;
+    const likesCount =
+      cast.reactions?.likes_count || cast.reactions?.count || 0;
 
     const likeFids = map(cast.reactions?.likes, "fid") || [];
     const recastFids = map(cast.reactions?.recasts, "fid") || [];
@@ -490,7 +492,9 @@ export const CastRow = ({
       <div className="mt-4 space-y-4" onClick={(e) => e.preventDefault()}>
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
-            <div key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}>
+            <div
+              key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}
+            >
               {renderEmbedForUrl(embed)}
             </div>
           ))}
@@ -595,9 +599,7 @@ export const CastRow = ({
                   </span>
                 )}
                 <a
-                  href={`https://warpcast.com/${
-                    cast.author.username
-                  }/${cast.hash.slice(0, 10)}`}
+                  href={`${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm leading-5 text-foreground/50"
@@ -614,7 +616,8 @@ export const CastRow = ({
             >
               {getText()}
             </div>
-            {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
+            {!hideReactions &&
+              renderCastReactions(cast as CastWithInteractions)}
             {!isEmbed && renderEmbeds()}
           </div>
         </div>

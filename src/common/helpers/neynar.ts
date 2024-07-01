@@ -26,4 +26,4 @@ export const getUserDataForFidOrUsername = async ({ username, fid, viewerFid }: 
     console.error("error user data for fid or username", fid, username, err);
     return [];
   }
-}
+};

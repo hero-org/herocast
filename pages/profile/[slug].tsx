@@ -9,86 +9,60 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/ope
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FollowButton from "@/common/components/FollowButton";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { useDataStore } from "@/stores/useDataStore";
-import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import {
+  getProfile,
+  shouldUpdateProfile,
+  useDataStore,
+} from "@/stores/useDataStore";
+import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
+import { useRouter } from "next/router";
+import { Loading } from "@/common/components/Loading";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
-
-export const getServerSideProps = (async ({ params: { slug } }) => {
-  const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-  let user: any = {};
-  try {
-    if (slug.startsWith("fid:")) {
-      const fid = slug.split(":")[1];
-      user = (await client.fetchBulkUsers([fid], { viewerFid: APP_FID }))
-        .users?.[0];
-    } else {
-      user = await client.lookupUserByUsername(slug);
-    }
-  } catch (error) {
-    console.error("Failed to get data for profile page", error, slug);
-    return {
-      props: {
-        profile: undefined,
-        error: `Failed to get data for profile page: ${JSON.stringify(error)}`,
-      },
-    };
-  }
-
-  return {
-    props: {
-      profile: user.result.user,
-    },
-  };
-}) satisfies GetServerSideProps<{ profile?: User; error?: string }>;
 
 enum FeedTypeEnum {
   "casts" = "Casts",
   "likes" = "Likes",
 }
-export default function Profile({
-  profile,
-  error,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+
+export default function Profile() {
+  const router = useRouter();
+  const { slug } = router.query as { slug?: string };
+  const username = slug?.startsWith("@") ? slug.slice(1) : slug;
+
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
 
+  const profile = useDataStore((state) => getProfile(state, username));
   const { addUserProfile } = useDataStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
 
   const selectedAccount = accounts[selectedAccountIdx];
-  const userFid = Number(selectedAccount?.platformAccountId) || APP_FID;
+  const viewerFid = Number(selectedAccount?.platformAccountId) || APP_FID;
 
   const onSelectCast = (idx: number) => {
     setSelectedFeedIdx(idx);
   };
 
   useEffect(() => {
-    if (!profile) return;
-
     const getData = async () => {
-      try {
-        if (!userFid) {
-          throw new Error("userFid is not set");
-        }
-        const neynarClient = new NeynarAPIClient(
-          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-        );
-        const resp = await neynarClient.fetchBulkUsers([profile.fid], {
-          viewerFid: userFid! as number,
+      const users = await getUserDataForFidOrUsername({
+        username,
+        viewerFid,
+      });
+
+      if (users.length) {
+        users.forEach((user) => {
+          addUserProfile({ user });
         });
-        if (resp?.users && resp.users.length === 1) {
-          addUserProfile({ user: resp.users[0] });
-        }
-      } catch (error) {
-        console.error("Failed to fetch user profile", error);
       }
     };
 
-    getData();
-  }, [profile, userFid]);
+    if (shouldUpdateProfile(profile)) {
+      getData();
+    }
+  }, [profile, selectedAccount]);
 
   useEffect(() => {
     if (!profile) return;
@@ -127,9 +101,7 @@ export default function Profile({
   const renderEmptyState = () => (
     <div className="max-w-7xl px-6 pb-24 sm:pb-32 lg:flex lg:px-8">
       <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
-        <div className="mt-2">
-          <h2>Loading...</h2>
-        </div>
+        <Loading />
       </div>
     </div>
   );
@@ -166,15 +138,17 @@ export default function Profile({
           })}
         </TabsList>
       </Tabs>
-      <SelectableListWithHotkeys
-        data={casts}
-        selectedIdx={selectedFeedIdx}
-        setSelectedIdx={setSelectedFeedIdx}
-        renderRow={(item: any, idx: number) => renderRow(item, idx)}
-        onExpand={() => null}
-        onSelect={() => null}
-        isActive
-      />
+      <div className="px-5">
+        <SelectableListWithHotkeys
+          data={casts}
+          selectedIdx={selectedFeedIdx}
+          setSelectedIdx={setSelectedFeedIdx}
+          renderRow={(item: any, idx: number) => renderRow(item, idx)}
+          onExpand={() => null}
+          onSelect={() => null}
+          isActive
+        />
+      </div>
     </>
   );
 
@@ -185,28 +159,28 @@ export default function Profile({
           <div className="grid space-x-4 grid-cols-2 lg:grid-cols-3">
             <div className="col-span-1 lg:col-span-2">
               <Avatar className="h-14 w-14">
-                <AvatarImage alt="User avatar" src={profile.pfp.url} />
+                <AvatarImage alt="User avatar" src={profile.pfp_url} />
                 <AvatarFallback>{profile.username}</AvatarFallback>
               </Avatar>
               <div className="text-left">
                 <h2 className="text-xl font-bold text-foreground">
-                  {profile.displayName}
+                  {profile.display_name}
                 </h2>
                 <span className="text-sm text-foreground/80">
                   @{profile.username}
                 </span>
               </div>
             </div>
-            {userFid !== profile.fid && (
+            {viewerFid !== profile.fid && (
               <FollowButton username={profile.username} />
             )}
           </div>
           <div className="flex pt-4 text-sm text-foreground/80">
             <span className="mr-4">
-              <strong>{profile.followingCount}</strong> Following
+              <strong>{profile.following_count}</strong> Following
             </span>
             <span>
-              <strong>{profile.followerCount}</strong> Followers
+              <strong>{profile.follower_count}</strong> Followers
             </span>
           </div>
           <span className="text-foreground">{profile.profile.bio.text}</span>
@@ -215,14 +189,6 @@ export default function Profile({
       {renderFeed()}
     </div>
   );
-
-  if (error) {
-    return (
-      <div className="mt-6 max-w-3xl lg:flex lg:px-8">
-        <h2>Error: {error}</h2>
-      </div>
-    );
-  }
 
   return !profile ? renderEmptyState() : renderProfile();
 }

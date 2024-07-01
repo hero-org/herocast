@@ -466,18 +466,37 @@ const Notifications = () => {
           >
             <div className="flex items-center md:mx-2">
               <TabsList>
-                <TabsTrigger value={NotificationTab.all}>All</TabsTrigger>
-                <TabsTrigger value={NotificationTab.replies}>
+                <TabsTrigger className="flex col-span-1" value={NotificationTab.all}>
+                  All
+                </TabsTrigger>
+                <TabsTrigger
+                  className="col-span-1"
+                  value={NotificationTab.replies}
+                >
                   Replies
                 </TabsTrigger>
-                <TabsTrigger value={NotificationTab.mentions}>
+                <TabsTrigger
+                  className="col-span-1"
+                  value={NotificationTab.mentions}
+                >
                   Mentions
                 </TabsTrigger>
-                <TabsTrigger value={NotificationTab.likes}>Likes</TabsTrigger>
-                <TabsTrigger value={NotificationTab.recasts}>
+                <TabsTrigger
+                  className="col-span-1"
+                  value={NotificationTab.likes}
+                >
+                  Likes
+                </TabsTrigger>
+                <TabsTrigger
+                  className="col-span-1"
+                  value={NotificationTab.recasts}
+                >
                   Recasts
                 </TabsTrigger>
-                <TabsTrigger value={NotificationTab.follows}>
+                <TabsTrigger
+                  className="col-span-1"
+                  value={NotificationTab.follows}
+                >
                   Follows
                 </TabsTrigger>
               </TabsList>
