@@ -17,6 +17,7 @@ import {
 import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
 import { useRouter } from "next/router";
 import { Loading } from "@/common/components/Loading";
+import { GetStaticPaths } from "next/types";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -24,6 +25,10 @@ enum FeedTypeEnum {
   "casts" = "Casts",
   "likes" = "Likes",
 }
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  return { paths: [], fallback: true };
+};
 
 export default function Profile() {
   const router = useRouter();
@@ -190,5 +195,5 @@ export default function Profile() {
     </div>
   );
 
-  return !profile ? renderEmptyState() : renderProfile();
+  return router.isFallback || !profile ? renderEmptyState() : renderProfile();
 }
