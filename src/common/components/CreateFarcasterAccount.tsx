@@ -329,26 +329,26 @@ const CreateFarcasterAccount = ({
   };
 
   return (
-    <div className="w-3/4 space-y-4">
+    <div className="w-full space-y-4">
       <p className="text-[0.8rem] text-muted-foreground">
-        Creating an account will require two wallet signatures and one on-chain
-        transaction. <br />
-        <br />
-        You can pay for the transaction and Farcaster platform fee with ETH or
-        other tokens on Base, Optimism, Arbitrum, Polygon, or Ethereum.
-        <br />
-        <br />
-        The yearly Farcaster platform fee at the moment is{" "}
+        The yearly Farcaster platform fee is{" "}
         {price && price > 0n ? (
-          `~${parseFloat(formatEther(price)).toFixed(8)} ETH.`
+          `~${parseFloat(formatEther(price)).toFixed(8)} ETH right now.`
         ) : (
           <Loading isInline />
         )}
+        <br />
+        <br />
+        You can pay with ETH or other tokens on Base, Optimism, Arbitrum,
+        Polygon, or Ethereum.
+        <br />
+        <br />
+        Creating an account will require two wallet signatures and one on-chain
+        transaction.
       </p>
       <Separator />
       <p className="text-[0.8rem] text-muted-foreground">
-        First sign the transactions, this will then find the tokens that you can
-        pay with.
+        Chose your payment option by signing two messages
       </p>
       {didSignTransactions ? (
         <PaymentSelector
@@ -379,7 +379,6 @@ const CreateFarcasterAccount = ({
           )}
         </Button>
       )}
-
       {!isAddressValid && (
         <div className="flex flex-start items-center mt-2">
           <p className="text-wrap break-all	text-sm text-red-500">
@@ -389,25 +388,22 @@ const CreateFarcasterAccount = ({
         </div>
       )}
       <Separator />
-      <p className="text-[0.8rem] text-muted-foreground">
-        Chose your payment option and continue
-      </p>
-      <Button
-        variant="outline"
-        disabled={!didSignTransactions || !paymentOption}
-        onClick={() => registerAccount()}
-      >
-        Pay & Register
-      </Button>
-      {!didSignTransactions && isPending && (
-        <Button
-          variant="outline"
-          className="ml-4"
-          onClick={() => getFidAndUpdateAccount()}
-        >
-          Manual refresh 🔄
-        </Button>
-      )}
+      <div className="flex flex-col space-y-4">
+        {didSignTransactions && paymentOption && (
+          <Button
+            variant="default"
+            disabled={!didSignTransactions || !paymentOption}
+            onClick={() => registerAccount()}
+          >
+            Create account
+          </Button>
+        )}
+        {!didSignTransactions && isPending && (
+          <Button variant="outline" onClick={() => getFidAndUpdateAccount()}>
+            Manual refresh 🔄
+          </Button>
+        )}
+      </div>
       {error && (
         <div className="flex flex-start items-center mt-2">
           <p className="text-wrap break-all	text-sm text-red-500">

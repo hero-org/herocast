@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -7,7 +8,13 @@ import { CheckIcon, CaretSortIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandShortcut,
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
@@ -83,35 +90,23 @@ export function PaymentSelector({
     if (!isConnected) return;
 
     updatePaymentOptions();
-    return () => {};
   }, [isConnected, address, registerPrice, publicKey, deadline]);
 
-  return paymentOptions.length === 0 ? (
-    <div className="py-3">
-      {isLoading ? (
-        <Loading isInline loadingMessage="Finding available payment tokens" />
-      ) : isRetry ? (
-        <Button variant="secondary" onClick={() => updatePaymentOptions()}>
-          Retry
-        </Button>
-      ) : (
-        "No Payment Methods Available"
-      )}
-    </div>
-  ) : (
+  const renderSelector = () => (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[450px] justify-between"
+          className="w-[450px] max-w-full justify-between"
+          type="button"
         >
           {paymentOption ? (
             <div className="flex">
               <img
                 src={paymentOption.currencyLogoURL}
-                className="h-5 shrink-0 mr-1"
+                className="h-4 w-4 shrink-0 mr-1"
               />
               {`${paymentOption.currencyName} on ${getChain(
                 paymentOption.paymentCurrency.split("/")[0],
@@ -127,54 +122,74 @@ export function PaymentSelector({
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[450px] p-0">
+      <PopoverContent className="w-[400px] p-0">
         <Command>
-          <CommandGroup>
-            {paymentOptions.map((option) => (
-              <CommandItem
-                key={option.paymentCurrency}
-                value={option.paymentCurrency}
-                onSelect={async (currentValue) => {
-                  const isDeselect =
-                    currentValue.toLowerCase() ===
-                    paymentOption?.paymentCurrency.toLowerCase();
-                  const selectedPaymentOption =
-                    getPaymentOptionFromValue(currentValue);
-                  if (!isDeselect && selectedPaymentOption) {
-                    setPaymentOption(selectedPaymentOption);
-                    setOpen(false);
-                  }
-                }}
-              >
-                {paymentOption && (
-                  <CheckIcon
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      paymentOption.paymentCurrency === option.paymentCurrency
-                        ? "opacity-100"
-                        : "opacity-0"
-                    )}
+          <CommandList>
+            <CommandGroup>
+              {paymentOptions.map((option) => (
+                <CommandItem
+                  key={option.paymentCurrency}
+                  value={option.paymentCurrency}
+                  onSelect={async (currentValue) => {
+                    const isDeselect =
+                      currentValue.toLowerCase() ===
+                      paymentOption?.paymentCurrency.toLowerCase();
+                    const selectedPaymentOption =
+                      getPaymentOptionFromValue(currentValue);
+                    if (!isDeselect && selectedPaymentOption) {
+                      setPaymentOption(selectedPaymentOption);
+                      setOpen(false);
+                    }
+                  }}
+                >
+                  <img
+                    src={option.currencyLogoURL}
+                    className="h-3 w-3 shrink-0 mr-1"
                   />
-                )}
-
-                <img
-                  src={option.currencyLogoURL}
-                  className="ml-2 h-4 w-4 shrink-0 mr-1"
-                />
-                {`${option.currencyName} on ${getChain(
-                  option.paymentCurrency.split("/")[0],
-                  "name"
-                )}`}
-                <span className="ml-1 text-[0.8rem] text-muted-foreground">
-                  {`${option.balance} ${option.currencySymbol} (~$${Number(
-                    option.balanceUSD
-                  ).toFixed(2)})`}
-                </span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
+                  {`${option.currencyName} on ${getChain(
+                    option.paymentCurrency.split("/")[0],
+                    "name"
+                  )}`}
+                  <span className="ml-1 text-[0.8rem] text-muted-foreground">
+                    {`${option.balance} ${option.currencySymbol} (~$${Number(
+                      option.balanceUSD
+                    ).toFixed(2)})`}
+                  </span>
+                  {paymentOption && (
+                    <CommandShortcut>
+                      <CheckIcon
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          paymentOption.paymentCurrency ===
+                            option.paymentCurrency
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </CommandShortcut>
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
+  );
+
+  return !paymentOptions || paymentOptions.length === 0 ? (
+    <div className="py-3">
+      {isLoading ? (
+        <Loading isInline loadingMessage="Finding available payment tokens" />
+      ) : isRetry ? (
+        <Button variant="secondary" onClick={() => updatePaymentOptions()}>
+          Retry
+        </Button>
+      ) : (
+        "No Payment Methods Available"
+      )}
+    </div>
+  ) : (
+    renderSelector()
   );
 }

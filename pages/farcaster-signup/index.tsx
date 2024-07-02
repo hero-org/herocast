@@ -49,13 +49,19 @@ const onboardingNavItems: SidebarNavItem[] = [
 
 export default function Welcome() {
   const { isConnected, address } = useAccount();
-  const [step, setStep] = useState<FarcasterSignupNav>(FarcasterSignupNav.connect_wallet);
+  const [step, setStep] = useState<FarcasterSignupNav>(
+    FarcasterSignupNav.connect_wallet
+  );
   const [isAddressValid, setIsAddressValid] = useState<boolean>(false);
   const router = useRouter();
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    if (isConnected && step === FarcasterSignupNav.connect_wallet && isAddressValid) {
+    if (
+      isConnected &&
+      step === FarcasterSignupNav.connect_wallet &&
+      isAddressValid
+    ) {
       setStep(FarcasterSignupNav.create_account_onchain);
     }
 
@@ -75,7 +81,7 @@ export default function Welcome() {
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
       <Separator />
-      {children}
+      <div className="w-full max-w-sm lg:max-w-lg">{children}</div>
     </div>
   );
 
@@ -84,7 +90,7 @@ export default function Welcome() {
   }, [isConnected, address]);
 
   const validateWalletHasNoFid = async (): Promise<void> => {
-    setError('')
+    setError("");
     if (!isConnected || !address) {
       return;
     }
@@ -135,9 +141,7 @@ export default function Welcome() {
           "Login",
           "Congrats, you are already logged in to herocast.",
           <div className="flex flex-col gap-4">
-            <Button
-              onClick={() => setStep(FarcasterSignupNav.connect_wallet)}
-            >
+            <Button onClick={() => setStep(FarcasterSignupNav.connect_wallet)}>
               Next step
             </Button>
           </div>
@@ -179,7 +183,7 @@ export default function Welcome() {
             isAddressValid={isAddressValid}
             onSuccess={async () => {
               await hydrateAccounts();
-              setStep(FarcasterSignupNav.register_username)
+              setStep(FarcasterSignupNav.register_username);
             }}
           />
         );
