@@ -81,15 +81,8 @@ export default function Accounts() {
     removeAccount,
     updateAccountUsername,
   } = useAccountStore();
-
   const { addNewPostDraft } = useDraftStore();
 
-  // const hasActiveAccounts =
-  //   accounts.filter(
-  //     (account) =>
-  //       account.status === AccountStatusType.active &&
-  //       account.platform !== AccountPlatformType.farcaster_local_readonly
-  //   ).length > 0;
   const pendingAccounts =
     accounts.filter(
       (account) =>
@@ -219,11 +212,6 @@ export default function Accounts() {
 
       if (!isMounted()) return;
     }
-  };
-
-  const onStartCasting = () => {
-    addNewPostDraft(JoinedHerocastPostDraft);
-    router.push("/post");
   };
 
   const renderSignupForNonLocalAccount = () => (
@@ -408,7 +396,7 @@ export default function Accounts() {
           </Card>
         </div>
       </TabsContent>
-      <TabsContent value="manage">
+      <TabsContent value="manage" className="max-w-[600px]">
         <div className="flex justify-between pb-2 border-b border-gray-200">
           <h1 className="text-xl font-semibold leading-7 text-foreground/80">
             Farcaster accounts
