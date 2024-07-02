@@ -25,7 +25,7 @@ enum FeedTypeEnum {
   "likes" = "Likes",
 }
 
-export default function Profile() {
+const ProfilePage = () => {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
   const username = slug?.startsWith("@") ? slug.slice(1) : slug;
@@ -190,5 +190,7 @@ export default function Profile() {
     </div>
   );
 
-  return !profile ? renderEmptyState() : renderProfile();
-}
+  return router.isFallback || !profile ? renderEmptyState() : renderProfile();
+};
+
+export default ProfilePage;
