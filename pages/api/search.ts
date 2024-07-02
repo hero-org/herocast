@@ -6,8 +6,7 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { term } = req.query;
-    let { limit, offset } = req.query;
+    let { term, limit, offset } = req.query;
     const { interval, orderBy } = req.query;
 
     if (typeof term !== 'string' || term.length < 3) {
@@ -19,6 +18,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!offset) {
         offset = '0';
+    }
+
+    // term has spaces, replace with & to match multiple words
+    if (term.includes(' ')) {
+        term = term.replace(/\s/g, ' & ');
     }
 
     const start = process.hrtime();
@@ -34,11 +38,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         hash, fid
     FROM casts 
     WHERE 
-        tsv @@ phraseto_tsquery($1)
+        tsv @@ websearch_to_tsquery('english', '${term}')
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
-    LIMIT $2 OFFSET $3`;
-    const vars = [term, limit, offset];
+    LIMIT $1 OFFSET $2`;
+    const vars = [limit, offset];
 
     try {
         const queryStart = process.hrtime();
@@ -51,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log(`DB Connection Time: ${dbConnectEnd[0] * 1000 + dbConnectEnd[1] / 1e6} ms`);
         console.log(`Query Execution Time: ${queryEnd[0] * 1000 + queryEnd[1] / 1e6} ms`);
         console.log(`Total Request Time: ${totalEnd[0] * 1000 + totalEnd[1] / 1e6} ms`);
+        console.log('Search results:', results.length)
 
         clearTimeout(timeout); // Clear the timeout if the request completes in time
         res.status(200).json(results);

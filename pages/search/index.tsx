@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
-import { CastRow } from "../../src/common/components/CastRow";
+import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
+import { CastRow } from "@/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,6 @@ import {
 import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
-import NewCastModal from "@/common/components/NewCastModal";
-import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
@@ -94,8 +92,6 @@ export default function SearchPage() {
   } = useListStore();
   const canSearch = searchTerm.length >= 3;
   const { selectedCast, updateSelectedCast } = useDataStore();
-  const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } =
-    useNavigationStore();
 
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
