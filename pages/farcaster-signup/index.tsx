@@ -7,7 +7,7 @@ import CreateFarcasterAccount from "@/common/components/CreateFarcasterAccount";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
-import { hydrateAccounts } from "../../src/stores/useAccountStore";
+import { CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from "@/stores/useAccountStore";
 import { SidebarNavItem } from "@/common/components/Steps/SidebarNav";
 import { getFidForAddress } from "@/common/helpers/farcaster";
 
@@ -51,7 +51,9 @@ export default function Welcome() {
   const { isConnected, address } = useAccount();
   const [step, setStep] = useState<FarcasterSignupNav>(
     FarcasterSignupNav.connect_wallet
-  );
+  );  
+  const { setSelectedChannelUrl } = useAccountStore();
+
   const [isAddressValid, setIsAddressValid] = useState<boolean>(false);
   const router = useRouter();
   const [error, setError] = useState<string>();
@@ -111,25 +113,16 @@ export default function Welcome() {
       <h3 className="mb-4 text-lg font-medium">
         You are fully onboarded to herocast 🥳
       </h3>
-      <div className="w-1/2 grid grid-cols-1 items-center gap-4">
-        <Button variant="default" onClick={() => router.push("/feeds")}>
-          Start exploring your feed
+      <div className="grid grid-cols-1 items-center gap-4">
+        <Button variant="default" onClick={() => {
+          setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+          router.push("/feeds")
+        }}>
+          Start exploring
         </Button>
         <Button variant="outline" onClick={() => router.push("/post")}>
           Post your first cast
         </Button>
-        <div className="w-full">
-          <Button
-            className="w-full"
-            variant="outline"
-            onClick={() => router.push("/hats")}
-          >
-            Share this account with others
-          </Button>
-          <p className="mt-1 text-sm text-gray-700">
-            Use Hats Protocol to share this account with onchain permissions
-          </p>
-        </div>
       </div>
     </div>
   );

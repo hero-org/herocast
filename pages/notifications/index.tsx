@@ -429,14 +429,6 @@ const Notifications = () => {
     }
   }, [notifications, selectedNotificationIdx, isLoading]);
 
-  const renderReplyModal = () => (
-    <NewCastModal
-      open={isNewCastModalOpen}
-      setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
-      linkedCast={selectedCast}
-    />
-  );
-
   const renderNotificationFilterDropdown = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -545,7 +537,6 @@ const Notifications = () => {
           )}
         </main>
       </div>
-      {renderReplyModal()}
     </div>
   );
 };

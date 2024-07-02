@@ -6,6 +6,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -117,40 +118,44 @@ export function ChannelPicker(props: Props) {
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0" align="start">
         <Command>
-          <CommandInput
-            placeholder="Search Channels"
-            value={query}
-            onValueChange={(e) => setQuery(e)}
-          />
-          <CommandEmpty>{isPending ? "Searching..." : "No channels found."}</CommandEmpty>
-          <CommandGroup className="max-h-[300px] overflow-y-auto">
-            {(channels.length === 0 ? [props.value] : filteredChannels).map(
-              (channel) => (
-                <CommandItem
-                  key={channel.parent_url || "home"}
-                  value={channel.name || "home"}
-                  className="cursor-pointer"
-                  onSelect={() => handleSelect(channel)}
-                >
-                  <img
-                    src={channel.image_url ?? ""}
-                    alt={channel.name}
-                    width={24}
-                    height={24}
-                    className="mr-2 rounded-lg"
-                  />
-                  {channel.name}
-                  {channel.follower_count && (
-                    <span className="ml-1 border-l border-foreground/10 text-foreground/60">
-                      {" "}
-                      <PersonIcon className="ml-1 mb-1 h-3 w-3 inline" />{" "}
-                      {formatLargeNumber(channel.follower_count)}
-                    </span>
-                  )}
-                </CommandItem>
-              )
-            )}
-          </CommandGroup>
+          <CommandList>
+            <CommandInput
+              placeholder="Search Channels"
+              value={query}
+              onValueChange={(e) => setQuery(e)}
+            />
+            <CommandEmpty>
+              {isPending ? "Searching..." : "No channels found."}
+            </CommandEmpty>
+            <CommandGroup className="max-h-[300px] overflow-y-auto">
+              {(channels.length === 0 ? [props.value] : filteredChannels).map(
+                (channel) => (
+                  <CommandItem
+                    key={channel.parent_url || "home"}
+                    value={channel.name || "home"}
+                    className="cursor-pointer"
+                    onSelect={() => handleSelect(channel)}
+                  >
+                    <img
+                      src={channel.image_url ?? ""}
+                      alt={channel.name}
+                      width={24}
+                      height={24}
+                      className="mr-2 rounded-lg"
+                    />
+                    {channel.name}
+                    {channel.follower_count && (
+                      <span className="ml-1 border-l border-foreground/10 text-foreground/60">
+                        {" "}
+                        <PersonIcon className="ml-1 mb-1 h-3 w-3 inline" />{" "}
+                        {formatLargeNumber(channel.follower_count)}
+                      </span>
+                    )}
+                  </CommandItem>
+                )
+              )}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>

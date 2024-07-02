@@ -285,14 +285,6 @@ export default function SearchPage() {
     </li>
   );
 
-  const renderNewCastModal = () => (
-    <NewCastModal
-      open={isNewCastModalOpen}
-      setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
-      linkedCast={selectedCast}
-    />
-  );
-
   const renderLoadMoreButton = () => (
     <div className="flex justify-center my-8">
       <Button
@@ -389,7 +381,6 @@ export default function SearchPage() {
       />
       {casts.length >= SEARCH_LIMIT &&
         (isLoading ? renderLoadingSpinner() : renderLoadMoreButton())}
-      {renderNewCastModal()}
     </div>
   );
 }

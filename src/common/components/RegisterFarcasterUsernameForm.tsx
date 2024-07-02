@@ -267,7 +267,7 @@ const RegisterFarcasterUsernameForm = ({
             )}
             Register username
           </Button>
-          <Button disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>
+          <Button variant="outline" disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>
             Refresh
           </Button>
           {chainId !== mainnet.id && (
@@ -285,7 +285,7 @@ const RegisterFarcasterUsernameForm = ({
   );
 
   return (
-    <div className="w-3/4 lg:w-full space-y-4">
+    <div className="w-full space-y-4">
       <AccountSelector
         accountFilter={(account) =>
           account.status === "active" &&
@@ -293,7 +293,7 @@ const RegisterFarcasterUsernameForm = ({
           account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER
         }
       />
-      {renderForm()}
+      {account && renderForm()}
       {error && (
         <div className="flex flex-start items-center mt-2">
           <p className="text-wrap break-all	text-sm text-red-500">{error}</p>
