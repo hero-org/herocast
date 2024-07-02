@@ -17,7 +17,7 @@ import React, { useEffect, useState } from "react";
 // import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
 // import { Loading } from "@/common/components/Loading";
 // import { GetStaticPaths, GetStaticProps } from "next/types";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 // const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -31,8 +31,9 @@ interface ProfileProps {
 }
 
 const Profile = ({ slug }: ProfileProps) => {
-  const router = useRouter();
-  console.log("Profile slug", slug, router.query);
+  console.log("Profile slug", slug);
+  // const router = useRouter();
+  // console.log("Profile slug", slug, router.query);
   return <div className="text-foreground p-24 bg-green-500">yo</div>;
   // const { slug } = router.query as { slug?: string };
   // const username = slug?.startsWith("@") ? slug.slice(1) : slug;
