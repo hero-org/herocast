@@ -34,6 +34,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AccountPlatformType } from "@/common/constants/accounts";
+import NewCastModal from "@/common/components/NewCastModal";
+import { useDataStore } from "@/stores/useDataStore";
+import { useNavigationStore } from "@/stores/useNavigationStore";
 
 type NavigationItemType = {
   name: string;
@@ -52,7 +55,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl, isHydrated } = useAccountStore();
-
+  const { selectedCast, updateSelectedCast } = useDataStore();
+  const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } = useNavigationStore();
+    
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
@@ -230,6 +235,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     return children;
   }
 
+  const renderNewCastModal =()  => (
+    <NewCastModal
+    open={isNewCastModalOpen}
+    setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
+    linkedCast={selectedCast}
+  />
+  );
+
   return (
     <div className="h-full bg-background">
       <Transition.Root show={sidebarOpen} as={Fragment}>
@@ -330,7 +343,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </nav>
           </div>
           {isReadOnlyUser && renderUpgradeCard()}
-          <div className="mt-auto flex flex-row space-x-2 py-4">
+          <div className="mt-auto flex flex-row lg:space-x-2 py-4">
             <AccountSwitcher />
             <ThemeToggle />
           </div>
@@ -369,6 +382,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           {renderRightSidebar()}
         </main>
       </div>
+      {renderNewCastModal()}
       <Toaster theme="system" position="bottom-right" />
     </div>
   );

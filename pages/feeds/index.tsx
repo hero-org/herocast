@@ -384,14 +384,6 @@ export default function Feeds() {
     />
   );
 
-  const renderNewCastModal = () => (
-    <NewCastModal
-      open={isNewCastModalOpen}
-      setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
-      linkedCast={selectedCast}
-    />
-  );
-
   const renderEmbedsModal = () => {
     return (
       <EmbedsModal
@@ -457,7 +449,6 @@ export default function Feeds() {
           </>
         )}
       </div>
-      {renderNewCastModal()}
       {renderEmbedsModal()}
     </>
   );

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 
 type AccountManagementModalProps = {
-  account: AccountObjectType;
+  account?: AccountObjectType;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };

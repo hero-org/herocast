@@ -1,7 +1,6 @@
 import React from "react";
 import { classNames } from "@/common/helpers/css";
 import { SidebarHeader } from "./SidebarHeader";
-import { Badge } from "@/components/ui/badge";
 import { useListStore } from "@/stores/useListStore";
 import { take } from "lodash";
 import sortBy from "lodash.sortby";
@@ -21,16 +20,14 @@ const ListsOverview = () => {
     useListStore();
 
   const renderList = (list: List) => {
-    const shortcut = list.idx < 10 ? `Shift + ${list.idx + 1}` : "";
-
     return (
       <li key={`list-${list.id}`} className="px-2 sm:px-3 lg:px-4">
         <div
           onClick={() => updateSelectedList(list)}
           className={classNames(
             selectedList?.id === list.id
-              ? "bg-background text-foreground font-semibold"
-              : "text-foreground/80 hover:text-foreground/80 hover:bg-background",
+              ? "text-foreground font-semibold"
+              : "text-foreground/80 hover:text-foreground/80",
             "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
           )}
         >

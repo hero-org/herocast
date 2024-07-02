@@ -5,19 +5,24 @@ import {
   RectangleGroupIcon,
   UserPlusIcon,
 } from "@heroicons/react/20/solid";
-import { ArrowDownTrayIcon, NewspaperIcon } from "@heroicons/react/24/solid";
-import { useDraftStore } from "../../src/stores/useDraftStore";
+import {
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  NewspaperIcon,
+} from "@heroicons/react/24/solid";
+import { useDraftStore } from "@/stores/useDraftStore";
 import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 import {
   AccountObjectType,
+  PENDING_ACCOUNT_NAME_PLACEHOLDER,
   hydrateAccounts,
   useAccountStore,
-} from "../../src/stores/useAccountStore";
+} from "@/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import {
   AccountPlatformType,
   AccountStatusType,
-} from "../../src/common/constants/accounts";
+} from "@/common/constants/accounts";
 import {
   Card,
   CardContent,
@@ -26,25 +31,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "../../src/components/ui/button";
-import { QrCode } from "../../src/common/components/QrCode";
-import ConnectFarcasterAccountViaHatsProtocol from "../../src/common/components/ConnectFarcasterAccountViaHatsProtocol";
+import { Button } from "@/components/ui/button";
+import { QrCode } from "@/common/components/QrCode";
+import ConnectFarcasterAccountViaHatsProtocol from "@/common/components/ConnectFarcasterAccountViaHatsProtocol";
 import { useAccount } from "wagmi";
 import {
   WarpcastLoginStatus,
   callCreateSignerRequest,
   generateWarpcastSigner,
   getWarpcastSignerStatus,
-} from "../../src/common/helpers/warpcastLogin";
-import HelpCard from "../../src/common/components/HelpCard";
-import { useIsMounted } from "../../src/common/helpers/hooks";
+} from "@/common/helpers/warpcastLogin";
+import HelpCard from "@/common/components/HelpCard";
+import { useIsMounted } from "@/common/helpers/hooks";
 import { useRouter } from "next/router";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { openWindow } from "../../src/common/helpers/navigation";
-import ConfirmOnchainSignerButton from "../../src/common/components/ConfirmOnchainSignerButton";
-import SwitchWalletButton from "../../src/common/components/SwitchWalletButton";
+import { openWindow } from "@/common/helpers/navigation";
+import ConfirmOnchainSignerButton from "@/common/components/ConfirmOnchainSignerButton";
+import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { getTimestamp } from "@/common/helpers/farcaster";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AlertDialogDemo from "@/common/components/AlertDialog";
+import { Loading } from "@/common/components/Loading";
+import AccountManagementModal from "@/common/components/AccountManagement/AccountManagementModal";
+import { cn } from "@/lib/utils";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -59,21 +68,21 @@ export default function Accounts() {
   const [signupState, setSignupState] = useState<SignupStateEnum>(
     SignupStateEnum.initial
   );
+  const [isModalOpen, setModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { isConnected } = useAccount();
   const isMounted = useIsMounted();
+  const [selectedAccount, setSelectedAccount] = useState<AccountObjectType>();
 
-  const { accounts, addAccount, setAccountActive, removeAccount } =
-    useAccountStore();
-
+  const {
+    accounts,
+    addAccount,
+    setAccountActive,
+    removeAccount,
+    updateAccountUsername,
+  } = useAccountStore();
   const { addNewPostDraft } = useDraftStore();
 
-  const hasActiveAccounts =
-    accounts.filter(
-      (account) =>
-        account.status === AccountStatusType.active &&
-        account.platform !== AccountPlatformType.farcaster_local_readonly
-    ).length > 0;
   const pendingAccounts =
     accounts.filter(
       (account) =>
@@ -105,6 +114,26 @@ export default function Accounts() {
       setSignupState(SignupStateEnum.initial);
     }
   }, [signupState, hasPendingNewAccounts]);
+
+  const onClickManageAccount = (account: AccountObjectType) => {
+    setSelectedAccount(account);
+    setModalOpen(true);
+  };
+
+  const refreshAccountNames = async () => {
+    setIsLoading(true);
+    await Promise.all(
+      accounts.map(async (account) => await updateAccountUsername(account.id))
+    )
+      .then(async () => {
+        console.log("All account names refreshed successfully");
+        await hydrateAccounts();
+      })
+      .catch((error) =>
+        console.error("Error refreshing account names:", error)
+      );
+    setIsLoading(false);
+  };
 
   const onCreateNewAccount = async () => {
     const { publicKey, privateKey, signature, requestFid, deadline } =
@@ -183,11 +212,6 @@ export default function Accounts() {
 
       if (!isMounted()) return;
     }
-  };
-
-  const onStartCasting = () => {
-    addNewPostDraft(JoinedHerocastPostDraft);
-    router.push("/post");
   };
 
   const renderSignupForNonLocalAccount = () => (
@@ -296,62 +320,6 @@ export default function Accounts() {
     );
   };
 
-  const renderDoneStep = () => (
-    <Card className="min-w-max bg-background text-foreground">
-      <CardHeader className="space-y-1">
-        <CardTitle className="flex">
-          <CheckCircleIcon
-            className="-mt-0.5 mr-1 h-5 w-5 text-foreground/80"
-            aria-hidden="true"
-          />
-          Account added to herocast
-        </CardTitle>
-        <CardDescription className="text-muted-foreground">
-          You can start casting and browsing your feed
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="-mx-2 -my-1.5 flex">
-          <Button
-            onClick={() => router.push("/feeds")}
-            type="button"
-            variant="default"
-          >
-            Scroll your feed
-            <NewspaperIcon
-              className="ml-1.5 mt-0.5 h-4 w-4"
-              aria-hidden="true"
-            />
-          </Button>
-          <Button
-            onClick={() => onStartCasting()}
-            type="button"
-            variant="outline"
-            className="ml-4"
-          >
-            Start casting
-            <PlusCircleIcon
-              className="ml-1.5 mt-0.5 h-4 w-4"
-              aria-hidden="true"
-            />
-          </Button>
-          <Button
-            onClick={() => router.push("/channels")}
-            type="button"
-            className="ml-4"
-            variant="outline"
-          >
-            Pin your favourite channels
-            <RectangleGroupIcon
-              className="ml-1.5 mt-0.5 h-4 w-4"
-              aria-hidden="true"
-            />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
   const renderCreateNewOnchainAccountCard = () => (
     <Card>
       <CardHeader className="space-y-1">
@@ -378,11 +346,12 @@ export default function Accounts() {
 
   const renderFullAccountTabs = () => (
     <Tabs defaultValue="default">
-      <div className="flex items-center">
+      <div className="flex items-center mb-4">
         <TabsList>
           <TabsTrigger value="default">Add accounts</TabsTrigger>
           <TabsTrigger value="create">Create accounts</TabsTrigger>
           <TabsTrigger value="shared">Shared accounts</TabsTrigger>
+          <TabsTrigger value="manage">Manage</TabsTrigger>
           <TabsTrigger value="help">Help</TabsTrigger>
         </TabsList>
       </div>
@@ -427,6 +396,59 @@ export default function Accounts() {
           </Card>
         </div>
       </TabsContent>
+      <TabsContent value="manage" className="max-w-[600px]">
+        <div className="flex justify-between pb-2 border-b border-gray-200">
+          <h1 className="text-xl font-semibold leading-7 text-foreground/80">
+            Farcaster accounts
+          </h1>
+          <Button
+            variant="outline"
+            className="h-8"
+            disabled={isLoading}
+            onClick={() => refreshAccountNames()}
+          >
+            Reload accounts
+            <ArrowPathIcon
+              className={cn(isLoading && "animate-spin", "ml-1 w-4 h-4")}
+            />
+          </Button>
+        </div>
+        <ul role="list" className="divide-y divide-white/5">
+          {accounts.map((item: AccountObjectType, idx: number) => (
+            <li key={item.id} className="px-2 py-2">
+              <div className="flex items-center gap-x-3">
+                <h3 className="text-foreground/80 flex-auto truncate text-sm font-semibold leading-6">
+                  {item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
+                </h3>
+                {item.platformAccountId && item.status !== "active" && (
+                  <p className="truncate text-sm text-foreground/80">
+                    {item.status}
+                  </p>
+                )}
+                {item.platform ===
+                  AccountPlatformType.farcaster_hats_protocol && (
+                  <p className="text-sm">🧢</p>
+                )}
+                {item.platformAccountId && item.status === "active" && (
+                  <p className="font-mono truncate text-sm text-foreground/80">
+                    fid: {item.platformAccountId}
+                  </p>
+                )}
+                <Button
+                  variant="secondary"
+                  onClick={() => onClickManageAccount(item)}
+                >
+                  Manage
+                </Button>
+                <AlertDialogDemo
+                  buttonText={`Remove`}
+                  onClick={() => removeAccount(item.id)}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </TabsContent>
       <TabsContent value="help">
         <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
           <HelpCard />
@@ -444,12 +466,11 @@ export default function Accounts() {
           renderFullAccountTabs()
         )}
       </main>
-    </div>
-  );
-
-  return (
-    <div className="m-4 flex flex-col gap-5">
-      <div className="w-full flex flex-col gap-5"></div>
+      <AccountManagementModal
+        account={selectedAccount}
+        open={isModalOpen}
+        setOpen={setModalOpen}
+      />
     </div>
   );
 }
