@@ -1,6 +1,13 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultConfig, midnightTheme } from "@rainbow-me/rainbowkit";
-import { optimism, mainnet, base, arbitrum, polygon } from "@wagmi/core/chains";
+import {
+  optimism,
+  mainnet,
+  base,
+  arbitrum,
+  polygon,
+  zora,
+} from "@wagmi/core/chains";
 import { createPublicClient } from "viem";
 import { isDev } from "./env";
 import { Chains } from "@paywithglide/glide-js";
@@ -29,7 +36,7 @@ export const config = getDefaultConfig({
   projectId: "b34f1019e33e832831871e41741f13fc",
   chains: isDev()
     ? [mainnet, optimism, Chains.OptimismTestnet, Chains.BaseTestnet]
-    : [optimism, mainnet, base, arbitrum, polygon],
+    : [optimism, mainnet, base, arbitrum, polygon, zora],
   ssr: true,
 });
 
