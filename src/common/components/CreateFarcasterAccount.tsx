@@ -92,6 +92,12 @@ const CreateFarcasterAccount = ({
     },
   });
 
+  console.log(
+    "register account transaction status",
+    transactionHash,
+    transactionResult
+  );
+
   useEffect(() => {
     if (!isConnected || transactionHash === "0x" || !transactionResult) return;
     getFidAndUpdateAccount();
@@ -124,15 +130,17 @@ const CreateFarcasterAccount = ({
     }
     return false;
   };
+
   const registerAccount = async () => {
-    if (
+    const hasError =
       !registerSignature ||
       !savedPublicKey ||
       !address ||
       !registerMetaData ||
       !deadline ||
-      !addSignature
-    ) {
+      !addSignature;
+
+    if (hasError) {
       setError(
         "Something went wrong setting up the glide payment transaction!"
       );
