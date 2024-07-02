@@ -1,21 +1,15 @@
 import React, { useEffect, useState } from "react";
 import HelpCard from "@/common/components/HelpCard";
-import { classNames } from "@/common/helpers/css";
 import { Button } from "@/components/ui/button";
 import {
-  AccountObjectType,
-  PENDING_ACCOUNT_NAME_PLACEHOLDER,
   accountCommands,
   channelCommands,
-  hydrateAccounts,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { newPostCommands } from "@/stores/useDraftStore";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { getNavigationCommands } from "@/getNavigationCommands";
-import AccountManagementModal from "@/common/components/AccountManagement/AccountManagementModal";
-import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { createClient } from "@/common/helpers/supabase/component";
 import { usePostHog } from "posthog-js/react";
