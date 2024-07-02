@@ -15,9 +15,8 @@ import {
   useDataStore,
 } from "@/stores/useDataStore";
 import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { Loading } from "@/common/components/Loading";
-import { GetStaticPaths, GetStaticProps } from "next/types";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -26,28 +25,9 @@ enum FeedTypeEnum {
   "likes" = "Likes",
 }
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  console.log("profile slug getStaticPaths");
-  return { paths: [], fallback: true };
-};
-
-export const getStaticProps: GetStaticProps = async (context) => {
-  const { slug } = context.params || {};
-  console.log(`profile slug getStaticProps for ${slug}`);
-  return { props: { slug } };
-};
-
-interface ProfileProps {
-  slug: string;
-}
-
-const Profile = ({ slug }: ProfileProps) => {
+const ProfilePage = () => {
   const router = useRouter();
-  console.log("Profile slug", slug);
-  return (
-    <div className="mx-auto text-foreground p-24 bg-green-500">yo {slug}</div>
-  );
-  // const { slug } = router.query as { slug?: string };
+  const { slug } = router.query as { slug?: string };
   const username = slug?.startsWith("@") ? slug.slice(1) : slug;
 
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
@@ -213,4 +193,4 @@ const Profile = ({ slug }: ProfileProps) => {
   return router.isFallback || !profile ? renderEmptyState() : renderProfile();
 };
 
-export default Profile;
+export default ProfilePage;
