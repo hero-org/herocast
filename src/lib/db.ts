@@ -41,11 +41,23 @@ export class Cast {
     tsv: string;
 }
 
+@Entity({ name: 'powerbadge' })
+class Powerbadge {
+    @PrimaryColumn()
+    fid: number;
+
+    @CreateDateColumn({ type: 'timestamptz', nullable: false })
+    updated_at: Date;
+
+    @UpdateDateColumn({ type: 'timestamptz', nullable: false })
+    updated_at: Date;
+}
+
 export const AppDataSource = new DataSource({
     type: 'postgres',
     url: process.env.DATABASE_URL,
     synchronize: false,
-    entities: [Cast],
+    entities: [Cast, Powerbadge],
     logging: "all",
     extra: {
         ssl: {

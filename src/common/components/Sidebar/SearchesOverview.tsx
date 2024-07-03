@@ -19,12 +19,17 @@ const SearchesOverview = () => {
           )}
         >
           <span className="flex-nowrap truncate">{search.term}</span>
-          {isDev() && (
+        </div>
+        {isDev() && (
+          <div className="flex flex-row gap-x-2">
+            <Badge variant="outline" className="w-16">
+              {search.resultsCount}
+            </Badge>
             <Badge variant="outline" className="w-16">
               {(search.endedAt - search.startedAt) / 1000}s
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
       </li>
     );
   };
