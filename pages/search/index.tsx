@@ -177,8 +177,7 @@ export default function SearchPage() {
     );
   };
 
-  const getFilters = () =>
-    filterByPowerBadge ? { filterByPowerBadge } : undefined;
+  const getFilters = () => ({ filterByPowerBadge });
 
   const onSearch = useCallback(
     async (term?: string, filterByPowerBadge?: boolean) => {
@@ -256,7 +255,7 @@ export default function SearchPage() {
     addList({
       name: searchTerm,
       type: "search",
-      contents: { term: searchTerm },
+      contents: { term: searchTerm, filters: getFilters() },
       idx: newIdx,
       account_id: selectedAccount?.id,
     });
