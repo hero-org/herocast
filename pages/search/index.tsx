@@ -24,6 +24,7 @@ import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { map, uniq } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
+import { isDev } from "@/common/helpers/env";
 
 type SearchFilters = {
   filterByPowerBadge: boolean;
@@ -213,7 +214,7 @@ export default function SearchPage() {
           addCastHashes(searchResults, true);
           const endedAt1 = Date.now();
           addSearch({
-            term: `${term}-${newSearchCounter}`,
+            term,
             startedAt,
             endedAt: endedAt1,
             resultsCount: searchResults.length,
@@ -233,12 +234,14 @@ export default function SearchPage() {
             addCastHashes(moreResults, false);
           }
           const endedAt2 = Date.now();
-          addSearch({
-            term: `${term}-${newSearchCounter}-more`,
-            startedAt: endedAt1,
-            endedAt: endedAt2,
-            resultsCount: moreResults.length,
-          });
+          if (isDev()) {
+            addSearch({
+              term: `${term}-${newSearchCounter}-more`,
+              startedAt: endedAt1,
+              endedAt: endedAt2,
+              resultsCount: moreResults.length,
+            });
+          }
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -442,8 +445,8 @@ export default function SearchPage() {
           {renderPowerBadgeFilter()}
         </div>
       </div>
-      {isLoading ||
-        (castHashes.length !== 0 && casts.length === 0 && renderLoading())}
+      {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
+        renderLoading()}
       {!isLoading && searches.length > 0 && castHashes.length === 0 && (
         <div className="text-center mt-8 text-muted-foreground">
           No results found
