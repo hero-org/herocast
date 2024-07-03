@@ -81,7 +81,7 @@ const searchForText = async ({
 };
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
-const SEARCH_LIMIT_INITIAL_LOAD = 2;
+const SEARCH_LIMIT_INITIAL_LOAD = 4;
 const SEARCH_LIMIT_NEXT_LOAD = 10;
 const SEARCH_LIMIT = SEARCH_LIMIT_INITIAL_LOAD + SEARCH_LIMIT_NEXT_LOAD - 1;
 const DEFAULT_FILTERS: SearchFilters = {
@@ -210,6 +210,7 @@ export default function SearchPage() {
         }
 
         if (searchResults.length > 0) {
+          console.log(`setting cast hashes for term ${term} - initial load`);
           addCastHashes(searchResults, true);
           const endedAt1 = Date.now();
           addSearch({
@@ -229,6 +230,7 @@ export default function SearchPage() {
             return;
           }
           if (moreResults.length > 0) {
+            console.log(`setting cast hashes for term ${term} - followup load`);
             addCastHashes(moreResults, false);
           }
           const endedAt2 = Date.now();
@@ -290,7 +292,7 @@ export default function SearchPage() {
       (hash) => !casts.find((cast) => cast.hash === hash)
     );
     if (newCastHashes.length > 0) {
-      // fetchCasts(newCastHashes);
+      fetchCasts(newCastHashes);
     }
   }, [castHashes, casts]);
 
@@ -460,7 +462,7 @@ export default function SearchPage() {
         setSelectedIdx={setSelectedCastIdx}
         onSelect={(idx) => setSelectedCastIdx(idx)}
       />
-      {casts.length >= SEARCH_LIMIT && (
+      {casts.length > 0 && (
         <div className="flex justify-center my-8">
           {isLoading ? renderLoadingSpinner() : renderLoadMoreButton()}
         </div>
