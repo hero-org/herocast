@@ -57,7 +57,7 @@ export function SearchIntervalFilter({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[120px] justify-between"
+          className="w-[110px] justify-between"
         >
           {value !== null
             ? intervals.find((framework) => framework.value === value)?.label
@@ -65,7 +65,7 @@ export function SearchIntervalFilter({
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[150px] p-0">
+      <PopoverContent className="w-[110px] p-0">
         <Command>
           <CommandList>
             <CommandGroup>

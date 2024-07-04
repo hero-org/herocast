@@ -25,7 +25,10 @@ import { map, uniq } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
 import { isDev } from "@/common/helpers/env";
-import { SearchInterval, SearchIntervalFilter } from "./SearchIntervalFilter";
+import {
+  SearchInterval,
+  SearchIntervalFilter,
+} from "@/common/components/SearchIntervalFilter";
 
 type SearchFilters = {
   filterByPowerBadge: boolean;
@@ -411,7 +414,7 @@ export default function SearchPage() {
 
   const renderPowerBadgeFilter = () => (
     <Button
-      variant={filterByPowerBadge ? "outline" : "ghost"}
+      variant="outline"
       size="sm"
       onClick={() => setFilterByPowerBadge((prev) => !prev)}
     >
