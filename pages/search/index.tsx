@@ -25,9 +25,11 @@ import { map, uniq } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
 import { isDev } from "@/common/helpers/env";
+import { SearchInterval, SearchIntervalFilter } from "./SearchIntervalFilter";
 
 type SearchFilters = {
   filterByPowerBadge: boolean;
+  interval?: SearchInterval;
 };
 
 type SearchForTextParams = {
@@ -53,8 +55,15 @@ const getSearchUrl = ({
   if (orderBy) params.append("orderBy", orderBy);
   if (filters) {
     Object.keys(filters).forEach((key) => {
-      params.append(key, filters[key].toString());
+      if (filters[key] !== undefined) {
+        params.set(key, filters[key].toString());
+      }
     });
+  }
+  if (!params.get("interval")) {
+    params.set("interval", "30 days");
+  } else if (params.get("interval") === "all") {
+    params.delete("interval");
   }
   const url = `/api/search?${params.toString()}`;
   return url;
@@ -69,11 +78,18 @@ const searchForText = async ({
   orderBy,
 }: SearchForTextParams): Promise<RawSearchResult[]> => {
   try {
-    const response = await fetch(
-      getSearchUrl({ searchTerm, filters, limit, offset, interval, orderBy })
-    );
+    const searchUrl = getSearchUrl({
+      searchTerm,
+      filters,
+      limit,
+      offset,
+      interval,
+      orderBy,
+    });
+    const response = await fetch(searchUrl);
     const data = await response.json();
     if (!data || data?.error) return [];
+
     return data;
   } catch (error) {
     console.error("Failed to search for text", searchTerm, error);
@@ -85,8 +101,10 @@ const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
 const SEARCH_LIMIT_NEXT_LOAD = 10;
 const SEARCH_LIMIT = SEARCH_LIMIT_INITIAL_LOAD + SEARCH_LIMIT_NEXT_LOAD - 1;
+
 const DEFAULT_FILTERS: SearchFilters = {
   filterByPowerBadge: true,
+  interval: SearchInterval.d30,
 };
 
 type RawSearchResult = {
@@ -106,6 +124,7 @@ export default function SearchPage() {
   const [filterByPowerBadge, setFilterByPowerBadge] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const activeSearchCounter = useRef(0);
+  const [interval, setInterval] = useState<SearchInterval>();
 
   const {
     searches,
@@ -127,7 +146,7 @@ export default function SearchPage() {
     const searchParam = urlParams.get("search");
     if (searchParam) {
       setSearchTerm(searchParam);
-      onSearch(searchParam, true);
+      onSearch(searchParam, DEFAULT_FILTERS);
     }
 
     const listId = urlParams.get("list");
@@ -178,16 +197,20 @@ export default function SearchPage() {
     );
   };
 
-  const getFilters = () => ({ filterByPowerBadge });
+  const getFilters = () => ({ filterByPowerBadge, interval });
 
   const onSearch = useCallback(
-    async (term?: string, filterByPowerBadge?: boolean) => {
+    async (term?: string, filters?: SearchFilters) => {
       const newSearchCounter = searchCounter + 1;
       setSearchCounter(newSearchCounter);
       activeSearchCounter.current = newSearchCounter;
 
       if (!term) {
         term = searchTerm;
+      }
+
+      if (isEmpty(filters)) {
+        filters = getFilters();
       }
 
       setError(null);
@@ -198,11 +221,9 @@ export default function SearchPage() {
       const startedAt = Date.now();
 
       try {
-        const filters = getFilters();
         const searchResults = await searchForText({
           searchTerm: term,
           filters,
-          orderBy: "timestamp DESC",
           limit: SEARCH_LIMIT_INITIAL_LOAD,
         });
         if (activeSearchCounter.current !== newSearchCounter) {
@@ -210,7 +231,9 @@ export default function SearchPage() {
         }
 
         if (searchResults.length > 0) {
-          console.log(`setting cast hashes for term ${term} - initial load`);
+          console.log(
+            `setting cast hashes for term ${term} - initial - ${searchResults.length} results`
+          );
           addCastHashes(searchResults, true);
           const endedAt1 = Date.now();
           addSearch({
@@ -222,7 +245,6 @@ export default function SearchPage() {
           const moreResults = await searchForText({
             searchTerm: term,
             filters,
-            offset: SEARCH_LIMIT_INITIAL_LOAD,
             limit: SEARCH_LIMIT_NEXT_LOAD,
             orderBy: "timestamp DESC",
           });
@@ -230,7 +252,9 @@ export default function SearchPage() {
             return;
           }
           if (moreResults.length > 0) {
-            console.log(`setting cast hashes for term ${term} - followup load`);
+            console.log(
+              `setting cast hashes for term ${term} - followup - ${moreResults.length} results`
+            );
             addCastHashes(moreResults, false);
           }
           const endedAt2 = Date.now();
@@ -405,6 +429,10 @@ export default function SearchPage() {
     </Button>
   );
 
+  const renderIntervalFilter = () => (
+    <SearchIntervalFilter updateInterval={setInterval} />
+  );
+
   return (
     <div className="min-w-0 flex-1 p-6">
       <div className="w-full max-w-2xl">
@@ -441,11 +469,14 @@ export default function SearchPage() {
             Save
           </Button>
         </div>
-        <div className="flex w-full max-w-lg mt-4">
+        <div className="flex w-full space-x-2 max-w-lg mt-2">
           {renderPowerBadgeFilter()}
+          {renderIntervalFilter()}
         </div>
       </div>
-      {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
+      {isLoading &&
+        castHashes.length !== 0 &&
+        casts.length === 0 &&
         renderLoading()}
       {!isLoading && searches.length > 0 && castHashes.length === 0 && (
         <div className="text-center mt-8 text-muted-foreground">
