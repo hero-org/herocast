@@ -71,6 +71,8 @@ export default function SearchPage() {
     lists,
   } = useListStore();
   const canSearch = searchTerm.length >= 3;
+  const lastSearchHasNoResults =
+    searches[searches.length - 1]?.resultsCount === 0;
   const { updateSelectedCast } = useDataStore();
 
   const selectedAccount = useAccountStore(
@@ -178,24 +180,24 @@ export default function SearchPage() {
           return;
         }
 
+        const endedAt = Date.now();
+        addSearch({
+          term,
+          startedAt,
+          endedAt,
+          resultsCount: searchResults.length,
+        });
+        posthog.capture("backend_returns_castSearch", {
+          term,
+          resultsCount: searchResults.length,
+          duration: endedAt - startedAt,
+        });
         if (searchResults.length > 0) {
           console.log(
             `setting cast hashes for term ${term} - initial - ${searchResults.length} results`
           );
           addCastHashes(searchResults, true);
-          const endedAt = Date.now();
-          addSearch({
-            term,
-            startedAt,
-            endedAt,
-            resultsCount: searchResults.length,
-          });
           // use posthog to track event
-          posthog.capture("backend_returns_castSearch", {
-            term,
-            resultsCount: searchResults.length,
-            duration: endedAt - startedAt,
-          });
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -285,32 +287,6 @@ export default function SearchPage() {
       fetchCasts(newCastHashes);
     }
   }, [castHashes, casts]);
-
-  const renderDebugMetrics = () => (
-    <Table className="mb-8">
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[100px]">Duration</TableHead>
-          <TableHead>Results</TableHead>
-          <TableHead>Search</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {searches
-          .toReversed()
-          .slice(0, 10)
-          .map((metric) => (
-            <TableRow key={metric.startedAt}>
-              <TableCell className="font-medium">
-                {(metric.endedAt - metric.startedAt) / 1000}s
-              </TableCell>
-              <TableCell>{metric.resultsCount}</TableCell>
-              <TableCell>{metric.term}</TableCell>
-            </TableRow>
-          ))}
-      </TableBody>
-    </Table>
-  );
 
   const renderSearchResultRow = (row: CastWithInteractions, idx: number) => (
     <li
@@ -418,7 +394,7 @@ export default function SearchPage() {
             value={searchTerm}
             onChange={(e) => onChange(e.target.value)}
             id="search"
-            placeholder="New search..."
+            placeholder="Search for casts..."
             type="search"
             name="search"
             className={isLoading ? "animate-pulse" : ""}
@@ -473,9 +449,18 @@ export default function SearchPage() {
       </div>
       {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
         renderLoading()}
-      {!isLoading && searches.length > 0 && castHashes.length === 0 && (
-        <div className="text-center mt-8 text-muted-foreground">
-          No results found
+      {!isLoading && lastSearchHasNoResults && (
+        <div className="flex flex-col text-center mt-8 text-muted-foreground">
+          <span>No results found</span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-1 w-20 mx-auto"
+            disabled={!canSearch}
+            onClick={() => onSearch()}
+          >
+            Try again
+          </Button>
         </div>
       )}
       {error && (

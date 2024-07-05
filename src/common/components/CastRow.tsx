@@ -35,6 +35,8 @@ import { toastInfoReadOnlyMode } from "../helpers/toast";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -526,7 +528,7 @@ export const CastRow = ({
       ? timeDiff(now, new Date(cast.timestamp))
       : [0, "seconds"];
   const timeAgoStr = localize(Number(timeAgo[0]), timeAgo[1].toString());
-  const pfpUrl = cast.author.pfp_url || cast.author.pfp.url;
+  const pfpUrl = cast.author.pfp_url || cast.author?.pfp?.url;
   const displayName = cast.author.display_name || cast.author.displayName;
   return (
     <div className="flex min-w-full w-full max-w-2xl">
@@ -598,15 +600,14 @@ export const CastRow = ({
                     {timeAgoStr}
                   </span>
                 )}
-                <a
+                <Link
                   href={`${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`}
-                  target="_blank"
-                  rel="noreferrer"
                   className="text-sm leading-5 text-foreground/50"
                   tabIndex={-1}
+                  prefetch={false}
                 >
                   <ArrowTopRightOnSquareIcon className="mt-0.5 w-4 h-4 ml-1.5" />
-                </a>
+                </Link>
               </div>
             </div>
             <div

@@ -64,7 +64,7 @@ const RightSidebar = ({
       className="min-h-full h-full bg-muted/40 md:fixed md:bottom-0 md:right-0 md:w-48 lg:w-64 md:border-l md:border-foreground/5 overflow-y-auto"
     >
       <div className="">
-        {renderAuthorInfo()}
+        {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}
         {showChannels && <ChannelsOverview />}
         {showLists && <ListsOverview />}

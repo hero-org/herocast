@@ -51,9 +51,9 @@ export default function ConversationPage() {
     getData();
   }, [slug]);
 
-  return cast ? (
-    <CastThreadView cast={cast} key={cast.hash} />
-  ) : (
-    <SkeletonCastRow />
+  return (
+    <div className="w-full">
+      <CastThreadView cast={cast} />
+    </div>
   );
 }

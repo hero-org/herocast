@@ -11,13 +11,14 @@ import { Button } from "@/components/ui/button";
 import { CastParamType, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { cn } from "@/lib/utils";
+import { useDataStore } from "@/stores/useDataStore";
+import SkeletonCastRow from "./SkeletonCastRow";
 
 type CastThreadViewProps = {
   hash?: string;
   cast?: { hash: string; author: { fid: number } };
   onBack?: () => void;
   isActive?: boolean;
-  setSelectedCast?: (cast: CastWithInteractions) => void;
   onReply?: () => void;
   onQuote?: () => void;
 };
@@ -27,11 +28,11 @@ export const CastThreadView = ({
   cast,
   onBack,
   isActive,
-  setSelectedCast,
 }: CastThreadViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
+  const { selectedCast, updateSelectedCast } = useDataStore();
 
   const { addNewPostDraft, removePostDraft } = useDraftStore();
   const draftIdx = useDraftStore(
@@ -41,9 +42,9 @@ export const CastThreadView = ({
   );
 
   useEffect(() => {
-    if (!cast || casts.length === 0 || !setSelectedCast) return;
+    if (!cast || casts.length === 0) return;
 
-    setSelectedCast(casts[selectedCastIdx]);
+    updateSelectedCast(casts[selectedCastIdx]);
   }, [cast, selectedCastIdx, casts]);
 
   useEffect(() => {
@@ -168,7 +169,7 @@ export const CastThreadView = ({
     <div className="flex flex-col text-foreground/80 text-lg">
       {!isLoading && onBack && renderGoBackButton()}
       {isLoading ? (
-        <Loading className="ml-4" />
+        <SkeletonCastRow className="m-4" />
       ) : (
         <div className="flow-root ml-4">{renderFeed()}</div>
       )}

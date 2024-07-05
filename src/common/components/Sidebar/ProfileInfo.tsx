@@ -6,7 +6,7 @@ import get from "lodash.get";
 import FollowButton from "../FollowButton";
 import { Loading } from "../Loading";
 import { formatLargeNumber } from "../../helpers/text";
-import { openWindow } from "@/common/helpers/navigation";
+import Link from "next/link";
 
 const ProfileInfo = ({
   fid,
@@ -37,15 +37,12 @@ const ProfileInfo = ({
     }
   }, [fid, viewerFid, profile]);
 
-
-  const onClick = () => {
-    openWindow(
-      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`
-    );
-  };
-  
   return (
-    <div className="space-y-2 min-h-72 cursor-pointer" onClick={() => onClick()}>
+    <Link
+      className="space-y-2 min-h-72 cursor-pointer"
+      href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
+      prefetch={false}
+    >
       <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1">
         {profile?.display_name}
       </h2>
@@ -106,7 +103,7 @@ const ProfileInfo = ({
       ) : (
         <Loading />
       )}
-    </div>
+    </Link>
   );
 };
 
