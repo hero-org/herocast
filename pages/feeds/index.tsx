@@ -378,7 +378,6 @@ export default function Feeds() {
     <CastThreadView
       cast={casts[selectedCastIdx]}
       onBack={() => setShowCastThreadView(false)}
-      setSelectedCast={updateSelectedCast}
       onReply={onReply}
       onQuote={onQuote}
     />

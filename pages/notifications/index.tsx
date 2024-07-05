@@ -112,8 +112,6 @@ const Notifications = () => {
     [allNotifications, activeTab]
   );
 
-  console.log("notif", notifications);
-
   useEffect(() => {
     // if navigating away, reset the selected cast
     return () => {
@@ -302,7 +300,7 @@ const Notifications = () => {
     );
   };
 
-  const renderLoadMoreButton = () => (
+  const renderLoadMoreButton = () => notifications.length > 0 && (
     <div className="flex justify-center my-8">
       <Button
         variant="outline"
@@ -310,7 +308,7 @@ const Notifications = () => {
         disabled={isLoading}
         onClick={() => loadData()}
       >
-        Load More
+        {isLoading ? <Loading /> : "Load More"}
       </Button>
     </div>
   );
