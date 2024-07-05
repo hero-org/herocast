@@ -18,11 +18,21 @@ import {
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 
 export enum SearchInterval {
+  d1 = "1 day",
+  d7 = "7 days",
   d30 = "30 days",
   all = "all",
 }
 
 const intervals = [
+  {
+    label: "1 day",
+    value: SearchInterval.d1,
+  },
+  {
+    label: "7 days",
+    value: SearchInterval.d7,
+  },
   {
     label: "30 days",
     value: SearchInterval.d30,

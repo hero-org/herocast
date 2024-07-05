@@ -357,7 +357,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       >
         {/* Sticky header */}
         {title && (
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted/10 bg-background px-4 sm:px-6 md:px-2">
+          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-2">
             <button
               type="button"
               className="-m-2.5 p-2.5 text-foreground lg:hidden"

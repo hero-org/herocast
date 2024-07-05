@@ -29,10 +29,12 @@ import {
   SearchInterval,
   SearchIntervalFilter,
 } from "@/common/components/SearchIntervalFilter";
+import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 
 type SearchFilters = {
-  filterByPowerBadge: boolean;
+  onlyPowerBadge: boolean;
   interval?: SearchInterval;
+  hideReplies: boolean;
 };
 
 type SearchForTextParams = {
@@ -43,6 +45,23 @@ type SearchForTextParams = {
   interval?: string;
   orderBy?: string;
 };
+
+type RawSearchResult = {
+  hash: string;
+  fid: number;
+  text: string;
+  timestamp: string;
+};
+const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+const SEARCH_LIMIT_INITIAL_LOAD = 4;
+const SEARCH_LIMIT_NEXT_LOAD = 10;
+
+const DEFAULT_FILTERS: SearchFilters = {
+  onlyPowerBadge: true,
+  interval: SearchInterval.d7,
+  hideReplies: true,
+};
+
 const getSearchUrl = ({
   searchTerm,
   filters,
@@ -64,10 +83,11 @@ const getSearchUrl = ({
     });
   }
   if (!params.get("interval")) {
-    params.set("interval", "30 days");
-  } else if (params.get("interval") === "all") {
+    params.set("interval", DEFAULT_FILTERS.interval!);
+  } else if (params.get("interval") === SearchInterval.all) {
     params.delete("interval");
   }
+  console.log("params", params.toString());
   const url = `/api/search?${params.toString()}`;
   return url;
 };
@@ -100,23 +120,6 @@ const searchForText = async ({
   }
 };
 
-const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
-const SEARCH_LIMIT_INITIAL_LOAD = 4;
-const SEARCH_LIMIT_NEXT_LOAD = 10;
-const SEARCH_LIMIT = SEARCH_LIMIT_INITIAL_LOAD + SEARCH_LIMIT_NEXT_LOAD - 1;
-
-const DEFAULT_FILTERS: SearchFilters = {
-  filterByPowerBadge: true,
-  interval: SearchInterval.d30,
-};
-
-type RawSearchResult = {
-  hash: string;
-  fid: number;
-  text: string;
-  timestamp: string;
-};
-
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
@@ -125,9 +128,11 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchCounter, setSearchCounter] = useState(0);
   const [filterByPowerBadge, setFilterByPowerBadge] = useState(true);
+  const [filterByHideReplies, setFilterByHideReplies] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const activeSearchCounter = useRef(0);
   const [interval, setInterval] = useState<SearchInterval>();
+  const [showFilter, setShowFilter] = useState(false);
 
   const {
     searches,
@@ -143,6 +148,8 @@ export default function SearchPage() {
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
+
+  console.log("castHashes", castHashes);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -200,7 +207,12 @@ export default function SearchPage() {
     );
   };
 
-  const getFilters = () => ({ filterByPowerBadge, interval });
+  const getFilters = () => ({
+    interval,
+    orderBy: "timestamp DESC",
+    onlyPowerBadge: filterByPowerBadge,
+    hideReplies: filterByHideReplies,
+  });
 
   const onSearch = useCallback(
     async (term?: string, filters?: SearchFilters) => {
@@ -245,30 +257,30 @@ export default function SearchPage() {
             endedAt: endedAt1,
             resultsCount: searchResults.length,
           });
-          const moreResults = await searchForText({
-            searchTerm: term,
-            filters,
-            limit: SEARCH_LIMIT_NEXT_LOAD,
-            orderBy: "timestamp DESC",
-          });
-          if (activeSearchCounter.current !== newSearchCounter) {
-            return;
-          }
-          if (moreResults.length > 0) {
-            console.log(
-              `setting cast hashes for term ${term} - followup - ${moreResults.length} results`
-            );
-            addCastHashes(moreResults, false);
-          }
-          const endedAt2 = Date.now();
-          if (isDev()) {
-            addSearch({
-              term: `${term}-${newSearchCounter}-more`,
-              startedAt: endedAt1,
-              endedAt: endedAt2,
-              resultsCount: moreResults.length,
-            });
-          }
+          // const moreResults = await searchForText({
+          //   searchTerm: term,
+          //   filters,
+          //   limit: SEARCH_LIMIT_NEXT_LOAD,
+          //   orderBy: "timestamp DESC",
+          // });
+          // if (activeSearchCounter.current !== newSearchCounter) {
+          //   return;
+          // }
+          // if (moreResults.length > 0) {
+          //   console.log(
+          //     `setting cast hashes for term ${term} - followup - ${moreResults.length} results`
+          //   );
+          //   addCastHashes(moreResults, false);
+          // }
+          // const endedAt2 = Date.now();
+          // if (isDev()) {
+          //   addSearch({
+          //     term: `${term}-${newSearchCounter}-more`,
+          //     startedAt: endedAt1,
+          //     endedAt: endedAt2,
+          //     resultsCount: moreResults.length,
+          //   });
+          // }
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -276,7 +288,13 @@ export default function SearchPage() {
         setIsLoading(false);
       }
     },
-    [searchCounter, searchTerm, filterByPowerBadge]
+    [
+      searchCounter,
+      searchTerm,
+      filterByPowerBadge,
+      filterByHideReplies,
+      interval,
+    ]
   );
 
   const onSaveSearch = async () => {
@@ -418,7 +436,7 @@ export default function SearchPage() {
       size="sm"
       onClick={() => setFilterByPowerBadge((prev) => !prev)}
     >
-      Only Power Badge
+      Power Badge
       <img
         src="/images/ActiveBadge.webp"
         className="ml-1 h-4 w-4"
@@ -428,6 +446,21 @@ export default function SearchPage() {
         className="ml-1"
         aria-label="Toggle powerbadge"
         checked={filterByPowerBadge}
+      />
+    </Button>
+  );
+
+  const renderHideRepliesFilter = () => (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setFilterByHideReplies((prev) => !prev)}
+    >
+      Hide replies
+      <Switch
+        className="ml-1"
+        aria-label="Toggle hide replies"
+        checked={filterByHideReplies}
       />
     </Button>
   );
@@ -442,7 +475,7 @@ export default function SearchPage() {
         <label htmlFor="desktop-search" className="sr-only">
           Search
         </label>
-        <div className="flex w-full max-w-lg items-center space-x-2">
+        <div className="flex w-full max-w-xl items-center space-x-2">
           <Input
             variantSize="lg"
             value={searchTerm}
@@ -451,20 +484,31 @@ export default function SearchPage() {
             placeholder="New search..."
             type="search"
             name="search"
+            className={isLoading ? "animate-pulse" : ""}
             autoFocus
           />
           <Button
             disabled={!canSearch}
             size="lg"
             type="button"
+            className="px-10"
             onClick={() => onSearch()}
           >
             Search
           </Button>
           <Button
             size="lg"
-            type="button"
             variant="outline"
+            className="px-4"
+            onClick={() => setShowFilter((prev) => !prev)}
+          >
+            <AdjustmentsHorizontalIcon className="h-5 w-5 mr-1" />
+            Filters
+          </Button>
+          <Button
+            size="lg"
+            type="button"
+            variant="secondary"
             className="px-4"
             onClick={() => onSaveSearch()}
           >
@@ -472,14 +516,17 @@ export default function SearchPage() {
             Save
           </Button>
         </div>
-        <div className="flex w-full space-x-2 max-w-lg mt-2">
-          {renderPowerBadgeFilter()}
-          {renderIntervalFilter()}
+        <div className="flex w-full space-x-2 max-w-lg mt-2 h-10">
+          {showFilter && (
+            <>
+              {renderPowerBadgeFilter()}
+              {renderHideRepliesFilter()}
+              {renderIntervalFilter()}
+            </>
+          )}
         </div>
       </div>
-      {isLoading &&
-        castHashes.length !== 0 &&
-        casts.length === 0 &&
+      {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
         renderLoading()}
       {!isLoading && searches.length > 0 && castHashes.length === 0 && (
         <div className="text-center mt-8 text-muted-foreground">
