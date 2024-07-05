@@ -20,7 +20,6 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
-import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { map, uniq } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
@@ -30,6 +29,9 @@ import {
   SearchIntervalFilter,
 } from "@/common/components/SearchIntervalFilter";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
+import { cn } from "@/lib/utils";
+import { BookmarkIcon } from "@heroicons/react/20/solid";
+import { usePostHog } from "posthog-js/react";
 
 type SearchFilters = {
   onlyPowerBadge: boolean;
@@ -87,7 +89,6 @@ const getSearchUrl = ({
   } else if (params.get("interval") === SearchInterval.all) {
     params.delete("interval");
   }
-  console.log("params", params.toString());
   const url = `/api/search?${params.toString()}`;
   return url;
 };
@@ -121,6 +122,8 @@ const searchForText = async ({
 };
 
 export default function SearchPage() {
+  const posthog = usePostHog();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [castHashes, setCastHashes] = useState<RawSearchResult[]>([]);
@@ -133,6 +136,7 @@ export default function SearchPage() {
   const activeSearchCounter = useRef(0);
   const [interval, setInterval] = useState<SearchInterval>();
   const [showFilter, setShowFilter] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   const {
     searches,
@@ -143,13 +147,11 @@ export default function SearchPage() {
     lists,
   } = useListStore();
   const canSearch = searchTerm.length >= 3;
-  const { selectedCast, updateSelectedCast } = useDataStore();
+  const { updateSelectedCast } = useDataStore();
 
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
-
-  console.log("castHashes", castHashes);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -185,14 +187,15 @@ export default function SearchPage() {
     if (selectedList && selectedList.type === "search") {
       const { term, filters } = selectedList.contents as {
         term?: string;
-        filters?: any;
+        filters?: SearchFilters;
       };
-      const { filterByPowerBadge } = filters || DEFAULT_FILTERS;
-      setFilterByPowerBadge(filterByPowerBadge);
+
+      const { onlyPowerBadge } = filters || DEFAULT_FILTERS;
+      setFilterByPowerBadge(onlyPowerBadge);
 
       if (term) {
         setSearchTerm(term);
-        onSearch(term, filterByPowerBadge);
+        onSearch(term, filters || DEFAULT_FILTERS);
       }
     }
   }, [selectedList]);
@@ -205,6 +208,14 @@ export default function SearchPage() {
     setCastHashes((prevCastHashes) =>
       uniq([...(reset ? [] : prevCastHashes), ...newCastHashes])
     );
+  };
+
+  const resetState = () => {
+    setError(null);
+    setIsLoading(true);
+    setCasts([]);
+    setCastHashes([]);
+    setHasMore(true);
   };
 
   const getFilters = () => ({
@@ -228,13 +239,11 @@ export default function SearchPage() {
         filters = getFilters();
       }
 
-      setError(null);
-      setIsLoading(true);
-      setCasts([]);
-      setCastHashes([]);
-
+      resetState();
+      posthog.capture("user_start_castSearch", {
+        term,
+      });
       const startedAt = Date.now();
-
       try {
         const searchResults = await searchForText({
           searchTerm: term,
@@ -250,37 +259,19 @@ export default function SearchPage() {
             `setting cast hashes for term ${term} - initial - ${searchResults.length} results`
           );
           addCastHashes(searchResults, true);
-          const endedAt1 = Date.now();
+          const endedAt = Date.now();
           addSearch({
             term,
             startedAt,
-            endedAt: endedAt1,
+            endedAt,
             resultsCount: searchResults.length,
           });
-          // const moreResults = await searchForText({
-          //   searchTerm: term,
-          //   filters,
-          //   limit: SEARCH_LIMIT_NEXT_LOAD,
-          //   orderBy: "timestamp DESC",
-          // });
-          // if (activeSearchCounter.current !== newSearchCounter) {
-          //   return;
-          // }
-          // if (moreResults.length > 0) {
-          //   console.log(
-          //     `setting cast hashes for term ${term} - followup - ${moreResults.length} results`
-          //   );
-          //   addCastHashes(moreResults, false);
-          // }
-          // const endedAt2 = Date.now();
-          // if (isDev()) {
-          //   addSearch({
-          //     term: `${term}-${newSearchCounter}-more`,
-          //     startedAt: endedAt1,
-          //     endedAt: endedAt2,
-          //     resultsCount: moreResults.length,
-          //   });
-          // }
+          // use posthog to track event
+          posthog.capture("backend_returns_castSearch", {
+            term,
+            resultsCount: searchResults.length,
+            duration: endedAt - startedAt,
+          });
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -294,18 +285,43 @@ export default function SearchPage() {
       filterByPowerBadge,
       filterByHideReplies,
       interval,
+      posthog,
     ]
   );
+
+  const onContinueSearch = () => {
+    setIsLoading(true);
+    searchForText({
+      searchTerm,
+      filters: getFilters(),
+      limit: SEARCH_LIMIT_NEXT_LOAD,
+      orderBy: "timestamp DESC",
+      offset: castHashes.length,
+    }).then((results) => {
+      if (results.length < SEARCH_LIMIT_NEXT_LOAD) {
+        setHasMore(false);
+      }
+      addCastHashes(results, false);
+      setIsLoading(false);
+    });
+  };
 
   const onSaveSearch = async () => {
     const newIdx = lists.reduce((max, list) => Math.max(max, list.idx), 0) + 1;
 
+    const contents = {
+      term: searchTerm,
+      filters: getFilters(),
+    };
     addList({
       name: searchTerm,
       type: "search",
-      contents: { term: searchTerm, filters: getFilters() },
+      contents,
       idx: newIdx,
       account_id: selectedAccount?.id,
+    });
+    posthog.capture("user_save_list", {
+      contents,
     });
   };
 
@@ -383,27 +399,16 @@ export default function SearchPage() {
     </li>
   );
 
-  const renderLoadMoreButton = () => (
-    <Button
-      size="lg"
-      disabled={isLoading}
-      onClick={() => {
-        setIsLoading(true);
-        searchForText({
-          searchTerm,
-          filters: getFilters(),
-          limit: SEARCH_LIMIT_NEXT_LOAD,
-          orderBy: "timestamp DESC",
-          offset: castHashes.length,
-        }).then((results) => {
-          addCastHashes(results, false);
-          setIsLoading(false);
-        });
-      }}
-    >
-      Load More
-    </Button>
-  );
+  const renderLoadMoreButton = () =>
+    hasMore ? (
+      <Button size="lg" disabled={isLoading} onClick={() => onContinueSearch()}>
+        Load More
+      </Button>
+    ) : (
+      <div className="text-muted-foreground">
+        No more results for {searchTerm} with your selected filters.
+      </div>
+    );
 
   const renderLoadingSpinner = () => (
     <div className="flex items-center justify-center">
@@ -423,9 +428,11 @@ export default function SearchPage() {
           <SkeletonCastRow />
         </>
       ) : (
-        castHashes.map((obj) => (
-          <SkeletonCastRow key={`skeleton-${obj?.hash}`} text={obj.text} />
-        ))
+        castHashes
+          .filter((obj) => !casts.some((cast) => cast.hash === obj.hash))
+          .map((obj) => (
+            <SkeletonCastRow key={`skeleton-${obj?.hash}`} text={obj.text} />
+          ))
       )}
     </div>
   );
@@ -466,7 +473,10 @@ export default function SearchPage() {
   );
 
   const renderIntervalFilter = () => (
-    <SearchIntervalFilter updateInterval={setInterval} />
+    <SearchIntervalFilter
+      defaultInterval={SearchInterval.d7}
+      updateInterval={setInterval}
+    />
   );
 
   return (
@@ -496,33 +506,41 @@ export default function SearchPage() {
           >
             Search
           </Button>
+
           <Button
             size="lg"
+            type="button"
             variant="outline"
-            className="px-4"
+            className="group px-4"
+            onClick={() => onSaveSearch()}
+          >
+            <BookmarkIcon className="group-hover:text-muted-foreground h-5 w-5 mr-1" />
+            Save
+          </Button>
+        </div>
+        <div className="flex w-full max-w-lg mt-2 h-12 space-x-2 ">
+          <Button
+            size="sm"
+            variant="outline"
+            className={cn(
+              "px-4",
+              showFilter ? "bg-muted text-muted-foreground" : ""
+            )}
             onClick={() => setShowFilter((prev) => !prev)}
           >
             <AdjustmentsHorizontalIcon className="h-5 w-5 mr-1" />
             Filters
           </Button>
-          <Button
-            size="lg"
-            type="button"
-            variant="secondary"
-            className="px-4"
-            onClick={() => onSaveSearch()}
-          >
-            <PlusCircleIcon className="h-5 w-5 mr-1" />
-            Save
-          </Button>
-        </div>
-        <div className="flex w-full space-x-2 max-w-lg mt-2 h-10">
           {showFilter && (
-            <>
+            <div
+              className={`space-x-2 transition-all duration-200 ${
+                showFilter ? "opacity-100" : "opacity-0"
+              }`}
+            >
               {renderPowerBadgeFilter()}
               {renderHideRepliesFilter()}
               {renderIntervalFilter()}
-            </>
+            </div>
           )}
         </div>
       </div>
