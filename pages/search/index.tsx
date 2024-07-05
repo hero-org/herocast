@@ -6,14 +6,6 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useHotkeys } from "react-hotkeys-hook";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
@@ -59,7 +51,7 @@ export default function SearchPage() {
   const [error, setError] = useState<Error | null>(null);
   const activeSearchCounter = useRef(0);
   const [interval, setInterval] = useState<SearchInterval>();
-  const [showFilter, setShowFilter] = useState(false);
+  const [showFilter, setShowFilter] = useState(true);
   const [hasMore, setHasMore] = useState(true);
 
   const {
@@ -70,7 +62,7 @@ export default function SearchPage() {
     updateSelectedList,
     lists,
   } = useListStore();
-  const canSearch = searchTerm.length >= 3;
+  const canSearch = searchTerm.trim().length >= 3;
   const lastSearchHasNoResults =
     searches[searches.length - 1]?.resultsCount === 0;
   const { updateSelectedCast } = useDataStore();
