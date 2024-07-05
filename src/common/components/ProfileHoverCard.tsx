@@ -64,7 +64,7 @@ const ProfileHoverCard = ({
   };
 
   return (
-    <HoverCard openDelay={0.1}>
+    <HoverCard openDelay={200}>
       <HoverCardTrigger onClick={onClick} ref={ref}>
         {children}
       </HoverCardTrigger>

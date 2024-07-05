@@ -6,7 +6,6 @@ import ChannelsOverview from "./ChannelsOverview";
 import { useRouter } from "next/router";
 import { useDataStore } from "@/stores/useDataStore";
 import ProfileInfo from "./ProfileInfo";
-import { useListStore } from "@/stores/useListStore";
 import SearchesOverview from "./SearchesOverview";
 import ListsOverview from "./ListsOverview";
 

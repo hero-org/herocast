@@ -13,11 +13,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { EllipsisVerticalIcon, MagnifyingGlassIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  EllipsisVerticalIcon,
+  MagnifyingGlassIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import { usePostHog } from "posthog-js/react";
 
 const ListsOverview = () => {
+  const posthog = usePostHog();
+
   const { selectedList, updateSelectedList, removeList, lists } =
     useListStore();
+
+  const onClickDelete = (id: string) => {
+    removeList(id);
+    posthog.capture("user_delete_list");
+  };
 
   const renderList = (list: List) => {
     return (
@@ -54,7 +66,7 @@ const ListsOverview = () => {
                 Search
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => removeList(list.id)}>
+              <DropdownMenuItem onClick={() => onClickDelete(list.id)}>
                 <TrashIcon className="h-4 w-4 mr-2" />
                 Delete
               </DropdownMenuItem>

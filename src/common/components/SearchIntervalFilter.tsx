@@ -18,11 +18,21 @@ import {
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 
 export enum SearchInterval {
+  d1 = "1 day",
+  d7 = "7 days",
   d30 = "30 days",
   all = "all",
 }
 
 const intervals = [
+  {
+    label: "1 day",
+    value: SearchInterval.d1,
+  },
+  {
+    label: "7 days",
+    value: SearchInterval.d7,
+  },
   {
     label: "30 days",
     value: SearchInterval.d30,
@@ -34,17 +44,19 @@ const intervals = [
 ];
 
 export function SearchIntervalFilter({
+  defaultInterval,
   updateInterval,
 }: {
+  defaultInterval?: SearchInterval;
   updateInterval: (value: SearchInterval) => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState<SearchInterval | null>(
-    intervals[0].value
+  const [value, setValue] = React.useState<SearchInterval | undefined>(
+    defaultInterval
   );
 
   const handleSelect = (currentValue: SearchInterval) => {
-    setValue(currentValue === value ? null : currentValue);
+    setValue(currentValue === value ? undefined : currentValue);
     updateInterval(currentValue);
     setOpen(false);
   };
@@ -59,7 +71,7 @@ export function SearchIntervalFilter({
           aria-expanded={open}
           className="w-[110px] justify-between"
         >
-          {value !== null
+          {value !== undefined
             ? intervals.find((framework) => framework.value === value)?.label
             : "Interval..."}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />

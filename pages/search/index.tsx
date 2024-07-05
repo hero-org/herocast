@@ -20,104 +20,34 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
-import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { map, uniq } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
-import { isDev } from "@/common/helpers/env";
 import {
   SearchInterval,
   SearchIntervalFilter,
 } from "@/common/components/SearchIntervalFilter";
-
-type SearchFilters = {
-  filterByPowerBadge: boolean;
-  interval?: SearchInterval;
-};
-
-type SearchForTextParams = {
-  searchTerm: string;
-  filters?: SearchFilters;
-  limit?: number;
-  offset?: number;
-  interval?: string;
-  orderBy?: string;
-};
-const getSearchUrl = ({
-  searchTerm,
-  filters,
-  limit,
-  offset,
-  interval,
-  orderBy,
-}: SearchForTextParams): string => {
-  const params = new URLSearchParams({ term: searchTerm });
-  if (limit) params.append("limit", limit.toString());
-  if (offset) params.append("offset", offset.toString());
-  if (interval) params.append("interval", interval);
-  if (orderBy) params.append("orderBy", orderBy);
-  if (filters) {
-    Object.keys(filters).forEach((key) => {
-      if (filters[key] !== undefined) {
-        params.set(key, filters[key].toString());
-      }
-    });
-  }
-  if (!params.get("interval")) {
-    params.set("interval", "30 days");
-  } else if (params.get("interval") === "all") {
-    params.delete("interval");
-  }
-  const url = `/api/search?${params.toString()}`;
-  return url;
-};
-
-const searchForText = async ({
-  searchTerm,
-  filters,
-  limit,
-  offset,
-  interval,
-  orderBy,
-}: SearchForTextParams): Promise<RawSearchResult[]> => {
-  try {
-    const searchUrl = getSearchUrl({
-      searchTerm,
-      filters,
-      limit,
-      offset,
-      interval,
-      orderBy,
-    });
-    const response = await fetch(searchUrl);
-    const data = await response.json();
-    if (!data || data?.error) return [];
-
-    return data;
-  } catch (error) {
-    console.error("Failed to search for text", searchTerm, error);
-    return [];
-  }
-};
+import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
+import { cn } from "@/lib/utils";
+import { BookmarkIcon } from "@heroicons/react/20/solid";
+import { usePostHog } from "posthog-js/react";
+import { SearchFilters } from "@/common/helpers/search";
+import { searchForText } from "@/common/helpers/search";
+import { RawSearchResult } from "@/common/helpers/search";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
 const SEARCH_LIMIT_NEXT_LOAD = 10;
-const SEARCH_LIMIT = SEARCH_LIMIT_INITIAL_LOAD + SEARCH_LIMIT_NEXT_LOAD - 1;
 
-const DEFAULT_FILTERS: SearchFilters = {
-  filterByPowerBadge: true,
-  interval: SearchInterval.d30,
-};
-
-type RawSearchResult = {
-  hash: string;
-  fid: number;
-  text: string;
-  timestamp: string;
+export const DEFAULT_FILTERS: SearchFilters = {
+  onlyPowerBadge: true,
+  interval: SearchInterval.d7,
+  hideReplies: true,
 };
 
 export default function SearchPage() {
+  const posthog = usePostHog();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [castHashes, setCastHashes] = useState<RawSearchResult[]>([]);
@@ -125,9 +55,12 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchCounter, setSearchCounter] = useState(0);
   const [filterByPowerBadge, setFilterByPowerBadge] = useState(true);
+  const [filterByHideReplies, setFilterByHideReplies] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const activeSearchCounter = useRef(0);
   const [interval, setInterval] = useState<SearchInterval>();
+  const [showFilter, setShowFilter] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   const {
     searches,
@@ -138,7 +71,7 @@ export default function SearchPage() {
     lists,
   } = useListStore();
   const canSearch = searchTerm.length >= 3;
-  const { selectedCast, updateSelectedCast } = useDataStore();
+  const { updateSelectedCast } = useDataStore();
 
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
@@ -178,14 +111,15 @@ export default function SearchPage() {
     if (selectedList && selectedList.type === "search") {
       const { term, filters } = selectedList.contents as {
         term?: string;
-        filters?: any;
+        filters?: SearchFilters;
       };
-      const { filterByPowerBadge } = filters || DEFAULT_FILTERS;
-      setFilterByPowerBadge(filterByPowerBadge);
+
+      const { onlyPowerBadge } = filters || DEFAULT_FILTERS;
+      setFilterByPowerBadge(onlyPowerBadge);
 
       if (term) {
         setSearchTerm(term);
-        onSearch(term, filterByPowerBadge);
+        onSearch(term, filters || DEFAULT_FILTERS);
       }
     }
   }, [selectedList]);
@@ -200,7 +134,20 @@ export default function SearchPage() {
     );
   };
 
-  const getFilters = () => ({ filterByPowerBadge, interval });
+  const resetState = () => {
+    setError(null);
+    setIsLoading(true);
+    setCasts([]);
+    setCastHashes([]);
+    setHasMore(true);
+  };
+
+  const getFilters = () => ({
+    interval,
+    orderBy: "timestamp DESC",
+    onlyPowerBadge: filterByPowerBadge,
+    hideReplies: filterByHideReplies,
+  });
 
   const onSearch = useCallback(
     async (term?: string, filters?: SearchFilters) => {
@@ -216,13 +163,11 @@ export default function SearchPage() {
         filters = getFilters();
       }
 
-      setError(null);
-      setIsLoading(true);
-      setCasts([]);
-      setCastHashes([]);
-
+      resetState();
+      posthog.capture("user_start_castSearch", {
+        term,
+      });
       const startedAt = Date.now();
-
       try {
         const searchResults = await searchForText({
           searchTerm: term,
@@ -238,37 +183,19 @@ export default function SearchPage() {
             `setting cast hashes for term ${term} - initial - ${searchResults.length} results`
           );
           addCastHashes(searchResults, true);
-          const endedAt1 = Date.now();
+          const endedAt = Date.now();
           addSearch({
             term,
             startedAt,
-            endedAt: endedAt1,
+            endedAt,
             resultsCount: searchResults.length,
           });
-          const moreResults = await searchForText({
-            searchTerm: term,
-            filters,
-            limit: SEARCH_LIMIT_NEXT_LOAD,
-            orderBy: "timestamp DESC",
+          // use posthog to track event
+          posthog.capture("backend_returns_castSearch", {
+            term,
+            resultsCount: searchResults.length,
+            duration: endedAt - startedAt,
           });
-          if (activeSearchCounter.current !== newSearchCounter) {
-            return;
-          }
-          if (moreResults.length > 0) {
-            console.log(
-              `setting cast hashes for term ${term} - followup - ${moreResults.length} results`
-            );
-            addCastHashes(moreResults, false);
-          }
-          const endedAt2 = Date.now();
-          if (isDev()) {
-            addSearch({
-              term: `${term}-${newSearchCounter}-more`,
-              startedAt: endedAt1,
-              endedAt: endedAt2,
-              resultsCount: moreResults.length,
-            });
-          }
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -276,18 +203,49 @@ export default function SearchPage() {
         setIsLoading(false);
       }
     },
-    [searchCounter, searchTerm, filterByPowerBadge]
+    [
+      searchCounter,
+      searchTerm,
+      filterByPowerBadge,
+      filterByHideReplies,
+      interval,
+      posthog,
+    ]
   );
+
+  const onContinueSearch = () => {
+    setIsLoading(true);
+    searchForText({
+      searchTerm,
+      filters: getFilters(),
+      limit: SEARCH_LIMIT_NEXT_LOAD,
+      orderBy: "timestamp DESC",
+      offset: castHashes.length,
+    }).then((results) => {
+      if (results.length < SEARCH_LIMIT_NEXT_LOAD) {
+        setHasMore(false);
+      }
+      addCastHashes(results, false);
+      setIsLoading(false);
+    });
+  };
 
   const onSaveSearch = async () => {
     const newIdx = lists.reduce((max, list) => Math.max(max, list.idx), 0) + 1;
 
+    const contents = {
+      term: searchTerm,
+      filters: getFilters(),
+    };
     addList({
       name: searchTerm,
       type: "search",
-      contents: { term: searchTerm, filters: getFilters() },
+      contents,
       idx: newIdx,
       account_id: selectedAccount?.id,
+    });
+    posthog.capture("user_save_list", {
+      contents,
     });
   };
 
@@ -312,11 +270,14 @@ export default function SearchPage() {
         );
         setCasts(sortedCasts);
       } catch (error) {
-        setError(error);
+        if (error instanceof Error) {
+          setError(error);
+        } else {
+          setError(new Error(`Unknown error occurred ${error}`));
+        }
         console.error("Failed to fetch casts", newCastHashes, error);
       }
     };
-
     const newCastHashes = map(castHashes, "hash").filter(
       (hash) => !casts.find((cast) => cast.hash === hash)
     );
@@ -365,27 +326,16 @@ export default function SearchPage() {
     </li>
   );
 
-  const renderLoadMoreButton = () => (
-    <Button
-      size="lg"
-      disabled={isLoading}
-      onClick={() => {
-        setIsLoading(true);
-        searchForText({
-          searchTerm,
-          filters: getFilters(),
-          limit: SEARCH_LIMIT_NEXT_LOAD,
-          orderBy: "timestamp DESC",
-          offset: castHashes.length,
-        }).then((results) => {
-          addCastHashes(results, false);
-          setIsLoading(false);
-        });
-      }}
-    >
-      Load More
-    </Button>
-  );
+  const renderLoadMoreButton = () =>
+    hasMore ? (
+      <Button size="lg" disabled={isLoading} onClick={() => onContinueSearch()}>
+        Load More
+      </Button>
+    ) : (
+      <div className="text-muted-foreground">
+        No more results for {searchTerm} with your selected filters.
+      </div>
+    );
 
   const renderLoadingSpinner = () => (
     <div className="flex items-center justify-center">
@@ -405,9 +355,11 @@ export default function SearchPage() {
           <SkeletonCastRow />
         </>
       ) : (
-        castHashes.map((obj) => (
-          <SkeletonCastRow key={`skeleton-${obj?.hash}`} text={obj.text} />
-        ))
+        castHashes
+          .filter((obj) => !casts.some((cast) => cast.hash === obj.hash))
+          .map((obj) => (
+            <SkeletonCastRow key={`skeleton-${obj?.hash}`} text={obj.text} />
+          ))
       )}
     </div>
   );
@@ -418,7 +370,7 @@ export default function SearchPage() {
       size="sm"
       onClick={() => setFilterByPowerBadge((prev) => !prev)}
     >
-      Only Power Badge
+      Power Badge
       <img
         src="/images/ActiveBadge.webp"
         className="ml-1 h-4 w-4"
@@ -432,8 +384,26 @@ export default function SearchPage() {
     </Button>
   );
 
+  const renderHideRepliesFilter = () => (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setFilterByHideReplies((prev) => !prev)}
+    >
+      Hide replies
+      <Switch
+        className="ml-1"
+        aria-label="Toggle hide replies"
+        checked={filterByHideReplies}
+      />
+    </Button>
+  );
+
   const renderIntervalFilter = () => (
-    <SearchIntervalFilter updateInterval={setInterval} />
+    <SearchIntervalFilter
+      defaultInterval={SearchInterval.d7}
+      updateInterval={setInterval}
+    />
   );
 
   return (
@@ -442,7 +412,7 @@ export default function SearchPage() {
         <label htmlFor="desktop-search" className="sr-only">
           Search
         </label>
-        <div className="flex w-full max-w-lg items-center space-x-2">
+        <div className="flex w-full max-w-xl items-center space-x-2">
           <Input
             variantSize="lg"
             value={searchTerm}
@@ -451,35 +421,57 @@ export default function SearchPage() {
             placeholder="New search..."
             type="search"
             name="search"
+            className={isLoading ? "animate-pulse" : ""}
             autoFocus
           />
           <Button
             disabled={!canSearch}
             size="lg"
             type="button"
+            className="px-10"
             onClick={() => onSearch()}
           >
             Search
           </Button>
+
           <Button
             size="lg"
             type="button"
             variant="outline"
-            className="px-4"
+            className="group px-4"
             onClick={() => onSaveSearch()}
           >
-            <PlusCircleIcon className="h-5 w-5 mr-1" />
+            <BookmarkIcon className="group-hover:text-muted-foreground h-5 w-5 mr-1" />
             Save
           </Button>
         </div>
-        <div className="flex w-full space-x-2 max-w-lg mt-2">
-          {renderPowerBadgeFilter()}
-          {renderIntervalFilter()}
+        <div className="flex w-full max-w-lg mt-2 h-12 space-x-2 ">
+          <Button
+            size="sm"
+            variant="outline"
+            className={cn(
+              "px-4",
+              showFilter ? "bg-muted text-muted-foreground" : ""
+            )}
+            onClick={() => setShowFilter((prev) => !prev)}
+          >
+            <AdjustmentsHorizontalIcon className="h-5 w-5 mr-1" />
+            Filters
+          </Button>
+          {showFilter && (
+            <div
+              className={`space-x-2 transition-all duration-200 ${
+                showFilter ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              {renderPowerBadgeFilter()}
+              {renderHideRepliesFilter()}
+              {renderIntervalFilter()}
+            </div>
+          )}
         </div>
       </div>
-      {isLoading &&
-        castHashes.length !== 0 &&
-        casts.length === 0 &&
+      {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
         renderLoading()}
       {!isLoading && searches.length > 0 && castHashes.length === 0 && (
         <div className="text-center mt-8 text-muted-foreground">
