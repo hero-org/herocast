@@ -23,7 +23,6 @@ import { useListStore } from "@/stores/useListStore";
 import { map, uniq } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
-import { isDev } from "@/common/helpers/env";
 import {
   SearchInterval,
   SearchIntervalFilter,
@@ -32,93 +31,18 @@ import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { BookmarkIcon } from "@heroicons/react/20/solid";
 import { usePostHog } from "posthog-js/react";
+import { SearchFilters } from "@/common/helpers/search";
+import { searchForText } from "@/common/helpers/search";
+import { RawSearchResult } from "@/common/helpers/search";
 
-type SearchFilters = {
-  onlyPowerBadge: boolean;
-  interval?: SearchInterval;
-  hideReplies: boolean;
-};
-
-type SearchForTextParams = {
-  searchTerm: string;
-  filters?: SearchFilters;
-  limit?: number;
-  offset?: number;
-  interval?: string;
-  orderBy?: string;
-};
-
-type RawSearchResult = {
-  hash: string;
-  fid: number;
-  text: string;
-  timestamp: string;
-};
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
 const SEARCH_LIMIT_NEXT_LOAD = 10;
 
-const DEFAULT_FILTERS: SearchFilters = {
+export const DEFAULT_FILTERS: SearchFilters = {
   onlyPowerBadge: true,
   interval: SearchInterval.d7,
   hideReplies: true,
-};
-
-const getSearchUrl = ({
-  searchTerm,
-  filters,
-  limit,
-  offset,
-  interval,
-  orderBy,
-}: SearchForTextParams): string => {
-  const params = new URLSearchParams({ term: searchTerm });
-  if (limit) params.append("limit", limit.toString());
-  if (offset) params.append("offset", offset.toString());
-  if (interval) params.append("interval", interval);
-  if (orderBy) params.append("orderBy", orderBy);
-  if (filters) {
-    Object.keys(filters).forEach((key) => {
-      if (filters[key] !== undefined) {
-        params.set(key, filters[key].toString());
-      }
-    });
-  }
-  if (!params.get("interval")) {
-    params.set("interval", DEFAULT_FILTERS.interval!);
-  } else if (params.get("interval") === SearchInterval.all) {
-    params.delete("interval");
-  }
-  const url = `/api/search?${params.toString()}`;
-  return url;
-};
-
-const searchForText = async ({
-  searchTerm,
-  filters,
-  limit,
-  offset,
-  interval,
-  orderBy,
-}: SearchForTextParams): Promise<RawSearchResult[]> => {
-  try {
-    const searchUrl = getSearchUrl({
-      searchTerm,
-      filters,
-      limit,
-      offset,
-      interval,
-      orderBy,
-    });
-    const response = await fetch(searchUrl);
-    const data = await response.json();
-    if (!data || data?.error) return [];
-
-    return data;
-  } catch (error) {
-    console.error("Failed to search for text", searchTerm, error);
-    return [];
-  }
 };
 
 export default function SearchPage() {
@@ -346,11 +270,14 @@ export default function SearchPage() {
         );
         setCasts(sortedCasts);
       } catch (error) {
-        setError(error);
+        if (error instanceof Error) {
+          setError(error);
+        } else {
+          setError(new Error(`Unknown error occurred ${error}`));
+        }
         console.error("Failed to fetch casts", newCastHashes, error);
       }
     };
-
     const newCastHashes = map(castHashes, "hash").filter(
       (hash) => !casts.find((cast) => cast.hash === hash)
     );
