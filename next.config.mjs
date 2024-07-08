@@ -38,6 +38,19 @@ const nextConfig = {
       },
     ]
   },
+  async headers() {
+    return [
+      {
+        source: '/api/search',
+        headers: [
+          {
+            'key': 'Cache-Control',
+            'value': 'public, max-age=300, s-maxage=300, stale-while-revalidate=300',
+          }
+        ]
+      }
+    ];
+  },
 }
 
 export default withSentryConfig(nextConfig, {
