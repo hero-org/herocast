@@ -25,16 +25,24 @@ enum FeedTypeEnum {
   "likes" = "Likes",
 }
 
+const getUsernameAndFidFromSlug = (slug: string) => {
+  const fid = slug.startsWith("fid:") ? slug.slice(4) : undefined;
+  if (fid) {
+    return { username: undefined, fid };
+  }
+  const username = slug.startsWith("@") ? slug.slice(1) : slug;
+  return { username, fid };
+};
+
 const ProfilePage = () => {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
-  const username = slug?.startsWith("@") ? slug.slice(1) : slug;
-
+  const { username, fid } = getUsernameAndFidFromSlug(slug!);
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
 
-  const profile = useDataStore((state) => getProfile(state, username));
+  const profile = useDataStore((state) => getProfile(state, username, fid));
   const { addUserProfile } = useDataStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
 
@@ -49,6 +57,7 @@ const ProfilePage = () => {
     const getData = async () => {
       const users = await getUserDataForFidOrUsername({
         username,
+        fid: Number(fid),
         viewerFid,
       });
 
