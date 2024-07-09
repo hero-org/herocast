@@ -44,6 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         const queryStart = process.hrtime();
+        await AppDataSource.query(`SET work_mem TO '32MB';`);
 
         const searchRepository = AppDataSource.getRepository(Cast);
         const results = await searchRepository.query(query, vars);
