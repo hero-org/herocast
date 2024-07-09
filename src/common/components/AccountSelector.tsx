@@ -49,6 +49,7 @@ export function AccountSelector({
     <>
       <div className="flex flex-col">
         <Button
+          size="sm"
           variant="secondary"
           className="w-20"
           disabled={isLoading}
@@ -60,7 +61,7 @@ export function AccountSelector({
         >
           {isLoading ? "Loading..." : "Retry"}
         </Button>
-      <Label className="mt-2">Failed to find pending account</Label>
+        <Label className="mt-2">Failed to find pending account</Label>
       </div>
     </>
   );
@@ -69,23 +70,21 @@ export function AccountSelector({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          size="sm"
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("max-w-full w-[450px] justify-between", className)}
+          className={cn("w-full max-w-[150px] justify-between", className)}
         >
           {selectedAccount ? (
             <div className="flex">
               {selectedAccount?.user?.pfp_url && (
                 <img
                   src={selectedAccount?.user?.pfp_url}
-                  className="mr-1 bg-gray-100 border h-5 w-5 flex-none shrink-0 rounded-full"
+                  className="mr-1 bg-gray-100 border h-4 w-4 flex-none shrink-0 rounded-full"
                 />
               )}
               {selectedAccount.name}{" "}
-              <span className="ml-2 text-[0.8rem] text-muted-foreground">
-                fid {selectedAccount.platformAccountId}
-              </span>
             </div>
           ) : (
             "Select..."
@@ -118,7 +117,7 @@ export function AccountSelector({
                   />
                   {account.name}
                   <span className="ml-1 text-[0.8rem] text-muted-foreground">
-                    (fid {account.platformAccountId})
+                    fid {account.platformAccountId}
                   </span>
                 </CommandItem>
               ))}

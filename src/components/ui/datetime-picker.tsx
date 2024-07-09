@@ -392,7 +392,7 @@ const DateTimePicker = React.forwardRef<
       ref={divRef}
       className={cn(
         groupProps.className,
-        "flex items-center h-10 rounded-lg px-0 border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+        "w-full max-w-48 flex items-center h-9 rounded-lg px-0 border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
       )}
     >
       <Popover open={props.isOpen} onOpenChange={props.onOpenChange}>
@@ -411,10 +411,7 @@ const DateTimePicker = React.forwardRef<
         </PopoverTrigger>
         <PopoverContent ref={contentRef} className="w-full">
           <div {...dialogProps} className="space-y-3">
-            <Calendar
-              {...calendarProps}
-              minValue={today(getLocalTimeZone())}
-            />
+            <Calendar {...calendarProps} minValue={today(getLocalTimeZone())} />
             {state.hasTime && (
               <TimeField
                 minValue={state.minValue}

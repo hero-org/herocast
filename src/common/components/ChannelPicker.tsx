@@ -99,7 +99,7 @@ export function ChannelPicker(props: Props) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          className="h-10 px-4"
+          className="h-9 px-4"
           disabled={props.disabled}
           variant="outline"
           role="combobox"

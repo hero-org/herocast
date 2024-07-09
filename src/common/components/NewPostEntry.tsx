@@ -279,7 +279,7 @@ export default function NewPostEntry({
             </div>
           )}
           <Button
-            className="h-10"
+            className="h-9"
             type="button"
             variant="outline"
             disabled={isPublishing}
@@ -318,6 +318,7 @@ export default function NewPostEntry({
           <div className="grow"></div>
           {onRemove && (
             <Button
+              className="h-9"
               variant="outline"
               type="button"
               onClick={onRemove}
@@ -340,7 +341,7 @@ export default function NewPostEntry({
           <Button
             size="lg"
             type="submit"
-            className="line-clamp-1 min-w-40 max-w-xs truncate"
+            className="line-clamp-1 min-w-48 max-w-md truncate"
             disabled={isPublishing}
           >
             {getButtonText()}
@@ -348,7 +349,7 @@ export default function NewPostEntry({
         </div>
       </form>
       {hasEmbeds && (
-        <div className="mt-8 rounded-md bg-muted p-2 w-full break-all">
+        <div className="mt-8 rounded-md bg-muted/50 p-2 w-full break-all">
           {map(draft.embeds, (embed) => (
             <div key={`cast-embed-${embed?.url || embed?.hash}`}>
               {renderEmbedForUrl(embed)}

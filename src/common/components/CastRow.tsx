@@ -35,9 +35,9 @@ import { toastInfoReadOnlyMode } from "../helpers/toast";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useDraftStore } from "@/stores/useDraftStore";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -172,8 +172,9 @@ export const CastRow = ({
     setSelectedChannelUrl,
   } = useAccountStore();
 
-  const { setCastModalView, openNewCastModal } = useNavigationStore();
-
+  const { setCastModalDraftId, setCastModalView, openNewCastModal } =
+    useNavigationStore();
+  const { addNewPostDraft } = useDraftStore();
   const { updateSelectedCast } = useDataStore();
 
   const [didLike, setDidLike] = useState(false);
@@ -189,13 +190,35 @@ export const CastRow = ({
   const onReply = () => {
     setCastModalView(CastModalView.Reply);
     updateSelectedCast(cast);
-    openNewCastModal();
+    addNewPostDraft({
+      parentCastId: {
+        hash: cast.hash,
+        fid: cast.author.fid.toString(),
+      },
+      onSuccess(draftId) {
+        setCastModalDraftId(draftId);
+        openNewCastModal();
+      },
+    });
   };
 
   const onQuote = () => {
     setCastModalView(CastModalView.Quote);
     updateSelectedCast(cast);
-    openNewCastModal();
+    addNewPostDraft({
+      embeds: [
+        {
+          castId: {
+            hash: cast.hash,
+            fid: cast.author.fid.toString(),
+          },
+        },
+      ],
+      onSuccess(draftId) {
+        setCastModalDraftId(draftId);
+        openNewCastModal();
+      },
+    });
   };
 
   const getCastReactionsObj = () => {
@@ -313,12 +336,13 @@ export const CastRow = ({
 
     try {
       if (key === CastReactionType.replies) {
-        onReply?.();
+        onReply();
+
         return;
       }
 
       if (key === CastReactionType.quote) {
-        onQuote?.();
+        onQuote();
         return;
       }
 
