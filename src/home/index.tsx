@@ -376,7 +376,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </h1>
           </div>
         )}
-        <main className="">
+        <main>
           {!isHydrated ? (
             <Loading className="ml-8" loadingMessage="Loading herocast" />
           ) : (

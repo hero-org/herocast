@@ -52,7 +52,7 @@ export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
   if (castBody.parentCastId) {
     castBody.parentCastId = {
       fid: Number(castBody.parentCastId.fid),
-      hash: toHex(tocastBody.parentCastId.hash),
+      hash: toHex(castBody.parentCastId.hash),
     };
   }
   if (castBody.embeds) {

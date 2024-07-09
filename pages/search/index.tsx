@@ -377,7 +377,7 @@ export default function SearchPage() {
       variant="outline"
       className="mt-1 w-20 mx-auto"
       disabled={!canSearch}
-      onClick={() => onSearch()}
+      onClick={() => onContinueSearch()}
     >
       Try again
     </Button>

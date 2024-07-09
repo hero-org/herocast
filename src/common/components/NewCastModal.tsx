@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import Modal from "./Modal";
 import NewPostEntry from "./NewPostEntry";
 import { useDraftStore } from "@/stores/useDraftStore";
-import { CastRow, CastToReplyType } from "./CastRow";
+import { CastRow } from "./CastRow";
 import { useHotkeys } from "react-hotkeys-hook";
 import { AccountSelector } from "./AccountSelector";
 import { AccountStatusType } from "../constants/accounts";
@@ -19,23 +19,19 @@ type NewCastModalProps = {
 const NewCastModal = ({ draftId, open, setOpen }: NewCastModalProps) => {
   const { castModalView } = useNavigationStore();
   const { selectedCast } = useDataStore();
-  const { addNewPostDraft, drafts, removePostDraftById } = useDraftStore();
+  const { drafts, removePostDraftById } = useDraftStore();
   const draftIdx = useMemo(
     () => drafts.findIndex((draft) => draft.id === draftId),
     [draftId, drafts]
   );
-  console.log("drafts", drafts);
   const draft = draftIdx !== undefined ? drafts[draftIdx] : undefined;
-
-  // const selectedCast = draft?.embeds?.[0]?.castId || draft?.parentCastId;
-  console.log("draft", draft, "linkedCast", selectedCast);
 
   useEffect(() => {
     return () => {
       if (open) return;
 
       if (draftId !== undefined) {
-        console.log('removeDraft from NewCastModal closing', draftId)
+        console.log("removeDraft from NewCastModal closing", draftId);
         removePostDraftById(draftId);
       }
     };
