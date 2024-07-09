@@ -457,7 +457,7 @@ export default function SearchPage() {
       </div>
       {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
         renderLoading()}
-      {!isLoading && lastSearchHasNoResults && (
+      {!isLoading && isEmpty(casts) && (
         <div className="flex flex-col text-center mt-8 text-muted-foreground">
           <span>No results found</span>
           {renderTryAgainButton()}
