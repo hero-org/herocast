@@ -42,7 +42,7 @@ const getSearchUrl = ({
     }
     if (!params.get("interval")) {
         params.set("interval", DEFAULT_FILTERS.interval!);
-    } else if (params.get("interval") === SearchInterval.all) {
+    } else if (params.get("interval") === SearchInterval.m3) {
         params.delete("interval");
     }
     const url = `/api/search?${params.toString()}`;

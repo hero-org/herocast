@@ -21,7 +21,7 @@ export enum SearchInterval {
   d1 = "1 day",
   d7 = "7 days",
   d30 = "30 days",
-  all = "all",
+  m3 = "3 months",
 }
 
 const intervals = [
@@ -38,8 +38,8 @@ const intervals = [
     value: SearchInterval.d30,
   },
   {
-    label: "All time",
-    value: SearchInterval.all,
+    label: "3 months",
+    value: SearchInterval.m3,
   },
 ];
 
@@ -77,7 +77,7 @@ export function SearchIntervalFilter({
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[110px] p-0">
+      <PopoverContent className="w-[120px] p-0">
         <Command>
           <CommandList>
             <CommandGroup>
