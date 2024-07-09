@@ -4,7 +4,6 @@ import { Dialog, Transition } from "@headlessui/react";
 import {
   Cog6ToothIcon,
   PlusCircleIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Bars3Icon, UserPlusIcon } from "@heroicons/react/24/solid";
 import { classNames } from "@/common/helpers/css";
@@ -35,7 +34,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import NewCastModal from "@/common/components/NewCastModal";
-import { useDataStore } from "@/stores/useDataStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 
 type NavigationItemType = {
@@ -55,9 +53,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl, isHydrated } = useAccountStore();
-  const { selectedCast, updateSelectedCast } = useDataStore();
-  const { isNewCastModalOpen, openNewCastModal, closeNewCastModal } = useNavigationStore();
-    
+  const {
+    castModalDraftId,
+    isNewCastModalOpen,
+    openNewCastModal,
+    closeNewCastModal,
+  } = useNavigationStore();
+
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
@@ -235,13 +237,16 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     return children;
   }
 
-  const renderNewCastModal =()  => (
-    <NewCastModal
-    open={isNewCastModalOpen}
-    setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
-    linkedCast={selectedCast}
-  />
-  );
+  const renderNewCastModal = () =>
+    castModalDraftId !== undefined && (
+      <NewCastModal
+        draftId={castModalDraftId}
+        open={isNewCastModalOpen}
+        setOpen={(isOpen) =>
+          isOpen ? openNewCastModal() : closeNewCastModal()
+        }
+      />
+    );
 
   return (
     <div className="h-full bg-background">

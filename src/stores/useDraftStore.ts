@@ -121,6 +121,7 @@ type addNewPostDraftProps = {
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
   embeds?: FarcasterEmbed[];
+  onSuccess?: (draftId) => void;
 };
 
 type addScheduledDraftProps = {
@@ -137,11 +138,11 @@ interface NewPostStoreProps {
 interface DraftStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
-  addNewPostDraft: ({ text, parentCastId, parentUrl, embeds }: addNewPostDraftProps) => void;
+  addNewPostDraft: ({ text, parentCastId, parentUrl, embeds, onSuccess }: addNewPostDraftProps) => void;
   addScheduledDraft: ({ castBody, scheduledFor }: addScheduledDraftProps) => void;
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => void;
   removePostDraftById: (draftId: UUID) => void;
-  removeScheduledDraft: (draftId: UUID) => Promise<boolean>;
+  removeScheduledDraftFromDB: (draftId: UUID) => Promise<boolean>;
   removeAllPostDrafts: () => void;
   removeEmptyDrafts: () => void;
   publishPostDraft: (
@@ -162,19 +163,18 @@ type StoreSet = (fn: (draft: Draft<DraftStore>) => void) => void;
 const store = (set: StoreSet) => ({
   drafts: [],
   isHydrated: false,
-  addNewPostDraft: ({ text, parentUrl, parentCastId, embeds }: addNewPostDraftProps) => {
+  addNewPostDraft: ({ text, parentUrl, parentCastId, embeds, onSuccess }: addNewPostDraftProps) => {
     set((state) => {
       if (!text && !parentUrl && !parentCastId && !embeds) {
         // check if there is an existing empty draft
         for (let i = 0; i < state.drafts.length; i++) {
           const draft = state.drafts[i];
           if (!draft.text && !draft.parentUrl && !draft.parentCastId && !draft.embeds) {
-            console.log('found an empty draft')
+            onSuccess?.(draft.id);
             return;
           }
         }
       }
-
       if (parentUrl || parentCastId) {
         // check if there is an existing draft for the same parent
         for (let i = 0; i < state.drafts.length; i++) {
@@ -184,6 +184,7 @@ const store = (set: StoreSet) => ({
             (parentCastId &&
               parentCastId.hash === draft.parentCastId?.hash)
           ) {
+            onSuccess?.(draft.id);
             return;
           }
         }
@@ -193,6 +194,7 @@ const store = (set: StoreSet) => ({
       const id = uuidv4();
       const newDraft = { ...NewPostDraft, text: text || '', id, parentUrl, parentCastId, embeds, createdAt };
       state.drafts = [...state.drafts, newDraft];
+      onSuccess?.(id);
     });
   },
   updatePostDraft: (draftIdx: number, draft: DraftType) => {
@@ -250,8 +252,12 @@ const store = (set: StoreSet) => ({
     set(async (state) => {
       const draftIdx = state.drafts.findIndex((draft) => draft.id === draftId);
       const draft = state.drafts[draftIdx];
+      if (!draft) {
+        return;
+      }
+
       if (draft.status === DraftStatus.scheduled) {
-        const didRemove = await state.removeScheduledDraft(draftId);
+        const didRemove = await state.removeScheduledDraftFromDB(draftId);
         if (!didRemove) {
           return;
         }
@@ -276,11 +282,12 @@ const store = (set: StoreSet) => ({
       }
 
       const draft = state.drafts[draftIdx];
+      console.log('publishPostDraft draft:', JSON.stringify(draft))
 
       try {
         await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody = await prepareCastBody(draft);
-
+        console.log('castBody', castBody)
         await submitCast({
           ...castBody,
           signerPrivateKey: account.privateKey!,
@@ -324,7 +331,7 @@ const store = (set: StoreSet) => ({
       console.log('addScheduledDraft end, now has drafts:', state.drafts.length)
     });
   },
-  removeScheduledDraft: async (draftId: UUID): Promise<boolean> => {
+  removeScheduledDraftFromDB: async (draftId: UUID): Promise<boolean> => {
     const supabaseClient = createClient();
     const { data, error } = await supabaseClient
       .from('draft')

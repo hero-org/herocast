@@ -15,12 +15,14 @@ export enum CastModalView {
 }
 
 interface NavigationStoreProps {
+  castModalDraftId?: string;
   isNewCastModalOpen: boolean;
   castModalView: CastModalView;
   isCommandPaletteOpen: boolean;
 }
 
 interface NavigationStoreActions {
+  setCastModalDraftId: (draftId: number) => void;
   setCastModalView: (view: CastModalView) => void;
   openNewCastModal: () => void;
   closeNewCastModal: () => void;
@@ -38,7 +40,13 @@ type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 const store = (set: StoreSet) => ({
   isCommandPaletteOpen: false,
   isNewCastModalOpen: false,
+  castModalDraftId: undefined,
   castModalView: CastModalView.New,
+  setCastModalDraftId: (draftId: number) => {
+    set((state) => {
+      state.castModalDraftId = draftId;
+    });
+  },
   setCastModalView: (view: CastModalView) => {
     set((state) => {
       state.castModalView = view;
