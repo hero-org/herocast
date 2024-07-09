@@ -276,7 +276,7 @@ export default function SearchPage() {
       (hash) => !casts.find((cast) => cast.hash === hash)
     );
     if (newCastHashes.length > 0) {
-      fetchCasts(newCastHashes);
+      fetchCasts(newCastHashes.slice(0, 2));
     }
   }, [castHashes, casts]);
 
@@ -300,8 +300,12 @@ export default function SearchPage() {
         Load More
       </Button>
     ) : (
-      <div className="text-muted-foreground">
-        No more results for {searchTerm} with your selected filters.
+      <div className="flex flex-col">
+        <div className="text-muted-foreground">
+          No more results for {`"${searchTerm}"`} with your selected filters.
+          Add more filters to refine your search and get results faster.
+        </div>
+        {renderTryAgainButton()}
       </div>
     );
 
@@ -364,6 +368,18 @@ export default function SearchPage() {
         aria-label="Toggle hide replies"
         checked={filterByHideReplies}
       />
+    </Button>
+  );
+
+  const renderTryAgainButton = () => (
+    <Button
+      size="sm"
+      variant="outline"
+      className="mt-1 w-20 mx-auto"
+      disabled={!canSearch}
+      onClick={() => onSearch()}
+    >
+      Try again
     </Button>
   );
 
@@ -444,20 +460,7 @@ export default function SearchPage() {
       {!isLoading && lastSearchHasNoResults && (
         <div className="flex flex-col text-center mt-8 text-muted-foreground">
           <span>No results found</span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="mt-1 w-20 mx-auto"
-            disabled={!canSearch}
-            onClick={() => onSearch()}
-          >
-            Try again
-          </Button>
-        </div>
-      )}
-      {error && (
-        <div className="text-center mt-8 text-red-500">
-          Error: {error.message}
+          {renderTryAgainButton()}
         </div>
       )}
       <SelectableListWithHotkeys
@@ -467,9 +470,14 @@ export default function SearchPage() {
         setSelectedIdx={setSelectedCastIdx}
         onSelect={(idx) => setSelectedCastIdx(idx)}
       />
-      {casts.length > 0 && (
+      {castHashes.length > 0 && (
         <div className="flex justify-center my-8">
           {isLoading ? renderLoadingSpinner() : renderLoadMoreButton()}
+        </div>
+      )}
+      {error && (
+        <div className="text-center mt-8 text-red-500">
+          Error: {error.message}
         </div>
       )}
     </div>
