@@ -29,7 +29,8 @@ export const renderEmbedForUrl = ({ url, cast_id, castId }: CastEmbed) => {
 
   if (
     url.includes("i.imgur.com") ||
-    url.startsWith("https://imagedelivery.net")
+    url.startsWith("https://imagedelivery.net") ||
+    isImageUrl(url)
   ) {
     return <WarpcastImage url={url} />;
   } else if (url.startsWith('"chain:')) {

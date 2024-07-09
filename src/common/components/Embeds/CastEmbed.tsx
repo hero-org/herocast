@@ -40,7 +40,7 @@ const CastEmbed = ({ url, castId }: { url?: string, castId?: { hash: string, fid
   return (
     <div
       key={`cast-embed-${url}`}
-      className="border border-foreground/20 rounded-lg"
+      className="mt-2 border border-foreground/30 rounded-lg"
     >
       <CastRow cast={cast} showChannel isEmbed />
     </div>

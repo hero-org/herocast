@@ -21,7 +21,9 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   const selectedAccount = accounts[selectedAccountIdx];
 
   const [isPending, setIsPending] = useState(false);
-  const profile = useDataStore((state) => get(state.fidToData, get(state.usernameToFid, username)));
+  const profile = useDataStore((state) =>
+    get(state.fidToData, get(state.usernameToFid, username))
+  );
 
   useEffect(() => {
     if (!profile) return;
@@ -71,10 +73,12 @@ const FollowButton = ({ username }: FollowButtonProps) => {
       variant={isFollowing ? "secondary" : "default"}
       className="group"
       onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         if (!selectedAccount) router.push("/login");
 
         updateFollowStatus();
-        e.stopPropagation();
       }}
     >
       <span className={clsx(isFollowing && "group-hover:hidden", "block")}>

@@ -37,6 +37,7 @@ import { useDataStore } from "@/stores/useDataStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -490,8 +491,17 @@ export const CastRow = ({
       return null;
     }
 
+    const embedsContainsCastEmbed = cast.embeds.some((c) => c.cast_id);
     return (
-      <div className="mt-4 space-y-4" onClick={(e) => e.preventDefault()}>
+      <div
+        className={cn(
+          cast.embeds?.length > 1 &&
+            !embedsContainsCastEmbed &&
+            "grid lg:grid-cols-2 gap-4",
+          "w-full self-start"
+        )}
+        onClick={(e) => e.preventDefault()}
+      >
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
             <div
