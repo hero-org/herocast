@@ -3,11 +3,6 @@ import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-// UPDATE REPLY MODAL:
-// it's not about a reply, it's about a new cast
-// it can have a parent -> then it's a reply
-// it can have an embed -> then it's a quote
-
 export enum CastModalView {
   New = "new",
   Reply = "reply",

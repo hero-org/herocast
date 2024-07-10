@@ -57,8 +57,8 @@ const RightSidebar = ({
   return (
     <aside
       style={{
-        "-ms-overflow-style": "none",
-        "scrollbar-width": "none",
+        "msOverflowStyle": "none",
+        "scrollbarWidth": "none",
         "-webkit-scrollbar": "none",
       }}
       className="min-h-full h-full bg-muted/40 md:fixed md:bottom-0 md:right-0 md:w-48 lg:w-64 md:border-l md:border-foreground/5 overflow-y-auto"

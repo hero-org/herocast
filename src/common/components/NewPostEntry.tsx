@@ -104,6 +104,7 @@ export default function NewPostEntry({
   const account = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
+  const { allChannels } = useAccountStore();
   const isReply = draft?.parentCastId !== undefined;
 
   useEffect(() => {
@@ -176,7 +177,7 @@ export default function NewPostEntry({
     fetchUrlMetadata: getUrlMetadata,
     onError,
     onSubmit: onSubmitPost,
-    linkClassName: "text-blue-300",
+    linkClassName: "text-blue-500",
     renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
       getResults: getChannels,
       RenderList: ChannelList,
@@ -215,7 +216,6 @@ export default function NewPostEntry({
   useEffect(() => {
     if (!editor) return; // no updates before editor is initialized
     if (isPublishing) return;
-    if (draft?.parentUrl === channel?.parent_url) return;
 
     const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
     updatePostDraft(draftIdx, {
@@ -225,6 +225,28 @@ export default function NewPostEntry({
       parentUrl: channel?.parent_url || undefined,
     });
   }, [text, embeds, initialEmbeds, channel, isPublishing, editor]);
+
+  useEffect(() => {
+    if (!draft) return;
+    if (draft?.parentUrl) {
+      const rawChannel = allChannels.find((c) => c.url === draft.parentUrl);
+      if (rawChannel) {
+        setChannel({
+          id: rawChannel.name,
+          url: rawChannel.url,
+          name: rawChannel.name,
+          object: "channel",
+          // @ts-expect-error - mod protocol channel type mismatch
+          image_url: rawChannel.icon_url,
+          parent_url: rawChannel.url,
+          description: "",
+          created_at: 0,
+          // @ts-expect-error - mod protocol channel type mismatch
+          lead: {},
+        });
+      }
+    }
+  }, [draft?.parentUrl]);
 
   const getButtonText = () => {
     if (isPublishing) return "Publishing...";

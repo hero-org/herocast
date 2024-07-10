@@ -1,10 +1,7 @@
 import React from "react";
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import {
-  Cog6ToothIcon,
-  PlusCircleIcon,
-} from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
 import { Bars3Icon, UserPlusIcon } from "@heroicons/react/24/solid";
 import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
@@ -34,15 +31,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import NewCastModal from "@/common/components/NewCastModal";
-import { useNavigationStore } from "@/stores/useNavigationStore";
+import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
+import { useDraftStore } from "@/stores/useDraftStore";
+import Link from "next/link";
 
 type NavigationItemType = {
   name: string;
   router: string;
   icon: any;
   getTitle?: () => string | JSX.Element;
+  getHeaderActions?: () => HeaderAction[];
   shortcut?: string;
   additionalPaths?: string[];
+};
+
+type HeaderAction = {
+  name: string;
+  onClick: () => void;
 };
 
 const Home = ({ children }: { children: React.ReactNode }) => {
@@ -52,14 +57,25 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { allChannels, selectedChannelUrl, isHydrated } = useAccountStore();
+  const {
+    allChannels,
+    selectedChannelUrl,
+    isHydrated,
+    addPinnedChannel,
+    removePinnedChannel,
+  } = useAccountStore();
   const {
     castModalDraftId,
     isNewCastModalOpen,
     openNewCastModal,
     closeNewCastModal,
+    setCastModalView,
+    setCastModalDraftId,
   } = useNavigationStore();
-
+  const { addNewPostDraft } = useDraftStore();
+  const channels = useAccountStore(
+    (state) => state.accounts[state.selectedAccountIdx]?.channels || []
+  );
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
@@ -104,6 +120,51 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       router: "/feeds",
       icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       getTitle: getFeedTitle,
+      getHeaderActions: () => {
+        const isChannelPinned =
+          channels.findIndex(
+            (channel) => channel.url === selectedChannelUrl
+          ) !== -1;
+        const isChannelFeed =
+          selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
+          selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING;
+        const actions = [
+          {
+            name: "Cast",
+            onClick: () => {
+              let parentUrl;
+              if (isChannelFeed) {
+                parentUrl = selectedChannelUrl;
+              }
+              setCastModalView(CastModalView.New);
+              addNewPostDraft({
+                parentUrl,
+                onSuccess(draftId) {
+                  setCastModalDraftId(draftId);
+                  openNewCastModal();
+                },
+              });
+            },
+          },
+        ];
+        if (isChannelFeed) {
+          actions.push({
+            name: isChannelPinned ? "Unpin" : "Pin",
+            onClick: () => {
+              if (isChannelPinned) {
+                removePinnedChannel(
+                  channels.find((c) => c.url === selectedChannelUrl)
+                );
+              } else {
+                addPinnedChannel(
+                  allChannels.find((c) => c.url === selectedChannelUrl)
+                );
+              }
+            },
+          });
+        }
+        return actions;
+      },
       shortcut: "Shift + F",
       additionalPaths: ["/profile/[slug]", "/conversation/[...slug]"],
     },
@@ -176,8 +237,15 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     router.push(item.router);
   };
 
-  const getTitle = () => {
-    const navItem = navigation.find((item) => item.router === pathname);
+  const onClickLogo = () => {
+    if (pathname === "/feeds") {
+      router.reload();
+    } else {
+      router.push("/feeds");
+    }
+  };
+
+  const getTitle = (navItem) => {
     if (navItem) {
       return navItem.getTitle ? navItem.getTitle() : navItem.name;
     } else {
@@ -189,7 +257,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const title = getTitle();
+  const getHeaderActions = (navItem) => {
+    return navItem?.getHeaderActions ? navItem.getHeaderActions() : [];
+  };
+
+  const navItem = navigation.find((item) => item.router === pathname);
+  const title = getTitle(navItem);
+  const headerActions = getHeaderActions(navItem);
   const sidebarType = getSidebarForPathname(pathname);
 
   const renderRightSidebar = () => {
@@ -316,14 +390,17 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
       {/* Static sidebar for desktop */}
       {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-      <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:w-52 lg:overflow-y-auto lg:bg-background border-r border-muted">
+      <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-10 lg:w-52 lg:overflow-y-auto lg:bg-background border-r border-muted">
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
-          <div className="flex h-16 shrink-0 items-center">
+          <Link
+            href="/feeds"
+            className="flex h-16 shrink-0 items-center hover:cursor-pointer"
+          >
             <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
               herocast
             </h2>
-          </div>
+          </Link>
           <div className="flex flex-col justify-between">
             <nav className="mt-0">
               <ul role="list" className="flex flex-col items-left space-y-1">
@@ -361,8 +438,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         )}
       >
         {/* Sticky header */}
-        {title && (
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-2">
+        {(title || headerActions) && (
+          <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
             <button
               type="button"
               className="-m-2.5 p-2.5 text-foreground lg:hidden"
@@ -374,6 +451,19 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">
               {title}
             </h1>
+            <div className="flex-grow" />
+            <div className="flex gap-x-2">
+              {headerActions.map((action) => (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  key={`header-action-${action.name}`}
+                  onClick={action.onClick}
+                >
+                  {action.name}
+                </Button>
+              ))}
+            </div>
           </div>
         )}
         <main>
