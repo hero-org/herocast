@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo, useState, ComponentType, SVGProps } from "react";
+import React, { Fragment, useMemo, useState, useCallback, ComponentType, SVGProps } from "react";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
 import {
@@ -95,7 +95,7 @@ export default function CommandPalette() {
 
   const { theme, setTheme } = useTheme();
 
-  const getCommands = (): CommandType[] => {
+  const getCommands = useCallback((): CommandType[] => {
     const themeCommands = getThemeCommands(theme, setTheme);
     const navigationCommands = getNavigationCommands({ router });
     const profileCommands = [
@@ -229,10 +229,9 @@ export default function CommandPalette() {
     return commands;
   };
 
-  const commands = useMemo(() => getCommands(), [theme, allChannels]);
-  setupHotkeysForCommands(commands);
+  const commands = useMemo(() => getCommands(), [getCommands]);
 
-  function onClick(command: CommandType) {
+  const onClick = useCallback((command: CommandType) => {
     if (!command) {
       return;
     }
@@ -241,7 +240,7 @@ export default function CommandPalette() {
     }
     command.action();
     closeCommandPallete();
-  }
+  }, [router, closeCommandPallete]);
 
   const getWarpcastCommandForUrl = (url: string): CommandType => {
     const { slug, username, channel } = parseWarpcastUrl(url);
@@ -264,7 +263,7 @@ export default function CommandPalette() {
     };
   };
 
-  const getFilteredCommands = () => {
+  const getFilteredCommands = useCallback(() => {
     let result = commands
       .map((command: CommandType) => {
         const namesToScore = [command.name, ...(command.aliases || [])];
@@ -324,9 +323,9 @@ export default function CommandPalette() {
     return result;
   };
 
-  const filteredCommands = query?.length ? getFilteredCommands() : [];
+  const filteredCommands = useMemo(() => query?.length ? getFilteredCommands() : [], [query, getFilteredCommands]);
 
-  const renderIcon = (command: CommandType, active: boolean) => {
+  const renderIcon = useCallback((command: CommandType, active: boolean) => {
     if (command.icon) {
       const IconComponent = command.icon as ComponentType<SVGProps<SVGSVGElement>>;
       return (
