@@ -1,33 +1,21 @@
-import React from "react";
-import { Fragment, useState } from "react";
+import React, { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Cog6ToothIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
-import { Bars3Icon, UserPlusIcon } from "@heroicons/react/24/solid";
+import { Bars3Icon, UserPlusIcon, BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
+import { useRouter } from "next/router";
+import Link from "next/link";
 import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import RightSidebar from "@/common/components/Sidebar/RightSidebar";
 import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
 import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
-import {
-  BellIcon,
-  MagnifyingGlassIcon,
-  NewspaperIcon,
-  RectangleGroupIcon,
-} from "@heroicons/react/24/solid";
-import { useRouter } from "next/router";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import { Toaster } from "@/components/ui/sonner";
 import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
 import { cn } from "@/lib/utils";
 import { Loading } from "@/common/components/Loading";
 import useInitializeStores from "@/common/hooks/useInitializeStores";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import NewCastModal from "@/common/components/NewCastModal";
@@ -296,13 +284,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-        <Button
-          size="sm"
-          className="w-full"
-          onClick={() => router.push("/login?signupOnly=true")}
-        >
-          Upgrade
-        </Button>
+        <Link href="/login?signupOnly=true" passHref>
+          <Button size="sm" className="w-full">
+            Upgrade
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   );
@@ -361,19 +347,20 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                         <ul role="list" className="-mx-2 space-y-1">
                           {navigation.map((item) => (
                             <li key={item.name}>
-                              <p
-                                onClick={() => onClickItem(item)}
-                                className={classNames(
-                                  item.router === pathname ||
-                                    item.additionalPaths?.includes(pathname)
-                                    ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                  "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
-                                )}
-                              >
-                                {item.icon}
-                                {item.name}
-                              </p>
+                              <Link href={item.router}>
+                                <p
+                                  className={classNames(
+                                    item.router === pathname ||
+                                      item.additionalPaths?.includes(pathname)
+                                      ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                    "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                  )}
+                                >
+                                  {item.icon}
+                                  {item.name}
+                                </p>
+                              </Link>
                             </li>
                           ))}
                         </ul>
@@ -406,19 +393,20 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               <ul role="list" className="flex flex-col items-left space-y-1">
                 {navigation.map((item) => (
                   <li key={item.name}>
-                    <div
-                      onClick={() => onClickItem(item)}
-                      className={classNames(
-                        item.router === pathname ||
-                          item.additionalPaths?.includes(pathname)
-                          ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                        "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                      )}
-                    >
-                      {item.icon}
-                      <span className="">{item.name}</span>
-                    </div>
+                    <Link href={item.router}>
+                      <div
+                        className={classNames(
+                          item.router === pathname ||
+                            item.additionalPaths?.includes(pathname)
+                            ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                          "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                        )}
+                      >
+                        {item.icon}
+                        <span className="">{item.name}</span>
+                      </div>
+                    </Link>
                   </li>
                 ))}
               </ul>
