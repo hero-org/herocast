@@ -1,4 +1,11 @@
-import React, { Fragment, useMemo, useState, useCallback, ComponentType, SVGProps } from "react";
+import React, {
+  Fragment,
+  useMemo,
+  useState,
+  useCallback,
+  ComponentType,
+  SVGProps,
+} from "react";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
 import {
@@ -72,7 +79,7 @@ export default function CommandPalette() {
 
       useHotkeys(
         shortcuts,
-        (event) => {
+        () => {
           if (command.page && currentPage !== command.page) {
             return;
           }
@@ -227,20 +234,29 @@ export default function CommandPalette() {
     commands = commands.concat(farcasterBotCommands);
     commands = commands.concat(nonHotkeyCommands);
     return commands;
-  };
+  }, [
+    theme,
+    setTheme,
+    router,
+    allChannels,
+    setSelectedChannelUrl,
+    setSelectedChannelByName,
+  ]);
 
   const commands = useMemo(() => getCommands(), [getCommands]);
-
-  const onClick = useCallback((command: CommandType) => {
-    if (!command) {
-      return;
-    }
-    if (command.navigateTo) {
-      router.push(command.navigateTo);
-    }
-    command.action();
-    closeCommandPallete();
-  }, [router, closeCommandPallete]);
+  const onClick = useCallback(
+    (command: CommandType) => {
+      if (!command) {
+        return;
+      }
+      if (command.navigateTo) {
+        router.push(command.navigateTo);
+      }
+      command.action();
+      closeCommandPallete();
+    },
+    [router, closeCommandPallete]
+  );
 
   const getWarpcastCommandForUrl = (url: string): CommandType => {
     const { slug, username, channel } = parseWarpcastUrl(url);
@@ -321,13 +337,18 @@ export default function CommandPalette() {
     }
 
     return result;
-  };
+  }, [query, commands, router, setSelectedChannelByName]);
 
-  const filteredCommands = useMemo(() => query?.length ? getFilteredCommands() : [], [query, getFilteredCommands]);
+  const filteredCommands = useMemo(
+    () => (query?.length ? getFilteredCommands() : []),
+    [query, getFilteredCommands]
+  );
 
   const renderIcon = useCallback((command: CommandType, active: boolean) => {
     if (command.icon) {
-      const IconComponent = command.icon as ComponentType<SVGProps<SVGSVGElement>>;
+      const IconComponent = command.icon as ComponentType<
+        SVGProps<SVGSVGElement>
+      >;
       return (
         <IconComponent
           className={classNames(
@@ -345,14 +366,13 @@ export default function CommandPalette() {
           alt=""
           className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
         />
-        />
       );
     }
 
     return (
       <Skeleton className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full" />
     );
-  };
+  });
 
   return (
     <Transition.Root
