@@ -40,16 +40,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
     LIMIT $1 OFFSET $2`;
-    const vars = [limit, offset, term];
+    const vars = [limit, offset, term.trim()];
 
     try {
         const queryStart = process.hrtime();
-        await AppDataSource.query(`SET work_mem TO '32MB'; SET statement_timeout TO '15s';`);
+        await AppDataSource.query(`SET work_mem TO '32MB'; SET statement_timeout TO '19s';`);
 
         const searchRepository = AppDataSource.getRepository(Cast);
         const results = await Promise.race([
             searchRepository.query(query, vars),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 15000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 19000))
         ]);
         const queryEnd = process.hrtime(queryStart);
         const totalEnd = process.hrtime(start);
@@ -64,6 +64,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
         clearTimeout(timeout); // Clear the timeout if the request completes in time
         console.log('error in search', error);
-        res.status(500).json({ error: `Failed to fetch search results: ${error.message}` });
+        res.status(500).json({ error: `Failed to fetch search results: ${error?.message || error}` });
     }
 }
