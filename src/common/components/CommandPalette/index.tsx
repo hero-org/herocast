@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo, useState } from "react";
+import React, { Fragment, useMemo, useState, ComponentType, SVGProps } from "react";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
 import {
@@ -328,8 +328,9 @@ export default function CommandPalette() {
 
   const renderIcon = (command: CommandType, active: boolean) => {
     if (command.icon) {
+      const IconComponent = command.icon as ComponentType<SVGProps<SVGSVGElement>>;
       return (
-        <command.icon
+        <IconComponent
           className={classNames(
             "h-6 w-6 flex-none",
             active ? "text-foreground" : "text-foreground/80"
