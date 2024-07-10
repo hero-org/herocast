@@ -65,7 +65,7 @@ export default function CommandPalette() {
     [toggleCommandPalette]
   );
 
-  const setupHotkeysForCommands = (commands: CommandType[]) => {
+  const setupHotkeysForCommands = useCallback((commands: CommandType[]) => {
     const currentPage = router.pathname.split("/")[1];
 
     commands.forEach((command) => {
@@ -98,7 +98,7 @@ export default function CommandPalette() {
         [command.action, command.navigateTo, currentPage, router]
       );
     });
-  };
+  }, [router]);
 
   const { theme, setTheme } = useTheme();
 
@@ -244,6 +244,10 @@ export default function CommandPalette() {
   ]);
 
   const commands = useMemo(() => getCommands(), [getCommands]);
+
+  useEffect(() => {
+    setupHotkeysForCommands(commands);
+  }, [commands, setupHotkeysForCommands]);
   const onClick = useCallback(
     (command: CommandType) => {
       if (!command) {
