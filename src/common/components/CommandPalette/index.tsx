@@ -48,37 +48,31 @@ export default function CommandPalette() {
     useAccountStore();
 
   useHotkeys(
-    ["meta+k"],
-    () => {
-      toggleCommandPalette();
-    },
-    [isCommandPaletteOpen],
+    "meta+k",
+    toggleCommandPalette,
     {
       enableOnFormTags: true,
-    }
+      ignoreModifiers: true,
+      preventDefault: true,
+    },
+    [toggleCommandPalette]
   );
 
   const setupHotkeysForCommands = (commands: CommandType[]) => {
     const currentPage = router.pathname.split("/")[1];
 
-    for (const command of commands) {
+    commands.forEach((command) => {
       if (!command.shortcut && !command.shortcuts) {
-        continue;
+        return;
       }
 
       const shortcuts = (command.shortcuts || [command.shortcut])
         .map((s) => s?.replace("cmd", "meta"))
-        .filter((s) => s !== undefined);
-
-      const isEnabled =
-        command.enabled === undefined ||
-        (typeof command.enabled === "function"
-          ? command.enabled()
-          : command.enabled);
+        .filter((s): s is string => s !== undefined);
 
       useHotkeys(
         shortcuts,
-        () => {
+        (event) => {
           if (command.page && currentPage !== command.page) {
             return;
           }
@@ -88,14 +82,15 @@ export default function CommandPalette() {
           }
           command.action();
         },
-        [],
         {
-          ...(command.options ? command.options : {}),
+          ...(command.options || {}),
           splitKey: "-",
-          enabled: isEnabled,
-        }
+          enabled: command.enabled,
+          preventDefault: true,
+        },
+        [command.action, command.navigateTo, currentPage, router]
       );
-    }
+    });
   };
 
   const { theme, setTheme } = useTheme();
