@@ -33,6 +33,7 @@ import { AccountPlatformType } from "@/common/constants/accounts";
 import NewCastModal from "@/common/components/NewCastModal";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDraftStore } from "@/stores/useDraftStore";
+import Link from "next/link";
 
 type NavigationItemType = {
   name: string;
@@ -242,7 +243,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     } else {
       router.push("/feeds");
     }
-  }
+  };
 
   const getTitle = (navItem) => {
     if (navItem) {
@@ -392,14 +393,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-10 lg:w-52 lg:overflow-y-auto lg:bg-background border-r border-muted">
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
-          <div
-            onClick={() => onClickLogo()}
+          <Link
+            href="/feeds"
             className="flex h-16 shrink-0 items-center hover:cursor-pointer"
           >
             <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
               herocast
             </h2>
-          </div>
+          </Link>
           <div className="flex flex-col justify-between">
             <nav className="mt-0">
               <ul role="list" className="flex flex-col items-left space-y-1">

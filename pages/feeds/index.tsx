@@ -34,6 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useDraftStore } from "@/stores/useDraftStore";
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -83,7 +84,9 @@ export default function Feeds() {
     setCastModalView,
     openNewCastModal,
     closeNewCastModal,
+    setCastModalDraftId,
   } = useNavigationStore();
+  const { addNewPostDraft } = useDraftStore();
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
@@ -188,13 +191,40 @@ export default function Feeds() {
   ]);
 
   const onReply = () => {
+    if (!selectedCast) return;
+
     setCastModalView(CastModalView.Reply);
-    openNewCastModal();
+    addNewPostDraft({
+      parentCastId: {
+        hash: selectedCast.hash,
+        fid: selectedCast.author.fid.toString(),
+      },
+      onSuccess(draftId) {
+        setCastModalDraftId(draftId);
+        openNewCastModal();
+      },
+    });
   };
 
   const onQuote = () => {
+    if (!selectedCast) return;
+
     setCastModalView(CastModalView.Quote);
-    openNewCastModal();
+    updateSelectedCast(selectedCast);
+    addNewPostDraft({
+      embeds: [
+        {
+          castId: {
+            hash: selectedCast.hash,
+            fid: selectedCast.author.fid.toString(),
+          },
+        },
+      ],
+      onSuccess(draftId) {
+        setCastModalDraftId(draftId);
+        openNewCastModal();
+      },
+    });
   };
 
   useHotkeys(
@@ -210,13 +240,13 @@ export default function Feeds() {
     }
   );
 
-  useHotkeys("r", onReply, [openNewCastModal], {
+  useHotkeys("r", onReply, [openNewCastModal, selectedCast], {
     enabled: !isNewCastModalOpen,
     enableOnFormTags: false,
     preventDefault: true,
   });
 
-  useHotkeys("q", onQuote, [openNewCastModal], {
+  useHotkeys("q", onQuote, [openNewCastModal, selectedCast], {
     enabled: !isNewCastModalOpen,
     enableOnFormTags: false,
     preventDefault: true,
@@ -432,7 +462,7 @@ export default function Feeds() {
 
   const renderContent = () => (
     <>
-      <div className="ml-8 min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
+      <div className="ml-2 lg:ml-0 min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
         {isLoadingFeed && isEmpty(casts) && (
           <div className="ml-4">
             <Loading loadingMessage={loadingMessage} />

@@ -75,6 +75,7 @@ export default function CommandPalette() {
         (typeof command.enabled === "function"
           ? command.enabled()
           : command.enabled);
+
       useHotkeys(
         shortcuts,
         () => {
