@@ -34,20 +34,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     FROM casts 
         ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
     WHERE 
-        tsv @@ websearch_to_tsquery('english', '${term}')
+        tsv @@ websearch_to_tsquery('english', $3)
         AND casts.deleted_at IS NULL
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
     LIMIT $1 OFFSET $2`;
-    const vars = [limit, offset];
+    const vars = [limit, offset, term];
 
     try {
         const queryStart = process.hrtime();
-        await AppDataSource.query(`SET work_mem TO '32MB';`);
+        await AppDataSource.query(`SET work_mem TO '32MB'; SET statement_timeout TO '15s';`);
 
         const searchRepository = AppDataSource.getRepository(Cast);
-        const results = await searchRepository.query(query, vars);
+        const results = await Promise.race([
+            searchRepository.query(query, vars),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 15000))
+        ]);
         const queryEnd = process.hrtime(queryStart);
         const totalEnd = process.hrtime(start);
 
@@ -61,6 +64,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (error) {
         clearTimeout(timeout); // Clear the timeout if the request completes in time
         console.log('error in search', error);
-        res.status(500).json({ error: `Failed to fetch search results ${error}` });
+        res.status(500).json({ error: `Failed to fetch search results: ${error.message}` });
     }
 }
