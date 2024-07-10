@@ -389,7 +389,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
       {/* Static sidebar for desktop */}
       {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-      <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:w-52 lg:overflow-y-auto lg:bg-background border-r border-muted">
+      <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-10 lg:w-52 lg:overflow-y-auto lg:bg-background border-r border-muted">
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
           <div
@@ -438,7 +438,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       >
         {/* Sticky header */}
         {(title || headerActions) && (
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
+          <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
             <button
               type="button"
               className="-m-2.5 p-2.5 text-foreground lg:hidden"
