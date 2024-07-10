@@ -1,20 +1,21 @@
-import React from "react";
-import { Fragment, useState } from "react";
+import React, { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Cog6ToothIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
-import { Bars3Icon, UserPlusIcon } from "@heroicons/react/24/solid";
-import { classNames } from "@/common/helpers/css";
-import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
-import RightSidebar from "@/common/components/Sidebar/RightSidebar";
-import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
-import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import {
+  Bars3Icon,
+  UserPlusIcon,
   BellIcon,
   MagnifyingGlassIcon,
   NewspaperIcon,
   RectangleGroupIcon,
 } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
+import Image from "next/image";
+import { classNames } from "@/common/helpers/css";
+import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
+import RightSidebar from "@/common/components/Sidebar/RightSidebar";
+import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
+import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import { Toaster } from "@/components/ui/sonner";
 import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
@@ -99,12 +100,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       return (
         <div className="flex max-w-sm items-center">
           {channel.icon_url && (
-            <img
+            <Image
               src={channel.icon_url}
-              alt=""
-              className={cn(
-                "mr-1 bg-gray-100 border h-5 w-5 flex-none rounded-full"
-              )}
+              alt={`${channel.name} icon`}
+              width={20}
+              height={20}
+              className={cn("mr-1 bg-gray-100 border flex-none rounded-full")}
             />
           )}
           <span className="flex-nowrap truncate">{channel.name} channel</span>
@@ -296,13 +297,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-        <Button
-          size="sm"
-          className="w-full"
-          onClick={() => router.push("/login?signupOnly=true")}
-        >
-          Upgrade
-        </Button>
+        <Link href="/login?signupOnly=true" passHref>
+          <Button size="sm" className="w-full">
+            Upgrade
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   );
@@ -361,19 +360,20 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                         <ul role="list" className="-mx-2 space-y-1">
                           {navigation.map((item) => (
                             <li key={item.name}>
-                              <p
-                                onClick={() => onClickItem(item)}
-                                className={classNames(
-                                  item.router === pathname ||
-                                    item.additionalPaths?.includes(pathname)
-                                    ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                  "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
-                                )}
-                              >
-                                {item.icon}
-                                {item.name}
-                              </p>
+                              <Link href={item.router}>
+                                <p
+                                  className={classNames(
+                                    item.router === pathname ||
+                                      item.additionalPaths?.includes(pathname)
+                                      ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                    "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                  )}
+                                >
+                                  {item.icon}
+                                  {item.name}
+                                </p>
+                              </Link>
                             </li>
                           ))}
                         </ul>
@@ -406,19 +406,20 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               <ul role="list" className="flex flex-col items-left space-y-1">
                 {navigation.map((item) => (
                   <li key={item.name}>
-                    <div
-                      onClick={() => onClickItem(item)}
-                      className={classNames(
-                        item.router === pathname ||
-                          item.additionalPaths?.includes(pathname)
-                          ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                        "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                      )}
-                    >
-                      {item.icon}
-                      <span className="">{item.name}</span>
-                    </div>
+                    <Link href={item.router}>
+                      <div
+                        className={classNames(
+                          item.router === pathname ||
+                            item.additionalPaths?.includes(pathname)
+                            ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                          "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                        )}
+                      >
+                        {item.icon}
+                        <span className="">{item.name}</span>
+                      </div>
+                    </Link>
                   </li>
                 ))}
               </ul>

@@ -1,4 +1,12 @@
-import React, { Fragment, useMemo, useState } from "react";
+import React, {
+  Fragment,
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  ComponentType,
+  SVGProps,
+} from "react";
 import { CommandType } from "@/common/constants/commands";
 import { classNames } from "@/common/helpers/css";
 import {
@@ -48,59 +56,57 @@ export default function CommandPalette() {
     useAccountStore();
 
   useHotkeys(
-    ["meta+k"],
-    () => {
-      toggleCommandPalette();
-    },
-    [isCommandPaletteOpen],
+    "meta+k",
+    toggleCommandPalette,
     {
       enableOnFormTags: true,
-    }
+      ignoreModifiers: true,
+      preventDefault: true,
+    },
+    [toggleCommandPalette]
   );
 
-  const setupHotkeysForCommands = (commands: CommandType[]) => {
-    const currentPage = router.pathname.split("/")[1];
+  const setupHotkeysForCommands = useCallback(
+    (commands: CommandType[]) => {
+      const currentPage = router.pathname.split("/")[1];
 
-    for (const command of commands) {
-      if (!command.shortcut && !command.shortcuts) {
-        continue;
-      }
-
-      const shortcuts = (command.shortcuts || [command.shortcut])
-        .map((s) => s?.replace("cmd", "meta"))
-        .filter((s) => s !== undefined);
-
-      const isEnabled =
-        command.enabled === undefined ||
-        (typeof command.enabled === "function"
-          ? command.enabled()
-          : command.enabled);
-
-      useHotkeys(
-        shortcuts,
-        () => {
-          if (command.page && currentPage !== command.page) {
-            return;
-          }
-
-          if (command.navigateTo) {
-            router.push(command.navigateTo);
-          }
-          command.action();
-        },
-        [],
-        {
-          ...(command.options ? command.options : {}),
-          splitKey: "-",
-          enabled: isEnabled,
+      commands.forEach((command) => {
+        if (!command.shortcut && !command.shortcuts) {
+          return;
         }
-      );
-    }
-  };
+
+        const shortcuts = (command.shortcuts || [command.shortcut])
+          .map((s) => s?.replace("cmd", "meta"))
+          .filter((s): s is string => s !== undefined);
+
+        useHotkeys(
+          shortcuts,
+          () => {
+            if (command.page && currentPage !== command.page) {
+              return;
+            }
+
+            if (command.navigateTo) {
+              router.push(command.navigateTo);
+            }
+            command.action();
+          },
+          {
+            ...(command.options || {}),
+            splitKey: "-",
+            enabled: command.enabled,
+            preventDefault: true,
+          },
+          [command.action, command.navigateTo, currentPage, router]
+        );
+      });
+    },
+    [router]
+  );
 
   const { theme, setTheme } = useTheme();
 
-  const getCommands = (): CommandType[] => {
+  const getCommands = useCallback((): CommandType[] => {
     const themeCommands = getThemeCommands(theme, setTheme);
     const navigationCommands = getNavigationCommands({ router });
     const profileCommands = [
@@ -232,21 +238,31 @@ export default function CommandPalette() {
     commands = commands.concat(farcasterBotCommands);
     commands = commands.concat(nonHotkeyCommands);
     return commands;
-  };
+  }, [
+    theme,
+    setTheme,
+    router,
+    allChannels,
+    setSelectedChannelUrl,
+    setSelectedChannelByName,
+  ]);
 
-  const commands = useMemo(() => getCommands(), [theme, allChannels]);
+  const commands = useMemo(() => getCommands(), [getCommands]);
   setupHotkeysForCommands(commands);
 
-  function onClick(command: CommandType) {
-    if (!command) {
-      return;
-    }
-    if (command.navigateTo) {
-      router.push(command.navigateTo);
-    }
-    command.action();
-    closeCommandPallete();
-  }
+  const onClick = useCallback(
+    (command: CommandType) => {
+      if (!command) {
+        return;
+      }
+      if (command.navigateTo) {
+        router.push(command.navigateTo);
+      }
+      command.action();
+      closeCommandPallete();
+    },
+    [router, closeCommandPallete]
+  );
 
   const getWarpcastCommandForUrl = (url: string): CommandType => {
     const { slug, username, channel } = parseWarpcastUrl(url);
@@ -269,7 +285,7 @@ export default function CommandPalette() {
     };
   };
 
-  const getFilteredCommands = () => {
+  const getFilteredCommands = useCallback(() => {
     let result = commands
       .map((command: CommandType) => {
         const namesToScore = [command.name, ...(command.aliases || [])];
@@ -327,14 +343,20 @@ export default function CommandPalette() {
     }
 
     return result;
-  };
+  }, [query, commands, router, setSelectedChannelByName]);
 
-  const filteredCommands = query?.length ? getFilteredCommands() : [];
+  const filteredCommands = useMemo(
+    () => (query?.length ? getFilteredCommands() : []),
+    [query, getFilteredCommands]
+  );
 
-  const renderIcon = (command: CommandType, active: boolean) => {
+  const renderIcon = useCallback((command: CommandType, active: boolean) => {
     if (command.icon) {
+      const IconComponent = command.icon as ComponentType<
+        SVGProps<SVGSVGElement>
+      >;
       return (
-        <command.icon
+        <IconComponent
           className={classNames(
             "h-6 w-6 flex-none",
             active ? "text-foreground" : "text-foreground/80"
@@ -348,9 +370,7 @@ export default function CommandPalette() {
         <img
           src={command.iconUrl}
           alt=""
-          className={classNames(
-            "mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
-          )}
+          className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
         />
       );
     }
@@ -358,7 +378,7 @@ export default function CommandPalette() {
     return (
       <Skeleton className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full" />
     );
-  };
+  });
 
   return (
     <Transition.Root
