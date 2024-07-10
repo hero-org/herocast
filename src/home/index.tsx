@@ -1,9 +1,16 @@
 import React, { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Cog6ToothIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
-import { Bars3Icon, UserPlusIcon, BellIcon, MagnifyingGlassIcon, NewspaperIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
+import {
+  Bars3Icon,
+  UserPlusIcon,
+  BellIcon,
+  MagnifyingGlassIcon,
+  NewspaperIcon,
+  RectangleGroupIcon,
+} from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
-import Link from "next/link";
+import Image from "next/image";
 import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import RightSidebar from "@/common/components/Sidebar/RightSidebar";
@@ -15,7 +22,13 @@ import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
 import { cn } from "@/lib/utils";
 import { Loading } from "@/common/components/Loading";
 import useInitializeStores from "@/common/hooks/useInitializeStores";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AccountPlatformType } from "@/common/constants/accounts";
 import NewCastModal from "@/common/components/NewCastModal";
@@ -87,12 +100,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       return (
         <div className="flex max-w-sm items-center">
           {channel.icon_url && (
-            <img
+            <Image
               src={channel.icon_url}
-              alt=""
-              className={cn(
-                "mr-1 bg-gray-100 border h-5 w-5 flex-none rounded-full"
-              )}
+              alt={`${channel.name} icon`}
+              width={20}
+              height={20}
+              className={cn("mr-1 bg-gray-100 border flex-none rounded-full")}
             />
           )}
           <span className="flex-nowrap truncate">{channel.name} channel</span>
