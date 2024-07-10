@@ -344,8 +344,7 @@ export default function CommandPalette() {
         <img
           src={command.iconUrl}
           alt=""
-          className={classNames(
-            "mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+          className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
           )}
         />
       );
