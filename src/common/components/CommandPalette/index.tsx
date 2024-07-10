@@ -3,6 +3,7 @@ import React, {
   useMemo,
   useState,
   useCallback,
+  useEffect,
   ComponentType,
   SVGProps,
 } from "react";
@@ -65,40 +66,43 @@ export default function CommandPalette() {
     [toggleCommandPalette]
   );
 
-  const setupHotkeysForCommands = useCallback((commands: CommandType[]) => {
-    const currentPage = router.pathname.split("/")[1];
+  const setupHotkeysForCommands = useCallback(
+    (commands: CommandType[]) => {
+      const currentPage = router.pathname.split("/")[1];
 
-    commands.forEach((command) => {
-      if (!command.shortcut && !command.shortcuts) {
-        return;
-      }
+      commands.forEach((command) => {
+        if (!command.shortcut && !command.shortcuts) {
+          return;
+        }
 
-      const shortcuts = (command.shortcuts || [command.shortcut])
-        .map((s) => s?.replace("cmd", "meta"))
-        .filter((s): s is string => s !== undefined);
+        const shortcuts = (command.shortcuts || [command.shortcut])
+          .map((s) => s?.replace("cmd", "meta"))
+          .filter((s): s is string => s !== undefined);
 
-      useHotkeys(
-        shortcuts,
-        () => {
-          if (command.page && currentPage !== command.page) {
-            return;
-          }
+        useHotkeys(
+          shortcuts,
+          () => {
+            if (command.page && currentPage !== command.page) {
+              return;
+            }
 
-          if (command.navigateTo) {
-            router.push(command.navigateTo);
-          }
-          command.action();
-        },
-        {
-          ...(command.options || {}),
-          splitKey: "-",
-          enabled: command.enabled,
-          preventDefault: true,
-        },
-        [command.action, command.navigateTo, currentPage, router]
-      );
-    });
-  }, [router]);
+            if (command.navigateTo) {
+              router.push(command.navigateTo);
+            }
+            command.action();
+          },
+          {
+            ...(command.options || {}),
+            splitKey: "-",
+            enabled: command.enabled,
+            preventDefault: true,
+          },
+          [command.action, command.navigateTo, currentPage, router]
+        );
+      });
+    },
+    [router]
+  );
 
   const { theme, setTheme } = useTheme();
 
@@ -244,10 +248,8 @@ export default function CommandPalette() {
   ]);
 
   const commands = useMemo(() => getCommands(), [getCommands]);
+  setupHotkeysForCommands(commands);
 
-  useEffect(() => {
-    setupHotkeysForCommands(commands);
-  }, [commands, setupHotkeysForCommands]);
   const onClick = useCallback(
     (command: CommandType) => {
       if (!command) {
