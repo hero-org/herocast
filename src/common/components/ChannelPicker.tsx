@@ -86,12 +86,12 @@ export function ChannelPicker(props: Props) {
   const filteredChannels = React.useMemo(() => {
     if (channels.length === 0) return [];
     if (!query) {
-      return take(channels, 10);
+      return take(channels, 7);
     }
 
     return take(
       orderBy(map(fuse.search(query), "item"), "follower_count", "desc"),
-      10
+      7
     );
   }, [query, channels, fuse]);
 

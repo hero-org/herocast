@@ -81,7 +81,6 @@ export default function Accounts() {
     removeAccount,
     updateAccountUsername,
   } = useAccountStore();
-  const { addNewPostDraft } = useDraftStore();
 
   const pendingAccounts =
     accounts.filter(

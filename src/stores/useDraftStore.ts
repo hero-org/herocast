@@ -35,6 +35,7 @@ import { createClient } from "@/common/helpers/supabase/component";
 import { UUID } from "crypto";
 import { v4 as uuidv4 } from 'uuid';
 import uniqBy from "lodash.uniqby";
+import { CastModalView, useNavigationStore } from "./useNavigationStore";
 
 export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
   const castBody = await formatPlaintextToHubCastMessage({
@@ -165,10 +166,11 @@ const store = (set: StoreSet) => ({
   isHydrated: false,
   addNewPostDraft: ({ text, parentUrl, parentCastId, embeds, onSuccess }: addNewPostDraftProps) => {
     set((state) => {
+      const pendingDrafts = state.drafts.filter((draft) => draft.status === DraftStatus.writing);
       if (!text && !parentUrl && !parentCastId && !embeds) {
         // check if there is an existing empty draft
-        for (let i = 0; i < state.drafts.length; i++) {
-          const draft = state.drafts[i];
+        for (let i = 0; i < pendingDrafts.length; i++) {
+          const draft = pendingDrafts[i];
           if (!draft.text && !draft.parentUrl && !draft.parentCastId && !draft.embeds) {
             onSuccess?.(draft.id);
             return;
@@ -177,8 +179,8 @@ const store = (set: StoreSet) => ({
       }
       if (parentUrl || parentCastId) {
         // check if there is an existing draft for the same parent
-        for (let i = 0; i < state.drafts.length; i++) {
-          const draft = state.drafts[i];
+        for (let i = 0; i < pendingDrafts.length; i++) {
+          const draft = pendingDrafts[i];
           if (
             (parentUrl && parentUrl === draft.parentUrl) ||
             (parentCastId &&
@@ -381,12 +383,18 @@ export const newPostCommands: CommandType[] = [
     aliases: ["cast", "write", "create", "compose", "draft"],
     icon: PlusCircleIcon,
     shortcut: 'c',
-    navigateTo: "/post",
     action: () => {
-      // need to upgrade NewCastModal to receive a draftIdx instead of a linkedCast
-      // const { setCastModalView, openNewCastModal } = useNavigationStore.getState();
-      // setCastModalView(CastModalView.New);
-      // openNewCastModal();
+      useDraftStore.getState().addNewPostDraft({
+        onSuccess(draftId) {
+          const {
+            setCastModalView, openNewCastModal, setCastModalDraftId
+          } = useNavigationStore.getState();
+
+          setCastModalView(CastModalView.New);
+          setCastModalDraftId(draftId);
+          openNewCastModal();
+        }
+      });
     },
     options: {
       enableOnFormTags: false,
