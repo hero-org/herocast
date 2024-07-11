@@ -471,7 +471,7 @@ const Notifications = () => {
           <Tabs
             defaultValue={NotificationTab.all}
             value={activeTab}
-            onValueChange={(value) => setActiveTab(value as NotificationTab)}
+            onValueChange={(value: string) => setActiveTab(value as NotificationTab)}
           >
             <div className="flex items-center md:mx-2">
               <TabsList className="grid grid-cols-3 lg:grid-cols-6">
