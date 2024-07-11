@@ -25,7 +25,11 @@ import {
   NewFeedbackPostDraft,
 } from "@/common/constants/postDrafts";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
-import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import {
+  MagnifyingGlassCircleIcon,
+  MagnifyingGlassIcon,
+  UserCircleIcon,
+} from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/24/outline";
 import commandScore from "command-score";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -336,6 +340,14 @@ export default function CommandPalette() {
             router.push(`/profile/${query}`);
           },
           iconUrl: profile?.pfp_url,
+          icon: UserCircleIcon,
+        },
+        {
+          name: `Search for ${query} in all casts`,
+          action: () => {
+            router.push(`/search?q=${query}`);
+          },
+          icon: MagnifyingGlassCircleIcon,
         },
         ...result,
       ];
@@ -350,6 +362,16 @@ export default function CommandPalette() {
   );
 
   const renderIcon = useCallback((command: CommandType, active: boolean) => {
+    if (command.iconUrl) {
+      return (
+        <img
+          src={command.iconUrl}
+          alt=""
+          className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+        />
+      );
+    }
+
     if (command.icon) {
       const IconComponent = command.icon as ComponentType<
         SVGProps<SVGSVGElement>
@@ -357,19 +379,10 @@ export default function CommandPalette() {
       return (
         <IconComponent
           className={classNames(
-            "h-6 w-6 flex-none",
+            "h-5 w-5 flex-none",
             active ? "text-foreground" : "text-foreground/80"
           )}
           aria-hidden="true"
-        />
-      );
-    }
-    if (command.iconUrl) {
-      return (
-        <img
-          src={command.iconUrl}
-          alt=""
-          className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
         />
       );
     }

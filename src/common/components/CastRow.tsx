@@ -564,6 +564,19 @@ export const CastRow = ({
   const timeAgoStr = localize(Number(timeAgo[0]), timeAgo[1].toString());
   const pfpUrl = cast.author.pfp_url || cast.author?.pfp?.url;
   const displayName = cast.author.display_name || cast.author.displayName;
+
+  const renderChannelButton = () =>
+    showChannel &&
+    channel && (
+      <Button
+        variant="outline"
+        onClick={() => setSelectedChannelUrl(channel.url)}
+        className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10  hover:bg-blue-400/20 px-1.5 py-0.5 text-xs font-medium text-blue-400 hover:text-blue-600 ring-1 ring-inset ring-blue-400/30 border-none"
+      >
+        {channel.name}
+      </Button>
+    );
+
   return (
     <div className="flex min-w-full w-full max-w-2xl">
       <div
@@ -592,7 +605,7 @@ export const CastRow = ({
             />
           )}
           <div className="flex flex-col w-full">
-            <div className="flex flex-row justify-between gap-x-4 leading-5">
+            <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 <ProfileHoverCard fid={cast.author.fid} viewerFid={userFid}>
                   <span className="items-center flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
@@ -617,18 +630,15 @@ export const CastRow = ({
                     </span>
                   </span>
                 </ProfileHoverCard>
-                {showChannel && channel && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setSelectedChannelUrl(channel.url)}
-                    className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-blue-400/10  hover:bg-blue-400/20 px-1.5 py-0.5 text-xs font-medium text-blue-400 hover:text-blue-600 ring-1 ring-inset ring-blue-400/30 border-none"
-                  >
-                    {channel.name}
-                  </Button>
-                )}
+                <div className="hidden lg:ml-2 lg:block">
+                  {renderChannelButton()}
+                </div>
                 {renderRecastBadge()}
               </div>
-              <div className="flex flex-row">
+              <div className="flex flex-row mt-2 lg:mt-0">
+                <div className="block mr-2 lg:hidden">
+                  {renderChannelButton()}
+                </div>
                 {"timestamp" in cast && cast.timestamp && (
                   <span className="text-sm leading-5 text-foreground/50">
                     {timeAgoStr}

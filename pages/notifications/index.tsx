@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CastRow } from "@/common/components/CastRow";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import ProfileInfo from "@/common/components/Sidebar/ProfileInfo";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_SHOW_REACTIONS_LIMIT = 15;
 
@@ -300,18 +301,19 @@ const Notifications = () => {
     );
   };
 
-  const renderLoadMoreButton = () => notifications.length > 0 && (
-    <div className="flex justify-center my-8">
-      <Button
-        variant="outline"
-        size="lg"
-        disabled={isLoading}
-        onClick={() => loadData()}
-      >
-        {isLoading ? <Loading /> : "Load More"}
-      </Button>
-    </div>
-  );
+  const renderLoadMoreButton = () =>
+    notifications.length > 0 && (
+      <div className="flex justify-center my-8">
+        <Button
+          variant="outline"
+          size="lg"
+          disabled={isLoading}
+          onClick={() => loadData()}
+        >
+          {isLoading ? <Loading /> : "Load More"}
+        </Button>
+      </div>
+    );
 
   const renderShowMoreReactionsButton = () => (
     <div className="flex justify-center my-8">
@@ -337,7 +339,6 @@ const Notifications = () => {
             renderNotificationRow(item, idx)
           }
           onSelect={(idx) => setSelectedNotificationIdx(idx)}
-          onExpand={() => null}
           isActive={isLeftColumnSelected && !isNewCastModalOpen}
           disableScroll
         />
@@ -445,6 +446,15 @@ const Notifications = () => {
     </DropdownMenu>
   );
 
+  const renderGoBack = () => (
+    <Button
+      className="lg:hidden my-4"
+      variant="outline"
+      onClick={() => setIsLeftColumnSelected(true)}
+    >
+      Go back
+    </Button>
+  );
   return (
     <div className="flex min-h-screen min-w-full flex-col bg-muted/40">
       <div className="flex flex-col sm:gap-4 sm:py-4">
@@ -455,18 +465,21 @@ const Notifications = () => {
             onValueChange={(value) => setActiveTab(value as NotificationTab)}
           >
             <div className="flex items-center md:mx-2">
-              <TabsList>
-                <TabsTrigger className="flex col-span-1" value={NotificationTab.all}>
+              <TabsList className="grid grid-cols-3 lg:grid-cols-6">
+                <TabsTrigger
+                  className="flex col-span-1 lg:col-span-2"
+                  value={NotificationTab.all}
+                >
                   All
                 </TabsTrigger>
                 <TabsTrigger
-                  className="col-span-1"
+                  className="col-span-1 lg:col-span-2"
                   value={NotificationTab.replies}
                 >
                   Replies
                 </TabsTrigger>
                 <TabsTrigger
-                  className="col-span-1"
+                  className=" col-span-1 lg:col-span-2"
                   value={NotificationTab.mentions}
                 >
                   Mentions
@@ -503,7 +516,12 @@ const Notifications = () => {
             </div>
             <div className="mt-4">
               <div className="mx-auto flex w-full max-w-7xl items-start">
-                <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
+                <div
+                  className={cn(
+                    isLeftColumnSelected ? "block" : "hidden",
+                    "w-full md:w-4/12 lg:6/12 shrink-0"
+                  )}
+                >
                   <div
                     className={classNames(
                       "overflow-hidden rounded-lg border",
@@ -517,12 +535,13 @@ const Notifications = () => {
                 </div>
                 <main
                   className={classNames(
-                    "hidden md:block rounded-r-lg flex-1 border-r border-t",
-                    !isLeftColumnSelected
-                      ? "border-gray-400"
-                      : "border-gray-600"
+                    "rounded-r-lg flex-1 border-r border-t",
+                    isLeftColumnSelected
+                      ? "hidden lg:block border-gray-600"
+                      : "border-gray-400"
                   )}
                 >
+                  {renderGoBack()}
                   {renderMainContent()}
                 </main>
               </div>
