@@ -635,7 +635,7 @@ export const CastRow = ({
                 </div>
                 {renderRecastBadge()}
               </div>
-              <div className="flex flex-row mt-2 lg:mt-0">
+              <div className="flex flex-row">
                 <div className="block mr-2 lg:hidden">
                   {renderChannelButton()}
                 </div>
@@ -656,7 +656,7 @@ export const CastRow = ({
             </div>
             <div
               onClick={() => onSelect && onSelect()}
-              className="mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
+              className="w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
               style={castTextStyle}
             >
               {getText()}

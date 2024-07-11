@@ -1,16 +1,5 @@
-import { useCallback, useEffect, useRef } from "react";
-
-// export function useIsMounted(): () => boolean {
-//   const isMountedRef = useRef(true);
-//   const isMounted = useCallback(() => isMountedRef.current, []);
-
-//   useEffect(() => {
-//     isMountedRef.current = true;
-//     return () => void (isMountedRef.current = false);
-//   }, []);
-
-//   return isMounted;
-// }
+import { useLayoutEffect, useState, useCallback, useEffect, useRef } from "react";
+import debounce from 'lodash/debounce';
 
 /**
  * This hook provides a function that returns whether the component is still mounted.
@@ -30,3 +19,19 @@ export function useIsMounted(): () => boolean {
     return mountedRef.current;
   }, [mountedRef]);
 }
+
+
+export const useIsMobile = (): boolean => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useLayoutEffect(() => {
+    const updateSize = (): void => {
+      console.log('updateSize', window.innerWidth)
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', debounce(updateSize, 250));
+    return (): void => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  return isMobile;
+};

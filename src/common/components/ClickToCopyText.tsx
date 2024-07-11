@@ -8,10 +8,12 @@ type ClickToCopyTextProps = {
   className?: string;
   buttonText?: string;
   text: string;
+  disabled?: boolean;
 };
 
 const ClickToCopyText = ({
   className,
+  disabled,
   buttonText,
   text,
 }: ClickToCopyTextProps) => {
@@ -28,7 +30,7 @@ const ClickToCopyText = ({
       variant="outline"
       size="lg"
       className={cn("flex gap-x-2 px-2", className)}
-      disabled={didClickCopyShare}
+      disabled={didClickCopyShare || disabled}
       onClick={() => {
         setDidClickCopyShare(true);
         navigator.clipboard.writeText(text);

@@ -432,9 +432,10 @@ export default function SearchPage() {
               Save
             </Button>
             <ClickToCopyText
-              className="rounded-l-none border-l-0 w-1/2 px-4"
+              disabled={!searchTerm}
+              className={cn("rounded-l-none border-l-0 w-1/2 px-4")}
               buttonText="Share"
-              text={searchTerm}
+              text={`https://app.herocast.xyz/search?search=${searchTerm}`}
             />
           </div>
         </div>

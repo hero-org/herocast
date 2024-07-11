@@ -51,7 +51,6 @@ import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { getTimestamp } from "@/common/helpers/farcaster";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AlertDialogDemo from "@/common/components/AlertDialog";
-import { Loading } from "@/common/components/Loading";
 import AccountManagementModal from "@/common/components/AccountManagement/AccountManagementModal";
 import { cn } from "@/lib/utils";
 
