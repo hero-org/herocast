@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+import { UUID } from 'crypto';
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
@@ -10,15 +11,17 @@ export enum CastModalView {
 }
 
 interface NavigationStoreProps {
-  castModalDraftId?: string;
+  castModalDraftId?: UUID;
   isNewCastModalOpen: boolean;
   castModalView: CastModalView;
   isCommandPaletteOpen: boolean;
+  isManageListModalOpen: boolean;
 }
 
 interface NavigationStoreActions {
   setCastModalDraftId: (draftId: number) => void;
   setCastModalView: (view: CastModalView) => void;
+  setIsManageListModalOpen: (isOpen: boolean) => void;
   openNewCastModal: () => void;
   closeNewCastModal: () => void;
   closeCommandPallete: () => void;
@@ -37,7 +40,8 @@ const store = (set: StoreSet) => ({
   isNewCastModalOpen: false,
   castModalDraftId: undefined,
   castModalView: CastModalView.New,
-  setCastModalDraftId: (draftId: number) => {
+  isManageListModalOpen: false,
+  setCastModalDraftId: (draftId: UUID) => {
     set((state) => {
       state.castModalDraftId = draftId;
     });
@@ -65,6 +69,11 @@ const store = (set: StoreSet) => ({
   toggleCommandPalette: () => {
     set((state) => {
       state.isCommandPaletteOpen = !state.isCommandPaletteOpen;
+    });
+  },
+  setIsManageListModalOpen: (isOpen: boolean) => {
+    set((state) => {
+      state.isManageListModalOpen = isOpen;
     });
   },
 });

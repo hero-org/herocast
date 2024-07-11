@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { createClient } from "@/common/helpers/supabase/component";
-import { InsertList, List } from '@/common/types/database.types'
+import { InsertList, List, UpdateList } from '@/common/types/database.types'
 import { UUID } from "crypto";
 
 
@@ -19,15 +19,16 @@ interface ListStoreProps {
   searches: Search[];
   lists: List[];
   isHydrated: boolean;
-  selectedList?: List;
+  selectedListIdx?: number;
 }
 
 interface ListStoreActions {
   hydrate: () => void;
   addSearch: (search: Search) => void;
+  updateSearch: (search: UpdateList) => void;
   addList: (newList: AddListType) => void;
   removeList: (listId: UUID) => void;
-  updateSelectedList: (list?: List) => void;
+  setSelectedListIdx: (idx: number) => void;
 }
 
 export interface ListStore extends ListStoreProps, ListStoreActions { }
@@ -43,7 +44,7 @@ const store = (set: StoreSet) => ({
   lists: [],
   searches: [],
   isHydrated: false,
-  selectedList: null,
+  selectedListIdx: undefined,
   addSearch: (search: Search) => {
     set((state) => {
       state.searches = [...state.searches, search];
@@ -69,6 +70,18 @@ const store = (set: StoreSet) => ({
       state.lists = [...state.lists, list[0]];
     });
   },
+  updateSearch: async (search: UpdateList) => {
+    if (!search.id) throw new Error('List id is required');
+    // upsert to supabase
+    const { data, error } = await supabaseClient.from('list').upsert(search);
+    console.log('data', data, 'error', error);
+    if (error) {
+      throw new Error('Failed to update list');
+    }
+    const idx = useListStore.getState().searches.findIndex((s) => s?.id === search.id);
+    useListStore.getState().searches[idx] = data;
+    console.log('update local list with data', data);
+  },
   removeList: async (listId: UUID) => {
     const { error } = await supabaseClient.from('list').delete().eq('id', listId);
     if (error) {
@@ -78,9 +91,9 @@ const store = (set: StoreSet) => ({
       state.lists = state.lists.filter((list) => list.id !== listId);
     });
   },
-  updateSelectedList: (list?: List) => {
+  setSelectedListIdx: (idx?: number) => {
     set((state) => {
-      state.selectedList = list;
+      state.selectedListIdx = idx;
     });
   },
   hydrate: async () => {

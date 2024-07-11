@@ -16,28 +16,32 @@ import { Button } from "@/components/ui/button";
 import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
-  TrashIcon,
 } from "@heroicons/react/24/outline";
-import { usePostHog } from "posthog-js/react";
+import { Cog6ToothIcon } from "@heroicons/react/20/solid";
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import { UUID } from "crypto";
 
 const ListsOverview = () => {
-  const posthog = usePostHog();
+  const { selectedListIdx, setSelectedListIdx, lists } = useListStore();
 
-  const { selectedList, updateSelectedList, removeList, lists } =
-    useListStore();
+  const { setIsManageListModalOpen } = useNavigationStore();
 
-  const onClickDelete = (id: string) => {
-    removeList(id);
-    posthog.capture("user_delete_list");
+  const onOpenManageListModal = (id: UUID) => {
+    updateSelectedList(id);
+    setIsManageListModalOpen(true);
   };
 
-  const renderList = (list: List) => {
+  const updateSelectedList = (id: UUID) => {
+    setSelectedListIdx(lists.findIndex((l) => l.id === id));
+  };
+
+  const renderList = (list: List, idx: number) => {
     return (
       <li key={`list-${list.id}`} className="px-2 sm:px-3 lg:px-4">
         <div
-          onClick={() => updateSelectedList(list)}
+          onClick={() => updateSelectedList(list.id)}
           className={classNames(
-            selectedList?.id === list.id
+            selectedListIdx === idx
               ? "text-foreground font-semibold"
               : "text-foreground/80 hover:text-foreground/80",
             "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
@@ -66,9 +70,9 @@ const ListsOverview = () => {
                 Search
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onClickDelete(list.id)}>
-                <TrashIcon className="h-4 w-4 mr-2" />
-                Delete
+              <DropdownMenuItem onClick={() => onOpenManageListModal(list.id)}>
+                <Cog6ToothIcon className="h-4 w-4 mr-2" />
+                Manage
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

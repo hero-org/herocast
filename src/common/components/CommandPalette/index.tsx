@@ -386,7 +386,7 @@ export default function CommandPalette() {
       afterLeave={() => setQuery("")}
       appear
     >
-      <Dialog as="div" className="relative z-10" onClose={toggleCommandPalette}>
+      <Dialog as="div" className="relative z-50" onClose={toggleCommandPalette}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-10"
