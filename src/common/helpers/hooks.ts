@@ -26,7 +26,6 @@ export const useIsMobile = (): boolean => {
 
   useLayoutEffect(() => {
     const updateSize = (): void => {
-      console.log('updateSize', window.innerWidth)
       setIsMobile(window.innerWidth < 768);
     };
     window.addEventListener('resize', debounce(updateSize, 250));
