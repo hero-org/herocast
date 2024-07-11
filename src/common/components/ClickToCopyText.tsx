@@ -2,14 +2,27 @@ import React, { useState } from "react";
 import { ClipboardDocumentIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-const ClickToCopyText = ({ text }: { text: string }) => {
+type ClickToCopyTextProps = {
+  className?: string;
+  buttonText?: string;
+  text: string;
+};
+
+const ClickToCopyText = ({
+  className,
+  buttonText,
+  text,
+}: ClickToCopyTextProps) => {
   const [didClickCopyShare, setDidClickCopyShare] = useState(false);
 
   return (
     <Button
-      variant="secondary"
-      className="flex gap-x-2"
+      variant="outline"
+      size="lg"
+      className={cn("flex gap-x-2 px-2", className)}
+      disabled={didClickCopyShare}
       onClick={() => {
         setDidClickCopyShare(true);
         navigator.clipboard.writeText(text);

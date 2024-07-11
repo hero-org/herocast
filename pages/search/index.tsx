@@ -21,11 +21,12 @@ import {
 } from "@/common/components/SearchIntervalFilter";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
-import { BookmarkIcon } from "@heroicons/react/20/solid";
 import { usePostHog } from "posthog-js/react";
 import { SearchFilters } from "@/common/helpers/search";
 import { searchForText } from "@/common/helpers/search";
 import { RawSearchResult } from "@/common/helpers/search";
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import ClickToCopyText from "@/common/components/ClickToCopyText";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -54,14 +55,15 @@ export default function SearchPage() {
   const [showFilter, setShowFilter] = useState(true);
   const [hasMore, setHasMore] = useState(true);
 
-  const {
-    searches,
-    addSearch,
-    addList,
-    selectedList,
-    updateSelectedList,
-    lists,
-  } = useListStore();
+  const { isManageListModalOpen, setIsManageListModalOpen } =
+    useNavigationStore();
+  const { searches, addSearch, addList, setSelectedListIdx, lists } =
+    useListStore();
+  const selectedList = useListStore((state) =>
+    state.selectedListIdx !== undefined
+      ? state.lists[state.selectedListIdx]
+      : undefined
+  );
   const canSearch = searchTerm.trim().length >= 3;
   const lastSearchHasNoResults =
     searches[searches.length - 1]?.resultsCount === 0;
@@ -345,7 +347,7 @@ export default function SearchPage() {
       Power Badge
       <img
         src="/images/ActiveBadge.webp"
-        className="ml-1 h-4 w-4"
+        className="hidden md:flex ml-1 h-4 w-4"
         alt="power badge"
       />
       <Switch
@@ -392,49 +394,57 @@ export default function SearchPage() {
 
   return (
     <div className="min-w-0 flex-1 p-6">
-      <div className="w-full max-w-2xl">
-        <label htmlFor="desktop-search" className="sr-only">
-          Search
-        </label>
-        <div className="flex w-full max-w-xl items-center space-x-2">
-          <Input
-            variantSize="lg"
-            value={searchTerm}
-            onChange={(e) => onChange(e.target.value)}
-            id="search"
-            placeholder="Search for casts..."
-            type="search"
-            name="search"
-            className={isLoading ? "animate-pulse" : ""}
-            autoFocus
-          />
-          <Button
-            disabled={!canSearch}
-            size="lg"
-            type="button"
-            className="px-10"
-            onClick={() => onSearch()}
-          >
-            Search
-          </Button>
-
-          <Button
-            size="lg"
-            type="button"
-            variant="outline"
-            className="group px-4"
-            onClick={() => onSaveSearch()}
-          >
-            <BookmarkIcon className="group-hover:text-muted-foreground h-5 w-5 mr-1" />
-            Save
-          </Button>
+      <div className="w-full max-w-xl">
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 w-full items-center">
+          <div className="flex col-span-3 group">
+            <Input
+              variantSize="lg"
+              value={searchTerm}
+              onChange={(e) => onChange(e.target.value)}
+              id="search"
+              placeholder="Search for casts..."
+              type="search"
+              name="search"
+              className={cn(
+                "rounded-r-none",
+                "border-none ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600",
+                isLoading ? "animate-pulse" : ""
+              )}
+              autoFocus
+            />
+            <Button
+              disabled={!canSearch}
+              size="lg"
+              type="button"
+              className="px-8 rounded-l-none"
+              onClick={() => onSearch()}
+            >
+              Search
+            </Button>
+          </div>
+          <div className="flex col-span-3 md:col-span-1 w-full">
+            <Button
+              size="lg"
+              type="button"
+              variant="outline"
+              className="px-2 rounded-r-none w-1/2"
+              onClick={() => onSaveSearch()}
+            >
+              Save
+            </Button>
+            <ClickToCopyText
+              className="rounded-l-none border-l-0 w-1/2 px-4"
+              buttonText="Share"
+              text={searchTerm}
+            />
+          </div>
         </div>
-        <div className="flex w-full max-w-lg mt-2 h-12 space-x-2 ">
+        <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 mt-2 md:h-12 md:gap-x-2 ">
           <Button
             size="sm"
             variant="outline"
             className={cn(
-              "px-4",
+              "px-4 col-span-2 md:col-span-1",
               showFilter ? "bg-muted text-muted-foreground" : ""
             )}
             onClick={() => setShowFilter((prev) => !prev)}
@@ -444,9 +454,10 @@ export default function SearchPage() {
           </Button>
           {showFilter && (
             <div
-              className={`space-x-2 transition-all duration-200 ${
+              className={cn(
+                "w-full col-span-3 flex space-x-2 transition-all duration-200 md:justify-end",
                 showFilter ? "opacity-100" : "opacity-0"
-              }`}
+              )}
             >
               {renderPowerBadgeFilter()}
               {renderHideRepliesFilter()}
@@ -457,7 +468,7 @@ export default function SearchPage() {
       </div>
       {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
         renderLoading()}
-      {!isLoading && isEmpty(casts) && (
+      {!isLoading && !isEmpty(castHashes) && isEmpty(casts) && (
         <div className="flex flex-col text-center mt-8 text-muted-foreground">
           <span>No results found</span>
           {renderTryAgainButton()}
