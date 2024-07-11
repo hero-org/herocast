@@ -26,6 +26,9 @@ import { usePostHog } from "posthog-js/react";
 import { SearchFilters } from "@/common/helpers/search";
 import { searchForText } from "@/common/helpers/search";
 import { RawSearchResult } from "@/common/helpers/search";
+import ManageListModal from "@/common/components/ManageListModal";
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import ClickToCopyText from "@/common/components/ClickToCopyText";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -54,17 +57,15 @@ export default function SearchPage() {
   const [showFilter, setShowFilter] = useState(true);
   const [hasMore, setHasMore] = useState(true);
 
-  const {
-    searches,
-    addSearch,
-    addList,
-    selectedList,
-    updateSelectedList,
-    lists,
-  } = useListStore();
+  const { isManageListModalOpen, setIsManageListModalOpen } = useNavigationStore();
+  const { searches, addSearch, addList, setSelectedListIdx, lists } =
+    useListStore();
+  const selectedList = useListStore((state) =>
+    state.selectedListIdx !== undefined
+      ? state.lists[state.selectedListIdx]
+      : undefined
+  );
   const canSearch = searchTerm.trim().length >= 3;
-  const lastSearchHasNoResults =
-    searches[searches.length - 1]?.resultsCount === 0;
   const { updateSelectedCast } = useDataStore();
 
   const selectedAccount = useAccountStore(
@@ -81,8 +82,8 @@ export default function SearchPage() {
 
     const listId = urlParams.get("list");
     if (listId) {
-      const list = lists.find((list) => list.id === listId);
-      updateSelectedList(list);
+      const listIdx = lists.findIndex((list) => list.id === listId);
+      setSelectedListIdx(listIdx);
     }
 
     // if navigating away, reset the selected cast
@@ -245,7 +246,7 @@ export default function SearchPage() {
 
   useHotkeys([Key.Enter, "meta+enter"], () => onSearch(), [onSearch], {
     enableOnFormTags: true,
-    enabled: canSearch,
+    enabled: canSearch && !isLoading && !isManageListModalOpen,
   });
 
   useEffect(() => {
@@ -428,6 +429,7 @@ export default function SearchPage() {
             <BookmarkIcon className="group-hover:text-muted-foreground h-5 w-5 mr-1" />
             Save
           </Button>
+          <ClickToCopyText buttonText="Share" text={searchTerm} />
         </div>
         <div className="flex w-full max-w-lg mt-2 h-12 space-x-2 ">
           <Button
@@ -480,6 +482,10 @@ export default function SearchPage() {
           Error: {error.message}
         </div>
       )}
+      <ManageListModal
+        open={isManageListModalOpen}
+        onClose={() => setIsManageListModalOpen(false)}
+      />
     </div>
   );
 }

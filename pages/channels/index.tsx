@@ -3,7 +3,6 @@ import { useAccountStore } from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
 import { classNames } from "../../src/common/helpers/css";
 import { ChannelType } from "../../src/common/constants/channels";
-import Toggle from "../../src/common/components/Toggle";
 import findIndex from "lodash.findindex";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import SortableList, { SortableItem } from "react-easy-sort";
@@ -131,13 +130,7 @@ export default function Channels() {
           </div>
         </div>
         <ul role="list" className="mt-4">
-          {isEmpty(channels) ? (
-            <div className="mt-0.5 h-14 col-span-2 flex rounded-sm">
-              <p className="text-muted-foreground">
-                Start pinning channels and they will appear up here
-              </p>
-            </div>
-          ) : (
+          {!isEmpty(channels) && (
             <SortableList
               onSortEnd={onSortEnd}
               className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
