@@ -88,6 +88,15 @@ const Notifications = () => {
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
+
+  const renderTabsTrigger = (value: NotificationTab, label: string, className: string) => (
+    <TabsTrigger
+      className={className}
+      value={value}
+    >
+      {label}
+    </TabsTrigger>
+  );
   const [allNotifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedNotificationIdx, setSelectedNotificationIdx] =
@@ -466,42 +475,12 @@ const Notifications = () => {
           >
             <div className="flex items-center md:mx-2">
               <TabsList className="grid grid-cols-3 lg:grid-cols-6">
-                <TabsTrigger
-                  className="flex col-span-1 lg:col-span-2"
-                  value={NotificationTab.all}
-                >
-                  All
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1 lg:col-span-2"
-                  value={NotificationTab.replies}
-                >
-                  Replies
-                </TabsTrigger>
-                <TabsTrigger
-                  className=" col-span-1 lg:col-span-2"
-                  value={NotificationTab.mentions}
-                >
-                  Mentions
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1"
-                  value={NotificationTab.likes}
-                >
-                  Likes
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1"
-                  value={NotificationTab.recasts}
-                >
-                  Recasts
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1"
-                  value={NotificationTab.follows}
-                >
-                  Follows
-                </TabsTrigger>
+                {renderTabsTrigger(NotificationTab.all, "All", "flex col-span-1 lg:col-span-2")}
+                {renderTabsTrigger(NotificationTab.replies, "Replies", "col-span-1 lg:col-span-2")}
+                {renderTabsTrigger(NotificationTab.mentions, "Mentions", "col-span-1 lg:col-span-2")}
+                {renderTabsTrigger(NotificationTab.likes, "Likes", "col-span-1")}
+                {renderTabsTrigger(NotificationTab.recasts, "Recasts", "col-span-1")}
+                {renderTabsTrigger(NotificationTab.follows, "Follows", "col-span-1")}
               </TabsList>
               <div className="ml-auto flex items-center gap-2">
                 {/* {renderNotificationFilterDropdown()} */}
