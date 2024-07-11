@@ -28,6 +28,7 @@ import { searchForText } from "@/common/helpers/search";
 import { RawSearchResult } from "@/common/helpers/search";
 import ManageListModal from "@/common/components/ManageListModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import ClickToCopyText from "@/common/components/ClickToCopyText";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -65,8 +66,6 @@ export default function SearchPage() {
       : undefined
   );
   const canSearch = searchTerm.trim().length >= 3;
-  const lastSearchHasNoResults =
-    searches[searches.length - 1]?.resultsCount === 0;
   const { updateSelectedCast } = useDataStore();
 
   const selectedAccount = useAccountStore(
@@ -247,7 +246,7 @@ export default function SearchPage() {
 
   useHotkeys([Key.Enter, "meta+enter"], () => onSearch(), [onSearch], {
     enableOnFormTags: true,
-    enabled: canSearch,
+    enabled: canSearch && !isLoading && !isManageListModalOpen,
   });
 
   useEffect(() => {
@@ -430,6 +429,7 @@ export default function SearchPage() {
             <BookmarkIcon className="group-hover:text-muted-foreground h-5 w-5 mr-1" />
             Save
           </Button>
+          <ClickToCopyText buttonText="Share" text={searchTerm} />
         </div>
         <div className="flex w-full max-w-lg mt-2 h-12 space-x-2 ">
           <Button

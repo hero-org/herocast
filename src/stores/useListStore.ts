@@ -25,7 +25,7 @@ interface ListStoreProps {
 interface ListStoreActions {
   hydrate: () => void;
   addSearch: (search: Search) => void;
-  updateSearch: (search: UpdateList) => void;
+  updateList: (search: UpdateList) => void;
   addList: (newList: AddListType) => void;
   removeList: (listId: UUID) => void;
   setSelectedListIdx: (idx: number) => void;
@@ -70,17 +70,16 @@ const store = (set: StoreSet) => ({
       state.lists = [...state.lists, list[0]];
     });
   },
-  updateSearch: async (search: UpdateList) => {
+  updateList: async (search: UpdateList) => {
     if (!search.id) throw new Error('List id is required');
-    // upsert to supabase
-    const { data, error } = await supabaseClient.from('list').upsert(search);
-    console.log('data', data, 'error', error);
+    const { data, error } = await supabaseClient.from('list').upsert(search).select();
     if (error) {
       throw new Error('Failed to update list');
     }
-    const idx = useListStore.getState().searches.findIndex((s) => s?.id === search.id);
-    useListStore.getState().searches[idx] = data;
-    console.log('update local list with data', data);
+    const idx = useListStore.getState().lists.findIndex((s) => s.id === search.id);
+    set((state) => {
+      state.lists[idx] = data?.[0] as List;
+    });
   },
   removeList: async (listId: UUID) => {
     const { error } = await supabaseClient.from('list').delete().eq('id', listId);
