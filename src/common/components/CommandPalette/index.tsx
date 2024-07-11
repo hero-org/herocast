@@ -60,7 +60,6 @@ export default function CommandPalette() {
     toggleCommandPalette,
     {
       enableOnFormTags: true,
-      ignoreModifiers: true,
       preventDefault: true,
     },
     [toggleCommandPalette]

@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
 
+    const termsInQuotes = term.match(/"([^"]*)"/g)?.map(quotedTerm => quotedTerm.replace(/"/g, ''));
     const query = `
     SELECT 
         casts.hash, casts.fid, casts.text
@@ -38,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         AND casts.deleted_at IS NULL
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
+        ${termsInQuotes ? `AND ${termsInQuotes.map((quotedTerm) => `casts.text ilike '%${quotedTerm}%'`).join(' AND ')}` : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
     LIMIT $1 OFFSET $2`;
     const vars = [limit, offset, term.trim()];
