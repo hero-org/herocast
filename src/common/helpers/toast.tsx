@@ -28,3 +28,7 @@ export const toastSuccessCastScheduled = (text: string) => {
     description: truncate(text, { length: 25 }),
   });
 };
+
+export const toastSuccessSavedSearchUpdate = (name: string) => {
+  toast.success(`Saved search "${name}" updated successfully`);
+};

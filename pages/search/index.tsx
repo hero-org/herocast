@@ -25,6 +25,7 @@ import { usePostHog } from "posthog-js/react";
 import { SearchFilters } from "@/common/helpers/search";
 import { searchForText } from "@/common/helpers/search";
 import { RawSearchResult } from "@/common/helpers/search";
+import ManageListModal from "@/common/components/ManageListModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
 
@@ -65,8 +66,6 @@ export default function SearchPage() {
       : undefined
   );
   const canSearch = searchTerm.trim().length >= 3;
-  const lastSearchHasNoResults =
-    searches[searches.length - 1]?.resultsCount === 0;
   const { updateSelectedCast } = useDataStore();
 
   const selectedAccount = useAccountStore(
@@ -83,8 +82,8 @@ export default function SearchPage() {
 
     const listId = urlParams.get("list");
     if (listId) {
-      const list = lists.find((list) => list.id === listId);
-      updateSelectedList(list);
+      const listIdx = lists.findIndex((list) => list.id === listId);
+      setSelectedListIdx(listIdx);
     }
 
     // if navigating away, reset the selected cast
@@ -247,7 +246,7 @@ export default function SearchPage() {
 
   useHotkeys([Key.Enter, "meta+enter"], () => onSearch(), [onSearch], {
     enableOnFormTags: true,
-    enabled: canSearch,
+    enabled: canSearch && !isLoading && !isManageListModalOpen,
   });
 
   useEffect(() => {
@@ -491,6 +490,10 @@ export default function SearchPage() {
           Error: {error.message}
         </div>
       )}
+      <ManageListModal
+        open={isManageListModalOpen}
+        onClose={() => setIsManageListModalOpen(false)}
+      />
     </div>
   );
 }

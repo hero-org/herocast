@@ -43,21 +43,24 @@ const intervals = [
   },
 ];
 
+type SearchIntervalFilterProps = {
+  defaultInterval?: SearchInterval;
+  updateInterval?: (value: SearchInterval) => void;
+};
+
 export function SearchIntervalFilter({
   defaultInterval,
   updateInterval,
-}: {
-  defaultInterval?: SearchInterval;
-  updateInterval: (value: SearchInterval) => void;
-}) {
+}: SearchIntervalFilterProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState<SearchInterval | undefined>(
     defaultInterval
   );
 
+  const canSelect = updateInterval !== undefined;
   const handleSelect = (currentValue: SearchInterval) => {
     setValue(currentValue === value ? undefined : currentValue);
-    updateInterval(currentValue);
+    updateInterval?.(currentValue);
     setOpen(false);
   };
 
@@ -66,6 +69,7 @@ export function SearchIntervalFilter({
       <PopoverTrigger asChild>
         <Button
           size="sm"
+          disabled={!canSelect}
           variant="outline"
           role="combobox"
           aria-expanded={open}

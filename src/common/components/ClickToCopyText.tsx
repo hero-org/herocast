@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ClipboardDocumentIcon } from "@heroicons/react/20/solid";
+import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,12 @@ const ClickToCopyText = ({
   text,
 }: ClickToCopyTextProps) => {
   const [didClickCopyShare, setDidClickCopyShare] = useState(false);
+
+  const getButtonText = () => {
+    if (didClickCopyShare) return "Copied";
+    if (buttonText) return buttonText;
+    return "Copy";
+  };
 
   return (
     <Button
@@ -37,7 +43,7 @@ const ClickToCopyText = ({
           didClickCopyShare ? "text-muted-foreground" : "text-foreground"
         )}
       />
-      {didClickCopyShare ? "Copied!" : "Copy"}
+      {getButtonText()}
     </Button>
   );
 };

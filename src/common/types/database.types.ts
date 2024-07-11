@@ -1,3 +1,5 @@
+import { UUID } from "crypto"
+
 export type Json =
   | string
   | number
@@ -216,7 +218,7 @@ export type Database = {
           account_id: string | null
           contents: Json
           created_at: string
-          id: string
+          id: UUID
           idx: number
           name: string
           type: Database["public"]["Enums"]["list_type"]
@@ -730,3 +732,4 @@ export type Enums<
 
 export type List = Database['public']['Tables']['list']['Row'];
 export type InsertList = Database['public']['Tables']['list']['Insert'];
+export type UpdateList = Database['public']['Tables']['list']['Update'];
