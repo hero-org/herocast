@@ -7,7 +7,6 @@ import { localize, timeDiff } from "../../src/common/helpers/date";
 import isEmpty from "lodash.isempty";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
-import NewCastModal from "../../src/common/components/NewCastModal";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import {
   CastWithInteractions,
@@ -24,16 +23,17 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/common/helpers/hooks";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CastRow } from "@/common/components/CastRow";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import ProfileInfo from "@/common/components/Sidebar/ProfileInfo";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_SHOW_REACTIONS_LIMIT = 15;
 
@@ -87,6 +87,13 @@ const Notifications = () => {
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
+  const isMobile = useIsMobile();
+
+  const renderTabsTrigger = (value: NotificationTab, label: string) => (
+    <TabsTrigger className="w-full" value={value}>
+      {label}
+    </TabsTrigger>
+  );
   const [allNotifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedNotificationIdx, setSelectedNotificationIdx] =
@@ -106,6 +113,7 @@ const Notifications = () => {
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId
   );
+
   const now = new Date();
   const notifications = useMemo(
     () => filterNotificationsByActiveTab(allNotifications, activeTab),
@@ -119,18 +127,32 @@ const Notifications = () => {
     };
   }, []);
 
-  const loadData = async () => {
-    setIsLoading(true);
+  const loadData = async ({ reset }: { reset?: boolean }) => {
+    if (!viewerFid) return;
 
+    setIsLoading(true);
+    if (reset) {
+      setNotifications([]);
+    }
     const neynarClient = new NeynarAPIClient(
       process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
     );
 
-    const resp = await neynarClient.fetchAllNotifications(Number(viewerFid), {
-      cursor: loadMoreCursor,
-    });
+    const options = reset
+      ? {}
+      : {
+          cursor: loadMoreCursor,
+        };
+    const resp = await neynarClient.fetchAllNotifications(
+      Number(viewerFid),
+      options
+    );
     if (resp.notifications) {
-      setNotifications([...allNotifications, ...resp.notifications]);
+      if (reset) {
+        setNotifications(resp.notifications);
+      } else {
+        setNotifications([...allNotifications, ...resp.notifications]);
+      }
       setLoadMoreCursor(resp.next.cursor);
     }
     setIsLoading(false);
@@ -138,9 +160,9 @@ const Notifications = () => {
 
   useEffect(() => {
     if (!viewerFid) return;
-    setLoadMoreCursor(undefined);
 
-    loadData();
+    setLoadMoreCursor(undefined);
+    loadData({ reset: true });
 
     closeNewCastModal();
     setIsLeftColumnSelected(true);
@@ -264,7 +286,13 @@ const Notifications = () => {
     return (
       <li
         key={`item-${notification.most_recent_timestamp}`}
-        onClick={() => setSelectedNotificationIdx(idx)}
+        onClick={() => {
+          setSelectedNotificationIdx(idx);
+          scrollTo(0, 0);
+          if (isMobile) {
+            setIsLeftColumnSelected(false);
+          }
+        }}
         className={classNames(
           idx === selectedNotificationIdx
             ? "bg-muted"
@@ -300,18 +328,19 @@ const Notifications = () => {
     );
   };
 
-  const renderLoadMoreButton = () => notifications.length > 0 && (
-    <div className="flex justify-center my-8">
-      <Button
-        variant="outline"
-        size="lg"
-        disabled={isLoading}
-        onClick={() => loadData()}
-      >
-        {isLoading ? <Loading /> : "Load More"}
-      </Button>
-    </div>
-  );
+  const renderLoadMoreButton = () =>
+    notifications.length > 0 && (
+      <div className="flex justify-center my-8">
+        <Button
+          variant="outline"
+          size="lg"
+          disabled={isLoading}
+          onClick={() => loadData({ reset: false })}
+        >
+          {isLoading ? <Loading /> : "Load More"}
+        </Button>
+      </div>
+    );
 
   const renderShowMoreReactionsButton = () => (
     <div className="flex justify-center my-8">
@@ -336,8 +365,6 @@ const Notifications = () => {
           renderRow={(item: Notification, idx: number) =>
             renderNotificationRow(item, idx)
           }
-          onSelect={(idx) => setSelectedNotificationIdx(idx)}
-          onExpand={() => null}
           isActive={isLeftColumnSelected && !isNewCastModalOpen}
           disableScroll
         />
@@ -445,50 +472,33 @@ const Notifications = () => {
     </DropdownMenu>
   );
 
+  const renderGoBack = () => (
+    <div className="border-b p-4 md:hidden">
+      <Button variant="outline" onClick={() => setIsLeftColumnSelected(true)}>
+        Go back
+      </Button>
+    </div>
+  );
+
   return (
-    <div className="flex min-h-screen min-w-full flex-col bg-muted/40">
+    <div className="flex md:min-h-screen min-w-full flex-col bg-muted/40">
       <div className="flex flex-col sm:gap-4 sm:py-4">
-        <main className="grid flex-1 items-start gap-4 px-4 md:px-2 lg:px-0">
+        <main className="grid flex-1 items-start gap-4 px-4 md:px-0">
           <Tabs
             defaultValue={NotificationTab.all}
             value={activeTab}
-            onValueChange={(value) => setActiveTab(value as NotificationTab)}
+            onValueChange={(value: string) =>
+              setActiveTab(value as NotificationTab)
+            }
           >
-            <div className="flex items-center md:mx-2">
-              <TabsList>
-                <TabsTrigger className="flex col-span-1" value={NotificationTab.all}>
-                  All
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1"
-                  value={NotificationTab.replies}
-                >
-                  Replies
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1"
-                  value={NotificationTab.mentions}
-                >
-                  Mentions
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1"
-                  value={NotificationTab.likes}
-                >
-                  Likes
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1"
-                  value={NotificationTab.recasts}
-                >
-                  Recasts
-                </TabsTrigger>
-                <TabsTrigger
-                  className="col-span-1"
-                  value={NotificationTab.follows}
-                >
-                  Follows
-                </TabsTrigger>
+            <div className="w-full md:max-w-xl md:mx-4">
+              <TabsList className="grid grid-cols-3 md:grid-cols-6">
+                {renderTabsTrigger(NotificationTab.all, "All")}
+                {renderTabsTrigger(NotificationTab.replies, "Replies")}
+                {renderTabsTrigger(NotificationTab.mentions, "Mentions")}
+                {renderTabsTrigger(NotificationTab.likes, "Likes")}
+                {renderTabsTrigger(NotificationTab.recasts, "Recasts")}
+                {renderTabsTrigger(NotificationTab.follows, "Follows")}
               </TabsList>
               <div className="ml-auto flex items-center gap-2">
                 {/* {renderNotificationFilterDropdown()} */}
@@ -502,14 +512,19 @@ const Notifications = () => {
               </div>
             </div>
             <div className="mt-4">
-              <div className="mx-auto flex w-full max-w-7xl items-start">
-                <div className="block w-full md:w-4/12 lg:6/12 shrink-0">
+              <div className="mx-auto flex w-full max-w-7xl items-start px-0 md:px-4">
+                <div
+                  className={cn(
+                    isLeftColumnSelected ? "block" : "hidden md:block",
+                    "w-full md:w-1/3 md:1/2 shrink-0"
+                  )}
+                >
                   <div
                     className={classNames(
-                      "overflow-hidden rounded-lg border",
+                      "overflow-hidden rounded-l-lg border",
                       isLeftColumnSelected
-                        ? "border-gray-400"
-                        : "border-gray-600"
+                        ? "border-muted-foreground/20"
+                        : "border-muted-foreground"
                     )}
                   >
                     {renderLeftColumn()}
@@ -517,12 +532,13 @@ const Notifications = () => {
                 </div>
                 <main
                   className={classNames(
-                    "hidden md:block rounded-r-lg flex-1 border-r border-t",
-                    !isLeftColumnSelected
-                      ? "border-gray-400"
-                      : "border-gray-600"
+                    isLeftColumnSelected
+                      ? "hidden md:block border-muted-foreground"
+                      : "border-muted-foreground/20",
+                    "flex-1 rounded-lg border md:rounded-l-none lg:border-0"
                   )}
                 >
+                  {renderGoBack()}
                   {renderMainContent()}
                 </main>
               </div>

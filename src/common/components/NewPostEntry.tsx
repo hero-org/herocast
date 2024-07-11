@@ -40,6 +40,7 @@ import type { FarcasterEmbed } from "@mod-protocol/farcaster";
 import { prepareCastBody } from "@/stores/useDraftStore";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { toast } from "sonner";
+import { usePostHog } from "posthog-js/react";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -94,6 +95,7 @@ export default function NewPostEntry({
   hideChannel,
   hideSchedule,
 }: NewPostEntryProps) {
+  const posthog = usePostHog();
   const { addScheduledDraft, updatePostDraft, publishPostDraft } =
     useDraftStore();
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
@@ -139,6 +141,8 @@ export default function NewPostEntry({
     }
 
     if (scheduleDateTime) {
+      posthog.capture("user_schedule_cast");
+      await updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
       const castBody = await prepareCastBody(draft);
       await addScheduledDraft({
         castBody,
@@ -148,6 +152,7 @@ export default function NewPostEntry({
       setScheduleDateTime(undefined);
       onPost?.();
     } else {
+      posthog.capture("user_post_cast");
       await publishPostDraft(draftIdx, account, onPost);
     }
     return true;

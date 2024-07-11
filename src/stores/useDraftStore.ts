@@ -231,7 +231,6 @@ const store = (set: StoreSet) => ({
     })
   },
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => {
-    console.log('removePostDraft', draftIdx)
     set((state) => {
       if (draftIdx < 0 || draftIdx >= state.drafts.length) {
         return;
@@ -282,9 +281,7 @@ const store = (set: StoreSet) => ({
         toastInfoReadOnlyMode();
         return;
       }
-
       const draft = state.drafts[draftIdx];
-      console.log('publishPostDraft draft:', JSON.stringify(draft))
 
       try {
         await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });

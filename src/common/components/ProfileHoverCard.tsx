@@ -19,6 +19,7 @@ type ProfileHoverCardProps = {
   username?: string;
   viewerFid: number;
   children: React.ReactNode;
+  className?: string;
 };
 
 const ProfileHoverCard = ({
@@ -26,6 +27,7 @@ const ProfileHoverCard = ({
   username,
   viewerFid,
   children,
+  className,
 }: ProfileHoverCardProps) => {
   const { addUserProfile } = useDataStore();
   const profile = useDataStore((state) => getProfile(state, username, fid));
@@ -65,7 +67,7 @@ const ProfileHoverCard = ({
 
   return (
     <HoverCard openDelay={200}>
-      <HoverCardTrigger onClick={onClick} ref={ref}>
+      <HoverCardTrigger onClick={onClick} ref={ref} className={className}>
         {children}
       </HoverCardTrigger>
       <HoverCardContent

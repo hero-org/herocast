@@ -108,7 +108,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               className={cn("mr-1 bg-gray-100 border flex-none rounded-full")}
             />
           )}
-          <span className="flex-nowrap truncate">{channel.name} channel</span>
+          <span className="max-w-xs flex truncate">{channel.name} channel</span>
         </div>
       );
     }
@@ -278,13 +278,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case RIGHT_SIDEBAR_ENUM.SEARCH:
         return <RightSidebar showLists showSearches showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.NONE:
-        return null;
       default:
-        return (
-          <aside className="bg-background lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
-            <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8"></header>
-          </aside>
-        );
+        return null;
+        // return (
+        //   <aside className="bg-background lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
+        //     <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8"></header>
+        //   </aside>
+        // );
     }
   };
 
@@ -360,7 +360,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                         <ul role="list" className="-mx-2 space-y-1">
                           {navigation.map((item) => (
                             <li key={item.name}>
-                              <Link href={item.router}>
+                              <Link href={item.router} onClick={() => setSidebarOpen(false)}>
                                 <p
                                   className={classNames(
                                     item.router === pathname ||

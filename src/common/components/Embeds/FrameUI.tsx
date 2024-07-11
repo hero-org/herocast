@@ -9,6 +9,8 @@ import type {
 } from "@frames.js/render";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loading } from "../Loading";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const defaultTheme: Required<FrameTheme> = {
   buttonBg: "#fff",
@@ -189,14 +191,14 @@ export function FrameUI({
                   : "1.91/1",
             }}
           >
-            <Skeleton className="h-full w-full rounded-xl items-center text-center">
+            <Skeleton className="h-full w-full rounded-lg items-center text-center">
               <Loading loadingMessage="Loading Frame" />
             </Skeleton>
             <div className="grid grid-cols-4 gap-4">
-              <Skeleton className="h-8" />
-              <Skeleton className="h-8" />
-              <Skeleton className="h-8" />
-              <Skeleton className="h-8" />
+              <Skeleton className="h-8 rounded-lg" />
+              <Skeleton className="h-8 rounded-lg" />
+              <Skeleton className="h-8 rounded-lg" />
+              <Skeleton className="h-8 rounded-lg" />
             </div>
           </div>
         )}
@@ -232,7 +234,7 @@ export function FrameUI({
       </div>
       {!!frame && frame.inputText ? (
         <input
-          className="p-[6px] mx-2 border box-border"
+          className="p-[6px] border box-border"
           style={{
             borderRadius: `${resolvedTheme.buttonRadius}px`,
             borderColor: `${resolvedTheme.buttonBorderColor}`,
@@ -246,21 +248,15 @@ export function FrameUI({
         />
       ) : null}
       {!!frame && !!frame.buttons && frame.buttons.length > 0 ? (
-        <div className="flex gap-[8px] px-2 pb-2">
+        <div className="flex gap-1 pb-2">
           {frame.buttons.map((frameButton: FrameButton, index: number) => (
-            <button
+            <Button
+              variant="outline"
               type="button"
               disabled={isLoading}
-              className={`p-2 ${
-                isLoading ? "bg-gray-100" : ""
-              } border text-sm text-gray-800 rounded`}
+              className={cn("px-1", isLoading ? "bg-muted-foreground/20" : "")}
               style={{
                 flex: "1 1 0px",
-                // fixme: hover style
-                backgroundColor: resolvedTheme.buttonBg,
-                borderColor: resolvedTheme.buttonBorderColor,
-                color: resolvedTheme.buttonColor,
-                cursor: isLoading ? undefined : "pointer",
               }}
               onClick={(e) => {
                 e.preventDefault();
@@ -301,7 +297,7 @@ export function FrameUI({
               frameButton.action === "link"
                 ? ` ↗`
                 : ""}
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}

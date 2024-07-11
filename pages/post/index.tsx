@@ -55,7 +55,11 @@ const getDraftsForTab = (
 ) => {
   switch (activeTab) {
     case DraftListTab.writing:
-      return drafts.filter((draft) => draft.status === DraftStatus.writing);
+      return drafts.filter(
+        (draft) =>
+          draft.status === DraftStatus.writing ||
+          draft.status === DraftStatus.publishing
+      );
     case DraftListTab.scheduled:
       return drafts
         .filter(
@@ -89,7 +93,8 @@ const getChannelForParentUrl = ({
   parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined;
 
 export default function NewPost() {
-  const { addNewPostDraft, removePostDraftById } = useDraftStore();
+  const { addNewPostDraft, removePostDraftById, removeEmptyDrafts } =
+    useDraftStore();
   const { drafts } = useDraftStore();
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
   const { accounts, selectedAccountIdx, allChannels } = useAccountStore();
@@ -106,6 +111,10 @@ export default function NewPost() {
     [drafts, activeTab, selectedAccount?.id]
   );
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
+
+  const resetSelectedDraftId = () => {
+    setSelectedDraftId(draftsForTab[0]?.id);
+  };
 
   useEffect(() => {
     if (searchParams.has("text")) {
@@ -183,6 +192,7 @@ export default function NewPost() {
         <NewPostEntry
           draft={draft}
           draftIdx={drafts.findIndex((d) => d.id === draft.id)}
+          onPost={() => resetSelectedDraftId()}
         />
       </div>
     );

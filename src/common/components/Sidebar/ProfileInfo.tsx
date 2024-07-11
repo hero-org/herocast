@@ -73,7 +73,7 @@ const ProfileInfo = ({
       {showFollowButton ? <FollowButton username={profile?.username} /> : null}
       {profile ? (
         <>
-          <p className="flex pt-2 text-sm break-words pr-4 overflow-x-hidden">
+          <p className="flex pt-2 text-sm break-all pr-4 overflow-x-hidden">
             {profile.profile?.bio?.text}
           </p>
           <div className="flex flex-col pt-2 text-sm text-muted-foreground">
