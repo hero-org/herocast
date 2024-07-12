@@ -291,11 +291,11 @@ const store = (set: StoreSet) => ({
         await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody = await prepareCastBody(draft);
         console.log('castBody', castBody)
-        // await submitCast({
-        //   ...castBody,
-        //   signerPrivateKey: account.privateKey!,
-        //   fid: Number(account.platformAccountId),
-        // });
+        await submitCast({
+          ...castBody,
+          signerPrivateKey: account.privateKey!,
+          fid: Number(account.platformAccountId),
+        });
 
         state.removePostDraft(draftIdx);
         toastSuccessCastPublished(draft.text);
