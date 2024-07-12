@@ -72,14 +72,14 @@ export const CashtagToken = createTokenClass('cashtag', { isLink: true });
 
 export function channelPlugin({ scanner, parser }) {
   const { SLASH } = scanner.tokens;
-  const { whitespace } = scanner.tokens.groups;
+  const { whitespace, alphanumeric } = scanner.tokens.groups;
 
   const WhiteSpace = parser.start.ta(whitespace);
-  const Hash = parser.start.tt(SLASH);
+  const Hash = WhiteSpace.tt(SLASH);
   const Channel = new State(ChannelToken);
 
-  Hash.ta(scanner.tokens.groups.any, Channel);
-  Channel.ta(scanner.tokens.groups.any, Channel);
+  Hash.ta(alphanumeric, Channel);
+  Channel.ta(alphanumeric, Channel);
   Channel.ta(whitespace, parser.start);
 }
 
