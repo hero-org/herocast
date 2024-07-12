@@ -71,29 +71,22 @@ export function cashtagPlugin({ scanner, parser }) {
 export const CashtagToken = createTokenClass('cashtag', { isLink: true });
 
 export function channelPlugin({ scanner, parser }) {
-  const { SLASH, HYPHEN, UNDERSCORE, DASH } = scanner.tokens;
-  const { whitespace, alphanumeric } = scanner.tokens.groups;
+  const { SLASH, UNDERSCORE } = scanner.tokens;
+  const { alpha, numeric, alphanumeric, emoji } = scanner.tokens.groups;
 
-  // Start with slash
-  const Slash = parser.start.tt(SLASH);
-
-  // Define the Channel state
+  const Hash = parser.start.tt(SLASH);
+  const HashPrefix = Hash.tt(UNDERSCORE);
   const Channel = new State(ChannelToken);
 
-  // Allow alphanumeric, hyphen, underscore, and emoji characters in the channel name
-  Slash.ta(alphanumeric, Channel);
-  // Slash.ta(emoji, Channel);
-  Slash.ta(HYPHEN, Channel);
-  Slash.ta('-', Channel);
-  Slash.ta(UNDERSCORE, Channel);
-
-  // Continue allowing the same characters in the channel name
+  Hash.ta(numeric, HashPrefix);
+  Hash.ta(alpha, Channel);
+  Hash.ta(emoji, Channel);
+  HashPrefix.ta(alpha, Channel);
+  HashPrefix.ta(emoji, Channel);
+  HashPrefix.ta(numeric, HashPrefix);
+  HashPrefix.tt(UNDERSCORE, HashPrefix);
   Channel.ta(alphanumeric, Channel);
-  Channel.ta(HYPHEN, Channel);
-  Channel.ta('-', Channel);
-  Channel.ta(UNDERSCORE, Channel);
-  Channel.tt(whitespace, parser.start); // End channel name on whitespace
+  Channel.ta(emoji, Channel);
 }
 
 export const ChannelToken = createTokenClass('channel', { isLink: true });
-
