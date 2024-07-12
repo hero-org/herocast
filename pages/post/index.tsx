@@ -6,6 +6,7 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { Button } from "@/components/ui/button";
 import { CastRow } from "@/common/components/CastRow";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
@@ -26,6 +27,7 @@ import {
 import { ChannelType } from "@/common/constants/channels";
 import { UUID } from "crypto";
 import { usePathname, useSearchParams } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 enum DraftListTab {
   writing = "writing",
@@ -93,9 +95,8 @@ const getChannelForParentUrl = ({
   parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined;
 
 export default function NewPost() {
-  const { addNewPostDraft, removePostDraftById, removeEmptyDrafts } =
+  const { drafts, addNewPostDraft, removePostDraftById, removeEmptyDrafts } =
     useDraftStore();
-  const { drafts } = useDraftStore();
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
   const { accounts, selectedAccountIdx, allChannels } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
@@ -167,27 +168,22 @@ export default function NewPost() {
     removePostDraftById(draft.id);
   };
 
-  const getTitle = () => {
-    switch (activeTab) {
-      case DraftListTab.writing:
-        return "New cast";
-      case DraftListTab.scheduled:
-        return "Scheduled casts";
-      case DraftListTab.published:
-        return "Published casts";
-      default:
-        return "Drafts";
-    }
-  };
+  const renderEmptyMainContent = () => (
+    <div className="pt-2 pb-6 w-full min-h-[150px]">
+      <div className="content-center px-2 py-1 rounded-lg w-full h-full min-h-[150px] border border-muted-foreground/20">
+        {renderNewDraftButton()}
+      </div>
+    </div>
+  );
 
   const renderWritingDraft = (draft) => {
-    if (!draft) return null;
+    if (!draft) return renderEmptyMainContent();
 
     const parentCast = parentCasts.find(
       (cast) => cast.hash === draft.parentCastId?.hash
     );
     return (
-      <div key={draft.id} className="pt-4 pb-6">
+      <div key={draft.id} className="pt-2 pb-6">
         {parentCast && <CastRow cast={parentCast} />}
         <NewPostEntry
           draft={draft}
@@ -199,7 +195,7 @@ export default function NewPost() {
   };
 
   const renderScheduledDraft = (draft) => {
-    if (!draft) return null;
+    if (!draft) return renderEmptyMainContent();
 
     const channel = getChannelForParentUrl({
       channels: allChannels,
@@ -340,22 +336,28 @@ export default function NewPost() {
     </ScrollArea>
   );
 
+  const renderNewDraftButton = () => (
+    <Button
+    size="sm"
+      variant="outline"
+      className="flex items-center gap-2 mx-auto"
+      onClick={() => {
+        setActiveTab(DraftListTab.writing);
+        addNewPostDraft({});
+      }}
+    >
+      <PencilSquareIcon className="w-5 h-5" />
+      <span>New draft</span>
+    </Button>
+  );
+
   const renderDraftList = () => {
     return renderScrollableList(
       <>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 mx-2"
-          onClick={() => {
-            addNewPostDraft({});
-          }}
-        >
-          <PlusCircleIcon className="w-5 h-5" />
-          <span>New draft</span>
-        </Button>
         <div className="flex flex-col gap-2 p-2 pt-0">
           {draftsForTab.map(renderDraftListPreview)}
         </div>
+        <div className="mt-4">{renderNewDraftButton()}</div>
       </>
     );
   };
@@ -366,7 +368,7 @@ export default function NewPost() {
         {draftsForTab.length === 0 && (
           <Button
             variant="outline"
-            className="flex items-center gap-2 mx-2"
+            className="flex items-center gap-2"
             onClick={() => {
               addNewPostDraft({});
               setActiveTab(DraftListTab.writing);
@@ -434,9 +436,6 @@ export default function NewPost() {
         </div>
       </div>
       <div className="flex flex-col">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold">{getTitle()}</h2>
-        </div>
         <div className="flex-1 overflow-y-auto p-4">{renderContent()}</div>
       </div>
     </div>

@@ -143,14 +143,16 @@ export default function NewPostEntry({
     if (scheduleDateTime) {
       posthog.capture("user_schedule_cast");
       await updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
-      const castBody = await prepareCastBody(draft);
       await addScheduledDraft({
-        castBody,
+        draftIdx,
         scheduledFor: scheduleDateTime,
         rawText: draft.text,
+        onSuccess: () => {
+          console.log('onSuccess after addScheduledDraft')
+          setScheduleDateTime(undefined);
+          onPost?.();
+        },
       });
-      setScheduleDateTime(undefined);
-      onPost?.();
     } else {
       posthog.capture("user_post_cast");
       await publishPostDraft(draftIdx, account, onPost);
