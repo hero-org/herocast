@@ -71,10 +71,11 @@ export function cashtagPlugin({ scanner, parser }) {
 export const CashtagToken = createTokenClass('cashtag', { isLink: true });
 
 export function channelPlugin({ scanner, parser }) {
-  const { SLASH, UNDERSCORE } = scanner.tokens;
-  const { alpha, numeric, alphanumeric, emoji } = scanner.tokens.groups;
+  const { SLASH, UNDERSCORE, HYPHEN, SPACE } = scanner.tokens;
+  const { alpha, numeric, alphanumeric, emoji, symbol } = scanner.tokens.groups;
 
-  const Hash = parser.start.tt(SLASH);
+  const WhiteSpace = parser.start.tt(SPACE);
+  const Hash = WhiteSpace.tt(SLASH);
   const HashPrefix = Hash.tt(UNDERSCORE);
   const Channel = new State(ChannelToken);
 
@@ -87,6 +88,9 @@ export function channelPlugin({ scanner, parser }) {
   HashPrefix.tt(UNDERSCORE, HashPrefix);
   Channel.ta(alphanumeric, Channel);
   Channel.ta(emoji, Channel);
+  Channel.tt(HYPHEN, Channel);
+  Channel.tt(UNDERSCORE, Channel);
+  Channel.ta(symbol, Channel);
 }
 
 export const ChannelToken = createTokenClass('channel', { isLink: true });
