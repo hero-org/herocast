@@ -5,6 +5,7 @@ import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import get from "lodash.get";
+import { Analytics } from "@/common/types/types";
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
@@ -90,17 +91,20 @@ type addTokenDataProps = {
 
 type UserProfile = User & { updatedAt: number };
 
+
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;
   usernameToFid: Record<string, number>;
   fidToData: Record<number, UserProfile>,
   tokenSymbolToData: Record<string, DexPair>;
+  fidToAnalytics: Record<number, Analytics>;
 }
 
 interface DataStoreActions {
   updateSelectedCast: (cast?: CastWithInteractions) => void;
   addUserProfile: ({ user }: addUserProfileProps) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
+  addAnalytics: (fid: number, analytics: Analytics) => void;
 }
 
 export interface DataStore extends DataStoreProps, DataStoreActions { }
@@ -115,6 +119,7 @@ const store = (set: StoreSet) => ({
   usernameToFid: {},
   fidToData: {},
   tokenSymbolToData: {},
+  fidToAnalytics: {},
   updateSelectedCast: (cast?: CastWithInteractions) => {
     set((state) => {
       state.selectedCast = cast;
@@ -130,6 +135,11 @@ const store = (set: StoreSet) => ({
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => {
     set((state) => {
       state.tokenSymbolToData = { ...state.tokenSymbolToData, ...{ [tokenSymbol]: data } };
+    });
+  },
+  addAnalytics: (fid: number, analytics: Analytics) => {
+    set((state) => {
+      state.fidToAnalytics = { ...state.fidToAnalytics, ...{ [fid]: analytics } };
     });
   }
 });

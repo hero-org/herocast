@@ -35,6 +35,7 @@ import NewCastModal from "@/common/components/NewCastModal";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
+import { ChartBarIcon } from "@heroicons/react/20/solid";
 
 type NavigationItemType = {
   name: string;
@@ -210,6 +211,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       icon: <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
       shortcut: "Shift + ,",
     },
+    {
+      name: "Analytics",
+      router: "/analytics",
+      icon: <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+      shortcut: "Shift + A",
+    }
   ];
 
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {

@@ -48,6 +48,7 @@ const getSearchUrl = ({
     const url = `/api/search?${params.toString()}`;
     return url;
 };
+
 export const searchForText = async ({
     searchTerm, filters, limit, offset, interval, orderBy,
 }: SearchForTextParams): Promise<RawSearchResult[]> => {
