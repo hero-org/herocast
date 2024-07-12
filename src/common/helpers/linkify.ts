@@ -90,7 +90,7 @@ export function channelPlugin({ scanner, parser }) {
   Channel.ta(emoji, Channel);
   Channel.tt(HYPHEN, Channel);
   Channel.tt(UNDERSCORE, Channel);
-  Channel.ta(symbol, Channel);
+  // Channel.ta(symbol, Channel);
 }
 
 export const ChannelToken = createTokenClass('channel', { isLink: true });
