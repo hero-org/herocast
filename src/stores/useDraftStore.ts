@@ -123,12 +123,14 @@ type addNewPostDraftProps = {
   parentCastId?: ParentCastIdType;
   embeds?: FarcasterEmbed[];
   onSuccess?: (draftId) => void;
+  force?: boolean;
 };
 
 type addScheduledDraftProps = {
-  castBody: object;
+  draftIdx: number;
   scheduledFor: Date;
   rawText: string;
+  onSuccess?: () => void;
 };
 
 interface NewPostStoreProps {
@@ -139,8 +141,8 @@ interface NewPostStoreProps {
 interface DraftStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
-  addNewPostDraft: ({ text, parentCastId, parentUrl, embeds, onSuccess }: addNewPostDraftProps) => void;
-  addScheduledDraft: ({ castBody, scheduledFor }: addScheduledDraftProps) => void;
+  addNewPostDraft: ({ text, parentCastId, parentUrl, embeds, onSuccess, force }: addNewPostDraftProps) => void;
+  addScheduledDraft: ({ draftIdx, scheduledFor, rawText, onSuccess }: addScheduledDraftProps) => void;
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => void;
   removePostDraftById: (draftId: UUID) => void;
   removeScheduledDraftFromDB: (draftId: UUID) => Promise<boolean>;
@@ -161,13 +163,15 @@ export const mutative = (config) => (set, get) =>
 
 type StoreSet = (fn: (draft: Draft<DraftStore>) => void) => void;
 
+const supabaseClient = createClient();
+
 const store = (set: StoreSet) => ({
   drafts: [],
   isHydrated: false,
-  addNewPostDraft: ({ text, parentUrl, parentCastId, embeds, onSuccess }: addNewPostDraftProps) => {
+  addNewPostDraft: ({ text, parentUrl, parentCastId, embeds, onSuccess, force }: addNewPostDraftProps) => {
     set((state) => {
       const pendingDrafts = state.drafts.filter((draft) => draft.status === DraftStatus.writing);
-      if (!text && !parentUrl && !parentCastId && !embeds) {
+      if (!force && !text && !parentUrl && !parentCastId && !embeds) {
         // check if there is an existing empty draft
         for (let i = 0; i < pendingDrafts.length; i++) {
           const draft = pendingDrafts[i];
@@ -177,7 +181,7 @@ const store = (set: StoreSet) => ({
           }
         }
       }
-      if (parentUrl || parentCastId) {
+      if (!force && (parentUrl || parentCastId)) {
         // check if there is an existing draft for the same parent
         for (let i = 0; i < pendingDrafts.length; i++) {
           const draft = pendingDrafts[i];
@@ -303,35 +307,36 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  addScheduledDraft: async ({ castBody, scheduledFor, rawText }) => {
-    const supabaseClient = createClient();
+  addScheduledDraft: async ({ draftIdx, scheduledFor, rawText, onSuccess }) => {
+    set(async (state) => {
+      const draft = state.drafts[draftIdx];
+      const castBody = await prepareCastBody(draft);
 
-    console.log('addScheduledDraft start', castBody, scheduledFor)
-    const accountState = useAccountStore.getState();
-    const account = accountState.accounts[accountState.selectedAccountIdx];
-    const { data, error } = await supabaseClient
-      .from('draft')
-      .insert({
-        account_id: account.id,
-        data: { ...castBody, rawText },
-        scheduled_for: scheduledFor,
-        status: DraftStatus.scheduled,
-      })
-      .select()
-    if (error || !data) {
-      console.error('Failed to add scheduled draft', error, data);
-      return;
-    }
+      const accountState = useAccountStore.getState();
+      const account = accountState.accounts[accountState.selectedAccountIdx];
+      await supabaseClient
+        .from('draft')
+        .insert({
+          account_id: account.id,
+          data: { ...castBody, rawText },
+          scheduled_for: scheduledFor,
+          status: DraftStatus.scheduled,
+        })
+        .select()
+        .then(({ data, error }) => {
+          if (error || !data) {
+            console.error('Failed to add scheduled draft', error, data);
+            return;
+          }
 
-    toastSuccessCastScheduled(rawText);
-
-    set((state) => {
-      state.drafts = [...state.drafts, tranformDBDraftForLocalStore(data[0])];
-      console.log('addScheduledDraft end, now has drafts:', state.drafts.length)
+          const draftInDb = data[0];
+          state.updatePostDraft(draftIdx, tranformDBDraftForLocalStore(draftInDb));
+          toastSuccessCastScheduled(rawText);
+          onSuccess?.();
+        });
     });
   },
   removeScheduledDraftFromDB: async (draftId: UUID): Promise<boolean> => {
-    const supabaseClient = createClient();
     const { data, error } = await supabaseClient
       .from('draft')
       .update({ status: DraftStatus.removed })
@@ -350,11 +355,10 @@ const store = (set: StoreSet) => ({
     return true;
   },
   hydrate: async () => {
-    const supabaseClient = createClient();
-
     supabaseClient.
       from('draft')
       .select('*')
+      .neq('status', DraftStatus.removed)
       .then(({ data, error }) => {
         if (error || !data) {
           console.error('Failed to hydrate drafts', error, data);

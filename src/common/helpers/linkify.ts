@@ -1,48 +1,48 @@
 import { State, createTokenClass } from 'linkifyjs';
 
 const MentionToken = createTokenClass('mention', {
-    isLink: true,
-    toHref() {
-        return '/' + this.toString().slice(1);
-    }
+  isLink: true,
+  toHref() {
+    return '/' + this.toString().slice(1);
+  }
 });
 
 export default function mentionPlugin({ scanner, parser }) {
-    const { DOT, HYPHEN, SLASH, UNDERSCORE, AT } = scanner.tokens;
-    const { domain } = scanner.tokens.groups;
+  const { DOT, HYPHEN, SLASH, UNDERSCORE, AT } = scanner.tokens;
+  const { domain } = scanner.tokens.groups;
 
-    // @
-    const At = parser.start.tt(AT); // @
+  // @
+  const At = parser.start.tt(AT); // @
 
-    // Begin with hyphen (not mention unless contains other characters)
-    const AtHyphen = At.tt(HYPHEN);
-    AtHyphen.tt(HYPHEN, AtHyphen);
+  // Begin with hyphen (not mention unless contains other characters)
+  const AtHyphen = At.tt(HYPHEN);
+  AtHyphen.tt(HYPHEN, AtHyphen);
 
-    // Valid mention (not made up entirely of symbols)
-    const Mention = At.tt(UNDERSCORE, MentionToken);
+  // Valid mention (not made up entirely of symbols)
+  const Mention = At.tt(UNDERSCORE, MentionToken);
 
-    At.ta(domain, Mention);
-    AtHyphen.tt(UNDERSCORE, Mention);
-    AtHyphen.ta(domain, Mention);
+  At.ta(domain, Mention);
+  AtHyphen.tt(UNDERSCORE, Mention);
+  AtHyphen.ta(domain, Mention);
 
-    // More valid mentions
-    Mention.ta(domain, Mention);
-    Mention.tt(HYPHEN, Mention);
-    Mention.tt(UNDERSCORE, Mention);
+  // More valid mentions
+  Mention.ta(domain, Mention);
+  Mention.tt(HYPHEN, Mention);
+  Mention.tt(UNDERSCORE, Mention);
 
-    // Mention with a divider
-    const MentionDivider = Mention.tt(SLASH);
+  // Mention with a divider
+  const MentionDivider = Mention.tt(SLASH);
 
-    // Once we get a word token, mentions can start up again
-    MentionDivider.ta(domain, Mention);
-    MentionDivider.tt(UNDERSCORE, Mention);
-    MentionDivider.tt(HYPHEN, Mention);
+  // Once we get a word token, mentions can start up again
+  MentionDivider.ta(domain, Mention);
+  MentionDivider.tt(UNDERSCORE, Mention);
+  MentionDivider.tt(HYPHEN, Mention);
 
-    // ADDED: . transitions
-    const MentionDot = Mention.tt(DOT);
-    MentionDot.ta(domain, Mention);
-    MentionDot.tt(HYPHEN, Mention);
-    MentionDot.tt(UNDERSCORE, Mention);
+  // ADDED: . transitions
+  const MentionDot = Mention.tt(DOT);
+  MentionDot.ta(domain, Mention);
+  MentionDot.tt(HYPHEN, Mention);
+  MentionDot.tt(UNDERSCORE, Mention);
 
 }
 export function cashtagPlugin({ scanner, parser }) {
@@ -90,4 +90,3 @@ export function channelPlugin({ scanner, parser }) {
 }
 
 export const ChannelToken = createTokenClass('channel', { isLink: true });
-

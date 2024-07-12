@@ -35,6 +35,7 @@ import NewCastModal from "@/common/components/NewCastModal";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
+import { PencilSquareIcon } from "@heroicons/react/20/solid";
 
 type NavigationItemType = {
   name: string;
@@ -172,6 +173,18 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     {
       name: "Post",
       router: "/post",
+      getHeaderActions: () => [
+        {
+          name: (
+            <>
+              {" "}
+              <PencilSquareIcon className="w-5 h-5 mr-2" />
+              New draft
+            </>
+          ),
+          onClick: () => addNewPostDraft({ force: true }),
+        },
+      ],
       icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
     },
     {
@@ -280,11 +293,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case RIGHT_SIDEBAR_ENUM.NONE:
       default:
         return null;
-        // return (
-        //   <aside className="bg-background lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
-        //     <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8"></header>
-        //   </aside>
-        // );
+      // return (
+      //   <aside className="bg-background lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
+      //     <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8"></header>
+      //   </aside>
+      // );
     }
   };
 
@@ -360,7 +373,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                         <ul role="list" className="-mx-2 space-y-1">
                           {navigation.map((item) => (
                             <li key={item.name}>
-                              <Link href={item.router} onClick={() => setSidebarOpen(false)}>
+                              <Link
+                                href={item.router}
+                                onClick={() => setSidebarOpen(false)}
+                              >
                                 <p
                                   className={classNames(
                                     item.router === pathname ||
