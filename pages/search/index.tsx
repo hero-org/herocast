@@ -2,17 +2,20 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import {
+  CastWithInteractions,
+  User,
+} from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { useDataStore } from "@/stores/useDataStore";
+import { getProfile, useDataStore } from "@/stores/useDataStore";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
-import { map, uniq } from "lodash";
+import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -23,11 +26,12 @@ import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";
 import { SearchFilters } from "@/common/helpers/search";
-import { searchForText } from "@/common/helpers/search";
+import { runFarcasterCastSearch } from "@/common/helpers/search";
 import { RawSearchResult } from "@/common/helpers/search";
 import ManageListModal from "@/common/components/ManageListModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
+import { fetchAndAddUserProfile } from "@/common/helpers/profileUtils";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -70,6 +74,26 @@ export default function SearchPage() {
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
+
+  const debouncedUserSearch = useCallback(
+    debounce(async (term: string) => {
+      if (term.length >= 3) {
+        try {
+          await fetchAndAddUserProfile({
+            username: term.startsWith("@") ? term.slice(1) : term,
+            viewerFid: Number(selectedAccount?.platformAccountId),
+          });
+        } catch (error) {
+          console.error("Error searching for users:", error);
+        }
+      }
+    }, 300),
+    [selectedAccount]
+  );
+
+  useEffect(() => {
+    debouncedUserSearch(searchTerm);
+  }, [searchTerm, debouncedUserSearch]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -163,9 +187,23 @@ export default function SearchPage() {
       });
       const startedAt = Date.now();
       try {
-        const searchResults = await searchForText({
+        // lookup if search term contains an exact match for a user
+        // 1. read from useDataStore
+        // 2. if not found, use fetchAndAddUserProfile
+        // 3. add to query if found
+        let profile = getProfile(useDataStore.getState(), term);
+        if (!profile) {
+          const results = await fetchAndAddUserProfile({
+            username: term.startsWith("@") ? term.slice(1) : term,
+            viewerFid: Number(selectedAccount?.platformAccountId),
+          });
+          profile = results.find((user) => user.username === term);
+        }
+
+        const searchResults = await runFarcasterCastSearch({
           searchTerm: term,
           filters,
+          matchFid: profile?.fid,
           limit: SEARCH_LIMIT_INITIAL_LOAD,
         });
         if (activeSearchCounter.current !== newSearchCounter) {
@@ -209,7 +247,7 @@ export default function SearchPage() {
 
   const onContinueSearch = () => {
     setIsLoading(true);
-    searchForText({
+    runFarcasterCastSearch({
       searchTerm,
       filters: getFilters(),
       limit: SEARCH_LIMIT_NEXT_LOAD,
@@ -400,7 +438,7 @@ export default function SearchPage() {
               value={searchTerm}
               onChange={(e) => onChange(e.target.value)}
               id="search"
-              placeholder="Search for casts..."
+              placeholder="Search for casts or users..."
               type="search"
               name="search"
               className={cn(
