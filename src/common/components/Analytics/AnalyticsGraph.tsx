@@ -24,13 +24,14 @@ type TooltipData = {
 };
 
 type AnalyticsGraphProps = WithTooltipProvidedProps<TooltipData> & {
+  analyticsKey: string;
   aggregated: { timestamp: string; count: number }[];
   resolution: "hourly" | "weekly";
 };
 
 const background = "#1f2937";
 const accentColor = "#1f2937";
-const accentColorDark = "#3b82f6";
+const accentColorDark = "#1f2937";
 const tooltipStyles = {
   ...defaultStyles,
   background,
@@ -39,6 +40,7 @@ const tooltipStyles = {
 };
 
 const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
+  analyticsKey,
   showTooltip,
   hideTooltip,
   tooltipData,
@@ -229,7 +231,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
                 left={tooltipLeft}
                 style={tooltipStyles}
               >
-                {`${tooltipData.count} reactions`}
+                {`${tooltipData.count} ${analyticsKey}`}
               </TooltipWithBounds>
               <Tooltip
                 top={height - margin.bottom}
