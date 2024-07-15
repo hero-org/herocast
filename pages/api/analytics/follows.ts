@@ -21,11 +21,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await initializeDataSourceWithRetry();
 
     try {
-        const result = await getAnalyticsData('reactions', fid);
+        const result = await getAnalyticsData('follows', fid);
 
         const analytics: Analytics = {
             updatedAt: Date.now(),
-            reactions: {
+            follows: {
                 overview: {
                     total: parseInt(result[0].total) || 0,
                     h24: parseInt(result[0].h24) || 0,
@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 },
                 aggregated: result[0].aggregated || [],
             },
-            follows: { overview: { total: 0, h24: 0, d7: 0, d30: 0 }, aggregated: [] },
+            reactions: { overview: { total: 0, h24: 0, d7: 0, d30: 0 }, aggregated: [] },
             casts: { overview: { total: 0, h24: 0, d7: 0, d30: 0 }, aggregated: [] },
         };
 
