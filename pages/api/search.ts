@@ -7,7 +7,7 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     let { limit, offset } = req.query;
-    const { term, interval, orderBy, onlyPowerBadge, hideReplies, matchFid } = req.query;
+    const { term, interval, orderBy, onlyPowerBadge, hideReplies, matchFid, fromFid } = req.query;
 
     if (typeof term !== 'string' || term.length < 3) {
         return res.status(400).json({ error: 'Invalid search term' });
@@ -40,9 +40,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${termsInQuotes ? `AND ${termsInQuotes.map((quotedTerm) => `casts.text ilike '%${quotedTerm}%'`).join(' AND ')}` : ''}
+        ${fromFid ? `AND casts.fid = $4` : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
     LIMIT $1 OFFSET $2`;
-    const vars = [limit, offset, term.trim()];
+    const vars = [limit, offset, term.trim(), ...(fromFid ? [fromFid] : [])];
 
     try {
         const queryStart = process.hrtime();
