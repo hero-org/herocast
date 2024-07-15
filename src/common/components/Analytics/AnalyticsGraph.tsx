@@ -172,7 +172,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
               <AreaClosed
                 data={data}
                 x={(d) => xScaleLocal(d.date) ?? 0}
-                y={(d) => yScaleLocal(d.count) ?? 0}
+                y={(d) => yScaleLocal(d.count ?? 0)}
                 yScale={yScaleLocal}
                 strokeWidth={2}
                 stroke={accentColor}
@@ -197,7 +197,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
                 }
                 onMouseLeave={() => hideTooltip()}
               />
-              {tooltipData && (
+              {tooltipData && tooltipData.date && (
                 <g>
                   <circle
                     cx={tooltipLeft}
@@ -226,7 +226,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
           {tooltipData && tooltipData.count !== undefined && (
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
               <TooltipWithBounds
-                key={`tooltip-${tooltipData.date.getTime()}`}
+                key={`tooltip-${tooltipData.date?.getTime() ?? 'default'}`}
                 top={tooltipTop - 12}
                 left={tooltipLeft}
                 style={tooltipStyles}
