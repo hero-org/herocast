@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/common/helpers/hooks";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CastRow } from "@/common/components/CastRow";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import ProfileInfo from "@/common/components/Sidebar/ProfileInfo";
@@ -95,7 +95,7 @@ const Notifications = () => {
     </TabsTrigger>
   );
   const [allNotifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedNotificationIdx, setSelectedNotificationIdx] =
     useState<number>(0);
   const [isLeftColumnSelected, setIsLeftColumnSelected] =
@@ -328,19 +328,22 @@ const Notifications = () => {
     );
   };
 
-  const renderLoadMoreButton = () =>
-    notifications.length > 0 && (
-      <div className="flex justify-center my-8">
-        <Button
-          variant="outline"
-          size="lg"
-          disabled={isLoading}
-          onClick={() => loadData({ reset: false })}
-        >
-          {isLoading ? <Loading /> : "Load More"}
-        </Button>
-      </div>
-    );
+  const renderLoadNotificationsButton = () => (
+    <div className="flex justify-center my-8">
+      <Button
+        variant="outline"
+        size="lg"
+        disabled={isLoading}
+        onClick={() => loadData({ reset: false })}
+      >
+        {isLoading ? (
+          <Loading />
+        ) : (
+          `Load ${notifications.length === 0 ? "" : "more"}`
+        )}
+      </Button>
+    </div>
+  );
 
   const renderShowMoreReactionsButton = () => (
     <div className="flex justify-center my-8">
@@ -357,18 +360,30 @@ const Notifications = () => {
 
   const renderLeftColumn = () => {
     return (
-      <div key={`left-column-${activeTab}`} className="divide-y divide-white/5">
-        <SelectableListWithHotkeys
-          data={notifications}
-          selectedIdx={selectedNotificationIdx}
-          setSelectedIdx={setSelectedNotificationIdx}
-          renderRow={(item: Notification, idx: number) =>
-            renderNotificationRow(item, idx)
-          }
-          isActive={isLeftColumnSelected && !isNewCastModalOpen}
-          disableScroll
-        />
-        <div>{renderLoadMoreButton()}</div>
+      <div
+        className={classNames(
+          "overflow-hidden rounded-l-lg border",
+          isLeftColumnSelected
+            ? "border-muted-foreground/20"
+            : "border-muted-foreground"
+        )}
+      >
+        <div
+          key={`left-column-${activeTab}`}
+          className="divide-y divide-white/5"
+        >
+          <SelectableListWithHotkeys
+            data={notifications}
+            selectedIdx={selectedNotificationIdx}
+            setSelectedIdx={setSelectedNotificationIdx}
+            renderRow={(item: Notification, idx: number) =>
+              renderNotificationRow(item, idx)
+            }
+            isActive={isLeftColumnSelected && !isNewCastModalOpen}
+            disableScroll
+          />
+          <div>{renderLoadNotificationsButton()}</div>
+        </div>
       </div>
     );
   };
@@ -401,37 +416,52 @@ const Notifications = () => {
   };
 
   const renderMainContent = () => {
-    if (isEmpty(notifications)) return null;
-
     const notification = notifications[selectedNotificationIdx];
-    if (!notification) return null;
-
-    const notificationType = notification.type;
-    return (
-      <div className="min-h-full h-full">
-        {notificationType === NotificationTypeEnum.Reply && (
-          <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
-            {parentCast ? (
-              <CastRow cast={parentCast} showChannel />
-            ) : (
-              <SkeletonCastRow />
-            )}
-          </div>
-        )}
-        <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
-          {selectedCast && <CastRow cast={selectedCast} showChannel />}
+    if (isEmpty(notification) && (isLoading || isEmpty(notifications)))
+      return (
+        <div className="text-foreground flex-1 flex items-center justify-center">
+          {renderLoadNotificationsButton()}
         </div>
-        {(notificationType === NotificationTypeEnum.Likes ||
-          notificationType === NotificationTypeEnum.Recasts) && (
-          <div className="mt-4 ml-8 max-w-full">
-            {renderProfilesFromReactions(notification.reactions)}
-          </div>
+      );
+
+    if (!notification) return null;
+    const notificationType = notification.type;
+
+    return (
+      <div
+        className={classNames(
+          isLeftColumnSelected
+            ? "hidden md:block border-muted-foreground"
+            : "border-muted-foreground/20",
+          "flex-1 rounded-lg border md:rounded-l-none lg:border-0"
         )}
-        {notificationType === NotificationTypeEnum.Follows && (
-          <div className="mt-4 ml-8 max-w-full">
-            {renderProfilesFromReactions(notification.follows)}
+      >
+        {renderGoBack()}
+        <div className="min-h-full h-full">
+          {notificationType === NotificationTypeEnum.Reply && (
+            <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
+              {parentCast ? (
+                <CastRow cast={parentCast} showChannel />
+              ) : (
+                <SkeletonCastRow />
+              )}
+            </div>
+          )}
+          <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
+            {selectedCast && <CastRow cast={selectedCast} showChannel />}
           </div>
-        )}
+          {(notificationType === NotificationTypeEnum.Likes ||
+            notificationType === NotificationTypeEnum.Recasts) && (
+            <div className="mt-4 ml-8 max-w-full">
+              {renderProfilesFromReactions(notification.reactions)}
+            </div>
+          )}
+          {notificationType === NotificationTypeEnum.Follows && (
+            <div className="mt-4 ml-8 max-w-full">
+              {renderProfilesFromReactions(notification.follows)}
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -500,16 +530,6 @@ const Notifications = () => {
                 {renderTabsTrigger(NotificationTab.recasts, "Recasts")}
                 {renderTabsTrigger(NotificationTab.follows, "Follows")}
               </TabsList>
-              <div className="ml-auto flex items-center gap-2">
-                {/* {renderNotificationFilterDropdown()} */}
-                {/* 
-                  <Button size="sm" variant="outline" className="h-8 gap-1">
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                      Export
-                    </span>
-                  </Button>
-                */}
-              </div>
             </div>
             <div className="mt-4">
               <div className="mx-auto flex w-full max-w-7xl items-start px-0 md:px-4">
@@ -519,36 +539,12 @@ const Notifications = () => {
                     "w-full md:w-1/3 md:1/2 shrink-0"
                   )}
                 >
-                  <div
-                    className={classNames(
-                      "overflow-hidden rounded-l-lg border",
-                      isLeftColumnSelected
-                        ? "border-muted-foreground/20"
-                        : "border-muted-foreground"
-                    )}
-                  >
-                    {renderLeftColumn()}
-                  </div>
+                  {renderLeftColumn()}
                 </div>
-                <main
-                  className={classNames(
-                    isLeftColumnSelected
-                      ? "hidden md:block border-muted-foreground"
-                      : "border-muted-foreground/20",
-                    "flex-1 rounded-lg border md:rounded-l-none lg:border-0"
-                  )}
-                >
-                  {renderGoBack()}
-                  {renderMainContent()}
-                </main>
+                {renderMainContent()}
               </div>
             </div>
           </Tabs>
-          {isLoading && (
-            <div className="text-foreground flex-1 flex items-center justify-center">
-              <Loading />
-            </div>
-          )}
         </main>
       </div>
     </div>

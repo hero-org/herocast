@@ -32,7 +32,7 @@ export const CastThreadView = ({
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
-  const { selectedCast, updateSelectedCast } = useDataStore();
+  const { updateSelectedCast } = useDataStore();
 
   const { addNewPostDraft, removePostDraft } = useDraftStore();
   const draftIdx = useDraftStore(
@@ -90,7 +90,7 @@ export const CastThreadView = ({
         if (conversation?.cast?.direct_replies) {
           const { direct_replies: replies, ...castObjectWithoutReplies } =
             conversation.cast;
-          setCasts([castObjectWithoutReplies].concat(replies));
+          setCasts((conversation.chronological_parent_casts || []).concat([castObjectWithoutReplies].concat(replies)));
         }
       } catch (err) {
         console.error(`Error fetching cast thread: ${err}`);
@@ -171,7 +171,7 @@ export const CastThreadView = ({
       {isLoading ? (
         <SkeletonCastRow className="m-4" />
       ) : (
-        <div className="flow-root ml-4">{renderFeed()}</div>
+        <div className="flow-root ml-3">{renderFeed()}</div>
       )}
     </div>
   );

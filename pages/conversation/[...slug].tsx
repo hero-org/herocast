@@ -6,12 +6,20 @@ import {
 } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { useRouter } from "next/router";
 import { CastThreadView } from "@/common/components/CastThreadView";
-import SkeletonCastRow from "@/common/components/SkeletonCastRow";
+import { useDataStore } from "@/stores/useDataStore";
 
 export default function ConversationPage() {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
   const [cast, setCast] = useState<CastWithInteractions | null>(null);
+  const { updateSelectedCast } = useDataStore();
+
+  useEffect(() => {
+    // if navigating away, reset the selected cast
+    return () => {
+      updateSelectedCast();
+    };
+  }, []);
 
   function getPayloadFromSlug() {
     return slug && slug?.length === 2
