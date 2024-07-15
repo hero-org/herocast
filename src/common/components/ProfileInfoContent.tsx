@@ -24,9 +24,9 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
           <AvatarImage
             src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${profile.pfp_url}`}
           />
-          <AvatarFallback>{profile.username.slice(0, 2)}</AvatarFallback>
+          <AvatarFallback>{profile.username?.slice(0, 2)}</AvatarFallback>
         </Avatar>
-        {showFollowButton && <FollowButton username={profile.username} />}
+        {showFollowButton && profile.username && <FollowButton username={profile.username} />}
       </div>
       <div>
         <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1">
@@ -38,7 +38,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
         {profile.profile?.bio?.text}
       </p>
       <div className="flex flex-col pt-2 text-sm text-muted-foreground">
-        {!isHoverCard && (
+        {!isHoverCard && profile.fid && (
           <p>
             <span className="font-semibold text-foreground">
               {profile.fid}&nbsp;
@@ -48,13 +48,13 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
         )}
         <p>
           <span className="font-semibold text-foreground">
-            {formatLargeNumber(profile.following_count)}&nbsp;
+            {formatLargeNumber(profile.following_count || 0)}&nbsp;
           </span>
           following
         </p>
         <p>
           <span className="font-semibold text-foreground">
-            {formatLargeNumber(profile.follower_count)}&nbsp;
+            {formatLargeNumber(profile.follower_count || 0)}&nbsp;
           </span>
           followers
         </p>
