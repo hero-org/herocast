@@ -58,8 +58,7 @@ export default function SearchPage() {
 
   const { isManageListModalOpen, setIsManageListModalOpen } =
     useNavigationStore();
-  const { searches, addSearch, addList, setSelectedListIdx, lists } =
-    useListStore();
+  const { addSearch, addList, setSelectedListIdx, lists } = useListStore();
   const selectedList = useListStore((state) =>
     state.selectedListIdx !== undefined
       ? state.lists[state.selectedListIdx]
