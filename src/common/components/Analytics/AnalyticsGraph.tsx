@@ -17,6 +17,7 @@ import { WithTooltipProvidedProps } from "@visx/tooltip/lib/enhancers/withToolti
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { AxisLeft, AxisBottom } from "@visx/axis";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type TooltipData = {
   date: Date;
@@ -27,6 +28,7 @@ type AnalyticsGraphProps = WithTooltipProvidedProps<TooltipData> & {
   analyticsKey: string;
   aggregated: { timestamp: string; count: number }[];
   resolution: "hourly" | "weekly";
+  isLoading?: boolean;
 };
 
 const background = "#1f2937";
@@ -48,9 +50,10 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   tooltipLeft = 0,
   aggregated,
   resolution,
+  isLoading = false,
 }) => {
   const data = useMemo(() => {
-    if (aggregated.length === 0) return [];
+    if (isLoading || aggregated.length === 0) return [];
 
     const sortedAggregated = [...aggregated].sort(
       (a, b) =>
@@ -74,9 +77,17 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
       date: new Date(item.timestamp),
       count: item.count,
     }));
-  }, [aggregated, resolution]);
+  }, [aggregated, resolution, isLoading]);
 
   const margin = { top: 10, right: 0, bottom: 20, left: 0 };
+
+  if (isLoading || data.length === 0) {
+    return (
+      <div className="w-full h-64">
+        <Skeleton className="w-full h-full" />
+      </div>
+    );
+  }
 
   const xScale = useCallback(
     (width: number) =>
