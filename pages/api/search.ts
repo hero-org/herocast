@@ -40,10 +40,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${termsInQuotes ? `AND ${termsInQuotes.map((quotedTerm) => `casts.text ilike '%${quotedTerm}%'`).join(' AND ')}` : ''}
-        ${fromFid ? `AND casts.fid = $4` : ''}
+        ${fromFid ? `AND casts.fid = ${fromFid}` : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
     LIMIT $1 OFFSET $2`;
-    const vars = [limit, offset, term.trim(), ...(fromFid ? [fromFid] : [])];
+    const vars = [limit, offset, term.trim()];
 
     try {
         const queryStart = process.hrtime();

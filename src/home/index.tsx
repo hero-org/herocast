@@ -404,7 +404,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                       return (
                         <div>
                           <ul
-                            key={`nav-group-${group.name}`}
+                            key={`nav-group-mobile-${group.name}`}
                             role="list"
                             className="flex flex-1 flex-col gap-y-7"
                           >
