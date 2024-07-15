@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { getUserDataForFidOrUsername } from "../../helpers/neynar";
+import { fetchAndAddUserProfile } from "../../helpers/profileUtils";
 import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import Link from "next/link";
@@ -14,23 +14,11 @@ const ProfileInfo = ({
   viewerFid: number;
   showFollowButton?: boolean;
 }) => {
-  const { addUserProfile } = useDataStore();
   const profile = useDataStore((state) => get(state.fidToData, fid));
 
   useEffect(() => {
-    const getData = async () => {
-      const users = await getUserDataForFidOrUsername({
-        fid,
-        viewerFid,
-      });
-      if (users.length) {
-        users.forEach((user) => {
-          addUserProfile({ user });
-        });
-      }
-    };
     if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
-      getData();
+      fetchAndAddUserProfile({ fid, viewerFid });
     }
   }, [fid, viewerFid, profile]);
 

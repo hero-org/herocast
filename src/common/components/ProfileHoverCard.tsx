@@ -7,7 +7,7 @@ import {
 import { openWindow } from "../helpers/navigation";
 import { useInView } from "react-intersection-observer";
 import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
-import { getUserDataForFidOrUsername } from "../helpers/neynar";
+import { fetchAndAddUserProfile } from "../helpers/profileUtils";
 import { getProfile } from "@/stores/useDataStore";
 import ProfileInfoContent from "./ProfileInfoContent";
 
@@ -26,7 +26,6 @@ const ProfileHoverCard = ({
   children,
   className,
 }: ProfileHoverCardProps) => {
-  const { addUserProfile } = useDataStore();
   const profile = useDataStore((state) => getProfile(state, username, fid));
   const { ref, inView } = useInView({
     threshold: 0,
@@ -38,23 +37,10 @@ const ProfileHoverCard = ({
   useEffect(() => {
     if (!inView || profile) return;
 
-    const getData = async () => {
-      const users = await getUserDataForFidOrUsername({
-        username,
-        fid,
-        viewerFid,
-      });
-      if (users.length) {
-        users.forEach((user) => {
-          addUserProfile({ user });
-        });
-      }
-    };
-
     if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
-      getData();
+      fetchAndAddUserProfile({ username, fid, viewerFid });
     }
-  }, [inView, profile, viewerFid]);
+  }, [inView, profile, viewerFid, username, fid]);
 
   const onClick = () => {
     openWindow(
