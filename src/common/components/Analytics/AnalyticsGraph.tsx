@@ -223,7 +223,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
               )}
             </Group>
           </svg>
-          {tooltipData && (
+          {tooltipData && tooltipData.count !== undefined && (
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
               <TooltipWithBounds
                 key={`tooltip-${tooltipData.date.getTime()}`}
