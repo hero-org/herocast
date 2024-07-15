@@ -7,7 +7,7 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     let { limit, offset } = req.query;
-    const { term, interval, orderBy, onlyPowerBadge, hideReplies } = req.query;
+    const { term, interval, orderBy, onlyPowerBadge, hideReplies, matchFid } = req.query;
 
     if (typeof term !== 'string' || term.length < 3) {
         return res.status(400).json({ error: 'Invalid search term' });
@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     FROM casts 
         ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
     WHERE 
-        tsv @@ websearch_to_tsquery('english', $3)
+        (tsv @@ websearch_to_tsquery('english', $3) ${matchFid ? `OR ${matchFid} = ANY(casts.mentions)` : ''})
         AND casts.deleted_at IS NULL
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
