@@ -12,8 +12,13 @@ import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import isEmpty from "lodash.isempty";
 import React from "react";
+import AnalyticsGraph from "./AnalyticsGraph";
 
-const NewFollowersCard: React.FC = () => {
+const NewFollowersCard: React.FC = ({
+  resolution,
+}: {
+  resolution: "weekly" | "daily";
+}) => {
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx].platformAccountId
   );
@@ -22,10 +27,9 @@ const NewFollowersCard: React.FC = () => {
     : {};
   if (isEmpty(follows)) return null;
 
-  const { overview } = follows;
+  const { overview, aggregated } = follows;
   const d7Change = (overview.d7 / (overview.total - overview.d7)) * 100;
-  const renderFollowerGraph = () => <div></div>;
-
+  console.log('aggreagted followers', follows)
   return (
     <Card title="New followers">
       <CardHeader>
@@ -38,7 +42,11 @@ const NewFollowersCard: React.FC = () => {
           </p>
         </CardDescription>
       </CardHeader>
-      <CardContent>{renderFollowerGraph()}</CardContent>
+      <CardContent>
+        <div className="w-full h-64">
+          <AnalyticsGraph aggregated={aggregated} resolution={resolution} />
+        </div>
+      </CardContent>
     </Card>
   );
 };

@@ -10,7 +10,7 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import isEmpty from "lodash.isempty";
-import ReactionsGraph from "./ReactionsGraph";
+import AnalyticsGraph from "./AnalyticsGraph";
 
 type ReactionsCardProps = {
   resolution: "hourly" | "weekly";
@@ -51,7 +51,7 @@ const ReactionsCard: React.FC<ReactionsCardProps> = ({
       </CardHeader>
       <CardContent>
         <div className="w-full h-64">
-          <ReactionsGraph aggregated={aggregated} resolution={resolution} />
+          <AnalyticsGraph aggregated={aggregated} resolution={resolution} />
         </div>
       </CardContent>
     </Card>

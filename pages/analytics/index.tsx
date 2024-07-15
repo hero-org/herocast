@@ -1,5 +1,6 @@
 import NewFollowersCard from "@/common/components/Analytics/NewFollowersCard";
 import ReactionsCard from "@/common/components/Analytics/ReactionsCard";
+import { Card } from "@/components/ui/card";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { Analytics, useDataStore } from "@/stores/useDataStore";
 import { useQuery } from "@tanstack/react-query";
@@ -32,19 +33,19 @@ export default function AnalyticsPage() {
     addAnalytics(Number(viewerFid!), analyticsData!);
   }, [analyticsData]);
 
-  const renderCard = (title: string, CardComponent: React.FC) => {
+  const renderCard = (title: string, children: React.ReactElement) => {
     return (
       <div className="">
         {/* <h2 className="text-lg font-semibold">{title}</h2> */}
-        <CardComponent />
+        {children}
       </div>
     );
   };
   return (
     <div className="m-8">
       <div className="grid grid-cols-2 gap-4">
-        {renderCard("New followers", NewFollowersCard)}
-        {renderCard("Reactions", ReactionsCard)}
+        {renderCard("New followers", <NewFollowersCard />)}
+        {renderCard("Reactions", <ReactionsCard resolution="weekly" />)}
       </div>
     </div>
   );

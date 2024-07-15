@@ -6,7 +6,6 @@ import {
 } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { useRouter } from "next/router";
 import { CastThreadView } from "@/common/components/CastThreadView";
-import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 
 export default function ConversationPage() {
   const router = useRouter();

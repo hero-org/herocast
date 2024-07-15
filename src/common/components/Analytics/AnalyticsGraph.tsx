@@ -23,7 +23,7 @@ type TooltipData = {
   count: number;
 };
 
-type ReactionsGraphProps = WithTooltipProvidedProps<TooltipData> & {
+type AnalyticsGraphProps = WithTooltipProvidedProps<TooltipData> & {
   aggregated: { timestamp: string; count: number }[];
   resolution: "hourly" | "weekly";
 };
@@ -38,7 +38,7 @@ const tooltipStyles = {
   color: "white",
 };
 
-const ReactionsGraph: React.FC<ReactionsGraphProps> = ({
+const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   showTooltip,
   hideTooltip,
   tooltipData,
@@ -269,4 +269,4 @@ const ReactionsGraph: React.FC<ReactionsGraphProps> = ({
   );
 };
 
-export default withTooltip<ReactionsGraphProps>(ReactionsGraph);
+export default withTooltip<AnalyticsGraphProps>(AnalyticsGraph);
