@@ -91,7 +91,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
     (height: number) =>
       scaleLinear({
         range: [height - margin.bottom, margin.top],
-        domain: [0, max(data, (d) => d.count) || 0],
+        domain: [0, max(data, (d) => d.count ?? 0) || 0],
         nice: true,
       }),
     [data, margin.bottom, margin.top]
