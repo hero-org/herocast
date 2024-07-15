@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { fetchAndAddUserProfile } from "../../helpers/profileUtils";
 import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
@@ -24,22 +24,20 @@ const ProfileInfo = ({
 
   return (
     <Link
-      className="space-y-2 min-h-72 cursor-pointer"
-      href={useMemo(() => `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`, [profile?.username])}
+      className="space-y-2 min-h-72 cursor-pointer block"
+      href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
       prefetch={false}
     >
-      <div>
-        <ProfileInfoContent profile={profile} showFollowButton={showFollowButton} />
-        {profile?.power_badge && (
-          <div className="text-sm font-regular text-muted-foreground flex flex-row mt-2">
-            <img
-              src="/images/ActiveBadge.webp"
-              className="h-[15px] w-[15px]"
-              alt="power badge"
-            />
-          </div>
-        )}
-      </div>
+      <ProfileInfoContent profile={profile} showFollowButton={showFollowButton} />
+      {profile?.power_badge && (
+        <div className="text-sm font-normal text-muted-foreground flex flex-row mt-2">
+          <img
+            src="/images/ActiveBadge.webp"
+            className="h-[15px] w-[15px]"
+            alt="Power badge"
+          />
+        </div>
+      )}
     </Link>
   );
 };
