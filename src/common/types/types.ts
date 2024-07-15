@@ -1,14 +1,4 @@
-export type FollowAnalytics = {
-    timestamp: number;
-    count: number;
-};
-
-export type CastAnalytics = {
-    timestamp: number;
-    count: number;
-};
-
-export type ReactionsAnalytics = {
+export type AggregatedAnalytics = {
     timestamp: number;
     count: number;
 };
@@ -25,14 +15,16 @@ export type Analytics = {
     updatedAt: number;
     follows: {
         overview: OverviewAnalytics,
-        aggregated: FollowAnalytics[]
+        aggregated: AggregatedAnalytics[]
     },
     casts: {
         overview: OverviewAnalytics,
-        aggregated: CastAnalytics[]
+        aggregated: AggregatedAnalytics[]
     },
     reactions: {
         overview: OverviewAnalytics,
-        aggregated: ReactionsAnalytics[]
+        aggregated: AggregatedAnalytics[]
     }
 };
+
+export type AnalyticsKey = 'follows' | 'casts' | 'reactions';

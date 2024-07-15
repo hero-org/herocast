@@ -84,7 +84,9 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   if (isLoading || data.length === 0) {
     return (
       <div className="w-full h-64">
-        <Skeleton className="w-full h-full" />
+        <Skeleton className="w-full h-full">
+          <div className="w-full h-full bg-gradient-to-b from-background to-muted-foreground/10 rounded-md" />
+        </Skeleton>
       </div>
     );
   }

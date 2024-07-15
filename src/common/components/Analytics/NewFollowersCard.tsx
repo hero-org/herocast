@@ -14,7 +14,7 @@ import isEmpty from "lodash.isempty";
 import React from "react";
 import AnalyticsGraph from "./AnalyticsGraph";
 
-const NewFollowersCard: React.FC = ({
+const NewFollowersCard = ({
   resolution,
 }: {
   resolution: "weekly" | "daily";
@@ -29,22 +29,26 @@ const NewFollowersCard: React.FC = ({
 
   const { overview, aggregated } = follows;
   const d7Change = (overview.d7 / (overview.total - overview.d7)) * 100;
-  console.log('aggreagted followers', follows)
+
   return (
     <Card title="New followers">
       <CardHeader>
-        <CardTitle className="text-2xl flex">
-          {overview.total} followers
+        <CardDescription>Last 7 days</CardDescription>
+        <CardTitle className="text-2xl flex justify-between items-center">
+          <span>{overview.total?.toLocaleString() ?? "0"} followers</span>
+          <span
+            className={`text-sm font-semibold ${
+              d7Change >= 0 ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {d7Change >= 0 ? "+" : "-"}
+            {Math.abs(d7Change).toFixed(2)}%
+          </span>
         </CardTitle>
-        <CardDescription>
-          <p className="text-sm font-semibold text-green-500">
-            {d7Change.toFixed(2)}%
-          </p>
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="w-full h-64">
-          <AnalyticsGraph aggregated={aggregated} resolution={resolution} />
+          <AnalyticsGraph analyticsKey="followers" aggregated={aggregated} resolution={resolution} />
         </div>
       </CardContent>
     </Card>

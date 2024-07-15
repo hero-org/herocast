@@ -21,9 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await initializeDataSourceWithRetry();
 
     try {
-        const result = await getAnalyticsData('reactions', fid);
+        const result = await getAnalyticsData('reactions', fid, 'target_cast_fid');
 
-        const analytics: Analytics = {
+        const analytics: Omit<Analytics, 'follows' | 'casts'> = {
             updatedAt: Date.now(),
             reactions: {
                 overview: {
@@ -34,8 +34,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 },
                 aggregated: result[0].aggregated || [],
             },
-            follows: { overview: { total: 0, h24: 0, d7: 0, d30: 0 }, aggregated: [] },
-            casts: { overview: { total: 0, h24: 0, d7: 0, d30: 0 }, aggregated: [] },
         };
 
         clearTimeout(timeout);

@@ -31,8 +31,6 @@ const ReactionsCard: React.FC<ReactionsCardProps> = ({
       ? (overview.d7 / (overview.total - overview.d7) - 1) * 100
       : 0;
 
-  if (isEmpty(analytics)) return null;
-
   return (
     <Card>
       <CardHeader>
@@ -51,7 +49,11 @@ const ReactionsCard: React.FC<ReactionsCardProps> = ({
       </CardHeader>
       <CardContent>
         <div className="w-full h-64">
-          <AnalyticsGraph aggregated={aggregated} resolution={resolution} />
+          <AnalyticsGraph
+            analyticsKey="reactions"
+            aggregated={aggregated}
+            resolution={resolution}
+          />
         </div>
       </CardContent>
     </Card>

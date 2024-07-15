@@ -1,6 +1,6 @@
 import { AppDataSource } from '@/lib/db';
 
-export async function getAnalyticsData(tableName: string, fid: string) {
+export async function getAnalyticsData(tableName: string, fid: string, fidFilterColumn: string = 'fid') {
     const query = `
         WITH hourly_counts AS (
             SELECT
@@ -8,7 +8,7 @@ export async function getAnalyticsData(tableName: string, fid: string) {
                 COUNT(*) AS count
             FROM ${tableName}
             WHERE timestamp >= NOW() - INTERVAL '30 days'
-            AND fid = $1
+            AND ${fidFilterColumn} = $1
             GROUP BY hour
         )
         SELECT
@@ -19,6 +19,6 @@ export async function getAnalyticsData(tableName: string, fid: string) {
             json_agg(json_build_object('timestamp', hour, 'count', count) ORDER BY hour) AS aggregated
         FROM hourly_counts
     `;
-
+    await AppDataSource.query(`SET work_mem TO '32MB';`);
     return AppDataSource.query(query, [fid]);
 }

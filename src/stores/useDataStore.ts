@@ -139,7 +139,9 @@ const store = (set: StoreSet) => ({
   },
   addAnalytics: (fid: number, analytics: Analytics) => {
     set((state) => {
-      state.fidToAnalytics = { ...state.fidToAnalytics, ...{ [fid]: analytics } };
+      state.fidToAnalytics = {
+        ...state.fidToAnalytics, ...{ [fid]: { ...state.fidToAnalytics[fid], ...analytics } }
+      };
     });
   }
 });
