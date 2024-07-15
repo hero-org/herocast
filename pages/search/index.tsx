@@ -472,7 +472,7 @@ export default function SearchPage() {
               disabled={!searchTerm}
               className={cn("rounded-l-none border-l-0 w-1/2 px-4")}
               buttonText="Share"
-              text={`https://app.herocast.xyz/search?search=${searchTerm}`}
+              text={getSearchUrl(searchTerm, selectedAccount?.platformAccountId ? Number(selectedAccount.platformAccountId) : undefined)}
             />
           </div>
         </div>
