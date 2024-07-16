@@ -423,6 +423,7 @@ export const useAccountStore = create<AccountStore>()(persist(mutative(store),
     name: 'herocast-accounts-store',
     storage: createJSONStorage(() => storage), // (optional) by default, 'localStorage' is used
     partialize: (state) => ({
+      selectedAccountIdx: state.selectedAccountIdx,
       allChannels: state.allChannels,
       accounts: state.accounts.map((account) => {
         const { privateKey, ...rest } = account;

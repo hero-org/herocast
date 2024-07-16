@@ -68,6 +68,8 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     mode: "onSubmit",
   });
 
+  const { isValid } = form.formState;
+
   async function signUp() {
     if (!(await form.trigger())) return;
 
@@ -303,7 +305,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         type="button"
         size="lg"
         className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
-        disabled={isLoading}
+        disabled={isLoading || !isValid}
         onClick={() => buttonAction()}
       >
         {isLoading ? <Loading className="text-white" /> : buttonText}
@@ -319,8 +321,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             className="mt-2 text-center text-sm hover:cursor-pointer"
             onClick={() => setView(ViewState.SIGNUP)}
           >
-            Don&apos;t have an account?{" "}
-            <span className="underline">Sign up</span>
+            No herocast account? <span className="underline">Sign up</span>
           </div>
         );
       case ViewState.FORGOT:
@@ -330,7 +331,8 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             className="mt-2 text-center text-sm hover:cursor-pointer"
             onClick={() => setView(ViewState.LOGIN)}
           >
-            Already have an account? <span className="underline">Log in</span>
+            Already have your herocast account?{" "}
+            <span className="underline">Log in</span>
           </div>
         );
     }
@@ -353,42 +355,24 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const renderViewHelpText = () => {
     switch (view) {
       case ViewState.FORGOT:
-        return (
-          <span className="text-md text-muted-foreground">
-            Forgot your password? Enter your email below to reset it
-          </span>
-        );
+        return "Forgot your password? Enter your email below to reset it";
       case ViewState.RESET:
-        return (
-          <span className="text-md text-muted-foreground">
-            Enter your new password below
-          </span>
-        );
+        return "Enter your new password below";
       case ViewState.SIGNUP:
-        return (
-          <span className="text-md text-muted-foreground">
-            Enter your email to signup
-          </span>
-        );
+        return "Create your herocast account";
       case ViewState.LOGGED_IN:
-        return (
-          <span className="text-md text-muted-foreground">
-            You are logged in as {user?.email}
-          </span>
-        );
+        return `You are logged in as ${user?.email}`;
       default:
-        return (
-          <span className="text-md text-muted-foreground">
-            Enter your email to login
-          </span>
-        );
+        return "Login to your herocast account";
     }
   };
 
   return (
     <div className="grid gap-6">
       <Form {...form}>
-        {renderViewHelpText()}
+        <span className="text-2xl font-semibold tracking-tight">
+          {renderViewHelpText()}
+        </span>
         <form>
           <div className="flex">
             {userMessage && (
@@ -432,6 +416,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                             disabled={isLoading}
                             autoComplete="current-password"
                             type="password"
+                            placeholder="••••••"
                             {...field}
                           />
                         </FormControl>
@@ -443,7 +428,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
               </div>
             )}
             {renderSubmitButton()}
-            {includes([ViewState.SIGNUP, ViewState.LOGIN], view) && (
+            {view === ViewState.LOGIN && (
               <Button
                 type="button"
                 variant="outline"
@@ -479,10 +464,10 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           <div className="flex flex-col space-y-4 items-center justify-center text-white">
             {!isAuthenticated ? (
               <>
-                <span className="text-md text-muted-foreground">
-                  Sign in for quick read-only access
-                </span>
                 <SignInButton hideSignOut />
+                <span className="text-center text-sm text-foreground">
+                  Sign in with Farcaster for read-only access
+                </span>
               </>
             ) : (
               <Button

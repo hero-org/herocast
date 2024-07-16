@@ -438,7 +438,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                         </div>
                       );
                     })}
-                    <ThemeToggle />
+                    <div className="w-full flex flex-row py-4">
+                      <AccountSwitcher />
+                      <ThemeToggle />
+                    </div>
                   </nav>
                 </div>
               </Dialog.Panel>

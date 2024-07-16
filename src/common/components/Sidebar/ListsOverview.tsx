@@ -16,13 +16,22 @@ import { Button } from "@/components/ui/button";
 import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { UUID } from "crypto";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const ListsOverview = () => {
-  const { selectedListIdx, setSelectedListIdx, lists } = useListStore();
+  const { searches, selectedListIdx, setSelectedListIdx, lists } =
+    useListStore();
 
   const { setIsManageListModalOpen } = useNavigationStore();
 
@@ -35,7 +44,7 @@ const ListsOverview = () => {
     setSelectedListIdx(lists.findIndex((l) => l.id === id));
   };
 
-  const renderList = (list: List, idx: number) => {
+  const renderList = (list: List & { id: UUID }, idx: number) => {
     return (
       <li key={`list-${list.id}`} className="px-2 sm:px-3 lg:px-4">
         <div
@@ -65,7 +74,7 @@ const ListsOverview = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-lg">
-              <DropdownMenuItem onClick={() => updateSelectedList(list)}>
+              <DropdownMenuItem onClick={() => updateSelectedList(list.id)}>
                 <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
                 Search
               </DropdownMenuItem>
@@ -81,15 +90,41 @@ const ListsOverview = () => {
     );
   };
 
+  const renderEmptyListsCard = () => (
+    <Card className="m-4">
+      <CardHeader>
+        <CardTitle className="text-sm flex items-center">
+          No saved searches yet
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <CardDescription>
+          Save your searches to quickly access them later
+        </CardDescription>
+      </CardContent>
+      {searches.length > 0 && (
+        <CardFooter>
+          <Button size="sm" variant="outline" onClick={() => setIsManageListModalOpen(true)}>
+            Save last search
+          </Button>
+        </CardFooter>
+      )}
+    </Card>
+  );
+
   return (
     <div className="">
       <SidebarHeader title="Saved Searches" />
-      <ul role="list" className="mt-2 mb-12">
-        {take(
-          sortBy(lists, (s) => s.idx),
-          10
-        ).map(renderList)}
-      </ul>
+      {lists.length === 0 ? (
+        renderEmptyListsCard()
+      ) : (
+        <ul role="list" className="mt-2 mb-12">
+          {take(
+            sortBy(lists, (s) => s.idx),
+            10
+          ).map(renderList)}
+        </ul>
+      )}
     </div>
   );
 };

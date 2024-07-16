@@ -64,7 +64,6 @@ const getSearchUrl = ({
 export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<RawSearchResult[]> => {
     try {
         const searchUrl = getSearchUrl(params);
-        console.log('searchUrl', searchUrl)
         const response = await fetch(searchUrl);
         const data = await response.json();
         if (!data || data?.error) return [];

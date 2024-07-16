@@ -51,13 +51,13 @@ const ProfileHoverCard = ({
   return (
     <HoverCard openDelay={200}>
       <HoverCardTrigger asChild>
-        <button
+        <div
           onClick={onClick}
           ref={ref}
           className={`${className} text-left`}
         >
           {children}
-        </button>
+        </div>
       </HoverCardTrigger>
       <HoverCardContent
         side="bottom"
