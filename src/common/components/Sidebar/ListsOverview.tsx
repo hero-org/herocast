@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
-  InformationCircleIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { useNavigationStore } from "@/stores/useNavigationStore";
@@ -95,7 +94,6 @@ const ListsOverview = () => {
     <Card className="m-4">
       <CardHeader>
         <CardTitle className="text-sm flex items-center">
-          <InformationCircleIcon className="h-5 w-5 mr-2" />
           No saved searches yet
         </CardTitle>
       </CardHeader>
