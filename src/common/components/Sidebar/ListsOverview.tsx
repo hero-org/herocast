@@ -17,20 +17,22 @@ import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
   InformationCircleIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { UUID } from "crypto";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
 const ListsOverview = () => {
-  const { selectedListIdx, setSelectedListIdx, lists } = useListStore();
+  const { searches, selectedListIdx, setSelectedListIdx, lists } =
+    useListStore();
 
   const { setIsManageListModalOpen } = useNavigationStore();
 
@@ -89,23 +91,34 @@ const ListsOverview = () => {
     );
   };
 
+  const renderEmptyListsCard = () => (
+    <Card className="m-4">
+      <CardHeader>
+        <CardTitle className="text-sm flex items-center">
+          <InformationCircleIcon className="h-5 w-5 mr-2" />
+          No saved searches yet
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <CardDescription>
+          Save your searches to quickly access them later
+        </CardDescription>
+      </CardContent>
+      {searches.length > 0 && (
+        <CardFooter>
+          <Button size="sm" variant="outline" onClick={() => setIsManageListModalOpen(true)}>
+            Save last search
+          </Button>
+        </CardFooter>
+      )}
+    </Card>
+  );
+
   return (
     <div className="">
       <SidebarHeader title="Saved Searches" />
       {lists.length === 0 ? (
-        <Card className="mt-2 mb-12">
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center">
-              <InformationCircleIcon className="h-5 w-5 text-primary mr-2" />
-              No saved searches yet
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription>
-              Create a new search to see it here.
-            </CardDescription>
-          </CardContent>
-        </Card>
+        renderEmptyListsCard()
       ) : (
         <ul role="list" className="mt-2 mb-12">
           {take(
