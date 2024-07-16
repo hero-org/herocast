@@ -2,7 +2,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import {
+  CastWithInteractions,
+  User,
+} from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -10,9 +13,13 @@ import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
+import {
+  getProfile,
+  getProfileFetchIfNeeded,
+} from "@/common/helpers/profileUtils";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
-import { map, uniq } from "lodash";
+import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -22,12 +29,15 @@ import {
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";
-import { SearchFilters } from "@/common/helpers/search";
-import { searchForText } from "@/common/helpers/search";
-import { RawSearchResult } from "@/common/helpers/search";
+import {
+  runFarcasterCastSearch,
+  RawSearchResult,
+  SearchFilters,
+} from "@/common/helpers/search";
 import ManageListModal from "@/common/components/ManageListModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
+import { fetchAndAddUserProfile } from "@/common/helpers/profileUtils";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -58,8 +68,7 @@ export default function SearchPage() {
 
   const { isManageListModalOpen, setIsManageListModalOpen } =
     useNavigationStore();
-  const { searches, addSearch, addList, setSelectedListIdx, lists } =
-    useListStore();
+  const { addSearch, addList, setSelectedListIdx, lists } = useListStore();
   const selectedList = useListStore((state) =>
     state.selectedListIdx !== undefined
       ? state.lists[state.selectedListIdx]
@@ -71,6 +80,26 @@ export default function SearchPage() {
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
+
+  const debouncedUserSearch = useCallback(
+    debounce(async (term: string) => {
+      if (term.length >= 3) {
+        try {
+          await fetchAndAddUserProfile({
+            username: term.startsWith("@") ? term.slice(1) : term,
+            viewerFid: Number(selectedAccount?.platformAccountId),
+          });
+        } catch (error) {
+          console.error("Error searching for users:", error);
+        }
+      }
+    }, 300),
+    [selectedAccount]
+  );
+
+  useEffect(() => {
+    debouncedUserSearch(searchTerm);
+  }, [searchTerm, debouncedUserSearch]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -144,6 +173,33 @@ export default function SearchPage() {
     hideReplies: filterByHideReplies,
   });
 
+  const getMentionFidFromSearchTerm = async (term: string) => {
+    const profile = await getProfileFetchIfNeeded({
+      username: term,
+      viewerFid: Number(selectedAccount?.platformAccountId),
+    });
+    return profile?.fid;
+  };
+
+  const getFromFidFromSearchTerm = async (term: string) => {
+    const fromIndex = term.indexOf("from:");
+    if (fromIndex === -1) {
+      return;
+    }
+
+    const fromTerm = term.match(/from:([^\s]+)/);
+    if (!fromTerm) {
+      return;
+    }
+
+    const from = fromTerm[1];
+    const profile = await getProfileFetchIfNeeded({
+      username: from,
+      viewerFid: Number(selectedAccount?.platformAccountId),
+    });
+    return profile?.fid;
+  };
+
   const onSearch = useCallback(
     async (term?: string, filters?: SearchFilters) => {
       const newSearchCounter = searchCounter + 1;
@@ -164,9 +220,13 @@ export default function SearchPage() {
       });
       const startedAt = Date.now();
       try {
-        const searchResults = await searchForText({
+        const mentionFid = await getMentionFidFromSearchTerm(term);
+        const fromFid = await getFromFidFromSearchTerm(term);
+        const searchResults = await runFarcasterCastSearch({
           searchTerm: term,
           filters,
+          mentionFid,
+          fromFid,
           limit: SEARCH_LIMIT_INITIAL_LOAD,
         });
         if (activeSearchCounter.current !== newSearchCounter) {
@@ -186,11 +246,7 @@ export default function SearchPage() {
           duration: endedAt - startedAt,
         });
         if (searchResults.length > 0) {
-          console.log(
-            `setting cast hashes for term ${term} - initial - ${searchResults.length} results`
-          );
           addCastHashes(searchResults, true);
-          // use posthog to track event
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -210,7 +266,7 @@ export default function SearchPage() {
 
   const onContinueSearch = () => {
     setIsLoading(true);
-    searchForText({
+    runFarcasterCastSearch({
       searchTerm,
       filters: getFilters(),
       limit: SEARCH_LIMIT_NEXT_LOAD,
@@ -401,7 +457,7 @@ export default function SearchPage() {
               value={searchTerm}
               onChange={(e) => onChange(e.target.value)}
               id="search"
-              placeholder="Search for casts..."
+              placeholder="Search for casts or users..."
               type="search"
               name="search"
               className={cn(

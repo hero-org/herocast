@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import get from "lodash.get";
+import { c } from "node_modules/@frames.js/render/dist/types-i70kFnzS";
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
@@ -88,7 +88,7 @@ type addTokenDataProps = {
   data: DexPair;
 };
 
-type UserProfile = User & { updatedAt: number };
+export type UserProfile = User & { updatedAt: number };
 
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;
@@ -134,18 +134,3 @@ const store = (set: StoreSet) => ({
   }
 });
 export const useDataStore = create<DataStore>()(devtools(mutative(store)));
-
-export const getProfile = (dataStoreState: DataStore, username?: string, fid?: string) => {
-  if (username) {
-    return get(
-      dataStoreState.fidToData,
-      get(dataStoreState.usernameToFid, username)
-    );
-  } else if (fid) {
-    return get(dataStoreState.fidToData, fid);
-  }
-};
-
-export const shouldUpdateProfile = (profile?: UserProfile) => {
-  return !profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL
-};

@@ -3,7 +3,6 @@ import React, {
   useMemo,
   useState,
   useCallback,
-  useEffect,
   ComponentType,
   SVGProps,
 } from "react";
@@ -39,7 +38,8 @@ import { useTheme } from "next-themes";
 import { getThemeCommands } from "@/getThemeCommands";
 import { formatLargeNumber } from "@/common/helpers/text";
 import { DraftType } from "@/common/constants/farcaster";
-import { getProfile, useDataStore } from "@/stores/useDataStore";
+import { useDataStore } from "@/stores/useDataStore";
+import { getProfile } from "@/common/helpers/profileUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   FARCASTER_LOGO_URL,

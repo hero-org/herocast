@@ -15,24 +15,36 @@ export type SearchFilters = {
     hideReplies: boolean;
 };
 
-export type SearchForTextParams = {
+export type RunFarcasterCastSearchParams = {
     searchTerm: string;
     filters?: SearchFilters;
     limit?: number;
     offset?: number;
     interval?: string;
     orderBy?: string;
+    mentionFid?: number;
+    fromFid?: number;
 };
 
+const prepareSearchTerm = (term: string): string => {
+    // remove from:username 
+    // remove whitespaces in front and back
+    return term.replace(/from:\S+/g, '').trim();
+};
 
 const getSearchUrl = ({
-    searchTerm, filters, limit, offset, interval, orderBy,
-}: SearchForTextParams): string => {
-    const params = new URLSearchParams({ term: searchTerm });
+    searchTerm, filters, limit, offset, interval, orderBy, mentionFid, fromFid,
+}: RunFarcasterCastSearchParams): string => {
+    const term = prepareSearchTerm(searchTerm);
+    const params = new URLSearchParams({ term });
     if (limit) params.append("limit", limit.toString());
     if (offset) params.append("offset", offset.toString());
     if (interval) params.append("interval", interval);
     if (orderBy) params.append("orderBy", orderBy);
+    if (mentionFid) params.append("mentionFid", mentionFid.toString());
+    if (fromFid) {
+        params.append('fromFid', fromFid.toString());
+    }
     if (filters) {
         Object.keys(filters).forEach((key) => {
             if (filters[key] !== undefined) {
@@ -48,25 +60,18 @@ const getSearchUrl = ({
     const url = `/api/search?${params.toString()}`;
     return url;
 };
-export const searchForText = async ({
-    searchTerm, filters, limit, offset, interval, orderBy,
-}: SearchForTextParams): Promise<RawSearchResult[]> => {
+
+export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<RawSearchResult[]> => {
     try {
-        const searchUrl = getSearchUrl({
-            searchTerm,
-            filters,
-            limit,
-            offset,
-            interval,
-            orderBy,
-        });
+        const searchUrl = getSearchUrl(params);
+        console.log('searchUrl', searchUrl)
         const response = await fetch(searchUrl);
         const data = await response.json();
         if (!data || data?.error) return [];
 
         return data;
     } catch (error) {
-        console.error("Failed to search for text", searchTerm, error);
+        console.error("Failed to search for text", params.searchTerm, error);
         return [];
     }
 };

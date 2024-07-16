@@ -1,4 +1,4 @@
-import NewPostEntry from "@/common/components/NewPostEntry";
+import NewPostEntry from "@/common/components/Editor/NewCastEditor";
 import { useDraftStore } from "@/stores/useDraftStore";
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import {

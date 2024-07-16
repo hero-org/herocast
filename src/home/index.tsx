@@ -37,6 +37,11 @@ import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
 
+type NavigationGroupType = {
+  name: string;
+  items: NavigationItemType[];
+};
+
 type NavigationItemType = {
   name: string;
   router: string;
@@ -48,7 +53,7 @@ type NavigationItemType = {
 };
 
 type HeaderAction = {
-  name: string;
+  name: string | JSX.Element;
   onClick: () => void;
 };
 
@@ -116,112 +121,136 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     return "Feed";
   };
 
-  const navigation: NavigationItemType[] = [
+  const navigationGroups: NavigationGroupType[] = [
     {
-      name: "Feeds",
-      router: "/feeds",
-      icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      getTitle: getFeedTitle,
-      getHeaderActions: () => {
-        const isChannelPinned =
-          channels.findIndex(
-            (channel) => channel.url === selectedChannelUrl
-          ) !== -1;
-        const isChannelFeed =
-          selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
-          selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING;
-        const actions = [
-          {
-            name: "Cast",
-            onClick: () => {
-              let parentUrl;
-              if (isChannelFeed) {
-                parentUrl = selectedChannelUrl;
-              }
-              setCastModalView(CastModalView.New);
-              addNewPostDraft({
-                parentUrl,
-                onSuccess(draftId) {
-                  setCastModalDraftId(draftId);
-                  openNewCastModal();
+      name: "main",
+      items: [
+        {
+          name: "Feeds",
+          router: "/feeds",
+          icon: (
+            <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+          ),
+          getTitle: getFeedTitle,
+          getHeaderActions: () => {
+            const isChannelPinned =
+              channels.findIndex(
+                (channel) => channel.url === selectedChannelUrl
+              ) !== -1;
+            const isChannelFeed =
+              selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
+              selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING;
+            const actions = [
+              {
+                name: "Cast",
+                onClick: () => {
+                  let parentUrl;
+                  if (isChannelFeed) {
+                    parentUrl = selectedChannelUrl;
+                  }
+                  setCastModalView(CastModalView.New);
+                  addNewPostDraft({
+                    parentUrl,
+                    onSuccess(draftId) {
+                      setCastModalDraftId(draftId);
+                      openNewCastModal();
+                    },
+                  });
+                },
+              },
+            ];
+            if (isChannelFeed) {
+              actions.push({
+                name: isChannelPinned ? "Unpin" : "Pin",
+                onClick: () => {
+                  if (isChannelPinned) {
+                    removePinnedChannel(
+                      channels.find((c) => c.url === selectedChannelUrl)
+                    );
+                  } else {
+                    addPinnedChannel(
+                      allChannels.find((c) => c.url === selectedChannelUrl)
+                    );
+                  }
                 },
               });
-            },
+            }
+            return actions;
           },
-        ];
-        if (isChannelFeed) {
-          actions.push({
-            name: isChannelPinned ? "Unpin" : "Pin",
-            onClick: () => {
-              if (isChannelPinned) {
-                removePinnedChannel(
-                  channels.find((c) => c.url === selectedChannelUrl)
-                );
-              } else {
-                addPinnedChannel(
-                  allChannels.find((c) => c.url === selectedChannelUrl)
-                );
-              }
-            },
-          });
-        }
-        return actions;
-      },
-      shortcut: "Shift + F",
-      additionalPaths: ["/profile/[slug]", "/conversation/[...slug]"],
-    },
-    {
-      name: "Post",
-      router: "/post",
-      getHeaderActions: () => [
+          shortcut: "Shift + F",
+          additionalPaths: ["/profile/[slug]", "/conversation/[...slug]"],
+        },
         {
-          name: (
-            <>
-              {" "}
-              <PencilSquareIcon className="w-5 h-5 mr-2" />
-              New draft
-            </>
+          name: "Post",
+          router: "/post",
+          getHeaderActions: () => [
+            {
+              name: (
+                <>
+                  {" "}
+                  <PencilSquareIcon className="w-5 h-5 mr-2" />
+                  New draft
+                </>
+              ),
+              onClick: () => addNewPostDraft({ force: true }),
+            },
+          ],
+          icon: (
+            <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
           ),
-          onClick: () => addNewPostDraft({ force: true }),
+        },
+        {
+          name: "Search",
+          router: "/search",
+          icon: (
+            <MagnifyingGlassIcon
+              className="h-6 w-6 shrink-0"
+              aria-hidden="true"
+            />
+          ),
+          shortcut: "/",
+        },
+        {
+          name: "Notifications",
+          router: "/notifications",
+          icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          getTitle: () => "Notifications",
+          shortcut: "Shift + N",
         },
       ],
-      icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
     },
     {
-      name: "Search",
-      router: "/search",
-      icon: (
-        <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-      ),
-      shortcut: "/",
-    },
-    {
-      name: "Channels",
-      router: "/channels",
-      icon: (
-        <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-      ),
-      shortcut: "Shift + C",
-    },
-    {
-      name: "Notifications",
-      router: "/notifications",
-      icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      getTitle: () => "Notifications",
-      shortcut: "Shift + N",
-    },
-    {
-      name: "Accounts",
-      router: "/accounts",
-      icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      shortcut: "CMD + Shift + A",
-      additionalPaths: ["/farcaster-signup", "/hats"],
-    },
-    {
-      name: "Settings",
-      router: "/settings",
-      icon: <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      shortcut: "Shift + ,",
+      name: "settings",
+      items: [
+        {
+          name: "Channels",
+          router: "/channels",
+          icon: (
+            <RectangleGroupIcon
+              className="h-6 w-6 shrink-0"
+              aria-hidden="true"
+            />
+          ),
+          shortcut: "Shift + C",
+        },
+        {
+          name: "Accounts",
+          router: "/accounts",
+          icon: (
+            <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+          ),
+          shortcut: "CMD + Shift + A",
+          additionalPaths: ["/farcaster-signup", "/hats"],
+        },
+        {
+          name: "Settings",
+          router: "/settings",
+          icon: (
+            <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+          ),
+          shortcut: "Shift + ,",
+        },
+      ],
     },
   ];
 
@@ -275,7 +304,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     return navItem?.getHeaderActions ? navItem.getHeaderActions() : [];
   };
 
-  const navItem = navigation.find((item) => item.router === pathname);
+  const getNavItem = (pathname: string) => {
+    return navigationGroups
+      .map((group) => group.items)
+      .flat()
+      .find((item) => item.router === pathname);
+  };
+
+  const navItem = getNavItem(pathname);
   const title = getTitle(navItem);
   const headerActions = getHeaderActions(navItem);
   const sidebarType = getSidebarForPathname(pathname);
@@ -293,11 +329,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case RIGHT_SIDEBAR_ENUM.NONE:
       default:
         return null;
-      // return (
-      //   <aside className="bg-background lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
-      //     <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8"></header>
-      //   </aside>
-      // );
     }
   };
 
@@ -367,35 +398,47 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               <Dialog.Panel className="relative mr-2 flex w-full max-w-64 flex-1">
                 {/* Sidebar component, swap this element with another sidebar if you like */}
                 <div className="mt-16 z-100 flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
-                  <nav className="flex flex-1 flex-col">
-                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                      <li>
-                        <ul role="list" className="-mx-2 space-y-1">
-                          {navigation.map((item) => (
-                            <li key={item.name}>
-                              <Link
-                                href={item.router}
-                                onClick={() => setSidebarOpen(false)}
-                              >
-                                <p
-                                  className={classNames(
-                                    item.router === pathname ||
-                                      item.additionalPaths?.includes(pathname)
-                                      ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                    "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
-                                  )}
-                                >
-                                  {item.icon}
-                                  {item.name}
-                                </p>
-                              </Link>
+                  <nav className="flex flex-1 flex-col divide-y divide-muted-foreground/20">
+                    {navigationGroups.map((group) => {
+                      const navigation = group.items;
+                      return (
+                        <div key={`nav-group-mobile-${group.name}`}>
+                          <ul
+                            role="list"
+                            className="flex flex-1 flex-col gap-y-7"
+                          >
+                            <li>
+                              <ul role="list" className="-mx-2 space-y-1">
+                                {navigation.map((item) => (
+                                  <li key={item.name}>
+                                    <Link
+                                      href={item.router}
+                                      onClick={() => setSidebarOpen(false)}
+                                    >
+                                      <p
+                                        className={classNames(
+                                          item.router === pathname ||
+                                            item.additionalPaths?.includes(
+                                              pathname
+                                            )
+                                            ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                          "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                        )}
+                                      >
+                                        {item.icon}
+                                        {item.name}
+                                      </p>
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
                             </li>
-                          ))}
-                        </ul>
-                      </li>
-                      <ThemeToggle />
-                    </ul>
+                          </ul>
+                        </div>
+                      );
+                    })}
+                    <ThemeToggle />
                   </nav>
                 </div>
               </Dialog.Panel>
@@ -418,27 +461,38 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </h2>
           </Link>
           <div className="flex flex-col justify-between">
-            <nav className="mt-0">
-              <ul role="list" className="flex flex-col items-left space-y-1">
-                {navigation.map((item) => (
-                  <li key={item.name}>
-                    <Link href={item.router}>
-                      <div
-                        className={classNames(
-                          item.router === pathname ||
-                            item.additionalPaths?.includes(pathname)
-                            ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                          "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                        )}
+            <nav className="mt-0 divide-y divide-muted-foreground/20">
+              {navigationGroups.map((group) => {
+                const navigation = group.items;
+                return (
+                  <div key={`nav-group-${group.name}`}>
+                    {navigation.map((item) => (
+                      <ul
+                        key={`nav-item-${item.name}`}
+                        role="list"
+                        className="flex flex-col items-left space-y-1"
                       >
-                        {item.icon}
-                        <span className="">{item.name}</span>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+                        <li key={item.name}>
+                          <Link href={item.router}>
+                            <div
+                              className={classNames(
+                                item.router === pathname ||
+                                  item.additionalPaths?.includes(pathname)
+                                  ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                              )}
+                            >
+                              {item.icon}
+                              <span className="">{item.name}</span>
+                            </div>
+                          </Link>
+                        </li>
+                      </ul>
+                    ))}
+                  </div>
+                );
+              })}
             </nav>
           </div>
           {isReadOnlyUser && renderUpgradeCard()}

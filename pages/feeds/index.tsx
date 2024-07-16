@@ -159,36 +159,12 @@ export default function Feeds() {
   }, [selectedCastIdx, showCastThreadView]);
 
   useEffect(() => {
-    if (selectedCastIdx === -1 || isEmpty(casts)) return;
-
-    updateSelectedCast(casts[selectedCastIdx]);
+    if (selectedCastIdx === -1) {
+      updateSelectedCast();
+    } else if (!isEmpty(casts)) {
+      updateSelectedCast(casts[selectedCastIdx]);
+    }
   }, [selectedCastIdx, selectedChannelUrl, casts]);
-
-  useEffect(() => {
-    if (
-      isLoadingFeed ||
-      isEmpty(feed) ||
-      showCastThreadView ||
-      casts.length < DEFAULT_FEED_PAGE_SIZE ||
-      !account?.platformAccountId ||
-      !inView
-    )
-      return;
-
-    getFeed({
-      fid: account.platformAccountId!,
-      parentUrl: selectedChannelUrl,
-      cursor: nextCursor,
-    });
-  }, [
-    selectedCastIdx,
-    feed,
-    feedKey,
-    account,
-    selectedChannelUrl,
-    inView,
-    isLoadingFeed,
-  ]);
 
   const onReply = () => {
     if (!selectedCast) return;
@@ -284,7 +260,6 @@ export default function Feeds() {
     }
 
     setIsLoadingFeed(feedKey, true);
-
     try {
       let feedOptions = {
         cursor,
@@ -310,6 +285,7 @@ export default function Feeds() {
           parentUrl: string;
           fid: number;
         };
+
         newFeed = await neynarClient.fetchFeed(
           getFeedType(parentUrl),
           feedOptions
