@@ -36,7 +36,7 @@ const ListsOverview = () => {
     setSelectedListIdx(lists.findIndex((l) => l.id === id));
   };
 
-  const renderList = (list: List, idx: number) => {
+  const renderList = (list: List & { id: UUID }, idx: number) => {
     return (
       <li key={`list-${list.id}`} className="px-2 sm:px-3 lg:px-4">
         <div
@@ -66,7 +66,7 @@ const ListsOverview = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-lg">
-              <DropdownMenuItem onClick={() => updateSelectedList(list)}>
+              <DropdownMenuItem onClick={() => updateSelectedList(list.id)}>
                 <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
                 Search
               </DropdownMenuItem>
