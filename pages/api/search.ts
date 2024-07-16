@@ -29,20 +29,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dbConnectEnd = process.hrtime(start);
 
     const termsInQuotes = term.match(/"([^"]*)"/g)?.map(quotedTerm => quotedTerm.replace(/"/g, ''));
-    const query = `
-    SELECT 
-        casts.hash, casts.fid, casts.text
-    FROM casts 
-        ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
-    WHERE 
-        (tsv @@ websearch_to_tsquery('english', $3) 
-        AND casts.deleted_at IS NULL
+    const baseConditions = `
+        casts.deleted_at IS NULL
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${termsInQuotes ? `AND ${termsInQuotes.map((quotedTerm) => `casts.text ilike '%${quotedTerm}%'`).join(' AND ')}` : ''}
         ${fromFid ? `AND casts.fid = ${fromFid}` : ''}
-        ${orderBy ? `ORDER BY ${orderBy}` : ''}
+    `;
+
+    const query = `
+    (SELECT 
+        casts.hash, casts.fid, casts.text, casts.timestamp
+    FROM casts 
+        ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
+    WHERE 
+        tsv @@ websearch_to_tsquery('english', $3) 
+        AND ${baseConditions})
+    UNION
+    (SELECT 
+        casts.hash, casts.fid, casts.text, casts.timestamp
+    FROM casts 
+        ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
+    WHERE 
+        $3::int = ANY(casts.mentions)
+        AND ${baseConditions})
+    ORDER BY timestamp DESC
     LIMIT $1 OFFSET $2`;
+    
     const vars = [limit, offset, term.trim()];
 
     try {
