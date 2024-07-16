@@ -3,7 +3,6 @@ import React, {
   useMemo,
   useState,
   useCallback,
-  useEffect,
   ComponentType,
   SVGProps,
 } from "react";

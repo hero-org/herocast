@@ -9,11 +9,8 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/ope
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FollowButton from "@/common/components/FollowButton";
 import { useAccountStore } from "@/stores/useAccountStore";
-import {
-  useDataStore,
-} from "@/stores/useDataStore";
-import { shouldUpdateProfile } from "@/common/helpers/profileUtils";
-import { getProfile } from "@/common/helpers/profileUtils";
+import { useDataStore } from "@/stores/useDataStore";
+import { getProfile, shouldUpdateProfile } from "@/common/helpers/profileUtils";
 import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
 import { useRouter } from "next/router";
 import { Loading } from "@/common/components/Loading";
