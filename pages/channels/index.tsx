@@ -9,14 +9,17 @@ import SortableList, { SortableItem } from "react-easy-sort";
 import { take } from "lodash";
 import Fuse from "fuse.js";
 import map from "lodash.map";
+import orderBy from "lodash.orderby";
 import { PersonIcon } from "@radix-ui/react-icons";
 import { formatLargeNumber } from "@/common/helpers/text";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/router";
 
 export default function Channels() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-
   const {
+    setSelectedChannelUrl,
     addPinnedChannel,
     removePinnedChannel,
     accounts,
@@ -34,7 +37,9 @@ export default function Channels() {
   });
 
   const searchResults = take(
-    searchTerm ? map(fuse.search(searchTerm), "item") : allChannels,
+    searchTerm
+      ? map(fuse.search(searchTerm), "item")
+      : orderBy(allChannels, "data.followerCount", "desc"),
     50
   );
 
@@ -98,6 +103,17 @@ export default function Channels() {
           </div>
           <Button
             variant="outline"
+            size="sm"
+            className="mr-2"
+            onClick={() => {
+              setSelectedChannelUrl(channel.url);
+              router.push("/feeds");
+            }}
+          >
+            View
+          </Button>
+          <Button
+            variant="default"
             size="sm"
             onClick={() =>
               enabled ? removePinnedChannel(channel) : addPinnedChannel(channel)
