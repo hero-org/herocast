@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import Modal from "./Modal";
-import NewPostEntry from "./NewPostEntry";
+import NewPostEntry from "./Editor/NewCastEditor";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { CastRow } from "./CastRow";
 import { useHotkeys } from "react-hotkeys-hook";
