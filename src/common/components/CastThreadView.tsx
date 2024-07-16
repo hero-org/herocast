@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Loading } from "./Loading";
 import { CastRow } from "./CastRow";
-import { useDraftStore } from "@/stores/useDraftStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { classNames } from "../helpers/css";
@@ -33,13 +31,6 @@ export const CastThreadView = ({
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const { updateSelectedCast } = useDataStore();
-
-  const { addNewPostDraft, removePostDraft } = useDraftStore();
-  const draftIdx = useDraftStore(
-    (state) =>
-      state.drafts &&
-      state.drafts.findIndex((draft) => draft.parentCastId?.hash === cast?.hash)
-  );
 
   useEffect(() => {
     if (!cast || casts.length === 0) return;
@@ -90,7 +81,11 @@ export const CastThreadView = ({
         if (conversation?.cast?.direct_replies) {
           const { direct_replies: replies, ...castObjectWithoutReplies } =
             conversation.cast;
-          setCasts((conversation.chronological_parent_casts || []).concat([castObjectWithoutReplies].concat(replies)));
+          setCasts(
+            (conversation.chronological_parent_casts || []).concat(
+              [castObjectWithoutReplies].concat(replies)
+            )
+          );
         }
       } catch (err) {
         console.error(`Error fetching cast thread: ${err}`);
@@ -101,15 +96,6 @@ export const CastThreadView = ({
 
     setSelectedCastIdx(0);
     loadData();
-    if (cast?.hash) {
-      addNewPostDraft({
-        parentCastId: { hash: cast.hash, fid: cast.author.fid.toString() },
-      });
-    }
-
-    return () => {
-      removePostDraft(draftIdx, true);
-    };
   }, [cast?.hash, hash]);
 
   const renderRow = (cast: CastWithInteractions, idx: number) => {

@@ -27,16 +27,10 @@ const NewCastModal = ({ draftId, open, setOpen }: NewCastModalProps) => {
   const draft = draftIdx !== undefined ? drafts[draftIdx] : undefined;
 
   useEffect(() => {
-    return () => {
-      if (open) return;
-
-      if (draftId !== undefined) {
-        console.log("removeDraft from NewCastModal closing", draftId);
-        removePostDraftById(draftId);
-      }
-    };
-  }, [draftId, open]);
-
+    if (!open && draftId !== undefined) {
+      removePostDraftById(draftId);
+    }
+  }, [open, draftId]);
   useHotkeys("esc", () => setOpen(false), [open], {
     enableOnFormTags: true,
     enableOnContentEditable: true,
