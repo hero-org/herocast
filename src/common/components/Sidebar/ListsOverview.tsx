@@ -21,6 +21,13 @@ import {
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { UUID } from "crypto";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const ListsOverview = () => {
   const { selectedListIdx, setSelectedListIdx, lists } = useListStore();
@@ -86,15 +93,19 @@ const ListsOverview = () => {
     <div className="">
       <SidebarHeader title="Saved Searches" />
       {lists.length === 0 ? (
-        <div className="mt-2 mb-12 p-4 bg-secondary/50 rounded-lg">
-          <div className="flex items-center">
-            <InformationCircleIcon className="h-5 w-5 text-primary mr-2" />
-            <span className="text-sm font-medium">No saved searches yet</span>
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Create a new search to see it here.
-          </p>
-        </div>
+        <Card className="mt-2 mb-12">
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center">
+              <InformationCircleIcon className="h-5 w-5 text-primary mr-2" />
+              No saved searches yet
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription>
+              Create a new search to see it here.
+            </CardDescription>
+          </CardContent>
+        </Card>
       ) : (
         <ul role="list" className="mt-2 mb-12">
           {take(
