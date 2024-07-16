@@ -7,7 +7,7 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     let { limit, offset } = req.query;
-    const { term, interval, orderBy, onlyPowerBadge, hideReplies, matchFid, fromFid } = req.query;
+    const { term, interval, orderBy, onlyPowerBadge, hideReplies, mentionFid, fromFid } = req.query;
 
     if (typeof term !== 'string' || term.length < 3) {
         return res.status(400).json({ error: 'Invalid search term' });
@@ -44,19 +44,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
     WHERE 
         tsv @@ websearch_to_tsquery('english', $3) 
-        AND ${baseConditions})
-    UNION
-    (SELECT 
-        casts.hash, casts.fid, casts.text, casts.timestamp
-    FROM casts 
-        ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
-    WHERE 
-        $3::int = ANY(casts.mentions)
-        AND ${baseConditions})
-    ORDER BY timestamp DESC
-    LIMIT $1 OFFSET $2`;
-    
-    const vars = [limit, offset, term.trim()];
+        AND ${baseConditions}
+        ${orderBy ? `ORDER BY ${orderBy}` : ''}
+        LIMIT $1 OFFSET $2
+    )
+    ${mentionFid ? `
+        UNION
+        (SELECT 
+            casts.hash, casts.fid, casts.text, casts.timestamp
+        FROM casts 
+            ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
+        WHERE 
+            ${mentionFid}::int = ANY(casts.mentions)
+            AND ${baseConditions})
+            ${orderBy ? `ORDER BY ${orderBy}` : ''}
+            LIMIT $1 OFFSET $2`
+            : ''
+        }
+    `;
+    const vars = [limit, offset, term];
 
     try {
         const queryStart = process.hrtime();

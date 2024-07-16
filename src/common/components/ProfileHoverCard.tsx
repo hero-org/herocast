@@ -8,7 +8,7 @@ import { openWindow } from "../helpers/navigation";
 import { useInView } from "react-intersection-observer";
 import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
 import { fetchAndAddUserProfile } from "../helpers/profileUtils";
-import { getProfile } from "@/stores/useDataStore";
+import { getProfile } from "../helpers/profileUtils";
 import ProfileInfoContent from "./ProfileInfoContent";
 
 type ProfileHoverCardProps = {

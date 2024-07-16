@@ -1,6 +1,9 @@
 import React, { useEffect } from "react";
-import { fetchAndAddUserProfile } from "../../helpers/profileUtils";
-import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
+import {
+  fetchAndAddUserProfile,
+  shouldUpdateProfile,
+} from "../../helpers/profileUtils";
+import { useDataStore } from "@/stores/useDataStore";
 import get from "lodash.get";
 import Link from "next/link";
 import ProfileInfoContent from "../ProfileInfoContent";
@@ -17,7 +20,7 @@ const ProfileInfo = ({
   const profile = useDataStore((state) => get(state.fidToData, fid));
 
   useEffect(() => {
-    if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
+    if (shouldUpdateProfile(profile)) {
       fetchAndAddUserProfile({ fid, viewerFid });
     }
   }, [fid, viewerFid, profile]);
@@ -28,7 +31,10 @@ const ProfileInfo = ({
       href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
       prefetch={false}
     >
-      <ProfileInfoContent profile={profile} showFollowButton={showFollowButton} />
+      <ProfileInfoContent
+        profile={profile}
+        showFollowButton={showFollowButton}
+      />
       {profile?.power_badge && (
         <div className="text-sm font-normal text-muted-foreground flex flex-row mt-2">
           <img

@@ -29,7 +29,7 @@ export type RunFarcasterCastSearchParams = {
 const prepareSearchTerm = (term: string): string => {
     // remove from:username 
     // remove whitespaces in front and back
-    return term.replace(/from:\w+/g, '').trim();
+    return term.replace(/from:\S+/g, '').trim();
 };
 
 const getSearchUrl = ({
@@ -64,6 +64,7 @@ const getSearchUrl = ({
 export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<RawSearchResult[]> => {
     try {
         const searchUrl = getSearchUrl(params);
+        console.log('searchUrl', searchUrl)
         const response = await fetch(searchUrl);
         const data = await response.json();
         if (!data || data?.error) return [];

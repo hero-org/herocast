@@ -12,7 +12,8 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { getProfile, useDataStore } from "@/stores/useDataStore";
+import { useDataStore } from "@/stores/useDataStore";
+import { getProfile, getProfileFetchIfNeeded } from "@/common/helpers/profileUtils";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
 import { map, uniq, debounce } from "lodash";
@@ -170,18 +171,7 @@ export default function SearchPage() {
   });
 
   const getMentionFidFromSearchTerm = async (term: string) => {
-    let profile = getProfile(useDataStore.getState(), term);
-    if (!profile) {
-      const username = term.startsWith("@") ? term.slice(1) : term;
-      const results = await fetchAndAddUserProfile({
-        username,
-        viewerFid: Number(selectedAccount?.platformAccountId),
-      });
-      const matchingUsernames = [username, `${username}.eth`];
-      profile = results.find((user) =>
-        matchingUsernames.includes(user.username)
-      );
-    }
+    const profile = await getProfileFetchIfNeeded({ username: term, viewerFid: Number(selectedAccount?.platformAccountId) });
     return profile?.fid;
   };
 
@@ -196,8 +186,9 @@ export default function SearchPage() {
       return;
     }
 
+
     const from = fromTerm[1];
-    const profile = getProfile(useDataStore.getState(), from, from);
+    const profile = await getProfileFetchIfNeeded({ username: from, viewerFid: Number(selectedAccount?.platformAccountId) });
     return profile?.fid;
   };
 
