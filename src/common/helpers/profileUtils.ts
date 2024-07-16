@@ -10,12 +10,13 @@ export const fetchAndAddUserProfile = async ({
   fid?: number;
   viewerFid: number;
 }) => {
-  const { addUserProfile } = useDataStore.getState();
   const users = await getUserDataForFidOrUsername({
     username,
     fid,
     viewerFid,
   });
+  console.log('fetchUserProfiles', username, users)
+  const { addUserProfile } = useDataStore.getState();
   if (users.length) {
     users.forEach((user) => {
       addUserProfile({ user });

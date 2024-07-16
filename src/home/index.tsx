@@ -402,9 +402,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     {navigationGroups.map((group) => {
                       const navigation = group.items;
                       return (
-                        <div>
+                        <div key={`nav-group-mobile-${group.name}`}>
                           <ul
-                            key={`nav-group-mobile-${group.name}`}
                             role="list"
                             className="flex flex-1 flex-col gap-y-7"
                           >
@@ -466,10 +465,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               {navigationGroups.map((group) => {
                 const navigation = group.items;
                 return (
-                  <div className="">
+                  <div key={`nav-group-${group.name}`}>
                     {navigation.map((item) => (
                       <ul
-                        key={`nav-group-${group.name}`}
+                        key={`nav-item-${item.name}`}
                         role="list"
                         className="flex flex-col items-left space-y-1"
                       >

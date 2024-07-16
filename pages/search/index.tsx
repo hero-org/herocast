@@ -25,9 +25,11 @@ import {
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";
-import { SearchFilters } from "@/common/helpers/search";
-import { runFarcasterCastSearch } from "@/common/helpers/search";
-import { RawSearchResult } from "@/common/helpers/search";
+import {
+  runFarcasterCastSearch,
+  RawSearchResult,
+  SearchFilters,
+} from "@/common/helpers/search";
 import ManageListModal from "@/common/components/ManageListModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
@@ -167,6 +169,38 @@ export default function SearchPage() {
     hideReplies: filterByHideReplies,
   });
 
+  const getMentionFidFromSearchTerm = async (term: string) => {
+    let profile = getProfile(useDataStore.getState(), term);
+    if (!profile) {
+      const username = term.startsWith("@") ? term.slice(1) : term;
+      const results = await fetchAndAddUserProfile({
+        username,
+        viewerFid: Number(selectedAccount?.platformAccountId),
+      });
+      const matchingUsernames = [username, `${username}.eth`];
+      profile = results.find((user) =>
+        matchingUsernames.includes(user.username)
+      );
+    }
+    return profile?.fid;
+  };
+
+  const getFromFidFromSearchTerm = async (term: string) => {
+    const fromIndex = term.indexOf("from:");
+    if (fromIndex === -1) {
+      return;
+    }
+
+    const fromTerm = term.match(/from:([^\s]+)/);
+    if (!fromTerm) {
+      return;
+    }
+
+    const from = fromTerm[1];
+    const profile = getProfile(useDataStore.getState(), from, from);
+    return profile?.fid;
+  };
+
   const onSearch = useCallback(
     async (term?: string, filters?: SearchFilters) => {
       const newSearchCounter = searchCounter + 1;
@@ -187,23 +221,13 @@ export default function SearchPage() {
       });
       const startedAt = Date.now();
       try {
-        // lookup if search term contains an exact match for a user
-        // 1. read from useDataStore
-        // 2. if not found, use fetchAndAddUserProfile
-        // 3. add to query if found
-        let profile = getProfile(useDataStore.getState(), term);
-        if (!profile) {
-          const results = await fetchAndAddUserProfile({
-            username: term.startsWith("@") ? term.slice(1) : term,
-            viewerFid: Number(selectedAccount?.platformAccountId),
-          });
-          profile = results.find((user) => user.username === term);
-        }
-
+        const mentionFid = await getMentionFidFromSearchTerm(term);
+        const fromFid = await getFromFidFromSearchTerm(term);
         const searchResults = await runFarcasterCastSearch({
           searchTerm: term,
           filters,
-          matchFid: profile?.fid,
+          mentionFid,
+          fromFid,
           limit: SEARCH_LIMIT_INITIAL_LOAD,
         });
         if (activeSearchCounter.current !== newSearchCounter) {
@@ -223,11 +247,7 @@ export default function SearchPage() {
           duration: endedAt - startedAt,
         });
         if (searchResults.length > 0) {
-          console.log(
-            `setting cast hashes for term ${term} - initial - ${searchResults.length} results`
-          );
           addCastHashes(searchResults, true);
-          // use posthog to track event
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -472,7 +492,7 @@ export default function SearchPage() {
               disabled={!searchTerm}
               className={cn("rounded-l-none border-l-0 w-1/2 px-4")}
               buttonText="Share"
-              text={getSearchUrl(searchTerm, selectedAccount?.platformAccountId ? Number(selectedAccount.platformAccountId) : undefined)}
+              text={`https://app.herocast.xyz/search?search=${searchTerm}`}
             />
           </div>
         </div>

@@ -22,20 +22,26 @@ export type RunFarcasterCastSearchParams = {
     offset?: number;
     interval?: string;
     orderBy?: string;
-    matchFid?: number;
+    mentionFid?: number;
     fromFid?: number;
 };
 
+const prepareSearchTerm = (term: string): string => {
+    // remove from:username 
+    // remove whitespaces in front and back
+    return term.replace(/from:\w+/g, '').trim();
+};
 
 const getSearchUrl = ({
-    searchTerm, filters, limit, offset, interval, orderBy, matchFid, fromFid,
+    searchTerm, filters, limit, offset, interval, orderBy, mentionFid, fromFid,
 }: RunFarcasterCastSearchParams): string => {
-    const params = new URLSearchParams({ term: searchTerm });
+    const term = prepareSearchTerm(searchTerm);
+    const params = new URLSearchParams({ term });
     if (limit) params.append("limit", limit.toString());
     if (offset) params.append("offset", offset.toString());
     if (interval) params.append("interval", interval);
     if (orderBy) params.append("orderBy", orderBy);
-    if (matchFid) params.append("matchFid", matchFid.toString());
+    if (mentionFid) params.append("mentionFid", mentionFid.toString());
     if (fromFid) {
         params.append('fromFid', fromFid.toString());
     }
