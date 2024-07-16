@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { useNavigationStore } from "@/stores/useNavigationStore";
@@ -84,12 +85,24 @@ const ListsOverview = () => {
   return (
     <div className="">
       <SidebarHeader title="Saved Searches" />
-      <ul role="list" className="mt-2 mb-12">
-        {take(
-          sortBy(lists, (s) => s.idx),
-          10
-        ).map(renderList)}
-      </ul>
+      {lists.length === 0 ? (
+        <div className="mt-2 mb-12 p-4 bg-secondary/50 rounded-lg">
+          <div className="flex items-center">
+            <InformationCircleIcon className="h-5 w-5 text-primary mr-2" />
+            <span className="text-sm font-medium">No saved searches yet</span>
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create a new search to see it here.
+          </p>
+        </div>
+      ) : (
+        <ul role="list" className="mt-2 mb-12">
+          {take(
+            sortBy(lists, (s) => s.idx),
+            10
+          ).map(renderList)}
+        </ul>
+      )}
     </div>
   );
 };
