@@ -38,6 +38,7 @@ import ManageListModal from "@/common/components/ManageListModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
 import { fetchAndAddUserProfile } from "@/common/helpers/profileUtils";
+import { Badge } from "@/components/ui/badge";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -47,6 +48,29 @@ export const DEFAULT_FILTERS: SearchFilters = {
   onlyPowerBadge: true,
   interval: SearchInterval.d7,
   hideReplies: true,
+};
+
+const FilterBadge = ({
+  children,
+  isActive,
+  action,
+}: {
+  children: React.ReactNode;
+  isActive: boolean;
+  action: () => void;
+}) => {
+  return (
+    <Badge
+      className={cn(
+        isActive && "text-foreground",
+        "rounded-lg shadow-sm hover:bg-accent hover:text-accent-foreground hover:cursor-pointer"
+      )}
+      variant="outline"
+      onClick={action}
+    >
+      {children}
+    </Badge>
+  );
 };
 
 export default function SearchPage() {
@@ -394,10 +418,9 @@ export default function SearchPage() {
   );
 
   const renderPowerBadgeFilter = () => (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setFilterByPowerBadge((prev) => !prev)}
+    <FilterBadge
+      action={() => setFilterByPowerBadge((prev) => !prev)}
+      isActive={filterByPowerBadge}
     >
       Power Badge
       <img
@@ -410,14 +433,13 @@ export default function SearchPage() {
         aria-label="Toggle powerbadge"
         checked={filterByPowerBadge}
       />
-    </Button>
+    </FilterBadge>
   );
 
   const renderHideRepliesFilter = () => (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setFilterByHideReplies((prev) => !prev)}
+    <FilterBadge
+      action={() => setFilterByHideReplies((prev) => !prev)}
+      isActive={filterByHideReplies}
     >
       Hide replies
       <Switch
@@ -425,7 +447,7 @@ export default function SearchPage() {
         aria-label="Toggle hide replies"
         checked={filterByHideReplies}
       />
-    </Button>
+    </FilterBadge>
   );
 
   const renderTryAgainButton = () => (
