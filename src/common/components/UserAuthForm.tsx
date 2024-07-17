@@ -305,7 +305,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         type="button"
         size="lg"
         className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
-        disabled={isLoading || !isValid}
+        disabled={isLoading || (view !== ViewState.LOGGED_IN && !isValid)}
         onClick={() => buttonAction()}
       >
         {isLoading ? <Loading className="text-white" /> : buttonText}
