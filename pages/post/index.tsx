@@ -28,6 +28,9 @@ import { ChannelType } from "@/common/constants/channels";
 import { UUID } from "crypto";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { openSourcePlanLimits } from "@/config/customerLimitation";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 enum DraftListTab {
   writing = "writing",
@@ -111,6 +114,12 @@ export default function NewPost() {
     () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
     [drafts, activeTab, selectedAccount?.id]
   );
+  const scheduledCastsCount = useMemo(
+    () =>
+      getDraftsForTab(drafts, DraftListTab.scheduled, selectedAccount?.id)
+        .length,
+    [drafts, selectedAccount?.id]
+  );
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
 
   const resetSelectedDraftId = () => {
@@ -155,7 +164,7 @@ export default function NewPost() {
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
-        viewerFid: selectedAccount?.platformAccountId,
+        viewerFid: Number(selectedAccount?.platformAccountId),
       });
       setParentCasts(res?.result?.casts);
     };
@@ -330,6 +339,24 @@ export default function NewPost() {
     );
   };
 
+  const renderTabsSelector = () => (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center py-2 w-full">
+        <TabsList className="flex w-full">
+          {DraftListTabs.map((tab) => (
+            <TabsTrigger
+              key={tab.key}
+              value={tab.key}
+              className="text-zinc-600 dark:text-zinc-200"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
+    </div>
+  );
+
   const renderScrollableList = (children: React.ReactElement) => (
     <ScrollArea className="flex-1">
       <div className="flex flex-col gap-2 pt-0">{children}</div>
@@ -338,7 +365,7 @@ export default function NewPost() {
 
   const renderNewDraftButton = () => (
     <Button
-    size="sm"
+      size="sm"
       variant="outline"
       className="flex items-center gap-2 mx-auto"
       onClick={() => {
@@ -398,6 +425,42 @@ export default function NewPost() {
     }
   };
 
+  console.log("draftsForTab.length", draftsForTab.length);
+  const renderFreePlan = () => {
+    const hasReachedFreePlanLimit =
+      scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts;
+    return (
+      <Card className="m-2 flex flex-col items-center justify-center h-full">
+        <CardContent className="flex flex-col items-center gap-2 mt-4">
+          <div className="text-center">
+            <h2 className="text-md">
+              You have {scheduledCastsCount} scheduled casts
+            </h2>
+            <span className="text-sm text-muted-foreground">
+              Upgrade to schedule more casts
+            </span>
+          </div>
+          <div></div>
+          <Progress
+            indicatorClassName="bg-gradient-to-r from-green-400 to-gray-600 animate-pulse"
+            value={
+              (scheduledCastsCount / openSourcePlanLimits.maxScheduledCasts) *
+              100
+            }
+          />
+        </CardContent>
+        <CardFooter>
+          <Button
+            size="lg"
+            variant={hasReachedFreePlanLimit ? "default" : "outline"}
+          >
+            Upgrade
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  };
+
   return (
     <div className="grid grid-cols-[300px_1fr] h-screen w-full">
       <div className="overflow-y-auto p-4">
@@ -408,25 +471,14 @@ export default function NewPost() {
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as DraftListTab)}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center py-2 w-full">
-                <TabsList className="flex w-full">
-                  {DraftListTabs.map((tab) => (
-                    <TabsTrigger
-                      key={tab.key}
-                      value={tab.key}
-                      className="text-zinc-600 dark:text-zinc-200"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-            </div>
+            {renderTabsSelector()}
             <TabsContent value={DraftListTab.writing}>
+              {scheduledCastsCount - 1 >=
+                openSourcePlanLimits.maxScheduledCasts && renderFreePlan()}
               {renderDraftList()}
             </TabsContent>
             <TabsContent value={DraftListTab.scheduled}>
+              {renderFreePlan()}
               {renderScheduledList()}
             </TabsContent>
             <TabsContent value={DraftListTab.published}>
