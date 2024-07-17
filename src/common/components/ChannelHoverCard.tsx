@@ -34,7 +34,6 @@ const ChannelHoverCard = ({
     if (!inView) return;
 
     const findableName = channelName.replace("/", "").toLowerCase();
-    console.log("channelName", channelName, findableName);
     const channel = allChannels.find(
       (c) => c.name.toLowerCase() === findableName
     );
