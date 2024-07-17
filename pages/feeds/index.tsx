@@ -438,7 +438,7 @@ export default function Feeds() {
 
   const renderContent = () => (
     <>
-      <div className="ml-2 lg:ml-0 min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
+      <div className="min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
         {isLoadingFeed && isEmpty(casts) && (
           <div className="ml-4">
             <Loading loadingMessage={loadingMessage} />
