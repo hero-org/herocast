@@ -18,9 +18,9 @@ const useInitializeStores = () => {
             if (user && (status === InitializationStatus.Uninitialized || user.id !== prevUserIdRef.current)) {
                 try {
                     setStatus(InitializationStatus.Pending);
+                    prevUserIdRef.current = user.id;
                     await initializeStores();
                     setStatus(InitializationStatus.Initialized);
-                    prevUserIdRef.current = user.id;
                 } catch (error) {
                     console.error('Failed to initialize stores:', error);
                     setStatus(InitializationStatus.Uninitialized);
