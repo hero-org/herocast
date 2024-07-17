@@ -2,26 +2,34 @@ import { initializeStores } from '@/stores/initializeStores';
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+enum InitializationStatus {
+    Uninitialized = 'uninitialized',
+    Pending = 'pending',
+    Initialized = 'initialized',
+}
+
 const useInitializeStores = () => {
     const { user } = useAuth();
-    const [isInitialized, setIsInitialized] = useState(false);
+    const [status, setStatus] = useState<InitializationStatus>(InitializationStatus.Uninitialized);
     const prevUserIdRef = useRef<string | null>(null);
 
     useEffect(() => {
         const initialize = async () => {
-            if (user && (!isInitialized || user.id !== prevUserIdRef.current)) {
+            if (user && (status === InitializationStatus.Uninitialized || user.id !== prevUserIdRef.current)) {
                 try {
+                    setStatus(InitializationStatus.Pending);
                     await initializeStores();
-                    setIsInitialized(true);
+                    setStatus(InitializationStatus.Initialized);
                     prevUserIdRef.current = user.id;
                 } catch (error) {
                     console.error('Failed to initialize stores:', error);
+                    setStatus(InitializationStatus.Uninitialized);
                 }
             }
         };
 
         initialize();
-    }, [user, isInitialized]);
+    }, [user, status]);
 };
 
 export default useInitializeStores;
