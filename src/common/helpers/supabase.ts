@@ -1,5 +1,6 @@
 import isEmpty from 'lodash.isempty';
 import { AccountStatusType } from '../constants/accounts';
+import { Customer } from '../types/database.types';
 
 export const getAccountsForUser = async (supabaseClient) => {
   const { data: { user } } = await supabaseClient.auth.getUser();
@@ -21,3 +22,24 @@ export const getAccountsForUser = async (supabaseClient) => {
   }
   return accountData;
 }
+
+export const getCustomersForUser = async (supabaseClient): Promise<Customer | undefined> => {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (isEmpty(user)) {
+    console.log('no customer to hydrate');
+    return undefined;
+  }
+
+  const { data: customerData, error: customerError } = await supabaseClient
+    .from('customers')
+    .select('*')
+    .eq('user_id', user?.id)
+    .maybeSingle();
+
+  if (customerError) {
+    console.error('error fetching customers', customerError);
+    return undefined;
+  }
+  return customerData;
+}
+
