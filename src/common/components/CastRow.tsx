@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDraftStore } from "@/stores/useDraftStore";
+import ChannelHoverCard from "./ChannelHoverCard";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -101,18 +102,16 @@ const renderLink = ({ attributes, content }) => {
   );
 };
 
-const renderChannel = ({ attributes, content }) => {
-  const { href, setSelectedChannelByName } = attributes;
+const renderChannel = ({ content }) => {
   return (
     <span
       className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
       onClick={(event) => {
         event.stopPropagation();
-        setSelectedChannelByName(href);
       }}
       rel="noopener noreferrer"
     >
-      {content}
+      <ChannelHoverCard channelName={content}>{content}</ChannelHoverCard>
     </span>
   );
 };

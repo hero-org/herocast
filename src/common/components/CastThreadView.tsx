@@ -46,9 +46,10 @@ export const CastThreadView = ({
 
   const renderGoBackButton = () => (
     <Button
+    size="sm"
       variant="outline"
       onClick={() => onBack && onBack()}
-      className="w-20 group flex items-center px-2 py-1 shadow-sm text-sm font-medium rounded-md text-foreground/80 bg-background focus:outline-none"
+      className="w-16 group m-2"
     >
       <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
         <HotkeyTooltipWrapper hotkey="Esc" side="right">
@@ -111,7 +112,7 @@ export const CastThreadView = ({
           {/* this is the left line */}
           <div
             className={classNames(
-              idx === 0 ? "-ml-[31px]" : "border-l-2",
+              idx === 0 ? "-ml-[27px]" : "border-l-2",
               "relative flex items-start border-muted"
             )}
           >
