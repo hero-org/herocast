@@ -335,15 +335,15 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const renderUpgradeCard = () => (
     <Card>
       <CardHeader className="p-2 pt-0 md:p-4">
-        <CardTitle>Upgrade to full account</CardTitle>
+        <CardTitle>Create your herocast account</CardTitle>
         <CardDescription>
-          Unlock all features and start casting with herocast.
+          Connect your email to unlock all features and start casting with herocast.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
         <Link href="/login?signupOnly=true" passHref>
           <Button size="sm" className="w-full">
-            Upgrade
+            Connect email
           </Button>
         </Link>
       </CardContent>
