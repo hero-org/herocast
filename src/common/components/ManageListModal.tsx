@@ -67,8 +67,7 @@ const ManageListModal = ({ open, onClose }) => {
 
   return (
     <Modal open={open} setOpen={onClose} title="Manage Saved Search">
-      <div className="flex flex-col gap-4">
-        <div>{JSON.stringify(list?.contents)}</div>
+      <div className="flex flex-col gap-4 mt-4">
         <div>
           <Label>Change Name</Label>
           <Input

@@ -340,12 +340,12 @@ export default function SearchPage() {
   const renderSearchResultRow = (row: CastWithInteractions, idx: number) => (
     <li
       key={row.hash}
-      className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl"
+      className="border-b border-gray-700 relative flex items-center space-x-4 max-w-full md:max-w-2xl xl:max-w-4xl"
     >
       <CastRow
         cast={row}
         isSelected={selectedCastIdx === idx}
-        onSelect={() => null}
+        onSelect={() => setSelectedCastIdx(idx)}
         showChannel
       />
     </li>

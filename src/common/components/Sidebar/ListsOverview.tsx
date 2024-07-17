@@ -28,10 +28,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAccountStore } from "@/stores/useAccountStore";
 
 const ListsOverview = () => {
-  const { searches, selectedListIdx, setSelectedListIdx, lists } =
+  const { searches, selectedListIdx, setSelectedListIdx, addList, lists } =
     useListStore();
+  const { accounts, selectedAccountIdx } = useAccountStore();
+  const selectedAccountId = accounts[selectedAccountIdx]?.id;
 
   const { setIsManageListModalOpen } = useNavigationStore();
 
@@ -42,6 +45,22 @@ const ListsOverview = () => {
 
   const updateSelectedList = (id: UUID) => {
     setSelectedListIdx(lists.findIndex((l) => l.id === id));
+  };
+
+  const onClickSaveLastSearch = () => {
+    const lastSearch = searches[searches.length - 1];
+    if (lastSearch && selectedAccountId) {
+      addList({
+        name: lastSearch.term,
+        account_id: selectedAccountId,
+        contents: {
+          term: lastSearch.term,
+          
+        },
+        idx: 0,
+        type: "search",
+      });
+    }
   };
 
   const renderList = (list: List & { id: UUID }, idx: number) => {
@@ -104,7 +123,12 @@ const ListsOverview = () => {
       </CardContent>
       {searches.length > 0 && (
         <CardFooter>
-          <Button size="sm" variant="outline" onClick={() => setIsManageListModalOpen(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={searches.length === 0 || !selectedAccountId}
+            onClick={() => onClickSaveLastSearch()}
+          >
             Save last search
           </Button>
         </CardFooter>
