@@ -36,6 +36,8 @@ build/Release
 node_modules/
 jspm_packages/
 .yarn/
+yar.lock
+package.json
 
 # TypeScript v1 declaration files
 typings/
