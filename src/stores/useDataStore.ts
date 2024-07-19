@@ -4,7 +4,6 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { c } from "node_modules/@frames.js/render/dist/types-i70kFnzS";
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
@@ -79,16 +78,24 @@ export type DexPair = {
   info: TokenInfo;
 };
 
-type addUserProfileProps = {
-  user: User;
-};
 
 type addTokenDataProps = {
   tokenSymbol: string;
   data: DexPair;
 };
 
-export type UserProfile = User & { updatedAt: number };
+type AdditionalUserInfo = {
+  socialCapitalScore: {
+    socialCapitalRank: number;
+  }
+  // socialCapitalScore: number;
+};
+
+type addUserProfileProps = {
+  user: User & AdditionalUserInfo;
+};
+
+export type UserProfile = User & AdditionalUserInfo & { updatedAt: number };
 
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;
