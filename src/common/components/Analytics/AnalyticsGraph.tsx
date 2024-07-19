@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 type AnalyticsGraphProps = {
   analyticsKey: string;
   aggregated: { timestamp: string; count: number }[];
-  resolution: "hourly" | "weekly";
+  resolution: "hourly" | "daily";
   isLoading?: boolean;
 };
 
@@ -27,7 +27,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
 
-    if (resolution === "weekly") {
+    if (resolution === "daily") {
       const groupedByDay = sortedAggregated.reduce((acc, item) => {
         const day = startOfDay(new Date(item.timestamp)).getTime();
         if (!acc[day]) {
@@ -74,7 +74,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
-            tickFormatter={(date) => format(new Date(date), resolution === "weekly" ? "MMM d" : "HH:mm")}
+            tickFormatter={(date) => format(new Date(date), resolution === "daily" ? "MMM d" : "HH:mm")}
           />
           <YAxis />
           <ChartTooltip />
