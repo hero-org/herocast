@@ -2,8 +2,8 @@
 
 import React, { useMemo } from "react";
 import { format, startOfDay } from "date-fns";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type AnalyticsGraphProps = {
@@ -49,9 +49,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   if (isLoading || data.length === 0) {
     return (
       <div className="w-full h-64">
-        <Skeleton className="w-full h-full">
-          <div className="w-full h-full bg-gradient-to-b from-background to-muted-foreground/10 rounded-md" />
-        </Skeleton>
+        <Skeleton className="w-full h-full" />
       </div>
     );
   }
@@ -76,10 +74,10 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
-            tickFormatter={(date) => format(date, resolution === "weekly" ? "MMM d" : "HH:mm")}
+            tickFormatter={(date) => format(new Date(date), resolution === "weekly" ? "MMM d" : "HH:mm")}
           />
           <YAxis />
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip />
           <Area
             type="monotone"
             dataKey="count"
