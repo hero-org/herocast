@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getTokenBalances, getNFTsOwned } from '../../common/helpers/airstack';
+import { getTokenBalances, getNFTsOwned, getSocialCapitalScore } from '../../common/helpers/airstack';
 import { getFarcasterUserByFid } from '../../common/helpers/neynar';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -22,16 +22,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const address = user.verifications[0];
 
-    // Fetch token balances and NFTs owned
-    const [tokenBalances, nftsOwned] = await Promise.all([
+    // Fetch token balances, NFTs owned, and social capital score
+    const [tokenBalances, nftsOwned, socialCapitalScore] = await Promise.all([
       getTokenBalances(address),
-      getNFTsOwned(address)
+      getNFTsOwned(address),
+      getSocialCapitalScore(fid)
     ]);
 
     res.status(200).json({
       address,
       tokenBalances,
-      nftsOwned
+      nftsOwned,
+      socialCapitalScore
     });
   } catch (error) {
     console.error('Error fetching user assets:', error);
