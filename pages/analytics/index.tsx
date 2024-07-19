@@ -46,18 +46,10 @@ export default function AnalyticsPage() {
     addAnalytics(Number(viewerFid!), analyticsReactionsData!);
   }, [analyticsReactionsData]);
 
-  const renderCard = (title: string, children: React.ReactElement) => {
-    return (
-      <div className="">
-        {/* <h2 className="text-lg font-semibold">{title}</h2> */}
-        {children}
-      </div>
-    );
-  };
   return (
     <div className="w-full m-8 grid grid-cols-2 gap-4">
-      {renderCard("New followers", <NewFollowersCard resolution="weekly" />)}
-      {renderCard("Reactions", <ReactionsCard resolution="weekly" />)}
+      <NewFollowersCard resolution="daily" />
+      <ReactionsCard resolution="daily" />
     </div>
   );
 }

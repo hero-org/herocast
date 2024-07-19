@@ -13,11 +13,11 @@ import isEmpty from "lodash.isempty";
 import AnalyticsGraph from "./AnalyticsGraph";
 
 type ReactionsCardProps = {
-  resolution: "hourly" | "weekly";
+  resolution: "hourly" | "daily";
 };
 
 const ReactionsCard: React.FC<ReactionsCardProps> = ({
-  resolution = "weekly",
+  resolution = "daily",
 }) => {
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx].platformAccountId
@@ -32,7 +32,7 @@ const ReactionsCard: React.FC<ReactionsCardProps> = ({
       : 0;
 
   return (
-    <Card>
+    <Card className="h-fit">
       <CardHeader>
         <CardDescription>Last 7 days</CardDescription>
         <CardTitle className="text-2xl flex justify-between items-center">

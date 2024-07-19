@@ -17,21 +17,19 @@ import AnalyticsGraph from "./AnalyticsGraph";
 const NewFollowersCard = ({
   resolution,
 }: {
-  resolution: "weekly" | "daily";
+  resolution: "hourly" | "daily";
 }) => {
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx].platformAccountId
   );
-  const { follows } = viewerFid
+  const analytics = viewerFid
     ? useDataStore((state) => get(state.fidToAnalytics, viewerFid, {}))
     : {};
-  if (isEmpty(follows)) return null;
-
-  const { overview, aggregated } = follows;
+  const { overview = {}, aggregated = [] } = analytics?.follows || {};
   const d7Change = (overview.d7 / (overview.total - overview.d7)) * 100;
 
   return (
-    <Card title="New followers">
+    <Card className="h-fit">
       <CardHeader>
         <CardDescription>Last 7 days</CardDescription>
         <CardTitle className="text-2xl flex justify-between items-center">
@@ -48,7 +46,11 @@ const NewFollowersCard = ({
       </CardHeader>
       <CardContent>
         <div className="w-full h-64">
-          <AnalyticsGraph analyticsKey="followers" aggregated={aggregated} resolution={resolution} />
+          <AnalyticsGraph
+            analyticsKey="followers"
+            aggregated={aggregated}
+            resolution={resolution}
+          />
         </div>
       </CardContent>
     </Card>

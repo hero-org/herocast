@@ -1,9 +1,20 @@
-"use client"
+"use client";
 
 import React, { useMemo } from "react";
 import { format, startOfDay } from "date-fns";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type AnalyticsGraphProps = {
@@ -64,45 +75,43 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   return (
     <ChartContainer config={chartConfig} className="h-[200px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data}>
+        <AreaChart accessibilityLayer data={data}>
           <defs>
             <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
+              <stop
+                offset="5%"
+                stopColor="hsl(var(--chart-1))"
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor="hsl(var(--chart-1))"
+                stopOpacity={0}
+              />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} />
           <XAxis
             dataKey="date"
-            tickFormatter={(date) => format(new Date(date), resolution === "daily" ? "MMM d" : "HH:mm")}
+            tickLine={false}
+            tickMargin={8}
+            tickFormatter={(date) =>
+              format(new Date(date), resolution === "daily" ? "MMM d" : "HH:mm")
+            }
           />
           <YAxis />
           <ChartTooltip
-            content={({ active, payload }) => {
-              if (active && payload && payload.length) {
-                return (
-                  <div className="rounded-lg border bg-background p-2 shadow-sm">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col">
-                        <span className="text-[0.70rem] uppercase text-muted-foreground">
-                          {chartConfig[analyticsKey].label}
-                        </span>
-                        <span className="font-bold text-muted-foreground">
-                          {payload[0].value}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            }}
+            content={
+              <ChartTooltipContent labelKey={chartConfig[analyticsKey].label} />
+            }
+            cursor={false}
+            defaultIndex={1}
           />
           <Area
             type="monotone"
             dataKey="count"
             stroke="hsl(var(--chart-1))"
-            fillOpacity={1}
+            fillOpacity={0.4}
             fill="url(#colorCount)"
           />
         </AreaChart>
