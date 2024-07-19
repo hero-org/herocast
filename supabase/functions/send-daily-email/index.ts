@@ -4,6 +4,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { runFarcasterCastSearch } from '../_shared/search.ts'
 
 console.log("Hello from sending daily emails!")
 
@@ -119,8 +120,11 @@ serve(async (req) => {
 
     entries.forEach(async (entry) => {
 
-      const response = await fetch(`/api/search?term=${entry.contents.term}&limit=${5}`);
-      const casts = await response.json();
+      const casts = runFarcasterCastSearch({
+        searchTerm: entry.term,
+        filters: entry.filters,
+        limit: 5,
+      })
       
       const { data: userArray } = await supabaseClient
         .from('accounts')
