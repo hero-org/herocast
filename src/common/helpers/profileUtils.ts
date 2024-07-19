@@ -18,9 +18,26 @@ export const fetchAndAddUserProfile = async ({
   });
   const { addUserProfile } = useDataStore.getState();
   if (users.length) {
-    users.forEach((user) => {
-      addUserProfile({ user });
-    });
+    for (const user of users) {
+      // Fetch additional user assets
+      const response = await fetch(`/api/userAssets?fid=${user.fid}`);
+      if (response.ok) {
+        const userAssets = await response.json();
+        // Merge user data with assets
+        const enrichedUser = {
+          ...user,
+          assets: {
+            tokenBalances: userAssets.tokenBalances,
+            nftsOwned: userAssets.nftsOwned,
+            socialCapitalScore: userAssets.socialCapitalScore
+          }
+        };
+        addUserProfile({ user: enrichedUser });
+      } else {
+        console.error(`Failed to fetch assets for user with FID ${user.fid}`);
+        addUserProfile({ user });
+      }
+    }
   }
   return users;
 };
