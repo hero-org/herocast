@@ -48,7 +48,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
 
   if (isLoading || data.length === 0) {
     return (
-      <div className="w-full h-64">
+      <div className="w-full h-[200px]">
         <Skeleton className="w-full h-full" />
       </div>
     );
