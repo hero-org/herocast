@@ -27,6 +27,7 @@ export type RunFarcasterCastSearchParams = {
     orderBy?: string;
     mentionFid?: number;
     fromFid?: number;
+    baseUrl?: string;
 };
 
 const prepareSearchTerm = (term: string): string => {
@@ -36,7 +37,7 @@ const prepareSearchTerm = (term: string): string => {
 };
 
 const getSearchUrl = ({
-    searchTerm, filters, limit, offset, interval, orderBy, mentionFid, fromFid,
+    searchTerm, filters, limit, offset, interval, orderBy, mentionFid, fromFid, baseUrl
 }: RunFarcasterCastSearchParams): string => {
     const term = prepareSearchTerm(searchTerm);
     const params = new URLSearchParams({ term });
@@ -60,11 +61,14 @@ const getSearchUrl = ({
     } else if (params.get("interval") === SearchInterval.m3) {
         params.delete("interval");
     }
-    const url = `/api/search?${params.toString()}`;
-    return url;
+    if (!baseUrl) {
+        baseUrl = process.env.NEXT_PUBLIC_URL;
+    }
+    return `${baseUrl}/api/search?${params.toString()}`;
 };
 
 export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<RawSearchResult[]> => {
+    console.log('runFarcasterCastSearch', params);
     try {
         const searchUrl = getSearchUrl(params);
         const response = await fetch(searchUrl);

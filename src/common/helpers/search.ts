@@ -1,6 +1,9 @@
-import { DEFAULT_FILTERS } from "pages/search";
-import { SearchInterval } from "../components/SearchIntervalFilter";
-
+export enum SearchInterval {
+    d1 = "1 day",
+    d7 = "7 days",
+    d30 = "30 days",
+    m3 = "3 months"
+}
 
 export type RawSearchResult = {
     hash: string;
@@ -53,7 +56,7 @@ const getSearchUrl = ({
         });
     }
     if (!params.get("interval")) {
-        params.set("interval", DEFAULT_FILTERS.interval!);
+        params.set("interval", SearchInterval.d7);
     } else if (params.get("interval") === SearchInterval.m3) {
         params.delete("interval");
     }

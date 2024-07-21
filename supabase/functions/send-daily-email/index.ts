@@ -4,177 +4,136 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { runFarcasterCastSearch } from '../_shared/search.ts'
+import { NeynarAPIClient } from "npm:@neynar/nodejs-sdk";
+import { Resend } from 'npm:resend';
+import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
+import { getHtmlEmail } from './email.jsx';
 
 console.log("Hello from sending daily emails!")
 
 type Cast = {
-    hash: string;
-    fid: string;
-    text: string;
-    timestamp: string;
+  hash: string;
+  fid: number;
+  text: string;
+  timestamp: string;
 };
 
-function groupEntriesByUser(entries) {
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+const NEYNAR_API_KEY = Deno.env.get('NEYNAR_API_KEY');
 
-    return entries.reduce((groupedEntries, entry) => {
-
-      if (!groupedEntries[entry.user_id]) {
-        groupedEntries[entry.user_id] = [];
-      }
-
-      groupedEntries[entry.user_id].push(entry);
-      return groupedEntries;
-    }, {});
-}
-
-async function sendEmail(fromAddress: string, toAddress: string, subject: string, username: string, casts: any[]): Promise<Response> {
-
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Feed</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f5f5f5;
-                padding: 20px;
-                display: flex;
-                justify-content: center;
-            }
-            .container {
-                max-width: 600px;
-                width: 100%;
-            }
-            .header {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            .cast {
-                background-color: white;
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                padding: 15px;
-                margin-bottom: 20px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            }
-            .cast-header {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
-            }
-            .cast-header img {
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
-                margin-right: 10px;
-            }
-            .cast-username {
-                font-weight: bold;
-            }
-            .cast-content {
-                margin-left: 50px; /* Ensure this matches or exceeds img width + margin-right */
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>Hello ${username},</h1>
-                <p>Here are your latest casts:</p>
-            </div>
-            ${casts.map(cast => `
-            <div class="cast">
-                <div class="cast-header">
-                    <span class="cast-username">${cast.fid}</span>
-                </div>
-                <div class="cast-content">
-                    <p>${cast.text}</p>
-                </div>
-            </div>
-            `).join('')}
-        </div>
-    </body>
-    </html>
-  `;
-
-  const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
+async function sendEmail(resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]) {
+  if (!RESEND_API_KEY) {
+    console.error('RESEND_API_KEY is not set');
+    return new Response(JSON.stringify({ error: 'RESEND_API_KEY is not set' }), {
+      status: 500,
       headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-          from: fromAddress,
-          to: toAddress,
-          subject: subject,
-          html: htmlContent,
-      })
-  });
-
-  const data = await res.json();
-
-  return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: {
-          'Content-Type': 'application/json',
-      },
-  });
-};
-
-serve(async (req) => {
+    });
+  }
 
   try {
+    const res = await resend.emails.send({
+      from: fromAddress,
+      to: [toAddress],
+      subject: subject,
+      html: getHtmlEmail({ listsWithCasts })
+    })
+    if (res?.error) {
+      console.error('Error sending email:', JSON.stringify(res));
+    }
+  } catch (error) {
+    console.error('Error sending email:', JSON.stringify(error));
+  }
+}
+
+async function enrichCastsViaNeynar(neynarClient, casts: Cast[]) {
+  try {
+    const hashes = casts.map((cast) => cast.hash);
+    return (await neynarClient.fetchBulkCasts(hashes)).result.casts;
+  } catch (error) {
+    console.error('Error fetching casts from Neynar:', error);
+    return casts
+  }
+}
+
+serve(async () => {
+  try {
     const supabaseClient = createClient(
-      // Supabase API URL - env var exported by default.
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
+    const resend = new Resend(RESEND_API_KEY);
+    const neynarClient = new NeynarAPIClient(NEYNAR_API_KEY);
 
-    const { data: entries } = await supabaseClient
-    .from('list')
-    .select('*')
-    .contains('contents', { enabled_daily_email: true });        
 
-    const groupedEntries = groupEntriesByUser(entries);
+    const { data: profilesWithLists, error: profilesError } = await supabaseClient
+      .from('profile')
+      .select(`
+        user_id,
+        email,
+        lists:list!inner(*)
+      `)
+      .not('email', 'is', null)
+      .eq('list.contents->enabled_daily_email', true)
+      .order('idx', { referencedTable: 'list', ascending: true })
 
-    groupedEntries.forEach(async (userEntries) => {
-        
-        const casts: Cast[] = [];
-
-        for (const entry of userEntries) {
-            const castsToAdd = await runFarcasterCastSearch({
-              searchTerm: entry.term,
-              filters: entry.filters,
-              limit: 5,
-            });
-        
-            casts.push(...castsToAdd);
-        }
-        
-        const { data: userArray } = await supabaseClient
-            .from('list')
-            .select(`
-            *,
-            user:user_id (
-                *
-            )
-            `)
-            .limit(1)
-
-        const username = userArray[0].name;
-        const fromAddress = 'OUR_EMAIL_ADDRESS'
-        const toAddress = userArray[0].email;
-
-        sendEmail(fromAddress, toAddress, 'Your Daily Casts', username, casts);
-    });
-  } catch (error) {
-        return new Response(JSON.stringify({ error: error?.message }), {
-            headers: { 'Content-Type': 'application/json' },
-            status: 400,
-        })
+    if (profilesError) {
+      throw new Error(`Error fetching profiles with lists: ${profilesError.message}`);
     }
+
+    const baseUrl = Deno.env.get('BASE_URL');
+    let count = 0;
+    for (const profile of profilesWithLists) {
+      if (!profile.email) {
+        console.error(`Profile has daily digest activated but no email address set. user id ${profile.id}`);
+        continue;
+      }
+
+      console.log(`user ${profile.user_id} has ${profile?.lists?.length || 0} lists`)
+
+      const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
+        const casts = await runFarcasterCastSearch({
+          searchTerm: list.contents.term,
+          filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+          limit: 5,
+          baseUrl,
+        });
+
+        const listName = list.name;
+
+        if (!casts.length) {
+          return {
+            listName,
+            casts: []
+          };
+        }
+        return {
+          listName,
+          casts: await enrichCastsViaNeynar(neynarClient, casts),
+          searchTerm: list.contents.term,
+        };
+      }));
+
+      const fromAddress = 'hiro@herocast.xyz';
+      const toAddress = profile.email;
+      await sendEmail(resend, fromAddress, toAddress, 'herocast daily digest', listsWithCasts);
+      count++;
+    }
+    return new Response(JSON.stringify({ message: `sent ${count} emails` }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    })
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error?.message }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 400,
+    })
+  }
 })
+
+// To invoke:
+// curl -i --location --request POST 'http://localhost:54321/functions/v1/send-daily-email' \
+//   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
+//   --header 'Content-Type: application/json' \
+//   --data '{"name":"Functions"}'
