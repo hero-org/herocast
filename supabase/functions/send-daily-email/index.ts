@@ -4,10 +4,10 @@
 import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts"
 
 import { createClient } from 'npm:@supabase/supabase-js'
-// import { NeynarAPIClient } from "npm:@neynar/nodejs-sdk";
+import { NeynarAPIClient } from "npm:@neynar/nodejs-sdk";
 import { Resend } from 'npm:resend';
-// import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
-// import { getHtmlEmail } from '../_shared/email.ts';
+import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
+import { getHtmlEmail } from '../_shared/email.ts';
 
 console.log("Hello from sending daily emails!")
 
@@ -21,7 +21,7 @@ type Cast = {
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const NEYNAR_API_KEY = Deno.env.get('NEYNAR_API_KEY');
 
-async function sendEmail(resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]) {
+async function sendEmail(resend: Resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]) {
   if (!RESEND_API_KEY) {
     console.error('RESEND_API_KEY is not set');
     return new Response(JSON.stringify({ error: 'RESEND_API_KEY is not set' }), {
@@ -33,15 +33,15 @@ async function sendEmail(resend, fromAddress: string, toAddress: string, subject
   }
 
   try {
-    // const res = await resend.emails.send({
-    //   from: fromAddress,
-    //   to: [toAddress],
-    //   subject: subject,
-    //   html: getHtmlEmail({ listsWithCasts })
-    // })
-    // if (res?.error) {
-    //   console.error('Error sending email:', JSON.stringify(res));
-    // }
+    const res = await resend.emails.send({
+      from: fromAddress,
+      to: [toAddress],
+      subject: subject,
+      html: getHtmlEmail({ listsWithCasts })
+    });
+    if (res?.error) {
+      console.error('Error sending email:', JSON.stringify(res));
+    }
   } catch (error) {
     console.error('Error sending email:', JSON.stringify(error));
   }
@@ -93,20 +93,20 @@ Deno.serve(async () => {
       console.log(`user ${profile.user_id} has ${profile?.lists?.length || 0} lists`)
 
       const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
-        // const casts = await runFarcasterCastSearch({
-        //   searchTerm: list.contents.term,
-        //   filters: { ...list.contents.filters, interval: SearchInterval.d1 },
-        //   limit: 5,
-        //   baseUrl,
-        // });
-        const casts = [];
+        const casts = await runFarcasterCastSearch({
+          searchTerm: list.contents.term,
+          filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+          limit: 5,
+          baseUrl,
+        });
 
         const listName = list.name;
 
         if (!casts.length) {
           return {
             listName,
-            casts: []
+            casts: [],
+            searchTerm: list.contents.term,
           };
         }
         return {
