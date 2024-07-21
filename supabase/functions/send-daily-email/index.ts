@@ -4,7 +4,6 @@
 import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts"
 
 import { createClient } from 'npm:@supabase/supabase-js'
-import { NeynarAPIClient } from "npm:@neynar/nodejs-sdk";
 import { Resend } from 'npm:resend';
 import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
 import { getHtmlEmail } from '../_shared/email.ts';
