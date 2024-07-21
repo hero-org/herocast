@@ -1,12 +1,47 @@
-import React from "npm:react";
-import { render, Button, Html, Head, Preview, Body, Container, Section, Text, Tailwind, Img } from "npm:@react-email/components";
+import { React, ReactElement } from "https://esm.sh/react@18.2.0";
+import { render, Button, Html, Head, Preview, Body, Container, Section, Text, Tailwind, Img } from "https://esm.sh/@react-email/components@0.0.7";
 
-const CastRow = ({ cast, searchTerm }) => {
+interface Cast {
+  author: {
+    pfp_url?: string;
+    pfp?: { url: string };
+    display_name?: string;
+    displayName?: string;
+    username: string;
+  };
+  text: string;
+  embeds?: { url: string }[];
+  reactions?: {
+    likes_count?: number;
+    recasts_count?: number;
+  };
+  replies?: {
+    count?: number;
+  };
+  hash: string;
+}
+
+interface CastRowProps {
+  cast: Cast;
+  searchTerm: string;
+}
+
+interface ListWithCasts {
+  listName: string;
+  searchTerm: string;
+  casts: Cast[];
+}
+
+interface EmailProps {
+  listsWithCasts: ListWithCasts[];
+}
+
+const CastRow = ({ cast, searchTerm }: CastRowProps): ReactElement => {
   const pfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
   const displayName = cast.author.display_name || cast.author.displayName;
 
-  const highlightSearchTerm = (text, term) => {
-    if (!term) return text;
+  const highlightSearchTerm = (text: string, term: string): (string | ReactElement)[] => {
+    if (!term) return [text];
 
     // Handle "term1 OR term2" format
     const orTerms = term.match(/"([^"]+)"\s+OR\s+"([^"]+)"/);
@@ -31,6 +66,7 @@ const CastRow = ({ cast, searchTerm }) => {
         ? React.createElement('strong', { key: index }, part)
         : part
     );
+  };
 
   return (
     <div className="mb-2 p-4 bg-[#fafafa] rounded-lg shadow">
@@ -70,7 +106,7 @@ const CastRow = ({ cast, searchTerm }) => {
   );
 };
 
-const Email = ({ listsWithCasts }) => {
+const Email = ({ listsWithCasts }: EmailProps): ReactElement => {
   return (
     <Html>
       <Head />
@@ -96,4 +132,4 @@ const Email = ({ listsWithCasts }) => {
   );
 }
 
-export const getHtmlEmail = (props) => render(<Email {...props} />);
+export const getHtmlEmail = (props: EmailProps): string => render(<Email {...props} />);
