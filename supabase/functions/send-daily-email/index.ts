@@ -8,7 +8,28 @@ import { runFarcasterCastSearch } from '../_shared/search.ts'
 
 console.log("Hello from sending daily emails!")
 
-const sendEmail = async (fromAddress: string, toAddress: string, subject: string, username: string, casts: any[]): Promise<Response> => {
+type Cast = {
+    hash: string;
+    fid: string;
+    text: string;
+    timestamp: string;
+};
+
+function groupEntriesByUser(entries) {
+
+    return entries.reduce((groupedEntries, entry) => {
+
+      if (!groupedEntries[entry.user_id]) {
+        groupedEntries[entry.user_id] = [];
+      }
+
+      groupedEntries[entry.user_id].push(entry);
+      return groupedEntries;
+    }, {});
+}
+
+async function sendEmail(fromAddress: string, toAddress: string, subject: string, username: string, casts: any[]): Promise<Response> {
+
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
@@ -116,30 +137,44 @@ serve(async (req) => {
     const { data: entries } = await supabaseClient
     .from('list')
     .select('*')
-    .contains('contents', { enabled_daily_email: true });
+    .contains('contents', { enabled_daily_email: true });        
 
-    entries.forEach(async (entry) => {
+    const groupedEntries = groupEntriesByUser(entries);
 
-      const casts = runFarcasterCastSearch({
-        searchTerm: entry.term,
-        filters: entry.filters,
-        limit: 5,
-      })
-      
-      const { data: userArray } = await supabaseClient
-        .from('accounts')
-        .select('*')
-        .eq('user_id', entry.account_id)
-        .limit(1);
-      
-      const username = userArray[0].name;
+    groupedEntries.forEach(async (userEntries) => {
+        
+        const casts: Cast[] = [];
 
-      sendEmail(FROM_ADDRESS, TO_ADDRESS, 'Your Daily Casts', username, casts);
+        for (const entry of userEntries) {
+            const castsToAdd = await runFarcasterCastSearch({
+              searchTerm: entry.term,
+              filters: entry.filters,
+              limit: 5,
+            });
+        
+            casts.push(...castsToAdd);
+        }
+        
+        const { data: userArray } = await supabaseClient
+            .from('list')
+            .select(`
+            *,
+            user:user_id (
+                *
+            )
+            `)
+            .limit(1)
+
+        const username = userArray[0].name;
+        const fromAddress = 'OUR_EMAIL_ADDRESS'
+        const toAddress = userArray[0].email;
+
+        sendEmail(fromAddress, toAddress, 'Your Daily Casts', username, casts);
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error?.message }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 400,
-    })
-  }
+        return new Response(JSON.stringify({ error: error?.message }), {
+            headers: { 'Content-Type': 'application/json' },
+            status: 400,
+        })
+    }
 })

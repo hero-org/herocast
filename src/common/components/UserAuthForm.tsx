@@ -362,7 +362,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       case ViewState.FORGOT:
         return "Forgot your password? Enter your email below to reset it";
       case ViewState.RESET:
-        return "Enter your new password below";
+        return "Enter your new password";
       case ViewState.SIGNUP:
         return "Create your herocast account";
       case ViewState.LOGGED_IN:
