@@ -1,6 +1,6 @@
-import React from "https://esm.sh/react";
-import { render } from "https://esm.sh/@react-email/render";
-import { Button, Html, Head, Preview, Body, Container, Section, Text, Tailwind, Img } from "https://esm.sh/@react-email/components";
+import React from "https://esm.sh/react@18.2.0";
+import { render } from "https://esm.sh/@react-email/render@0.0.6";
+import { Button, Html, Head, Preview, Body, Container, Section, Text, Tailwind, Img } from "https://esm.sh/@react-email/components@0.0.6";
 
 interface Cast {
   author: {
@@ -41,7 +41,7 @@ const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
   const pfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
   const displayName = cast.author.display_name || cast.author.displayName;
 
-  const highlightSearchTerm = (text: string, term: string): (string | ReactElement)[] => {
+  const highlightSearchTerm = (text: string, term: string): (string | React.ReactElement)[] => {
     if (!term) return [text];
 
     // Handle "term1 OR term2" format
@@ -52,7 +52,7 @@ const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
       const parts = text.split(pattern);
       return parts.map((part, index) => 
         searchTerms.some(t => part.toLowerCase() === t.toLowerCase()) 
-          ? React.createElement('strong', { key: index }, part) 
+          ? React.createElement('strong', { key: index.toString() }, part) 
           : part
       );
     }
@@ -64,7 +64,7 @@ const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
     const parts = text.split(pattern);
     return parts.map((part, index) =>
       searchTerms.some(t => part.toLowerCase() === t.toLowerCase())
-        ? React.createElement('strong', { key: index }, part)
+        ? React.createElement('strong', { key: index.toString() }, part)
         : part
     );
   };
