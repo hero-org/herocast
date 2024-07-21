@@ -1,13 +1,12 @@
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
+import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts"
 
-import { createClient } from 'npm:@supabase/supabase-js@2'
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { NeynarAPIClient } from "npm:@neynar/nodejs-sdk";
+import { createClient } from 'npm:@supabase/supabase-js'
 import { Resend } from 'npm:resend';
 import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
-import { getHtmlEmail } from './email.jsx';
+import { getHtmlEmail } from '../_shared/email.ts';
 
 console.log("Hello from sending daily emails!")
 
@@ -21,7 +20,32 @@ type Cast = {
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const NEYNAR_API_KEY = Deno.env.get('NEYNAR_API_KEY');
 
-async function sendEmail(resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]) {
+async function fetchBulkCasts(hashes: string[]): Promise<Cast[]> {
+  const url = 'https://api.neynar.com/v2/farcaster/casts';
+  const params = new URLSearchParams({ casts: hashes.join(',') });
+
+  try {
+    const response = await fetch(`${url}?${params}`, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'api_key': NEYNAR_API_KEY || '',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.result.casts;
+  } catch (error) {
+    console.error('Error fetching bulk casts:', error);
+    return [];
+  }
+}
+
+async function sendEmail(resend: Resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]) {
   if (!RESEND_API_KEY) {
     console.error('RESEND_API_KEY is not set');
     return new Response(JSON.stringify({ error: 'RESEND_API_KEY is not set' }), {
@@ -38,7 +62,7 @@ async function sendEmail(resend, fromAddress: string, toAddress: string, subject
       to: [toAddress],
       subject: subject,
       html: getHtmlEmail({ listsWithCasts })
-    })
+    });
     if (res?.error) {
       console.error('Error sending email:', JSON.stringify(res));
     }
@@ -47,25 +71,23 @@ async function sendEmail(resend, fromAddress: string, toAddress: string, subject
   }
 }
 
-async function enrichCastsViaNeynar(neynarClient, casts: Cast[]) {
+async function enrichCastsViaNeynar(casts: Cast[]) {
   try {
     const hashes = casts.map((cast) => cast.hash);
-    return (await neynarClient.fetchBulkCasts(hashes)).result.casts;
+    return await fetchBulkCasts(hashes);
   } catch (error) {
     console.error('Error fetching casts from Neynar:', error);
-    return casts
+    return casts;
   }
 }
 
-serve(async () => {
+Deno.serve(async () => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
     const resend = new Resend(RESEND_API_KEY);
-    const neynarClient = new NeynarAPIClient(NEYNAR_API_KEY);
-
 
     const { data: profilesWithLists, error: profilesError } = await supabaseClient
       .from('profile')
@@ -105,12 +127,13 @@ serve(async () => {
         if (!casts.length) {
           return {
             listName,
-            casts: []
+            casts: [],
+            searchTerm: list.contents.term,
           };
         }
         return {
           listName,
-          casts: await enrichCastsViaNeynar(neynarClient, casts),
+          casts: await enrichCastsViaNeynar(casts),
           searchTerm: list.contents.term,
         };
       }));
