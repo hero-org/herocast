@@ -1,13 +1,13 @@
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
+import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts"
 
-import { createClient } from 'npm:@supabase/supabase-js@2'
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { NeynarAPIClient } from "npm:@neynar/nodejs-sdk";
+import { createClient } from 'npm:@supabase/supabase-js'
+// import { NeynarAPIClient } from "npm:@neynar/nodejs-sdk";
 import { Resend } from 'npm:resend';
-import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
-import { getHtmlEmail } from './email.jsx';
+// import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
+// import { getHtmlEmail } from '../_shared/email.ts';
 
 console.log("Hello from sending daily emails!")
 
@@ -33,15 +33,15 @@ async function sendEmail(resend, fromAddress: string, toAddress: string, subject
   }
 
   try {
-    const res = await resend.emails.send({
-      from: fromAddress,
-      to: [toAddress],
-      subject: subject,
-      html: getHtmlEmail({ listsWithCasts })
-    })
-    if (res?.error) {
-      console.error('Error sending email:', JSON.stringify(res));
-    }
+    // const res = await resend.emails.send({
+    //   from: fromAddress,
+    //   to: [toAddress],
+    //   subject: subject,
+    //   html: getHtmlEmail({ listsWithCasts })
+    // })
+    // if (res?.error) {
+    //   console.error('Error sending email:', JSON.stringify(res));
+    // }
   } catch (error) {
     console.error('Error sending email:', JSON.stringify(error));
   }
@@ -57,7 +57,7 @@ async function enrichCastsViaNeynar(neynarClient, casts: Cast[]) {
   }
 }
 
-serve(async () => {
+Deno.serve(async () => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -93,12 +93,13 @@ serve(async () => {
       console.log(`user ${profile.user_id} has ${profile?.lists?.length || 0} lists`)
 
       const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
-        const casts = await runFarcasterCastSearch({
-          searchTerm: list.contents.term,
-          filters: { ...list.contents.filters, interval: SearchInterval.d1 },
-          limit: 5,
-          baseUrl,
-        });
+        // const casts = await runFarcasterCastSearch({
+        //   searchTerm: list.contents.term,
+        //   filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+        //   limit: 5,
+        //   baseUrl,
+        // });
+        const casts = [];
 
         const listName = list.name;
 
