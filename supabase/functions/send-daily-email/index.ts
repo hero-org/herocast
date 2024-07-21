@@ -20,6 +20,31 @@ type Cast = {
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const NEYNAR_API_KEY = Deno.env.get('NEYNAR_API_KEY');
 
+async function fetchBulkCasts(hashes: string[]): Promise<Cast[]> {
+  const url = 'https://api.neynar.com/v2/farcaster/casts';
+  const params = new URLSearchParams({ casts: hashes.join(',') });
+
+  try {
+    const response = await fetch(`${url}?${params}`, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'api_key': NEYNAR_API_KEY || '',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.result.casts;
+  } catch (error) {
+    console.error('Error fetching bulk casts:', error);
+    return [];
+  }
+}
+
 async function sendEmail(resend: Resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]) {
   if (!RESEND_API_KEY) {
     console.error('RESEND_API_KEY is not set');
@@ -46,13 +71,13 @@ async function sendEmail(resend: Resend, fromAddress: string, toAddress: string,
   }
 }
 
-async function enrichCastsViaNeynar(neynarClient, casts: Cast[]) {
+async function enrichCastsViaNeynar(casts: Cast[]) {
   try {
     const hashes = casts.map((cast) => cast.hash);
-    return (await neynarClient.fetchBulkCasts(hashes)).result.casts;
+    return await fetchBulkCasts(hashes);
   } catch (error) {
     console.error('Error fetching casts from Neynar:', error);
-    return casts
+    return casts;
   }
 }
 
@@ -63,8 +88,6 @@ Deno.serve(async () => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
     const resend = new Resend(RESEND_API_KEY);
-    const neynarClient = new NeynarAPIClient(NEYNAR_API_KEY);
-
 
     const { data: profilesWithLists, error: profilesError } = await supabaseClient
       .from('profile')
@@ -110,7 +133,7 @@ Deno.serve(async () => {
         }
         return {
           listName,
-          casts: await enrichCastsViaNeynar(neynarClient, casts),
+          casts: await enrichCastsViaNeynar(casts),
           searchTerm: list.contents.term,
         };
       }));
