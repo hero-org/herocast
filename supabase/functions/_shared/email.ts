@@ -1,5 +1,6 @@
-import { React, ReactElement } from "https://esm.sh/react@18.2.0";
-import { render, Button, Html, Head, Preview, Body, Container, Section, Text, Tailwind, Img } from "https://esm.sh/@react-email/components@0.0.7";
+import React from "https://esm.sh/react@18.2.0";
+import { render } from "https://esm.sh/@react-email/render@0.0.7";
+import { Button, Html, Head, Preview, Body, Container, Section, Text, Tailwind, Img } from "https://esm.sh/@react-email/components@0.0.7";
 
 interface Cast {
   author: {
@@ -36,7 +37,7 @@ interface EmailProps {
   listsWithCasts: ListWithCasts[];
 }
 
-const CastRow = ({ cast, searchTerm }: CastRowProps): ReactElement => {
+const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
   const pfpUrl = cast.author.pfp_url || cast.author.pfp?.url;
   const displayName = cast.author.display_name || cast.author.displayName;
 
@@ -106,7 +107,7 @@ const CastRow = ({ cast, searchTerm }: CastRowProps): ReactElement => {
   );
 };
 
-const Email = ({ listsWithCasts }: EmailProps): ReactElement => {
+const Email: React.FC<EmailProps> = ({ listsWithCasts }) => {
   return (
     <Html>
       <Head />
@@ -132,4 +133,4 @@ const Email = ({ listsWithCasts }: EmailProps): ReactElement => {
   );
 }
 
-export const getHtmlEmail = (props: EmailProps): string => render(<Email {...props} />);
+export const getHtmlEmail = (props: EmailProps): string => render(React.createElement(Email, props));
