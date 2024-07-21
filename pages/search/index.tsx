@@ -23,9 +23,9 @@ import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
 import {
-  SearchInterval,
   SearchIntervalFilter,
 } from "@/common/components/SearchIntervalFilter";
+import { SearchInterval } from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";

@@ -105,7 +105,7 @@ git clone https://github.com/hellno/herocast.git
     NEXT_PUBLIC_SUPABASE_URL = '<API URL>'
     NEXT_PUBLIC_SUPABASE_ANON_KEY = '<anon key>'
     ```
-
+    
 6. Set up accounts table signer encryption in your SQL Editor:
 
 -   Open the Studio URL in the browser and navigate to the SQL Editor tab
