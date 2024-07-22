@@ -13,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 const ProfileInfo = ({
   fid,
@@ -68,7 +69,45 @@ const ProfileInfo = ({
     showFullInfo &&
     profile?.socialCapitalScore?.socialCapitalRank !== undefined;
 
-    console.log('profile', profile) 
+  const renderIcebreakerChannels = () => {
+    if (!profile?.icebreakerData?.channels) return null;
+    return (
+      <div className="mt-2">
+        <h4 className="text-sm font-semibold mb-1">Channels:</h4>
+        <div className="flex flex-wrap gap-2">
+          {profile.icebreakerData.channels.map((channel, index) => (
+            <a
+              key={index}
+              href={channel.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:underline"
+            >
+              {channel.type}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderIcebreakerCredentials = () => {
+    if (!profile?.icebreakerData?.credentials) return null;
+    return (
+      <div className="mt-2">
+        <h4 className="text-sm font-semibold mb-1">Credentials:</h4>
+        <div className="flex flex-wrap gap-1">
+          {profile.icebreakerData.credentials.map((credential, index) => (
+            <Badge key={index} variant="secondary" className="text-xs">
+              {credential.name}
+            </Badge>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  console.log('profile', profile) 
   return (
     <div className="space-y-2 mb-4 min-h-72 cursor-pointer block">
       <Link
@@ -90,7 +129,11 @@ const ProfileInfo = ({
         )}
       </Link>
       {shouldRenderFullInfo && (
-        <div className="">{renderSocialCapitalScore()}</div>
+        <div className="">
+          {renderSocialCapitalScore()}
+          {renderIcebreakerChannels()}
+          {renderIcebreakerCredentials()}
+        </div>
       )}
     </div>
   );
