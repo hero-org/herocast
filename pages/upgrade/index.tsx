@@ -1,5 +1,4 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Radio, RadioGroup } from "@headlessui/react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -132,7 +131,7 @@ function Plan({
   return (
     <section
       className={clsx(
-        "flex flex-col overflow-hidden rounded-3xl p-6 ",
+        "flex flex-col overflow-hidden rounded-3xl p-6",
         featured
           ? "order-first bg-[#0B0B0B] lg:order-none shadow-xl shadow-gray-300 hover:shadow-gray-400 hover:shadow-2xl transition-shadow duration-100"
           : "bg-white shadow-lg shadow-gray-900/5"
@@ -223,7 +222,7 @@ function Plan({
         color="gray"
         variant="solid"
         className="mt-6"
-        aria-label={`Get started with the ${name} plan for ${price}`}
+        aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
       >
         {button.label}
       </Button>
