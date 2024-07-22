@@ -85,8 +85,10 @@ type addTokenDataProps = {
 };
 
 type IcebreakerData = {
-  type: 'twitter' | 'linkedin' | 'telegram';
-  value: string;
+  data: {
+    type: 'twitter' | 'linkedin' | 'telegram';
+    value: string;
+  }[];
   source: 'IcebreakerEAS';
 };
 
@@ -151,17 +153,16 @@ const store = (set: StoreSet) => ({
     });
   }
 });
-const fetchIcebreakerData = async (fid: number): Promise<IcebreakerData[]> => {
+const fetchIcebreakerData = async (fid: number): Promise<IcebreakerData['data']> => {
   try {
     const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
       headers: {
         'accept': 'application/json'
       }
     });
-    const data = await response.json();
-    if (Array.isArray(data)) {
-      return data.filter((item: IcebreakerData) => 
-        item.source === 'IcebreakerEAS' && 
+    const data: IcebreakerData = await response.json();
+    if (data && data.source === 'IcebreakerEAS' && Array.isArray(data.data)) {
+      return data.data.filter(item => 
         ['twitter', 'linkedin', 'telegram'].includes(item.type)
       );
     } else {

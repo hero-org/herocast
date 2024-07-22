@@ -1,6 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSocialCapitalScore } from '@/common/helpers/airstack';
 
+type IcebreakerData = {
+  data: {
+    type: 'twitter' | 'linkedin' | 'telegram';
+    value: string;
+  }[];
+  source: 'IcebreakerEAS';
+};
+
 async function getIcebreakerData(fid: string) {
   try {
     const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
@@ -8,10 +16,9 @@ async function getIcebreakerData(fid: string) {
         'accept': 'application/json'
       }
     });
-    const data = await response.json();
-    if (Array.isArray(data)) {
-      return data.filter((item: any) => 
-        item.source === 'IcebreakerEAS' && 
+    const data: IcebreakerData = await response.json();
+    if (data && data.source === 'IcebreakerEAS' && Array.isArray(data.data)) {
+      return data.data.filter(item => 
         ['twitter', 'linkedin', 'telegram'].includes(item.type)
       );
     } else {
