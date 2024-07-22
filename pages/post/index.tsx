@@ -70,9 +70,8 @@ const getDraftsForTab = (
       return drafts
         .filter(
           (draft) =>
-            draft.accountId === activeAccountId &&
-            (draft.status === DraftStatus.scheduled ||
-              draft.status === DraftStatus.failed)
+            (!activeAccountId || draft.accountId === activeAccountId) &&
+            draft.status === DraftStatus.scheduled
         )
         .sort(
           (a, b) =>
@@ -117,11 +116,10 @@ export default function NewPost() {
     [drafts, activeTab, selectedAccount?.id]
   );
   const scheduledCastsCount = useMemo(
-    () =>
-      getDraftsForTab(drafts, DraftListTab.scheduled, selectedAccount?.id)
-        .length,
+    () => getDraftsForTab(drafts, DraftListTab.scheduled).length,
     [drafts, selectedAccount?.id]
   );
+  console.log("scheduledCastsCount", scheduledCastsCount);
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
 
   const resetSelectedDraftId = () => {
@@ -445,7 +443,8 @@ export default function NewPost() {
           >
             {renderTabsSelector()}
             <TabsContent value={DraftListTab.writing}>
-              {draftsForTab.length > 2 && renderFreePlanCard()}
+              {scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts &&
+                renderFreePlanCard()}
               {renderDraftList()}
             </TabsContent>
             <TabsContent value={DraftListTab.scheduled}>

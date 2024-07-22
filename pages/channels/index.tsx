@@ -14,6 +14,7 @@ import { PersonIcon } from "@radix-ui/react-icons";
 import { formatLargeNumber } from "@/common/helpers/text";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
+import filter from "lodash.filter";
 
 export default function Channels() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function Channels() {
   const searchResults = take(
     searchTerm
       ? map(fuse.search(searchTerm), "item")
-      : orderBy(allChannels, "data.followerCount", "desc"),
+      : orderBy(filter(allChannels, "data.followerCount"), "data.followerCount", "desc"),
     50
   );
 

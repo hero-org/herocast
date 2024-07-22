@@ -27,7 +27,7 @@ const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
   const { lists } = useListStore();
   const { accounts } = useAccountStore();
   const { drafts } = useDraftStore();
-
+  console.log('drafts', drafts.filter((draft) => draft.status === DraftStatus.scheduled)); 
   const getValueForLimit = () => {
     switch (limit) {
       case "maxSavedSearches":
