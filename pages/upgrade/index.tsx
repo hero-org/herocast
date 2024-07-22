@@ -1,23 +1,13 @@
 import React, { useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Radio, RadioGroup } from "@headlessui/react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { XCircleIcon } from "@heroicons/react/24/solid";
+import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { isPaidUser } from "../../src/stores/useUserStore";
 
-function Container({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<'div'>) {
-  return (
-    <div
-      className={clsx('mx-auto max-w-7xl px-4 sm:px-6 lg:px-8', className)}
-      {...props}
-    />
-  )
-}
-
-function Logomark(props: React.ComponentPropsWithoutRef<'svg'>) {
+function Logomark(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
     <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
       <path
@@ -26,8 +16,9 @@ function Logomark(props: React.ComponentPropsWithoutRef<'svg'>) {
         d="M20 40C8.954 40 0 31.046 0 20S8.954 0 20 0s20 8.954 20 20-8.954 20-20 20ZM4 20c0 7.264 5.163 13.321 12.02 14.704C17.642 35.03 19 33.657 19 32V8c0-1.657-1.357-3.031-2.98-2.704C9.162 6.68 4 12.736 4 20Z"
       />
     </svg>
-  )
+  );
 }
+
 const plans = [
   {
     name: "Open source",
@@ -60,7 +51,7 @@ const plans = [
     description: "Ideal for those looking to accelerate their growth.",
     button: {
       label: "Subscribe",
-      href: "https://app.herocast.xyz/login",
+      href: "LINK_TO_STRIPE_CHECKOUT",
     },
     features: [
       "Custom feeds ",
@@ -128,133 +119,125 @@ function Plan({
   logomarkClassName,
   featured = false,
 }: PlanProps) {
-  return (
-    <section
-      className={clsx(
-        "flex flex-col overflow-hidden rounded-3xl p-6",
-        featured
-          ? "order-first bg-[#0B0B0B] lg:order-none shadow-xl shadow-gray-300 hover:shadow-gray-400 hover:shadow-2xl transition-shadow duration-100"
-          : "bg-white shadow-lg shadow-gray-900/5"
-      )}
+  const isPayingUser = isPaidUser();
+  const isPaidPlan = price.Monthly !== "$0";
+
+  const renderPlanButton = () => (
+    <Button
+      href={button.href}
+      className="mt-6"
+      disabled={!isPayingUser && !isPaidPlan}
+      aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
     >
-      <h3
-        className={clsx(
-          "flex items-center text-sm font-semibold",
-          featured ? "text-white" : "text-gray-900"
+      {!isPayingUser && isPaidPlan ? "Upgrade" : "Your plan"}
+    </Button>
+  );
+
+  return (
+    <div>
+      <Card
+        className={cn(
+          "flex flex-col overflow-hidden rounded-3xl p-6",
+          featured
+            ? "order-first bg-[#0B0B0B] lg:order-none shadow-xl shadow-gray-300 hover:shadow-gray-400 hover:shadow-2xl transition-shadow duration-100"
+            : "bg-white shadow-lg shadow-gray-900/5"
         )}
       >
-        <Logomark className={clsx("h-6 w-6 flex-none", logomarkClassName)} />
-        <span className="ml-4">{name}</span>
-      </h3>
-      <p
-        className={clsx(
-          "relative mt-5 flex text-3xl tracking-tight",
-          featured ? "text-white" : "text-gray-900"
-        )}
-      >
-        {price.Monthly === price.Annually ? (
-          price.Monthly
-        ) : (
-          <>
-            <span
-              aria-hidden={activePeriod === "Annually"}
-              className={clsx(
-                "transition duration-300",
-                activePeriod === "Annually" &&
-                  "pointer-events-none translate-x-6 select-none opacity-0"
-              )}
-            >
-              {price.Monthly}
-            </span>
-            <span
-              aria-hidden={activePeriod === "Monthly"}
-              className={clsx(
-                "absolute left-0 top-0 transition duration-300",
-                activePeriod === "Monthly" &&
-                  "pointer-events-none -translate-x-6 select-none opacity-0"
-              )}
-            >
-              {price.Annually}
-            </span>
-          </>
-        )}
-      </p>
-      <p
-        className={clsx(
-          "mt-3 text-sm",
-          featured ? "text-gray-300" : "text-gray-700"
-        )}
-      >
-        {description}
-      </p>
-      <div className="order-last mt-6">
-        <ul
-          role="list"
-          className={clsx(
-            "-my-2 divide-y text-sm",
-            featured
-              ? "divide-gray-800 text-gray-300"
-              : "divide-gray-200 text-gray-700"
+        <h3
+          className={cn(
+            "flex items-center text-sm font-semibold",
+            featured ? "text-white" : "text-gray-900"
           )}
         >
-          {features.map((feature) => (
-            <li key={feature} className="flex py-2">
-              <CheckIcon
-                className={clsx(
-                  "h-6 w-6 flex-none",
-                  featured ? "text-white" : "text-gray-800"
+          <Logomark className={cn("h-6 w-6 flex-none", logomarkClassName)} />
+          <span className="ml-4">{name}</span>
+        </h3>
+        <p
+          className={cn(
+            "relative mt-5 flex text-3xl tracking-tight",
+            featured ? "text-white" : "text-gray-900"
+          )}
+        >
+          {price.Monthly === price.Annually ? (
+            price.Monthly
+          ) : (
+            <>
+              <span
+                aria-hidden={activePeriod === "Annually"}
+                className={cn(
+                  "transition duration-300",
+                  activePeriod === "Annually" &&
+                    "pointer-events-none translate-x-6 select-none opacity-0"
                 )}
-              />
-              <span className="ml-4">{feature}</span>
-            </li>
-          ))}
-          {unavilableFeatures &&
-            unavilableFeatures.map((feature) => (
-              <li key={feature} className="flex py-2 opacity-50">
-                <XCircleIcon className="h-6 w-6 flex-none text-gray-400" />
+              >
+                {price.Monthly}
+              </span>
+              <span
+                aria-hidden={activePeriod === "Monthly"}
+                className={cn(
+                  "absolute left-0 top-0 transition duration-300",
+                  activePeriod === "Monthly" &&
+                    "pointer-events-none -translate-x-6 select-none opacity-0"
+                )}
+              >
+                {price.Annually}
+              </span>
+            </>
+          )}
+        </p>
+        <p
+          className={cn(
+            "mt-3 text-sm",
+            featured ? "text-gray-300" : "text-gray-700"
+          )}
+        >
+          {description}
+        </p>
+        <div className="order-last mt-6">
+          <ul
+            role="list"
+            className={cn(
+              "-my-2 divide-y text-sm",
+              featured
+                ? "divide-gray-800 text-gray-300"
+                : "divide-gray-200 text-gray-700"
+            )}
+          >
+            {features.map((feature) => (
+              <li key={feature} className="flex py-2">
+                <CheckIcon
+                  className={cn(
+                    "h-6 w-6 flex-none",
+                    featured ? "text-white" : "text-gray-800"
+                  )}
+                />
                 <span className="ml-4">{feature}</span>
               </li>
             ))}
-        </ul>
-      </div>
-      <Button
-        href={button.href}
-        color="gray"
-        variant="solid"
-        className="mt-6"
-        aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
-      >
-        {button.label}
-      </Button>
-    </section>
+            {unavilableFeatures &&
+              unavilableFeatures.map((feature) => (
+                <li key={feature} className="flex py-2 opacity-50">
+                  <XCircleIcon className="h-6 w-6 flex-none text-gray-400" />
+                  <span className="ml-4">{feature}</span>
+                </li>
+              ))}
+          </ul>
+        </div>
+        {renderPlanButton()}
+      </Card>
+      <div className="text-center">{renderPlanButton()}</div>
+    </div>
   );
 }
 
 export function Pricing() {
-  let [activePeriod, setActivePeriod] = useState<"Monthly" | "Annually">(
+  const [activePeriod, setActivePeriod] = useState<"Monthly" | "Annually">(
     "Monthly"
   );
 
   return (
-    <section
-      id="pricing"
-      aria-labelledby="pricing-title"
-      className="border-t border-gray-200 bg-gray-100 py-20 sm:py-32"
-    >
-      <Container>
-        <div className="mx-auto max-w-2xl text-center">
-          <h2
-            id="pricing-title"
-            className="text-3xl font-medium tracking-tight text-gray-900"
-          >
-            Simple Pricing, No Hidden Fees
-          </h2>
-          <p className="mt-2 text-lg text-gray-600">
-            Choose a plan that fits your needs, from individuals looking to get
-            ahead to brands aiming for market dominance. We’ve got you covered.
-          </p>
-        </div>
-
+    <section id="pricing" aria-labelledby="pricing-title" className="py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mt-8 flex justify-center">
           <div className="relative">
             <RadioGroup
@@ -266,7 +249,7 @@ export function Pricing() {
                 <Radio
                   key={period}
                   value={period}
-                  className={clsx(
+                  className={cn(
                     "cursor-pointer border border-gray-300 px-[calc(theme(spacing.3)-1px)] py-[calc(theme(spacing.2)-1px)] text-sm text-gray-700 outline-2 outline-offset-2 transition-colors hover:border-gray-400",
                     period === "Monthly"
                       ? "rounded-l-lg"
@@ -279,8 +262,8 @@ export function Pricing() {
             </RadioGroup>
             <div
               aria-hidden="true"
-              className={clsx(
-                "pointer-events-none absolute inset-0 z-10 grid grid-cols-2 overflow-hidden rounded-lg bg-gray-900 transition-all duration-300",
+              className={cn(
+                "pointer-events-none absolute inset-0 z-5 grid grid-cols-2 overflow-hidden rounded-lg bg-gray-900 transition-all duration-300",
                 activePeriod === "Monthly"
                   ? "[clip-path:inset(0_50%_0_0)]"
                   : "[clip-path:inset(0_0_0_calc(50%-1px))]"
@@ -289,7 +272,7 @@ export function Pricing() {
               {["Monthly", "Annually"].map((period) => (
                 <div
                   key={period}
-                  className={clsx(
+                  className={cn(
                     "py-2 text-center text-sm font-semibold text-white",
                     period === "Annually" && "-ml-px"
                   )}
@@ -300,31 +283,31 @@ export function Pricing() {
             </div>
           </div>
         </div>
-
-        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 items-start gap-x-8 gap-y-10 sm:mt-20 lg:max-w-none lg:grid-cols-3">
+        <div className="mx-auto mt-4 grid max-w-2xl grid-cols-1 items-start gap-x-8 gap-y-10 sm:mt-8 lg:max-w-none lg:grid-cols-3">
           {plans.map((plan) => (
             <Plan key={plan.name} {...plan} activePeriod={activePeriod} />
           ))}
         </div>
-      </Container>
+      </div>
     </section>
   );
 }
 
 export default function UpgradePage() {
   return (
-    <div className="bg-gray-100">
+    <div className="bg-background">
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <h2 className="mt-10 text-center text-3xl font-bold leading-9 tracking-tight text-gray-900">
             Upgrade Herocast
           </h2>
           <p className="mt-2 text-center text-lg text-gray-600">
-            Choose a plan that fits your needs and take your Farcaster experience to the next level.
+            Choose a plan that fits your needs and take your Farcaster
+            experience to the next level.
           </p>
         </div>
+        <Pricing />
       </div>
-      <Pricing />
     </div>
   );
 }

@@ -2,7 +2,6 @@ import React from "react";
 import { classNames } from "@/common/helpers/css";
 import { SidebarHeader } from "./SidebarHeader";
 import { useListStore } from "@/stores/useListStore";
-import { take } from "lodash";
 import sortBy from "lodash.sortby";
 import { List } from "@/common/types/database.types";
 import {
@@ -29,6 +28,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAccountStore } from "@/stores/useAccountStore";
+import { openSourcePlanLimits } from "@/config/customerLimitation";
+import Link from "next/link";
+import UpgradeFreePlanCard from "../UpgradeFreePlanCard";
 
 const ListsOverview = () => {
   const { searches, selectedListIdx, setSelectedListIdx, addList, lists } =
@@ -55,7 +57,6 @@ const ListsOverview = () => {
         account_id: selectedAccountId,
         contents: {
           term: lastSearch.term,
-          
         },
         idx: 0,
         type: "search",
@@ -76,11 +77,6 @@ const ListsOverview = () => {
           )}
         >
           <span className="flex-nowrap truncate">{list.name}</span>
-          {/* 
-          <Badge variant="outline" className="w-16">
-            {shortcut}
-          </Badge> 
-          */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -136,19 +132,18 @@ const ListsOverview = () => {
     </Card>
   );
 
+  const renderLists = () => (
+    <div className="flex flex-col">
+      <UpgradeFreePlanCard limit="maxSavedSearches" />
+      <ul role="list" className="mt-2 mb-12">
+        {sortBy(lists, (s) => s.idx).map(renderList)}
+      </ul>
+    </div>
+  );
   return (
     <div className="">
       <SidebarHeader title="Saved Searches" />
-      {lists.length === 0 ? (
-        renderEmptyListsCard()
-      ) : (
-        <ul role="list" className="mt-2 mb-12">
-          {take(
-            sortBy(lists, (s) => s.idx),
-            10
-          ).map(renderList)}
-        </ul>
-      )}
+      {lists.length === 0 ? renderEmptyListsCard() : renderLists()}
     </div>
   );
 };

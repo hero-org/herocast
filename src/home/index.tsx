@@ -1,6 +1,6 @@
 import React, { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { Cog6ToothIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import {
   Bars3Icon,
   UserPlusIcon,
@@ -35,7 +35,6 @@ import NewCastModal from "@/common/components/NewCastModal";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
 
 type NavigationGroupType = {
   name: string;
@@ -197,7 +196,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             },
           ],
           icon: (
-            <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+            <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
           ),
         },
         {

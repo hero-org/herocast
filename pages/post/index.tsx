@@ -27,10 +27,11 @@ import {
 import { ChannelType } from "@/common/constants/channels";
 import { UUID } from "crypto";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { openSourcePlanLimits } from "@/config/customerLimitation";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import Link from "next/link";
+import UpgradeFreePlanCard from "../../src/common/components/UpgradeFreePlanCard";
 
 enum DraftListTab {
   writing = "writing",
@@ -428,45 +429,8 @@ export default function NewPost() {
     }
   };
 
-  console.log("draftsForTab.length", draftsForTab.length);
-  const renderFreePlan = () => {
-    const hasAnyScheduledCasts = scheduledCastsCount > 0;
-    const hasReachedFreePlanLimit =
-      scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts;
-    return (
-      hasAnyScheduledCasts && (
-        <Card className="m-2 flex flex-col items-center justify-center h-full">
-          <CardContent className="flex flex-col items-center gap-2 mt-4">
-            <div className="text-center">
-              <h2 className="text-md">
-                You have scheduled
-                <br /> {scheduledCastsCount} casts
-              </h2>
-              <span className="text-sm text-muted-foreground">
-                Upgrade to schedule more
-              </span>
-            </div>
-            <div></div>
-            <Progress
-              indicatorClassName="bg-gradient-to-r from-green-400 to-green-800 animate-pulse animate-1000"
-              value={
-                (scheduledCastsCount / openSourcePlanLimits.maxScheduledCasts) *
-                100
-              }
-            />
-          </CardContent>
-          <CardFooter>
-            <Button
-              href="/upgrade"
-              size="lg"
-              variant={hasReachedFreePlanLimit ? "default" : "outline"}
-            >
-              Upgrade
-            </Button>
-          </CardFooter>
-        </Card>
-      )
-    );
+  const renderFreePlanCard = () => {
+    return <UpgradeFreePlanCard limit="maxScheduledCasts" />;
   };
 
   return (
@@ -481,12 +445,11 @@ export default function NewPost() {
           >
             {renderTabsSelector()}
             <TabsContent value={DraftListTab.writing}>
-              {scheduledCastsCount - 1 >=
-                openSourcePlanLimits.maxScheduledCasts && renderFreePlan()}
+              {draftsForTab.length > 2 && renderFreePlanCard()}
               {renderDraftList()}
             </TabsContent>
             <TabsContent value={DraftListTab.scheduled}>
-              {renderFreePlan()}
+              {renderFreePlanCard()}
               {renderScheduledList()}
             </TabsContent>
             <TabsContent value={DraftListTab.published}>

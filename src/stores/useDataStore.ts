@@ -88,7 +88,6 @@ type AdditionalUserInfo = {
   socialCapitalScore: {
     socialCapitalRank: number;
   }
-  // socialCapitalScore: number;
 };
 
 type addUserProfileProps = {
