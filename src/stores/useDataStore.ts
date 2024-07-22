@@ -159,10 +159,15 @@ const fetchIcebreakerData = async (fid: number): Promise<IcebreakerData[]> => {
       }
     });
     const data = await response.json();
-    return data.filter((item: IcebreakerData) => 
-      item.source === 'IcebreakerEAS' && 
-      ['twitter', 'linkedin', 'telegram'].includes(item.type)
-    );
+    if (Array.isArray(data)) {
+      return data.filter((item: IcebreakerData) => 
+        item.source === 'IcebreakerEAS' && 
+        ['twitter', 'linkedin', 'telegram'].includes(item.type)
+      );
+    } else {
+      console.error('Unexpected data format from Icebreaker API:', data);
+      return [];
+    }
   } catch (error) {
     console.error('Error fetching Icebreaker data:', error);
     return [];
