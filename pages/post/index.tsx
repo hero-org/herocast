@@ -119,14 +119,11 @@ export default function NewPost() {
     () => getDraftsForTab(drafts, DraftListTab.scheduled).length,
     [drafts, selectedAccount?.id]
   );
-  console.log("scheduledCastsCount", scheduledCastsCount);
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
 
   const resetSelectedDraftId = () => {
     setSelectedDraftId(draftsForTab[0]?.id);
   };
-
-  console.log("draftsForTab", draftsForTab);
 
   useEffect(() => {
     if (searchParams.has("text")) {
