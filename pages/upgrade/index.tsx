@@ -1,14 +1,12 @@
-import React from "react";
-
-("use client");
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Radio, RadioGroup } from "@headlessui/react";
 import clsx from "clsx";
 
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { Logomark } from "@/components/Logo";
+
+("use client");
 
 const plans = [
   {
@@ -336,17 +334,18 @@ export function Pricing() {
 
 export default function UpgradePage() {
   return (
-    <>
+    <div className="bg-gray-100">
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-foreground">
-            Intro to herocast
+          <h2 className="mt-10 text-center text-3xl font-bold leading-9 tracking-tight text-gray-900">
+            Upgrade Herocast
           </h2>
-        </div>
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          ...coming soon...
+          <p className="mt-2 text-center text-lg text-gray-600">
+            Choose a plan that fits your needs and take your Farcaster experience to the next level.
+          </p>
         </div>
       </div>
-    </>
+      <Pricing />
+    </div>
   );
 }
