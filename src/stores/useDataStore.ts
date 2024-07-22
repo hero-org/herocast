@@ -84,11 +84,17 @@ type addTokenDataProps = {
   data: DexPair;
 };
 
+type IcebreakerData = {
+  type: string;
+  value: string;
+  source: string;
+};
+
 type AdditionalUserInfo = {
   socialCapitalScore: {
     socialCapitalRank: number;
-  }
-  // socialCapitalScore: number;
+  };
+  icebreakerData?: IcebreakerData[];
 };
 
 type addUserProfileProps = {
