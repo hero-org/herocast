@@ -52,7 +52,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       getSocialCapitalScore(fid),
       getIcebreakerData(fid)
     ]);
-    console.log(`icebreakerData for fid ${fid}`, icebreakerData);
     res.status(200).json({ socialCapitalScore, icebreakerData });
   } catch (error) {
     console.error('Error fetching additional profile info:', error);
