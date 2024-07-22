@@ -85,9 +85,9 @@ type addTokenDataProps = {
 };
 
 type IcebreakerData = {
-  type: string;
+  type: 'twitter' | 'linkedin' | 'telegram';
   value: string;
-  source: string;
+  source: 'IcebreakerEAS';
 };
 
 type AdditionalUserInfo = {
@@ -133,10 +133,15 @@ const store = (set: StoreSet) => ({
       state.selectedCast = cast;
     });
   },
-  addUserProfile: ({ user }: addUserProfileProps) => {
+  addUserProfile: async ({ user }: addUserProfileProps) => {
+    const icebreakerData = await fetchIcebreakerData(user.fid);
     set((state) => {
       state.usernameToFid = { ...state.usernameToFid, ...{ [user.username]: user.fid } };
-      const userObject = { ...user, updatedAt: Date.now() };
+      const userObject = { 
+        ...user, 
+        updatedAt: Date.now(),
+        icebreakerData: icebreakerData
+      };
       state.fidToData = { ...state.fidToData, ...{ [user.fid]: userObject } };
     });
   },
@@ -146,4 +151,18 @@ const store = (set: StoreSet) => ({
     });
   }
 });
+const fetchIcebreakerData = async (fid: number): Promise<IcebreakerData[]> => {
+  try {
+    const response = await fetch(`https://api.icebreaker.xyz/v1/fid/${fid}`);
+    const data = await response.json();
+    return data.filter((item: IcebreakerData) => 
+      item.source === 'IcebreakerEAS' && 
+      ['twitter', 'linkedin', 'telegram'].includes(item.type)
+    );
+  } catch (error) {
+    console.error('Error fetching Icebreaker data:', error);
+    return [];
+  }
+};
+
 export const useDataStore = create<DataStore>()(devtools(mutative(store)));
