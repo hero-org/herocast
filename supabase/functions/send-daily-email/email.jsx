@@ -12,24 +12,19 @@ const CastRow = ({ cast, searchTerm }) => {
     const orTerms = term.match(/"([^"]+)"\s+OR\s+"([^"]+)"/);
     if (orTerms) {
       const searchTerms = orTerms.slice(1).map(t => t.trim());
-      const pattern = new RegExp(`(${searchTerms.join('|')})`, 'gi');
-      const parts = text.split(pattern);
-      return parts.map((part, index) =>
-        searchTerms.some(t => part.toLowerCase() === t.toLowerCase())
-          ? <strong key={index}>{part}</strong>
-          : part
+      const pattern = new RegExp(`(${searchTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+      return text.split(pattern).map((part, index) => 
+        index % 2 === 0 ? part : <strong key={index}>{part}</strong>
       );
     }
 
     const searchTerms = term.split(/\s+/)
       .filter(t => !t.startsWith('-'))
-      .map(t => t.replace(/^["']|["']$/g, '').trim());
-    const pattern = new RegExp(`(${searchTerms.join('|')})`, 'gi');
-    const parts = text.split(pattern);
-    return parts.map((part, index) =>
-      searchTerms.some(t => part.toLowerCase() === t.toLowerCase())
-        ? <strong key={index}>{part}</strong>
-        : part
+      .map(t => t.replace(/^["']|["']$/g, '').trim())
+      .filter(t => t.toLowerCase() !== 'or');
+    const pattern = new RegExp(`(${searchTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+    return text.split(pattern).map((part, index) => 
+      index % 2 === 0 ? part : <strong key={index}>{part}</strong>
     );
   };
 
