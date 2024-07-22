@@ -49,6 +49,7 @@ const RightSidebar = ({
         <ProfileInfo
           fid={selectedCast.author.fid}
           viewerFid={Number(selectedAccount.platformAccountId)}
+          showFullInfo
         />
       </div>
     );

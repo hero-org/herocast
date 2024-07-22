@@ -300,12 +300,17 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         buttonText = "Continue";
         break;
     }
+
+    const buttonMustBeValid = includes(
+      [ViewState.SIGNUP, ViewState.LOGIN],
+      view
+    );
     return (
       <Button
         type="button"
         size="lg"
         className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
-        disabled={isLoading || (view !== ViewState.LOGGED_IN && !isValid)}
+        disabled={isLoading || (buttonMustBeValid && !isValid)}
         onClick={() => buttonAction()}
       >
         {isLoading ? <Loading className="text-white" /> : buttonText}
@@ -357,7 +362,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       case ViewState.FORGOT:
         return "Forgot your password? Enter your email below to reset it";
       case ViewState.RESET:
-        return "Enter your new password below";
+        return "Enter your new password";
       case ViewState.SIGNUP:
         return "Create your herocast account";
       case ViewState.LOGGED_IN:

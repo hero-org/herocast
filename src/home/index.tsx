@@ -163,14 +163,15 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               actions.push({
                 name: isChannelPinned ? "Unpin" : "Pin",
                 onClick: () => {
+                  const channel = channels.find(
+                    (c) => c.url === selectedChannelUrl
+                  );
+                  if (!channel) return;
+                  
                   if (isChannelPinned) {
-                    removePinnedChannel(
-                      channels.find((c) => c.url === selectedChannelUrl)
-                    );
+                    removePinnedChannel(channel);
                   } else {
-                    addPinnedChannel(
-                      allChannels.find((c) => c.url === selectedChannelUrl)
-                    );
+                    addPinnedChannel(channel);
                   }
                 },
               });

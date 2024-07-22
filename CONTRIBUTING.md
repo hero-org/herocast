@@ -145,6 +145,90 @@ Congratulations! You now have a local version of herocast working.
 
 ### Working with supabase migrations
 
+1. Create a new migration:
+
+```bash
+supabase migration new <migration-name>
+```
+
+2. Edit the migration file in the `migrations` folder.
+3. Run the migration:
+
+```bash
+supabase migration up --local
+```
+
+More info in the supabase docs:
+https://supabase.com/docs/reference/cli/supabase-migration
+
+### Working with supabase functions
+
+1. Create a new function:
+
+```bash
+supabase functions new <Function name>
+```
+
+2. Edit the function file in the `functions` folder.
+3. Serve the function locally:
+
+```
+supabase functions serve
+```
+
+4. Call the function locally via curl (see bottom of the function file for curl CLI command)
+
+More info in the supabase docs:
+https://supabase.com/docs/reference/cli/supabase-functions
+
+### Working with supabase migrations
+### Working with supabase migrations
+
+1. Create a new migration file with: `supabase migration new <migration_name>`
+2. Fill in the created sql file with your migration logic
+3. Apply the migration locally with `supabase migration up --local`
+4. Get the updated database types for the supabase typescript client (make sure to not remove the custom types at the bottom):
+   `supabase gen types --local --lang typescript -s public > src/common/types/database.types.ts`
+
+
+1. Create a new migration:
+
+```bash
+supabase migration new <migration-name>
+```
+
+2. Edit the migration file in the `migrations` folder.
+3. Run the migration:
+
+```bash
+supabase migration up --local
+```
+
+More info in the supabase docs:
+https://supabase.com/docs/reference/cli/supabase-migration
+
+### Working with supabase functions
+
+1. Create a new function:
+
+```bash
+supabase functions new <Function name>
+```
+
+2. Edit the function file in the `functions` folder.
+3. Serve the function locally:
+
+```
+supabase functions serve
+```
+
+4. Call the function locally via curl (see bottom of the function file for curl CLI command)
+
+More info in the supabase docs:
+https://supabase.com/docs/reference/cli/supabase-functions
+
+### Working with supabase migrations
+
 1. Create a new migration file with: `supabase migration new <migration_name>`
 2. Fill in the created sql file with your migration logic
 3. Apply the migration locally with `supabase migration up --local`

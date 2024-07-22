@@ -16,13 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-
-export enum SearchInterval {
-  d1 = "1 day",
-  d7 = "7 days",
-  d30 = "30 days",
-  m3 = "3 months",
-}
+import { SearchInterval } from "../helpers/search";
 
 const intervals = [
   {

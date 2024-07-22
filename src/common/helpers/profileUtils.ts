@@ -18,9 +18,20 @@ export const fetchAndAddUserProfile = async ({
   });
   const { addUserProfile } = useDataStore.getState();
   if (users.length) {
-    users.forEach((user) => {
-      addUserProfile({ user });
-    });
+    for (const user of users) {
+      const response = await fetch(`/api/additionalProfileInfo?fid=${user.fid}`);
+      if (response.ok) {
+        const userAssets = await response.json();
+        const enrichedUser = {
+          ...user,
+          socialCapitalScore: userAssets.socialCapitalScore,
+        };
+        addUserProfile({ user: enrichedUser });
+      } else {
+        console.error(`Failed to fetch assets for user with FID ${user.fid}`);
+        addUserProfile({ user });
+      }
+    }
   }
   return users;
 };
