@@ -150,7 +150,6 @@ export default function NewPostEntry({
       await addScheduledDraft({
         draftIdx,
         scheduledFor: scheduleDateTime,
-        rawText: draft.text,
         onSuccess: () => {
           console.log("onSuccess after addScheduledDraft");
           setScheduleDateTime(undefined);
@@ -266,7 +265,9 @@ export default function NewPostEntry({
   }, [draft?.parentUrl]);
 
   const getButtonText = () => {
-    if (isPublishing) return "Publishing...";
+    if (isPublishing)
+      return scheduleDateTime ? "Scheduling..." : "Publishing...";
+
     return `${scheduleDateTime ? "Schedule" : "Cast"}${
       account ? ` as ${account.name}` : ""
     }`;

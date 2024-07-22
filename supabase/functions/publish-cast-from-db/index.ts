@@ -2,7 +2,6 @@ import { createClient } from '@supabase/supabase-js';
 import { HubRestAPIClient } from "npm:@standard-crypto/farcaster-js-hub-rest";
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 
-// Initialize Sentry
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
   defaultIntegrations: false,
@@ -10,13 +9,28 @@ Sentry.init({
   profilesSampleRate: 1.0,
 });
 
-// Set region and execution_id as custom tags
 Sentry.setTag('region', Deno.env.get('SB_REGION'));
 Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
 
 // console.log("Hello from publish-cast-from-db!")
 
+function convertCastAddBodyFromDbToHub(castAddBody: any) {
+  if (castAddBody.embeds) {
+    castAddBody.embeds.forEach(embed => {
+      if ('castId' in embed) {
+        embed.castId = {
+          fid: embed.castId.fid,
+          hash: new Uint8Array(embed?.castId?.hash.split(',').map((x: string) => parseInt(x))),
+        };
+      }
+    });
+  }
+
+  return castAddBody;
+}
+
 async function submitMessage({ fid, signerPrivateKey, castAddBody }: { fid: number, signerPrivateKey: string, castAddBody: any }): Promise<string> {
+  castAddBody = convertCastAddBodyFromDbToHub(castAddBody);
   const writeClient = new HubRestAPIClient({ hubUrl: 'https://hub.farcaster.standardcrypto.vc:2281' });
   const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
   console.log(`new cast hash: ${publishCastResponse.hash}`);
@@ -26,7 +40,7 @@ async function submitMessage({ fid, signerPrivateKey, castAddBody }: { fid: numb
 const publishDraft = async (supabaseClient, draftId) => {
   return Sentry.withScope(async (scope) => {
     scope.setTag('draftId', draftId);
-    
+
     const { data: drafts, error: getDraftError } = await supabaseClient
       .from('draft')
       .select('*')
@@ -38,60 +52,60 @@ const publishDraft = async (supabaseClient, draftId) => {
       Sentry.captureException(new Error(errorMessage));
       return;
     }
-  const draft = drafts?.[0];
-  if (draft.status !== 'scheduled') {
-    console.error(`draft ${draftId} is not scheduled`);
-    return;
-  }
+    const draft = drafts?.[0];
+    if (draft.status !== 'scheduled') {
+      console.error(`draft ${draftId} is not scheduled`);
+      return;
+    }
 
-  const { data: accounts, error: getAccountError } = await supabaseClient
-    .from('decrypted_accounts')
-    .select('id, platform_account_id, decrypted_private_key')
-    .eq('id', draft.account_id);
+    const { data: accounts, error: getAccountError } = await supabaseClient
+      .from('decrypted_accounts')
+      .select('id, platform_account_id, decrypted_private_key')
+      .eq('id', draft.account_id);
 
-  if (getAccountError || accounts?.length !== 1) {
-    console.error(getAccountError || `no account returned for id ${draft.account_id}`);
-    return;
-  }
+    if (getAccountError || accounts?.length !== 1) {
+      console.error(getAccountError || `no account returned for id ${draft.account_id}`);
+      return;
+    }
 
-  const { error: updateDraftStatusError } = await supabaseClient
-    .from('draft')
-    .update({ status: 'publishing' })
-    .select('id')
-    .eq('id', draftId)
-
-  if (updateDraftStatusError) {
-    console.error(`Failed to update draft status to publishing for id ${draftId}: ${updateDraftStatusError}`);
-    return;
-  }
-
-  try {
-    const castBody = draft.data;
-    const account = accounts[0];
-
-    console.log('submit draft to protocol - draftId:', draftId);
-    await submitMessage({
-      fid: Number(account.platform_account_id),
-      signerPrivateKey: account.decrypted_private_key,
-      castAddBody: castBody,
-    })
-
-    await supabaseClient
+    const { error: updateDraftStatusError } = await supabaseClient
       .from('draft')
-      .update({ status: 'published', published_at: new Date().toISOString() })
+      .update({ status: 'publishing' })
       .select('id')
       .eq('id', draftId)
-    console.log('published draft id:', draftId, 'successfully!');
-  } catch (e) {
-    const errorMessage = `Failed to publish draft id ${draftId}: ${e}`;
-    console.error(errorMessage);
-    Sentry.captureException(e);
-    await supabaseClient
-      .from('draft')
-      .select('id')
-      .update({ status: 'error' })
-      .eq('id', draftId)
-  }
+
+    if (updateDraftStatusError) {
+      console.error(`Failed to update draft status to publishing for id ${draftId}: ${updateDraftStatusError}`);
+      return;
+    }
+
+    try {
+      const castBody = draft.data;
+      const account = accounts[0];
+
+      console.log('submit draft to protocol - draftId:', draftId);
+      await submitMessage({
+        fid: Number(account.platform_account_id),
+        signerPrivateKey: account.decrypted_private_key,
+        castAddBody: castBody,
+      })
+
+      await supabaseClient
+        .from('draft')
+        .update({ status: 'published', published_at: new Date().toISOString() })
+        .select('id')
+        .eq('id', draftId)
+      console.log('published draft id:', draftId, 'successfully!');
+    } catch (e) {
+      const errorMessage = `Failed to publish draft id ${draftId}: ${e}`;
+      console.error(errorMessage);
+      Sentry.captureException(e);
+      await supabaseClient
+        .from('draft')
+        .update({ status: 'failed' })
+        .select('id')
+        .eq('id', draftId)
+    }
   });
 }
 
@@ -111,9 +125,6 @@ Deno.serve(async (req) => {
       now.setSeconds(0, 0); // Round down to the nearest full minute
       const invocationTime = now.toISOString();
       const next5Minutes = new Date(now.getTime() + (5 * 60000) - 1).toISOString();
-
-      scope.setTag('invocationTime', invocationTime);
-      scope.setTag('next5Minutes', next5Minutes);
 
       const { data: drafts, error } = await supabaseClient
         .from('draft')
@@ -141,7 +152,6 @@ Deno.serve(async (req) => {
       }
 
       console.log(`Drafts to publish between: ${invocationTime} and ${next5Minutes}:`, drafts.length, error);
-      scope.setTag('draftsCount', drafts.length);
 
       for (const draft of drafts) {
         await publishDraft(supabaseClient, draft.id);
