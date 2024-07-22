@@ -1,5 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { HubRestAPIClient } from "npm:@standard-crypto/farcaster-js-hub-rest";
+import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
+
+// Initialize Sentry
+Sentry.init({
+  dsn: Deno.env.get('SENTRY_DSN'),
+  defaultIntegrations: false,
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
+});
+
+// Set region and execution_id as custom tags
+Sentry.setTag('region', Deno.env.get('SB_REGION'));
+Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
 
 // console.log("Hello from publish-cast-from-db!")
 
@@ -11,15 +24,20 @@ async function submitMessage({ fid, signerPrivateKey, castAddBody }: { fid: numb
 }
 
 const publishDraft = async (supabaseClient, draftId) => {
-  const { data: drafts, error: getDraftError } = await supabaseClient
-    .from('draft')
-    .select('*')
-    .eq('id', draftId);
+  return Sentry.withScope(async (scope) => {
+    scope.setTag('draftId', draftId);
+    
+    const { data: drafts, error: getDraftError } = await supabaseClient
+      .from('draft')
+      .select('*')
+      .eq('id', draftId);
 
-  if (getDraftError || drafts?.length !== 1) {
-    console.error(getDraftError || `no draft returned for id ${draftId}`);
-    return;
-  }
+    if (getDraftError || drafts?.length !== 1) {
+      const errorMessage = getDraftError || `no draft returned for id ${draftId}`;
+      console.error(errorMessage);
+      Sentry.captureException(new Error(errorMessage));
+      return;
+    }
   const draft = drafts?.[0];
   if (draft.status !== 'scheduled') {
     console.error(`draft ${draftId} is not scheduled`);
@@ -65,70 +83,82 @@ const publishDraft = async (supabaseClient, draftId) => {
       .eq('id', draftId)
     console.log('published draft id:', draftId, 'successfully!');
   } catch (e) {
-    console.error(`Failed to publish draft id ${draftId}: ${e}`);
+    const errorMessage = `Failed to publish draft id ${draftId}: ${e}`;
+    console.error(errorMessage);
+    Sentry.captureException(e);
     await supabaseClient
       .from('draft')
       .select('id')
       .update({ status: 'error' })
       .eq('id', draftId)
   }
+  });
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok')
-  }
-
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    )
-
-    const now = new Date();
-    now.setSeconds(0, 0); // Round down to the nearest full minute
-    const invocationTime = now.toISOString();
-    const next5Minutes = new Date(now.getTime() + (5 * 60000) - 1).toISOString();
-
-    const { data: drafts, error } = await supabaseClient
-      .from('draft')
-      .select('id')
-      .eq('status', 'scheduled')
-      .gte('scheduled_for', invocationTime)
-      .lte('scheduled_for', next5Minutes)
-      .order('scheduled_for', { ascending: true })
-
-    if (error) {
-      console.error(error);
-      return new Response(JSON.stringify({ error: error?.message }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 500,
-      });
+  return Sentry.withScope(async (scope) => {
+    if (req.method === 'OPTIONS') {
+      return new Response('ok')
     }
 
-    if (!drafts || drafts?.length === 0) {
-      console.log(`No drafts to publish between: ${invocationTime} and ${next5Minutes}`);
+    try {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      )
+
+      const now = new Date();
+      now.setSeconds(0, 0); // Round down to the nearest full minute
+      const invocationTime = now.toISOString();
+      const next5Minutes = new Date(now.getTime() + (5 * 60000) - 1).toISOString();
+
+      scope.setTag('invocationTime', invocationTime);
+      scope.setTag('next5Minutes', next5Minutes);
+
+      const { data: drafts, error } = await supabaseClient
+        .from('draft')
+        .select('id')
+        .eq('status', 'scheduled')
+        .gte('scheduled_for', invocationTime)
+        .lte('scheduled_for', next5Minutes)
+        .order('scheduled_for', { ascending: true })
+
+      if (error) {
+        console.error(error);
+        Sentry.captureException(error);
+        return new Response(JSON.stringify({ error: error?.message }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 500,
+        });
+      }
+
+      if (!drafts || drafts?.length === 0) {
+        console.log(`No drafts to publish between: ${invocationTime} and ${next5Minutes}`);
+        return new Response("ok", {
+          headers: { 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      }
+
+      console.log(`Drafts to publish between: ${invocationTime} and ${next5Minutes}:`, drafts.length, error);
+      scope.setTag('draftsCount', drafts.length);
+
+      for (const draft of drafts) {
+        await publishDraft(supabaseClient, draft.id);
+      }
+
       return new Response("ok", {
         headers: { 'Content-Type': 'application/json' },
         status: 200,
       })
+    } catch (error) {
+      Sentry.captureException(error);
+      return new Response(JSON.stringify({ error: error?.message }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 500,
+      })
     }
-
-    console.log(`Drafts to publish between: ${invocationTime} and ${next5Minutes}:`, drafts.length, error);
-    for (const draft of drafts) {
-      await publishDraft(supabaseClient, draft.id);
-    }
-
-    return new Response("ok", {
-      headers: { 'Content-Type': 'application/json' },
-      status: 200,
-    })
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error?.message }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 500,
-    })
-  }
+  });
 })
 
 
