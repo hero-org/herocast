@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { ExternalLink } from "lucide-react";
 
 const ProfileInfo = ({
   fid,
@@ -70,7 +71,7 @@ const ProfileInfo = ({
     profile?.socialCapitalScore?.socialCapitalRank !== undefined;
 
   const renderIcebreakerChannels = () => {
-    if (!profile?.icebreakerData?.channels) return null;
+    if (!profile?.icebreakerData?.channels?.length) return null;
     return (
       <div className="mt-2">
         <h4 className="text-sm font-semibold mb-1">Channels:</h4>
@@ -81,9 +82,10 @@ const ProfileInfo = ({
               href={channel.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:underline"
+              className="text-xs text-blue-500 hover:underline flex items-center"
             >
               {channel.type}
+              <ExternalLink size={12} className="ml-1" />
             </a>
           ))}
         </div>
@@ -92,7 +94,7 @@ const ProfileInfo = ({
   };
 
   const renderIcebreakerCredentials = () => {
-    if (!profile?.icebreakerData?.credentials) return null;
+    if (!profile?.icebreakerData?.credentials?.length) return null;
     return (
       <div className="mt-2">
         <h4 className="text-sm font-semibold mb-1">Credentials:</h4>
@@ -100,6 +102,7 @@ const ProfileInfo = ({
           {profile.icebreakerData.credentials.map((credential, index) => (
             <Badge key={index} variant="secondary" className="text-xs">
               {credential.name}
+              {credential.chain && ` (${credential.chain})`}
             </Badge>
           ))}
         </div>
