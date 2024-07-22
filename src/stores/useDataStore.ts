@@ -153,7 +153,11 @@ const store = (set: StoreSet) => ({
 });
 const fetchIcebreakerData = async (fid: number): Promise<IcebreakerData[]> => {
   try {
-    const response = await fetch(`https://api.icebreaker.xyz/v1/fid/${fid}`);
+    const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
+      headers: {
+        'accept': 'application/json'
+      }
+    });
     const data = await response.json();
     return data.filter((item: IcebreakerData) => 
       item.source === 'IcebreakerEAS' && 

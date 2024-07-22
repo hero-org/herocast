@@ -3,7 +3,11 @@ import { getSocialCapitalScore } from '@/common/helpers/airstack';
 
 async function getIcebreakerData(fid: string) {
   try {
-    const response = await fetch(`https://api.icebreaker.xyz/v1/fid/${fid}`);
+    const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
+      headers: {
+        'accept': 'application/json'
+      }
+    });
     const data = await response.json();
     return data.filter((item: any) => 
       item.source === 'IcebreakerEAS' && 
