@@ -3,13 +3,16 @@ import { getSocialCapitalScore } from '@/common/helpers/airstack';
 
 type IcebreakerData = {
   data: {
-    type: 'twitter' | 'linkedin' | 'telegram';
+    type: string;
     value: string;
   }[];
-  source: 'IcebreakerEAS';
+  channels: {
+    type: string;
+    value: string;
+  }[];
 };
 
-async function getIcebreakerData(fid: string) {
+async function getIcebreakerData(fid: string): Promise<IcebreakerData | null> {
   try {
     const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
       headers: {
@@ -17,17 +20,15 @@ async function getIcebreakerData(fid: string) {
       }
     });
     const data: IcebreakerData = await response.json();
-    if (data && data.source === 'IcebreakerEAS' && Array.isArray(data.data)) {
-      return data.data.filter(item => 
-        ['twitter', 'linkedin', 'telegram'].includes(item.type)
-      );
+    if (data && Array.isArray(data.data) && Array.isArray(data.channels)) {
+      return data;
     } else {
       console.error('Unexpected data format from Icebreaker API:', data);
-      return [];
+      return null;
     }
   } catch (error) {
     console.error('Error fetching Icebreaker data:', error);
-    return [];
+    return null;
   }
 }
 
