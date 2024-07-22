@@ -2,13 +2,18 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getSocialCapitalScore } from '@/common/helpers/airstack';
 
 type IcebreakerData = {
-  data: {
-    type: string;
-    value: string;
-  }[];
   channels: {
     type: string;
+    isVerified: boolean;
+    isLocked: boolean;
     value: string;
+    url: string;
+  }[];
+  credentials: {
+    name: string;
+    chain?: string;
+    source?: string;
+    reference?: string;
   }[];
 };
 
@@ -19,11 +24,11 @@ async function getIcebreakerData(fid: string): Promise<IcebreakerData | null> {
         'accept': 'application/json'
       }
     });
-    const data: IcebreakerData = await response.json();
-    if (data && Array.isArray(data.data) && Array.isArray(data.channels)) {
-      return data;
+    const data = await response.json();
+    if (data && data.profiles && data?.profiles.length === 1) {
+      const profile = data.profiles[0];
+      return { channels: profile?.channels || [], credentials: profile?.credentials || [] };
     } else {
-      console.error('Unexpected data format from Icebreaker API:', data);
       return null;
     }
   } catch (error) {
@@ -47,6 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       getSocialCapitalScore(fid),
       getIcebreakerData(fid)
     ]);
+    console.log(`icebreakerData for fid ${fid}`, icebreakerData);
     res.status(200).json({ socialCapitalScore, icebreakerData });
   } catch (error) {
     console.error('Error fetching additional profile info:', error);

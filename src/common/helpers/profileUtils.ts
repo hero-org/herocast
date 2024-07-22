@@ -25,6 +25,7 @@ export const fetchAndAddUserProfile = async ({
         const enrichedUser = {
           ...user,
           socialCapitalScore: userAssets.socialCapitalScore,
+          icebreakerData: userAssets.icebreakerData,
         };
         addUserProfile({ user: enrichedUser });
       } else {

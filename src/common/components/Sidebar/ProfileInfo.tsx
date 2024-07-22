@@ -14,7 +14,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
+import { take } from "lodash";
+
+const priorityChannels = ["email", "linkedin", "telegram", "twitter", "github"];
 
 const ProfileInfo = ({
   fid,
@@ -38,29 +40,29 @@ const ProfileInfo = ({
   const renderSocialCapitalScore = () => (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">
-            {profile?.socialCapitalScore?.socialCapitalRank}
-          </span>{" "}
-          rank
+        <TooltipTrigger asChild>
+          <span className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">
+              {profile?.socialCapitalScore?.socialCapitalRank}
+            </span>{" "}
+            rank
+          </span>
         </TooltipTrigger>
         <TooltipContent
           className="w-44 p-3 bg-background border border-muted text-foreground/80"
           side="bottom"
           sideOffset={5}
         >
-          <span>
-            Social Capital Scores (SCS) are a measure of each Farcaster
-            user&apos;s influence in the network. Learn more at{" "}
-            <a
-              target="_blank"
-              rel="noreferrer"
-              className="underline cursor-pointer"
-              href="https://docs.airstack.xyz/airstack-docs-and-faqs/farcaster/farcaster/social-capital#social-capital-scores"
-            >
-              Airstack.xyz
-            </a>
-          </span>
+          Social Capital Scores (SCS) are a measure of each Farcaster
+          user&apos;s influence in the network. Learn more at{" "}
+          <a
+            target="_blank"
+            rel="noreferrer"
+            className="underline cursor-pointer"
+            href="https://docs.airstack.xyz/airstack-docs-and-faqs/farcaster/farcaster/social-capital#social-capital-scores"
+          >
+            Airstack.xyz
+          </a>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -70,52 +72,63 @@ const ProfileInfo = ({
     showFullInfo &&
     profile?.socialCapitalScore?.socialCapitalRank !== undefined;
 
-  const renderIcebreakerChannels = () => {
-    if (!profile?.icebreakerData?.channels?.length) return null;
-    return (
-      <div className="mt-2">
-        <h4 className="text-sm font-semibold mb-1">Channels:</h4>
-        <div className="flex flex-wrap gap-2">
-          {profile.icebreakerData.channels.map((channel, index) => (
-            <a
-              key={index}
-              href={channel.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:underline flex items-center"
-            >
-              {channel.type}
-              <ExternalLink size={12} className="ml-1" />
-            </a>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   const renderIcebreakerCredentials = () => {
     if (!profile?.icebreakerData?.credentials?.length) return null;
+
     return (
       <div className="mt-2">
-        <h4 className="text-sm font-semibold mb-1">Credentials:</h4>
+        <span className="text-sm text-foreground mb-2">Credentials</span>
         <div className="flex flex-wrap gap-1">
-          {profile.icebreakerData.credentials.map((credential, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
+          {take(profile.icebreakerData.credentials, 5).map((credential) => (
+            <span
+              key={`${credential.name}`}
+              className="rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center"
+            >
               {credential.name}
-              {credential.chain && ` (${credential.chain})`}
-            </Badge>
+            </span>
           ))}
         </div>
       </div>
     );
   };
 
-  console.log('profile', profile) 
+  const renderIcebreakerChannels = () => {
+    if (!profile?.icebreakerData?.channels?.length) return null;
+
+    const filteredChannels = profile.icebreakerData.channels.filter(
+      (channel) => channel.value && priorityChannels.includes(channel.type)
+    );
+
+    const sortedChannels = filteredChannels.sort(
+      (a, b) =>
+        priorityChannels.indexOf(a.type) - priorityChannels.indexOf(b.type)
+    );
+
+    return (
+      <div className="mt-2">
+        <div className="flex flex-wrap gap-1">
+          {sortedChannels.map((channel) => (
+            <Link
+              key={`${channel.type}-${channel.value}`}
+              href={channel.url}
+              prefetch={false}
+            >
+              <Badge variant="secondary" className="text-sm">
+                {channel.type}
+              </Badge>
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-2 mb-4 min-h-72 cursor-pointer block">
+    <div className="space-y-2 mb-4 min-h-72">
       <Link
         href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
         prefetch={false}
+        className="cursor-pointer block"
       >
         <ProfileInfoContent
           profile={profile}
@@ -132,7 +145,7 @@ const ProfileInfo = ({
         )}
       </Link>
       {shouldRenderFullInfo && (
-        <div className="">
+        <div>
           {renderSocialCapitalScore()}
           {renderIcebreakerChannels()}
           {renderIcebreakerCredentials()}

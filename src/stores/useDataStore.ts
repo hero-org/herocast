@@ -139,13 +139,11 @@ const store = (set: StoreSet) => ({
     });
   },
   addUserProfile: async ({ user }: addUserProfileProps) => {
-    const icebreakerData = await fetchIcebreakerData(user.fid);
     set((state) => {
       state.usernameToFid = { ...state.usernameToFid, ...{ [user.username]: user.fid } };
-      const userObject = { 
-        ...user, 
+      const userObject = {
+        ...user,
         updatedAt: Date.now(),
-        icebreakerData: icebreakerData
       };
       state.fidToData = { ...state.fidToData, ...{ [user.fid]: userObject } };
     });
@@ -156,24 +154,5 @@ const store = (set: StoreSet) => ({
     });
   }
 });
-const fetchIcebreakerData = async (fid: number): Promise<IcebreakerData | null> => {
-  try {
-    const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
-      headers: {
-        'accept': 'application/json'
-      }
-    });
-    const data: IcebreakerData = await response.json();
-    if (data && Array.isArray(data.data) && Array.isArray(data.channels)) {
-      return data;
-    } else {
-      console.error('Unexpected data format from Icebreaker API:', data);
-      return null;
-    }
-  } catch (error) {
-    console.error('Error fetching Icebreaker data:', error);
-    return null;
-  }
-};
 
 export const useDataStore = create<DataStore>()(devtools(mutative(store)));
