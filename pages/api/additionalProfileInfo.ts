@@ -1,6 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSocialCapitalScore } from '@/common/helpers/airstack';
 
+async function getIcebreakerData(fid: string) {
+  try {
+    const response = await fetch(`https://api.icebreaker.xyz/v1/fid/${fid}`);
+    const data = await response.json();
+    return data.filter((item: any) => 
+      item.source === 'IcebreakerEAS' && 
+      ['twitter', 'linkedin', 'telegram'].includes(item.type)
+    );
+  } catch (error) {
+    console.error('Error fetching Icebreaker data:', error);
+    return [];
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
@@ -12,10 +26,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const socialCapitalScore = await getSocialCapitalScore(fid)
-    res.status(200).json({ socialCapitalScore });
+    const [socialCapitalScore, icebreakerData] = await Promise.all([
+      getSocialCapitalScore(fid),
+      getIcebreakerData(fid)
+    ]);
+    res.status(200).json({ socialCapitalScore, icebreakerData });
   } catch (error) {
-    console.error('Error fetching user assets:', error);
+    console.error('Error fetching additional profile info:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 }
