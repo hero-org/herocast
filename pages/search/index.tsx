@@ -63,7 +63,7 @@ const FilterBadge = ({
     <Badge
       className={cn(
         isActive && "text-foreground",
-        "rounded-lg shadow-sm hover:bg-accent hover:text-accent-foreground hover:cursor-pointer"
+        " h-8 rounded-lg px-3 text-xs shadow-sm hover:bg-accent hover:text-accent-foreground hover:cursor-pointer"
       )}
       variant="outline"
       onClick={action}

@@ -69,8 +69,9 @@ const getDraftsForTab = (
       return drafts
         .filter(
           (draft) =>
-            draft.status === DraftStatus.scheduled &&
-            draft.accountId === activeAccountId
+            draft.accountId === activeAccountId &&
+            (draft.status === DraftStatus.scheduled ||
+              draft.status === DraftStatus.failed)
         )
         .sort(
           (a, b) =>
@@ -125,6 +126,8 @@ export default function NewPost() {
   const resetSelectedDraftId = () => {
     setSelectedDraftId(draftsForTab[0]?.id);
   };
+
+  console.log("draftsForTab", draftsForTab);
 
   useEffect(() => {
     if (searchParams.has("text")) {
@@ -427,37 +430,42 @@ export default function NewPost() {
 
   console.log("draftsForTab.length", draftsForTab.length);
   const renderFreePlan = () => {
+    const hasAnyScheduledCasts = scheduledCastsCount > 0;
     const hasReachedFreePlanLimit =
       scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts;
     return (
-      <Card className="m-2 flex flex-col items-center justify-center h-full">
-        <CardContent className="flex flex-col items-center gap-2 mt-4">
-          <div className="text-center">
-            <h2 className="text-md">
-              You have {scheduledCastsCount} scheduled casts
-            </h2>
-            <span className="text-sm text-muted-foreground">
-              Upgrade to schedule more casts
-            </span>
-          </div>
-          <div></div>
-          <Progress
-            indicatorClassName="bg-gradient-to-r from-green-400 to-gray-600 animate-pulse"
-            value={
-              (scheduledCastsCount / openSourcePlanLimits.maxScheduledCasts) *
-              100
-            }
-          />
-        </CardContent>
-        <CardFooter>
-          <Button
-            size="lg"
-            variant={hasReachedFreePlanLimit ? "default" : "outline"}
-          >
-            Upgrade
-          </Button>
-        </CardFooter>
-      </Card>
+      hasAnyScheduledCasts && (
+        <Card className="m-2 flex flex-col items-center justify-center h-full">
+          <CardContent className="flex flex-col items-center gap-2 mt-4">
+            <div className="text-center">
+              <h2 className="text-md">
+                You have scheduled
+                <br /> {scheduledCastsCount} casts
+              </h2>
+              <span className="text-sm text-muted-foreground">
+                Upgrade to schedule more
+              </span>
+            </div>
+            <div></div>
+            <Progress
+              indicatorClassName="bg-gradient-to-r from-green-400 to-green-800 animate-pulse animate-1000"
+              value={
+                (scheduledCastsCount / openSourcePlanLimits.maxScheduledCasts) *
+                100
+              }
+            />
+          </CardContent>
+          <CardFooter>
+            <Button
+              href="/upgrade"
+              size="lg"
+              variant={hasReachedFreePlanLimit ? "default" : "outline"}
+            >
+              Upgrade
+            </Button>
+          </CardFooter>
+        </Card>
+      )
     );
   };
 
