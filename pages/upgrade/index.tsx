@@ -34,11 +34,17 @@ const plans = [
   {
     name: "Open source",
     featured: false,
-    price: { Monthly: "$0", Annually: "$0" },
+    price: { Monthly: "€0", Annually: "€0" },
     description: "Perfect for starters. Enjoy growth with no costs.",
     button: {
-      label: "Get started for free",
-      href: "https://app.herocast.xyz/login",
+      Monthly: {
+        label: "Get started for free",
+        href: "https://app.herocast.xyz/login",
+      },
+      Annually: {
+        label: "Get started for free",
+        href: "https://app.herocast.xyz/login",
+      },
     },
     features: [
       "Custom feeds ",
@@ -58,11 +64,17 @@ const plans = [
   {
     name: "Pro",
     featured: true,
-    price: { Monthly: "$50", Annually: "$30" },
+    price: { Monthly: "€50", Annually: "€30" },
     description: "Ideal for those looking to accelerate their growth.",
     button: {
-      label: "Subscribe",
-      href: "LINK_TO_STRIPE_CHECKOUT",
+      Monthly: {
+        label: "Subscribe",
+        href: "https://buy.stripe.com/4gw03YeoO3Pz93i146",
+      },
+      Annually: {
+        label: "Subscribe",
+        href: "https://buy.stripe.com/fZeg2WeoObi193i288",
+      },
     },
     features: [
       "Custom feeds ",
@@ -82,8 +94,14 @@ const plans = [
     price: { Monthly: "Talk to us", Annually: "Talk to us" },
     description: "Best for maximizing growth with all features included.",
     button: {
-      label: "Reach out",
-      href: "https://calendly.com/bijanfarsijani/25mincoffee",
+      Monthly: {
+        label: "Reach out",
+        href: "https://calendly.com/bijanfarsijani/25mincoffee",
+      },
+      Annually: {
+        label: "Reach out",
+        href: "https://calendly.com/bijanfarsijani/25mincoffee",
+      },
     },
     features: [
       "Custom feeds ",
@@ -109,8 +127,8 @@ type PlanProps = {
   };
   description: string;
   button: {
-    label: string;
-    href: string;
+    Monthly: { label: string; href: string };
+    Annually: { label: string; href: string };
   };
   features: Array<string>;
   unavilableFeatures: Array<string>;
@@ -131,11 +149,11 @@ function Plan({
   featured = false,
 }: PlanProps) {
   const isPayingUser = isPaidUser();
-  const isPaidPlan = price.Monthly !== "$0";
+  const isPaidPlan = price.Monthly !== "€0";
 
   const renderPlanButton = () => (
     <Button
-      href={button.href}
+      href={button[activePeriod].href}
       className="mt-6"
       disabled={!isPayingUser && !isPaidPlan}
       aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
