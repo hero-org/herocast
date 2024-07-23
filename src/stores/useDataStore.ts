@@ -84,10 +84,21 @@ type addTokenDataProps = {
   data: DexPair;
 };
 
+type IcebreakerData = {
+  data: {
+    type: string;
+    value: string;
+  }[];
+  channels: {
+    type: string;
+    value: string;
+  }[];
+};
+
 type AdditionalUserInfo = {
   socialCapitalScore: {
     socialCapitalRank: number;
-  }
+  };
 };
 
 type addUserProfileProps = {
@@ -126,10 +137,13 @@ const store = (set: StoreSet) => ({
       state.selectedCast = cast;
     });
   },
-  addUserProfile: ({ user }: addUserProfileProps) => {
+  addUserProfile: async ({ user }: addUserProfileProps) => {
     set((state) => {
       state.usernameToFid = { ...state.usernameToFid, ...{ [user.username]: user.fid } };
-      const userObject = { ...user, updatedAt: Date.now() };
+      const userObject = {
+        ...user,
+        updatedAt: Date.now(),
+      };
       state.fidToData = { ...state.fidToData, ...{ [user.fid]: userObject } };
     });
   },
@@ -139,4 +153,5 @@ const store = (set: StoreSet) => ({
     });
   }
 });
+
 export const useDataStore = create<DataStore>()(devtools(mutative(store)));

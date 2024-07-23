@@ -28,5 +28,5 @@ export async function getSocialCapitalScore(fid: string) {
         console.error("Error fetching airstack capital score:", error);
         return undefined;
     }
-    return data.Socials.Social[0].socialCapital;
+    return data?.Socials?.Social?.[0]?.socialCapital;
 }

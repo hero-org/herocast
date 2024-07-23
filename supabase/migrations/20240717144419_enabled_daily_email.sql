@@ -20,11 +20,9 @@ RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profile (user_id, email)
   VALUES (NEW.id, NEW.email)
-  ON CONFLICT (user_id) DO UPDATE
-  SET email = EXCLUDED.email,
-      updated_at = now();
-
-  RETURN NEW;
+ ON CONFLICT (user_id) DO UPDATE
+  SET email = EXCLUDED.email;
+RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
