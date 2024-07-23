@@ -143,7 +143,9 @@ Deno.serve(async () => {
       await sendEmail(resend, fromAddress, toAddress, 'herocast daily digest', listsWithCasts);
       count++;
     }
-    return new Response(JSON.stringify({ message: `sent ${count} emails` }), {
+    const message = `sent ${count} emails`;
+    console.log(message);
+    return new Response(JSON.stringify({ message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 200,
     })
