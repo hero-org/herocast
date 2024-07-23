@@ -4,10 +4,20 @@ import { Button } from "@/components/ui/button";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { XCircleIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
-import { isPaidUser } from "../../src/stores/useUserStore";
+import { isPaidUser, useUserStore } from "../../src/stores/useUserStore";
 import { useRouter } from "next/router";
-
+import {
+  CheckCircleIcon,
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/20/solid";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 function Logomark(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
     <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
@@ -48,7 +58,7 @@ const plans = [
   {
     name: "Pro",
     featured: true,
-    price: { Monthly: "$35", Annually: "$50" },
+    price: { Monthly: "$50", Annually: "$30" },
     description: "Ideal for those looking to accelerate their growth.",
     button: {
       label: "Subscribe",
@@ -147,7 +157,7 @@ function Plan({
         <h3
           className={cn(
             "flex items-center text-sm font-semibold",
-            featured ? "text-white" : "text-gray-900"
+            featured ? "text-white" : "text-foreground"
           )}
         >
           <Logomark className={cn("h-6 w-6 flex-none", logomarkClassName)} />
@@ -156,7 +166,7 @@ function Plan({
         <p
           className={cn(
             "relative mt-5 flex text-3xl tracking-tight",
-            featured ? "text-white" : "text-gray-900"
+            featured ? "text-white" : "text-foreground"
           )}
         >
           {price.Monthly === price.Annually ? (
@@ -226,14 +236,14 @@ function Plan({
         </div>
         {renderPlanButton()}
       </Card>
-      <div className="text-center">{renderPlanButton()}</div>
+      {isPaidPlan && <div className="text-center">{renderPlanButton()}</div>}
     </div>
   );
 }
 
 export function Pricing() {
   const [activePeriod, setActivePeriod] = useState<"Monthly" | "Annually">(
-    "Monthly"
+    "Annually"
   );
 
   return (
@@ -296,29 +306,93 @@ export function Pricing() {
 
 export default function UpgradePage() {
   const router = useRouter();
-  // this is a temporary hack until we integrate with Stripe webhooks
+  const { addUnsafeCustomerForUser } = useUserStore();
   const hasPaidViaStripe = router.query.success === "true";
+  const isPayingUser = isPaidUser();
+
   useEffect(() => {
-    if (hasPaidViaStripe) {
-      // add customer entry in DB
-      
+    if (hasPaidViaStripe && !isPayingUser) {
+      // this is a temporary hack until we integrate with Stripe webhooks
+      addUnsafeCustomerForUser({
+        stripe_customer_id: "manual_entry",
+      });
     }
-  }, [hasPaidViaStripe]);
+  }, [hasPaidViaStripe, isPayingUser]);
+
+  const renderUpgradeContent = () => (
+    <div className="flex min-h-full flex-1 flex-col px-6 py-8 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <h2 className="mt-6 text-center text-3xl font-bold leading-9 tracking-tight text-foreground">
+          Upgrade Herocast
+        </h2>
+        <p className="mt-2 text-center text-lg text-muted-foreground">
+          Choose a plan that fits your needs and take your Farcaster experience
+          to the next level.
+        </p>
+      </div>
+      <Pricing />
+    </div>
+  );
+
+  const renderUpgradeSuccessContent = () => (
+    <div className="m-6 flex min-h-full flex-1 flex-col px-6 py-8 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <h2 className="text-center text-3xl font-bold leading-9 tracking-tight text-foreground">
+          Congratulations!
+        </h2>
+        <p className="mt-2 text-center text-lg text-muted-foreground">
+          Your herocast Pro subscription is now active.
+        </p>
+      </div>
+      <div className="mt-4 lg:max-w-lg mx-auto">
+        <Card className="min-w-max bg-background text-foreground">
+          <CardHeader className="space-y-1">
+            <CardTitle className="flex">
+              <CheckCircleIcon
+                className="-mt-0.5 mr-1 h-5 w-5 text-foreground/80"
+                aria-hidden="true"
+              />
+              Subscribed to herocast Pro
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              You can now schedule more casts and monitor more search terms.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="-mx-2 -my-1.5 flex">
+              <Button
+                onClick={() => router.push("/search")}
+                type="button"
+                variant="default"
+              >
+                Add more search alerts
+                <MagnifyingGlassIcon
+                  className="ml-1.5 mt-0.5 h-4 w-4"
+                  aria-hidden="true"
+                />
+              </Button>
+              <Button
+                onClick={() => router.push("/post")}
+                type="button"
+                variant="outline"
+                className="ml-4"
+              >
+                Schedule more casts
+                <PencilSquareIcon
+                  className="ml-1.5 mt-0.5 h-4 w-4"
+                  aria-hidden="true"
+                />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-background">
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="mt-10 text-center text-3xl font-bold leading-9 tracking-tight text-gray-900">
-            Upgrade Herocast
-          </h2>
-          <p className="mt-2 text-center text-lg text-gray-600">
-            Choose a plan that fits your needs and take your Farcaster
-            experience to the next level.
-          </p>
-        </div>
-        <Pricing />
-      </div>
+      {isPayingUser ? renderUpgradeSuccessContent() : renderUpgradeContent()}
     </div>
   );
 }

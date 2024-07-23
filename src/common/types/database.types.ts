@@ -431,3 +431,4 @@ export type List = Database['public']['Tables']['list']['Row'];
 export type InsertList = Database['public']['Tables']['list']['Insert'];
 export type UpdateList = Database['public']['Tables']['list']['Update'];
 export type Customer = Database['public']['Tables']['customers']['Row'];
+export type InsertCustomer = Database['public']['Tables']['customers']['Insert'];

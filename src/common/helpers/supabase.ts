@@ -1,6 +1,6 @@
 import isEmpty from 'lodash.isempty';
 import { AccountStatusType } from '../constants/accounts';
-import { Customer } from '../types/database.types';
+import { Customer, InsertCustomer } from '../types/database.types';
 
 export const getAccountsForUser = async (supabaseClient) => {
   const { data: { user } } = await supabaseClient.auth.getUser();
@@ -44,17 +44,24 @@ export const getCustomersForUser = async (supabaseClient): Promise<Customer | un
 }
 
 // this is a temporary hack until we integrate with Stripe webhooks
-export const addUnsafeCustomerForUser = async (supabaseClient, customer: Customer): Promise<boolean> => {
+export const addUnsafeCustomerForUser = async (supabaseClient, customer: Omit<InsertCustomer, 'user_id'>): Promise<boolean> => {
   const { data: { user } } = await supabaseClient.auth.getUser();
   if (isEmpty(user)) {
     console.log('no user to add customer to');
     return false;
   }
 
-  const {} = await supabaseClient
+  const { error } = await supabaseClient
     .from('customers')
     .insert({
       ...customer,
       user_id: user?.id,
-    });
+    })
+    .single();
+
+  if (error) {
+    console.error('error adding customer', error);
+    return false;
+  }
+  return true;
 }

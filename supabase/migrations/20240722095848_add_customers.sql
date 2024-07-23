@@ -7,4 +7,9 @@ CREATE TABLE IF NOT EXISTS "public"."customers" (
   -- The user's hypersub subscription ID. User must not be able to update this.
   hypersub_token_id text
 );
-alter table customers enable row level security;
+
+alter table
+  customers enable row level security;
+
+-- Create policy to enable access for users based on user_id
+CREATE POLICY "Enable access for users based on user_id" ON customers USING (auth.uid() = user_id) WITH CHECK (true);

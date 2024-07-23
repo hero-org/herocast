@@ -49,6 +49,7 @@ type NavigationItemType = {
   getHeaderActions?: () => HeaderAction[];
   shortcut?: string;
   additionalPaths?: string[];
+  hide?: boolean;
 };
 
 type HeaderAction = {
@@ -214,9 +215,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           name: "Notifications",
           router: "/notifications",
           icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-          getTitle: () => "Notifications",
           shortcut: "Shift + N",
         },
+        {
+          name: "Upgrade",
+          router: "/upgrade",
+          hide: true,
+        }
       ],
     },
     {
@@ -409,7 +414,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                           >
                             <li>
                               <ul role="list" className="-mx-2 space-y-1">
-                                {navigation.map((item) => (
+                                {navigation.map((item) => !item.hide && (
                                   <li key={item.name}>
                                     <Link
                                       href={item.router}
@@ -469,7 +474,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 const navigation = group.items;
                 return (
                   <div key={`nav-group-${group.name}`}>
-                    {navigation.map((item) => (
+                    {navigation.map((item) => !item.hide && (
                       <ul
                         key={`nav-item-${item.name}`}
                         role="list"

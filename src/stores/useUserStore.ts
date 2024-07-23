@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
-import { Customer } from "@/common/types/database.types";
+import { Customer, InsertCustomer } from "@/common/types/database.types";
 import { createClient } from "@/common/helpers/supabase/component";
 import { addUnsafeCustomerForUser, getCustomersForUser } from "@/common/helpers/supabase";
 
@@ -12,7 +12,7 @@ interface UserStoreProps {
 
 interface UserStoreActions {
   hydrate: () => void;
-  addCustomer: () => void;
+  addUnsafeCustomerForUser: (customer: Omit<InsertCustomer, 'user_id'>) => void;
 }
 
 export interface UserStore extends UserStoreProps, UserStoreActions { }
@@ -26,22 +26,17 @@ const supabaseClient = createClient();
 
 const store = (set: StoreSet) => ({
   customer: undefined,
-  addCustomerForUser: async (customer: Customer) => {
+  addUnsafeCustomerForUser: async (customer: Omit<InsertCustomer, 'user_id'>) => {
     addUnsafeCustomerForUser(supabaseClient, customer).then(
       () => {
         set((state) => {
-          state.customer = customer;
+          state.customer = customer as Customer;
         });
       }
     )
   },
   hydrate: async () => {
-    console.log('hydrate userStore');
     getCustomersForUser(supabaseClient).then((customer) => {
-      if (!customer) {
-        return;
-      }
-
       set((state) => {
         state.customer = customer;
       });
@@ -51,6 +46,4 @@ const store = (set: StoreSet) => ({
 
 export const useUserStore = create<UserStore>()(devtools(mutative(store)));
 
-export const isPaidUser = () => {
-  return useUserStore((state) => state.customer) !== undefined;
-}
+export const isPaidUser = () => !!useUserStore((state) => state.customer);
