@@ -53,7 +53,6 @@ const ManageListModal = ({ open, onClose }) => {
       term: newSearchTerm,
       enabled_daily_email: isDailyEmailEnabled,
     };
-    console.log('updateing with newcontents', newContents)
     updateList({
       ...list,
       name: newName,
