@@ -9,8 +9,6 @@ import { Label } from "@/components/ui/label";
 import { SearchIntervalFilter } from "./SearchIntervalFilter";
 import { SearchInterval } from "../helpers/search";
 import { Switch } from "@/components/ui/switch";
-import { useHotkeys } from "react-hotkeys-hook";
-import { Key } from "ts-key-enum";
 import { toastSuccessSavedSearchUpdate } from "../helpers/toast";
 import { BellIcon } from "@heroicons/react/24/outline";
 
@@ -20,6 +18,7 @@ const ManageListModal = ({ open, onClose }) => {
   const { updateList, removeList } = useListStore();
   const [newName, setNewName] = useState("");
   const [newSearchTerm, setNewSearchTerm] = useState("");
+  const [isDailyEmailEnabled, setIsDailyEmailEnabled] = useState(false);
 
   const list = useListStore((state) =>
     state.selectedListIdx !== undefined
@@ -27,7 +26,11 @@ const ManageListModal = ({ open, onClose }) => {
       : undefined
   );
   const canSave =
-    list && (newName !== list.name || newSearchTerm !== list.contents?.term);
+    list &&
+    (newName !== list.name ||
+      newSearchTerm !== list.contents?.term ||
+      isDailyEmailEnabled !== list.contents?.enabled_daily_email
+    );
 
   const onClickDelete = (id: UUID) => {
     removeList(id);
@@ -39,18 +42,22 @@ const ManageListModal = ({ open, onClose }) => {
 
     setNewName(list?.name);
     setNewSearchTerm(list?.contents?.term);
+    setIsDailyEmailEnabled(list?.contents?.enabled_daily_email);
   }, [list]);
 
   const onClickSave = () => {
     if (!list || !canSave) return;
 
+    const newContents = {
+      ...list.contents,
+      term: newSearchTerm,
+      enabled_daily_email: isDailyEmailEnabled,
+    };
+    console.log('updateing with newcontents', newContents)
     updateList({
       ...list,
       name: newName,
-      contents: {
-        ...list.contents,
-        term: newSearchTerm,
-      },
+      contents: newContents,
     }).then(() => {
       toastSuccessSavedSearchUpdate(newName);
       onClose();
@@ -86,17 +93,16 @@ const ManageListModal = ({ open, onClose }) => {
             onChange={(e) => setNewSearchTerm(e.target.value)}
           />
         </div>
-        <div className=" flex items-center space-x-4 rounded-md border p-4">
-          <BellIcon />
-          <div className="flex-1 space-y-1">
-            <p className="text-sm font-medium leading-none">
-              Push Notifications
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Send notifications to device.
-            </p>
-          </div>
-          <Switch />
+        <div className="flex flex-col">
+          <Label className="flex">
+            <BellIcon className="h-5 w-5 mr-1" />
+            Daily Email Alert
+          </Label>
+          <Switch
+            className="mt-2"
+            checked={isDailyEmailEnabled}
+            onCheckedChange={() => setIsDailyEmailEnabled(!isDailyEmailEnabled)}
+          />
         </div>
         <div className="flex flex-row space-x-4">
           <div className="flex flex-col">
