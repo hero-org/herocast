@@ -43,6 +43,7 @@ import { useTextLength } from "../../helpers/editor";
 import { cn } from "@/lib/utils";
 import { openSourcePlanLimits } from "../../../config/customerLimitation";
 import Link from "next/link";
+import { isPaidUser } from "@/stores/useUserStore";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -279,6 +280,7 @@ export default function NewPostEntry({
       state.drafts.filter((draft) => draft.status === DraftStatus.scheduled)
     )?.length || 0;
   const hasReachedFreePlanLimit =
+    !isPaidUser() &&
     scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
   const isButtonDisabled =
     isPublishing ||

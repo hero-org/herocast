@@ -18,6 +18,7 @@ import { useListStore } from "@/stores/useListStore";
 import { useDraftStore } from "../../stores/useDraftStore";
 import { DraftStatus } from "../constants/farcaster";
 import { Button } from "@/components/ui/button";
+import { isPaidUser } from "@/stores/useUserStore";
 
 type UpgradeFreePlanCardProps = {
   limit: openSourceLimits;
@@ -27,6 +28,8 @@ const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
   const { lists } = useListStore();
   const { accounts } = useAccountStore();
   const { drafts } = useDraftStore();
+
+  if (isPaidUser()) return null;
 
   const getValueForLimit = () => {
     switch (limit) {
