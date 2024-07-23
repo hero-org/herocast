@@ -43,3 +43,18 @@ export const getCustomersForUser = async (supabaseClient): Promise<Customer | un
   return customerData;
 }
 
+// this is a temporary hack until we integrate with Stripe webhooks
+export const addUnsafeCustomerForUser = async (supabaseClient, customer: Customer): Promise<boolean> => {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (isEmpty(user)) {
+    console.log('no user to add customer to');
+    return false;
+  }
+
+  const {} = await supabaseClient
+    .from('customers')
+    .insert({
+      ...customer,
+      user_id: user?.id,
+    });
+}

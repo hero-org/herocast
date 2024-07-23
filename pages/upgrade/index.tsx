@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Radio, RadioGroup } from "@headlessui/react";
 import { Button } from "@/components/ui/button";
 import { CheckIcon } from "@heroicons/react/24/outline";
@@ -6,6 +6,7 @@ import { XCircleIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { isPaidUser } from "../../src/stores/useUserStore";
+import { useRouter } from "next/router";
 
 function Logomark(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
@@ -294,6 +295,16 @@ export function Pricing() {
 }
 
 export default function UpgradePage() {
+  const router = useRouter();
+  // this is a temporary hack until we integrate with Stripe webhooks
+  const hasPaidViaStripe = router.query.success === "true";
+  useEffect(() => {
+    if (hasPaidViaStripe) {
+      // add customer entry in DB
+      
+    }
+  }, [hasPaidViaStripe]);
+
   return (
     <div className="bg-background">
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">

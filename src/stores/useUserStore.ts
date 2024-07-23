@@ -3,7 +3,7 @@ import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { Customer } from "@/common/types/database.types";
 import { createClient } from "@/common/helpers/supabase/component";
-import { getCustomersForUser } from "@/common/helpers/supabase";
+import { addUnsafeCustomerForUser, getCustomersForUser } from "@/common/helpers/supabase";
 
 
 interface UserStoreProps {
@@ -26,10 +26,14 @@ const supabaseClient = createClient();
 
 const store = (set: StoreSet) => ({
   customer: undefined,
-  addCustomer: (customer: Customer) => {
-    set((state) => {
-      state.customer = customer;
-    });
+  addCustomerForUser: async (customer: Customer) => {
+    addUnsafeCustomerForUser(supabaseClient, customer).then(
+      () => {
+        set((state) => {
+          state.customer = customer;
+        });
+      }
+    )
   },
   hydrate: async () => {
     console.log('hydrate userStore');
