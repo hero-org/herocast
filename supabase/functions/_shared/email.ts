@@ -44,11 +44,13 @@ const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
   const highlightSearchTerm = (text: string, term: string): (string | React.ReactElement)[] => {
     if (!term) return [text];
 
-    // Handle "term1 OR term2" format
-    const orTerms = term.match(/"([^"]+)"\s+OR\s+"([^"]+)"/);
-    if (orTerms) {
-      const searchTerms = orTerms.slice(1).map(t => t.trim());
-      const pattern = new RegExp(`(${searchTerms.join('|')})`, 'gi');
+    // Handle "term1 OR term2" and "term1" or term2 formats
+    const orRegex = /(?:"([^"]+)"|(\S+))\s+(?:OR|or)\s+(?:"([^"]+)"|(\S+))/;
+    const orMatch = term.match(orRegex);
+
+    if (orMatch) {
+      const searchTerms = orMatch.slice(1).filter(Boolean).map(t => t.trim());
+      const pattern = new RegExp(`(${searchTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
       const parts = text.split(pattern);
       return parts.map((part, index) => 
         searchTerms.some(t => part.toLowerCase() === t.toLowerCase()) 
@@ -60,7 +62,7 @@ const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
     const searchTerms = term.split(/\s+/)
       .filter(t => !t.startsWith('-'))
       .map(t => t.replace(/^["']|["']$/g, '').trim());
-    const pattern = new RegExp(`(${searchTerms.join('|')})`, 'gi');
+    const pattern = new RegExp(`(${searchTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
     const parts = text.split(pattern);
     return parts.map((part, index) =>
       searchTerms.some(t => part.toLowerCase() === t.toLowerCase())
