@@ -16,6 +16,8 @@ import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
   Cog6ToothIcon,
+  BellIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { UUID } from "crypto";
@@ -77,29 +79,36 @@ const ListsOverview = () => {
           )}
         >
           <span className="flex-nowrap truncate">{list.name}</span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="outline"
-                className="rounded-lg h-8 w-6"
-              >
-                <EllipsisVerticalIcon className="h-3.5 w-3.5" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-lg">
-              <DropdownMenuItem onClick={() => updateSelectedList(list.id)}>
-                <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
-                Search
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onOpenManageListModal(list.id)}>
-                <Cog6ToothIcon className="h-4 w-4 mr-2" />
-                Manage
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex">
+            {list?.contents?.enabled_daily_email && (
+              <EnvelopeIcon className="h-4 w-4 mt-1 mr-1 text-muted-foreground/50" />
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="rounded-lg h-6 w-5"
+                >
+                  <EllipsisVerticalIcon className="h-3.5 w-3.5" />
+                  <span className="sr-only">More</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="rounded-lg">
+                <DropdownMenuItem onClick={() => updateSelectedList(list.id)}>
+                  <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
+                  Search
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onOpenManageListModal(list.id)}
+                >
+                  <Cog6ToothIcon className="h-4 w-4 mr-2" />
+                  Manage
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </li>
     );
@@ -142,7 +151,14 @@ const ListsOverview = () => {
   );
   return (
     <div className="">
-      <SidebarHeader title="Saved Searches" />
+      <SidebarHeader
+        title={
+          <span className="flex align-center">
+            <BellIcon className="h-5 w-5 mt-1 mr-1" />
+            Saved Searches
+          </span>
+        }
+      />
       {lists.length === 0 ? renderEmptyListsCard() : renderLists()}
     </div>
   );

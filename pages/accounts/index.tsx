@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {
-  CheckCircleIcon,
-  PlusCircleIcon,
-  RectangleGroupIcon,
-  UserPlusIcon,
-} from "@heroicons/react/20/solid";
-import {
-  ArrowDownTrayIcon,
-  ArrowPathIcon,
-  NewspaperIcon,
-} from "@heroicons/react/24/solid";
-import { useDraftStore } from "@/stores/useDraftStore";
-import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
+import { UserPlusIcon } from "@heroicons/react/20/solid";
+import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
 import {
   AccountObjectType,
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
@@ -53,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AlertDialogDemo from "@/common/components/AlertDialog";
 import AccountManagementModal from "@/common/components/AccountManagement/AccountManagementModal";
 import { cn } from "@/lib/utils";
+import { filter } from "lodash";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -342,118 +332,159 @@ export default function Accounts() {
     </Card>
   );
 
-  const renderFullAccountTabs = () => (
-    <Tabs defaultValue="default">
-      <div className="flex items-center mb-4">
-        <TabsList>
-          <TabsTrigger value="default">Add accounts</TabsTrigger>
-          <TabsTrigger value="create">Create accounts</TabsTrigger>
-          <TabsTrigger value="shared">Shared accounts</TabsTrigger>
-          <TabsTrigger value="manage">Manage</TabsTrigger>
-          <TabsTrigger value="help">Help</TabsTrigger>
-        </TabsList>
-      </div>
-      <TabsContent value="default">
-        <div className="grid flex-1 items-start gap-4 sm:py-0 md:gap-8">
-          <div className="max-w-md lg:max-w-lg">
-            {signupState === SignupStateEnum.initial &&
-              renderCreateSignerStep()}
-            {signupState === SignupStateEnum.connecting &&
-              renderConnectAccountStep()}
-          </div>
-        </div>
-      </TabsContent>
-      <TabsContent value="create">
-        <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
-          {renderCreateNewOnchainAccountCard()}
-        </div>
-      </TabsContent>
-      <TabsContent value="shared">
-        <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
-          <ConnectFarcasterAccountViaHatsProtocol />
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">
-                Create a shared Farcaster account
-              </CardTitle>
-              <CardDescription className="text-lg">
-                Follow these steps to create a shared Farcaster account. Shared
-                accounts are powered by Hats Protocol 🧢.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="w-full max-w-lg"></CardContent>
-            <CardFooter className="flex flex-col">
-              <Button
-                className="w-full"
-                variant="default"
-                onClick={() => router.push("/hats")}
-              >
-                Go to setup →
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </TabsContent>
-      <TabsContent value="manage" className="max-w-[600px]">
+  const renderActiveAccountsOverview = () => {
+    const activeAccounts = filter(
+      accounts,
+      (account) => account.status === "active"
+    );
+
+    if (isEmpty(activeAccounts)) return null;
+
+    return (
+      <>
         <div className="flex justify-between pb-2 border-b border-gray-200">
           <h1 className="text-xl font-semibold leading-7 text-foreground/80">
-            Farcaster accounts
+            Connected Farcaster accounts
           </h1>
-          <Button
-            variant="outline"
-            className="h-8"
-            disabled={isLoading}
-            onClick={() => refreshAccountNames()}
-          >
-            Reload accounts
-            <ArrowPathIcon
-              className={cn(isLoading && "animate-spin", "ml-1 w-4 h-4")}
-            />
-          </Button>
         </div>
-        <ul role="list" className="divide-y divide-white/5">
-          {accounts.map((item: AccountObjectType, idx: number) => (
+        <ul role="list" className="mb-8 divide-y">
+          {activeAccounts.map((item: AccountObjectType) => (
             <li key={item.id} className="px-2 py-2">
               <div className="flex items-center gap-x-3">
                 <h3 className="text-foreground/80 flex-auto truncate text-sm font-semibold leading-6">
                   {item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
                 </h3>
-                {item.platformAccountId && item.status !== "active" && (
-                  <p className="truncate text-sm text-foreground/80">
-                    {item.status}
-                  </p>
-                )}
+                <p className="truncate text-sm text-foreground/80">
+                  {item.status}
+                </p>
                 {item.platform ===
                   AccountPlatformType.farcaster_hats_protocol && (
                   <p className="text-sm">🧢</p>
                 )}
-                {item.platformAccountId && item.status === "active" && (
-                  <p className="font-mono truncate text-sm text-foreground/80">
-                    fid: {item.platformAccountId}
-                  </p>
-                )}
-                <Button
-                  variant="secondary"
-                  onClick={() => onClickManageAccount(item)}
-                >
-                  Manage
-                </Button>
-                <AlertDialogDemo
-                  buttonText={`Remove`}
-                  onClick={() => removeAccount(item.id)}
-                />
               </div>
             </li>
           ))}
         </ul>
-      </TabsContent>
-      <TabsContent value="help">
-        <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
-          <HelpCard />
+      </>
+    );
+  };
+
+  const renderFullAccountTabs = () => {
+    return (
+      <Tabs defaultValue="default">
+        <div className="flex items-center mb-4">
+          <TabsList>
+            <TabsTrigger value="default">Add accounts</TabsTrigger>
+            <TabsTrigger value="create">Create accounts</TabsTrigger>
+            <TabsTrigger value="shared">Shared accounts</TabsTrigger>
+            <TabsTrigger value="manage">Manage</TabsTrigger>
+            <TabsTrigger value="help">Help</TabsTrigger>
+          </TabsList>
         </div>
-      </TabsContent>
-    </Tabs>
-  );
+        <TabsContent value="default" className="max-w-md">
+          {renderActiveAccountsOverview()}
+
+          <div className="grid flex-1 items-start gap-4 sm:py-0 md:gap-8">
+            <div className="max-w-md lg:max-w-lg">
+              {signupState === SignupStateEnum.initial &&
+                renderCreateSignerStep()}
+              {signupState === SignupStateEnum.connecting &&
+                renderConnectAccountStep()}
+            </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="create">
+          <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
+            {renderCreateNewOnchainAccountCard()}
+          </div>
+        </TabsContent>
+        <TabsContent value="shared">
+          <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
+            <ConnectFarcasterAccountViaHatsProtocol />
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">
+                  Create a shared Farcaster account
+                </CardTitle>
+                <CardDescription className="text-lg">
+                  Follow these steps to create a shared Farcaster account.
+                  Shared accounts are powered by Hats Protocol 🧢.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="w-full max-w-lg"></CardContent>
+              <CardFooter className="flex flex-col">
+                <Button
+                  className="w-full"
+                  variant="default"
+                  onClick={() => router.push("/hats")}
+                >
+                  Go to setup →
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </TabsContent>
+        <TabsContent value="manage" className="max-w-[600px]">
+          <div className="flex justify-between pb-2 border-b border-gray-200">
+            <h1 className="text-xl font-semibold leading-7 text-foreground/80">
+              Farcaster accounts
+            </h1>
+            <Button
+              variant="outline"
+              className="h-8"
+              disabled={isLoading}
+              onClick={() => refreshAccountNames()}
+            >
+              Reload accounts
+              <ArrowPathIcon
+                className={cn(isLoading && "animate-spin", "ml-1 w-4 h-4")}
+              />
+            </Button>
+          </div>
+          <ul role="list" className="divide-y divide-white/5">
+            {accounts.map((item: AccountObjectType, idx: number) => (
+              <li key={item.id} className="px-2 py-2">
+                <div className="flex items-center gap-x-3">
+                  <h3 className="text-foreground/80 flex-auto truncate text-sm font-semibold leading-6">
+                    {item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
+                  </h3>
+                  {item.platformAccountId && item.status !== "active" && (
+                    <p className="truncate text-sm text-foreground/80">
+                      {item.status}
+                    </p>
+                  )}
+                  {item.platform ===
+                    AccountPlatformType.farcaster_hats_protocol && (
+                    <p className="text-sm">🧢</p>
+                  )}
+                  {item.platformAccountId && item.status === "active" && (
+                    <p className="font-mono truncate text-sm text-foreground/80">
+                      fid: {item.platformAccountId}
+                    </p>
+                  )}
+                  <Button
+                    variant="secondary"
+                    onClick={() => onClickManageAccount(item)}
+                  >
+                    Manage
+                  </Button>
+                  <AlertDialogDemo
+                    buttonText={`Remove`}
+                    onClick={() => removeAccount(item.id)}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </TabsContent>
+        <TabsContent value="help">
+          <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
+            <HelpCard />
+          </div>
+        </TabsContent>
+      </Tabs>
+    );
+  };
 
   return (
     <div className="pt-4 flex min-h-screen w-full flex-col bg-muted/40">
