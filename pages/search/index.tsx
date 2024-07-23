@@ -311,6 +311,7 @@ export default function SearchPage() {
     const contents = {
       term: searchTerm,
       filters: getFilters(),
+      enabled_daily_email: true,
     };
     addList({
       name: searchTerm,
