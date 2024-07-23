@@ -99,7 +99,6 @@ type AdditionalUserInfo = {
   socialCapitalScore: {
     socialCapitalRank: number;
   };
-  icebreakerData?: IcebreakerData;
 };
 
 type addUserProfileProps = {

@@ -27,7 +27,11 @@ import {
 import { ChannelType } from "@/common/constants/channels";
 import { UUID } from "crypto";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { openSourcePlanLimits } from "@/config/customerLimitation";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import Link from "next/link";
+import UpgradeFreePlanCard from "../../src/common/components/UpgradeFreePlanCard";
 
 enum DraftListTab {
   writing = "writing",
@@ -66,8 +70,8 @@ const getDraftsForTab = (
       return drafts
         .filter(
           (draft) =>
-            draft.status === DraftStatus.scheduled &&
-            draft.accountId === activeAccountId
+            (!activeAccountId || draft.accountId === activeAccountId) &&
+            draft.status === DraftStatus.scheduled
         )
         .sort(
           (a, b) =>
@@ -110,6 +114,10 @@ export default function NewPost() {
   const draftsForTab = useMemo(
     () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
     [drafts, activeTab, selectedAccount?.id]
+  );
+  const scheduledCastsCount = useMemo(
+    () => getDraftsForTab(drafts, DraftListTab.scheduled).length,
+    [drafts, selectedAccount?.id]
   );
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
 
@@ -155,7 +163,7 @@ export default function NewPost() {
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
-        viewerFid: selectedAccount?.platformAccountId,
+        viewerFid: Number(selectedAccount?.platformAccountId),
       });
       setParentCasts(res?.result?.casts);
     };
@@ -330,6 +338,24 @@ export default function NewPost() {
     );
   };
 
+  const renderTabsSelector = () => (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center py-2 w-full">
+        <TabsList className="flex w-full">
+          {DraftListTabs.map((tab) => (
+            <TabsTrigger
+              key={tab.key}
+              value={tab.key}
+              className="text-zinc-600 dark:text-zinc-200"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
+    </div>
+  );
+
   const renderScrollableList = (children: React.ReactElement) => (
     <ScrollArea className="flex-1">
       <div className="flex flex-col gap-2 pt-0">{children}</div>
@@ -338,7 +364,7 @@ export default function NewPost() {
 
   const renderNewDraftButton = () => (
     <Button
-    size="sm"
+      size="sm"
       variant="outline"
       className="flex items-center gap-2 mx-auto"
       onClick={() => {
@@ -398,6 +424,10 @@ export default function NewPost() {
     }
   };
 
+  const renderFreePlanCard = () => {
+    return <UpgradeFreePlanCard limit="maxScheduledCasts" />;
+  };
+
   return (
     <div className="grid grid-cols-[300px_1fr] h-screen w-full">
       <div className="overflow-y-auto p-4">
@@ -408,25 +438,14 @@ export default function NewPost() {
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as DraftListTab)}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center py-2 w-full">
-                <TabsList className="flex w-full">
-                  {DraftListTabs.map((tab) => (
-                    <TabsTrigger
-                      key={tab.key}
-                      value={tab.key}
-                      className="text-zinc-600 dark:text-zinc-200"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-            </div>
+            {renderTabsSelector()}
             <TabsContent value={DraftListTab.writing}>
+              {scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts &&
+                renderFreePlanCard()}
               {renderDraftList()}
             </TabsContent>
             <TabsContent value={DraftListTab.scheduled}>
+              {renderFreePlanCard()}
               {renderScheduledList()}
             </TabsContent>
             <TabsContent value={DraftListTab.published}>

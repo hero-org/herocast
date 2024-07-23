@@ -36,12 +36,14 @@ import { ChannelList } from "../ChannelList";
 import isEmpty from "lodash.isempty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FarcasterEmbed } from "@mod-protocol/farcaster";
-import { prepareCastBody } from "@/stores/useDraftStore";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { toast } from "sonner";
 import { usePostHog } from "posthog-js/react";
 import { useTextLength } from "../../helpers/editor";
 import { cn } from "@/lib/utils";
+import { openSourcePlanLimits } from "../../../config/customerLimitation";
+import Link from "next/link";
+import { isPaidUser } from "@/stores/useUserStore";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -150,7 +152,6 @@ export default function NewPostEntry({
       await addScheduledDraft({
         draftIdx,
         scheduledFor: scheduleDateTime,
-        rawText: draft.text,
         onSuccess: () => {
           console.log("onSuccess after addScheduledDraft");
           setScheduleDateTime(undefined);
@@ -266,11 +267,25 @@ export default function NewPostEntry({
   }, [draft?.parentUrl]);
 
   const getButtonText = () => {
-    if (isPublishing) return "Publishing...";
+    if (isPublishing)
+      return scheduleDateTime ? "Scheduling..." : "Publishing...";
+
     return `${scheduleDateTime ? "Schedule" : "Cast"}${
       account ? ` as ${account.name}` : ""
     }`;
   };
+
+  const scheduledCastCount =
+    useDraftStore((state) =>
+      state.drafts.filter((draft) => draft.status === DraftStatus.scheduled)
+    )?.length || 0;
+  const hasReachedFreePlanLimit =
+    !isPaidUser() &&
+    scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
+  const isButtonDisabled =
+    isPublishing ||
+    !textLengthIsValid ||
+    (scheduleDateTime && hasReachedFreePlanLimit);
 
   if (!draft) return null;
 
@@ -380,12 +395,24 @@ export default function NewPostEntry({
             />
           )}
         </div>
-        <div className="flex flex-row pt-2 justify-end">
+        <div className="flex flex-row pt-2 justify-between">
+          <div>
+            {scheduleDateTime && hasReachedFreePlanLimit && (
+              <span className="text-sm text-muted-foreground">
+                Reached the limit of scheduled casts for the free plan.
+                <Link href="/upgrade" prefetch={false}>
+                  <Button size="sm" className="ml-2 font-bold">
+                    Upgrade
+                  </Button>
+                </Link>
+              </span>
+            )}
+          </div>
           <Button
             size="lg"
             type="submit"
             className="line-clamp-1 min-w-48 max-w-md truncate"
-            disabled={isPublishing || !textLengthIsValid}
+            disabled={isButtonDisabled}
           >
             {getButtonText()}
           </Button>

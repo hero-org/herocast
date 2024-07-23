@@ -37,6 +37,17 @@ import { v4 as uuidv4 } from 'uuid';
 import uniqBy from "lodash.uniqby";
 import { CastModalView, useNavigationStore } from "./useNavigationStore";
 
+const prepareCastBodyForDB = (castBody) => {
+  if (castBody.embeds) {
+    castBody.embeds.forEach(embed => {
+      if ('castId' in embed) {
+        embed.castId = { fid: embed.castId.fid, hash: embed?.castId?.hash.toString() };
+      }
+    });
+  }
+  return castBody;
+}
+
 export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
   const castBody = await formatPlaintextToHubCastMessage({
     text: draft.text,
@@ -129,7 +140,6 @@ type addNewPostDraftProps = {
 type addScheduledDraftProps = {
   draftIdx: number;
   scheduledFor: Date;
-  rawText: string;
   onSuccess?: () => void;
 };
 
@@ -142,7 +152,7 @@ interface DraftStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
   updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
   addNewPostDraft: ({ text, parentCastId, parentUrl, embeds, onSuccess, force }: addNewPostDraftProps) => void;
-  addScheduledDraft: ({ draftIdx, scheduledFor, rawText, onSuccess }: addScheduledDraftProps) => void;
+  addScheduledDraft: ({ draftIdx, scheduledFor, onSuccess }: addScheduledDraftProps) => void;
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => void;
   removePostDraftById: (draftId: UUID) => void;
   removeScheduledDraftFromDB: (draftId: UUID) => Promise<boolean>;
@@ -254,6 +264,7 @@ const store = (set: StoreSet) => ({
     });
   },
   removePostDraftById: (draftId: UUID) => {
+    console.log('removePostDraftById', draftId)
     set(async (state) => {
       const draftIdx = state.drafts.findIndex((draft) => draft.id === draftId);
       const draft = state.drafts[draftIdx];
@@ -307,18 +318,18 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  addScheduledDraft: async ({ draftIdx, scheduledFor, rawText, onSuccess }) => {
+  addScheduledDraft: async ({ draftIdx, scheduledFor, onSuccess }) => {
     set(async (state) => {
       const draft = state.drafts[draftIdx];
-      const castBody = await prepareCastBody(draft);
-
+      let castBody = await prepareCastBody(draft);
+      castBody = prepareCastBodyForDB(castBody);
       const accountState = useAccountStore.getState();
       const account = accountState.accounts[accountState.selectedAccountIdx];
       await supabaseClient
         .from('draft')
         .insert({
           account_id: account.id,
-          data: { ...castBody, rawText },
+          data: { ...castBody, rawText: draft.text },
           scheduled_for: scheduledFor,
           status: DraftStatus.scheduled,
         })
@@ -331,7 +342,7 @@ const store = (set: StoreSet) => ({
 
           const draftInDb = data[0];
           state.updatePostDraft(draftIdx, tranformDBDraftForLocalStore(draftInDb));
-          toastSuccessCastScheduled(rawText);
+          toastSuccessCastScheduled(draft.text);
           onSuccess?.();
         });
     });

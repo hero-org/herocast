@@ -417,7 +417,7 @@ const Notifications = () => {
 
   const renderMainContent = () => {
     const notification = notifications[selectedNotificationIdx];
-    if (isEmpty(notification) && (isLoading || isEmpty(notifications)))
+    if (isEmpty(notification) && !isLoading && isEmpty(notifications))
       return (
         <div className="text-foreground flex-1 flex items-center justify-center">
           {renderLoadNotificationsButton()}
@@ -452,12 +452,12 @@ const Notifications = () => {
           </div>
           {(notificationType === NotificationTypeEnum.Likes ||
             notificationType === NotificationTypeEnum.Recasts) && (
-            <div className="mt-4 ml-8 max-w-full">
+            <div className="m-4 max-w-full">
               {renderProfilesFromReactions(notification.reactions)}
             </div>
           )}
           {notificationType === NotificationTypeEnum.Follows && (
-            <div className="mt-4 ml-8 max-w-full">
+            <div className="m-4 max-w-full">
               {renderProfilesFromReactions(notification.follows)}
             </div>
           )}

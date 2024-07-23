@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import { toastSuccessSavedSearchUpdate } from "../helpers/toast";
+import { BellIcon } from "@heroicons/react/24/outline";
 
 const ManageListModal = ({ open, onClose }) => {
   const posthog = usePostHog();
@@ -84,6 +85,18 @@ const ManageListModal = ({ open, onClose }) => {
             value={newSearchTerm}
             onChange={(e) => setNewSearchTerm(e.target.value)}
           />
+        </div>
+        <div className=" flex items-center space-x-4 rounded-md border p-4">
+          <BellIcon />
+          <div className="flex-1 space-y-1">
+            <p className="text-sm font-medium leading-none">
+              Push Notifications
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Send notifications to device.
+            </p>
+          </div>
+          <Switch />
         </div>
         <div className="flex flex-row space-x-4">
           <div className="flex flex-col">

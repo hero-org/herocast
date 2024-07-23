@@ -115,12 +115,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="ml-10 mt-10 flex flex-col space-y-4">
-      <div className="border-b border-gray-200">
-        <h1 className="text-xl font-semibold leading-7 text-foreground/80">
-          Herocast account
-        </h1>
-      </div>
+    <div className="ml-4 flex flex-col space-y-4">
       <div className="flex flex-row mt-4 pr-2">
         <span className="text-sm font-semibold text-foreground/80 mr-2">
           Email

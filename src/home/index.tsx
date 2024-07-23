@@ -1,6 +1,6 @@
 import React, { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { Cog6ToothIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import {
   Bars3Icon,
   UserPlusIcon,
@@ -35,7 +35,6 @@ import NewCastModal from "@/common/components/NewCastModal";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
 
 type NavigationGroupType = {
   name: string;
@@ -50,6 +49,7 @@ type NavigationItemType = {
   getHeaderActions?: () => HeaderAction[];
   shortcut?: string;
   additionalPaths?: string[];
+  hide?: boolean;
 };
 
 type HeaderAction = {
@@ -197,7 +197,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             },
           ],
           icon: (
-            <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+            <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
           ),
         },
         {
@@ -215,9 +215,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           name: "Notifications",
           router: "/notifications",
           icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-          getTitle: () => "Notifications",
           shortcut: "Shift + N",
         },
+        {
+          name: "Upgrade",
+          router: "/upgrade",
+          hide: true,
+        }
       ],
     },
     {
@@ -410,7 +414,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                           >
                             <li>
                               <ul role="list" className="-mx-2 space-y-1">
-                                {navigation.map((item) => (
+                                {navigation.map((item) => !item.hide && (
                                   <li key={item.name}>
                                     <Link
                                       href={item.router}
@@ -470,7 +474,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 const navigation = group.items;
                 return (
                   <div key={`nav-group-${group.name}`}>
-                    {navigation.map((item) => (
+                    {navigation.map((item) => !item.hide && (
                       <ul
                         key={`nav-item-${item.name}`}
                         role="list"
