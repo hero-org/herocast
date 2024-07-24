@@ -48,7 +48,6 @@ const plans = [
     },
     features: [
       "Custom feeds ",
-      "Schedule casts",
       "Custom notifications",
       "Schedule up to 3 casts",
       "Monitoring of 1 search term",
@@ -79,7 +78,6 @@ const plans = [
     },
     features: [
       "Custom feeds ",
-      "Schedule casts",
       "Custom notifications",
       "Schedule up to 10 casts",
       "Monitoring of 10 search term",
@@ -107,7 +105,6 @@ const plans = [
     },
     features: [
       "Custom feeds ",
-      "Schedule casts",
       "Custom notifications",
       "Schedule unlimited casts",
       "Monitoring of unlimited search term",
