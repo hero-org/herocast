@@ -40,7 +40,7 @@ export default function Login() {
       </div>
       <div className="hidden bg-muted lg:block">
         <img
-          src="/images/herocast-app-screenshot.png"
+          src="/images/hero.png"
           alt="herocast-app-screenshot"
           width="1920"
           height="1080"
