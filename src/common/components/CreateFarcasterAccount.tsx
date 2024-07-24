@@ -112,7 +112,7 @@ const ActionButtons: React.FC<{
   state: any;
   registerAccount: () => Promise<void>;
   getFidAndUpdateAccount: () => Promise<boolean>;
-}> = ({ state, registerAccount, getFidAndUpdateAccount }) => (
+}> = React.memo(({ state, registerAccount, getFidAndUpdateAccount }) => (
   <div className="flex flex-col space-y-4">
     {state.didSignTransactions &&
       state.paymentOption &&
@@ -147,7 +147,7 @@ const ActionButtons: React.FC<{
       </Button>
     )}
   </div>
-);
+));
 
 const ErrorMessage: React.FC<{ error: string | undefined }> = ({ error }) =>
   error && (
@@ -271,6 +271,7 @@ const CreateFarcasterAccount: React.FC<{
     transactionResult,
     setAccountActive,
     onSuccess,
+    setState,
   ]);
 
   useEffect(() => {
@@ -297,7 +298,12 @@ const CreateFarcasterAccount: React.FC<{
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [isConnected, state.transactionHash, transactionResult, getFidAndUpdateAccount]);
+  }, [
+    isConnected,
+    state.transactionHash,
+    transactionResult,
+    getFidAndUpdateAccount,
+  ]);
 
   const registerAccount = async () => {
     const {
