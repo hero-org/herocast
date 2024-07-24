@@ -267,7 +267,11 @@ const RegisterFarcasterUsernameForm = ({
             )}
             Register username
           </Button>
-          <Button variant="outline" disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>
+          <Button
+            variant="outline"
+            disabled={!canSubmitForm}
+            onClick={() => hydrateAccounts()}
+          >
             Refresh
           </Button>
           {chainId !== mainnet.id && (
@@ -290,7 +294,7 @@ const RegisterFarcasterUsernameForm = ({
         accountFilter={(account) =>
           account.status === "active" &&
           account.platform === AccountPlatformType.farcaster &&
-          account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER
+          (!account.name || account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER)
         }
       />
       {account && renderForm()}

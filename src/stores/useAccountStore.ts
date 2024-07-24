@@ -472,7 +472,7 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       }));
       return {
         id: account.id,
-        name: account.name,
+        name: account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER,
         status: account.status,
         publicKey: account.public_key,
         platform: account.platform,
@@ -483,7 +483,7 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
         channels: channels,
       }
     })
-    const fids = accounts.filter((account) => account.platformAccountId).map((account) => Number(account.platformAccountId!));
+    const fids = accounts.filter((account) => account.platformAccountId).map((account) => Number(account.platformAccountId));
     if (fids.length) {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
