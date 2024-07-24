@@ -275,33 +275,40 @@ const CreateFarcasterAccount: React.FC<{
   ]);
 
   useEffect(() => {
-    if (isConnected && state.transactionHash !== "0x" && transactionResult) {
-      setState((prev) => ({ ...prev, isWaitingForFid: true }));
-      pollingInterval.current = setInterval(async () => {
+    let isMounted = true;
+    let attempts = 0;
+
+    const pollForFid = async () => {
+      if (isConnected && state.transactionHash !== "0x" && transactionResult) {
         const success = await getFidAndUpdateAccount();
         if (success) {
-          clearInterval(pollingInterval.current!);
-          setState((prev) => ({ ...prev, isWaitingForFid: false }));
-        } else {
-          setState((prev) => ({
-            ...prev,
-            fidPollingCount: prev.fidPollingCount + 1,
-          }));
+          if (isMounted) {
+            setState((prev) => ({ ...prev, isWaitingForFid: false }));
+          }
+        } else if (isMounted) {
+          attempts++;
+          if (attempts < 30) { // Limit to 30 attempts (30 seconds)
+            setTimeout(pollForFid, 1000);
+          } else {
+            setState((prev) => ({
+              ...prev,
+              isWaitingForFid: false,
+              error: "Failed to get Farcaster ID after 30 attempts. Please try manual refresh.",
+            }));
+          }
         }
-      }, 1000);
+      }
+    };
+
+    if (isConnected && state.transactionHash !== "0x" && transactionResult) {
+      setState((prev) => ({ ...prev, isWaitingForFid: true }));
+      pollForFid();
     }
 
     return () => {
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current);
-      }
+      isMounted = false;
     };
-  }, [
-    isConnected,
-    state.transactionHash,
-    transactionResult,
-    getFidAndUpdateAccount,
-  ]);
+  }, [isConnected, state.transactionHash, transactionResult, getFidAndUpdateAccount]);
 
   const registerAccount = async () => {
     const {
