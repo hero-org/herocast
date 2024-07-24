@@ -45,7 +45,7 @@ const ProfileInfo = ({
             <span className="font-semibold text-foreground">
               {profile?.socialCapitalScore?.socialCapitalRank}
             </span>{" "}
-            rank
+            social rank
           </span>
         </TooltipTrigger>
         <TooltipContent

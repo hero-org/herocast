@@ -462,12 +462,14 @@ export default function Accounts() {
                       fid: {item.platformAccountId}
                     </p>
                   )}
-                  <Button
-                    variant="secondary"
-                    onClick={() => onClickManageAccount(item)}
-                  >
-                    Manage
-                  </Button>
+                  {item.status === "active" && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => onClickManageAccount(item)}
+                    >
+                      Manage
+                    </Button>
+                  )}
                   <AlertDialogDemo
                     buttonText={`Remove`}
                     onClick={() => removeAccount(item.id)}
