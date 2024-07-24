@@ -108,11 +108,19 @@ const InvalidAddressWarning: React.FC<{ isAddressValid: boolean }> = ({
     </div>
   );
 
-const ActionButtons: React.FC<{
-  state: any;
+interface ActionButtonsProps {
+  state: {
+    didSignTransactions: boolean;
+    paymentOption?: any;
+    isWaitingForFid: boolean;
+    isPending: boolean;
+  };
   registerAccount: () => Promise<void>;
   getFidAndUpdateAccount: () => Promise<boolean>;
-}> = React.memo(({ state, registerAccount, getFidAndUpdateAccount }) => (
+}
+
+const ActionButtons: React.FC<ActionButtonsProps> = React.memo(
+  ({ state, registerAccount, getFidAndUpdateAccount }) => (
   <div className="flex flex-col space-y-4">
     {state.didSignTransactions &&
       state.paymentOption &&
@@ -147,7 +155,13 @@ const ActionButtons: React.FC<{
       </Button>
     )}
   </div>
-));
+  ),
+  (prevProps, nextProps) =>
+    prevProps.state.didSignTransactions === nextProps.state.didSignTransactions &&
+    prevProps.state.paymentOption === nextProps.state.paymentOption &&
+    prevProps.state.isWaitingForFid === nextProps.state.isWaitingForFid &&
+    prevProps.state.isPending === nextProps.state.isPending
+);
 
 const ErrorMessage: React.FC<{ error: string | undefined }> = ({ error }) =>
   error && (
