@@ -121,47 +121,50 @@ interface ActionButtonsProps {
 
 const ActionButtons: React.FC<ActionButtonsProps> = React.memo(
   ({ state, registerAccount, getFidAndUpdateAccount }) => (
-  <div className="flex flex-col space-y-4">
-    {state.didSignTransactions &&
-      state.paymentOption &&
-      !state.isWaitingForFid && (
-        <Button
-          variant={state.isPending ? "outline" : "default"}
-          disabled={
-            state.isPending ||
-            !state.didSignTransactions ||
-            !state.paymentOption
-          }
-          onClick={registerAccount}
-        >
-          {state.isPending ? <Loading isInline /> : "Create account"}
-        </Button>
+    <div className="flex flex-col space-y-4">
+      {state.didSignTransactions &&
+        state.paymentOption &&
+        !state.isWaitingForFid && (
+          <Button
+            variant={state.isPending ? "outline" : "default"}
+            disabled={
+              state.isPending ||
+              !state.didSignTransactions ||
+              !state.paymentOption
+            }
+            onClick={registerAccount}
+          >
+            {state.isPending ? <Loading isInline /> : "Create account"}
+          </Button>
+        )}
+      {state.isWaitingForFid && (
+        <>
+          <p className="text-sm text-muted-foreground">
+            Waiting for your Farcaster ID to be generated. This may take a few
+            moments.
+          </p>
+          <Button variant="outline" onClick={getFidAndUpdateAccount}>
+            <ArrowPathIcon className="h-4 w-4 mr-2" />
+            Manual refresh 🔄
+          </Button>
+        </>
       )}
-    {state.isWaitingForFid && (
-      <>
-        <p className="text-sm text-muted-foreground">
-          Waiting for your Farcaster ID to be generated. This may take a few
-          moments.
-        </p>
+      {!state.didSignTransactions && !state.isWaitingForFid && (
         <Button variant="outline" onClick={getFidAndUpdateAccount}>
-          <ArrowPathIcon className="h-4 w-4 mr-2" />
           Manual refresh 🔄
         </Button>
-      </>
-    )}
-    {!state.didSignTransactions && !state.isWaitingForFid && (
-      <Button variant="outline" onClick={getFidAndUpdateAccount}>
-        Manual refresh 🔄
-      </Button>
-    )}
-  </div>
+      )}
+    </div>
   ),
   (prevProps, nextProps) =>
-    prevProps.state.didSignTransactions === nextProps.state.didSignTransactions &&
+    prevProps.state.didSignTransactions ===
+      nextProps.state.didSignTransactions &&
     prevProps.state.paymentOption === nextProps.state.paymentOption &&
     prevProps.state.isWaitingForFid === nextProps.state.isWaitingForFid &&
     prevProps.state.isPending === nextProps.state.isPending
 );
+
+ActionButtons.displayName = "ActionButtons";
 
 const ErrorMessage: React.FC<{ error: string | undefined }> = ({ error }) =>
   error && (
