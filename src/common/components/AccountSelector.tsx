@@ -62,7 +62,7 @@ export function AccountSelector({
           {isLoading ? "Loading..." : "Retry"}
         </Button>
         <Label className="mt-2">
-          Try fetching accounts. <br />
+          Retry fetching accounts. <br />
           You can refresh the page and navigate back here to continue your account setup.
         </Label>
       </div>
