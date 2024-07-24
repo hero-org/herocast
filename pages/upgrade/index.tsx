@@ -34,14 +34,14 @@ const plans = [
   {
     name: "Open source",
     featured: false,
-    price: { Monthly: "€0", Annually: "€0" },
+    price: { Monthly: "€0", Biannually: "€0" },
     description: "Perfect for starters. Enjoy growth with no costs.",
     button: {
       Monthly: {
         label: "Get started for free",
         href: "https://app.herocast.xyz/login",
       },
-      Annually: {
+      Biannually: {
         label: "Get started for free",
         href: "https://app.herocast.xyz/login",
       },
@@ -64,14 +64,14 @@ const plans = [
   {
     name: "Pro",
     featured: true,
-    price: { Monthly: "€50", Annually: "€30" },
+    price: { Monthly: "€50", Biannually: "€30" },
     description: "Ideal for those looking to accelerate their growth.",
     button: {
       Monthly: {
         label: "Subscribe",
         href: "https://buy.stripe.com/4gw03YeoO3Pz93i146",
       },
-      Annually: {
+      Biannually: {
         label: "Subscribe",
         href: "https://buy.stripe.com/fZeg2WeoObi193i288",
       },
@@ -91,14 +91,14 @@ const plans = [
   {
     name: "Agency",
     featured: false,
-    price: { Monthly: "Talk to us", Annually: "Talk to us" },
+    price: { Monthly: "Talk to us", Biannually: "Talk to us" },
     description: "Best for maximizing growth with all features included.",
     button: {
       Monthly: {
         label: "Reach out",
         href: "https://calendly.com/bijanfarsijani/25mincoffee",
       },
-      Annually: {
+      Biannually: {
         label: "Reach out",
         href: "https://calendly.com/bijanfarsijani/25mincoffee",
       },
@@ -123,16 +123,16 @@ type PlanProps = {
   name: string;
   price: {
     Monthly: string;
-    Annually: string;
+    Biannually: string;
   };
   description: string;
   button: {
     Monthly: { label: string; href: string };
-    Annually: { label: string; href: string };
+    Biannually: { label: string; href: string };
   };
   features: Array<string>;
   unavilableFeatures: Array<string>;
-  activePeriod: "Monthly" | "Annually";
+  activePeriod: "Monthly" | "Biannually";
   logomarkClassName?: string;
   featured?: boolean;
 };
@@ -187,15 +187,15 @@ function Plan({
             featured ? "text-white" : "text-foreground"
           )}
         >
-          {price.Monthly === price.Annually ? (
+          {price.Monthly === price.Biannually ? (
             price.Monthly
           ) : (
             <>
               <span
-                aria-hidden={activePeriod === "Annually"}
+                aria-hidden={activePeriod === "Biannually"}
                 className={cn(
                   "transition duration-300",
-                  activePeriod === "Annually" &&
+                  activePeriod === "Biannually" &&
                     "pointer-events-none translate-x-6 select-none opacity-0"
                 )}
               >
@@ -209,7 +209,7 @@ function Plan({
                     "pointer-events-none -translate-x-6 select-none opacity-0"
                 )}
               >
-                {price.Annually}
+                {price.Biannually}
               </span>
             </>
           )}
@@ -260,8 +260,8 @@ function Plan({
 }
 
 export function Pricing() {
-  const [activePeriod, setActivePeriod] = useState<"Monthly" | "Annually">(
-    "Annually"
+  const [activePeriod, setActivePeriod] = useState<"Monthly" | "Biannually">(
+    "Biannually"
   );
 
   return (
@@ -274,7 +274,7 @@ export function Pricing() {
               onChange={setActivePeriod}
               className="grid grid-cols-2"
             >
-              {["Monthly", "Annually"].map((period) => (
+              {["Monthly", "Biannually"].map((period) => (
                 <Radio
                   key={period}
                   value={period}
@@ -298,12 +298,12 @@ export function Pricing() {
                   : "[clip-path:inset(0_0_0_calc(50%-1px))]"
               )}
             >
-              {["Monthly", "Annually"].map((period) => (
+              {["Monthly", "Biannually"].map((period) => (
                 <div
                   key={period}
                   className={cn(
                     "py-2 text-center text-sm font-semibold text-white",
-                    period === "Annually" && "-ml-px"
+                    period === "Biannually" && "-ml-px"
                   )}
                 >
                   {period}
