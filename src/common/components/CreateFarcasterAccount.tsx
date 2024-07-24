@@ -134,7 +134,6 @@ const ActionButtons: React.FC<{
         <p className="text-sm text-muted-foreground">
           Waiting for your Farcaster ID to be generated. This may take a few
           moments.
-          {state.fidPollingCount > 0 && ` (Attempts: ${state.fidPollingCount})`}
         </p>
         <Button variant="outline" onClick={getFidAndUpdateAccount}>
           <ArrowPathIcon className="h-4 w-4 mr-2" />
@@ -276,26 +275,15 @@ const CreateFarcasterAccount: React.FC<{
 
   useEffect(() => {
     let isMounted = true;
-    let attempts = 0;
+    let timeoutId: NodeJS.Timeout | null = null;
 
     const pollForFid = async () => {
       if (isConnected && state.transactionHash !== "0x" && transactionResult) {
         const success = await getFidAndUpdateAccount();
-        if (success) {
-          if (isMounted) {
-            setState((prev) => ({ ...prev, isWaitingForFid: false }));
-          }
+        if (success && isMounted) {
+          setState((prev) => ({ ...prev, isWaitingForFid: false }));
         } else if (isMounted) {
-          attempts++;
-          if (attempts < 30) { // Limit to 30 attempts (30 seconds)
-            setTimeout(pollForFid, 1000);
-          } else {
-            setState((prev) => ({
-              ...prev,
-              isWaitingForFid: false,
-              error: "Failed to get Farcaster ID after 30 attempts. Please try manual refresh.",
-            }));
-          }
+          timeoutId = setTimeout(pollForFid, 1000);
         }
       }
     };
@@ -307,6 +295,7 @@ const CreateFarcasterAccount: React.FC<{
 
     return () => {
       isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [isConnected, state.transactionHash, transactionResult, getFidAndUpdateAccount]);
 
