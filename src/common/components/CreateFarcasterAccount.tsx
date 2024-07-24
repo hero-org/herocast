@@ -114,24 +114,31 @@ const ActionButtons: React.FC<{
   getFidAndUpdateAccount: () => Promise<boolean>;
 }> = ({ state, registerAccount, getFidAndUpdateAccount }) => (
   <div className="flex flex-col space-y-4">
-    {state.didSignTransactions && state.paymentOption && !state.isWaitingForFid && (
-      <Button
-        variant="default"
-        disabled={!state.didSignTransactions || !state.paymentOption}
-        onClick={registerAccount}
-      >
-        Create account
-      </Button>
-    )}
+    {state.didSignTransactions &&
+      state.paymentOption &&
+      !state.isWaitingForFid && (
+        <Button
+          variant={state.isPending ? "outline" : "default"}
+          disabled={
+            state.isPending ||
+            !state.didSignTransactions ||
+            !state.paymentOption
+          }
+          onClick={registerAccount}
+        >
+          {state.isPending ? <Loading isInline /> : "Create account"}
+        </Button>
+      )}
     {state.isWaitingForFid && (
       <>
         <p className="text-sm text-muted-foreground">
-          Waiting for your Farcaster ID to be generated. This may take a few moments.
+          Waiting for your Farcaster ID to be generated. This may take a few
+          moments.
           {state.fidPollingCount > 0 && ` (Attempts: ${state.fidPollingCount})`}
         </p>
         <Button variant="outline" onClick={getFidAndUpdateAccount}>
           <ArrowPathIcon className="h-4 w-4 mr-2" />
-          Manual refresh
+          Manual refresh 🔄
         </Button>
       </>
     )}
@@ -276,7 +283,10 @@ const CreateFarcasterAccount: React.FC<{
           clearInterval(pollingInterval.current!);
           setState((prev) => ({ ...prev, isWaitingForFid: false }));
         } else {
-          setState((prev) => ({ ...prev, fidPollingCount: prev.fidPollingCount + 1 }));
+          setState((prev) => ({
+            ...prev,
+            fidPollingCount: prev.fidPollingCount + 1,
+          }));
         }
       }, 1000);
     }
