@@ -221,10 +221,7 @@ const CreateFarcasterAccount: React.FC<{
     registerMetaData: undefined as Hex | undefined,
     deadline: undefined as bigint | undefined,
     isWaitingForFid: false,
-    fidPollingCount: 0,
   });
-
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
 
   const { address, isConnected, chain } = useAccount();
   const walletClient = useWalletClient();
