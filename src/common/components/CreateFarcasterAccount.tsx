@@ -255,6 +255,7 @@ const CreateFarcasterAccount: React.FC<{
   });
 
   const getFidAndUpdateAccount = useCallback(async (): Promise<boolean> => {
+    console.log('getFidAndUpdateAccount called'); // Debug log
     if (!(transactionResult && pendingAccounts.length > 0)) {
       console.log("No transaction results or pending accounts.");
       return false;
@@ -263,6 +264,7 @@ const CreateFarcasterAccount: React.FC<{
     try {
       const fid = await getFidForAddress(address!);
       if (fid) {
+        console.log('FID found, updating account'); // Debug log
         const accountId = pendingAccounts[0].id;
         setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
           platform_account_id: fid.toString(),
@@ -289,6 +291,7 @@ const CreateFarcasterAccount: React.FC<{
   ]);
 
   useEffect(() => {
+    console.log('useEffect for polling FID triggered'); // Debug log
     let isMounted = true;
     let timeoutId: NodeJS.Timeout | null = null;
 
