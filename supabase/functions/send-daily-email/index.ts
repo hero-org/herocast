@@ -64,10 +64,10 @@ async function sendEmail(resend: Resend, fromAddress: string, toAddress: string,
       html: getHtmlEmail({ listsWithCasts })
     });
     if (res?.error) {
-      console.error('Error sending email:', JSON.stringify(res));
+      console.error('Error sending email - response has error:', res, toAddress, listsWithCasts);
     }
   } catch (error) {
-    console.error('Error sending email:', JSON.stringify(error));
+    console.error('Error sending email:', error, toAddress, listsWithCasts);
   }
 }
 
