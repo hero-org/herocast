@@ -445,9 +445,7 @@ export default function CommandPalette() {
                     static
                     className="max-h-80 scroll-py-2 divide-y divide-gray-500 divide-opacity-20 overflow-y-auto"
                   >
-                    <li className="p-2">
-                      <h2 className="sr-only">Quick actions</h2>
-                      <ul className="text-sm text-foreground/70">
+                      <ul className="mt-2 text-sm text-foreground/70">
                         {(
                           (filteredCommands.length > 0 && filteredCommands) ||
                           commands.slice(0, 7)
@@ -483,7 +481,6 @@ export default function CommandPalette() {
                           </Combobox.Option>
                         ))}
                       </ul>
-                    </li>
                   </Combobox.Options>
                 )}
                 {query !== "" && filteredCommands.length === 0 && (

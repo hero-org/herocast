@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loading } from "./Loading";
@@ -209,6 +209,14 @@ const CreateFarcasterAccount: React.FC<{
   onSuccess?: () => void;
   isAddressValid: boolean;
 }> = ({ onSuccess, isAddressValid }) => {
+  console.log('CreateFarcasterAccount rendered');
+
+  useLayoutEffect(() => {
+    console.log('CreateFarcasterAccount mounted');
+    return () => {
+      console.log('CreateFarcasterAccount unmounted');
+    };
+  }, []);
   const [state, setState] = useState({
     isPending: false,
     error: "",
@@ -221,10 +229,7 @@ const CreateFarcasterAccount: React.FC<{
     registerMetaData: undefined as Hex | undefined,
     deadline: undefined as bigint | undefined,
     isWaitingForFid: false,
-    fidPollingCount: 0,
   });
-
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
 
   const { address, isConnected, chain } = useAccount();
   const walletClient = useWalletClient();
@@ -258,6 +263,7 @@ const CreateFarcasterAccount: React.FC<{
   });
 
   const getFidAndUpdateAccount = useCallback(async (): Promise<boolean> => {
+    console.log('getFidAndUpdateAccount called', { transactionResult, pendingAccounts });
     if (!(transactionResult && pendingAccounts.length > 0)) {
       console.log("No transaction results or pending accounts.");
       return false;
@@ -266,6 +272,7 @@ const CreateFarcasterAccount: React.FC<{
     try {
       const fid = await getFidForAddress(address!);
       if (fid) {
+        console.log('FID found, updating account'); // Debug log
         const accountId = pendingAccounts[0].id;
         setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
           platform_account_id: fid.toString(),
@@ -292,26 +299,32 @@ const CreateFarcasterAccount: React.FC<{
   ]);
 
   useEffect(() => {
+    console.log('useEffect for polling FID triggered', { isConnected, transactionHash: state.transactionHash, transactionResult });
     let isMounted = true;
     let timeoutId: NodeJS.Timeout | null = null;
 
     const pollForFid = async () => {
+      console.log('pollForFid called');
       if (isConnected && state.transactionHash !== "0x" && transactionResult) {
         const success = await getFidAndUpdateAccount();
+        console.log('getFidAndUpdateAccount result:', success);
         if (success && isMounted) {
           setState((prev) => ({ ...prev, isWaitingForFid: false }));
         } else if (isMounted) {
+          console.log('Scheduling next poll');
           timeoutId = setTimeout(pollForFid, 1000);
         }
       }
     };
 
     if (isConnected && state.transactionHash !== "0x" && transactionResult) {
+      console.log('Starting FID polling');
       setState((prev) => ({ ...prev, isWaitingForFid: true }));
       pollForFid();
     }
 
     return () => {
+      console.log('Cleaning up FID polling effect');
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
