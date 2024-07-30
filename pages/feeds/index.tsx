@@ -180,7 +180,13 @@ export default function Feeds() {
         openNewCastModal();
       },
     });
-  }, [selectedCast, setCastModalView, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
+  }, [
+    selectedCast,
+    setCastModalView,
+    addNewPostDraft,
+    setCastModalDraftId,
+    openNewCastModal,
+  ]);
 
   const onQuote = useCallback(() => {
     if (!selectedCast) return;
@@ -201,7 +207,14 @@ export default function Feeds() {
         openNewCastModal();
       },
     });
-  }, [selectedCast, setCastModalView, updateSelectedCast, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
+  }, [
+    selectedCast,
+    setCastModalView,
+    updateSelectedCast,
+    addNewPostDraft,
+    setCastModalDraftId,
+    openNewCastModal,
+  ]);
 
   useHotkeys(
     [Key.Escape, "§"],
@@ -272,6 +285,11 @@ export default function Feeds() {
           Number(fid),
           feedOptions
         );
+      } else if (parentUrl === CUSTOM_CHANNELS.TRENDING) {
+        newFeed = await neynarClient.fetchTrendingFeed({
+          ...feedOptions,
+          limit: 10,
+        });
       } else {
         feedOptions = {
           ...feedOptions,
@@ -449,7 +467,7 @@ export default function Feeds() {
         <>
           {renderFeed()}
           {renderWelcomeMessage()}
-          {casts.length >= DEFAULT_FEED_PAGE_SIZE && renderLoadMoreButton()}
+          {renderLoadMoreButton()}
         </>
       )}
       {renderEmbedsModal()}

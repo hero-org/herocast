@@ -7,9 +7,13 @@ import {
 import { openWindow } from "../helpers/navigation";
 import { useInView } from "react-intersection-observer";
 import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
-import { fetchAndAddUserProfile } from "../helpers/profileUtils";
+import {
+  fetchAndAddUserProfile,
+  shouldUpdateProfile,
+} from "../helpers/profileUtils";
 import { getProfile } from "../helpers/profileUtils";
 import ProfileInfoContent from "./ProfileInfoContent";
+import Link from "next/link";
 
 type ProfileHoverCardProps = {
   fid?: number;
@@ -37,33 +41,32 @@ const ProfileHoverCard = ({
   useEffect(() => {
     if (!inView || profile) return;
 
-    if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
+    if (!profile || shouldUpdateProfile(profile)) {
       fetchAndAddUserProfile({ username, fid, viewerFid });
     }
   }, [inView, profile, viewerFid, username, fid]);
 
-  const onClick = () => {
-    openWindow(
-      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`
-    );
-  };
-
   return (
     <HoverCard openDelay={200}>
-      <HoverCardTrigger
-        onClick={onClick}
-        ref={ref}
-        className={`${className} text-left`}
-      >
-        {children}
+      <HoverCardTrigger ref={ref} className={`${className} text-left`}>
+        <Link
+          href={`/profile/${profile?.username || username}`}
+          prefetch={false}
+        >
+          {children}
+        </Link>
       </HoverCardTrigger>
       <HoverCardContent
         side="bottom"
         className="border border-gray-400 overflow-hidden cursor-pointer"
       >
-        <button onClick={onClick} className="w-full text-left">
+        <Link
+          href={`/profile/${profile?.username || username}`}
+          prefetch={false}
+          className="w-full text-left"
+        >
           <ProfileInfoContent profile={profile} isHoverCard={true} />
-        </button>
+        </Link>
       </HoverCardContent>
     </HoverCard>
   );

@@ -21,11 +21,11 @@ export const fetchAndAddUserProfile = async ({
     for (const user of users) {
       const response = await fetch(`/api/additionalProfileInfo?fid=${user.fid}`);
       if (response.ok) {
-        const userAssets = await response.json();
+        const userProfileInfos = await response.json();
         const enrichedUser = {
           ...user,
-          socialCapitalScore: userAssets.socialCapitalScore,
-          icebreakerData: userAssets.icebreakerData,
+          airstackSocialInfo: userProfileInfos.airstackSocialInfo,
+          icebreakerData: userProfileInfos.icebreakerData,
         };
         addUserProfile({ user: enrichedUser });
       } else {

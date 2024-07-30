@@ -159,6 +159,7 @@ const Notifications = () => {
   };
 
   useEffect(() => {
+    console.log("useEffect notifications", viewerFid);
     if (!viewerFid) return;
 
     setLoadMoreCursor(undefined);
@@ -438,7 +439,8 @@ const Notifications = () => {
       >
         {renderGoBack()}
         <div className="min-h-full h-full">
-          {notificationType === NotificationTypeEnum.Reply && (
+          {(notificationType === NotificationTypeEnum.Reply ||
+            notificationType === NotificationTypeEnum.Mention) && (
             <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
               {parentCast ? (
                 <CastRow cast={parentCast} showChannel />
@@ -472,7 +474,10 @@ const Notifications = () => {
 
       if (!notification) return;
 
-      if (notification.type === NotificationTypeEnum.Reply) {
+      if (
+        notification.type === NotificationTypeEnum.Reply ||
+        notification.type === NotificationTypeEnum.Mention
+      ) {
         const hash = notification?.cast?.parent_hash;
         if (hash) {
           setParentCastHash(hash);
