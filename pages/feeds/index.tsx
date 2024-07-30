@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   AccountObjectType,
   CUSTOM_CHANNELS,
@@ -135,14 +135,14 @@ export default function Feeds() {
   const feed = feedKey ? get(feeds, feedKey, EMPTY_FEED) : EMPTY_FEED;
   const { isLoading: isLoadingFeed, nextCursor, casts } = feed;
 
-  const onOpenLinkInCast = (idx: number) => {
+  const onOpenLinkInCast = useCallback(() => {
     setShowEmbedsModal(true);
-  };
+  }, []);
 
-  const onSelectCast = (idx: number) => {
+  const onSelectCast = useCallback((idx: number) => {
     setSelectedCastIdx(idx);
     setShowCastThreadView(true);
-  };
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -156,7 +156,7 @@ export default function Feeds() {
     } else if (selectedCastIdx === casts.length - 1) {
       window.scrollTo(0, document.body.scrollHeight);
     }
-  }, [selectedCastIdx, showCastThreadView]);
+  }, [selectedCastIdx, showCastThreadView, casts.length]);
 
   useEffect(() => {
     if (selectedCastIdx === -1) {
@@ -164,9 +164,9 @@ export default function Feeds() {
     } else if (!isEmpty(casts)) {
       updateSelectedCast(casts[selectedCastIdx]);
     }
-  }, [selectedCastIdx, selectedChannelUrl, casts]);
+  }, [selectedCastIdx, selectedChannelUrl, casts, updateSelectedCast]);
 
-  const onReply = () => {
+  const onReply = useCallback(() => {
     if (!selectedCast) return;
 
     setCastModalView(CastModalView.Reply);
@@ -180,9 +180,9 @@ export default function Feeds() {
         openNewCastModal();
       },
     });
-  };
+  }, [selectedCast, setCastModalView, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
 
-  const onQuote = () => {
+  const onQuote = useCallback(() => {
     if (!selectedCast) return;
 
     setCastModalView(CastModalView.Quote);
@@ -201,7 +201,7 @@ export default function Feeds() {
         openNewCastModal();
       },
     });
-  };
+  }, [selectedCast, setCastModalView, updateSelectedCast, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
 
   useHotkeys(
     [Key.Escape, "§"],
@@ -437,25 +437,23 @@ export default function Feeds() {
     );
 
   const renderContent = () => (
-    <>
-      <div className="min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
-        {isLoadingFeed && isEmpty(casts) && (
-          <div className="ml-4">
-            <Loading loadingMessage={loadingMessage} />
-          </div>
-        )}
-        {showCastThreadView ? (
-          renderThread()
-        ) : (
-          <>
-            {renderFeed()}
-            {renderWelcomeMessage()}
-            {casts.length >= DEFAULT_FEED_PAGE_SIZE && renderLoadMoreButton()}
-          </>
-        )}
-      </div>
+    <main className="min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
+      {isLoadingFeed && isEmpty(casts) && (
+        <div className="ml-4">
+          <Loading loadingMessage={loadingMessage} />
+        </div>
+      )}
+      {showCastThreadView ? (
+        renderThread()
+      ) : (
+        <>
+          {renderFeed()}
+          {renderWelcomeMessage()}
+          {casts.length >= DEFAULT_FEED_PAGE_SIZE && renderLoadMoreButton()}
+        </>
+      )}
       {renderEmbedsModal()}
-    </>
+    </main>
   );
 
   return renderContent();
