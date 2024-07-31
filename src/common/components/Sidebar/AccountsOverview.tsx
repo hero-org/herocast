@@ -18,10 +18,8 @@ import {
 const AccountsOverview = () => {
   const router = useRouter();
 
-  const { isHydrated, accounts, selectedAccountIdx, setCurrentAccountIdx } =
+  const { accounts, selectedAccountIdx, setCurrentAccountIdx } =
     useAccountStore();
-
-  const selectedAccount = accounts[selectedAccountIdx];
 
   const renderStatus = (status: string) => {
     switch (status) {

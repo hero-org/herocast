@@ -4,6 +4,8 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { IcebreakerSocialInfo } from "@/common/helpers/icebreaker";
+import { AirstackSocialInfo } from "@/common/helpers/airstack";
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
@@ -84,21 +86,9 @@ type addTokenDataProps = {
   data: DexPair;
 };
 
-type IcebreakerData = {
-  data: {
-    type: string;
-    value: string;
-  }[];
-  channels: {
-    type: string;
-    value: string;
-  }[];
-};
-
 type AdditionalUserInfo = {
-  socialCapitalScore: {
-    socialCapitalRank: number;
-  };
+  airstackSocialInfo: AirstackSocialInfo;
+  icebreakerData: IcebreakerSocialInfo;
 };
 
 type addUserProfileProps = {

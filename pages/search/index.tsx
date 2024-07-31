@@ -2,10 +2,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
-import {
-  CastWithInteractions,
-  User,
-} from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { CastThreadView } from "@/common/components/CastThreadView";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -13,18 +11,13 @@ import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
-import {
-  getProfile,
-  getProfileFetchIfNeeded,
-} from "@/common/helpers/profileUtils";
+import { getProfileFetchIfNeeded } from "@/common/helpers/profileUtils";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
 import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
-import {
-  SearchIntervalFilter,
-} from "@/common/components/SearchIntervalFilter";
+import { SearchIntervalFilter } from "@/common/components/SearchIntervalFilter";
 import { SearchInterval } from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
@@ -89,6 +82,7 @@ export default function SearchPage() {
   const [interval, setInterval] = useState<SearchInterval>();
   const [showFilter, setShowFilter] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [showCastThreadView, setShowCastThreadView] = useState(false);
 
   const { isManageListModalOpen, setIsManageListModalOpen } =
     useNavigationStore();
@@ -239,6 +233,7 @@ export default function SearchPage() {
       }
 
       resetState();
+      setShowCastThreadView(false);
       posthog.capture("user_start_castSearch", {
         term,
       });
@@ -370,11 +365,28 @@ export default function SearchPage() {
       <CastRow
         cast={row}
         isSelected={selectedCastIdx === idx}
-        onSelect={() => setSelectedCastIdx(idx)}
+        onSelect={() => {
+          setSelectedCastIdx(idx);
+          setShowCastThreadView(true);
+        }}
         showChannel
       />
     </li>
   );
+
+  const onBack = useCallback(() => {
+    setShowCastThreadView(false);
+  }, []);
+
+  const onReply = useCallback(() => {
+    // Implement reply functionality
+    console.log("Reply functionality not implemented yet");
+  }, []);
+
+  const onQuote = useCallback(() => {
+    // Implement quote functionality
+    console.log("Quote functionality not implemented yet");
+  }, []);
 
   const renderLoadMoreButton = () =>
     hasMore ? (
@@ -472,108 +484,122 @@ export default function SearchPage() {
 
   return (
     <div className="min-w-0 flex-1 p-6">
-      <div className="w-full max-w-xl">
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 w-full items-center">
-          <div className="flex col-span-3 group">
-            <Input
-              variantSize="lg"
-              value={searchTerm}
-              onChange={(e) => onChange(e.target.value)}
-              id="search"
-              placeholder="Search for casts or users..."
-              type="search"
-              name="search"
-              className={cn(
-                "rounded-r-none",
-                "border-none ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600",
-                isLoading ? "animate-pulse" : ""
+      {!showCastThreadView ? (
+        <>
+          <div className="w-full max-w-xl">
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-2 w-full items-center">
+              <div className="flex col-span-3 group">
+                <Input
+                  variantSize="lg"
+                  value={searchTerm}
+                  onChange={(e) => onChange(e.target.value)}
+                  id="search"
+                  placeholder="Search for casts or users..."
+                  type="search"
+                  name="search"
+                  className={cn(
+                    "rounded-r-none",
+                    "border-none ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600",
+                    isLoading ? "animate-pulse" : ""
+                  )}
+                  autoFocus
+                />
+                <Button
+                  disabled={!canSearch}
+                  size="lg"
+                  type="button"
+                  className="px-8 rounded-l-none"
+                  onClick={() => onSearch()}
+                >
+                  Search
+                </Button>
+              </div>
+              <div className="flex col-span-3 md:col-span-1 w-full">
+                <Button
+                  size="lg"
+                  type="button"
+                  variant="outline"
+                  className="px-2 rounded-r-none w-1/2"
+                  onClick={() => onSaveSearch()}
+                >
+                  Save
+                </Button>
+                <ClickToCopyText
+                  disabled={!searchTerm}
+                  className={cn("rounded-l-none border-l-0 w-1/2 px-4")}
+                  buttonText="Share"
+                  text={`https://app.herocast.xyz/search?search=${searchTerm}`}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 mt-2 md:h-12 md:gap-x-2 ">
+              <Button
+                size="sm"
+                variant="outline"
+                className={cn(
+                  "px-4 col-span-2 md:col-span-1",
+                  showFilter ? "bg-muted text-muted-foreground" : ""
+                )}
+                onClick={() => setShowFilter((prev) => !prev)}
+              >
+                <AdjustmentsHorizontalIcon className="h-5 w-5 mr-1" />
+                Filters
+              </Button>
+              {showFilter && (
+                <div
+                  className={cn(
+                    "w-full col-span-3 flex space-x-2 transition-all duration-200 md:justify-end",
+                    showFilter ? "opacity-100" : "opacity-0"
+                  )}
+                >
+                  {renderPowerBadgeFilter()}
+                  {renderHideRepliesFilter()}
+                  {renderIntervalFilter()}
+                </div>
               )}
-              autoFocus
-            />
-            <Button
-              disabled={!canSearch}
-              size="lg"
-              type="button"
-              className="px-8 rounded-l-none"
-              onClick={() => onSearch()}
-            >
-              Search
-            </Button>
+            </div>
           </div>
-          <div className="flex col-span-3 md:col-span-1 w-full">
-            <Button
-              size="lg"
-              type="button"
-              variant="outline"
-              className="px-2 rounded-r-none w-1/2"
-              onClick={() => onSaveSearch()}
-            >
-              Save
-            </Button>
-            <ClickToCopyText
-              disabled={!searchTerm}
-              className={cn("rounded-l-none border-l-0 w-1/2 px-4")}
-              buttonText="Share"
-              text={`https://app.herocast.xyz/search?search=${searchTerm}`}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 mt-2 md:h-12 md:gap-x-2 ">
-          <Button
-            size="sm"
-            variant="outline"
-            className={cn(
-              "px-4 col-span-2 md:col-span-1",
-              showFilter ? "bg-muted text-muted-foreground" : ""
-            )}
-            onClick={() => setShowFilter((prev) => !prev)}
-          >
-            <AdjustmentsHorizontalIcon className="h-5 w-5 mr-1" />
-            Filters
-          </Button>
-          {showFilter && (
-            <div
-              className={cn(
-                "w-full col-span-3 flex space-x-2 transition-all duration-200 md:justify-end",
-                showFilter ? "opacity-100" : "opacity-0"
-              )}
-            >
-              {renderPowerBadgeFilter()}
-              {renderHideRepliesFilter()}
-              {renderIntervalFilter()}
+          {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
+            renderLoading()}
+          {!isLoading && !isEmpty(castHashes) && isEmpty(casts) && (
+            <div className="flex flex-col text-center mt-8 text-muted-foreground">
+              <span>No results found</span>
+              {renderTryAgainButton()}
             </div>
           )}
-        </div>
-      </div>
-      {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
-        renderLoading()}
-      {!isLoading && !isEmpty(castHashes) && isEmpty(casts) && (
-        <div className="flex flex-col text-center mt-8 text-muted-foreground">
-          <span>No results found</span>
-          {renderTryAgainButton()}
-        </div>
+          <SelectableListWithHotkeys
+            data={casts}
+            renderRow={renderSearchResultRow}
+            selectedIdx={selectedCastIdx}
+            setSelectedIdx={setSelectedCastIdx}
+            onSelect={(idx) => {
+              setSelectedCastIdx(idx);
+              setShowCastThreadView(true);
+            }}
+          />
+          {castHashes.length > 0 && (
+            <div className="flex justify-center my-8">
+              {isLoading ? renderLoadingSpinner() : renderLoadMoreButton()}
+            </div>
+          )}
+          {error && (
+            <div className="text-center mt-8 text-red-500">
+              Error: {error.message}
+            </div>
+          )}
+          <ManageListModal
+            open={isManageListModalOpen}
+            onClose={() => setIsManageListModalOpen(false)}
+          />
+        </>
+      ) : (
+        <CastThreadView
+          cast={casts[selectedCastIdx]}
+          onBack={onBack}
+          onReply={onReply}
+          onQuote={onQuote}
+        />
       )}
-      <SelectableListWithHotkeys
-        data={casts}
-        renderRow={renderSearchResultRow}
-        selectedIdx={selectedCastIdx}
-        setSelectedIdx={setSelectedCastIdx}
-        onSelect={(idx) => setSelectedCastIdx(idx)}
-      />
-      {castHashes.length > 0 && (
-        <div className="flex justify-center my-8">
-          {isLoading ? renderLoadingSpinner() : renderLoadMoreButton()}
-        </div>
-      )}
-      {error && (
-        <div className="text-center mt-8 text-red-500">
-          Error: {error.message}
-        </div>
-      )}
-      <ManageListModal
-        open={isManageListModalOpen}
-        onClose={() => setIsManageListModalOpen(false)}
-      />
     </div>
   );
 }
