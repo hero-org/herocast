@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { take } from "lodash";
+import { formatDistanceToNow } from "date-fns";
 
 const priorityChannels = ["email", "linkedin", "telegram", "twitter", "github"];
 
@@ -42,11 +43,9 @@ const ProfileInfo = ({
     return (
       <p className="text-sm text-muted-foreground">
         <span className="font-semibold text-foreground">
-          {new Date(
-            profile.airstackSocialInfo?.userCreatedAt
-          ).toLocaleDateString()}
+          {formatDistanceToNow(profile.airstackSocialInfo?.userCreatedAt)}
         </span>{" "}
-        joined
+        account age
       </p>
     );
   };
