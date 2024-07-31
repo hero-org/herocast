@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
 import { CastThreadView } from "@/common/components/CastThreadView";
+import { CastThreadView } from "@/common/components/CastThreadView";
 import {
   CastWithInteractions,
   User,
@@ -382,17 +383,19 @@ export default function SearchPage() {
     </li>
   );
 
-  const onBack = () => {
+  const onBack = useCallback(() => {
     setShowCastThreadView(false);
-  };
+  }, []);
 
-  const onReply = () => {
+  const onReply = useCallback(() => {
     // Implement reply functionality
-  };
+    console.log("Reply functionality not implemented yet");
+  }, []);
 
-  const onQuote = () => {
+  const onQuote = useCallback(() => {
     // Implement quote functionality
-  };
+    console.log("Quote functionality not implemented yet");
+  }, []);
 
   const renderLoadMoreButton = () =>
     hasMore ? (
