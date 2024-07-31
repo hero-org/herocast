@@ -26,25 +26,20 @@ const ChannelHoverCard = ({
   const accountChannels = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.channels || []
   );
-  const {
-    addPinnedChannel,
-    removePinnedChannel,
-    allChannels,
-    setSelectedChannelUrl,
-  } = useAccountStore();
+  const { addPinnedChannel, removePinnedChannel, setSelectedChannelUrl } =
+    useAccountStore();
   const [channel, setChannel] = useState<ChannelType | undefined>();
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
   });
 
+  const isChannelPinned =
+    channel && accountChannels.findIndex((c) => c.url === channel.url) !== -1;
   useEffect(() => {
     if (!inView) return;
 
     const findableName = channelName.replace("/", "").toLowerCase();
-    const channel = allChannels.find(
-      (c) => c.name.toLowerCase() === findableName
-    );
     setChannel(channel);
   }, [inView]);
 
@@ -58,17 +53,15 @@ const ChannelHoverCard = ({
     if (!channel) return;
 
     if (isChannelPinned) {
-      removePinnedChannel(channel);
+      removePinnedChannel(channel?.url);
     } else {
-      addPinnedChannel(channel);
+      addPinnedChannel(channel?.url);
     }
   };
 
   const renderChannelContent = () => {
     if (!channel) return <Loading />;
 
-    const isChannelPinned =
-      accountChannels.findIndex((c) => c.url === channel.url) !== -1;
     return (
       <div className="space-y-2">
         <div className="flex flex-row justify-between">

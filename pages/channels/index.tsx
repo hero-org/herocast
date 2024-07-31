@@ -25,7 +25,6 @@ export default function Channels() {
     removePinnedChannel,
     accounts,
     isHydrated,
-    allChannels,
     updatedPinnedChannelIndices,
   } = useAccountStore();
 

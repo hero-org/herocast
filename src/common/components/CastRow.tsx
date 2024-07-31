@@ -34,11 +34,11 @@ import { AccountPlatformType } from "../constants/accounts";
 import { toastInfoReadOnlyMode } from "../helpers/toast";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDraftStore } from "@/stores/useDraftStore";
 import ChannelHoverCard from "./ChannelHoverCard";
+import { Badge } from "@/components/ui/badge";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -166,7 +166,6 @@ export const CastRow = ({
   const {
     accounts,
     selectedAccountIdx,
-    allChannels: channels,
     setSelectedChannelByName,
     setSelectedChannelUrl,
   } = useAccountStore();
@@ -271,13 +270,6 @@ export const CastRow = ({
     { enabled: isSelected },
     [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions?.recasts]
   );
-
-  const getChannelForParentUrl = (
-    parentUrl: string | null
-  ): ChannelType | undefined =>
-    parentUrl
-      ? channels.find((channel) => channel.url === parentUrl)
-      : undefined;
 
   const getIconForCastReactionType = (
     reactionType: CastReactionType,
@@ -552,10 +544,7 @@ export const CastRow = ({
     );
   };
 
-  const channel =
-    showChannel && "parent_url" in cast
-      ? getChannelForParentUrl(cast.parent_url)
-      : null;
+  const channel = showChannel ? cast.channel : null;
   const timeAgo =
     "timestamp" in cast
       ? timeDiff(now, new Date(cast.timestamp))
@@ -567,13 +556,13 @@ export const CastRow = ({
   const renderChannelButton = () =>
     showChannel &&
     channel && (
-      <Button
+      <Badge
         variant="outline"
         onClick={() => setSelectedChannelUrl(channel.url)}
-        className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10  hover:bg-blue-400/20 px-1.5 py-0.5 text-xs font-medium text-blue-400 hover:text-blue-600 ring-1 ring-inset ring-blue-400/30 border-none"
+        className="h-5 inline-flex truncate bg-blue-400/10  hover:bg-blue-400/20 text-blue-400 hover:text-blue-500 ring-1 ring-inset ring-blue-100 border-none"
       >
         {channel.name}
-      </Button>
+      </Badge>
     );
 
   return (

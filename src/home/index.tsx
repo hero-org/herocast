@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Cog6ToothIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import {
@@ -35,6 +35,11 @@ import NewCastModal from "@/common/components/NewCastModal";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
+import {
+  getChannel,
+  getChannelFetchIfNeeded,
+} from "@/common/helpers/channelUtils";
+import { useDataStore } from "@/stores/useDataStore";
 
 type NavigationGroupType = {
   name: string;
@@ -45,7 +50,7 @@ type NavigationItemType = {
   name: string;
   router: string;
   icon: any;
-  getTitle?: () => string | JSX.Element;
+  getTitle?: () => Promise<string | JSX.Element>;
   getHeaderActions?: () => HeaderAction[];
   shortcut?: string;
   additionalPaths?: string[];
@@ -65,7 +70,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const { pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
-    allChannels,
     selectedChannelUrl,
     isHydrated,
     addPinnedChannel,
@@ -90,7 +94,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         AccountPlatformType.farcaster_local_readonly
   );
 
-  const getFeedTitle = () => {
+  const getFeedTitle = async () => {
+    console.log("getFeedTitle");
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
       return "Following Feed";
     }
@@ -98,22 +103,19 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       return "Trending Feed";
     }
 
-    const selectedChannelIdx = allChannels?.findIndex(
-      (channel) => channel.url === selectedChannelUrl
-    );
-    if (selectedChannelIdx !== -1) {
-      const channel = allChannels[selectedChannelIdx];
+    const channel = await getChannelFetchIfNeeded(selectedChannelUrl);
+    if (channel) {
       return (
         <div className="flex max-w-sm items-center">
-          {channel.icon_url && (
+          {/* {channel.image_url && (
             <Image
-              src={channel.icon_url}
+              src={channel.image_url}
               alt={`${channel.name} icon`}
               width={20}
               height={20}
               className={cn("mr-1 bg-gray-100 border flex-none rounded-full")}
             />
-          )}
+          )} */}
           <span className="max-w-xs flex truncate">{channel.name} channel</span>
         </div>
       );
@@ -163,15 +165,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               actions.push({
                 name: isChannelPinned ? "Unpin" : "Pin",
                 onClick: () => {
-                  const channel = channels.find(
-                    (c) => c.url === selectedChannelUrl
-                  );
-                  if (!channel) return;
-                  
                   if (isChannelPinned) {
-                    removePinnedChannel(channel);
+                    removePinnedChannel(selectedChannelUrl);
                   } else {
-                    addPinnedChannel(channel);
+                    addPinnedChannel(selectedChannelUrl);
                   }
                 },
               });
@@ -221,7 +218,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           name: "Upgrade",
           router: "/upgrade",
           hide: true,
-        }
+        },
       ],
     },
     {
@@ -293,9 +290,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const getTitle = (navItem) => {
+  const getTitle = async (navItem) => {
     if (navItem) {
-      return navItem.getTitle ? navItem.getTitle() : navItem.name;
+      return navItem.getTitle ? await navItem.getTitle() : navItem.name;
     } else {
       if (pathname === "/profile/[slug]") {
         return "Profile";
@@ -316,10 +313,25 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       .find((item) => item.router === pathname);
   };
 
-  const navItem = getNavItem(pathname);
-  const title = getTitle(navItem);
-  const headerActions = getHeaderActions(navItem);
   const sidebarType = getSidebarForPathname(pathname);
+  const [title, setTitle] = useState<string | JSX.Element>("");
+  const [headerActions, setHeaderActions] = useState<HeaderAction[]>([]);
+
+  useEffect(() => {
+    const fetchTitle = async () => {
+      const navItem = getNavItem(pathname);
+      const newTitle = await getTitle(navItem);
+      setTitle(newTitle);
+    };
+
+    fetchTitle();
+  }, [pathname, selectedChannelUrl]);
+
+  useEffect(() => {
+    const navItem = getNavItem(pathname);
+    const newHeaderActions = getHeaderActions(navItem);
+    setHeaderActions(newHeaderActions);
+  }, [pathname, selectedChannelUrl, channels]);
 
   const renderRightSidebar = () => {
     switch (sidebarType) {
@@ -342,7 +354,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       <CardHeader className="p-2 pt-0 md:p-4">
         <CardTitle>Create your herocast account</CardTitle>
         <CardDescription>
-          Connect your email to unlock all features and start casting with herocast.
+          Connect your email to unlock all features and start casting with
+          herocast.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
@@ -414,29 +427,32 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                           >
                             <li>
                               <ul role="list" className="-mx-2 space-y-1">
-                                {navigation.map((item) => !item.hide && (
-                                  <li key={item.name}>
-                                    <Link
-                                      href={item.router}
-                                      onClick={() => setSidebarOpen(false)}
-                                    >
-                                      <p
-                                        className={classNames(
-                                          item.router === pathname ||
-                                            item.additionalPaths?.includes(
-                                              pathname
-                                            )
-                                            ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                          "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
-                                        )}
-                                      >
-                                        {item.icon}
-                                        {item.name}
-                                      </p>
-                                    </Link>
-                                  </li>
-                                ))}
+                                {navigation.map(
+                                  (item) =>
+                                    !item.hide && (
+                                      <li key={item.name}>
+                                        <Link
+                                          href={item.router}
+                                          onClick={() => setSidebarOpen(false)}
+                                        >
+                                          <p
+                                            className={classNames(
+                                              item.router === pathname ||
+                                                item.additionalPaths?.includes(
+                                                  pathname
+                                                )
+                                                ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                              "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                            )}
+                                          >
+                                            {item.icon}
+                                            {item.name}
+                                          </p>
+                                        </Link>
+                                      </li>
+                                    )
+                                )}
                               </ul>
                             </li>
                           </ul>
@@ -474,30 +490,33 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 const navigation = group.items;
                 return (
                   <div key={`nav-group-${group.name}`}>
-                    {navigation.map((item) => !item.hide && (
-                      <ul
-                        key={`nav-item-${item.name}`}
-                        role="list"
-                        className="flex flex-col items-left space-y-1"
-                      >
-                        <li key={item.name}>
-                          <Link href={item.router}>
-                            <div
-                              className={classNames(
-                                item.router === pathname ||
-                                  item.additionalPaths?.includes(pathname)
-                                  ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                              )}
-                            >
-                              {item.icon}
-                              <span className="">{item.name}</span>
-                            </div>
-                          </Link>
-                        </li>
-                      </ul>
-                    ))}
+                    {navigation.map(
+                      (item) =>
+                        !item.hide && (
+                          <ul
+                            key={`nav-item-${item.name}`}
+                            role="list"
+                            className="flex flex-col items-left space-y-1"
+                          >
+                            <li key={item.name}>
+                              <Link href={item.router}>
+                                <div
+                                  className={classNames(
+                                    item.router === pathname ||
+                                      item.additionalPaths?.includes(pathname)
+                                      ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                    "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                  )}
+                                >
+                                  {item.icon}
+                                  <span className="">{item.name}</span>
+                                </div>
+                              </Link>
+                            </li>
+                          </ul>
+                        )
+                    )}
                   </div>
                 );
               })}
@@ -527,7 +546,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               <span className="sr-only">Open sidebar</span>
               <Bars3Icon className="h-5 w-5" aria-hidden="true" />
             </button>
-            <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">
+            <h1 className="ml-4 lg:ml-0 text-xl font-bold leading-7 text-foreground">
               {title}
             </h1>
             <div className="flex-grow" />

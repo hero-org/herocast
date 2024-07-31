@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
 import { CastThreadView } from "@/common/components/CastThreadView";
-import { CastThreadView } from "@/common/components/CastThreadView";
 import {
   CastWithInteractions,
   User,
@@ -24,9 +23,7 @@ import { useListStore } from "@/stores/useListStore";
 import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
-import {
-  SearchIntervalFilter,
-} from "@/common/components/SearchIntervalFilter";
+import { SearchIntervalFilter } from "@/common/components/SearchIntervalFilter";
 import { SearchInterval } from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
@@ -492,7 +489,7 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="min-w-0 flex-1 p-6">
+    <div className="min-w-0 flex-1 px-6">
       {!showCastThreadView ? (
         <>
           <div className="w-full max-w-xl">

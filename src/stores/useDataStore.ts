@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
-import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { CastWithInteractions, Channel, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { IcebreakerSocialInfo } from "@/common/helpers/icebreaker";
 import { AirstackSocialInfo } from "@/common/helpers/airstack";
 
@@ -95,6 +95,10 @@ type addUserProfileProps = {
   user: User & AdditionalUserInfo;
 };
 
+type addChannelDataProps = {
+  channel: Channel;
+};
+
 export type UserProfile = User & AdditionalUserInfo & { updatedAt: number };
 
 interface DataStoreProps {
@@ -102,12 +106,15 @@ interface DataStoreProps {
   usernameToFid: Record<string, number>;
   fidToData: Record<number, UserProfile>,
   tokenSymbolToData: Record<string, DexPair>;
+  channelUrlToData: Record<string, Channel>;
 }
 
 interface DataStoreActions {
   updateSelectedCast: (cast?: CastWithInteractions) => void;
   addUserProfile: ({ user }: addUserProfileProps) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
+  addChannelData: ({ channel }: addChannelDataProps) => void;
+  hydrate: () => void;
 }
 
 export interface DataStore extends DataStoreProps, DataStoreActions { }
@@ -122,6 +129,7 @@ const store = (set: StoreSet) => ({
   usernameToFid: {},
   fidToData: {},
   tokenSymbolToData: {},
+  channelUrlToData: {},
   updateSelectedCast: (cast?: CastWithInteractions) => {
     set((state) => {
       state.selectedCast = cast;
@@ -141,6 +149,16 @@ const store = (set: StoreSet) => ({
     set((state) => {
       state.tokenSymbolToData = { ...state.tokenSymbolToData, ...{ [tokenSymbol]: data } };
     });
+  },
+  addChannelData: ({ channel }: addChannelDataProps) => {
+    console.log('addChannelData', channel)
+    set((state) => {
+      state.channelUrlToData = { ...state.channelUrlToData, ...{ [channel.url]: channel } };
+    });
+  },
+  hydrate: () => {
+    // get trending accounts and pinned channels for user
+    // save all of those
   }
 });
 

@@ -15,17 +15,14 @@ import sortBy from "lodash.sortby";
 import cloneDeep from "lodash.clonedeep";
 import { UUID } from "crypto";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { Channel, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { createClient } from "@/common/helpers/supabase/component";
-import includes from "lodash.includes";
 import uniqBy from "lodash.uniqby";
 import { v4 as uuidv4 } from 'uuid';
 import { getUsernameForFid } from "@/common/helpers/farcaster";
 import { IndexedDBStorage } from "./StoreStorage";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
-const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
-const CHANNEL_UPDATE_RELEASE_DATE = 1717413090288;
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 export enum CUSTOM_CHANNELS {
@@ -51,16 +48,10 @@ const DEFAULT_LOCAL_ACCOUNT_CHANNELS = [
   "GM",
   "dev"
 ];
+
 type AccountChannelType = ChannelType & {
   idx: number;
   lastRead?: string; // can be a timestamp
-}
-
-type AddChannelProps = {
-  name: string;
-  url: string;
-  iconUrl?: string;
-  account: string;
 }
 
 type AddAccountProps = {
@@ -92,15 +83,12 @@ interface AccountStoreProps {
   selectedAccountIdx: number;
   selectedChannelUrl: string;
   accounts: AccountObjectType[];
-  allChannels: ChannelType[];
-  downloadedChannelsAt?: number; // timestamp
   isHydrated: boolean;
 }
 
 interface AccountStoreActions {
   hydrate: () => void;
   addAccount: (props: AddAccountProps) => void;
-  addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
   setAccountActive: (accountId: UUID, name: string, data: { platform_account_id: string, data?: object }) => void;
   updateAccountUsername: (accountId: UUID) => void;
@@ -111,8 +99,8 @@ interface AccountStoreActions {
   setSelectedChannelByName: (name: string) => void;
   resetSelectedChannel: () => void;
   resetStore: () => void;
-  addPinnedChannel: (channel: ChannelType) => void;
-  removePinnedChannel: (channel: ChannelType) => void;
+  addPinnedChannel: (channelUrl: string) => void;
+  removePinnedChannel: (channelUrl: string) => void;
 }
 
 
@@ -120,7 +108,6 @@ export interface AccountStore extends AccountStoreProps, AccountStoreActions { }
 
 const initialState: AccountStoreProps = {
   accounts: [],
-  allChannels: [],
   selectedAccountIdx: 0,
   selectedChannelUrl: DEFAULT_CHANNEL_URL,
   isHydrated: false,
@@ -141,9 +128,7 @@ const store = (set: StoreSet) => ({
 
     if (localOnly) {
       set((state) => {
-        const channels = state.allChannels.filter((channel) => includes(DEFAULT_LOCAL_ACCOUNT_CHANNELS, channel.name));
-        const accountChannels = channels.map((channel, idx) => ({ ...channel, idx }));
-        state.accounts.push({ ...account, ...{ channels: accountChannels }, ...{ id: uuidv4() } });
+        state.accounts.push({ ...account, ...{ id: uuidv4(), channels: [] } });
       });
       return;
     } else {
@@ -274,77 +259,65 @@ const store = (set: StoreSet) => ({
       });
     })
   },
-  addPinnedChannel: (channel: ChannelType) => {
-    set((state) => {
+  addPinnedChannel: (channelUrl: string) => {
+    set(async (state) => {
+      console.log('addPinnedChannel', channelUrl)
       const account = state.accounts[state.selectedAccountIdx];
       const idx = account.channels.length
+      const channel = await getSupabaseChannelFromUrl(channelUrl);
+      if (!channel) {
+        console.log('no channel found', channelUrl)
+        return;
+      }
       const newChannel = { ...channel, idx };
       account.channels = [...account.channels, newChannel]
       state.accounts[state.selectedAccountIdx] = account;
 
-      if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
-        supabaseClient
-          .from('accounts_to_channel')
-          .insert({
-            account_id: account.id,
-            channel_id: channel.id,
-            index: idx,
-          })
-          .select('*')
-          .then(({ error, data }) => {
-            // console.log('response - data', data, 'error', error);
-          });
+      if (account.platform === AccountPlatformType.farcaster_local_readonly) {
+        return
       }
+
+      supabaseClient
+        .from('accounts_to_channel')
+        .insert({
+          account_id: account.id,
+          channel_id: channel.id,
+          index: idx,
+        })
+        .select('*')
+        .then(({ error, data }) => {
+          // console.log('response - data', data, 'error', error);
+        });
     })
   },
-  removePinnedChannel: (channel: ChannelType) => {
-    set((state) => {
-      const account = state.accounts[state.selectedAccountIdx];
-
-      if (!channel) {
-        console.log('no channel or account id', channel,)
-        return;
-      }
+  removePinnedChannel: (channelUrl: string) => {
+    set(async (state) => {
+    console.log('removePinnedChannel', channelUrl)
+    
+    const account = state.accounts[state.selectedAccountIdx];
+    const channel = await getSupabaseChannelFromUrl(channelUrl);
+    if (!channel) {
+      console.log('no channel or account id', channel,)
+      return;
+    }
       const index = findIndex(account.channels, ['url', channel.url]);
       const copy = [...account.channels];
       copy.splice(index, 1);
       account.channels = copy;
       state.accounts[state.selectedAccountIdx] = account;
 
-      if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
-        supabaseClient
-          .from('accounts_to_channel')
-          .delete()
-          .eq('account_id', account.id)
-          .eq('channel_id', channel.id)
-          .then(({ error, data }) => {
-            // console.log('response - data', data, 'error', error);
-          });
+      if (account.platform === AccountPlatformType.farcaster_local_readonly) {
+        return
       }
-    })
-  },
-  addChannel: ({ name, url, iconUrl, account }: AddChannelProps) => {
-    set(async (state) => {
       await supabaseClient
-        .from('channel')
-        .insert({
-          name,
-          url,
-          icon_url: iconUrl,
-          source: `${account} via herocast`,
-        })
-        .select()
+        .from('accounts_to_channel')
+        .delete()
+        .eq('account_id', account.id)
+        .eq('channel_id', channel.id)
         .then(({ error, data }) => {
-          // console.log('response - data', data, 'error', error);
-          if (!data || error) return;
-
-          state.allChannels = [...state.allChannels, data[0]];
-
-          const account = state.accounts[state.selectedAccountIdx];
-          const idx = account.channels.length
-          state.addPinnedChannel({ ...data[0], idx });
+          console.log('response - data', data, 'error', error);
         });
-    });
+    })
   },
   updatedPinnedChannelIndices: async ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => {
     set((state) => {
@@ -403,9 +376,6 @@ const store = (set: StoreSet) => ({
 
     console.log('hydrating 💦');
     const accounts = await hydrateAccounts();
-    if (accounts.length) {
-      await hydrateChannels();
-    }
 
     useAccountStore.setState({
       ...useAccountStore.getState(),
@@ -509,27 +479,6 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
   return [...accounts, ...uniqBy(localOnlyAccounts, 'platformAccountId')];
 }
 
-export const hydrateChannels = async () => {
-  console.log('hydrating channels 🌊');
-  const state = useAccountStore.getState();
-
-  let allChannels: ChannelType[] = state.allChannels;
-  let downloadedChannelsAt = state.downloadedChannelsAt;
-
-  const shouldRehydrate = !allChannels.length || !state.downloadedChannelsAt || Date.now() - state.downloadedChannelsAt > TIMEDELTA_REHYDRATE || state.downloadedChannelsAt < CHANNEL_UPDATE_RELEASE_DATE;
-  if (shouldRehydrate) {
-    allChannels = await fetchAllChannels();
-    downloadedChannelsAt = Date.now();
-  }
-
-  useAccountStore.setState({
-    ...state,
-    allChannels,
-    downloadedChannelsAt: downloadedChannelsAt,
-  });
-  console.log('done hydrating channels 🌊');
-}
-
 const switchAccountTo = (idx: number) => {
   if (idx < 0) return;
 
@@ -608,62 +557,63 @@ const getChannelCommands = () => {
     });
   }
 
-  channelCommands.push(...[{
-    name: `Switch to random channel`,
-    aliases: ['random', 'lucky', 'discover'],
-    page: 'feeds',
-    action: () => {
-      const state = useAccountStore.getState();
-      if (isEmpty(state.allChannels)) return;
-      const randomIndex = randomNumberBetween(0, state.allChannels.length - 1);
-      state.setSelectedChannelUrl(state.allChannels[randomIndex].url);
+  channelCommands.push(...[
+    // {
+    //   name: `Switch to random channel`,
+    //   aliases: ['random', 'lucky', 'discover'],
+    //   page: 'feeds',
+    //   action: () => {
+    //     const state = useAccountStore.getState();
+    //     if (isEmpty(state.allChannels)) return;
+    //     const randomIndex = randomNumberBetween(0, state.allChannels.length - 1);
+    //     state.setSelectedChannelUrl(state.allChannels[randomIndex].url);
+    //   },
+    // },
+    {
+      name: 'Switch to next channel',
+      aliases: ['next', 'forward'],
+      shortcuts: ['shift+j', 'shift+ArrowDown'],
+      page: 'feeds',
+      action: () => {
+        const state = useAccountStore.getState();
+        const channels = state.accounts[state.selectedAccountIdx]?.channels;
+        if (isEmpty(channels)) return;
+
+        const currentIdx = getCurrentChannelIndex(state.selectedChannelUrl, channels);
+        const nextIdx = currentIdx + 1;
+        if (nextIdx >= channels.length + 2) return;
+
+        if (nextIdx === 1) {
+          state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
+        } else {
+          state.setSelectedChannelUrl(channels[nextIdx - CUSTOM_CHANNEL_COUNT].url);
+        }
+      },
+    }, {
+      name: 'Switch to previous channel',
+      aliases: ['previous', 'back'],
+      shortcuts: ['shift+k', 'shift+ArrowUp'],
+      page: 'feeds',
+      action: () => {
+        const state = useAccountStore.getState();
+        const channels = state.accounts[state.selectedAccountIdx]?.channels;
+        if (isEmpty(channels)) return;
+
+        const currentIdx = getCurrentChannelIndex(state.selectedChannelUrl, channels);
+        const previousIdx = currentIdx - 1;
+        if (previousIdx < -1) return;
+
+        if (previousIdx === 1) {
+          state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
+        } else if (previousIdx === 0) {
+          state.setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
+        } else if (previousIdx === -1) {
+          state.resetSelectedChannel();
+        } else {
+          state.setSelectedChannelUrl(channels[previousIdx - CUSTOM_CHANNEL_COUNT].url);
+        }
+      },
     },
-  },
-  {
-    name: 'Switch to next channel',
-    aliases: ['next', 'forward'],
-    shortcuts: ['shift+j', 'shift+ArrowDown'],
-    page: 'feeds',
-    action: () => {
-      const state = useAccountStore.getState();
-      const channels = state.accounts[state.selectedAccountIdx]?.channels;
-      if (isEmpty(channels)) return;
-
-      const currentIdx = getCurrentChannelIndex(state.selectedChannelUrl, channels);
-      const nextIdx = currentIdx + 1;
-      if (nextIdx >= channels.length + 2) return;
-
-      if (nextIdx === 1) {
-        state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
-      } else {
-        state.setSelectedChannelUrl(channels[nextIdx - CUSTOM_CHANNEL_COUNT].url);
-      }
-    },
-  }, {
-    name: 'Switch to previous channel',
-    aliases: ['previous', 'back'],
-    shortcuts: ['shift+k', 'shift+ArrowUp'],
-    page: 'feeds',
-    action: () => {
-      const state = useAccountStore.getState();
-      const channels = state.accounts[state.selectedAccountIdx]?.channels;
-      if (isEmpty(channels)) return;
-
-      const currentIdx = getCurrentChannelIndex(state.selectedChannelUrl, channels);
-      const previousIdx = currentIdx - 1;
-      if (previousIdx < -1) return;
-
-      if (previousIdx === 1) {
-        state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING)
-      } else if (previousIdx === 0) {
-        state.setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
-      } else if (previousIdx === -1) {
-        state.resetSelectedChannel();
-      } else {
-        state.setSelectedChannelUrl(channels[previousIdx - CUSTOM_CHANNEL_COUNT].url);
-      }
-    },
-  },
   ]);
 
   return channelCommands;
@@ -679,3 +629,23 @@ const getCurrentChannelIndex = (channelUrl: string, channels: ChannelType[]) => 
 
 export const accountCommands = getAccountCommands();
 export const channelCommands = getChannelCommands();
+
+const getSupabaseChannelFromUrl = async (url: string) => {
+  try {
+    const { data, error } = await supabaseClient
+      .from('channel')
+      .select()
+      .eq('url', url)
+      .single();
+
+    if (error) {
+      console.error('failed to get channel', error);
+      return null;
+    }
+
+    return data;
+  } catch (e) {
+    console.error('failed to get channel', e);
+    return null;
+  }
+}

@@ -57,6 +57,15 @@ const nextConfig = {
             'value': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
           }
         ]
+      },
+      {
+        source: '/api/channel',
+        headers: [
+          {
+            'key': 'Cache-Control',
+            'value': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=86400',
+          }
+        ]
       }
     ];
   },
