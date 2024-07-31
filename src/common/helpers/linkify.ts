@@ -71,13 +71,18 @@ export function cashtagPlugin({ scanner, parser }) {
 export const CashtagToken = createTokenClass('cashtag', { isLink: true });
 
 export function channelPlugin({ scanner, parser }) {
-  const { SLASH, UNDERSCORE } = scanner.tokens;
+  const { SLASH, UNDERSCORE, WS } = scanner.tokens;
   const { alpha, numeric, alphanumeric, emoji } = scanner.tokens.groups;
 
-  const Hash = parser.start.tt(SLASH);
+  // Define a new state for detecting whitespace before slash
+  const BeforeSlash = parser.start.tt(WS);
+
+  // Define states for the channel plugin
+  const Hash = BeforeSlash.tt(SLASH);
   const HashPrefix = Hash.tt(UNDERSCORE);
   const Channel = new State(ChannelToken);
 
+  // Define transitions
   Hash.ta(numeric, HashPrefix);
   Hash.ta(alpha, Channel);
   Hash.ta(emoji, Channel);
