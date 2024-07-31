@@ -3,11 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
 import { CastThreadView } from "@/common/components/CastThreadView";
-import { CastThreadView } from "@/common/components/CastThreadView";
-import {
-  CastWithInteractions,
-  User,
-} from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -15,18 +11,13 @@ import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
-import {
-  getProfile,
-  getProfileFetchIfNeeded,
-} from "@/common/helpers/profileUtils";
+import { getProfileFetchIfNeeded } from "@/common/helpers/profileUtils";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
 import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
-import {
-  SearchIntervalFilter,
-} from "@/common/components/SearchIntervalFilter";
+import { SearchIntervalFilter } from "@/common/components/SearchIntervalFilter";
 import { SearchInterval } from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
