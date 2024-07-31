@@ -82,7 +82,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     if (error) {
       if (error.message === "User already registered") {
-        logIn();
+        logInWithEmail();
       } else {
         form.setError("password", {
           type: "manual",
@@ -147,7 +147,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
   };
 
-  const logIn = async () => {
+  const logInWithEmail = async () => {
     if (!(await form.trigger())) return;
 
     setIsLoading(true);
@@ -171,12 +171,18 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     router.push("/feeds");
   };
 
+  const loginWithGoogle = async () => {
+    supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+  };
+
   const getButtonAction = () => {
     switch (view) {
       case ViewState.FORGOT:
         return resetPassword;
       case ViewState.LOGIN:
-        return logIn;
+        return logInWithEmail;
       case ViewState.SIGNUP:
         return signUp;
       case ViewState.RESET:
@@ -378,6 +384,22 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         <span className="text-2xl font-semibold tracking-tight">
           {renderViewHelpText()}
         </span>
+        <Button
+          type="button"
+          size="lg"
+          variant="outline"
+          className="py-4"
+          onClick={() => loginWithGoogle()}
+        >
+          <img
+            src="/images/google_logo.png"
+            alt="google logo"
+            width="24"
+            height="24"
+            className=""
+          />
+          Login with Google
+        </Button>
         <form>
           <div className="flex">
             {userMessage && (
@@ -459,7 +481,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           </div>
         </form>
       </Form>
-      {!signupOnly && view !== ViewState.LOGGED_IN && (
+      {false && !signupOnly && view !== ViewState.LOGGED_IN && (
         <>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
