@@ -44,7 +44,7 @@ type NavigationGroupType = {
 type NavigationItemType = {
   name: string;
   router: string;
-  icon: any;
+  icon?: any;
   getTitle?: () => string | JSX.Element;
   getHeaderActions?: () => HeaderAction[];
   shortcut?: string;
@@ -62,7 +62,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const router = useRouter();
 
-  const { pathname } = router;
+  const { asPath, pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
     allChannels,
@@ -83,6 +83,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const channels = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.channels || []
   );
+  const pageRequiresHydrate =
+    asPath !== "/login" &&
+    !asPath.startsWith("/profile") &&
+    !asPath.startsWith("/conversation");
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
@@ -91,9 +95,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   );
 
   const loadingMessages = [
-    "You haven't been here for a while, welcome back!",
-    "Loading herocast",
     "Preparing your Farcaster experience",
+    "Loading herocast",
+    "You haven't been here for a while, welcome back!",
   ];
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
 
@@ -572,7 +576,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         )}
         <main>
-          {!isHydrated ? (
+          {pageRequiresHydrate && !isHydrated ? (
             <Loading
               className="ml-8"
               loadingMessage={loadingMessages[currentMessageIndex]}

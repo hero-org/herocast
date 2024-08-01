@@ -37,6 +37,8 @@ const ChannelHoverCard = ({
     threshold: 0,
     delay: 0,
   });
+  const isChannelPinned =
+    channel && accountChannels.findIndex((c) => c.url === channel.url) !== -1;
 
   useEffect(() => {
     if (!inView) return;
@@ -67,8 +69,6 @@ const ChannelHoverCard = ({
   const renderChannelContent = () => {
     if (!channel) return <Loading />;
 
-    const isChannelPinned =
-      accountChannels.findIndex((c) => c.url === channel.url) !== -1;
     return (
       <div className="space-y-2">
         <div className="flex flex-row justify-between">

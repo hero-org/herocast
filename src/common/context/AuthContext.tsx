@@ -17,9 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    supabaseClient.auth
-      .getUser()
-      .then((res) => setUser(res.data.user || null));
+    supabaseClient.auth.getUser().then((res) => setUser(res.data.user || null));
 
     const { data: authListener } = supabaseClient.auth.onAuthStateChange(
       (event, session) => {
@@ -33,18 +31,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      const isLoggedInUser = !!session;
-      const shouldForwardLoggedOutUser =
-        asPath !== "/login" &&
-        asPath.startsWith("/profile") &&
-        asPath.startsWith("/cast");
+    const isLoggedOut = !user;
+    const shouldForward =
+      asPath !== "/login" &&
+      !asPath.startsWith("/profile") &&
+      !asPath.startsWith("/conversation");
 
-      if (!isLoggedInUser && shouldForwardLoggedOutUser) {
-        window.location.href = "/login";
-      }
-    });
-  }, [asPath]);
+    if (isLoggedOut && shouldForward) {
+      router.push("/login");
+    }
+  }, [user, asPath]);
 
   return (
     <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>
@@ -52,9 +48,9 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === null) {
-      throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-  };
+  const context = useContext(AuthContext);
+  if (context === null) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

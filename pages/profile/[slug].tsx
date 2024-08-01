@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FollowButton from "@/common/components/FollowButton";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
-import { getProfile, shouldUpdateProfile } from "@/common/helpers/profileUtils";
+import { fetchAndAddUserProfile, getProfile, shouldUpdateProfile } from "@/common/helpers/profileUtils";
 import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
 import { useRouter } from "next/router";
 import { Loading } from "@/common/components/Loading";
@@ -22,7 +22,10 @@ enum FeedTypeEnum {
   "likes" = "Likes",
 }
 
-const getUsernameAndFidFromSlug = (slug: string) => {
+const getUsernameAndFidFromSlug = (slug?: string) => {
+  if (!slug) {
+    return { username: undefined, fid: undefined };
+  }
   const fid = slug.startsWith("fid:") ? slug.slice(4) : undefined;
   if (fid) {
     return { username: undefined, fid };
@@ -34,13 +37,12 @@ const getUsernameAndFidFromSlug = (slug: string) => {
 const ProfilePage = () => {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
-  const { username, fid } = getUsernameAndFidFromSlug(slug!);
+  const { username, fid } = getUsernameAndFidFromSlug(slug);
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
 
   const profile = useDataStore((state) => getProfile(state, username, fid));
-  const { addUserProfile } = useDataStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
 
   const selectedAccount = accounts[selectedAccountIdx];
@@ -51,24 +53,11 @@ const ProfilePage = () => {
   };
 
   useEffect(() => {
-    const getData = async () => {
-      const users = await getUserDataForFidOrUsername({
-        username,
-        fid: Number(fid),
-        viewerFid,
-      });
-
-      if (users.length) {
-        users.forEach((user) => {
-          addUserProfile({ user });
-        });
-      }
-    };
-
     if (shouldUpdateProfile(profile)) {
-      getData();
+      fetchAndAddUserProfile({ username, fid, viewerFid });
     }
-  }, [profile, selectedAccount]);
+  }, [profile, fid, slug]);
+
 
   useEffect(() => {
     if (!profile) return;

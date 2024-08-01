@@ -9,6 +9,10 @@ type GetUserDataForFidOrUsernameProps = {
 
 export const getUserDataForFidOrUsername = async ({ username, fid, viewerFid }: GetUserDataForFidOrUsernameProps): Promise<User[]> => {
   try {
+    if (!username && !fid) {
+      return [];
+    }
+
     const neynarClient = new NeynarAPIClient(
       process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
     );
@@ -20,7 +24,7 @@ export const getUserDataForFidOrUsername = async ({ username, fid, viewerFid }: 
       const resp = await neynarClient.fetchBulkUsers([fid], { viewerFid });
       return resp?.users || [];
     }
-    
+
     return [];
   } catch (err) {
     console.error("Error fetching user data for fid or username", { fid, username, err });

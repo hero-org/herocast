@@ -159,7 +159,6 @@ const Notifications = () => {
   };
 
   useEffect(() => {
-    console.log("useEffect notifications", viewerFid);
     if (!viewerFid) return;
 
     setLoadMoreCursor(undefined);

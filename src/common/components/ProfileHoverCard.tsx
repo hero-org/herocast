@@ -4,9 +4,8 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { openWindow } from "../helpers/navigation";
 import { useInView } from "react-intersection-observer";
-import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
+import { useDataStore } from "@/stores/useDataStore";
 import {
   fetchAndAddUserProfile,
   shouldUpdateProfile,
@@ -18,7 +17,7 @@ import Link from "next/link";
 type ProfileHoverCardProps = {
   fid?: number;
   username?: string;
-  viewerFid: number;
+  viewerFid?: number;
   children: React.ReactNode;
   className?: string;
 };
@@ -39,9 +38,12 @@ const ProfileHoverCard = ({
   if (!username && !fid) return null;
 
   useEffect(() => {
-    if (!inView || profile) return;
+    if (!inView) return;
+    if (!viewerFid) {
+      viewerFid = Number(process.env.NEXT_PUBLIC_APP_FID!);
+    }
 
-    if (!profile || shouldUpdateProfile(profile)) {
+    if (shouldUpdateProfile(profile)) {
       fetchAndAddUserProfile({ username, fid, viewerFid });
     }
   }, [inView, profile, viewerFid, username, fid]);

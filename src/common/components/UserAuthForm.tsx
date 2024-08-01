@@ -26,6 +26,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import includes from "lodash.includes";
 import { User } from "@supabase/supabase-js";
+import { useAuth } from "../context/AuthContext";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -61,7 +62,8 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
   const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
+  const hasSignInWithFarcaster = false;
 
   const form = useForm<UserAuthFormValues>({
     resolver: zodResolver(UserAuthFormSchema),
@@ -204,20 +206,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   }, [router.query?.view, user]);
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user && user.email) {
-        setUser(user);
-        form.setValue("email", user.email);
-      }
-    };
-
-    getUser();
-  }, []);
-
-  useEffect(() => {
     if (isAuthenticated && username && fid) {
       setupLocalAccount({ fid, username });
     }
@@ -350,7 +338,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     if (session) {
       resetStore();
-      setUser(null);
       await supabase.auth.signOut();
       posthog.reset();
       setView(ViewState.LOGIN);
@@ -459,7 +446,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           </div>
         </form>
       </Form>
-      {!signupOnly && view !== ViewState.LOGGED_IN && (
+      {hasSignInWithFarcaster && !signupOnly && view !== ViewState.LOGGED_IN && (
         <>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
