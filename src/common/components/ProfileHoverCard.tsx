@@ -13,6 +13,7 @@ import {
 import { getProfile } from "../helpers/profileUtils";
 import ProfileInfoContent from "./ProfileInfoContent";
 import Link from "next/link";
+import { useMemo } from "react";
 
 type ProfileHoverCardProps = {
   fid?: number;
@@ -29,7 +30,7 @@ const ProfileHoverCard = ({
   children,
   className,
 }: ProfileHoverCardProps) => {
-  const profile = useDataStore((state) => getProfile(state, username, fid));
+  const profile = useDataStore((state) => getProfile(state, username, fid?.toString()));
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
@@ -39,14 +40,13 @@ const ProfileHoverCard = ({
 
   useEffect(() => {
     if (!inView) return;
-    if (!viewerFid) {
-      viewerFid = Number(process.env.NEXT_PUBLIC_APP_FID!);
-    }
+    
+    const effectiveViewerFid = viewerFid || Number(process.env.NEXT_PUBLIC_APP_FID!);
 
     if (shouldUpdateProfile(profile)) {
-      fetchAndAddUserProfile({ username, fid, viewerFid });
+      fetchAndAddUserProfile({ username, fid, viewerFid: effectiveViewerFid });
     }
-  }, [inView, profile, viewerFid, username, fid]);
+  }, [inView, username, fid]);
 
   return (
     <HoverCard openDelay={200}>

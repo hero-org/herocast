@@ -79,9 +79,9 @@ const renderMention = ({ attributes, content }) => {
       }}
       rel="noopener noreferrer"
     >
-      <ProfileHoverCard username={content.slice(1)} viewerFid={userFid}>
+      <MemoizedProfileHoverCard username={content.slice(1)} viewerFid={userFid}>
         {content}
-      </ProfileHoverCard>
+      </MemoizedProfileHoverCard>
     </span>
   );
 };
@@ -104,15 +104,17 @@ const renderLink = ({ attributes, content }) => {
 
 const renderChannel = ({ content }) => {
   return (
-    <span
-      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
-      onClick={(event) => {
-        event.stopPropagation();
-      }}
-      rel="noopener noreferrer"
-    >
-      <ChannelHoverCard channelName={content}>{content}</ChannelHoverCard>
-    </span>
+    <ChannelHoverCard channelName={content}>
+      <span
+        className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+        rel="noopener noreferrer"
+      >
+        {content}
+      </span>
+    </ChannelHoverCard>
   );
 };
 
@@ -153,6 +155,8 @@ const linkifyOptions = {
   },
   truncate: 42,
 };
+
+const MemoizedProfileHoverCard = React.memo(ProfileHoverCard);
 
 export const CastRow = ({
   cast,
@@ -608,7 +612,11 @@ export const CastRow = ({
           <div className="flex flex-col w-full">
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
-                <ProfileHoverCard fid={cast.author.fid} viewerFid={userFid}>
+                <MemoizedProfileHoverCard
+                  fid={cast.author.fid}
+                  viewerFid={userFid}
+                  username={cast.author.username}
+                >
                   <span className="items-center flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                     {isEmbed && (
                       <img
@@ -630,7 +638,7 @@ export const CastRow = ({
                       )}
                     </span>
                   </span>
-                </ProfileHoverCard>
+                </MemoizedProfileHoverCard>
                 <div className="hidden lg:ml-2 lg:block">
                   {renderChannelButton()}
                 </div>
