@@ -13,11 +13,14 @@ const supabaseClient = createClient();
 export const AuthProvider = ({ children }) => {
   const router = useRouter();
   const { asPath } = router;
-
+  const [didLoad, setDidLoad] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    supabaseClient.auth.getUser().then((res) => setUser(res.data.user || null));
+    supabaseClient.auth.getUser().then((res) => {
+      setUser(res.data.user || null);
+      setDidLoad(true);
+    });
 
     const { data: authListener } = supabaseClient.auth.onAuthStateChange(
       (event, session) => {
@@ -31,6 +34,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    if (!didLoad) return;
+
     const isLoggedOut = !user;
     const shouldForward =
       asPath !== "/login" &&
@@ -40,7 +45,7 @@ export const AuthProvider = ({ children }) => {
     if (isLoggedOut && shouldForward) {
       router.push("/login");
     }
-  }, [user, asPath]);
+  }, [user, asPath, didLoad]);
 
   return (
     <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>
