@@ -45,6 +45,7 @@ import {
   isWarpcastUrl,
   parseWarpcastUrl,
 } from "@/common/helpers/warpcast";
+import { cn } from "@/lib/utils";
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -444,42 +445,42 @@ export default function CommandPalette() {
                     static
                     className="max-h-80 scroll-py-2 divide-y divide-gray-500 divide-opacity-20 overflow-y-auto"
                   >
-                      <ul className="mt-2 text-sm text-foreground/70">
-                        {(
-                          (filteredCommands.length > 0 && filteredCommands) ||
-                          commands.slice(0, 7)
-                        ).map((command) => (
-                          <Combobox.Option
-                            key={command.name}
-                            value={command}
-                            onClick={() => onClick(command)}
-                            className={({ active }) =>
-                              cn(
-                                "flex cursor-default select-none items-center rounded-sm px-3 py-2",
-                                active
-                                  ? "bg-foreground/5 text-foreground"
-                                  : "text-foreground/80"
-                              )
-                            }
-                          >
-                            {({ active }) => (
-                              <>
-                                {renderIcon(command, active)}
-                                <span className="ml-3 flex-auto truncate">
-                                  {command.name}
+                    <ul className="mt-2 text-sm text-foreground/70">
+                      {(
+                        (filteredCommands.length > 0 && filteredCommands) ||
+                        commands.slice(0, 7)
+                      ).map((command) => (
+                        <Combobox.Option
+                          key={command.name}
+                          value={command}
+                          onClick={() => onClick(command)}
+                          className={({ active }) =>
+                            cn(
+                              "flex cursor-default select-none items-center rounded-sm px-3 py-2",
+                              active
+                                ? "bg-foreground/5 text-foreground"
+                                : "text-foreground/80"
+                            )
+                          }
+                        >
+                          {({ active }) => (
+                            <>
+                              {renderIcon(command, active)}
+                              <span className="ml-3 flex-auto truncate">
+                                {command.name}
+                              </span>
+                              {command.shortcut && (
+                                <span className="ml-3 flex-none text-xs px-2 py-1 rounded-md bg-muted text-primary border-foreground/60">
+                                  <kbd className="font-mono">
+                                    {command.shortcut}
+                                  </kbd>
                                 </span>
-                                {command.shortcut && (
-                                  <span className="ml-3 flex-none text-xs px-2 py-1 rounded-md bg-muted text-primary border-foreground/60">
-                                    <kbd className="font-mono">
-                                      {command.shortcut}
-                                    </kbd>
-                                  </span>
-                                )}
-                              </>
-                            )}
-                          </Combobox.Option>
-                        ))}
-                      </ul>
+                              )}
+                            </>
+                          )}
+                        </Combobox.Option>
+                      ))}
+                    </ul>
                   </Combobox.Options>
                 )}
                 {query !== "" && filteredCommands.length === 0 && (
