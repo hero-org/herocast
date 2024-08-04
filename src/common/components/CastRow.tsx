@@ -36,7 +36,7 @@ import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cn, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useDraftStore } from "@/stores/useDraftStore";
 import ChannelHoverCard from "./ChannelHoverCard";
 
