@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import { castTextStyle, classNames } from "../../src/common/helpers/css";
+import { castTextStyle } from "@/common/helpers/css";
 import { useAccountStore } from "../../src/stores/useAccountStore";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
 import { localize, timeDiff } from "../../src/common/helpers/date";
@@ -293,7 +293,7 @@ const Notifications = () => {
             setIsLeftColumnSelected(false);
           }
         }}
-        className={classNames(
+        className={cn(
           idx === selectedNotificationIdx
             ? "bg-muted"
             : "cursor-pointer bg-background/80 hover:bg-muted/10",
@@ -361,7 +361,7 @@ const Notifications = () => {
   const renderLeftColumn = () => {
     return (
       <div
-        className={classNames(
+        className={cn(
           "overflow-hidden rounded-l-lg border",
           isLeftColumnSelected
             ? "border-muted-foreground/20"
@@ -429,7 +429,7 @@ const Notifications = () => {
 
     return (
       <div
-        className={classNames(
+        className={cn(
           isLeftColumnSelected
             ? "hidden md:block border-muted-foreground"
             : "border-muted-foreground/20",

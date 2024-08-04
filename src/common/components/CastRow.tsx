@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { castTextStyle, classNames } from "@/common/helpers/css";
+import { castTextStyle } from "@/common/helpers/css";
 import { CastReactionType } from "@/common/constants/farcaster";
 import { ChannelType } from "@/common/constants/channels";
 import { useAccountStore } from "@/stores/useAccountStore";
@@ -36,7 +36,7 @@ import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, cn } from "@/lib/utils";
 import { useDraftStore } from "@/stores/useDraftStore";
 import ChannelHoverCard from "./ChannelHoverCard";
 
@@ -287,7 +287,7 @@ export const CastRow = ({
     reactionType: CastReactionType,
     isActive?: boolean
   ): JSX.Element | undefined => {
-    const className = classNames(
+    const className = cn(
       isActive ? "text-foreground/70" : "",
       "mt-0.5 w-4 h-4 mr-1"
     );
@@ -588,7 +588,7 @@ export const CastRow = ({
           event.stopPropagation();
           onSelect && onSelect();
         }}
-        className={classNames(
+        className={cn(
           "p-3",
           isSelected ? "bg-muted" : "cursor-pointer",
           isSelected
