@@ -1,9 +1,5 @@
 import { Properties } from 'csstype';
 
-export function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
-
 export const castTextStyle = {
   'whiteSpace': 'pre-wrap',
   // based on https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/

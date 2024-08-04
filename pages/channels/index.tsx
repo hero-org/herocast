@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useAccountStore } from "../../src/stores/useAccountStore";
 import isEmpty from "lodash.isempty";
-import { classNames } from "../../src/common/helpers/css";
 import { ChannelType } from "../../src/common/constants/channels";
 import findIndex from "lodash.findindex";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
@@ -15,6 +14,7 @@ import { formatLargeNumber } from "@/common/helpers/text";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import filter from "lodash.filter";
+import { cn } from "@/lib/utils";
 
 export default function Channels() {
   const router = useRouter();
@@ -40,7 +40,11 @@ export default function Channels() {
   const searchResults = take(
     searchTerm
       ? map(fuse.search(searchTerm), "item")
-      : orderBy(filter(allChannels, "data.followerCount"), "data.followerCount", "desc"),
+      : orderBy(
+          filter(allChannels, "data.followerCount"),
+          "data.followerCount",
+          "desc"
+        ),
     50
   );
 
@@ -58,14 +62,14 @@ export default function Channels() {
 
     return (
       <div
-        className={classNames(
+        className={cn(
           enabled ? "cursor-move" : "",
           "flex flex-row w-full max-w-lg"
         )}
       >
         {enabled && idx !== undefined && (
           <div
-            className={classNames(
+            className={cn(
               "text-background bg-green-600/80 border-foreground/60 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-lg text-lg font-medium"
             )}
           >
@@ -73,7 +77,7 @@ export default function Channels() {
           </div>
         )}
         <div
-          className={classNames(
+          className={cn(
             enabled && idx !== undefined
               ? "rounded-r-lg border-b border-r border-t"
               : "rounded-lg border",

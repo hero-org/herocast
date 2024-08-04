@@ -1,5 +1,4 @@
 import React from "react";
-import { classNames } from "@/common/helpers/css";
 import { SidebarHeader } from "./SidebarHeader";
 import { useListStore } from "@/stores/useListStore";
 import sortBy from "lodash.sortby";
@@ -30,12 +29,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { openSourcePlanLimits } from "@/config/customerLimitation";
-import Link from "next/link";
 import UpgradeFreePlanCard from "../UpgradeFreePlanCard";
+import { cn } from "@/lib/utils";
 
 const ListsOverview = () => {
-  const { searches, selectedListIdx, setSelectedListIdx, addList, lists } =
+  const { searches, selectedListId, setSelectedListId, addList, lists } =
     useListStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccountId = accounts[selectedAccountIdx]?.id;
@@ -48,7 +46,7 @@ const ListsOverview = () => {
   };
 
   const updateSelectedList = (id: UUID) => {
-    setSelectedListIdx(lists.findIndex((l) => l.id === id));
+    setSelectedListId(id);
   };
 
   const onClickSaveLastSearch = () => {
@@ -66,13 +64,15 @@ const ListsOverview = () => {
     }
   };
 
-  const renderList = (list: List & { id: UUID }, idx: number) => {
+  const renderList = (list: List & { id: UUID }) => {
+    const isSelected = selectedListId === list.id;
+
     return (
       <li key={`list-${list.id}`} className="px-2 sm:px-3 lg:px-4">
         <div
           onClick={() => updateSelectedList(list.id)}
-          className={classNames(
-            selectedListIdx === idx
+          className={cn(
+            isSelected
               ? "text-foreground font-semibold"
               : "text-foreground/80 hover:text-foreground/80",
             "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"

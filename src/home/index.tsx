@@ -11,7 +11,6 @@ import {
 } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import RightSidebar from "@/common/components/Sidebar/RightSidebar";
 import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
@@ -447,7 +446,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                                           onClick={() => setSidebarOpen(false)}
                                         >
                                           <p
-                                            className={classNames(
+                                            className={cn(
                                               item.router === pathname ||
                                                 item.additionalPaths?.includes(
                                                   pathname
@@ -512,7 +511,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                             <li key={item.name}>
                               <Link href={item.router}>
                                 <div
-                                  className={classNames(
+                                  className={cn(
                                     item.router === pathname ||
                                       item.additionalPaths?.includes(pathname)
                                       ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"

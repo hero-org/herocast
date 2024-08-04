@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Modal from "./Modal";
-import { CastType } from "../constants/farcaster";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
 import { openWindow } from "../helpers/navigation";
-import { classNames } from "../helpers/css";
 import { getUrlsInText } from "../helpers/text";
 import uniqBy from "lodash.uniqby";
 import OpenGraphImage from "./Embeds/OpenGraphImage";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { cn } from "@/lib/utils";
 
 type EmbedsModalProps = {
   cast: CastWithInteractions;
@@ -37,7 +36,7 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
         <OpenGraphImage url={item?.url} />
         <span
           onClick={() => onSelect(idx)}
-          className={classNames(
+          className={cn(
             idx === selectedIdx
               ? "bg-gray-500 text-foreground/80"
               : "text-foreground/70",

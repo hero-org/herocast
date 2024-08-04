@@ -19,7 +19,7 @@ interface ListStoreProps {
   searches: Search[];
   lists: List[];
   isHydrated: boolean;
-  selectedListIdx?: number;
+  selectedListId?: UUID;
 }
 
 interface ListStoreActions {
@@ -28,7 +28,7 @@ interface ListStoreActions {
   updateList: (search: UpdateList) => void;
   addList: (newList: AddListType) => void;
   removeList: (listId: UUID) => void;
-  setSelectedListIdx: (idx: number) => void;
+  setSelectedListId: (id: UUID) => void;
 }
 
 export interface ListStore extends ListStoreProps, ListStoreActions { }
@@ -44,7 +44,7 @@ const store = (set: StoreSet) => ({
   lists: [],
   searches: [],
   isHydrated: false,
-  selectedListIdx: undefined,
+  selectedListId: undefined,
   addSearch: (search: Search) => {
     set((state) => {
       state.searches = [...state.searches, search];
@@ -90,9 +90,9 @@ const store = (set: StoreSet) => ({
       state.lists = state.lists.filter((list) => list.id !== listId);
     });
   },
-  setSelectedListIdx: (idx?: number) => {
+  setSelectedListId: (id?: UUID) => {
     set((state) => {
-      state.selectedListIdx = idx;
+      state.selectedListId = id;
     });
   },
   hydrate: async () => {

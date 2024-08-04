@@ -7,7 +7,6 @@ import React, {
   SVGProps,
 } from "react";
 import { CommandType } from "@/common/constants/commands";
-import { classNames } from "@/common/helpers/css";
 import {
   accountCommands,
   channelCommands,
@@ -378,7 +377,7 @@ export default function CommandPalette() {
       >;
       return (
         <IconComponent
-          className={classNames(
+          className={cn(
             "h-5 w-5 flex-none",
             active ? "text-foreground" : "text-foreground/80"
           )}
@@ -455,7 +454,7 @@ export default function CommandPalette() {
                             value={command}
                             onClick={() => onClick(command)}
                             className={({ active }) =>
-                              classNames(
+                              cn(
                                 "flex cursor-default select-none items-center rounded-sm px-3 py-2",
                                 active
                                   ? "bg-foreground/5 text-foreground"

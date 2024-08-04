@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CastRow } from "./CastRow";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
-import { classNames } from "../helpers/css";
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button } from "@/components/ui/button";
@@ -105,13 +104,13 @@ export const CastThreadView = ({
     return (
       <li
         key={`cast-thread-${cast.hash}`}
-        className={classNames(idx === selectedCastIdx ? "" : "")}
+        className={cn(idx === selectedCastIdx ? "" : "")}
         onClick={() => setSelectedCastIdx(idx)}
       >
         <div className="relative pl-4">
           {/* this is the left line */}
           <div
-            className={classNames(
+            className={cn(
               idx === 0 ? "-ml-[27px]" : "border-l-2",
               "relative flex items-start border-muted"
             )}

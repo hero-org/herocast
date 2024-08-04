@@ -32,6 +32,7 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
 import { fetchAndAddUserProfile } from "@/common/helpers/profileUtils";
 import { Badge } from "@/components/ui/badge";
+import { UUID } from "crypto";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -86,10 +87,10 @@ export default function SearchPage() {
 
   const { isManageListModalOpen, setIsManageListModalOpen } =
     useNavigationStore();
-  const { addSearch, addList, setSelectedListIdx, lists } = useListStore();
+  const { addSearch, addList, setSelectedListId, lists } = useListStore();
   const selectedList = useListStore((state) =>
-    state.selectedListIdx !== undefined
-      ? state.lists[state.selectedListIdx]
+    state.selectedListId !== undefined
+      ? state.lists.find((list) => list.id === state.selectedListId)
       : undefined
   );
   const canSearch = searchTerm.trim().length >= 3;
@@ -129,8 +130,7 @@ export default function SearchPage() {
 
     const listId = urlParams.get("list");
     if (listId) {
-      const listIdx = lists.findIndex((list) => list.id === listId);
-      setSelectedListIdx(listIdx);
+      setSelectedListId(listId as UUID);
     }
 
     // if navigating away, reset the selected cast
