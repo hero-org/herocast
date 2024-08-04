@@ -10335,9 +10335,9 @@ postgres-range@^1.1.1:
   integrity sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==
 
 posthog-js@^1.136.4:
-  version "1.150.1"
-  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.150.1.tgz#ce2e0aa0dc30369bf1b1b9a38b9fbf25e5c01ba0"
-  integrity sha512-jHSnqtAWkUQkiedQgHpD00+z8RUF0loDq7ORakBKfQjdntTJIEk16ewqTNRxnpE86guWDoy2J3iAqLgAYfFaLA==
+  version "1.154.2"
+  resolved "https://registry.yarnpkg.com/posthog-js/-/posthog-js-1.154.2.tgz#bb3f7608332dcc1e196d9f6120e3566e491c0069"
+  integrity sha512-EM8xn5V86fTg/pUhCyyMCRotI07tXDLQryc5TDQinT9kCRz8799G1n+Bq7drOEYdD/xbvcKfcfTWmlMrTZCZ6A==
   dependencies:
     fflate "^0.4.8"
     preact "^10.19.3"
