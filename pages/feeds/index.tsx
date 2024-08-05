@@ -35,6 +35,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useDraftStore } from "@/stores/useDraftStore";
+import CreateAccountPage from "pages/welcome/new";
+import { AccountStatusType } from "@/common/constants/accounts";
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -399,42 +401,53 @@ export default function Feeds() {
     );
   };
 
-  const renderWelcomeMessage = () =>
-    casts.length === 0 &&
-    isHydrated &&
-    !isLoadingFeed && (
-      <Card className="max-w-sm col-span-1 m-4">
-        <CardHeader>
-          <CardTitle>Feed is empty</CardTitle>
-          <CardDescription>
-            Seems like there is nothing to see here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="max-w-lg">
-            Start following people or channels to see their posts here. You can
-            refresh the feed, if you think something is wrong.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Button
-            className="w-1/2"
-            disabled={isRefreshingPage}
-            onClick={async () => {
-              setIsRefreshingPage(true);
-              await hydrateAccounts();
-              await getFeed({
-                fid: account.platformAccountId!,
-                parentUrl: selectedChannelUrl,
-              });
-              setIsRefreshingPage(false);
-            }}
-          >
-            Refresh
-          </Button>
-        </CardFooter>
-      </Card>
+  const renderWelcomeMessage = () => {
+    if (
+      isHydrated &&
+      !isLoadingFeed &&
+      accounts.filter((acc) => acc.status === AccountStatusType.active)
+        .length === 0
+    ) {
+      return <CreateAccountPage />;
+    }
+    return (
+      casts.length === 0 &&
+      isHydrated &&
+      !isLoadingFeed && (
+        <Card className="max-w-sm col-span-1 m-4">
+          <CardHeader>
+            <CardTitle>Feed is empty</CardTitle>
+            <CardDescription>
+              Seems like there is nothing to see here.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="max-w-lg">
+              Start following people or channels to see their posts here. You
+              can refresh the feed, if you think something is wrong.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              className="w-1/2"
+              disabled={isRefreshingPage}
+              onClick={async () => {
+                setIsRefreshingPage(true);
+                await hydrateAccounts();
+                await getFeed({
+                  fid: account.platformAccountId!,
+                  parentUrl: selectedChannelUrl,
+                });
+                setIsRefreshingPage(false);
+              }}
+            >
+              Refresh
+            </Button>
+          </CardFooter>
+        </Card>
+      )
     );
+  };
 
   const renderContent = () => (
     <>

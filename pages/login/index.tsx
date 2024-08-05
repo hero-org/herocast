@@ -4,18 +4,8 @@ import { UserAuthForm } from "@/common/components/UserAuthForm";
 import { AuthKitProvider } from "@farcaster/auth-kit";
 import { useRouter } from "next/router";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 const authKitConfig = {

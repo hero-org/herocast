@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   CheckCircleIcon,
   NewspaperIcon,
@@ -11,17 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAccountStore } from "@/stores/useAccountStore";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
-import {
-  useDraftStore,
-} from "@/stores/useDraftStore";
+import { useDraftStore } from "@/stores/useDraftStore";
 import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
 
 const WelcomeSuccessPage = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { accounts, addAccount } = useAccountStore();
   const router = useRouter();
   const { addNewPostDraft } = useDraftStore();
 
@@ -30,7 +25,7 @@ const WelcomeSuccessPage = () => {
     router.push("/post");
   };
   return (
-    <div className="w-full h-screen flex flex-col mt-40 items-center">
+    <div className="w-full flex flex-col mt-40 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
         <h2 className="text-4xl font-bold tracking-tight">
           Welcome to herocast
