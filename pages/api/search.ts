@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
         LIMIT $1 OFFSET $2
     )
-    ${(false && mentionFid) ? `
+    ${mentionFid ? `
         UNION
         (SELECT 
             casts.hash, casts.fid, casts.text, casts.timestamp
