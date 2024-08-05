@@ -83,21 +83,21 @@ const TEXT_COLUMN = 'casts.text';
 const LANGUAGE = 'english';
 
 export const getTextMatchCondition = (term: string): string => {
-    const trimmedTerm = term.trim();
+    term = term.trim();
     
-    if (isSingleWord(trimmedTerm)) {
-        return createExactMatchCondition(trimmedTerm);
+    if (isSingleWord(term)) {
+        return createExactMatchCondition(removeQuotes(term));
     }
 
-    if (hasComplexQuery(trimmedTerm)) {
-        return handleComplexQuery(trimmedTerm);
+    if (hasComplexQuery(term)) {
+        return handleComplexQuery(term);
     }
 
-    if (isPhrase(trimmedTerm)) {
-        return createExactMatchCondition(removeQuotes(trimmedTerm));
+    if (isPhrase(term)) {
+        return createExactMatchCondition(removeQuotes(term));
     }
 
-    return createWebSearchQuery(trimmedTerm);
+    return createWebSearchQuery(term);
 };
 
 const isSingleWord = (term: string): boolean => 
