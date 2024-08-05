@@ -1,3 +1,4 @@
+import { getTextMatchCondition } from '@/common/helpers/search';
 import { AppDataSource, Cast, initializeDataSourceWithRetry } from '@/lib/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 

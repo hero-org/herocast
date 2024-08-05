@@ -519,6 +519,7 @@ export default function SearchPage() {
                   size="lg"
                   type="button"
                   variant="outline"
+                  disabled={!searchTerm}
                   className="px-2 rounded-r-none w-1/2"
                   onClick={() => onSaveSearch()}
                 >
