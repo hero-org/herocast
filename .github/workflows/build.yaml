@@ -22,17 +22,17 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # - name: Setup Rust cache
-      #   uses: actions/cache@v3
+      #   uses: actions/cache@v4
       #   with:
       #     key: ${{ matrix.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
       #     path: |
       #       ~/.cargo
 
       - name: Set up cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
@@ -40,7 +40,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20.12.2
           cache: yarn
