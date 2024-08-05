@@ -70,7 +70,7 @@ const CreateAccountPage = () => {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col mt-24 items-center">
+    <div className="w-full flex flex-col mt-24 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
         <h2 className="text-4xl font-bold tracking-tight">
           Welcome to herocast
