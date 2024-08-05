@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { castTextStyle, classNames } from "../../../src/common/helpers/css";
-import { CastReactionType } from "../../../src/common/constants/farcaster";
-import { ChannelType } from "../../../src/common/constants/channels";
-import { useAccountStore } from "../../../src/stores/useAccountStore";
+import { castTextStyle } from "@/common/helpers/css";
+import { CastReactionType } from "@/common/constants/farcaster";
+import { ChannelType } from "@/common/constants/channels";
+import { useAccountStore } from "@/stores/useAccountStore";
 import {
   ArrowPathRoundedSquareIcon,
   ArrowTopRightOnSquareIcon,
@@ -79,9 +79,9 @@ const renderMention = ({ attributes, content }) => {
       }}
       rel="noopener noreferrer"
     >
-      <ProfileHoverCard username={content.slice(1)} viewerFid={userFid}>
+      <MemoizedProfileHoverCard username={content.slice(1)} viewerFid={userFid}>
         {content}
-      </ProfileHoverCard>
+      </MemoizedProfileHoverCard>
     </span>
   );
 };
@@ -104,15 +104,17 @@ const renderLink = ({ attributes, content }) => {
 
 const renderChannel = ({ content }) => {
   return (
-    <span
-      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
-      onClick={(event) => {
-        event.stopPropagation();
-      }}
-      rel="noopener noreferrer"
-    >
-      <ChannelHoverCard channelName={content}>{content}</ChannelHoverCard>
-    </span>
+    <ChannelHoverCard channelName={content}>
+      <span
+        className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+        rel="noopener noreferrer"
+      >
+        {content}
+      </span>
+    </ChannelHoverCard>
   );
 };
 
@@ -153,6 +155,8 @@ const linkifyOptions = {
   },
   truncate: 42,
 };
+
+const MemoizedProfileHoverCard = React.memo(ProfileHoverCard);
 
 export const CastRow = ({
   cast,
@@ -283,7 +287,7 @@ export const CastRow = ({
     reactionType: CastReactionType,
     isActive?: boolean
   ): JSX.Element | undefined => {
-    const className = classNames(
+    const className = cn(
       isActive ? "text-foreground/70" : "",
       "mt-0.5 w-4 h-4 mr-1"
     );
@@ -584,7 +588,7 @@ export const CastRow = ({
           event.stopPropagation();
           onSelect && onSelect();
         }}
-        className={classNames(
+        className={cn(
           "p-3",
           isSelected ? "bg-muted" : "cursor-pointer",
           isSelected
@@ -608,34 +612,33 @@ export const CastRow = ({
           <div className="flex flex-col w-full">
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
-                <ProfileHoverCard fid={cast.author.fid} viewerFid={userFid}>
-                  <Link
-                    href={`/profile/${cast.author.username}`}
-                    prefetch={false}
-                  >
-                    <span className="items-center flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
-                      {isEmbed && (
+                <MemoizedProfileHoverCard
+                  fid={cast.author.fid}
+                  viewerFid={userFid}
+                  username={cast.author.username}
+                >
+                  <span className="items-center flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
+                    {isEmbed && (
+                      <img
+                        className="relative h-4 w-4 mr-1 flex-none bg-background rounded-full"
+                        src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
+                      />
+                    )}
+                    {displayName}
+                    <span className="hidden font-normal lg:ml-1 lg:block">
+                      (@{cast.author.username})
+                    </span>
+                    <span>
+                      {cast.author.power_badge && (
                         <img
-                          className="relative h-4 w-4 mr-1 flex-none bg-background rounded-full"
-                          src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
+                          src="/images/ActiveBadge.webp"
+                          className="ml-2 mt-0.5 h-[17px] w-[17px]"
+                          alt="power badge"
                         />
                       )}
-                      {displayName}
-                      <span className="hidden font-normal lg:ml-1 lg:block">
-                        (@{cast.author.username})
-                      </span>
-                      <span>
-                        {cast.author.power_badge && (
-                          <img
-                            src="/images/ActiveBadge.webp"
-                            className="ml-2 mt-0.5 h-[17px] w-[17px]"
-                            alt="power badge"
-                          />
-                        )}
-                      </span>
                     </span>
-                  </Link>
-                </ProfileHoverCard>
+                  </span>
+                </MemoizedProfileHoverCard>
                 <div className="hidden lg:ml-2 lg:block">
                   {renderChannelButton()}
                 </div>

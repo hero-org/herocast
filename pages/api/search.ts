@@ -1,3 +1,4 @@
+import { getTextMatchCondition } from '@/common/helpers/search';
 import { AppDataSource, Cast, initializeDataSourceWithRetry } from '@/lib/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -28,22 +29,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
 
-    const termsInQuotes = term.match(/"([^"]*)"/g)?.map(quotedTerm => quotedTerm.replace(/"/g, ''));
     const baseConditions = `
         casts.deleted_at IS NULL
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
-        ${termsInQuotes ? `AND ${termsInQuotes.map((quotedTerm) => `casts.text ilike '%${quotedTerm}%'`).join(' AND ')}` : ''}
         ${fromFid ? `AND casts.fid = ${fromFid}` : ''}
     `;
 
+    const textMatchCondition = getTextMatchCondition(term);
     const query = `
     (SELECT 
         casts.hash, casts.fid, casts.text, casts.timestamp
     FROM casts 
         ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
     WHERE 
-        tsv @@ websearch_to_tsquery('english', $3) 
+        ${textMatchCondition}
         AND ${baseConditions}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
         LIMIT $1 OFFSET $2
@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             : ''
         }
     `;
-    const vars = [limit, offset, term];
+    const vars = [limit, offset];
 
     try {
         const queryStart = process.hrtime();

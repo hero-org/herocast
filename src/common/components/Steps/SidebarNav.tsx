@@ -1,9 +1,9 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { classNames } from "@/common/helpers/css";
-import { CheckCircleIcon, PlayCircleIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon } from "@heroicons/react/20/solid";
 import findIndex from "lodash.findindex";
 import includes from "lodash.includes";
+import { cn } from "@/lib/utils";
 
 export type SidebarNavItem = {
   idx: number;
@@ -31,7 +31,7 @@ export function SidebarNav({
 
   return (
     <nav
-      className={classNames(
+      className={cn(
         "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
         className!
       )}
@@ -44,7 +44,7 @@ export function SidebarNav({
             onClick={() => onClick(item.keys[0])}
             key={item.keys[0]}
             variant="ghost"
-            className={classNames(
+            className={cn(
               enabled
                 ? "text-foreground/40 hover:bg-transparent hover:underline"
                 : "",

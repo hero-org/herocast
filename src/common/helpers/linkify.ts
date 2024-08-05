@@ -71,16 +71,31 @@ export function cashtagPlugin({ scanner, parser }) {
 export const CashtagToken = createTokenClass('cashtag', { isLink: true });
 
 export function channelPlugin({ scanner, parser }) {
-  const { SLASH, UNDERSCORE } = scanner.tokens;
+  const { SLASH, UNDERSCORE, WS } = scanner.tokens;
   const { alpha, numeric, alphanumeric, emoji } = scanner.tokens.groups;
 
-  const Hash = parser.start.tt(SLASH);
-  const HashPrefix = Hash.tt(UNDERSCORE);
+  // Initial state transitions for beginning of the text
+  const InitialSlash = parser.start.tt(SLASH);
+  const InitialHashPrefix = InitialSlash.tt(UNDERSCORE);
   const Channel = new State(ChannelToken);
 
-  Hash.ta(numeric, HashPrefix);
-  Hash.ta(alpha, Channel);
-  Hash.ta(emoji, Channel);
+  // Define transitions for channels starting at the beginning of the text
+  InitialSlash.ta(numeric, InitialHashPrefix);
+  InitialSlash.ta(alpha, Channel);
+  InitialSlash.ta(emoji, Channel);
+  InitialHashPrefix.ta(alpha, Channel);
+  InitialHashPrefix.ta(emoji, Channel);
+  InitialHashPrefix.ta(numeric, InitialHashPrefix);
+  InitialHashPrefix.tt(UNDERSCORE, InitialHashPrefix);
+
+  // Transitions for channels preceded by whitespace
+  const BeforeSlash = parser.start.tt(WS).tt(SLASH);
+  const HashPrefix = BeforeSlash.tt(UNDERSCORE);
+
+  // Define transitions
+  BeforeSlash.ta(numeric, HashPrefix);
+  BeforeSlash.ta(alpha, Channel);
+  BeforeSlash.ta(emoji, Channel);
   HashPrefix.ta(alpha, Channel);
   HashPrefix.ta(emoji, Channel);
   HashPrefix.ta(numeric, HashPrefix);

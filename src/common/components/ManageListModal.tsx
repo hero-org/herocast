@@ -21,8 +21,8 @@ const ManageListModal = ({ open, onClose }) => {
   const [isDailyEmailEnabled, setIsDailyEmailEnabled] = useState(false);
 
   const list = useListStore((state) =>
-    state.selectedListIdx !== undefined
-      ? state.lists[state.selectedListIdx]
+    state.selectedListId !== undefined
+      ? state.lists.find((l) => l.id === state.selectedListId)
       : undefined
   );
   const canSave =

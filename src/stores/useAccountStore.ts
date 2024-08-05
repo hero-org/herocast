@@ -24,8 +24,8 @@ import { getUsernameForFid } from "@/common/helpers/farcaster";
 import { IndexedDBStorage } from "./StoreStorage";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
-const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
-const CHANNEL_UPDATE_RELEASE_DATE = 1717413090288;
+const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 120; // 5 days;
+const CHANNEL_UPDATE_RELEASE_DATE = 1722607765000;
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 export enum CUSTOM_CHANNELS {
@@ -444,7 +444,9 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
       .from('channel')
       .select('*', { count: 'exact' })
       .not('data', 'is', null)
+      .gt('data -> followerCount', 50)
       .range(start, end);
+    console.log('count', count)
     if (error) throw error;
     channelData = channelData.concat(data);
     hasMoreChannels = data.length > 0;

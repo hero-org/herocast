@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Cog6ToothIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import {
@@ -11,7 +11,6 @@ import {
 } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import RightSidebar from "@/common/components/Sidebar/RightSidebar";
 import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
@@ -44,7 +43,7 @@ type NavigationGroupType = {
 type NavigationItemType = {
   name: string;
   router: string;
-  icon: any;
+  icon?: any;
   getTitle?: () => string | JSX.Element;
   getHeaderActions?: () => HeaderAction[];
   shortcut?: string;
@@ -62,7 +61,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const router = useRouter();
 
-  const { pathname } = router;
+  const { asPath, pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
     allChannels,
@@ -83,12 +82,35 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const channels = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.channels || []
   );
+  const pageRequiresHydrate =
+    asPath !== "/login" &&
+    !asPath.startsWith("/profile") &&
+    !asPath.startsWith("/conversation");
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
       state.accounts[0].platform ===
         AccountPlatformType.farcaster_local_readonly
   );
+
+  const loadingMessages = [
+    "Preparing your Farcaster experience",
+    "Loading herocast",
+    "You haven't been here for a while, welcome back!",
+  ];
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      const interval = setInterval(() => {
+        setCurrentMessageIndex(
+          (prevIndex) => (prevIndex + 1) % loadingMessages.length
+        );
+      }, 3000); // Change message every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [isHydrated]);
 
   const getFeedTitle = () => {
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
@@ -167,7 +189,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     (c) => c.url === selectedChannelUrl
                   );
                   if (!channel) return;
-                  
+
                   if (isChannelPinned) {
                     removePinnedChannel(channel);
                   } else {
@@ -221,7 +243,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           name: "Upgrade",
           router: "/upgrade",
           hide: true,
-        }
+        },
       ],
     },
     {
@@ -342,7 +364,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       <CardHeader className="p-2 pt-0 md:p-4">
         <CardTitle>Create your herocast account</CardTitle>
         <CardDescription>
-          Connect your email to unlock all features and start casting with herocast.
+          Connect your email to unlock all features and start casting with
+          herocast.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
@@ -414,29 +437,32 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                           >
                             <li>
                               <ul role="list" className="-mx-2 space-y-1">
-                                {navigation.map((item) => !item.hide && (
-                                  <li key={item.name}>
-                                    <Link
-                                      href={item.router}
-                                      onClick={() => setSidebarOpen(false)}
-                                    >
-                                      <p
-                                        className={classNames(
-                                          item.router === pathname ||
-                                            item.additionalPaths?.includes(
-                                              pathname
-                                            )
-                                            ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                          "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
-                                        )}
-                                      >
-                                        {item.icon}
-                                        {item.name}
-                                      </p>
-                                    </Link>
-                                  </li>
-                                ))}
+                                {navigation.map(
+                                  (item) =>
+                                    !item.hide && (
+                                      <li key={item.name}>
+                                        <Link
+                                          href={item.router}
+                                          onClick={() => setSidebarOpen(false)}
+                                        >
+                                          <p
+                                            className={cn(
+                                              item.router === pathname ||
+                                                item.additionalPaths?.includes(
+                                                  pathname
+                                                )
+                                                ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                              "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                            )}
+                                          >
+                                            {item.icon}
+                                            {item.name}
+                                          </p>
+                                        </Link>
+                                      </li>
+                                    )
+                                )}
                               </ul>
                             </li>
                           </ul>
@@ -474,30 +500,33 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 const navigation = group.items;
                 return (
                   <div key={`nav-group-${group.name}`}>
-                    {navigation.map((item) => !item.hide && (
-                      <ul
-                        key={`nav-item-${item.name}`}
-                        role="list"
-                        className="flex flex-col items-left space-y-1"
-                      >
-                        <li key={item.name}>
-                          <Link href={item.router}>
-                            <div
-                              className={classNames(
-                                item.router === pathname ||
-                                  item.additionalPaths?.includes(pathname)
-                                  ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                              )}
-                            >
-                              {item.icon}
-                              <span className="">{item.name}</span>
-                            </div>
-                          </Link>
-                        </li>
-                      </ul>
-                    ))}
+                    {navigation.map(
+                      (item) =>
+                        !item.hide && (
+                          <ul
+                            key={`nav-item-${item.name}`}
+                            role="list"
+                            className="flex flex-col items-left space-y-1"
+                          >
+                            <li key={item.name}>
+                              <Link href={item.router}>
+                                <div
+                                  className={cn(
+                                    item.router === pathname ||
+                                      item.additionalPaths?.includes(pathname)
+                                      ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                    "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                  )}
+                                >
+                                  {item.icon}
+                                  <span className="">{item.name}</span>
+                                </div>
+                              </Link>
+                            </li>
+                          </ul>
+                        )
+                    )}
                   </div>
                 );
               })}
@@ -546,8 +575,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         )}
         <main>
-          {!isHydrated ? (
-            <Loading className="ml-8" loadingMessage="Loading herocast" />
+          {pageRequiresHydrate && !isHydrated ? (
+            <Loading
+              className="ml-8"
+              loadingMessage={loadingMessages[currentMessageIndex]}
+            />
           ) : (
             <div className="w-full max-w-full min-h-screen flex justify-between">
               {children}

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { classNames } from "@/common/helpers/css";
 import { makeGraphqlRequest } from "@/common/helpers/graphql";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import get from "lodash.get";
@@ -206,7 +205,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
           {stats.map((stat, statIdx) => (
             <div
               key={stat.name}
-              className={classNames(
+              className={cn(
                 statIdx % 2 === 1
                   ? "sm:border-l"
                   : statIdx === 2

@@ -4,17 +4,21 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { openWindow } from "../helpers/navigation";
 import { useInView } from "react-intersection-observer";
-import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
-import { fetchAndAddUserProfile } from "../helpers/profileUtils";
+import { useDataStore } from "@/stores/useDataStore";
+import {
+  fetchAndAddUserProfile,
+  shouldUpdateProfile,
+} from "../helpers/profileUtils";
 import { getProfile } from "../helpers/profileUtils";
 import ProfileInfoContent from "./ProfileInfoContent";
+import Link from "next/link";
+import { useMemo } from "react";
 
 type ProfileHoverCardProps = {
   fid?: number;
   username?: string;
-  viewerFid: number;
+  viewerFid?: number;
   children: React.ReactNode;
   className?: string;
 };
@@ -26,7 +30,7 @@ const ProfileHoverCard = ({
   children,
   className,
 }: ProfileHoverCardProps) => {
-  const profile = useDataStore((state) => getProfile(state, username, fid));
+  const profile = useDataStore((state) => getProfile(state, username, fid?.toString()));
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
@@ -35,35 +39,36 @@ const ProfileHoverCard = ({
   if (!username && !fid) return null;
 
   useEffect(() => {
-    if (!inView || profile) return;
+    if (!inView) return;
+    
+    const effectiveViewerFid = viewerFid || Number(process.env.NEXT_PUBLIC_APP_FID!);
 
-    if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
-      fetchAndAddUserProfile({ username, fid, viewerFid });
+    if (shouldUpdateProfile(profile)) {
+      fetchAndAddUserProfile({ username, fid, viewerFid: effectiveViewerFid });
     }
-  }, [inView, profile, viewerFid, username, fid]);
-
-  const onClick = () => {
-    openWindow(
-      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`
-    );
-  };
+  }, [inView, username, fid]);
 
   return (
     <HoverCard openDelay={200}>
-      <HoverCardTrigger
-        onClick={onClick}
-        ref={ref}
-        className={`${className} text-left`}
-      >
-        {children}
+      <HoverCardTrigger ref={ref} className={`${className} text-left`}>
+        <Link
+          href={`/profile/${profile?.username || username}`}
+          prefetch={false}
+        >
+          {children}
+        </Link>
       </HoverCardTrigger>
       <HoverCardContent
         side="bottom"
         className="border border-gray-400 overflow-hidden cursor-pointer"
       >
-        <button onClick={onClick} className="w-full text-left">
+        <Link
+          href={`/profile/${profile?.username || username}`}
+          prefetch={false}
+          className="w-full text-left"
+        >
           <ProfileInfoContent profile={profile} isHoverCard={true} />
-        </button>
+        </Link>
       </HoverCardContent>
     </HoverCard>
   );

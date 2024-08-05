@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { take } from "lodash";
+import { formatDistanceToNow } from "date-fns";
 
 const priorityChannels = ["email", "linkedin", "telegram", "twitter", "github"];
 
@@ -37,40 +38,51 @@ const ProfileInfo = ({
     }
   }, [fid, viewerFid, profile]);
 
-  const renderSocialCapitalScore = () => (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">
-              {profile?.socialCapitalScore?.socialCapitalRank}
-            </span>{" "}
-            social rank
-          </span>
-        </TooltipTrigger>
-        <TooltipContent
-          className="w-44 p-3 bg-background border border-muted text-foreground/80"
-          side="bottom"
-          sideOffset={5}
-        >
-          Social Capital Scores (SCS) are a measure of each Farcaster
-          user&apos;s influence in the network. Learn more at{" "}
-          <a
-            target="_blank"
-            rel="noreferrer"
-            className="underline cursor-pointer"
-            href="https://docs.airstack.xyz/airstack-docs-and-faqs/farcaster/farcaster/social-capital#social-capital-scores"
+  const renderDateJoined = () => {
+    if (!profile?.airstackSocialInfo?.userCreatedAt) return null;
+    return (
+      <p className="text-sm text-muted-foreground">
+        <span className="font-semibold text-foreground">
+          {formatDistanceToNow(profile.airstackSocialInfo?.userCreatedAt)}
+        </span>{" "}
+        account age
+      </p>
+    );
+  };
+  const renderSocialCapitalScore = () =>
+    profile?.airstackSocialInfo?.socialCapitalRank && (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">
+                {profile?.airstackSocialInfo?.socialCapitalRank}
+              </span>{" "}
+              social rank
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            className="w-44 p-3 bg-background border border-muted text-foreground/80"
+            side="bottom"
+            sideOffset={5}
           >
-            Airstack.xyz
-          </a>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+            Social Capital Scores (SCS) are a measure of each Farcaster
+            user&apos;s influence in the network. Learn more at{" "}
+            <a
+              target="_blank"
+              rel="noreferrer"
+              className="underline cursor-pointer"
+              href="https://docs.airstack.xyz/airstack-docs-and-faqs/farcaster/farcaster/social-capital#social-capital-scores"
+            >
+              Airstack.xyz
+            </a>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
 
   const shouldRenderFullInfo =
-    showFullInfo &&
-    profile?.socialCapitalScore?.socialCapitalRank !== undefined;
+    showFullInfo && (profile?.airstackSocialInfo || profile?.icebreakerData);
 
   const renderIcebreakerCredentials = () => {
     if (!profile?.icebreakerData?.credentials?.length) return null;
@@ -81,7 +93,7 @@ const ProfileInfo = ({
         <div className="flex flex-wrap gap-1">
           {take(profile.icebreakerData.credentials, 5).map((credential) => (
             <span
-              key={`${credential.name}`}
+              key={`${fid}-${credential.name}`}
               className="rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center"
             >
               {credential.name}
@@ -109,7 +121,7 @@ const ProfileInfo = ({
         <div className="flex flex-wrap gap-1">
           {sortedChannels.map((channel) => (
             <Link
-              key={`${channel.type}-${channel.value}`}
+              key={`${fid}-${channel.type}-${channel.value}`}
               href={channel.url}
               prefetch={false}
             >
@@ -124,7 +136,7 @@ const ProfileInfo = ({
   };
 
   return (
-    <div className="space-y-2 mb-4 min-h-72">
+    <div className="space-y-2 mb-4 min-h-72 w-full">
       <Link
         href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
         prefetch={false}
@@ -146,6 +158,7 @@ const ProfileInfo = ({
       </Link>
       {shouldRenderFullInfo && (
         <div>
+          {renderDateJoined()}
           {renderSocialCapitalScore()}
           {renderIcebreakerChannels()}
           {renderIcebreakerCredentials()}
