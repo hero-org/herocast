@@ -378,28 +378,32 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
   };
 
+  const renderGoogleLoginButton = () => (
+    <Button
+      type="button"
+      size="lg"
+      variant="outline"
+      className="py-4"
+      onClick={() => loginWithGoogle()}
+    >
+      <img
+        src="/images/google_logo.png"
+        alt="google logo"
+        width="24"
+        height="24"
+        className=""
+      />
+      Login with Google
+    </Button>
+  );
+
   return (
     <div className="grid gap-6">
       <Form {...form}>
         <span className="text-2xl font-semibold tracking-tight">
           {renderViewHelpText()}
         </span>
-        <Button
-          type="button"
-          size="lg"
-          variant="outline"
-          className="py-4"
-          onClick={() => loginWithGoogle()}
-        >
-          <img
-            src="/images/google_logo.png"
-            alt="google logo"
-            width="24"
-            height="24"
-            className=""
-          />
-          Login with Google
-        </Button>
+
         <form>
           <div className="flex">
             {userMessage && (
@@ -411,6 +415,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           <div className="grid gap-4">
             {view !== ViewState.LOGGED_IN && (
               <div className="grid gap-4">
+                {renderGoogleLoginButton()}
                 <FormField
                   control={form.control}
                   name="email"
