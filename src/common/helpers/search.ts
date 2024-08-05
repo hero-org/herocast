@@ -119,7 +119,7 @@ const isPhrase = (term: string): boolean =>
     !term.includes('"') || isQuoted(term);
 
 const createExactMatchCondition = (phrase: string): string => 
-    `${TEXT_COLUMN} ~* '${escapeSingleQuotes(phrase)}'`;
+    `${TEXT_COLUMN} ~* '\\m${escapeSingleQuotes(phrase)}'`;
 
 const createWebSearchQuery = (term: string): string => 
     `tsv @@ websearch_to_tsquery('${LANGUAGE}', '${escapeSingleQuotes(term)}')`;
