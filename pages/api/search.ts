@@ -6,7 +6,7 @@ export const config = {
 };
 
 const TEXT_COLUMN = 'casts.text';
-const getTextMatchCondition = (term: string) => {
+export const getTextMatchCondition = (term: string) => {
     term = term.trim();
 
     // Function to create exact match condition
