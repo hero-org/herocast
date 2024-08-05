@@ -14,7 +14,13 @@ const getTextMatchCondition = (term: string) => {
         return `tsv @@ websearch_to_tsquery('english', '${term.replace(/'/g, "''")}')`; // Escape single quotes
     }
 
-    // For simple queries, use to_tsquery with & (AND) operator between terms
+    // For single words or phrases, use exact matching
+    if (!term.includes(' ') || term.startsWith('"') && term.endsWith('"')) {
+        const exactTerm = term.replace(/^"|"$/g, ''); // Remove surrounding quotes if present
+        return `${TEXT_COLUMN} ~* '\\m${exactTerm.replace(/'/g, "''")}\\M'`; // Use word boundaries for exact match
+    }
+
+    // For simple multi-word queries, use to_tsquery with & (AND) operator between terms
     const simpleTerms = term.split(/\s+/).filter(t => t !== '');
     if (simpleTerms.length > 0) {
         const tsQuery = simpleTerms.join(' & ');
