@@ -9,37 +9,54 @@ const TEXT_COLUMN = 'casts.text';
 const getTextMatchCondition = (term: string) => {
     term = term.trim();
 
-    // Handle quoted phrases                                                               
+    // Handle quoted phrases
     const quotedPhrases = term.match(/"([^"]*)"/g) || [];
     const quotedConditions = quotedPhrases.map(phrase =>
         `${TEXT_COLUMN} ILIKE '%${phrase.replace(/"/g, '')}%'`
     );
 
-    // Remove quoted phrases from the term                                                 
+    // Remove quoted phrases from the term
     quotedPhrases.forEach(phrase => {
         term = term.replace(phrase, '');
     });
 
-    // Split remaining terms                                                               
+    // Split remaining terms
     const terms = term.split(/\s+/).filter(t => t !== '');
 
-    // Separate positive and negative terms                                                
-    const positiveTerm = terms.filter(t => !t.startsWith('-'));
+    // Separate positive, negative, and boolean terms
+    const positiveTerm = terms.filter(t => !t.startsWith('-') && !['AND', 'OR'].includes(t.toUpperCase()));
     const negativeTerm = terms.filter(t => t.startsWith('-')).map(t => t.slice(1));
+    const booleanOperators = terms.filter(t => ['AND', 'OR'].includes(t.toUpperCase()));
 
-    // Handle boolean operations                                                           
-    const booleanConditions = [];
-    if (positiveTerm.length > 0) {
-        const andCondition = positiveTerm.join(' & ');
-        booleanConditions.push(`tsv @@ to_tsquery('english', '${andCondition}')`);
+    // Handle exact match for single words and phrases
+    const exactMatchConditions = positiveTerm.map(t => 
+        `${TEXT_COLUMN} ~* '\\m${t}\\M'`
+    );
+
+    // Handle negative terms
+    const negativeConditions = negativeTerm.map(t => 
+        `${TEXT_COLUMN} !~* '\\m${t}\\M'`
+    );
+
+    // Combine conditions based on boolean operators
+    let combinedCondition = '';
+    for (let i = 0; i < exactMatchConditions.length; i++) {
+        combinedCondition += exactMatchConditions[i];
+        if (i < booleanOperators.length) {
+            combinedCondition += ` ${booleanOperators[i]} `;
+        } else if (i < exactMatchConditions.length - 1) {
+            combinedCondition += ' AND ';
+        }
     }
 
-    // Add exact match conditions for single words                                         
-    const exactMatchConditions = positiveTerm
-        .filter(t => !t.toLowerCase().match(/^(and|or)$/))
-        .map(t => `${TEXT_COLUMN} ILIKE '% ${t} %' OR ${TEXT_COLUMN} ILIKE '${t} %' OR     
- ${TEXT_COLUMN} ILIKE '% ${t}'`);
+    // Add quoted phrases and negative conditions
+    const allConditions = [
+        ...quotedConditions,
+        combinedCondition,
+        ...negativeConditions
+    ].filter(Boolean);
 
+    return allConditions.join(' AND ');
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
