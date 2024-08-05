@@ -9,26 +9,36 @@ const TEXT_COLUMN = 'casts.text';
 const getTextMatchCondition = (term: string) => {
     term = term.trim();
 
-    // Use websearch_to_tsquery for complex queries
-    if (term.includes('"') || term.includes('-') || /\b(AND|OR)\b/i.test(term)) {
-        return `tsv @@ websearch_to_tsquery('english', '${term.replace(/'/g, "''")}')`; // Escape single quotes
+    // Function to create exact match condition
+    const exactMatch = (phrase: string) => `${TEXT_COLUMN} ~* '\\m${phrase.replace(/'/g, "''")}\\M'`;
+
+    // Single word or quoted single word -> exact match
+    if (!term.includes(' ') || (term.startsWith('"') && term.endsWith('"') && !term.slice(1, -1).includes(' '))) {
+        const word = term.replace(/^"|"$/g, '');
+        return exactMatch(word);
     }
 
-    // For single words or phrases, use exact matching
-    if (!term.includes(' ') || term.startsWith('"') && term.endsWith('"')) {
-        const exactTerm = term.replace(/^"|"$/g, ''); // Remove surrounding quotes if present
-        return `${TEXT_COLUMN} ~* '\\m${exactTerm.replace(/'/g, "''")}\\M'`; // Use word boundaries for exact match
+    // Phrase (with or without quotes) -> exact match
+    if (!term.includes('"') || (term.startsWith('"') && term.endsWith('"'))) {
+        const phrase = term.replace(/^"|"$/g, '');
+        return exactMatch(phrase);
     }
 
-    // For simple multi-word queries, use to_tsquery with & (AND) operator between terms
-    const simpleTerms = term.split(/\s+/).filter(t => t !== '');
-    if (simpleTerms.length > 0) {
-        const tsQuery = simpleTerms.join(' & ');
-        return `tsv @@ to_tsquery('english', '${tsQuery.replace(/'/g, "''")}')`; // Escape single quotes
+    // Combination of quotes and boolean operators
+    if (term.includes('"') && (term.includes('-') || /\b(AND|OR)\b/i.test(term))) {
+        const parts = term.match(/"[^"]+"|[^\s]+/g) || [];
+        const conditions = parts.map(part => {
+            if (part.startsWith('"') && part.endsWith('"')) {
+                return exactMatch(part.slice(1, -1));
+            } else {
+                return `tsv @@ websearch_to_tsquery('english', '${part.replace(/'/g, "''")}')`; // Escape single quotes
+            }
+        });
+        return conditions.join(' AND ');
     }
 
-    // Fallback to ILIKE for very simple queries or empty strings
-    return `${TEXT_COLUMN} ILIKE '%${term.replace(/'/g, "''")}%'`; // Escape single quotes
+    // Fallback to websearch_to_tsquery for other complex queries
+    return `tsv @@ websearch_to_tsquery('english', '${term.replace(/'/g, "''")}')`; // Escape single quotes
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
