@@ -77,3 +77,80 @@ export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParam
         return [];
     }
 };
+
+
+const TEXT_COLUMN = 'casts.text';
+const LANGUAGE = 'english';
+
+export const getTextMatchCondition = (term: string): string => {
+    term = term.trim();
+    
+    if (isSingleWord(term)) {
+        return createExactMatchCondition(removeQuotes(term));
+    }
+
+    if (hasComplexQuery(term)) {
+        return handleComplexQuery(term);
+    }
+
+    if (isPhrase(term)) {
+        return createExactMatchCondition(removeQuotes(term));
+    }
+
+    return createWebSearchQuery(term);
+};
+
+const isSingleWord = (term: string): boolean => 
+    !term.includes(' ') || (isQuoted(term) && !term.slice(1, -1).includes(' '));
+
+const isQuoted = (term: string): boolean => 
+    term.startsWith('"') && term.endsWith('"');
+
+const removeQuotes = (term: string): string => 
+    term.replace(/^"|"$/g, '');
+
+const hasComplexQuery = (term: string): boolean => 
+    term.includes('"') || term.includes('-') || hasBooleanOperators(term);
+
+const hasBooleanOperators = (term: string): boolean => 
+    /\b(AND|OR)\b/i.test(term);
+
+const isPhrase = (term: string): boolean => 
+    !term.includes('"') || isQuoted(term);
+
+const createExactMatchCondition = (phrase: string): string => 
+    `${TEXT_COLUMN} ~* '${escapeSingleQuotes(phrase)}'`;
+
+const createWebSearchQuery = (term: string): string => 
+    `tsv @@ websearch_to_tsquery('${LANGUAGE}', '${escapeSingleQuotes(term)}')`;
+
+const escapeSingleQuotes = (str: string): string => 
+    str.replace(/'/g, "''");
+
+const handleComplexQuery = (term: string): string => {
+    const parts = term.match(/"[^"]+"|[^\s]+/g) || [];
+    const conditions = parts.map(createCondition);
+    insertMissingBooleanOperators(conditions);
+    return conditions.join(' ');
+};
+
+const createCondition = (part: string): string => {
+    if (isBooleanOperator(part)) {
+        return part.toUpperCase();
+    }
+    if (isQuoted(part)) {
+        return createExactMatchCondition(removeQuotes(part));
+    }
+    return createWebSearchQuery(part);
+};
+
+const isBooleanOperator = (part: string): boolean => 
+    ['and', 'or'].includes(part.toLowerCase());
+
+const insertMissingBooleanOperators = (conditions: string[]): void => {
+    for (let i = 1; i < conditions.length; i += 2) {
+        if (!isBooleanOperator(conditions[i])) {
+            conditions.splice(i, 0, 'AND');
+        }
+    }
+};
