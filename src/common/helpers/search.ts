@@ -80,58 +80,77 @@ export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParam
 
 
 const TEXT_COLUMN = 'casts.text';
-export const getTextMatchCondition = (term: string) => {
-    term = term.trim();
-    // Function to create exact match condition without word boundaries
-    const exactMatch = (phrase: string) => `${TEXT_COLUMN} ~* '${phrase.replace(/'/g, "''")}'`;
-    const hasBooleanOperators = (phrase: string) => /\b(AND|OR)\b/i.test(phrase);
+const LANGUAGE = 'english';
 
-    // Single word or quoted single word -> exact match with word boundaries
-    if (!term.includes(' ') || (term.startsWith('"') && term.endsWith('"') && !term.slice(1, -1).includes(' '))) {
-        const word = term.replace(/^"|"$/g, '');
-        return `${TEXT_COLUMN} ~* '${word.replace(/'/g, "''")}'`;
+export const getTextMatchCondition = (term: string): string => {
+    const trimmedTerm = term.trim();
+    
+    if (isSingleWord(trimmedTerm)) {
+        return createExactMatchCondition(trimmedTerm);
     }
 
-    // Combination of quotes and boolean operators
-    if (term.includes('"') || term.includes('-') || hasBooleanOperators(term)) {
-        const parts = term.match(/"[^"]+"|[^\s]+/g) || [];
-        const conditions = parts.map(part => {
-            if (part.toLowerCase() === 'and' || part.toLowerCase() === 'or') {
-                return part.toUpperCase();
-            } else if (part.startsWith('"') && part.endsWith('"')) {
-                return exactMatch(part.slice(1, -1));
-            }
-            return `tsv @@ websearch_to_tsquery('english', '${part.replace(/'/g, "''")}')`; // Escape single quotes
-        });
-        // validate that every second element is a boolean operator
-        // insert AND if not present
-        for (let i = 1; i < conditions.length; i += 2) {
-            if (!['and', 'or'].includes(conditions[i].toLowerCase())) {
-                conditions.splice(i, 0, 'AND');
-            }
+    if (hasComplexQuery(trimmedTerm)) {
+        return handleComplexQuery(trimmedTerm);
+    }
+
+    if (isPhrase(trimmedTerm)) {
+        return createExactMatchCondition(removeQuotes(trimmedTerm));
+    }
+
+    return createWebSearchQuery(trimmedTerm);
+};
+
+const isSingleWord = (term: string): boolean => 
+    !term.includes(' ') || (isQuoted(term) && !term.slice(1, -1).includes(' '));
+
+const isQuoted = (term: string): boolean => 
+    term.startsWith('"') && term.endsWith('"');
+
+const removeQuotes = (term: string): string => 
+    term.replace(/^"|"$/g, '');
+
+const hasComplexQuery = (term: string): boolean => 
+    term.includes('"') || term.includes('-') || hasBooleanOperators(term);
+
+const hasBooleanOperators = (term: string): boolean => 
+    /\b(AND|OR)\b/i.test(term);
+
+const isPhrase = (term: string): boolean => 
+    !term.includes('"') || isQuoted(term);
+
+const createExactMatchCondition = (phrase: string): string => 
+    `${TEXT_COLUMN} ~* '${escapeSingleQuotes(phrase)}'`;
+
+const createWebSearchQuery = (term: string): string => 
+    `tsv @@ websearch_to_tsquery('${LANGUAGE}', '${escapeSingleQuotes(term)}')`;
+
+const escapeSingleQuotes = (str: string): string => 
+    str.replace(/'/g, "''");
+
+const handleComplexQuery = (term: string): string => {
+    const parts = term.match(/"[^"]+"|[^\s]+/g) || [];
+    const conditions = parts.map(createCondition);
+    insertMissingBooleanOperators(conditions);
+    return conditions.join(' ');
+};
+
+const createCondition = (part: string): string => {
+    if (isBooleanOperator(part)) {
+        return part.toUpperCase();
+    }
+    if (isQuoted(part)) {
+        return createExactMatchCondition(removeQuotes(part));
+    }
+    return createWebSearchQuery(part);
+};
+
+const isBooleanOperator = (part: string): boolean => 
+    ['and', 'or'].includes(part.toLowerCase());
+
+const insertMissingBooleanOperators = (conditions: string[]): void => {
+    for (let i = 1; i < conditions.length; i += 2) {
+        if (!isBooleanOperator(conditions[i])) {
+            conditions.splice(i, 0, 'AND');
         }
-        return conditions.join(' ');
     }
-
-    // Phrase (with or without quotes) -> exact match without word boundaries
-    if (!term.includes('"') || (term.startsWith('"') && term.endsWith('"'))) {
-        const phrase = term.replace(/^"|"$/g, '');
-        return exactMatch(phrase);
-    }
-
-    if (!hasBooleanOperators(term)) {
-        return `tsv @@ websearch_to_tsquery('english', '${term.replace(/'/g, "''")}')`;
-        // Handle negated words and fallback to websearch_to_tsquery for other queries
-        const words = term.split(' ');
-        const conditions = words.map(word => {
-            if (word.startsWith('-')) {
-                return `tsv @@ websearch_to_tsquery('english', '${word.replace(/'/g, "''")}')`; // Escape single quotes
-            } else {
-                return `${TEXT_COLUMN} ~* '\\m${word.replace(/'/g, "''")}\\M'`;
-            }
-        });
-        return conditions.join(' ');
-    }
-
-    return exactMatch(term);
 };
