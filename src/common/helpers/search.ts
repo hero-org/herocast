@@ -83,16 +83,16 @@ const TEXT_COLUMN = 'casts.text';
 export const getTextMatchCondition = (term: string) => {
     term = term.trim();
 
-    // Function to create exact match condition
-    const exactMatch = (phrase: string) => `${TEXT_COLUMN} ~* '\\m${phrase.replace(/'/g, "''")}\\M'`;
+    // Function to create exact match condition without word boundaries
+    const exactMatch = (phrase: string) => `${TEXT_COLUMN} ~* '${phrase.replace(/'/g, "''")}'`;
 
-    // Single word or quoted single word -> exact match
+    // Single word or quoted single word -> exact match with word boundaries
     if (!term.includes(' ') || (term.startsWith('"') && term.endsWith('"') && !term.slice(1, -1).includes(' '))) {
         const word = term.replace(/^"|"$/g, '');
-        return exactMatch(word);
+        return `${TEXT_COLUMN} ~* '\\m${word.replace(/'/g, "''")}\\M'`;
     }
 
-    // Phrase (with or without quotes) -> exact match
+    // Phrase (with or without quotes) -> exact match without word boundaries
     if (!term.includes('"') || (term.startsWith('"') && term.endsWith('"'))) {
         const phrase = term.replace(/^"|"$/g, '');
         return exactMatch(phrase);
