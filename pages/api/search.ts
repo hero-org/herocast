@@ -5,6 +5,43 @@ export const config = {
     maxDuration: 20,
 };
 
+const TEXT_COLUMN = 'casts.text';
+const getTextMatchCondition = (term: string) => {
+    term = term.trim();
+
+    // Handle quoted phrases                                                               
+    const quotedPhrases = term.match(/"([^"]*)"/g) || [];
+    const quotedConditions = quotedPhrases.map(phrase =>
+        `${TEXT_COLUMN} ILIKE '%${phrase.replace(/"/g, '')}%'`
+    );
+
+    // Remove quoted phrases from the term                                                 
+    quotedPhrases.forEach(phrase => {
+        term = term.replace(phrase, '');
+    });
+
+    // Split remaining terms                                                               
+    const terms = term.split(/\s+/).filter(t => t !== '');
+
+    // Separate positive and negative terms                                                
+    const positiveTerm = terms.filter(t => !t.startsWith('-'));
+    const negativeTerm = terms.filter(t => t.startsWith('-')).map(t => t.slice(1));
+
+    // Handle boolean operations                                                           
+    const booleanConditions = [];
+    if (positiveTerm.length > 0) {
+        const andCondition = positiveTerm.join(' & ');
+        booleanConditions.push(`tsv @@ to_tsquery('english', '${andCondition}')`);
+    }
+
+    // Add exact match conditions for single words                                         
+    const exactMatchConditions = positiveTerm
+        .filter(t => !t.toLowerCase().match(/^(and|or)$/))
+        .map(t => `${TEXT_COLUMN} ILIKE '% ${t} %' OR ${TEXT_COLUMN} ILIKE '${t} %' OR     
+ ${TEXT_COLUMN} ILIKE '% ${t}'`);
+
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     let { limit, offset } = req.query;
     const { term, interval, orderBy, onlyPowerBadge, hideReplies, mentionFid, fromFid } = req.query;
@@ -28,27 +65,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
 
-    const termsInQuotes = term.match(/"([^"]*)"/g)?.map(quotedTerm => quotedTerm.replace(/"/g, ''));
     const baseConditions = `
         casts.deleted_at IS NULL
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
-        ${termsInQuotes ? `AND ${termsInQuotes.map((quotedTerm) => `casts.text ilike '%${quotedTerm}%'`).join(' AND ')}` : ''}
         ${fromFid ? `AND casts.fid = ${fromFid}` : ''}
     `;
 
+    const textMatchCondition = getTextMatchCondition(term);
     const query = `
     (SELECT 
         casts.hash, casts.fid, casts.text, casts.timestamp
     FROM casts 
         ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
     WHERE 
-        tsv @@ websearch_to_tsquery('english', $3) 
+        ${textMatchCondition}
         AND ${baseConditions}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
         LIMIT $1 OFFSET $2
     )
-    ${mentionFid ? `
+    ${(false && mentionFid) ? `
         UNION
         (SELECT 
             casts.hash, casts.fid, casts.text, casts.timestamp
@@ -62,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             : ''
         }
     `;
-    const vars = [limit, offset, term];
+    const vars = [limit, offset];
 
     try {
         const queryStart = process.hrtime();
