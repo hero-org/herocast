@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS "public"."analytics" (
     fid BIGINT NOT NULL,
     data JSONB,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT analytics_pkey PRIMARY KEY (fid)
 );
 
@@ -15,3 +16,18 @@ GRANT ALL ON "public"."analytics" TO authenticated;
 GRANT
 SELECT
     ON "public"."analytics" TO anon;
+
+-- Create a function to update the updated_at column
+CREATE OR REPLACE FUNCTION update_modified_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create a trigger to call the function
+CREATE TRIGGER update_analytics_modtime
+BEFORE UPDATE ON "public"."analytics"
+FOR EACH ROW
+EXECUTE FUNCTION update_modified_column();
