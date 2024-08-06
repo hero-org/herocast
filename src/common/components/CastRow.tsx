@@ -166,6 +166,7 @@ export const CastRow = ({
   isEmbed = false,
   isThreadView = false,
   hideReactions = false,
+  showParentDetails = false,
 }: CastRowProps) => {
   const {
     accounts,
@@ -663,6 +664,13 @@ export const CastRow = ({
                 </Link>
               </div>
             </div>
+            {showParentDetails && cast?.parent_hash && (
+              <div className="flex flex-row items-center">
+                <span className="text-sm text-foreground/50">
+                  {cast.parent_hash && "Replying"}
+                </span>
+              </div>
+            )}
             <div
               onClick={() => onSelect && onSelect()}
               className="w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"

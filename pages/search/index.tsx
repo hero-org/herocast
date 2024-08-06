@@ -370,6 +370,7 @@ export default function SearchPage() {
           setShowCastThreadView(true);
         }}
         showChannel
+        showParentDetails
       />
     </li>
   );
@@ -483,10 +484,10 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="min-w-0 flex-1 p-6">
+    <div className="min-w-0 flex-1 px-6 py-4">
       {!showCastThreadView ? (
         <>
-          <div className="w-full max-w-xl">
+          <div className="w-full max-w-xl mt-2">
             <div className="grid grid-cols-3 md:grid-cols-4 gap-2 w-full items-center">
               <div className="flex col-span-3 group">
                 <Input
