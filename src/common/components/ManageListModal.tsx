@@ -6,11 +6,11 @@ import { UUID } from "crypto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SearchInterval, SearchIntervalFilter } from "./SearchIntervalFilter";
+import { SearchIntervalFilter } from "./SearchIntervalFilter";
+import { SearchInterval } from "../helpers/search";
 import { Switch } from "@/components/ui/switch";
-import { useHotkeys } from "react-hotkeys-hook";
-import { Key } from "ts-key-enum";
 import { toastSuccessSavedSearchUpdate } from "../helpers/toast";
+import { BellIcon } from "@heroicons/react/24/outline";
 
 const ManageListModal = ({ open, onClose }) => {
   const posthog = usePostHog();
@@ -18,14 +18,19 @@ const ManageListModal = ({ open, onClose }) => {
   const { updateList, removeList } = useListStore();
   const [newName, setNewName] = useState("");
   const [newSearchTerm, setNewSearchTerm] = useState("");
+  const [isDailyEmailEnabled, setIsDailyEmailEnabled] = useState(false);
 
   const list = useListStore((state) =>
-    state.selectedListIdx !== undefined
-      ? state.lists[state.selectedListIdx]
+    state.selectedListId !== undefined
+      ? state.lists.find((l) => l.id === state.selectedListId)
       : undefined
   );
   const canSave =
-    list && (newName !== list.name || newSearchTerm !== list.contents?.term);
+    list &&
+    (newName !== list.name ||
+      newSearchTerm !== list.contents?.term ||
+      isDailyEmailEnabled !== list.contents?.enabled_daily_email
+    );
 
   const onClickDelete = (id: UUID) => {
     removeList(id);
@@ -37,18 +42,21 @@ const ManageListModal = ({ open, onClose }) => {
 
     setNewName(list?.name);
     setNewSearchTerm(list?.contents?.term);
+    setIsDailyEmailEnabled(list?.contents?.enabled_daily_email);
   }, [list]);
 
   const onClickSave = () => {
     if (!list || !canSave) return;
 
+    const newContents = {
+      ...list.contents,
+      term: newSearchTerm,
+      enabled_daily_email: isDailyEmailEnabled,
+    };
     updateList({
       ...list,
       name: newName,
-      contents: {
-        ...list.contents,
-        term: newSearchTerm,
-      },
+      contents: newContents,
     }).then(() => {
       toastSuccessSavedSearchUpdate(newName);
       onClose();
@@ -67,8 +75,7 @@ const ManageListModal = ({ open, onClose }) => {
 
   return (
     <Modal open={open} setOpen={onClose} title="Manage Saved Search">
-      <div className="flex flex-col gap-4">
-        <div>{JSON.stringify(list?.contents)}</div>
+      <div className="flex flex-col gap-4 mt-4">
         <div>
           <Label>Change Name</Label>
           <Input
@@ -83,6 +90,17 @@ const ManageListModal = ({ open, onClose }) => {
             label="Search"
             value={newSearchTerm}
             onChange={(e) => setNewSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col">
+          <Label className="flex">
+            <BellIcon className="h-5 w-5 mr-1" />
+            Daily Email Alert
+          </Label>
+          <Switch
+            className="mt-2"
+            checked={isDailyEmailEnabled}
+            onCheckedChange={() => setIsDailyEmailEnabled(!isDailyEmailEnabled)}
           />
         </div>
         <div className="flex flex-row space-x-4">

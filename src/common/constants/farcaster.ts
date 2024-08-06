@@ -1,4 +1,3 @@
-import { Embed } from "@farcaster/hub-web";
 import type { FarcasterEmbed } from '@mod-protocol/farcaster';
 import { UUID } from "crypto";
 
@@ -13,6 +12,7 @@ export enum DraftStatus {
   publishing = "publishing",
   published = "published",
   removed = "removed",
+  failed = "failed",
 }
 
 export type DraftType = {

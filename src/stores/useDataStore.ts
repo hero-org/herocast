@@ -4,7 +4,8 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import get from "lodash.get";
+import { IcebreakerSocialInfo } from "@/common/helpers/icebreaker";
+import { AirstackSocialInfo } from "@/common/helpers/airstack";
 import { Analytics } from "@/common/types/types";
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
@@ -80,16 +81,22 @@ export type DexPair = {
   info: TokenInfo;
 };
 
-type addUserProfileProps = {
-  user: User;
-};
 
 type addTokenDataProps = {
   tokenSymbol: string;
   data: DexPair;
 };
 
-type UserProfile = User & { updatedAt: number };
+type AdditionalUserInfo = {
+  airstackSocialInfo: AirstackSocialInfo;
+  icebreakerData: IcebreakerSocialInfo;
+};
+
+type addUserProfileProps = {
+  user: User & AdditionalUserInfo;
+};
+
+export type UserProfile = User & AdditionalUserInfo & { updatedAt: number };
 
 
 interface DataStoreProps {
@@ -125,10 +132,13 @@ const store = (set: StoreSet) => ({
       state.selectedCast = cast;
     });
   },
-  addUserProfile: ({ user }: addUserProfileProps) => {
+  addUserProfile: async ({ user }: addUserProfileProps) => {
     set((state) => {
       state.usernameToFid = { ...state.usernameToFid, ...{ [user.username]: user.fid } };
-      const userObject = { ...user, updatedAt: Date.now() };
+      const userObject = {
+        ...user,
+        updatedAt: Date.now(),
+      };
       state.fidToData = { ...state.fidToData, ...{ [user.fid]: userObject } };
     });
   },
@@ -145,19 +155,5 @@ const store = (set: StoreSet) => ({
     });
   }
 });
+
 export const useDataStore = create<DataStore>()(devtools(mutative(store)));
-
-export const getProfile = (dataStoreState: DataStore, username?: string, fid?: string) => {
-  if (username) {
-    return get(
-      dataStoreState.fidToData,
-      get(dataStoreState.usernameToFid, username)
-    );
-  } else if (fid) {
-    return get(dataStoreState.fidToData, fid);
-  }
-};
-
-export const shouldUpdateProfile = (profile?: UserProfile) => {
-  return !profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL
-};

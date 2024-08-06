@@ -1,10 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Loading } from "./Loading";
+import React, { useEffect, useState } from "react";
 import { CastRow } from "./CastRow";
-import { useDraftStore } from "@/stores/useDraftStore";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
-import { classNames } from "../helpers/css";
 import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { Button } from "@/components/ui/button";
@@ -32,14 +29,7 @@ export const CastThreadView = ({
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
-  const { selectedCast, updateSelectedCast } = useDataStore();
-
-  const { addNewPostDraft, removePostDraft } = useDraftStore();
-  const draftIdx = useDraftStore(
-    (state) =>
-      state.drafts &&
-      state.drafts.findIndex((draft) => draft.parentCastId?.hash === cast?.hash)
-  );
+  const { updateSelectedCast } = useDataStore();
 
   useEffect(() => {
     if (!cast || casts.length === 0) return;
@@ -55,9 +45,10 @@ export const CastThreadView = ({
 
   const renderGoBackButton = () => (
     <Button
+    size="sm"
       variant="outline"
       onClick={() => onBack && onBack()}
-      className="w-20 group flex items-center px-2 py-1 shadow-sm text-sm font-medium rounded-md text-foreground/80 bg-background focus:outline-none"
+      className="w-16 group my-2"
     >
       <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
         <HotkeyTooltipWrapper hotkey="Esc" side="right">
@@ -90,7 +81,11 @@ export const CastThreadView = ({
         if (conversation?.cast?.direct_replies) {
           const { direct_replies: replies, ...castObjectWithoutReplies } =
             conversation.cast;
-          setCasts([castObjectWithoutReplies].concat(replies));
+          setCasts(
+            (conversation.chronological_parent_casts || []).concat(
+              [castObjectWithoutReplies].concat(replies)
+            )
+          );
         }
       } catch (err) {
         console.error(`Error fetching cast thread: ${err}`);
@@ -101,15 +96,6 @@ export const CastThreadView = ({
 
     setSelectedCastIdx(0);
     loadData();
-    if (cast?.hash) {
-      addNewPostDraft({
-        parentCastId: { hash: cast.hash, fid: cast.author.fid.toString() },
-      });
-    }
-
-    return () => {
-      removePostDraft(draftIdx, true);
-    };
   }, [cast?.hash, hash]);
 
   const renderRow = (cast: CastWithInteractions, idx: number) => {
@@ -118,14 +104,14 @@ export const CastThreadView = ({
     return (
       <li
         key={`cast-thread-${cast.hash}`}
-        className={classNames(idx === selectedCastIdx ? "" : "")}
+        className={cn(idx === selectedCastIdx ? "" : "")}
         onClick={() => setSelectedCastIdx(idx)}
       >
         <div className="relative pl-4">
           {/* this is the left line */}
           <div
-            className={classNames(
-              idx === 0 ? "-ml-[31px]" : "border-l-2",
+            className={cn(
+              idx === 0 ? "-ml-[27px]" : "border-l-2",
               "relative flex items-start border-muted"
             )}
           >
@@ -171,7 +157,7 @@ export const CastThreadView = ({
       {isLoading ? (
         <SkeletonCastRow className="m-4" />
       ) : (
-        <div className="flow-root ml-4">{renderFeed()}</div>
+        <div className="flow-root ml-3">{renderFeed()}</div>
       )}
     </div>
   );

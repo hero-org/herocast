@@ -64,10 +64,10 @@ const ParagraphXyzEmbed: React.FC<ParagraphXyzEmbedProps> = ({ url }) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="max-w-lg">{data.post.post_preview}</p>
+        <div className="max-w-lg">{data.post.post_preview}</div>
       </CardContent>
       <CardFooter onClick={() => openWindow(url)} className="cursor-pointer">
-        <p>Read more on Pargraph →</p>
+        <div>Read more on Pargraph →</div>
       </CardFooter>
     </Card>
   );
@@ -92,8 +92,10 @@ const ParagraphXyzEmbed: React.FC<ParagraphXyzEmbedProps> = ({ url }) => {
                   {data.publication.name}
                 </div>
                 <div className="flex flex-row space-x-2">
-                  posting since {" "}
-                  {new Date(Number(data.publication.createdAt)).toLocaleDateString()}
+                  posting since{" "}
+                  {new Date(
+                    Number(data.publication.createdAt)
+                  ).toLocaleDateString()}
                 </div>
               </div>
             </div>

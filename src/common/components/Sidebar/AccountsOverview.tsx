@@ -5,7 +5,6 @@ import {
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-import { classNames } from "@/common/helpers/css";
 import { SidebarHeader } from "./SidebarHeader";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import HotkeyTooltipWrapper from "../HotkeyTooltipWrapper";
@@ -14,14 +13,13 @@ import {
   AccountPlatformType,
   AccountStatusType,
 } from "@/common/constants/accounts";
+import { cn } from "@/lib/utils";
 
 const AccountsOverview = () => {
   const router = useRouter();
 
-  const { isHydrated, accounts, selectedAccountIdx, setCurrentAccountIdx } =
+  const { accounts, selectedAccountIdx, setCurrentAccountIdx } =
     useAccountStore();
-
-  const selectedAccount = accounts[selectedAccountIdx];
 
   const renderStatus = (status: string) => {
     switch (status) {
@@ -29,14 +27,14 @@ const AccountsOverview = () => {
         return <></>;
       case "pre-migration":
         return (
-          <span className={classNames("flex-none text-sm text-yellow-300/80")}>
+          <span className={cn("flex-none text-sm text-yellow-300/80")}>
             pre-migration account
           </span>
         );
       default:
         return (
           <span
-            className={classNames(
+            className={cn(
               "underline flex-none text-sm text-foreground/70"
             )}
           >
@@ -105,7 +103,7 @@ const AccountsOverview = () => {
                     <img
                       src={account.user?.pfp_url}
                       alt=""
-                      className={classNames(
+                      className={cn(
                         idx === selectedAccountIdx
                           ? "border-gray-100"
                           : "grayscale border-gray-400 hover:border-gray-300",
@@ -114,7 +112,7 @@ const AccountsOverview = () => {
                     />
                   )}
                   <h3
-                    className={classNames(
+                    className={cn(
                       idx === selectedAccountIdx
                         ? "text-foreground"
                         : "text-foreground/60",

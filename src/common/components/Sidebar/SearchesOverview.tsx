@@ -1,11 +1,11 @@
 import React from "react";
-import { classNames } from "@/common/helpers/css";
 import { SidebarHeader } from "./SidebarHeader";
 import { Badge } from "@/components/ui/badge";
 import { Search, useListStore } from "@/stores/useListStore";
 import { take } from "lodash";
 import sortBy from "lodash.sortby";
 import { isDev } from "@/common/helpers/env";
+import { cn } from "@/lib/utils";
 
 const SearchesOverview = () => {
   const { searches } = useListStore();
@@ -14,7 +14,7 @@ const SearchesOverview = () => {
     return (
       <li key={`search-${search.startedAt}`} className="px-2 sm:px-3 lg:px-4">
         <div
-          className={classNames(
+          className={cn(
             "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6"
           )}
         >

@@ -1,9 +1,9 @@
 import React from "react";
 import { ChannelType } from "@/common/constants/channels";
-import { classNames } from "@/common/helpers/css";
 import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import { SidebarHeader } from "./SidebarHeader";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const ChannelsOverview = () => {
   const { selectedChannelUrl, setSelectedChannelUrl, resetSelectedChannel } =
@@ -29,7 +29,7 @@ const ChannelsOverview = () => {
       <li key={`custom-channel-${name}`} className="px-2 sm:px-3 lg:px-4">
         <div
           onClick={() => onClick()}
-          className={classNames(
+          className={cn(
             selectedChannelUrl === url
               ? "text-foreground font-semibold"
               : "text-foreground/70 hover:text-foreground",
@@ -65,7 +65,7 @@ const ChannelsOverview = () => {
           <li key={channel.name} className="px-2 sm:px-3 lg:px-4">
             <div
               onClick={() => setSelectedChannelUrl(channel.url)}
-              className={classNames(
+              className={cn(
                 selectedChannelUrl === channel.url
                   ? "text-foreground font-semibold"
                   : "text-foreground/70 hover:text-foreground",
@@ -77,7 +77,7 @@ const ChannelsOverview = () => {
                   <img
                     src={channel.icon_url}
                     alt=""
-                    className={classNames(
+                    className={cn(
                       selectedChannelUrl === channel.url
                         ? "border-gray-100"
                         : "border-gray-400 hover:border-gray-300",

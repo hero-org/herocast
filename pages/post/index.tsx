@@ -1,4 +1,4 @@
-import NewPostEntry from "@/common/components/NewPostEntry";
+import NewPostEntry from "@/common/components/Editor/NewCastEditor";
 import { useDraftStore } from "@/stores/useDraftStore";
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
@@ -6,6 +6,7 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { Button } from "@/components/ui/button";
 import { CastRow } from "@/common/components/CastRow";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
@@ -26,6 +27,11 @@ import {
 import { ChannelType } from "@/common/constants/channels";
 import { UUID } from "crypto";
 import { usePathname, useSearchParams } from "next/navigation";
+import { Progress } from "@/components/ui/progress";
+import { openSourcePlanLimits } from "@/config/customerLimitation";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import Link from "next/link";
+import UpgradeFreePlanCard from "../../src/common/components/UpgradeFreePlanCard";
 
 enum DraftListTab {
   writing = "writing",
@@ -64,8 +70,8 @@ const getDraftsForTab = (
       return drafts
         .filter(
           (draft) =>
-            draft.status === DraftStatus.scheduled &&
-            draft.accountId === activeAccountId
+            (!activeAccountId || draft.accountId === activeAccountId) &&
+            draft.status === DraftStatus.scheduled
         )
         .sort(
           (a, b) =>
@@ -93,9 +99,8 @@ const getChannelForParentUrl = ({
   parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined;
 
 export default function NewPost() {
-  const { addNewPostDraft, removePostDraftById, removeEmptyDrafts } =
+  const { drafts, addNewPostDraft, removePostDraftById, removeEmptyDrafts } =
     useDraftStore();
-  const { drafts } = useDraftStore();
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
   const { accounts, selectedAccountIdx, allChannels } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
@@ -109,6 +114,10 @@ export default function NewPost() {
   const draftsForTab = useMemo(
     () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
     [drafts, activeTab, selectedAccount?.id]
+  );
+  const scheduledCastsCount = useMemo(
+    () => getDraftsForTab(drafts, DraftListTab.scheduled).length,
+    [drafts, selectedAccount?.id]
   );
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
 
@@ -154,7 +163,7 @@ export default function NewPost() {
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
       );
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
-        viewerFid: selectedAccount?.platformAccountId,
+        viewerFid: Number(selectedAccount?.platformAccountId),
       });
       setParentCasts(res?.result?.casts);
     };
@@ -167,27 +176,22 @@ export default function NewPost() {
     removePostDraftById(draft.id);
   };
 
-  const getTitle = () => {
-    switch (activeTab) {
-      case DraftListTab.writing:
-        return "New cast";
-      case DraftListTab.scheduled:
-        return "Scheduled casts";
-      case DraftListTab.published:
-        return "Published casts";
-      default:
-        return "Drafts";
-    }
-  };
+  const renderEmptyMainContent = () => (
+    <div className="pt-2 pb-6 w-full min-h-[150px]">
+      <div className="content-center px-2 py-1 rounded-lg w-full h-full min-h-[150px] border border-muted-foreground/20">
+        {renderNewDraftButton()}
+      </div>
+    </div>
+  );
 
   const renderWritingDraft = (draft) => {
-    if (!draft) return null;
+    if (!draft) return renderEmptyMainContent();
 
     const parentCast = parentCasts.find(
       (cast) => cast.hash === draft.parentCastId?.hash
     );
     return (
-      <div key={draft.id} className="pt-4 pb-6">
+      <div key={draft.id} className="pt-2 pb-6">
         {parentCast && <CastRow cast={parentCast} />}
         <NewPostEntry
           draft={draft}
@@ -199,7 +203,7 @@ export default function NewPost() {
   };
 
   const renderScheduledDraft = (draft) => {
-    if (!draft) return null;
+    if (!draft) return renderEmptyMainContent();
 
     const channel = getChannelForParentUrl({
       channels: allChannels,
@@ -334,28 +338,52 @@ export default function NewPost() {
     );
   };
 
+  const renderTabsSelector = () => (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center py-2 w-full">
+        <TabsList className="flex w-full">
+          {DraftListTabs.map((tab) => (
+            <TabsTrigger
+              key={tab.key}
+              value={tab.key}
+              className="text-zinc-600 dark:text-zinc-200"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
+    </div>
+  );
+
   const renderScrollableList = (children: React.ReactElement) => (
     <ScrollArea className="flex-1">
       <div className="flex flex-col gap-2 pt-0">{children}</div>
     </ScrollArea>
   );
 
+  const renderNewDraftButton = () => (
+    <Button
+      size="sm"
+      variant="outline"
+      className="flex items-center gap-2 mx-auto"
+      onClick={() => {
+        setActiveTab(DraftListTab.writing);
+        addNewPostDraft({});
+      }}
+    >
+      <PencilSquareIcon className="w-5 h-5" />
+      <span>New draft</span>
+    </Button>
+  );
+
   const renderDraftList = () => {
     return renderScrollableList(
       <>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 mx-2"
-          onClick={() => {
-            addNewPostDraft({});
-          }}
-        >
-          <PlusCircleIcon className="w-5 h-5" />
-          <span>New draft</span>
-        </Button>
         <div className="flex flex-col gap-2 p-2 pt-0">
           {draftsForTab.map(renderDraftListPreview)}
         </div>
+        <div className="mt-4">{renderNewDraftButton()}</div>
       </>
     );
   };
@@ -366,7 +394,7 @@ export default function NewPost() {
         {draftsForTab.length === 0 && (
           <Button
             variant="outline"
-            className="flex items-center gap-2 mx-2"
+            className="flex items-center gap-2"
             onClick={() => {
               addNewPostDraft({});
               setActiveTab(DraftListTab.writing);
@@ -396,6 +424,10 @@ export default function NewPost() {
     }
   };
 
+  const renderFreePlanCard = () => {
+    return <UpgradeFreePlanCard limit="maxScheduledCasts" />;
+  };
+
   return (
     <div className="grid grid-cols-[300px_1fr] h-screen w-full">
       <div className="overflow-y-auto p-4">
@@ -406,25 +438,14 @@ export default function NewPost() {
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as DraftListTab)}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center py-2 w-full">
-                <TabsList className="flex w-full">
-                  {DraftListTabs.map((tab) => (
-                    <TabsTrigger
-                      key={tab.key}
-                      value={tab.key}
-                      className="text-zinc-600 dark:text-zinc-200"
-                    >
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-            </div>
+            {renderTabsSelector()}
             <TabsContent value={DraftListTab.writing}>
+              {scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts &&
+                renderFreePlanCard()}
               {renderDraftList()}
             </TabsContent>
             <TabsContent value={DraftListTab.scheduled}>
+              {renderFreePlanCard()}
               {renderScheduledList()}
             </TabsContent>
             <TabsContent value={DraftListTab.published}>
@@ -434,9 +455,6 @@ export default function NewPost() {
         </div>
       </div>
       <div className="flex flex-col">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold">{getTitle()}</h2>
-        </div>
         <div className="flex-1 overflow-y-auto p-4">{renderContent()}</div>
       </div>
     </div>

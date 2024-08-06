@@ -1,22 +1,20 @@
 import React, { useEffect, useState } from "react";
 
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
-import { CardHeader, Card } from "@/components/ui/card";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import FollowButton from "@/common/components/FollowButton";
 import { useAccountStore } from "@/stores/useAccountStore";
+import { useDataStore } from "@/stores/useDataStore";
 import {
+  fetchAndAddUserProfile,
   getProfile,
   shouldUpdateProfile,
-  useDataStore,
-} from "@/stores/useDataStore";
-import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
+} from "@/common/helpers/profileUtils";
 import { useRouter } from "next/router";
 import { Loading } from "@/common/components/Loading";
+import ProfileInfo from "@/common/components/Sidebar/ProfileInfo";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -25,7 +23,10 @@ enum FeedTypeEnum {
   "likes" = "Likes",
 }
 
-const getUsernameAndFidFromSlug = (slug: string) => {
+const getUsernameAndFidFromSlug = (slug?: string) => {
+  if (!slug) {
+    return { username: undefined, fid: undefined };
+  }
   const fid = slug.startsWith("fid:") ? slug.slice(4) : undefined;
   if (fid) {
     return { username: undefined, fid };
@@ -37,13 +38,12 @@ const getUsernameAndFidFromSlug = (slug: string) => {
 const ProfilePage = () => {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
-  const { username, fid } = getUsernameAndFidFromSlug(slug!);
+  const { username, fid } = getUsernameAndFidFromSlug(slug);
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
 
   const profile = useDataStore((state) => getProfile(state, username, fid));
-  const { addUserProfile } = useDataStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
 
   const selectedAccount = accounts[selectedAccountIdx];
@@ -54,24 +54,10 @@ const ProfilePage = () => {
   };
 
   useEffect(() => {
-    const getData = async () => {
-      const users = await getUserDataForFidOrUsername({
-        username,
-        fid: Number(fid),
-        viewerFid,
-      });
-
-      if (users.length) {
-        users.forEach((user) => {
-          addUserProfile({ user });
-        });
-      }
-    };
-
     if (shouldUpdateProfile(profile)) {
-      getData();
+      fetchAndAddUserProfile({ username, fid, viewerFid });
     }
-  }, [profile, selectedAccount]);
+  }, [profile, fid, slug]);
 
   useEffect(() => {
     if (!profile) return;
@@ -163,38 +149,9 @@ const ProfilePage = () => {
 
   const renderProfile = () => (
     <div>
-      <Card className="max-w-2xl mx-auto bg-transparent border-none shadow-none">
-        <CardHeader className="flex space-y-0">
-          <div className="grid space-x-4 grid-cols-2 lg:grid-cols-3">
-            <div className="col-span-1 lg:col-span-2">
-              <Avatar className="h-14 w-14">
-                <AvatarImage alt="User avatar" src={profile.pfp_url} />
-                <AvatarFallback>{profile.username}</AvatarFallback>
-              </Avatar>
-              <div className="text-left">
-                <h2 className="text-xl font-bold text-foreground">
-                  {profile.display_name}
-                </h2>
-                <span className="text-sm text-foreground/80">
-                  @{profile.username}
-                </span>
-              </div>
-            </div>
-            {viewerFid !== profile.fid && (
-              <FollowButton username={profile.username} />
-            )}
-          </div>
-          <div className="flex pt-4 text-sm text-foreground/80">
-            <span className="mr-4">
-              <strong>{profile.following_count}</strong> Following
-            </span>
-            <span>
-              <strong>{profile.follower_count}</strong> Followers
-            </span>
-          </div>
-          <span className="text-foreground">{profile.profile.bio.text}</span>
-        </CardHeader>
-      </Card>
+      <div className="m-8 mb-0">
+        <ProfileInfo fid={profile.fid} viewerFid={viewerFid} showFullInfo />
+      </div>
       {renderFeed()}
     </div>
   );

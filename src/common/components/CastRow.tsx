@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { castTextStyle, classNames } from "../../../src/common/helpers/css";
-import { CastReactionType } from "../../../src/common/constants/farcaster";
-import { ChannelType } from "../../../src/common/constants/channels";
-import { useAccountStore } from "../../../src/stores/useAccountStore";
+import { castTextStyle } from "@/common/helpers/css";
+import { CastReactionType } from "@/common/constants/farcaster";
+import { ChannelType } from "@/common/constants/channels";
+import { useAccountStore } from "@/stores/useAccountStore";
 import {
   ArrowPathRoundedSquareIcon,
   ArrowTopRightOnSquareIcon,
@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDraftStore } from "@/stores/useDraftStore";
+import ChannelHoverCard from "./ChannelHoverCard";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -78,9 +79,9 @@ const renderMention = ({ attributes, content }) => {
       }}
       rel="noopener noreferrer"
     >
-      <ProfileHoverCard username={content.slice(1)} viewerFid={userFid}>
+      <MemoizedProfileHoverCard username={content.slice(1)} viewerFid={userFid}>
         {content}
-      </ProfileHoverCard>
+      </MemoizedProfileHoverCard>
     </span>
   );
 };
@@ -101,19 +102,19 @@ const renderLink = ({ attributes, content }) => {
   );
 };
 
-const renderChannel = ({ attributes, content }) => {
-  const { href, setSelectedChannelByName } = attributes;
+const renderChannel = ({ content }) => {
   return (
-    <span
-      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
-      onClick={(event) => {
-        event.stopPropagation();
-        setSelectedChannelByName(href);
-      }}
-      rel="noopener noreferrer"
-    >
-      {content}
-    </span>
+    <ChannelHoverCard channelName={content}>
+      <span
+        className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+        rel="noopener noreferrer"
+      >
+        {content}
+      </span>
+    </ChannelHoverCard>
   );
 };
 
@@ -155,6 +156,8 @@ const linkifyOptions = {
   truncate: 42,
 };
 
+const MemoizedProfileHoverCard = React.memo(ProfileHoverCard);
+
 export const CastRow = ({
   cast,
   isSelected,
@@ -163,6 +166,7 @@ export const CastRow = ({
   isEmbed = false,
   isThreadView = false,
   hideReactions = false,
+  showParentDetails = false,
 }: CastRowProps) => {
   const {
     accounts,
@@ -284,7 +288,7 @@ export const CastRow = ({
     reactionType: CastReactionType,
     isActive?: boolean
   ): JSX.Element | undefined => {
-    const className = classNames(
+    const className = cn(
       isActive ? "text-foreground/70" : "",
       "mt-0.5 w-4 h-4 mr-1"
     );
@@ -585,7 +589,7 @@ export const CastRow = ({
           event.stopPropagation();
           onSelect && onSelect();
         }}
-        className={classNames(
+        className={cn(
           "p-3",
           isSelected ? "bg-muted" : "cursor-pointer",
           isSelected
@@ -599,15 +603,21 @@ export const CastRow = ({
         )}
         <div className="flex items-top gap-x-4">
           {!isEmbed && (
-            <img
-              className="relative h-10 w-10 flex-none bg-background rounded-full"
-              src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
-            />
+            <Link href={`/profile/${cast.author.username}`} prefetch={false}>
+              <img
+                className="relative h-10 w-10 flex-none bg-background rounded-full"
+                src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
+              />
+            </Link>
           )}
           <div className="flex flex-col w-full">
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
-                <ProfileHoverCard fid={cast.author.fid} viewerFid={userFid}>
+                <MemoizedProfileHoverCard
+                  fid={cast.author.fid}
+                  viewerFid={userFid}
+                  username={cast.author.username}
+                >
                   <span className="items-center flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                     {isEmbed && (
                       <img
@@ -629,7 +639,7 @@ export const CastRow = ({
                       )}
                     </span>
                   </span>
-                </ProfileHoverCard>
+                </MemoizedProfileHoverCard>
                 <div className="hidden lg:ml-2 lg:block">
                   {renderChannelButton()}
                 </div>
@@ -654,6 +664,13 @@ export const CastRow = ({
                 </Link>
               </div>
             </div>
+            {showParentDetails && cast?.parent_hash && (
+              <div className="flex flex-row items-center">
+                <span className="text-sm text-foreground/50">
+                  {cast.parent_hash && "Replying"}
+                </span>
+              </div>
+            )}
             <div
               onClick={() => onSelect && onSelect()}
               className="w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"

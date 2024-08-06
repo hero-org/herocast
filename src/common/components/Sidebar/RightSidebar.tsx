@@ -49,6 +49,7 @@ const RightSidebar = ({
         <ProfileInfo
           fid={selectedCast.author.fid}
           viewerFid={Number(selectedAccount.platformAccountId)}
+          showFullInfo
         />
       </div>
     );
@@ -57,13 +58,13 @@ const RightSidebar = ({
   return (
     <aside
       style={{
-        "msOverflowStyle": "none",
-        "scrollbarWidth": "none",
-        "-webkit-scrollbar": "none",
+        msOverflowStyle: "none",
+        scrollbarWidth: "none",
+        WebkitScrollbar: "none",
       }}
       className="min-h-full h-full bg-muted/40 md:fixed md:bottom-0 md:right-0 md:w-48 lg:w-64 md:border-l md:border-foreground/5 overflow-y-auto"
     >
-      <div className="">
+      <div>
         {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}
         {showChannels && <ChannelsOverview />}

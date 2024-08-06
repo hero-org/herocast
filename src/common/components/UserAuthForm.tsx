@@ -26,6 +26,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
 import includes from "lodash.includes";
 import { User } from "@supabase/supabase-js";
+import { useAuth } from "../context/AuthContext";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -61,12 +62,15 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>("");
   const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
+  const hasSignInWithFarcaster = false;
 
   const form = useForm<UserAuthFormValues>({
     resolver: zodResolver(UserAuthFormSchema),
     mode: "onSubmit",
   });
+
+  const { isValid } = form.formState;
 
   async function signUp() {
     if (!(await form.trigger())) return;
@@ -80,7 +84,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     if (error) {
       if (error.message === "User already registered") {
-        logIn();
+        logInWithEmail();
       } else {
         form.setError("password", {
           type: "manual",
@@ -145,7 +149,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
   };
 
-  const logIn = async () => {
+  const logInWithEmail = async () => {
     if (!(await form.trigger())) return;
 
     setIsLoading(true);
@@ -169,12 +173,18 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     router.push("/feeds");
   };
 
+  const loginWithGoogle = async () => {
+    supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+  };
+
   const getButtonAction = () => {
     switch (view) {
       case ViewState.FORGOT:
         return resetPassword;
       case ViewState.LOGIN:
-        return logIn;
+        return logInWithEmail;
       case ViewState.SIGNUP:
         return signUp;
       case ViewState.RESET:
@@ -200,20 +210,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       setView(ViewState.LOGGED_IN);
     }
   }, [router.query?.view, user]);
-
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user && user.email) {
-        setUser(user);
-        form.setValue("email", user.email);
-      }
-    };
-
-    getUser();
-  }, []);
 
   useEffect(() => {
     if (isAuthenticated && username && fid) {
@@ -298,12 +294,17 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         buttonText = "Continue";
         break;
     }
+
+    const buttonMustBeValid = includes(
+      [ViewState.SIGNUP, ViewState.LOGIN],
+      view
+    );
     return (
       <Button
         type="button"
         size="lg"
         className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
-        disabled={isLoading}
+        disabled={isLoading || (buttonMustBeValid && !isValid)}
         onClick={() => buttonAction()}
       >
         {isLoading ? <Loading className="text-white" /> : buttonText}
@@ -319,8 +320,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             className="mt-2 text-center text-sm hover:cursor-pointer"
             onClick={() => setView(ViewState.SIGNUP)}
           >
-            Don&apos;t have an account?{" "}
-            <span className="underline">Sign up</span>
+            No herocast account? <span className="underline">Sign up</span>
           </div>
         );
       case ViewState.FORGOT:
@@ -330,7 +330,8 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             className="mt-2 text-center text-sm hover:cursor-pointer"
             onClick={() => setView(ViewState.LOGIN)}
           >
-            Already have an account? <span className="underline">Log in</span>
+            Already have your herocast account?{" "}
+            <span className="underline">Log in</span>
           </div>
         );
     }
@@ -343,7 +344,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     if (session) {
       resetStore();
-      setUser(null);
       await supabase.auth.signOut();
       posthog.reset();
       setView(ViewState.LOGIN);
@@ -353,42 +353,44 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const renderViewHelpText = () => {
     switch (view) {
       case ViewState.FORGOT:
-        return (
-          <span className="text-md text-muted-foreground">
-            Forgot your password? Enter your email below to reset it
-          </span>
-        );
+        return "Forgot your password? Enter your email below to reset it";
       case ViewState.RESET:
-        return (
-          <span className="text-md text-muted-foreground">
-            Enter your new password below
-          </span>
-        );
+        return "Enter your new password";
       case ViewState.SIGNUP:
-        return (
-          <span className="text-md text-muted-foreground">
-            Enter your email to signup
-          </span>
-        );
+        return "Create your herocast account";
       case ViewState.LOGGED_IN:
-        return (
-          <span className="text-md text-muted-foreground">
-            You are logged in as {user?.email}
-          </span>
-        );
+        return `You are logged in as ${user?.email}`;
       default:
-        return (
-          <span className="text-md text-muted-foreground">
-            Enter your email to login
-          </span>
-        );
+        return "Login to your herocast account";
     }
   };
+
+  const renderGoogleLoginButton = () => (
+    <Button
+      type="button"
+      size="lg"
+      variant="outline"
+      className="py-4"
+      onClick={() => loginWithGoogle()}
+    >
+      <img
+        src="/images/google_logo.png"
+        alt="google logo"
+        width="24"
+        height="24"
+        className=""
+      />
+      Login with Google
+    </Button>
+  );
 
   return (
     <div className="grid gap-6">
       <Form {...form}>
-        {renderViewHelpText()}
+        <span className="text-2xl font-semibold tracking-tight">
+          {renderViewHelpText()}
+        </span>
+
         <form>
           <div className="flex">
             {userMessage && (
@@ -400,6 +402,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           <div className="grid gap-4">
             {view !== ViewState.LOGGED_IN && (
               <div className="grid gap-4">
+                {renderGoogleLoginButton()}
                 <FormField
                   control={form.control}
                   name="email"
@@ -432,6 +435,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                             disabled={isLoading}
                             autoComplete="current-password"
                             type="password"
+                            placeholder="••••••"
                             {...field}
                           />
                         </FormControl>
@@ -443,7 +447,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
               </div>
             )}
             {renderSubmitButton()}
-            {includes([ViewState.SIGNUP, ViewState.LOGIN], view) && (
+            {view === ViewState.LOGIN && (
               <Button
                 type="button"
                 variant="outline"
@@ -469,7 +473,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           </div>
         </form>
       </Form>
-      {!signupOnly && view !== ViewState.LOGGED_IN && (
+      {hasSignInWithFarcaster && !signupOnly && view !== ViewState.LOGGED_IN && (
         <>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -479,10 +483,10 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           <div className="flex flex-col space-y-4 items-center justify-center text-white">
             {!isAuthenticated ? (
               <>
-                <span className="text-md text-muted-foreground">
-                  Sign in for quick read-only access
-                </span>
                 <SignInButton hideSignOut />
+                <span className="text-center text-sm text-foreground">
+                  Sign in with Farcaster for read-only access
+                </span>
               </>
             ) : (
               <Button

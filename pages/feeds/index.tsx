@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   AccountObjectType,
   CUSTOM_CHANNELS,
@@ -35,6 +35,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useDraftStore } from "@/stores/useDraftStore";
+import CreateAccountPage from "pages/welcome/new";
+import { AccountStatusType } from "@/common/constants/accounts";
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -135,14 +137,14 @@ export default function Feeds() {
   const feed = feedKey ? get(feeds, feedKey, EMPTY_FEED) : EMPTY_FEED;
   const { isLoading: isLoadingFeed, nextCursor, casts } = feed;
 
-  const onOpenLinkInCast = (idx: number) => {
+  const onOpenLinkInCast = useCallback(() => {
     setShowEmbedsModal(true);
-  };
+  }, []);
 
-  const onSelectCast = (idx: number) => {
+  const onSelectCast = useCallback((idx: number) => {
     setSelectedCastIdx(idx);
     setShowCastThreadView(true);
-  };
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -156,41 +158,17 @@ export default function Feeds() {
     } else if (selectedCastIdx === casts.length - 1) {
       window.scrollTo(0, document.body.scrollHeight);
     }
-  }, [selectedCastIdx, showCastThreadView]);
+  }, [selectedCastIdx, showCastThreadView, casts.length]);
 
   useEffect(() => {
-    if (selectedCastIdx === -1 || isEmpty(casts)) return;
+    if (selectedCastIdx === -1) {
+      updateSelectedCast();
+    } else if (!isEmpty(casts)) {
+      updateSelectedCast(casts[selectedCastIdx]);
+    }
+  }, [selectedCastIdx, selectedChannelUrl, casts, updateSelectedCast]);
 
-    updateSelectedCast(casts[selectedCastIdx]);
-  }, [selectedCastIdx, selectedChannelUrl, casts]);
-
-  useEffect(() => {
-    if (
-      isLoadingFeed ||
-      isEmpty(feed) ||
-      showCastThreadView ||
-      casts.length < DEFAULT_FEED_PAGE_SIZE ||
-      !account?.platformAccountId ||
-      !inView
-    )
-      return;
-
-    getFeed({
-      fid: account.platformAccountId!,
-      parentUrl: selectedChannelUrl,
-      cursor: nextCursor,
-    });
-  }, [
-    selectedCastIdx,
-    feed,
-    feedKey,
-    account,
-    selectedChannelUrl,
-    inView,
-    isLoadingFeed,
-  ]);
-
-  const onReply = () => {
+  const onReply = useCallback(() => {
     if (!selectedCast) return;
 
     setCastModalView(CastModalView.Reply);
@@ -204,9 +182,15 @@ export default function Feeds() {
         openNewCastModal();
       },
     });
-  };
+  }, [
+    selectedCast,
+    setCastModalView,
+    addNewPostDraft,
+    setCastModalDraftId,
+    openNewCastModal,
+  ]);
 
-  const onQuote = () => {
+  const onQuote = useCallback(() => {
     if (!selectedCast) return;
 
     setCastModalView(CastModalView.Quote);
@@ -225,7 +209,14 @@ export default function Feeds() {
         openNewCastModal();
       },
     });
-  };
+  }, [
+    selectedCast,
+    setCastModalView,
+    updateSelectedCast,
+    addNewPostDraft,
+    setCastModalDraftId,
+    openNewCastModal,
+  ]);
 
   useHotkeys(
     [Key.Escape, "§"],
@@ -284,7 +275,6 @@ export default function Feeds() {
     }
 
     setIsLoadingFeed(feedKey, true);
-
     try {
       let feedOptions = {
         cursor,
@@ -297,6 +287,11 @@ export default function Feeds() {
           Number(fid),
           feedOptions
         );
+      } else if (parentUrl === CUSTOM_CHANNELS.TRENDING) {
+        newFeed = await neynarClient.fetchTrendingFeed({
+          ...feedOptions,
+          limit: 10,
+        });
       } else {
         feedOptions = {
           ...feedOptions,
@@ -310,6 +305,7 @@ export default function Feeds() {
           parentUrl: string;
           fid: number;
         };
+
         newFeed = await neynarClient.fetchFeed(
           getFeedType(parentUrl),
           feedOptions
@@ -423,63 +419,72 @@ export default function Feeds() {
     );
   };
 
-  const renderWelcomeMessage = () =>
-    casts.length === 0 &&
-    isHydrated &&
-    !isLoadingFeed && (
-      <Card className="max-w-sm col-span-1 m-4">
-        <CardHeader>
-          <CardTitle>Feed is empty</CardTitle>
-          <CardDescription>
-            Seems like there is nothing to see here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="max-w-lg">
-            Start following people or channels to see their posts here. You can
-            refresh the feed, if you think something is wrong.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Button
-            className="w-1/2"
-            disabled={isRefreshingPage}
-            onClick={async () => {
-              setIsRefreshingPage(true);
-              await hydrateAccounts();
-              await getFeed({
-                fid: account.platformAccountId!,
-                parentUrl: selectedChannelUrl,
-              });
-              setIsRefreshingPage(false);
-            }}
-          >
-            Refresh
-          </Button>
-        </CardFooter>
-      </Card>
+  const renderWelcomeMessage = () => {
+    if (
+      isHydrated &&
+      !isLoadingFeed &&
+      accounts.filter((acc) => acc.status === AccountStatusType.active)
+        .length === 0
+    ) {
+      return <CreateAccountPage />;
+    }
+    return (
+      casts.length === 0 &&
+      isHydrated &&
+      !isLoadingFeed && (
+        <Card className="max-w-sm col-span-1 m-4">
+          <CardHeader>
+            <CardTitle>Feed is empty</CardTitle>
+            <CardDescription>
+              Seems like there is nothing to see here.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="max-w-lg">
+              Start following people or channels to see their posts here. You
+              can refresh the feed, if you think something is wrong.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              className="w-1/2"
+              disabled={isRefreshingPage}
+              onClick={async () => {
+                setIsRefreshingPage(true);
+                await hydrateAccounts();
+                await getFeed({
+                  fid: account.platformAccountId!,
+                  parentUrl: selectedChannelUrl,
+                });
+                setIsRefreshingPage(false);
+              }}
+            >
+              Refresh
+            </Button>
+          </CardFooter>
+        </Card>
+      )
     );
+  };
 
   const renderContent = () => (
-    <>
-      <div className="ml-2 lg:ml-0 min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
-        {isLoadingFeed && isEmpty(casts) && (
-          <div className="ml-4">
-            <Loading loadingMessage={loadingMessage} />
-          </div>
-        )}
-        {showCastThreadView ? (
-          renderThread()
-        ) : (
-          <>
-            {renderFeed()}
-            {renderWelcomeMessage()}
-            {casts.length >= DEFAULT_FEED_PAGE_SIZE && renderLoadMoreButton()}
-          </>
-        )}
-      </div>
+    <main className="min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
+      {isLoadingFeed && isEmpty(casts) && (
+        <div className="ml-4">
+          <Loading loadingMessage={loadingMessage} />
+        </div>
+      )}
+      {showCastThreadView ? (
+        renderThread()
+      ) : (
+        <>
+          {renderFeed()}
+          {renderWelcomeMessage()}
+          {renderLoadMoreButton()}
+        </>
+      )}
       {renderEmbedsModal()}
-    </>
+    </main>
   );
 
   return renderContent();

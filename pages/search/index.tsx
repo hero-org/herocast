@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { CastRow } from "@/common/components/CastRow";
+import { CastThreadView } from "@/common/components/CastThreadView";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,24 +11,28 @@ import { Key } from "ts-key-enum";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
+import { getProfileFetchIfNeeded } from "@/common/helpers/profileUtils";
 import isEmpty from "lodash.isempty";
 import { useListStore } from "@/stores/useListStore";
-import { map, uniq } from "lodash";
+import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
-import {
-  SearchInterval,
-  SearchIntervalFilter,
-} from "@/common/components/SearchIntervalFilter";
+import { SearchIntervalFilter } from "@/common/components/SearchIntervalFilter";
+import { SearchInterval } from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";
-import { SearchFilters } from "@/common/helpers/search";
-import { searchForText } from "@/common/helpers/search";
-import { RawSearchResult } from "@/common/helpers/search";
+import {
+  runFarcasterCastSearch,
+  RawSearchResult,
+  SearchFilters,
+} from "@/common/helpers/search";
 import ManageListModal from "@/common/components/ManageListModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
+import { fetchAndAddUserProfile } from "@/common/helpers/profileUtils";
+import { Badge } from "@/components/ui/badge";
+import { UUID } from "crypto";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -37,6 +42,29 @@ export const DEFAULT_FILTERS: SearchFilters = {
   onlyPowerBadge: true,
   interval: SearchInterval.d7,
   hideReplies: true,
+};
+
+const FilterBadge = ({
+  children,
+  isActive,
+  action,
+}: {
+  children: React.ReactNode;
+  isActive: boolean;
+  action: () => void;
+}) => {
+  return (
+    <Badge
+      className={cn(
+        isActive && "text-foreground",
+        " h-8 rounded-lg px-3 text-xs shadow-sm hover:bg-accent hover:text-accent-foreground hover:cursor-pointer"
+      )}
+      variant="outline"
+      onClick={action}
+    >
+      {children}
+    </Badge>
+  );
 };
 
 export default function SearchPage() {
@@ -55,14 +83,14 @@ export default function SearchPage() {
   const [interval, setInterval] = useState<SearchInterval>();
   const [showFilter, setShowFilter] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [showCastThreadView, setShowCastThreadView] = useState(false);
 
   const { isManageListModalOpen, setIsManageListModalOpen } =
     useNavigationStore();
-  const { searches, addSearch, addList, setSelectedListIdx, lists } =
-    useListStore();
+  const { addSearch, addList, setSelectedListId, lists } = useListStore();
   const selectedList = useListStore((state) =>
-    state.selectedListIdx !== undefined
-      ? state.lists[state.selectedListIdx]
+    state.selectedListId !== undefined
+      ? state.lists.find((list) => list.id === state.selectedListId)
       : undefined
   );
   const canSearch = searchTerm.trim().length >= 3;
@@ -71,6 +99,26 @@ export default function SearchPage() {
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
+
+  const debouncedUserSearch = useCallback(
+    debounce(async (term: string) => {
+      if (term.length >= 3) {
+        try {
+          await fetchAndAddUserProfile({
+            username: term.startsWith("@") ? term.slice(1) : term,
+            viewerFid: Number(selectedAccount?.platformAccountId),
+          });
+        } catch (error) {
+          console.error("Error searching for users:", error);
+        }
+      }
+    }, 300),
+    [selectedAccount]
+  );
+
+  useEffect(() => {
+    debouncedUserSearch(searchTerm);
+  }, [searchTerm, debouncedUserSearch]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -82,8 +130,7 @@ export default function SearchPage() {
 
     const listId = urlParams.get("list");
     if (listId) {
-      const listIdx = lists.findIndex((list) => list.id === listId);
-      setSelectedListIdx(listIdx);
+      setSelectedListId(listId as UUID);
     }
 
     // if navigating away, reset the selected cast
@@ -144,6 +191,33 @@ export default function SearchPage() {
     hideReplies: filterByHideReplies,
   });
 
+  const getMentionFidFromSearchTerm = async (term: string) => {
+    const profile = await getProfileFetchIfNeeded({
+      username: term,
+      viewerFid: Number(selectedAccount?.platformAccountId),
+    });
+    return profile?.fid;
+  };
+
+  const getFromFidFromSearchTerm = async (term: string) => {
+    const fromIndex = term.indexOf("from:");
+    if (fromIndex === -1) {
+      return;
+    }
+
+    const fromTerm = term.match(/from:([^\s]+)/);
+    if (!fromTerm) {
+      return;
+    }
+
+    const from = fromTerm[1];
+    const profile = await getProfileFetchIfNeeded({
+      username: from,
+      viewerFid: Number(selectedAccount?.platformAccountId),
+    });
+    return profile?.fid;
+  };
+
   const onSearch = useCallback(
     async (term?: string, filters?: SearchFilters) => {
       const newSearchCounter = searchCounter + 1;
@@ -159,14 +233,19 @@ export default function SearchPage() {
       }
 
       resetState();
+      setShowCastThreadView(false);
       posthog.capture("user_start_castSearch", {
         term,
       });
       const startedAt = Date.now();
       try {
-        const searchResults = await searchForText({
+        const mentionFid = await getMentionFidFromSearchTerm(term);
+        const fromFid = await getFromFidFromSearchTerm(term);
+        const searchResults = await runFarcasterCastSearch({
           searchTerm: term,
           filters,
+          mentionFid,
+          fromFid,
           limit: SEARCH_LIMIT_INITIAL_LOAD,
         });
         if (activeSearchCounter.current !== newSearchCounter) {
@@ -186,11 +265,7 @@ export default function SearchPage() {
           duration: endedAt - startedAt,
         });
         if (searchResults.length > 0) {
-          console.log(
-            `setting cast hashes for term ${term} - initial - ${searchResults.length} results`
-          );
           addCastHashes(searchResults, true);
-          // use posthog to track event
         }
       } catch (error) {
         console.error("Failed to search for text", term, error);
@@ -210,7 +285,7 @@ export default function SearchPage() {
 
   const onContinueSearch = () => {
     setIsLoading(true);
-    searchForText({
+    runFarcasterCastSearch({
       searchTerm,
       filters: getFilters(),
       limit: SEARCH_LIMIT_NEXT_LOAD,
@@ -231,6 +306,7 @@ export default function SearchPage() {
     const contents = {
       term: searchTerm,
       filters: getFilters(),
+      enabled_daily_email: true,
     };
     addList({
       name: searchTerm,
@@ -284,16 +360,34 @@ export default function SearchPage() {
   const renderSearchResultRow = (row: CastWithInteractions, idx: number) => (
     <li
       key={row.hash}
-      className="border-b border-gray-700 relative flex items-center space-x-4 py-2 max-w-full md:max-w-2xl xl:max-w-4xl"
+      className="border-b border-gray-700 relative flex items-center space-x-4 max-w-full md:max-w-2xl xl:max-w-4xl"
     >
       <CastRow
         cast={row}
         isSelected={selectedCastIdx === idx}
-        onSelect={() => null}
+        onSelect={() => {
+          setSelectedCastIdx(idx);
+          setShowCastThreadView(true);
+        }}
         showChannel
+        showParentDetails
       />
     </li>
   );
+
+  const onBack = useCallback(() => {
+    setShowCastThreadView(false);
+  }, []);
+
+  const onReply = useCallback(() => {
+    // Implement reply functionality
+    console.log("Reply functionality not implemented yet");
+  }, []);
+
+  const onQuote = useCallback(() => {
+    // Implement quote functionality
+    console.log("Quote functionality not implemented yet");
+  }, []);
 
   const renderLoadMoreButton = () =>
     hasMore ? (
@@ -338,10 +432,9 @@ export default function SearchPage() {
   );
 
   const renderPowerBadgeFilter = () => (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setFilterByPowerBadge((prev) => !prev)}
+    <FilterBadge
+      action={() => setFilterByPowerBadge((prev) => !prev)}
+      isActive={filterByPowerBadge}
     >
       Power Badge
       <img
@@ -354,14 +447,13 @@ export default function SearchPage() {
         aria-label="Toggle powerbadge"
         checked={filterByPowerBadge}
       />
-    </Button>
+    </FilterBadge>
   );
 
   const renderHideRepliesFilter = () => (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setFilterByHideReplies((prev) => !prev)}
+    <FilterBadge
+      action={() => setFilterByHideReplies((prev) => !prev)}
+      isActive={filterByHideReplies}
     >
       Hide replies
       <Switch
@@ -369,7 +461,7 @@ export default function SearchPage() {
         aria-label="Toggle hide replies"
         checked={filterByHideReplies}
       />
-    </Button>
+    </FilterBadge>
   );
 
   const renderTryAgainButton = () => (
@@ -392,109 +484,124 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="min-w-0 flex-1 p-6">
-      <div className="w-full max-w-xl">
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 w-full items-center">
-          <div className="flex col-span-3 group">
-            <Input
-              variantSize="lg"
-              value={searchTerm}
-              onChange={(e) => onChange(e.target.value)}
-              id="search"
-              placeholder="Search for casts..."
-              type="search"
-              name="search"
-              className={cn(
-                "rounded-r-none",
-                "border-none ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600",
-                isLoading ? "animate-pulse" : ""
+    <div className="min-w-0 flex-1 px-6 py-4">
+      {!showCastThreadView ? (
+        <>
+          <div className="w-full max-w-xl mt-2">
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-2 w-full items-center">
+              <div className="flex col-span-3 group">
+                <Input
+                  variantSize="lg"
+                  value={searchTerm}
+                  onChange={(e) => onChange(e.target.value)}
+                  id="search"
+                  placeholder="Search for casts or users..."
+                  type="search"
+                  name="search"
+                  className={cn(
+                    "rounded-r-none",
+                    "border-none ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600",
+                    isLoading ? "animate-pulse" : ""
+                  )}
+                  autoFocus
+                />
+                <Button
+                  disabled={!canSearch}
+                  size="lg"
+                  type="button"
+                  className="px-8 rounded-l-none"
+                  onClick={() => onSearch()}
+                >
+                  Search
+                </Button>
+              </div>
+              <div className="flex col-span-3 md:col-span-1 w-full">
+                <Button
+                  size="lg"
+                  type="button"
+                  variant="outline"
+                  disabled={!searchTerm}
+                  className="px-2 rounded-r-none w-1/2"
+                  onClick={() => onSaveSearch()}
+                >
+                  Save
+                </Button>
+                <ClickToCopyText
+                  disabled={!searchTerm}
+                  className={cn("rounded-l-none border-l-0 w-1/2 px-4")}
+                  buttonText="Share"
+                  text={`https://app.herocast.xyz/search?search=${searchTerm}`}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 mt-2 md:h-12 md:gap-x-2 ">
+              <Button
+                size="sm"
+                variant="outline"
+                className={cn(
+                  "px-4 col-span-2 md:col-span-1",
+                  showFilter ? "bg-muted text-muted-foreground" : ""
+                )}
+                onClick={() => setShowFilter((prev) => !prev)}
+              >
+                <AdjustmentsHorizontalIcon className="h-5 w-5 mr-1" />
+                Filters
+              </Button>
+              {showFilter && (
+                <div
+                  className={cn(
+                    "w-full col-span-3 flex space-x-2 transition-all duration-200 md:justify-end",
+                    showFilter ? "opacity-100" : "opacity-0"
+                  )}
+                >
+                  {renderPowerBadgeFilter()}
+                  {renderHideRepliesFilter()}
+                  {renderIntervalFilter()}
+                </div>
               )}
-              autoFocus
-            />
-            <Button
-              disabled={!canSearch}
-              size="lg"
-              type="button"
-              className="px-8 rounded-l-none"
-              onClick={() => onSearch()}
-            >
-              Search
-            </Button>
+            </div>
           </div>
-          <div className="flex col-span-3 md:col-span-1 w-full">
-            <Button
-              size="lg"
-              type="button"
-              variant="outline"
-              className="px-2 rounded-r-none w-1/2"
-              onClick={() => onSaveSearch()}
-            >
-              Save
-            </Button>
-            <ClickToCopyText
-              disabled={!searchTerm}
-              className={cn("rounded-l-none border-l-0 w-1/2 px-4")}
-              buttonText="Share"
-              text={`https://app.herocast.xyz/search?search=${searchTerm}`}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 mt-2 md:h-12 md:gap-x-2 ">
-          <Button
-            size="sm"
-            variant="outline"
-            className={cn(
-              "px-4 col-span-2 md:col-span-1",
-              showFilter ? "bg-muted text-muted-foreground" : ""
-            )}
-            onClick={() => setShowFilter((prev) => !prev)}
-          >
-            <AdjustmentsHorizontalIcon className="h-5 w-5 mr-1" />
-            Filters
-          </Button>
-          {showFilter && (
-            <div
-              className={cn(
-                "w-full col-span-3 flex space-x-2 transition-all duration-200 md:justify-end",
-                showFilter ? "opacity-100" : "opacity-0"
-              )}
-            >
-              {renderPowerBadgeFilter()}
-              {renderHideRepliesFilter()}
-              {renderIntervalFilter()}
+          {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
+            renderLoading()}
+          {!isLoading && !isEmpty(castHashes) && isEmpty(casts) && (
+            <div className="flex flex-col text-center mt-8 text-muted-foreground">
+              <span>No results found</span>
+              {renderTryAgainButton()}
             </div>
           )}
-        </div>
-      </div>
-      {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
-        renderLoading()}
-      {!isLoading && !isEmpty(castHashes) && isEmpty(casts) && (
-        <div className="flex flex-col text-center mt-8 text-muted-foreground">
-          <span>No results found</span>
-          {renderTryAgainButton()}
-        </div>
+          <SelectableListWithHotkeys
+            data={casts}
+            renderRow={renderSearchResultRow}
+            selectedIdx={selectedCastIdx}
+            setSelectedIdx={setSelectedCastIdx}
+            onSelect={(idx) => {
+              setSelectedCastIdx(idx);
+              setShowCastThreadView(true);
+            }}
+          />
+          {castHashes.length > 0 && (
+            <div className="flex justify-center my-8">
+              {isLoading ? renderLoadingSpinner() : renderLoadMoreButton()}
+            </div>
+          )}
+          {error && (
+            <div className="text-center mt-8 text-red-500">
+              Error: {error.message}
+            </div>
+          )}
+          <ManageListModal
+            open={isManageListModalOpen}
+            onClose={() => setIsManageListModalOpen(false)}
+          />
+        </>
+      ) : (
+        <CastThreadView
+          cast={casts[selectedCastIdx]}
+          onBack={onBack}
+          onReply={onReply}
+          onQuote={onQuote}
+        />
       )}
-      <SelectableListWithHotkeys
-        data={casts}
-        renderRow={renderSearchResultRow}
-        selectedIdx={selectedCastIdx}
-        setSelectedIdx={setSelectedCastIdx}
-        onSelect={(idx) => setSelectedCastIdx(idx)}
-      />
-      {castHashes.length > 0 && (
-        <div className="flex justify-center my-8">
-          {isLoading ? renderLoadingSpinner() : renderLoadMoreButton()}
-        </div>
-      )}
-      {error && (
-        <div className="text-center mt-8 text-red-500">
-          Error: {error.message}
-        </div>
-      )}
-      <ManageListModal
-        open={isManageListModalOpen}
-        onClose={() => setIsManageListModalOpen(false)}
-      />
     </div>
   );
 }

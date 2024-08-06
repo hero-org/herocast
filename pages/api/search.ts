@@ -1,3 +1,4 @@
+import { getTextMatchCondition } from '@/common/helpers/search';
 import { AppDataSource, Cast, initializeDataSourceWithRetry } from '@/lib/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -7,7 +8,7 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     let { limit, offset } = req.query;
-    const { term, interval, orderBy, onlyPowerBadge, hideReplies } = req.query;
+    const { term, interval, orderBy, onlyPowerBadge, hideReplies, mentionFid, fromFid } = req.query;
 
     if (typeof term !== 'string' || term.length < 3) {
         return res.status(400).json({ error: 'Invalid search term' });
@@ -28,21 +29,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
 
-    const termsInQuotes = term.match(/"([^"]*)"/g)?.map(quotedTerm => quotedTerm.replace(/"/g, ''));
+    const baseConditions = `
+        casts.deleted_at IS NULL
+        ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
+        ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
+        ${fromFid ? `AND casts.fid = ${fromFid}` : ''}
+    `;
+
+    const textMatchCondition = getTextMatchCondition(term);
     const query = `
-    SELECT 
-        casts.hash, casts.fid, casts.text
+    (SELECT 
+        casts.hash, casts.fid, casts.text, casts.timestamp
     FROM casts 
         ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
     WHERE 
-        tsv @@ websearch_to_tsquery('english', $3)
-        AND casts.deleted_at IS NULL
-        ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
-        ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
-        ${termsInQuotes ? `AND ${termsInQuotes.map((quotedTerm) => `casts.text ilike '%${quotedTerm}%'`).join(' AND ')}` : ''}
+        ${textMatchCondition}
+        AND ${baseConditions}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
-    LIMIT $1 OFFSET $2`;
-    const vars = [limit, offset, term.trim()];
+        LIMIT $1 OFFSET $2
+    )
+    ${mentionFid ? `
+        UNION
+        (SELECT 
+            casts.hash, casts.fid, casts.text, casts.timestamp
+        FROM casts 
+            ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
+        WHERE 
+            ${mentionFid}::int = ANY(casts.mentions)
+            AND ${baseConditions})
+            ${orderBy ? `ORDER BY ${orderBy}` : ''}
+            LIMIT $1 OFFSET $2`
+            : ''
+        }
+    `;
+    const vars = [limit, offset];
 
     try {
         const queryStart = process.hrtime();

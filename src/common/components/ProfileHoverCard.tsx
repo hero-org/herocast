@@ -4,20 +4,21 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { openWindow } from "../helpers/navigation";
-import { Loading } from "./Loading";
 import { useInView } from "react-intersection-observer";
-import { PROFILE_UPDATE_INTERVAL, useDataStore } from "@/stores/useDataStore";
-import FollowButton from "./FollowButton";
-import { getUserDataForFidOrUsername } from "../helpers/neynar";
-import { formatLargeNumber } from "../helpers/text";
-import { getProfile } from "@/stores/useDataStore";
+import { useDataStore } from "@/stores/useDataStore";
+import {
+  fetchAndAddUserProfile,
+  shouldUpdateProfile,
+} from "../helpers/profileUtils";
+import { getProfile } from "../helpers/profileUtils";
+import ProfileInfoContent from "./ProfileInfoContent";
+import Link from "next/link";
+import { useMemo } from "react";
 
 type ProfileHoverCardProps = {
   fid?: number;
   username?: string;
-  viewerFid: number;
+  viewerFid?: number;
   children: React.ReactNode;
   className?: string;
 };
@@ -29,8 +30,7 @@ const ProfileHoverCard = ({
   children,
   className,
 }: ProfileHoverCardProps) => {
-  const { addUserProfile } = useDataStore();
-  const profile = useDataStore((state) => getProfile(state, username, fid));
+  const profile = useDataStore((state) => getProfile(state, username, fid?.toString()));
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
@@ -39,76 +39,36 @@ const ProfileHoverCard = ({
   if (!username && !fid) return null;
 
   useEffect(() => {
-    if (!inView || profile) return;
+    if (!inView) return;
+    
+    const effectiveViewerFid = viewerFid || Number(process.env.NEXT_PUBLIC_APP_FID!);
 
-    const getData = async () => {
-      const users = await getUserDataForFidOrUsername({
-        username,
-        fid,
-        viewerFid,
-      });
-      if (users.length) {
-        users.forEach((user) => {
-          addUserProfile({ user });
-        });
-      }
-    };
-
-    if (!profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL) {
-      getData();
+    if (shouldUpdateProfile(profile)) {
+      fetchAndAddUserProfile({ username, fid, viewerFid: effectiveViewerFid });
     }
-  }, [inView, profile, viewerFid]);
-
-  const onClick = () => {
-    openWindow(
-      `${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username || username}`
-    );
-  };
+  }, [inView, username, fid]);
 
   return (
     <HoverCard openDelay={200}>
-      <HoverCardTrigger onClick={onClick} ref={ref} className={className}>
-        {children}
+      <HoverCardTrigger ref={ref} className={`${className} text-left`}>
+        <Link
+          href={`/profile/${profile?.username || username}`}
+          prefetch={false}
+        >
+          {children}
+        </Link>
       </HoverCardTrigger>
       <HoverCardContent
-        onClick={onClick}
         side="bottom"
         className="border border-gray-400 overflow-hidden cursor-pointer"
       >
-        <div className="space-y-2">
-          <div className="flex flex-row justify-between">
-            <Avatar>
-              <AvatarImage src={profile?.pfp_url} />
-              <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>
-            </Avatar>
-            <FollowButton username={profile?.username} />
-          </div>
-          <div>
-            <h2 className="text-md font-semibold">{profile?.display_name}</h2>
-            <h3 className="text-sm font-regular">@{profile?.username}</h3>
-          </div>
-          {profile ? (
-            <>
-              <p className="flex pt-2 text-sm break-words">
-                {profile?.profile?.bio?.text}
-              </p>
-              <div className="flex items-center pt-2 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">
-                  {formatLargeNumber(profile.following_count)}
-                  &nbsp;
-                </span>
-                following
-                <span className="ml-2 font-semibold text-foreground">
-                  {formatLargeNumber(profile?.follower_count)}
-                  &nbsp;
-                </span>
-                followers
-              </div>
-            </>
-          ) : (
-            <Loading />
-          )}
-        </div>
+        <Link
+          href={`/profile/${profile?.username || username}`}
+          prefetch={false}
+          className="w-full text-left"
+        >
+          <ProfileInfoContent profile={profile} isHoverCard={true} />
+        </Link>
       </HoverCardContent>
     </HoverCard>
   );

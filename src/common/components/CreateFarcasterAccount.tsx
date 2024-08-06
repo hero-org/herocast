@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loading } from "./Loading";
-
+import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import {
   useAccount,
   useReadContract,
@@ -35,37 +34,208 @@ import {
 import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
 import { generateKeyPair } from "../helpers/warpcastLogin";
 import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { optimism } from "viem/chains";
 import { glideClient } from "../helpers/glide";
 import { NoPaymentOptionsError } from "@paywithglide/glide-js";
 import { PaymentSelector } from "./PaymentSelector";
-import { PaymentOption } from "node_modules/@paywithglide/glide-js/dist/types";
+import { PaymentOption } from "@paywithglide/glide-js/dist/types";
 import { optimismChainId } from "../helpers/env";
 import { config } from "../helpers/rainbowkit";
 
-const CreateFarcasterAccount = ({
-  onSuccess,
+const PaymentSection: React.FC<{
+  state: {
+    didSignTransactions: boolean;
+    registerSignature?: Hex;
+    addSignature?: Hex;
+    paymentOption?: PaymentOption;
+    deadline?: bigint;
+    registerMetaData?: Hex;
+    savedPublicKey?: Hex;
+    isPending: boolean;
+  };
+  setState: React.Dispatch<React.SetStateAction<any>>;
+  price: bigint | undefined;
+  chainId: number;
+  isAddressValid: boolean;
+  getSignatures: () => Promise<void>;
+}> = ({ state, setState, price, chainId, isAddressValid, getSignatures }) => (
+  <>
+    <p className="text-[0.8rem] text-muted-foreground">
+      Choose your payment option by signing two messages
+    </p>
+    {state.didSignTransactions ? (
+      <PaymentSelector
+        registerPrice={price}
+        chainId={chainId}
+        registerSignature={state.registerSignature}
+        addSignature={state.addSignature}
+        setPaymentOption={(paymentOption) =>
+          setState((prev) => ({ ...prev, paymentOption }))
+        }
+        paymentOption={state.paymentOption}
+        deadline={state.deadline}
+        metadata={state.registerMetaData}
+        publicKey={state.savedPublicKey}
+        setError={(error) => setState((prev) => ({ ...prev, error }))}
+      />
+    ) : (
+      <Button
+        onClick={getSignatures}
+        disabled={state.isPending || !isAddressValid || !price}
+      >
+        Sign to view Payment Options
+        {state.isPending && (
+          <div className="pointer-events-none ml-3">
+            <Cog6ToothIcon
+              className="h-4 w-4 animate-spin"
+              aria-hidden="true"
+            />
+          </div>
+        )}
+      </Button>
+    )}
+  </>
+);
+
+const InvalidAddressWarning: React.FC<{ isAddressValid: boolean }> = ({
   isAddressValid,
-}: {
+}) =>
+  !isAddressValid && (
+    <div className="flex flex-start items-center mt-2">
+      <p className="text-wrap break-all text-sm text-red-500">
+        The wallet address you are connected to already has an account. Go back
+        and connect another address.
+      </p>
+    </div>
+  );
+
+interface ActionButtonsProps {
+  state: {
+    didSignTransactions: boolean;
+    paymentOption?: any;
+    isWaitingForFid: boolean;
+    isPending: boolean;
+  };
+  registerAccount: () => Promise<void>;
+  getFidAndUpdateAccount: () => Promise<boolean>;
+}
+
+const ActionButtons: React.FC<ActionButtonsProps> = React.memo(
+  ({ state, registerAccount, getFidAndUpdateAccount }) => (
+    <div className="flex flex-col space-y-4">
+      {state.didSignTransactions &&
+        state.paymentOption &&
+        !state.isWaitingForFid && (
+          <Button
+            variant={state.isPending ? "outline" : "default"}
+            disabled={
+              state.isPending ||
+              !state.didSignTransactions ||
+              !state.paymentOption
+            }
+            onClick={registerAccount}
+          >
+            {state.isPending ? <Loading isInline /> : "Create account"}
+          </Button>
+        )}
+      {state.isWaitingForFid && (
+        <>
+          <p className="text-sm text-muted-foreground">
+            Waiting for your Farcaster ID to be generated. This may take a few
+            moments.
+          </p>
+          <Button variant="outline" onClick={getFidAndUpdateAccount}>
+            <ArrowPathIcon className="h-4 w-4 mr-2" />
+            Manual refresh 🔄
+          </Button>
+        </>
+      )}
+      {!state.didSignTransactions && !state.isWaitingForFid && (
+        <Button variant="outline" onClick={getFidAndUpdateAccount}>
+          Manual refresh 🔄
+        </Button>
+      )}
+    </div>
+  ),
+  (prevProps, nextProps) =>
+    prevProps.state.didSignTransactions ===
+      nextProps.state.didSignTransactions &&
+    prevProps.state.paymentOption === nextProps.state.paymentOption &&
+    prevProps.state.isWaitingForFid === nextProps.state.isWaitingForFid &&
+    prevProps.state.isPending === nextProps.state.isPending
+);
+
+ActionButtons.displayName = "ActionButtons";
+
+const ErrorMessage: React.FC<{ error: string | undefined }> = ({ error }) =>
+  error && (
+    <div className="flex flex-start items-center mt-2">
+      <p className="text-wrap break-all text-sm text-red-500">Error: {error}</p>
+    </div>
+  );
+
+const GlideAttribution: React.FC = () => (
+  <div>
+    <a
+      href="https://paywithglide.xyz"
+      target="_blank"
+      rel="noreferrer"
+      className="text-sm cursor-pointer text-muted-foreground text-font-medium hover:underline hover:text-blue-500/70"
+    >
+      Payments powered by Glide
+    </a>
+  </div>
+);
+
+const InfoSection: React.FC<{ price: bigint | undefined }> = ({ price }) => (
+  <p className="text-[0.8rem] text-muted-foreground">
+    The yearly Farcaster platform fee is{" "}
+    {price && price > 0n ? (
+      `~${parseFloat(formatEther(price)).toFixed(8)} ETH right now.`
+    ) : (
+      <Loading isInline />
+    )}
+    <br />
+    <br />
+    You can pay with ETH or other tokens on Base, Optimism, Arbitrum, Polygon,
+    or Ethereum.
+    <br />
+    <br />
+    Creating an account will require two wallet signatures and one on-chain
+    transaction.
+  </p>
+);
+
+const CreateFarcasterAccount: React.FC<{
   onSuccess?: () => void;
   isAddressValid: boolean;
-}) => {
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<string>();
-  const [transactionHash, setTransactionHash] = useState<Hex>("0x");
+}> = ({ onSuccess, isAddressValid }) => {
+  console.log('CreateFarcasterAccount rendered');
+
+  useLayoutEffect(() => {
+    console.log('CreateFarcasterAccount mounted');
+    return () => {
+      console.log('CreateFarcasterAccount unmounted');
+    };
+  }, []);
+  const [state, setState] = useState({
+    isPending: false,
+    error: "",
+    transactionHash: "0x" as Hex,
+    paymentOption: undefined as PaymentOption | undefined,
+    didSignTransactions: false,
+    registerSignature: undefined as Hex | undefined,
+    addSignature: undefined as Hex | undefined,
+    savedPublicKey: undefined as Hex | undefined,
+    registerMetaData: undefined as Hex | undefined,
+    deadline: undefined as bigint | undefined,
+    isWaitingForFid: false,
+  });
+
   const { address, isConnected, chain } = useAccount();
   const walletClient = useWalletClient();
   const { switchChainAsync } = useSwitchChain();
   const { sendTransactionAsync } = useSendTransaction();
   const { signTypedDataAsync } = useSignTypedData();
-  const [paymentOption, setPaymentOption] = useState<PaymentOption>();
-  const [didSignTransactions, setDidSignTransactions] =
-    useState<boolean>(false);
-  const [registerSignature, setRegisterSignature] = useState<Hex>();
-  const [addSignature, setAddSignature] = useState<Hex>();
-  const [savedPublicKey, setPublicKey] = useState<Hex>();
-  const [registerMetaData, setRegisterMetaData] = useState<Hex>();
-  const [deadline, setDeadline] = useState<bigint>();
 
   const { accounts, addAccount, setAccountActive } = useAccountStore();
   const pendingAccounts = accounts.filter(
@@ -85,37 +255,24 @@ const CreateFarcasterAccount = ({
   });
 
   const transactionResult = useWaitForTransactionReceipt({
-    hash: transactionHash,
+    hash: state.transactionHash,
     config,
     query: {
-      enabled: transactionHash != "0x",
+      enabled: state.transactionHash !== "0x",
     },
   });
 
-  console.log(
-    "register account transaction status",
-    transactionHash,
-    transactionResult
-  );
+  const getFidAndUpdateAccount = useCallback(async (): Promise<boolean> => {
+    console.log('getFidAndUpdateAccount called', { transactionResult, pendingAccounts });
+    if (!(transactionResult && pendingAccounts.length > 0)) {
+      console.log("No transaction results or pending accounts.");
+      return false;
+    }
 
-  useEffect(() => {
-    if (!isConnected || transactionHash === "0x" || !transactionResult) return;
-    getFidAndUpdateAccount();
-  }, [isConnected, transactionHash, transactionResult, pendingAccounts]);
-
-  const getFidAndUpdateAccount = async (): Promise<boolean> => {
-    console.log(
-      "getFidAndUpdateAccount",
-      address,
-      "pending accounts",
-      pendingAccounts.length,
-      "transactionResult",
-      transactionResult?.data
-    );
-    if (!(transactionResult && pendingAccounts.length > 0)) return false;
     try {
       const fid = await getFidForAddress(address!);
       if (fid) {
+        console.log('FID found, updating account'); // Debug log
         const accountId = pendingAccounts[0].id;
         setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
           platform_account_id: fid.toString(),
@@ -125,43 +282,98 @@ const CreateFarcasterAccount = ({
         return true;
       }
     } catch (e) {
-      console.log("error when trying to get fid", e);
-      setError(`Error when trying to get fid: ${e}`);
+      console.error("Error when trying to get fid", e);
+      setState((prev) => ({
+        ...prev,
+        error: `Error when trying to get fid: ${e}`,
+      }));
     }
     return false;
-  };
+  }, [
+    address,
+    pendingAccounts,
+    transactionResult,
+    setAccountActive,
+    onSuccess,
+    setState,
+  ]);
+
+  useEffect(() => {
+    console.log('useEffect for polling FID triggered', { isConnected, transactionHash: state.transactionHash, transactionResult });
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    const pollForFid = async () => {
+      console.log('pollForFid called');
+      if (isConnected && state.transactionHash !== "0x" && transactionResult) {
+        const success = await getFidAndUpdateAccount();
+        console.log('getFidAndUpdateAccount result:', success);
+        if (success && isMounted) {
+          setState((prev) => ({ ...prev, isWaitingForFid: false }));
+        } else if (isMounted) {
+          console.log('Scheduling next poll');
+          timeoutId = setTimeout(pollForFid, 1000);
+        }
+      }
+    };
+
+    if (isConnected && state.transactionHash !== "0x" && transactionResult) {
+      console.log('Starting FID polling');
+      setState((prev) => ({ ...prev, isWaitingForFid: true }));
+      pollForFid();
+    }
+
+    return () => {
+      console.log('Cleaning up FID polling effect');
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [
+    isConnected,
+    state.transactionHash,
+    transactionResult,
+    getFidAndUpdateAccount,
+  ]);
 
   const registerAccount = async () => {
-    const hasError =
+    const {
+      registerSignature,
+      savedPublicKey,
+      registerMetaData,
+      deadline,
+      addSignature,
+      paymentOption,
+    } = state;
+
+    if (
       !registerSignature ||
       !savedPublicKey ||
       !address ||
       !registerMetaData ||
       !deadline ||
-      !addSignature;
-
-    if (hasError) {
-      setError(
-        "Something went wrong setting up the glide payment transaction!"
-      );
+      !addSignature
+    ) {
+      setState((prev) => ({
+        ...prev,
+        error: "Something went wrong setting up the glide payment transaction!",
+      }));
       return;
     }
 
     if (!paymentOption) {
-      setError("You need to select a payment option to proceed!");
+      setState((prev) => ({
+        ...prev,
+        error: "You need to select a payment option to proceed!",
+      }));
       return;
     }
 
     try {
-      if (!address) {
-        throw new Error("No address");
-      }
-
-      setIsPending(true);
+      setState((prev) => ({ ...prev, isPending: true }));
       const registerAccountTransactionHash = await glideClient.writeContract({
         account: address,
         chainId,
-        paymentCurrency: paymentOption?.paymentCurrency,
+        paymentCurrency: paymentOption.paymentCurrency,
         value: price,
         address: BUNDLER_ADDRESS,
         abi: bundlerABI,
@@ -189,59 +401,61 @@ const CreateFarcasterAccount = ({
         sendTransactionAsync,
         signTypedDataAsync,
       });
-      console.log(
-        "registerAccountTransactionHash",
-        registerAccountTransactionHash
-      );
-      setTransactionHash(registerAccountTransactionHash);
-      setIsPending(false);
+
+      setState((prev) => ({
+        ...prev,
+        transactionHash: registerAccountTransactionHash,
+        isPending: false,
+      }));
     } catch (e) {
       if (e instanceof NoPaymentOptionsError) {
-        setError(
-          "Wallet has no tokens to pay for transaction. Please add tokens to your wallet."
-        );
-        setIsPending(false);
-        return;
+        setState((prev) => ({
+          ...prev,
+          error:
+            "Wallet has no tokens to pay for transaction. Please add tokens to your wallet.",
+          isPending: false,
+        }));
+      } else {
+        console.error("Error when trying to write contract", e);
+        const errorStr = String(e).split("Raw Call Arguments")[0];
+        setState((prev) => ({
+          ...prev,
+          error: `Error when adding account onchain: ${errorStr}`,
+          isPending: false,
+        }));
       }
-
-      console.log("error when trying to write contract", e);
-      const errorStr = String(e).split("Raw Call Arguments")[0];
-      setError(`when adding account onchain: ${errorStr}`);
-      setIsPending(false);
-      return;
     }
   };
 
   const switchNetwork = async () => {
-    setError("");
+    setState((prev) => ({ ...prev, error: "" }));
     try {
-      const result = await switchChainAsync({
-        chainId,
-      });
+      const result = await switchChainAsync({ chainId });
       if (result.id !== chainId) {
-        setError(
-          `Expecting switch to ${chainId}.  Switched to ${result.id} instead.`
-        );
+        setState((prev) => ({
+          ...prev,
+          error: `Expecting switch to ${chainId}. Switched to ${result.id} instead.`,
+        }));
       } else {
         return true;
       }
     } catch (e: any) {
-      setError(
-        "You must switch networks to get available payment methods: " +
-          JSON.stringify(e)
-      );
+      setState((prev) => ({
+        ...prev,
+        error: `You must switch networks to get available payment methods: ${JSON.stringify(
+          e
+        )}`,
+      }));
     }
     return false;
   };
 
   const getSignatures = async () => {
-    setIsPending(true);
+    setState((prev) => ({ ...prev, isPending: true }));
 
     if (isConnected && chain?.id !== chainId) {
       const isConnected = await switchNetwork();
-      if (!isConnected) {
-        return;
-      }
+      if (!isConnected) return;
     }
 
     let signerPublicKey, signerPrivateKey;
@@ -249,7 +463,7 @@ const CreateFarcasterAccount = ({
       const { publicKey, privateKey } = await generateKeyPair();
       signerPublicKey = bytesToHexString(publicKey)._unsafeUnwrap();
       signerPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
-      setPublicKey(signerPublicKey);
+      setState((prev) => ({ ...prev, savedPublicKey: signerPublicKey }));
 
       try {
         await addAccount({
@@ -261,28 +475,31 @@ const CreateFarcasterAccount = ({
           },
         });
       } catch (e) {
-        console.log("error when trying to add account", e);
-        setIsPending(false);
-        setError(`Error when trying to add account: ${e}`);
+        console.error("Error when trying to add account", e);
+        setState((prev) => ({
+          ...prev,
+          isPending: false,
+          error: `Error when trying to add account: ${e}`,
+        }));
         return;
       }
     } else {
       signerPublicKey = pendingAccounts[0].publicKey!;
       signerPrivateKey = pendingAccounts[0].privateKey!;
-      setPublicKey(pendingAccounts[0].publicKey);
+      setState((prev) => ({
+        ...prev,
+        savedPublicKey: pendingAccounts[0].publicKey,
+      }));
     }
 
     const nonce = await readNoncesFromKeyGateway(address!);
     const registerDeadline = getDeadline();
-    setDeadline(registerDeadline);
+    setState((prev) => ({ ...prev, deadline: registerDeadline }));
 
     try {
       const registerSignature = await walletClient.data?.signTypedData({
         ...ID_GATEWAY_EIP_712_TYPES,
-        domain: {
-          ...ID_GATEWAY_EIP_712_TYPES.domain,
-          chainId,
-        },
+        domain: { ...ID_GATEWAY_EIP_712_TYPES.domain, chainId },
         primaryType: "Register",
         message: {
           to: address!,
@@ -291,14 +508,14 @@ const CreateFarcasterAccount = ({
           deadline: registerDeadline,
         },
       });
-      if (!registerSignature) {
-        throw new Error("No signature");
-      }
-
-      setRegisterSignature(registerSignature);
+      if (!registerSignature) throw new Error("No signature");
+      setState((prev) => ({ ...prev, registerSignature }));
     } catch (e) {
-      setIsPending(false);
-      setError(`Error when trying to sign register: ${JSON.stringify(e)}`);
+      setState((prev) => ({
+        ...prev,
+        isPending: false,
+        error: `Error when trying to sign register: ${JSON.stringify(e)}`,
+      }));
       return;
     }
 
@@ -307,15 +524,12 @@ const CreateFarcasterAccount = ({
       signerPublicKey,
       registerDeadline
     );
+    setState((prev) => ({ ...prev, registerMetaData: metadata }));
 
-    setRegisterMetaData(metadata);
     try {
       const addSignature = await walletClient.data?.signTypedData({
         ...KEY_GATEWAY_EIP_712_TYPES,
-        domain: {
-          ...KEY_GATEWAY_EIP_712_TYPES.domain,
-          chainId,
-        },
+        domain: { ...KEY_GATEWAY_EIP_712_TYPES.domain, chainId },
         primaryType: "Add",
         message: {
           owner: address!,
@@ -327,109 +541,43 @@ const CreateFarcasterAccount = ({
           deadline: registerDeadline,
         },
       });
-      setAddSignature(addSignature);
-      setDidSignTransactions(true);
+      setState((prev) => ({
+        ...prev,
+        addSignature,
+        didSignTransactions: true,
+        isPending: false,
+      }));
     } catch (e) {
-      console.log("error when trying to sign add", e);
-      setError(`Error when trying to sign add: ${e}`);
-      setIsPending(false);
+      console.error("Error when trying to sign add", e);
+      setState((prev) => ({
+        ...prev,
+        error: `Error when trying to sign add: ${e}`,
+        isPending: false,
+      }));
     }
   };
 
   return (
     <div className="w-full space-y-4">
-      <p className="text-[0.8rem] text-muted-foreground">
-        The yearly Farcaster platform fee is{" "}
-        {price && price > 0n ? (
-          `~${parseFloat(formatEther(price)).toFixed(8)} ETH right now.`
-        ) : (
-          <Loading isInline />
-        )}
-        <br />
-        <br />
-        You can pay with ETH or other tokens on Base, Optimism, Arbitrum,
-        Polygon, or Ethereum.
-        <br />
-        <br />
-        Creating an account will require two wallet signatures and one on-chain
-        transaction.
-      </p>
+      <InfoSection price={price} />
       <Separator />
-      <p className="text-[0.8rem] text-muted-foreground">
-        Chose your payment option by signing two messages
-      </p>
-      {didSignTransactions ? (
-        <PaymentSelector
-          registerPrice={price}
-          chainId={chainId}
-          registerSignature={registerSignature}
-          addSignature={addSignature}
-          setPaymentOption={setPaymentOption}
-          paymentOption={paymentOption}
-          deadline={deadline}
-          metadata={registerMetaData}
-          publicKey={savedPublicKey}
-          setError={setError}
-        />
-      ) : (
-        <Button
-          onClick={() => getSignatures()}
-          disabled={isPending || !isAddressValid || !price}
-        >
-          Sign to view Payment Options
-          {isPending && (
-            <div className="pointer-events-none ml-3">
-              <Cog6ToothIcon
-                className="h-4 w-4 animate-spin"
-                aria-hidden="true"
-              />
-            </div>
-          )}
-        </Button>
-      )}
-      {!isAddressValid && (
-        <div className="flex flex-start items-center mt-2">
-          <p className="text-wrap break-all	text-sm text-red-500">
-            The wallet address you are connected to already has an account. Go
-            back and connect another address.
-          </p>
-        </div>
-      )}
+      <PaymentSection
+        state={state}
+        setState={setState}
+        price={price}
+        chainId={chainId}
+        isAddressValid={isAddressValid}
+        getSignatures={getSignatures}
+      />
+      <InvalidAddressWarning isAddressValid={isAddressValid} />
       <Separator />
-      <div className="flex flex-col space-y-4">
-        {didSignTransactions && paymentOption && (
-          <Button
-            variant="default"
-            disabled={!didSignTransactions || !paymentOption}
-            onClick={() => registerAccount()}
-          >
-            Create account
-          </Button>
-        )}
-        {!didSignTransactions && isPending && (
-          <Button variant="outline" onClick={() => getFidAndUpdateAccount()}>
-            Manual refresh 🔄
-          </Button>
-        )}
-      </div>
-      {error && (
-        <div className="flex flex-start items-center mt-2">
-          <p className="text-wrap break-all	text-sm text-red-500">
-            Error: {error}
-          </p>
-        </div>
-      )}
-
-      <div>
-        <a
-          href="https://paywithglide.xyz"
-          target="_blank"
-          rel="noreferrer"
-          className="text-sm cursor-pointer text-muted-foreground text-font-medium hover:underline hover:text-blue-500/70"
-        >
-          Payments powered by Glide
-        </a>
-      </div>
+      <ActionButtons
+        state={state}
+        registerAccount={registerAccount}
+        getFidAndUpdateAccount={getFidAndUpdateAccount}
+      />
+      <ErrorMessage error={state.error} />
+      <GlideAttribution />
     </div>
   );
 };

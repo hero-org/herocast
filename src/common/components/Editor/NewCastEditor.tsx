@@ -1,7 +1,7 @@
 import React, { RefObject, useEffect } from "react";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { DraftStatus, DraftType } from "../constants/farcaster";
+import { DraftStatus, DraftType } from "../../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
@@ -14,12 +14,11 @@ import {
 } from "@mod-protocol/core";
 import { getFarcasterMentions } from "@mod-protocol/farcaster";
 import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
-import { CastLengthUIIndicator } from "@mod-protocol/react-ui-shadcn/dist/components/cast-length-ui-indicator";
 import debounce from "lodash.debounce";
 import { Button } from "@/components/ui/button";
 import { MentionList } from "@mod-protocol/react-ui-shadcn/dist/components/mention-list";
 import { take } from "lodash";
-import { ChannelPicker } from "./ChannelPicker";
+import { ChannelPicker } from "../ChannelPicker";
 import {
   Popover,
   PopoverContent,
@@ -29,18 +28,22 @@ import { CreationMod } from "@mod-protocol/react";
 import { creationMods } from "@mod-protocol/mod-registry";
 import { renderers } from "@mod-protocol/react-ui-shadcn/dist/renderers";
 import map from "lodash.map";
-import { renderEmbedForUrl } from "./Embeds";
+import { renderEmbedForUrl } from "../Embeds";
 import { PhotoIcon } from "@heroicons/react/20/solid";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { ChannelList } from "./ChannelList";
+import { ChannelList } from "../ChannelList";
 import isEmpty from "lodash.isempty";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FarcasterEmbed } from "@mod-protocol/farcaster";
-import { prepareCastBody } from "@/stores/useDraftStore";
 import { DateTimePicker } from "@/components/ui/datetime-picker";
 import { toast } from "sonner";
 import { usePostHog } from "posthog-js/react";
+import { useTextLength } from "../../helpers/editor";
+import { cn } from "@/lib/utils";
+import { openSourcePlanLimits } from "../../../config/customerLimitation";
+import Link from "next/link";
+import { isPaidUser } from "@/stores/useUserStore";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -142,15 +145,19 @@ export default function NewPostEntry({
 
     if (scheduleDateTime) {
       posthog.capture("user_schedule_cast");
-      await updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
-      const castBody = await prepareCastBody(draft);
-      await addScheduledDraft({
-        castBody,
-        scheduledFor: scheduleDateTime,
-        rawText: draft.text,
+      await updatePostDraft(draftIdx, {
+        ...draft,
+        status: DraftStatus.publishing,
       });
-      setScheduleDateTime(undefined);
-      onPost?.();
+      await addScheduledDraft({
+        draftIdx,
+        scheduledFor: scheduleDateTime,
+        onSuccess: () => {
+          console.log("onSuccess after addScheduledDraft");
+          setScheduleDateTime(undefined);
+          onPost?.();
+        },
+      });
     } else {
       posthog.capture("user_post_cast");
       await publishPostDraft(draftIdx, account, onPost);
@@ -218,6 +225,12 @@ export default function NewPostEntry({
   const embeds = getEmbeds();
   const channel = getChannel();
 
+  const {
+    label: textLengthWarning,
+    isValid: textLengthIsValid,
+    tailwindColor: textLengthTailwind,
+  } = useTextLength({ text });
+
   useEffect(() => {
     if (!editor) return; // no updates before editor is initialized
     if (isPublishing) return;
@@ -254,11 +267,25 @@ export default function NewPostEntry({
   }, [draft?.parentUrl]);
 
   const getButtonText = () => {
-    if (isPublishing) return "Publishing...";
+    if (isPublishing)
+      return scheduleDateTime ? "Scheduling..." : "Publishing...";
+
     return `${scheduleDateTime ? "Schedule" : "Cast"}${
       account ? ` as ${account.name}` : ""
     }`;
   };
+
+  const scheduledCastCount =
+    useDraftStore((state) =>
+      state.drafts.filter((draft) => draft.status === DraftStatus.scheduled)
+    )?.length || 0;
+  const hasReachedFreePlanLimit =
+    !isPaidUser() &&
+    scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
+  const isButtonDisabled =
+    isPublishing ||
+    !textLengthIsValid ||
+    (scheduleDateTime && hasReachedFreePlanLimit);
 
   if (!draft) return null;
 
@@ -341,7 +368,11 @@ export default function NewPostEntry({
               </div>
             </PopoverContent>
           </Popover>
-          <CastLengthUIIndicator getText={getText} />
+          {textLengthWarning && (
+            <div className={cn("my-2 ml-2 text-sm", textLengthTailwind)}>
+              {textLengthWarning}
+            </div>
+          )}
           <div className="grow"></div>
           {onRemove && (
             <Button
@@ -364,12 +395,24 @@ export default function NewPostEntry({
             />
           )}
         </div>
-        <div className="flex flex-row pt-2 justify-end">
+        <div className="flex flex-row pt-2 justify-between">
+          <div>
+            {scheduleDateTime && hasReachedFreePlanLimit && (
+              <span className="text-sm text-muted-foreground">
+                Reached the limit of scheduled casts for the free plan.
+                <Link href="/upgrade" prefetch={false}>
+                  <Button size="sm" className="ml-2 font-bold">
+                    Upgrade
+                  </Button>
+                </Link>
+              </span>
+            )}
+          </div>
           <Button
             size="lg"
             type="submit"
             className="line-clamp-1 min-w-48 max-w-md truncate"
-            disabled={isPublishing}
+            disabled={isButtonDisabled}
           >
             {getButtonText()}
           </Button>

@@ -24,8 +24,8 @@ import { getUsernameForFid } from "@/common/helpers/farcaster";
 import { IndexedDBStorage } from "./StoreStorage";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
-const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 12; // 12 hrs;
-const CHANNEL_UPDATE_RELEASE_DATE = 1717413090288;
+const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 120; // 5 days;
+const CHANNEL_UPDATE_RELEASE_DATE = 1722607765000;
 
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
 export enum CUSTOM_CHANNELS {
@@ -423,6 +423,7 @@ export const useAccountStore = create<AccountStore>()(persist(mutative(store),
     name: 'herocast-accounts-store',
     storage: createJSONStorage(() => storage), // (optional) by default, 'localStorage' is used
     partialize: (state) => ({
+      selectedAccountIdx: state.selectedAccountIdx,
       allChannels: state.allChannels,
       accounts: state.accounts.map((account) => {
         const { privateKey, ...rest } = account;
@@ -443,7 +444,9 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
       .from('channel')
       .select('*', { count: 'exact' })
       .not('data', 'is', null)
+      .gt('data -> followerCount', 50)
       .range(start, end);
+    console.log('count', count)
     if (error) throw error;
     channelData = channelData.concat(data);
     hasMoreChannels = data.length > 0;
@@ -471,7 +474,7 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
       }));
       return {
         id: account.id,
-        name: account.name,
+        name: account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER,
         status: account.status,
         publicKey: account.public_key,
         platform: account.platform,
@@ -482,7 +485,7 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
         channels: channels,
       }
     })
-    const fids = accounts.filter((account) => account.platformAccountId).map((account) => Number(account.platformAccountId!));
+    const fids = accounts.filter((account) => account.platformAccountId).map((account) => Number(account.platformAccountId));
     if (fids.length) {
       const neynarClient = new NeynarAPIClient(
         process.env.NEXT_PUBLIC_NEYNAR_API_KEY!

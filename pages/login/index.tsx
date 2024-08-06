@@ -1,16 +1,12 @@
 import "@farcaster/auth-kit/styles.css";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { UserAuthForm } from "@/common/components/UserAuthForm";
 import { AuthKitProvider } from "@farcaster/auth-kit";
 import { useRouter } from "next/router";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
@@ -20,9 +16,16 @@ const authKitConfig = {
 
 export default function Login() {
   const router = useRouter();
-  const { signupOnly, view } = router.query;
-
+  const { signupOnly, view, error, error_description } = router.query;
   const showOnlySignup = signupOnly === "true" || view === "reset";
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (error && error_description) {
+      setErrorMessage(decodeURIComponent(error_description as string));
+    }
+  }, [error, error_description]);
+
   const renderAuthForm = () => (
     <div className="text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
       <UserAuthForm signupOnly={showOnlySignup} />
@@ -33,17 +36,23 @@ export default function Login() {
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2 xl:min-h-[800px]">
       <div className="mt-18 flex items-center justify-center py-12">
         <AuthKitProvider config={authKitConfig}>
-          <Card className="mx-auto min-w-80 max-w-80">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-2xl">Welcome to herocast</CardTitle>
-            </CardHeader>
-            <CardContent>{renderAuthForm()}</CardContent>
+          <Card className="mx-auto min-w-96 max-w-96">
+            <CardContent className="mt-6">
+              {errorMessage && (
+                <Alert variant="destructive" className="mb-4">
+                  <ExclamationTriangleIcon className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
+              {renderAuthForm()}
+            </CardContent>
           </Card>
         </AuthKitProvider>
       </div>
       <div className="hidden bg-muted lg:block">
         <img
-          src="/images/herocast-app-screenshot.png"
+          src="/images/hero.png"
           alt="herocast-app-screenshot"
           width="1920"
           height="1080"

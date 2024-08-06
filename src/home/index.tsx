@@ -1,6 +1,6 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { Cog6ToothIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
 import {
   Bars3Icon,
   UserPlusIcon,
@@ -11,7 +11,6 @@ import {
 } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { classNames } from "@/common/helpers/css";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import RightSidebar from "@/common/components/Sidebar/RightSidebar";
 import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
@@ -37,18 +36,24 @@ import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
 import { ChartBarIcon } from "@heroicons/react/20/solid";
 
+type NavigationGroupType = {
+  name: string;
+  items: NavigationItemType[];
+};
+
 type NavigationItemType = {
   name: string;
   router: string;
-  icon: any;
+  icon?: any;
   getTitle?: () => string | JSX.Element;
   getHeaderActions?: () => HeaderAction[];
   shortcut?: string;
   additionalPaths?: string[];
+  hide?: boolean;
 };
 
 type HeaderAction = {
-  name: string;
+  name: string | JSX.Element;
   onClick: () => void;
 };
 
@@ -57,7 +62,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const router = useRouter();
 
-  const { pathname } = router;
+  const { asPath, pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
     allChannels,
@@ -78,12 +83,35 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const channels = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.channels || []
   );
+  const pageRequiresHydrate =
+    asPath !== "/login" &&
+    !asPath.startsWith("/profile") &&
+    !asPath.startsWith("/conversation");
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
       state.accounts[0].platform ===
         AccountPlatformType.farcaster_local_readonly
   );
+
+  const loadingMessages = [
+    "Preparing your Farcaster experience",
+    "Loading herocast",
+    "You haven't been here for a while, welcome back!",
+  ];
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      const interval = setInterval(() => {
+        setCurrentMessageIndex(
+          (prevIndex) => (prevIndex + 1) % loadingMessages.length
+        );
+      }, 3000); // Change message every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [isHydrated]);
 
   const getFeedTitle = () => {
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
@@ -116,100 +144,141 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     return "Feed";
   };
 
-  const navigation: NavigationItemType[] = [
+  const navigationGroups: NavigationGroupType[] = [
     {
-      name: "Feeds",
-      router: "/feeds",
-      icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      getTitle: getFeedTitle,
-      getHeaderActions: () => {
-        const isChannelPinned =
-          channels.findIndex(
-            (channel) => channel.url === selectedChannelUrl
-          ) !== -1;
-        const isChannelFeed =
-          selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
-          selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING;
-        const actions = [
-          {
-            name: "Cast",
-            onClick: () => {
-              let parentUrl;
-              if (isChannelFeed) {
-                parentUrl = selectedChannelUrl;
-              }
-              setCastModalView(CastModalView.New);
-              addNewPostDraft({
-                parentUrl,
-                onSuccess(draftId) {
-                  setCastModalDraftId(draftId);
-                  openNewCastModal();
+      name: "main",
+      items: [
+        {
+          name: "Feeds",
+          router: "/feeds",
+          icon: (
+            <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+          ),
+          getTitle: getFeedTitle,
+          getHeaderActions: () => {
+            const isChannelPinned =
+              channels.findIndex(
+                (channel) => channel.url === selectedChannelUrl
+              ) !== -1;
+            const isChannelFeed =
+              selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
+              selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING;
+            const actions = [
+              {
+                name: "Cast",
+                onClick: () => {
+                  let parentUrl;
+                  if (isChannelFeed) {
+                    parentUrl = selectedChannelUrl;
+                  }
+                  setCastModalView(CastModalView.New);
+                  addNewPostDraft({
+                    parentUrl,
+                    onSuccess(draftId) {
+                      setCastModalDraftId(draftId);
+                      openNewCastModal();
+                    },
+                  });
+                },
+              },
+            ];
+            if (isChannelFeed) {
+              actions.push({
+                name: isChannelPinned ? "Unpin" : "Pin",
+                onClick: () => {
+                  const channel = channels.find(
+                    (c) => c.url === selectedChannelUrl
+                  );
+                  if (!channel) return;
+
+                  if (isChannelPinned) {
+                    removePinnedChannel(channel);
+                  } else {
+                    addPinnedChannel(channel);
+                  }
                 },
               });
-            },
+            }
+            return actions;
           },
-        ];
-        if (isChannelFeed) {
-          actions.push({
-            name: isChannelPinned ? "Unpin" : "Pin",
-            onClick: () => {
-              if (isChannelPinned) {
-                removePinnedChannel(
-                  channels.find((c) => c.url === selectedChannelUrl)
-                );
-              } else {
-                addPinnedChannel(
-                  allChannels.find((c) => c.url === selectedChannelUrl)
-                );
-              }
+          shortcut: "Shift + F",
+          additionalPaths: ["/profile/[slug]", "/conversation/[...slug]"],
+        },
+        {
+          name: "Post",
+          router: "/post",
+          getHeaderActions: () => [
+            {
+              name: (
+                <>
+                  {" "}
+                  <PencilSquareIcon className="w-5 h-5 mr-2" />
+                  New draft
+                </>
+              ),
+              onClick: () => addNewPostDraft({ force: true }),
             },
-          });
-        }
-        return actions;
-      },
-      shortcut: "Shift + F",
-      additionalPaths: ["/profile/[slug]", "/conversation/[...slug]"],
+          ],
+          icon: (
+            <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+          ),
+        },
+        {
+          name: "Search",
+          router: "/search",
+          icon: (
+            <MagnifyingGlassIcon
+              className="h-6 w-6 shrink-0"
+              aria-hidden="true"
+            />
+          ),
+          shortcut: "/",
+        },
+        {
+          name: "Notifications",
+          router: "/notifications",
+          icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: "Shift + N",
+        },
+        {
+          name: "Upgrade",
+          router: "/upgrade",
+          hide: true,
+        },
+      ],
     },
     {
-      name: "Post",
-      router: "/post",
-      icon: <PlusCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-    },
-    {
-      name: "Search",
-      router: "/search",
-      icon: (
-        <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-      ),
-      shortcut: "/",
-    },
-    {
-      name: "Channels",
-      router: "/channels",
-      icon: (
-        <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-      ),
-      shortcut: "Shift + C",
-    },
-    {
-      name: "Notifications",
-      router: "/notifications",
-      icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      getTitle: () => "Notifications",
-      shortcut: "Shift + N",
-    },
-    {
-      name: "Accounts",
-      router: "/accounts",
-      icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      shortcut: "CMD + Shift + A",
-      additionalPaths: ["/farcaster-signup", "/hats"],
-    },
-    {
-      name: "Settings",
-      router: "/settings",
-      icon: <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      shortcut: "Shift + ,",
+      name: "settings",
+      items: [
+        {
+          name: "Channels",
+          router: "/channels",
+          icon: (
+            <RectangleGroupIcon
+              className="h-6 w-6 shrink-0"
+              aria-hidden="true"
+            />
+          ),
+          shortcut: "Shift + C",
+        },
+        {
+          name: "Accounts",
+          router: "/accounts",
+          icon: (
+            <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+          ),
+          shortcut: "CMD + Shift + A",
+          additionalPaths: ["/farcaster-signup", "/hats"],
+        },
+        {
+          name: "Settings",
+          router: "/settings",
+          icon: (
+            <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+          ),
+          shortcut: "Shift + ,",
+        },
+      ],
     },
     {
       name: "Analytics",
@@ -269,7 +338,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     return navItem?.getHeaderActions ? navItem.getHeaderActions() : [];
   };
 
-  const navItem = navigation.find((item) => item.router === pathname);
+  const getNavItem = (pathname: string) => {
+    return navigationGroups
+      .map((group) => group.items)
+      .flat()
+      .find((item) => item.router === pathname);
+  };
+
+  const navItem = getNavItem(pathname);
   const title = getTitle(navItem);
   const headerActions = getHeaderActions(navItem);
   const sidebarType = getSidebarForPathname(pathname);
@@ -287,26 +363,22 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case RIGHT_SIDEBAR_ENUM.NONE:
       default:
         return null;
-        // return (
-        //   <aside className="bg-background lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-24">
-        //     <header className="flex border-t border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8"></header>
-        //   </aside>
-        // );
     }
   };
 
   const renderUpgradeCard = () => (
     <Card>
       <CardHeader className="p-2 pt-0 md:p-4">
-        <CardTitle>Upgrade to full account</CardTitle>
+        <CardTitle>Create your herocast account</CardTitle>
         <CardDescription>
-          Unlock all features and start casting with herocast.
+          Connect your email to unlock all features and start casting with
+          herocast.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
         <Link href="/login?signupOnly=true" passHref>
           <Button size="sm" className="w-full">
-            Upgrade
+            Connect email
           </Button>
         </Link>
       </CardContent>
@@ -361,32 +433,53 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               <Dialog.Panel className="relative mr-2 flex w-full max-w-64 flex-1">
                 {/* Sidebar component, swap this element with another sidebar if you like */}
                 <div className="mt-16 z-100 flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
-                  <nav className="flex flex-1 flex-col">
-                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                      <li>
-                        <ul role="list" className="-mx-2 space-y-1">
-                          {navigation.map((item) => (
-                            <li key={item.name}>
-                              <Link href={item.router} onClick={() => setSidebarOpen(false)}>
-                                <p
-                                  className={classNames(
-                                    item.router === pathname ||
-                                      item.additionalPaths?.includes(pathname)
-                                      ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                    "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
-                                  )}
-                                >
-                                  {item.icon}
-                                  {item.name}
-                                </p>
-                              </Link>
+                  <nav className="flex flex-1 flex-col divide-y divide-muted-foreground/20">
+                    {navigationGroups.map((group) => {
+                      const navigation = group.items;
+                      return (
+                        <div key={`nav-group-mobile-${group.name}`}>
+                          <ul
+                            role="list"
+                            className="flex flex-1 flex-col gap-y-7"
+                          >
+                            <li>
+                              <ul role="list" className="-mx-2 space-y-1">
+                                {navigation.map(
+                                  (item) =>
+                                    !item.hide && (
+                                      <li key={item.name}>
+                                        <Link
+                                          href={item.router}
+                                          onClick={() => setSidebarOpen(false)}
+                                        >
+                                          <p
+                                            className={cn(
+                                              item.router === pathname ||
+                                                item.additionalPaths?.includes(
+                                                  pathname
+                                                )
+                                                ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                              "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                            )}
+                                          >
+                                            {item.icon}
+                                            {item.name}
+                                          </p>
+                                        </Link>
+                                      </li>
+                                    )
+                                )}
+                              </ul>
                             </li>
-                          ))}
-                        </ul>
-                      </li>
+                          </ul>
+                        </div>
+                      );
+                    })}
+                    <div className="w-full flex flex-row py-4">
+                      <AccountSwitcher />
                       <ThemeToggle />
-                    </ul>
+                    </div>
                   </nav>
                 </div>
               </Dialog.Panel>
@@ -409,27 +502,41 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </h2>
           </Link>
           <div className="flex flex-col justify-between">
-            <nav className="mt-0">
-              <ul role="list" className="flex flex-col items-left space-y-1">
-                {navigation.map((item) => (
-                  <li key={item.name}>
-                    <Link href={item.router}>
-                      <div
-                        className={classNames(
-                          item.router === pathname ||
-                            item.additionalPaths?.includes(pathname)
-                            ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                          "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                        )}
-                      >
-                        {item.icon}
-                        <span className="">{item.name}</span>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <nav className="mt-0 divide-y divide-muted-foreground/20">
+              {navigationGroups.map((group) => {
+                const navigation = group.items;
+                return (
+                  <div key={`nav-group-${group.name}`}>
+                    {navigation.map(
+                      (item) =>
+                        !item.hide && (
+                          <ul
+                            key={`nav-item-${item.name}`}
+                            role="list"
+                            className="flex flex-col items-left space-y-1"
+                          >
+                            <li key={item.name}>
+                              <Link href={item.router}>
+                                <div
+                                  className={cn(
+                                    item.router === pathname ||
+                                      item.additionalPaths?.includes(pathname)
+                                      ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                    "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                  )}
+                                >
+                                  {item.icon}
+                                  <span className="">{item.name}</span>
+                                </div>
+                              </Link>
+                            </li>
+                          </ul>
+                        )
+                    )}
+                  </div>
+                );
+              })}
             </nav>
           </div>
           {isReadOnlyUser && renderUpgradeCard()}
@@ -475,8 +582,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         )}
         <main>
-          {!isHydrated ? (
-            <Loading className="ml-8" loadingMessage="Loading herocast" />
+          {pageRequiresHydrate && !isHydrated ? (
+            <Loading
+              className="ml-8"
+              loadingMessage={loadingMessages[currentMessageIndex]}
+            />
           ) : (
             <div className="w-full max-w-full min-h-screen flex justify-between">
               {children}
