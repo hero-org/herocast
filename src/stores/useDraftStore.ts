@@ -301,13 +301,13 @@ const store = (set: StoreSet) => ({
         await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
         const castBody = await prepareCastBody(draft);
         console.log('castBody', castBody)
-        await submitCast({
+        const hash = await submitCast({
           ...castBody,
           signerPrivateKey: account.privateKey!,
           fid: Number(account.platformAccountId),
         });
 
-        await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.published, timestamp: new Date().toISOString(), accountId: account.id });
+        await state.updatePostDraft(draftIdx, { ...draft, hash, status: DraftStatus.published, timestamp: new Date().toISOString(), accountId: account.id });
         toastSuccessCastPublished(draft.text);
 
         if (onPost) onPost();

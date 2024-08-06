@@ -25,6 +25,8 @@ export type DraftType = {
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
   accountId?: UUID;
+  timestamp?: string;
+  hash?: string;
 };
 
 // drafttype without createdAt

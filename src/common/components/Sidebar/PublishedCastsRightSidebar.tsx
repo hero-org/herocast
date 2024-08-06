@@ -14,6 +14,7 @@ import {
 } from "@/common/helpers/profileUtils";
 import { UUID } from "crypto";
 import isEmpty from "lodash.isempty";
+import uniqBy from "lodash.uniqby";
 
 const convertDraftToFakeCast = (
   draft: any,
@@ -22,7 +23,7 @@ const convertDraftToFakeCast = (
   CastWithInteractions,
   "reactions" | "recasts" | "recasters" | "replies"
 > & { accountId: UUID } => ({
-  hash: draft.id,
+  hash: draft.hash,
   text: draft.text,
   timestamp: draft.timestamp,
   author: {
@@ -90,18 +91,21 @@ const PublishedCastsRightSidebar = () => {
         .filter(
           (draft) =>
             draft.accountId === selectedAccount.id &&
-            draft.status === "published"
+            draft.status === "published" &&
+            draft.hash
         )
         .map((draft) => convertDraftToFakeCast(draft, profile))
     : [];
 
-    const castsForSidebar = orderBy(
-    filter(
-      [...casts, ...publishedDraftsAsFakeCasts],
-      (cast) => cast.timestamp && cast?.author?.fid
-    ),
+  const filteredCasts = filter(
+    [...casts, ...publishedDraftsAsFakeCasts],
+    (cast) => cast.timestamp && cast?.author?.fid
+  );
+
+  const castsForSidebar = orderBy(
+    uniqBy(filteredCasts, "hash"),
     "timestamp",
-    ["desc"]
+    "desc"
   );
 
   return (
