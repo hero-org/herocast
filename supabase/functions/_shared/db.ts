@@ -35,9 +35,14 @@ interface Database {
 }
 
 export const getAndInitializeDataSource = async (url: string) => {
+  const parsedUrl = new URL(url);
   const dialect = new PostgresDialect({
     pool: new Pool({
-      connectionString: url,
+      database: parsedUrl.pathname.slice(1),
+      user: parsedUrl.username,
+      password: parsedUrl.password,
+      hostname: parsedUrl.hostname,
+      port: parseInt(parsedUrl.port),
       ssl: {
         rejectUnauthorized: false,
       },
