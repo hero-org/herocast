@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { castTextStyle } from "@/common/helpers/css";
 import { useAccountStore } from "../../src/stores/useAccountStore";
 import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
-import { localize, timeDiff } from "../../src/common/helpers/date";
 import isEmpty from "lodash.isempty";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Key } from "ts-key-enum";
@@ -34,6 +33,7 @@ import { CastRow } from "@/common/components/CastRow";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import ProfileInfo from "@/common/components/Sidebar/ProfileInfo";
 import { cn } from "@/lib/utils";
+import { formatDistanceToNowStrict } from "date-fns";
 
 const DEFAULT_SHOW_REACTIONS_LIMIT = 15;
 
@@ -274,9 +274,9 @@ const Notifications = () => {
   const renderNotificationRow = (notification: Notification, idx: number) => {
     const { cast } = notification;
 
-    const timeAgo = timeDiff(now, new Date(notification.most_recent_timestamp));
-    const timeAgoStr = localize(timeAgo[0], timeAgo[1]);
-
+    const timeAgoStr = formatDistanceToNowStrict(
+      new Date(notification.most_recent_timestamp)
+    );
     const actionDescription = getActionDescriptionForRow(notification);
     const author =
       notification.type !== NotificationTypeEnum.Follows
