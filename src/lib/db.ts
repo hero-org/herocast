@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Analytics } from './entities/Analytics';
 
 @Entity({ name: 'casts' })
 export class Cast {
@@ -75,7 +76,7 @@ export const AppDataSource = new DataSource({
     type: 'postgres',
     url: process.env.DATABASE_URL,
     synchronize: false,
-    entities: [Cast, Powerbadge, Reaction],
+    entities: [Cast, Powerbadge, Reaction, Analytics],
     logging: "all",
     extra: {
         ssl: {
