@@ -1,131 +1,88 @@
-// import 'npm:reflect-metadata';
-// import { DataSource } from 'npm:typeorm';
-// import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'npm:typeorm';
-import { DataSource } from "https://deno.land/x/typeorm/mod.ts";
-import { Entity, PrimaryGeneratedColumn, Column } from "https://deno.land/x/typeorm/decorator/entity/Entity.ts";
+import { Kysely, PostgresDialect } from 'https://esm.sh/kysely';
+import { Pool } from 'https://deno.land/x/postgres@v0.17.0/mod.ts';
 
-@Entity({ name: 'casts' })
-export class Cast {
-    @PrimaryColumn()
+interface Database {
+  casts: {
     fid: number;
-
-    @Column()
     hash: string;
-
-    @CreateDateColumn({ type: 'timestamptz' })
     timestamp: Date;
-
-    @Column('jsonb', { array: true })
     embeds: object[];
-
-    @Column({ nullable: true })
-    parent_cast_url: string;
-
-    @Column({ nullable: true })
-    parent_cast_fid: number;
-
-    @Column({ nullable: true })
-    parent_cast_hash: string;
-
-    @Column()
+    parent_cast_url: string | null;
+    parent_cast_fid: number | null;
+    parent_cast_hash: string | null;
     text: string;
-
-    @Column('int', { array: true })
     mentions: number[];
-
-    @Column('int', { array: true })
     mentions_positions: number[];
-
-    @UpdateDateColumn({ type: 'timestamptz', nullable: true })
-    deleted_at: Date;
-
-    @Column({ type: 'tsvector' })
+    deleted_at: Date | null;
     tsv: string;
-}
-
-@Entity({ name: 'powerbadge' })
-class Powerbadge {
-    @PrimaryColumn()
+  };
+  powerbadge: {
     fid: number;
-
-    @CreateDateColumn({ type: 'timestamptz', nullable: false })
     updated_at: Date;
-
-    @UpdateDateColumn({ type: 'timestamptz', nullable: false })
-    updated_at: Date;
-}
-
-@Entity({ name: 'reactions' })
-class Reaction {
-    @PrimaryColumn()
+  };
+  reactions: {
     fid: number;
-
-    @CreateDateColumn({ type: 'timestamptz', nullable: false })
     timestamp: Date;
-
-    @Column()
     target_cast_fid: number;
-
-    @Column()
     target_cast_hash: string;
-
-    @Column()
     type: string;
+  };
+  analytics: {
+    fid: number;
+    data: any;
+    updated_at: Date;
+  };
 }
 
 export const getAndInitializeDataSource = async (url: string) => {
-    const AppDataSource = new DataSource({
-        type: 'postgres',
-        url,
-        synchronize: false,
-        entities: [],
-        logging: ["all"],
-        extra: {
-            ssl: {
-                rejectUnauthorized: false,
-            },
-        },
-    });
+  const dialect = new PostgresDialect({
+    pool: new Pool({
+      connectionString: url,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    }),
+  });
 
-    try {
-        await AppDataSource.initialize();
-        console.log("Data Source has been initialized!");
-        return AppDataSource;
-    } catch (error) {
-        console.error("Error during Data Source initialization:", error);
-        throw error;
-    }
-};import { createClient } from '@supabase/supabase-js';
-import { Database } from '../../../src/common/types/database.types';
+  const db = new Kysely<Database>({
+    dialect,
+  });
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
-const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+  try {
+    // Test the connection
+    await db.selectFrom('casts').select('fid').limit(1).execute();
+    console.log("Database connection has been initialized!");
+    return db;
+  } catch (error) {
+    console.error("Error during database connection initialization:", error);
+    throw error;
+  }
+};
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseServiceRoleKey);
-
-export async function upsertAnalytics(fid: number, data: any) {
-  const { error } = await supabase
-    .from('analytics')
-    .upsert({ fid, data })
-    .select();
-
-  if (error) {
+export async function upsertAnalytics(db: Kysely<Database>, fid: number, data: any) {
+  try {
+    await db
+      .insertInto('analytics')
+      .values({ fid, data })
+      .onConflict((oc) => oc.column('fid').doUpdateSet({ data }))
+      .execute();
+  } catch (error) {
     console.error('Error upserting analytics:', error);
     throw error;
   }
 }
 
-export async function getAnalytics(fid: number) {
-  const { data, error } = await supabase
-    .from('analytics')
-    .select('*')
-    .eq('fid', fid)
-    .single();
+export async function getAnalytics(db: Kysely<Database>, fid: number) {
+  try {
+    const result = await db
+      .selectFrom('analytics')
+      .selectAll()
+      .where('fid', '=', fid)
+      .executeTakeFirst();
 
-  if (error) {
+    return result;
+  } catch (error) {
     console.error('Error getting analytics:', error);
     throw error;
   }
-
-  return data;
 }
