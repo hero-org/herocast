@@ -8,8 +8,8 @@ export const fetchAndAddUserProfile = async ({
   viewerFid,
 }: {
   username?: string;
-  fid?: number;
-  viewerFid: number;
+  fid?: string;
+  viewerFid: string;
 }) => {
   const users = await getUserDataForFidOrUsername({
     username,
@@ -39,16 +39,22 @@ export const fetchAndAddUserProfile = async ({
 
 export const getProfileFetchIfNeeded = async ({
   username,
+  fid,
   viewerFid
 }: {
-  username: string;
-  viewerFid: number
+  username?: string;
+  viewerFid: string
+  fid?: string;
 }) => {
-  let profile = getProfile(useDataStore.getState(), username);
+  if (!username && !fid) {
+    return;
+  }
+
+  let profile = getProfile(useDataStore.getState(), username, fid);
   if (!profile) {
-    username = username.startsWith("@") ? username.slice(1) : username;
+    username = username && username.startsWith("@") ? username.slice(1) : username;
     const results = await fetchAndAddUserProfile({
-      username, viewerFid,
+      username, fid, viewerFid,
     });
     const matchingUsernames = [username, `${username}.eth`];
     profile = results.find((user) =>

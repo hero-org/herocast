@@ -153,6 +153,7 @@ export const submitCast = async ({
   });
   const publishCastResponse = response.data as CastAdd;
   console.log(`new cast hash: ${publishCastResponse.hash}`);
+  return publishCastResponse.hash;
 }
 
 
