@@ -95,4 +95,37 @@ export const getAndInitializeDataSource = async (url: string) => {
         console.error("Error during Data Source initialization:", error);
         throw error;
     }
-};
+};import { createClient } from '@supabase/supabase-js';
+import { Database } from '../../../src/common/types/database.types';
+
+const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
+const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseServiceRoleKey);
+
+export async function upsertAnalytics(fid: number, data: any) {
+  const { error } = await supabase
+    .from('analytics')
+    .upsert({ fid, data })
+    .select();
+
+  if (error) {
+    console.error('Error upserting analytics:', error);
+    throw error;
+  }
+}
+
+export async function getAnalytics(fid: number) {
+  const { data, error } = await supabase
+    .from('analytics')
+    .select('*')
+    .eq('fid', fid)
+    .single();
+
+  if (error) {
+    console.error('Error getting analytics:', error);
+    throw error;
+  }
+
+  return data;
+}
