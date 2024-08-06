@@ -18,16 +18,16 @@ SELECT
     ON "public"."analytics" TO anon;
 
 -- Create a function to update the updated_at column
-CREATE OR REPLACE FUNCTION update_modified_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
+CREATE
+OR REPLACE FUNCTION update_modified_column() RETURNS TRIGGER AS $ $ BEGIN NEW.updated_at = now();
+
+RETURN NEW;
+
 END;
-$$ language 'plpgsql';
+
+$ $ language 'plpgsql';
 
 -- Create a trigger to call the function
-CREATE TRIGGER update_analytics_modtime
-BEFORE UPDATE ON "public"."analytics"
-FOR EACH ROW
-EXECUTE FUNCTION update_modified_column();
+CREATE TRIGGER update_analytics_modtime BEFORE
+UPDATE
+    ON "public"."analytics" FOR EACH ROW EXECUTE FUNCTION update_modified_column();

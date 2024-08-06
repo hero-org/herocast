@@ -1,4 +1,4 @@
-import { AppDataSource } from '@/lib/db';
+import { AppDataSource } from "./db.ts";
 
 export async function getAnalyticsData(tableName: string, fid: string, fidFilterColumn: string = 'fid') {
     console.log('getAnalyticsData', fid, tableName);

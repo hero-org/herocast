@@ -1,7 +1,6 @@
 import NewFollowersCard from "@/common/components/Analytics/NewFollowersCard";
 import ReactionsCard from "@/common/components/Analytics/ReactionsCard";
 import { Analytics, AnalyticsKey } from "@/common/types/types";
-import { Card } from "@/components/ui/card";
 import { useAccountStore } from "@/stores/useAccountStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { useQuery } from "@tanstack/react-query";
