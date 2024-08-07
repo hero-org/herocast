@@ -19,9 +19,7 @@ export default function AnalyticsPage() {
   );
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      if (!viewerFid) return;
-
+    const fetchAnalytics = async (viewerFid) => {
       const { data: analyticsRow, error } = await supabaseClient
         .from("analytics")
         .select("*")
@@ -29,9 +27,14 @@ export default function AnalyticsPage() {
         .maybeSingle();
       if (error) {
         console.error("Error fetching analytics:", error);
-        return;
+        return false;
       }
+      return analyticsRow;
+    };
+    const refreshForNewFid = async () => {
+      if (!viewerFid) return;
 
+      let analyticsRow = await fetchAnalytics(viewerFid);
       if (!analyticsRow) {
         console.error("No analytics found for viewerFid:", viewerFid);
         const { data, error } = await supabaseClient.functions.invoke(
@@ -44,16 +47,16 @@ export default function AnalyticsPage() {
           console.error("Error invoking create-analytics-data:", error);
         } else {
           console.log("create-analytics-data response:", data);
-          // Refetch analytics after creation
-          await fetchAnalytics();
+          analyticsRow = await fetchAnalytics(viewerFid);
         }
-      } else {
+      }
+      if (analyticsRow) {
         const { fid, updated_at: updatedAt, status, data } = analyticsRow;
         const analyticsData = {
           fid,
           updatedAt,
           status,
-          ...data,
+          ...(data as object),
         } as unknown as AnalyticsData;
         setAnalyticsData((prev) => ({ ...prev, [fid]: analyticsData }));
       }
@@ -61,7 +64,7 @@ export default function AnalyticsPage() {
 
     try {
       setIsLoading(true);
-      fetchAnalytics();
+      refreshForNewFid();
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -73,7 +76,7 @@ export default function AnalyticsPage() {
     return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
   }
 
-  const analyticsData = get(fidToAnalytics, viewerFid);
+  const analyticsData = viewerFid ? get(fidToAnalytics, viewerFid) : undefined;
   if (!analyticsData) {
     return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
   }

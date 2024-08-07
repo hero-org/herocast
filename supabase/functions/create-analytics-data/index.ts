@@ -91,7 +91,6 @@ Deno.serve(async (req) => {
 
       if (insertError) throw insertError;
 
-      console.log('start getting links data');
       const linksQuery = buildAnalyticsQuery('links', fid, 'target_fid');
       const links = (await linksQuery.execute(db)).rows?.[0];
       const reactionsQuery = buildAnalyticsQuery('reactions', fid, 'target_cast_fid');
@@ -118,7 +117,6 @@ Deno.serve(async (req) => {
         },
         casts: casts.rows
       }
-      console.log('test res:', res);
 
       const { error: upsertError } = await supabaseClient
         .from('analytics')
