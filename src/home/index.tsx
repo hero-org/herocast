@@ -35,6 +35,7 @@ import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
 import { ChartBarIcon } from "@heroicons/react/20/solid";
+import PublishedCastsRightSidebar from "@/common/components/Sidebar/PublishedCastsRightSidebar";
 
 type NavigationGroupType = {
   name: string;
@@ -294,7 +295,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case "/feeds":
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case "/post":
-        return RIGHT_SIDEBAR_ENUM.NONE;
+        return RIGHT_SIDEBAR_ENUM.PUBLISHED_CASTS;
       case "/channels":
         return RIGHT_SIDEBAR_ENUM.NONE;
       case "/notifications":
@@ -306,20 +307,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
-    }
-  };
-
-  const onClickItem = (item: NavigationItemType) => {
-    if (pathname === "/login") return;
-    setSidebarOpen(false);
-    router.push(item.router);
-  };
-
-  const onClickLogo = () => {
-    if (pathname === "/feeds") {
-      router.reload();
-    } else {
-      router.push("/feeds");
     }
   };
 
@@ -357,6 +344,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return <RightSidebar showChannels showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.CAST_INFO:
         return <RightSidebar showAuthorInfo />;
+      case RIGHT_SIDEBAR_ENUM.PUBLISHED_CASTS:
+        return <PublishedCastsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.CHANNELS:
         return <ChannelsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.SEARCH:
