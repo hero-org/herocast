@@ -1,15 +1,15 @@
-import { sql } from 'kysely'
+import { sql, Kysely } from 'kysely'
 
-export function getAnalyticsData(tableName: string, fid: string, fidFilterColumn: string = 'fid') {
+export function getAnalyticsData(db: Kysely<any>, tableName: string, fid: string, fidFilterColumn: string = 'fid') {
     console.log('getAnalyticsData', fid, tableName);
-    return sql`
-        WITH daily_counts AS (
+    return db.selectFrom(sql`
+        (WITH daily_counts AS (
             SELECT
                 date_trunc('day', timestamp) AS day,
                 COUNT(*) AS count
-            FROM ${sql.identifier(tableName)}
+            FROM ${sql.table(tableName)}
             WHERE timestamp >= NOW() - INTERVAL '7 days'
-            AND ${fidFilterColumn} = ${fid}
+            AND ${sql.ref(fidFilterColumn)} = ${fid}
             GROUP BY day
         )
         SELECT
@@ -17,8 +17,8 @@ export function getAnalyticsData(tableName: string, fid: string, fidFilterColumn
             SUM(CASE WHEN day >= NOW() - INTERVAL '24 hours' THEN count ELSE 0 END) AS h24,
             SUM(CASE WHEN day >= NOW() - INTERVAL '7 days' THEN count ELSE 0 END) AS d7,
             json_agg(json_build_object('timestamp', day, 'count', count) ORDER BY day) AS aggregated
-        FROM daily_counts
-    `;
+        FROM daily_counts) as analytics_data
+    `).selectAll().executeTakeFirstOrThrow();
 }
 
-// SUM(CASE WHEN day >= NOW() - INTERVAL '30 days' THEN count ELSE 0 END) AS d30,
+// Note: The d30 calculation has been removed as per the comment in the original code
