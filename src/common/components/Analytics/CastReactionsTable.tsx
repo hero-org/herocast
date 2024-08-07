@@ -3,7 +3,7 @@ import { CastRow } from "@/common/components/CastRow";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { CastData } from "@/common/types/types";
-import orderBy from "lodash.orderBy";
+import orderBy from "lodash.orderby";
 
 interface CastReactionsTableProps {
   rawCasts: CastData[];
