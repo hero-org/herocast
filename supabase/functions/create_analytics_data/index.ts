@@ -81,37 +81,20 @@ Deno.serve(async (req) => {
       }
       console.log('test res:', res);
 
-      // Save or update the analytics data
-      const { data: existingAnalytics, error: fetchError } = await supabaseClient
+      // Save or update the analytics data using upsert
+      const { error: upsertError } = await supabaseClient
         .from('analytics')
-        .select()
-        .eq('fid', fid)
-        .single();
+        .upsert(
+          {
+            fid,
+            data: res,
+            status: 'done',
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'fid' }
+        );
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-
-      const analyticsData = {
-        fid,
-        data: res,
-        status: 'done',
-      };
-
-      if (existingAnalytics) {
-        const { error: updateError } = await supabaseClient
-          .from('analytics')
-          .update(analyticsData)
-          .eq('fid', fid);
-
-        if (updateError) throw updateError;
-      } else {
-        const { error: insertError } = await supabaseClient
-          .from('analytics')
-          .insert(analyticsData);
-
-        if (insertError) throw insertError;
-      }
+      if (upsertError) throw upsertError;
 
       return new Response(
         JSON.stringify({ fid, message: 'success', data: res }),
