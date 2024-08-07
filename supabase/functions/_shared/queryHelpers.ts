@@ -22,4 +22,28 @@ export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterCol
 }
 
 export function getCastsOverview(fid: number) {
+    return sql`
+        SELECT 
+            c.hash,
+            c.text,
+            c.timestamp,
+            COALESCE(l.like_count, 0) AS like_count,
+            COALESCE(r.recast_count, 0) AS recast_count
+        FROM 
+            casts c
+        LEFT JOIN 
+            (SELECT target_hash, COUNT(*) AS like_count 
+             FROM reactions 
+             WHERE reaction_type = 'like' 
+             GROUP BY target_hash) l ON c.hash = l.target_hash
+        LEFT JOIN 
+            (SELECT target_hash, COUNT(*) AS recast_count 
+             FROM reactions 
+             WHERE reaction_type = 'recast' 
+             GROUP BY target_hash) r ON c.hash = r.target_hash
+        WHERE 
+            c.fid = ${fid}
+        ORDER BY 
+            c.timestamp DESC
+    `;
 }
