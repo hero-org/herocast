@@ -34,6 +34,7 @@ import NewCastModal from "@/common/components/NewCastModal";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
+import { ChartBarIcon } from "@heroicons/react/20/solid";
 import PublishedCastsRightSidebar from "@/common/components/Sidebar/PublishedCastsRightSidebar";
 
 type NavigationGroupType = {
@@ -239,6 +240,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           router: "/notifications",
           icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: "Shift + N",
+        },
+        {
+          name: "Analytics",
+          router: "/analytics",
+          icon: <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: "Shift + A",
+          hide: true,
         },
         {
           name: "Upgrade",

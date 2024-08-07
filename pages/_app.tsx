@@ -1,7 +1,7 @@
 import "../src/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import type { AppProps } from "next/app";
 import { ThemeProvider } from "../src/common/hooks/ThemeProvider";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
@@ -53,11 +53,10 @@ const satoshi = localFont({
 });
 
 const posthog = loadPosthogAnalytics();
-const queryClient = new QueryClient();
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-
+  const [queryClient] = useState(() => new QueryClient());
   useEffect(() => {
     const handleRouteChange = () => posthog?.capture("$pageview");
     router.events.on("routeChangeComplete", handleRouteChange);

@@ -603,7 +603,7 @@ export const CastRow = ({
           <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />
         )}
         <div className="flex items-top gap-x-4">
-          {!isEmbed && (
+          {!isEmbed && !hideAuthor && (
             <Link href={`/profile/${cast.author.username}`} prefetch={false}>
               <img
                 className="relative h-10 w-10 flex-none bg-background rounded-full"
