@@ -1,4 +1,5 @@
 import NewFollowersCard from "@/common/components/Analytics/NewFollowersCard";
+import CastReactionsTable from "@/common/components/Analytics/CastReactionsTable";
 import ReactionsCard from "@/common/components/Analytics/ReactionsCard";
 import CastReactionsTable from "@/common/components/Analytics/CastReactionsTable";
 import { createClient } from "@/common/helpers/supabase/component";
@@ -68,14 +69,10 @@ export default function AnalyticsPage() {
   return (
     <div className="w-full m-8 space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {analyticsData?.links && (
-          <NewFollowersCard data={analyticsData.links} />
-        )}
-        {analyticsData?.reactions && (
-          <ReactionsCard data={analyticsData?.reactions} />
-        )}
+        {analyticsData?.links && <NewFollowersCard data={analyticsData.links} />}
+        {analyticsData?.reactions && <ReactionsCard data={analyticsData.reactions} />}
       </div>
-      <CastReactionsTable data={castsData} />
+      {castsData.length > 0 && <CastReactionsTable data={castsData} />}
     </div>
   );
 }
