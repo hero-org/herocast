@@ -1,54 +1,44 @@
 import NewFollowersCard from "@/common/components/Analytics/NewFollowersCard";
 import ReactionsCard from "@/common/components/Analytics/ReactionsCard";
-import { Analytics, AnalyticsKey } from "@/common/types/types";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { useDataStore } from "@/stores/useDataStore";
-import { useQuery } from "@tanstack/react-query";
-import isEmpty from "lodash.isempty";
-import React, { useEffect } from "react";
-
-const getAnalyticsForUser = async (
-  analyticsKey: AnalyticsKey,
-  fid: number
-): Promise<Analytics & { fid: number }> => {
-  const response = await fetch(`/api/analytics/${analyticsKey}?fid=${fid}`);
-  const data = await response.json();
-  console.log("getAnalyticsForUser", fid);
-  return data;
-};
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import React, { useEffect, useState } from "react";
 
 export default function AnalyticsPage() {
-  const { addAnalytics } = useDataStore();
+  const supabase = useSupabaseClient();
+  const [analyticsData, setAnalyticsData] = useState(null);
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx].platformAccountId
   );
-  const { data: analyticsFollowData } = useQuery({
-    queryKey: ["analytics", "follows", viewerFid],
-    queryFn: () => getAnalyticsForUser("follows", Number(viewerFid!)),
-    enabled: !!viewerFid,
-  });
-  const { data: analyticsReactionsData } = useQuery({
-    queryKey: ["analytics", "reactions", viewerFid],
-    queryFn: () => getAnalyticsForUser("reactions", Number(viewerFid!)),
-    enabled: !!viewerFid,
-  });
 
   useEffect(() => {
-    if (isEmpty(analyticsFollowData)) return;
+    const fetchAnalytics = async () => {
+      if (!viewerFid) return;
 
-    addAnalytics(Number(viewerFid!), analyticsFollowData!);
-  }, [analyticsFollowData]);
+      const { data, error } = await supabase
+        .from('analytics')
+        .select('data')
+        .eq('fid', viewerFid)
+        .single();
 
-  useEffect(() => {
-    if (isEmpty(analyticsReactionsData)) return;
+      if (error) {
+        console.error('Error fetching analytics:', error);
+      } else {
+        setAnalyticsData(data?.data);
+      }
+    };
 
-    addAnalytics(Number(viewerFid!), analyticsReactionsData!);
-  }, [analyticsReactionsData]);
+    fetchAnalytics();
+  }, [viewerFid, supabase]);
+
+  if (!analyticsData) {
+    return <div>Loading analytics...</div>;
+  }
 
   return (
     <div className="w-full m-8 grid grid-cols-2 gap-4">
-      <NewFollowersCard resolution="daily" />
-      <ReactionsCard resolution="daily" />
+      <NewFollowersCard resolution="daily" data={analyticsData.links} />
+      <ReactionsCard resolution="daily" data={analyticsData.reactions} />
     </div>
   );
 }
