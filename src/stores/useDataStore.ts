@@ -6,6 +6,7 @@ import { create as mutativeCreate, Draft } from 'mutative';
 import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { IcebreakerSocialInfo } from "@/common/helpers/icebreaker";
 import { AirstackSocialInfo } from "@/common/helpers/airstack";
+import { AnalyticsData } from "@/common/types/types";
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
@@ -97,6 +98,7 @@ type addUserProfileProps = {
 
 export type UserProfile = User & AdditionalUserInfo & { updatedAt: number };
 
+
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;
   usernameToFid: Record<string, number>;
@@ -108,6 +110,7 @@ interface DataStoreActions {
   updateSelectedCast: (cast?: CastWithInteractions) => void;
   addUserProfile: ({ user }: addUserProfileProps) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
+  addAnalytics: (fid: number, analytics: AnalyticsData) => void;
 }
 
 export interface DataStore extends DataStoreProps, DataStoreActions { }
@@ -141,7 +144,7 @@ const store = (set: StoreSet) => ({
     set((state) => {
       state.tokenSymbolToData = { ...state.tokenSymbolToData, ...{ [tokenSymbol]: data } };
     });
-  }
+  },
 });
 
 export const useDataStore = create<DataStore>()(devtools(mutative(store)));
