@@ -128,7 +128,7 @@ redirect_uri = ""
 url = ""
 
 [auth.external.google]
-enabled = true
+enabled = env(SUPABASE_AUTH_EXTERNAL_GOOGLE_ENABLED)
 client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 
