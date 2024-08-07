@@ -4,10 +4,11 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { createClient } from "@supabase/supabase-js";
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 // import { Analytics } from "@/common/types/types";
 import { Database } from '../_shared/db.ts';
-import { getAnalyticsData } from "./queryHelpers.ts";
+import { buildAnalyticsQuery, getCastsOverview } from "../_shared/queryHelpers.ts";
 import Pool from 'pg-pool'
 
 import {
@@ -43,10 +44,10 @@ Deno.serve(async (req) => {
     const { fid } = await req.json()
 
     try {
-      // const supabaseClient = createClient(
-      //   Deno.env.get('SUPABASE_URL') ?? '',
-      //   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      // )
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      )
       const sslCertFormatted = sslCert.replace(/\\n/g, '\n');
       const parsedUrl = new URL(dbUrl);
       const pool = new Pool({
@@ -66,12 +67,24 @@ Deno.serve(async (req) => {
         }
       })
 
-      console.log('testing connection');
-      const linksQuery = getAnalyticsData('links', fid, 'target_fid');
-      console.log('linksQuery', linksQuery);
-      const res = await db.executeQuery(linksQuery)
-      // const res = await linksQuery(db);
+      console.log('start getting links data');
+      const linksQuery = buildAnalyticsQuery('links', fid, 'target_fid');
+      const links = await linksQuery.execute(db);
+      const reactionsQuery = buildAnalyticsQuery('reactions', fid, 'target_cast_fid');
+      const reactions = await reactionsQuery.execute(db);
+      const castsQuery = getCastsOverview(fid);
+      const casts = await castsQuery.execute(db);
+      const res = {
+        links: links.rows,
+        reactions: reactions.rows,
+        casts: casts.rows
+      }
       console.log('test res:', res);
+      
+      return new Response(
+        JSON.stringify({ fid, message: 'success', data: res }),
+        { headers: { "Content-Type": "application/json" } },
+      )
     } catch (error) {
       console.error(error)
       Sentry.captureException(error)
@@ -111,10 +124,6 @@ Deno.serve(async (req) => {
     // store it in the analytics table
     // return the fid and a message 
 
-    return new Response(
-      JSON.stringify({ fid, message: 'success' }),
-      { headers: { "Content-Type": "application/json" } },
-    )
   })
 })
 /* To invoke locally:
