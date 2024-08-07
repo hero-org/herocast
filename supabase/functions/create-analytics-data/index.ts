@@ -41,7 +41,20 @@ Deno.serve(async (req) => {
     if (req.method === 'OPTIONS') {
       return new Response('ok', { headers: corsHeaders })
     }
-    const { fid } = await req.json()
+    let fid;
+    try {
+      const body = await req.json()
+      fid = body.fid;
+      if (!fid) {
+        throw new Error('FID is required');
+      }
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      return new Response(
+        JSON.stringify({ error: "Invalid request body" }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
 
     try {
       const supabaseClient = createClient(
@@ -123,12 +136,15 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ fid, message: 'success' }),
-        { headers: { "Content-Type": "application/json" } },
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       )
     } catch (error) {
       console.error(error)
       Sentry.captureException(error)
-      return new Response('Internal Server Error', { status: 500 })
+      return new Response(
+        JSON.stringify({ error: 'Internal Server Error' }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      )
     }
   })
 })
