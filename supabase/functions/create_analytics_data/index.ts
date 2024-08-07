@@ -94,10 +94,8 @@ Deno.serve(async (req) => {
 
       const analyticsData = {
         fid,
-        links: res.links,
-        reactions: res.reactions,
-        casts: res.casts,
-        updated_at: new Date().toISOString(),
+        data: res,
+        status: 'done',
       };
 
       if (existingAnalytics) {
