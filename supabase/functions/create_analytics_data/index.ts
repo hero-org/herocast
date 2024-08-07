@@ -67,21 +67,47 @@ Deno.serve(async (req) => {
         }
       })
 
+      const { error: insertError } = await supabaseClient
+        .from('analytics')
+        .upsert(
+          {
+            fid,
+            status: 'pending',
+          },
+          { onConflict: 'fid' }
+        );
+
+      if (insertError) throw insertError;
+
       console.log('start getting links data');
       const linksQuery = buildAnalyticsQuery('links', fid, 'target_fid');
-      const links = await linksQuery.execute(db);
+      const links = (await linksQuery.execute(db)).rows?.[0];
       const reactionsQuery = buildAnalyticsQuery('reactions', fid, 'target_cast_fid');
-      const reactions = await reactionsQuery.execute(db);
+      const reactions = (await reactionsQuery.execute(db)).rows?.[0];
       const castsQuery = getCastsOverview(fid);
       const casts = await castsQuery.execute(db);
+
       const res = {
-        links: links.rows,
-        reactions: reactions.rows,
+        follows: {
+          aggregated: links.aggregated,
+          overview: {
+            total: links.total,
+            d7: links.d7,
+            h24: links.h24,
+          }
+        },
+        reactions: {
+          aggregated: reactions.aggregated,
+          overview: {
+            total: reactions.total,
+            d7: reactions.d7,
+            h24: reactions.h24,
+          }
+        },
         casts: casts.rows
       }
       console.log('test res:', res);
 
-      // Save or update the analytics data using upsert
       const { error: upsertError } = await supabaseClient
         .from('analytics')
         .upsert(
@@ -97,7 +123,7 @@ Deno.serve(async (req) => {
       if (upsertError) throw upsertError;
 
       return new Response(
-        JSON.stringify({ fid, message: 'success', data: res }),
+        JSON.stringify({ fid, message: 'success' }),
         { headers: { "Content-Type": "application/json" } },
       )
     } catch (error) {
@@ -105,40 +131,6 @@ Deno.serve(async (req) => {
       Sentry.captureException(error)
       return new Response('Internal Server Error', { status: 500 })
     }
-
-    // const resultReactions = await getAnalyticsData('reactions', fid, 'target_cast_fid');
-
-    // const analytics: Omit<Analytics, 'follows' | 'casts'> = {
-    //     updatedAt: Date.now(),
-    //     reactions: {
-    //         overview: {
-    //             total: parseInt(result[0].total) || 0,
-    //             h24: parseInt(result[0].h24) || 0,
-    //             d7: parseInt(result[0].d7) || 0,
-    //             d30: parseInt(result[0].d30) || 0,
-    //         },
-    //         aggregated: result[0].aggregated || [],
-    //     },
-    // };
-    // const analytics: Omit<Analytics, 'casts' | 'reactions'> = {
-    //     updatedAt: Date.now(),
-    //     follows: {
-    //         overview: {
-    //             total: parseInt(result[0].total) || 0,
-    //             h24: parseInt(result[0].h24) || 0,
-    //             d7: parseInt(result[0].d7) || 0,
-    //             d30: parseInt(result[0].d30) || 0,
-    //         },
-    //         aggregated: result[0].aggregated || [],
-    //     },
-    // };
-    // console.log('analytics', analytics)
-
-    // tasks:
-    // assemble all the crazy data from the DB
-    // store it in the analytics table
-    // return the fid and a message 
-
   })
 })
 /* To invoke locally:

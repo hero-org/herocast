@@ -10,14 +10,18 @@ type OverviewAnalytics = {
     d30: number;
 };
 
-export type Analytics = {
+export type CastData ={
+    hash: string;
+    timestamp: string;
+    is_reply: boolean;
+    like_count: string;
+    recast_count: string;
+  }
+
+export type AnalyticsData = {
     fid?: number
     updatedAt: number;
     follows: {
-        overview: OverviewAnalytics,
-        aggregated: AggregatedAnalytics[]
-    },
-    casts: {
         overview: OverviewAnalytics,
         aggregated: AggregatedAnalytics[]
     },
@@ -25,6 +29,7 @@ export type Analytics = {
         overview: OverviewAnalytics,
         aggregated: AggregatedAnalytics[]
     }
+    casts: CastData[],
 };
 
 export type AnalyticsKey = 'follows' | 'casts' | 'reactions';

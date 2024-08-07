@@ -20,14 +20,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 type AnalyticsGraphProps = {
   analyticsKey: string;
   aggregated: { timestamp: string; count: number }[];
-  resolution: "hourly" | "daily";
   isLoading?: boolean;
 };
 
 const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   analyticsKey,
   aggregated,
-  resolution,
   isLoading = false,
 }) => {
   const data = useMemo(() => {
@@ -38,24 +36,11 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
 
-    if (resolution === "daily") {
-      const groupedByDay = sortedAggregated.reduce((acc, item) => {
-        const day = startOfDay(new Date(item.timestamp)).getTime();
-        if (!acc[day]) {
-          acc[day] = { date: new Date(day), count: 0 };
-        }
-        acc[day].count += item.count;
-        return acc;
-      }, {} as Record<number, { date: Date; count: number }>);
-
-      return Object.values(groupedByDay);
-    }
-
     return sortedAggregated.map((item) => ({
       date: new Date(item.timestamp),
       count: item.count,
     }));
-  }, [aggregated, resolution, isLoading]);
+  }, [aggregated, isLoading]);
 
   if (isLoading || data.length === 0) {
     return (
@@ -95,9 +80,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
             dataKey="date"
             tickLine={false}
             tickMargin={8}
-            tickFormatter={(date) =>
-              format(new Date(date), resolution === "daily" ? "MMM d" : "HH:mm")
-            }
+            tickFormatter={(date) => format(new Date(date), "MMM d")}
           />
           <YAxis />
           <ChartTooltip
@@ -110,8 +93,8 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
           <Area
             type="monotone"
             dataKey="count"
-            stroke="hsl(var(--chart-1))"
-            fillOpacity={0.4}
+            stroke="hsl(var(--muted-foreground))"
+            fillOpacity={5}
             fill="url(#colorCount)"
           />
         </AreaChart>

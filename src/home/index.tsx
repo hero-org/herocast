@@ -241,6 +241,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           shortcut: "Shift + N",
         },
         {
+          name: "Analytics",
+          router: "/analytics",
+          icon: <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: "Shift + A",
+          hide: true,
+        },
+        {
           name: "Upgrade",
           router: "/upgrade",
           hide: true,
@@ -280,12 +287,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         },
       ],
     },
-    {
-      name: "Analytics",
-      router: "/analytics",
-      icon: <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-      shortcut: "Shift + A",
-    }
   ];
 
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {

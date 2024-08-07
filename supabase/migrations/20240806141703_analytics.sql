@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS "public"."analytics" (
     fid BIGINT NOT NULL,
     data JSONB,
+    status TEXT NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT analytics_pkey PRIMARY KEY (fid)
 );
@@ -11,11 +12,15 @@ ALTER TABLE
     "public"."analytics" ENABLE ROW LEVEL SECURITY;
 
 -- Grant necessary privileges
-GRANT ALL ON "public"."analytics" TO authenticated;
+GRANT
+SELECT
+    ON "public"."analytics" TO authenticated;
 
 GRANT
 SELECT
     ON "public"."analytics" TO anon;
+
+alter policy "Enable read access for all users" on "public"."analytics" to public using (true);
 
 -- Create a function to update the updated_at column
 CREATE

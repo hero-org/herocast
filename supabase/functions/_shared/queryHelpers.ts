@@ -1,4 +1,4 @@
-import { sql, Kysely } from 'kysely'
+import { sql } from 'kysely'
 
 export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterColumn: string) {
     console.log('buildAnalyticsQuery', fid, tableName);
@@ -21,29 +21,33 @@ export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterCol
     `;
 }
 
-export function getCastsOverview(fid: number) {
+export function getCastsOverview(fid: number, limit: number = 30) {
     return sql`
+        WITH relevant_casts AS (
+            SELECT hash, timestamp, parent_cast_hash is not NULL AS is_reply
+            FROM casts
+            WHERE fid = ${fid}
+            ORDER BY timestamp DESC
+            LIMIT ${limit}
+        )
         SELECT 
             c.hash,
-            c.text,
             c.timestamp,
-            COALESCE(l.like_count, 0) AS like_count,
+            c.is_reply,
+            COALESCE(r.like_count, 0) AS like_count,
             COALESCE(r.recast_count, 0) AS recast_count
         FROM 
-            casts c
+            relevant_casts c
         LEFT JOIN 
-            (SELECT target_hash, COUNT(*) AS like_count 
-             FROM reactions 
-             WHERE reaction_type = 'like' 
-             GROUP BY target_hash) l ON c.hash = l.target_hash
-        LEFT JOIN 
-            (SELECT target_hash, COUNT(*) AS recast_count 
-             FROM reactions 
-             WHERE reaction_type = 'recast' 
-             GROUP BY target_hash) r ON c.hash = r.target_hash
-        WHERE 
-            c.fid = ${fid}
+            (SELECT 
+                target_cast_hash,
+                SUM(CASE WHEN type = 'like' THEN 1 ELSE 0 END) AS like_count,
+                SUM(CASE WHEN type = 'recast' THEN 1 ELSE 0 END) AS recast_count
+            FROM reactions 
+            WHERE type IN ('like', 'recast')
+            AND target_cast_hash IN (SELECT hash FROM relevant_casts)
+            GROUP BY target_cast_hash) r ON c.hash = r.target_cast_hash
         ORDER BY 
-            c.timestamp DESC
+            c.timestamp DESC;
     `;
 }

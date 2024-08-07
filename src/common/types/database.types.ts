@@ -105,6 +105,27 @@ export type Database = {
           },
         ]
       }
+      analytics: {
+        Row: {
+          data: Json | null
+          fid: number
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          data?: Json | null
+          fid: number
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          data?: Json | null
+          fid?: number
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       channel: {
         Row: {
           created_at: string
@@ -265,6 +286,36 @@ export type Database = {
             foreignKeyName: "list_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_list_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profile"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      profile: {
+        Row: {
+          email: string | null
+          user_id: string
+        }
+        Insert: {
+          email?: string | null
+          user_id: string
+        }
+        Update: {
+          email?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -432,3 +483,5 @@ export type InsertList = Database['public']['Tables']['list']['Insert'];
 export type UpdateList = Database['public']['Tables']['list']['Update'];
 export type Customer = Database['public']['Tables']['customers']['Row'];
 export type InsertCustomer = Database['public']['Tables']['customers']['Insert'];
+
+export type Analytics = Database['public']['Tables']['analytics']['Row'];

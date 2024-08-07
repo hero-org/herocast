@@ -1,95 +1,76 @@
-import Pool from 'pg-pool';
-import { Kysely, PostgresDialect } from 'kysely';
-import { parse } from 'path';
+import type { ColumnType } from "kysely";
 
-interface Database {
-    casts: {
-        fid: number;
-        hash: string;
-        timestamp: Date;
-        embeds: object[];
-        parent_cast_url: string | null;
-        parent_cast_fid: number | null;
-        parent_cast_hash: string | null;
-        text: string;
-        mentions: number[];
-        mentions_positions: number[];
-        deleted_at: Date | null;
-        tsv: string;
-    };
-    // powerbadge: {
-    //     fid: number;
-    //     updated_at: Date;
-    // };
-    // reactions: {
-    //     fid: number;
-    //     timestamp: Date;
-    //     target_cast_fid: number;
-    //     target_cast_hash: string;
-    //     type: string;
-    // };
-    // analytics: {
-    //     fid: number;
-    //     data: any;
-    //     updated_at: Date;
-    // };
-}
+export type ArrayType<T> = ArrayTypeImpl<T> extends (infer U)[]
+  ? U[]
+  : ArrayTypeImpl<T>;
 
-export const getAndInitializeDataSource = async (url: string) => {
-    const parsedUrl = new URL(url);
-    const dialect = new PostgresDialect({
-        pool: new Pool({
-            database: parsedUrl.pathname.slice(1),
-            user: parsedUrl.username,
-            password: parsedUrl.password,
-            host: parsedUrl.hostname,
-            port: parseInt(parsedUrl.port),
-            ssl: {
-                rejectUnauthorized: false,
-            },
-        }),
-    });
+export type ArrayTypeImpl<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S[], I[], U[]>
+  : T[];
 
-    const db = new Kysely<Database>({
-        dialect,
-    });
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
 
-    try {
-        console.log('testing connection',)
-        // Test the connection
-        await db.selectFrom('casts').select('fid').limit(1).execute();
-        console.log("Database connection has been initialized!");
-        return db;
-    } catch (error) {
-        console.error("Error during database connection initialization:", error);
-        throw error;
-    }
+export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
+
+export type Json = JsonValue;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+  [K in string]?: JsonValue;
 };
 
-export async function upsertAnalytics(db: Kysely<Database>, fid: number, data: any) {
-    try {
-        await db
-            .insertInto('analytics')
-            .values({ fid, data })
-            .onConflict((oc) => oc.column('fid').doUpdateSet({ data }))
-            .execute();
-    } catch (error) {
-        console.error('Error upserting analytics:', error);
-        throw error;
-    }
+export type JsonPrimitive = boolean | number | string | null;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
+export type Numeric = ColumnType<string, number | string, number | string>;
+
+export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+
+export interface Casts {
+  deleted_at: Timestamp | null;
+  embeds: ArrayType<Json> | null;
+  fid: number;
+  hash: string;
+  mentions: number[] | null;
+  mentions_positions: number[] | null;
+  parent_cast_fid: number | null;
+  parent_cast_hash: string | null;
+  parent_cast_url: string | null;
+  text: string | null;
+  timestamp: Timestamp | null;
+  tsv: string | null;
 }
 
-export async function getAnalytics(db: Kysely<Database>, fid: number) {
-    try {
-        const result = await db
-            .selectFrom('analytics')
-            .selectAll()
-            .where('fid', '=', fid)
-            .executeTakeFirst();
+export interface Links {
+  deleted_at: Timestamp | null;
+  fid: number;
+  target_fid: number;
+  timestamp: Timestamp | null;
+  type: string;
+}
 
-        return result;
-    } catch (error) {
-        console.error('Error getting analytics:', error);
-        throw error;
-    }
+export interface Powerbadge {
+  created_at: Generated<Timestamp>;
+  fid: number;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface Reactions {
+  deleted_at: Timestamp | null;
+  fid: number;
+  target_cast_fid: number;
+  target_cast_hash: string;
+  timestamp: Timestamp | null;
+  type: string;
+}
+
+export interface Database {
+  casts: Casts;
+  links: Links;
+  powerbadge: Powerbadge;
+  reactions: Reactions;
 }
