@@ -1,6 +1,6 @@
 import { sql, Kysely } from 'kysely'
 
-export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterColumn: string = 'fid') {
+export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterColumn: string) {
     console.log('buildAnalyticsQuery', fid, tableName);
     return sql`
         WITH daily_counts AS (
@@ -9,7 +9,7 @@ export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterCol
                 COUNT(*) AS count
             FROM ${sql.table(tableName)}
             WHERE timestamp >= NOW() - INTERVAL '7 days'
-            AND ${sql.identifier(fidFilterColumn)} = ${fid}
+            AND ${sql.ref(fidFilterColumn)} = ${fid}
             GROUP BY day
         )
         SELECT
@@ -21,9 +21,5 @@ export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterCol
     `;
 }
 
-export async function getAnalyticsData(db: Kysely<any>, tableName: string, fid: string, fidFilterColumn: string = 'fid') {
-    const query = buildAnalyticsQuery(tableName, fid, fidFilterColumn);
-    return await db.selectFrom(query.as('analytics_data'))
-        .selectAll()
-        .executeTakeFirst();
+export function getCastsOverview(fid: number) {
 }
