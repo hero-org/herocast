@@ -7,9 +7,9 @@ export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterCol
             SELECT
                 date_trunc('day', timestamp) AS day,
                 COUNT(*) AS count
-            FROM ${tableName}
+            FROM ${sql.table(tableName)}
             WHERE timestamp >= NOW() - INTERVAL '7 days'
-            AND ${sql.id(fidFilterColumn)} = ${fid}
+            AND ${sql.identifier(fidFilterColumn)} = ${fid}
             GROUP BY day
         )
         SELECT
