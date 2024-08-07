@@ -80,7 +80,41 @@ Deno.serve(async (req) => {
         casts: casts.rows
       }
       console.log('test res:', res);
-      
+
+      // Save or update the analytics data
+      const { data: existingAnalytics, error: fetchError } = await supabaseClient
+        .from('analytics')
+        .select()
+        .eq('fid', fid)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
+      const analyticsData = {
+        fid,
+        links: res.links,
+        reactions: res.reactions,
+        casts: res.casts,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (existingAnalytics) {
+        const { error: updateError } = await supabaseClient
+          .from('analytics')
+          .update(analyticsData)
+          .eq('fid', fid);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabaseClient
+          .from('analytics')
+          .insert(analyticsData);
+
+        if (insertError) throw insertError;
+      }
+
       return new Response(
         JSON.stringify({ fid, message: 'success', data: res }),
         { headers: { "Content-Type": "application/json" } },
