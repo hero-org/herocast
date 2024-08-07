@@ -3,6 +3,7 @@ import { CastRow } from "@/common/components/CastRow";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { CastData } from "@/common/types/types";
+import orderBy from "lodash.orderBy";
 
 interface CastReactionsTableProps {
   rawCasts: CastData[];
@@ -19,7 +20,7 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
       const hashes = rawCasts.map((cast: any) => cast.hash);
       const castsResponse = await neynarClient.fetchBulkCasts(hashes);
       if (castsResponse.result.casts) {
-        setCasts(castsResponse.result.casts);
+        setCasts(orderBy(castsResponse.result.casts, 'reactions.likes_count', 'desc'));
       }
     };
 
@@ -34,7 +35,7 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
         <thead>
           <tr className="bg-card text-card-foreground uppercase text-sm leading-normal">
             <th className="py-3 px-6 text-left">Cast</th>
-            <th className="py-3 px-6 text-center">Likes</th>
+            <th className="py-3 px-6 text-center">Likes▼</th>
             <th className="py-3 px-6 text-center">Recasts</th>
             <th className="py-3 px-6 text-center">Type</th>
           </tr>
@@ -46,7 +47,7 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
               className="border-b border-gray-200 hover:bg-foreground/10"
             >
               <td className="py-3 px-6 text-left">
-                <CastRow isEmbed hideReactions cast={cast} />
+                <CastRow hideAuthor hideReactions cast={cast} />
               </td>
               <td className="py-3 px-6 text-center">
                 {cast.reactions.likes_count}

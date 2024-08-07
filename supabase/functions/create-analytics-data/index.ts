@@ -6,9 +6,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "@supabase/supabase-js";
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
-// import { Analytics } from "@/common/types/types";
 import { Database } from '../_shared/db.ts';
 import { buildAnalyticsQuery, getCastsOverview } from "../_shared/queryHelpers.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 import Pool from 'pg-pool'
 
 import {
@@ -39,7 +39,7 @@ if (!dbUrl || !sslCert) {
 Deno.serve(async (req) => {
   return Sentry.withScope(async (scope) => {
     if (req.method === 'OPTIONS') {
-      return new Response('ok')
+      return new Response('ok', { headers: corsHeaders })
     }
     const { fid } = await req.json()
 
@@ -56,7 +56,6 @@ Deno.serve(async (req) => {
         port: parseInt(parsedUrl.port),
         user: parsedUrl.username,
         password: parsedUrl.password,
-        // tls: { caCertificates: [sslCertFormatted] },
         ssl: { rejectUnauthorized: true, ca: sslCertFormatted },
       });
       const dialect = new PostgresDialect({ pool })

@@ -44,7 +44,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
 
   if (isLoading || data.length === 0) {
     return (
-      <div className="w-full h-[200px]">
+      <div className="w-full h-[180px]">
         <Skeleton className="w-full h-full" />
       </div>
     );
@@ -58,7 +58,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   };
 
   return (
-    <ChartContainer config={chartConfig} className="h-[200px] w-full">
+    <ChartContainer config={chartConfig} className="-ml-8 w-full min-w-full h-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart accessibilityLayer data={data}>
           <defs>

@@ -21,6 +21,7 @@ export type CastData ={
 export type AnalyticsData = {
     fid?: number
     updatedAt: number;
+    status: string;
     follows: {
         overview: OverviewAnalytics,
         aggregated: AggregatedAnalytics[]

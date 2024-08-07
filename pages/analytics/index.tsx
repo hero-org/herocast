@@ -5,10 +5,14 @@ import { createClient } from "@/common/helpers/supabase/component";
 import { AnalyticsData } from "@/common/types/types";
 import { useAccountStore } from "@/stores/useAccountStore";
 import React, { useEffect, useState } from "react";
+import get from "lodash.get";
+
+type FidToAnalyticsData = Record<string, AnalyticsData>;
 
 export default function AnalyticsPage() {
   const supabaseClient = createClient();
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>();
+  const [isLoading, setIsLoading] = useState(false);
+  const [fidToAnalytics, setAnalyticsData] = useState<FidToAnalyticsData>({});
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx].platformAccountId
   );
@@ -26,25 +30,57 @@ export default function AnalyticsPage() {
         console.error("Error fetching analytics:", error);
         return;
       }
-      if (analyticsRow && analyticsRow.status === "done") {
-        const { fid, updated_at: updatedAt, data } = analyticsRow;
+
+      if (!analyticsRow) {
+        console.error("No analytics found for viewerFid:", viewerFid);
+        // trigger new fetch
+        const { data, error } = await supabaseClient.functions.invoke(
+          "create-analytics-data",
+          {
+            headers: { "Content-Type": "application/json" },
+            method: "POST",
+            body: { fid: viewerFid },
+          }
+        );
+        console.log("invoke create-analytics-data", { data, error });
+      } else {
+        const { fid, updated_at: updatedAt, status, data } = analyticsRow;
         const analyticsData = {
           fid,
           updatedAt,
+          status,
           ...data,
         } as unknown as AnalyticsData;
-        setAnalyticsData(analyticsData);
+        setAnalyticsData((prev) => ({ ...prev, [fid]: analyticsData }));
       }
     };
 
-    fetchAnalytics();
+    try {
+      setIsLoading(true);
+      fetchAnalytics();
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [viewerFid]);
 
+  if (isLoading) {
+    return <div className="w-full m-8 text-center">Loading analytics...</div>;
+  }
+  const analyticsData = get(fidToAnalytics, viewerFid);
   if (!analyticsData) {
     return <div className="w-full m-8 text-center">Loading analytics...</div>;
   }
 
-  console.log("analyticsData", analyticsData);
+  if (analyticsData.status === "pending") {
+    return (
+      <div className="w-full m-8 text-center">
+        Analytics are being calculated. Please check back in a few minutes.
+      </div>
+    );
+  }
+
   return (
     <div className="w-full m-8 space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -54,6 +90,9 @@ export default function AnalyticsPage() {
         {analyticsData?.reactions && (
           <ReactionsCard data={analyticsData.reactions} />
         )}
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold">Top casts</h2>
       </div>
       {analyticsData.casts && (
         <CastReactionsTable rawCasts={analyticsData.casts} />
