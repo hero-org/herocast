@@ -6,6 +6,7 @@ import { AnalyticsData } from "@/common/types/types";
 import { useAccountStore } from "@/stores/useAccountStore";
 import React, { useEffect, useState } from "react";
 import get from "lodash.get";
+import { Loading } from "@/common/components/Loading";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 
@@ -33,16 +34,19 @@ export default function AnalyticsPage() {
 
       if (!analyticsRow) {
         console.error("No analytics found for viewerFid:", viewerFid);
-        // trigger new fetch
         const { data, error } = await supabaseClient.functions.invoke(
           "create-analytics-data",
           {
-            headers: { "Content-Type": "application/json" },
-            method: "POST",
-            body: { fid: viewerFid },
+            body: JSON.stringify({ fid: viewerFid }),
           }
         );
-        console.log("invoke create-analytics-data", { data, error });
+        if (error) {
+          console.error("Error invoking create-analytics-data:", error);
+        } else {
+          console.log("create-analytics-data response:", data);
+          // Refetch analytics after creation
+          await fetchAnalytics();
+        }
       } else {
         const { fid, updated_at: updatedAt, status, data } = analyticsRow;
         const analyticsData = {
@@ -66,18 +70,22 @@ export default function AnalyticsPage() {
   }, [viewerFid]);
 
   if (isLoading) {
-    return <div className="w-full m-8 text-center">Loading analytics...</div>;
+    return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
   }
+
   const analyticsData = get(fidToAnalytics, viewerFid);
   if (!analyticsData) {
-    return <div className="w-full m-8 text-center">Loading analytics...</div>;
+    return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
   }
 
   if (analyticsData.status === "pending") {
     return (
-      <div className="w-full m-8 text-center">
-        Analytics are being calculated. Please check back in a few minutes.
-      </div>
+      <Loading
+        className="ml-8"
+        loadingMessage={
+          "Analytics are being calculated. Please check back in a few minutes."
+        }
+      />
     );
   }
 
@@ -85,10 +93,10 @@ export default function AnalyticsPage() {
     <div className="w-full m-8 space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {analyticsData?.follows && (
-          <NewFollowersCard data={analyticsData.follows} />
+          <NewFollowersCard data={analyticsData.follows} isLoading />
         )}
         {analyticsData?.reactions && (
-          <ReactionsCard data={analyticsData.reactions} />
+          <ReactionsCard data={analyticsData.reactions} isLoading />
         )}
       </div>
       <div>

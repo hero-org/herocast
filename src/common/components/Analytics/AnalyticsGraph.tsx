@@ -20,7 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 type AnalyticsGraphProps = {
   analyticsKey: string;
   aggregated: { timestamp: string; count: number }[];
-  isLoading?: boolean;
+  isLoading: boolean;
 };
 
 const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
@@ -29,7 +29,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   isLoading = false,
 }) => {
   const data = useMemo(() => {
-    if (isLoading || aggregated.length === 0) return [];
+    if (!aggregated || aggregated?.length === 0) return [];
 
     const sortedAggregated = [...aggregated].sort(
       (a, b) =>
@@ -40,14 +40,18 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
       date: new Date(item.timestamp),
       count: item.count,
     }));
-  }, [aggregated, isLoading]);
+  }, [aggregated]);
 
-  if (isLoading || data.length === 0) {
-    return (
-      <div className="w-full h-[180px]">
-        <Skeleton className="w-full h-full" />
-      </div>
-    );
+  if (data.length === 0) {
+    if (isLoading) {
+      return (
+        <div className="w-full h-[180px]">
+          <Skeleton className="w-full h-full" />
+        </div>
+      );
+    } else {
+      return null;
+    }
   }
 
   const chartConfig = {
@@ -58,7 +62,10 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   };
 
   return (
-    <ChartContainer config={chartConfig} className="-ml-8 w-full min-w-full h-full">
+    <ChartContainer
+      config={chartConfig}
+      className="-ml-8 w-full min-w-full h-full"
+    >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart accessibilityLayer data={data}>
           <defs>
