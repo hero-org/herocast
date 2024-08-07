@@ -32,13 +32,17 @@ export default function AnalyticsPage() {
   }, [viewerFid, supabase]);
 
   if (!analyticsData) {
-    return <div>Loading analytics...</div>;
+    return <div className="w-full m-8 text-center">Loading analytics...</div>;
   }
 
   return (
-    <div className="w-full m-8 grid grid-cols-2 gap-4">
-      <NewFollowersCard resolution="daily" data={analyticsData.links} />
-      <ReactionsCard resolution="daily" data={analyticsData.reactions} />
+    <div className="w-full m-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      {analyticsData.links && (
+        <NewFollowersCard resolution="daily" data={analyticsData.links} />
+      )}
+      {analyticsData.reactions && (
+        <ReactionsCard resolution="daily" data={analyticsData.reactions} />
+      )}
     </div>
   );
 }
