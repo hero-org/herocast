@@ -5,11 +5,15 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
-import { createClient } from '@supabase/supabase-js';
 // import { Analytics } from "@/common/types/types";
-import { getAndInitializeDataSource } from '../_shared/db.ts';
-// import { getAnalyticsData } from "../_shared/queryHelpers.ts";
-import "npm:pg";
+import { Database } from '../_shared/db.ts';
+import { getAnalyticsData } from "./queryHelpers.ts";
+import Pool from 'pg-pool'
+
+import {
+  Kysely,
+  PostgresDialect,
+} from 'kysely'
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
@@ -23,6 +27,14 @@ Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
 
 console.log("Hello from create analytics data")
 
+const dbUrl = Deno.env.get('DATABASE_URL')
+const sslCert = Deno.env.get('DATABASE_SSL_CERT')
+if (!dbUrl || !sslCert) {
+  console.error("DATABASE_URL or DATABASE_SSL_CERT is not set");
+  Deno.exit(1);
+}
+
+
 Deno.serve(async (req) => {
   return Sentry.withScope(async (scope) => {
     if (req.method === 'OPTIONS') {
@@ -31,21 +43,41 @@ Deno.serve(async (req) => {
     const { fid } = await req.json()
 
     try {
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      )
+      // const supabaseClient = createClient(
+      //   Deno.env.get('SUPABASE_URL') ?? '',
+      //   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      // )
+      const sslCertFormatted = sslCert.replace(/\\n/g, '\n');
+      const parsedUrl = new URL(dbUrl);
+      const pool = new Pool({
+        database: parsedUrl.pathname.slice(1),
+        host: parsedUrl.hostname,
+        port: parseInt(parsedUrl.port),
+        user: parsedUrl.username,
+        password: parsedUrl.password,
+        // tls: { caCertificates: [sslCertFormatted] },
+        ssl: { rejectUnauthorized: true, ca: sslCertFormatted },
+      });
+      const dialect = new PostgresDialect({ pool })
+      const db = new Kysely<Database>({
+        dialect,
+        log(event) {
+          console.log('KYSELY:', event)
+        }
+      })
+
+      console.log('testing connection');
+      const linksQuery = getAnalyticsData('links', fid, 'target_fid');
+      console.log('linksQuery', linksQuery);
+      const res = await db.executeQuery(linksQuery)
+      // const res = await linksQuery(db);
+      console.log('test res:', res);
     } catch (error) {
       console.error(error)
       Sentry.captureException(error)
       return new Response('Internal Server Error', { status: 500 })
     }
 
-    const dbUrl = Deno.env.get('DATABASE_URL')
-    const dataSource = await getAndInitializeDataSource(dbUrl);
-    console.log('AppDataSource after init', dataSource)
-    
-    // const result = await getAnalyticsData('links', fid, 'target_fid');
     // const resultReactions = await getAnalyticsData('reactions', fid, 'target_cast_fid');
 
     // const analytics: Omit<Analytics, 'follows' | 'casts'> = {
