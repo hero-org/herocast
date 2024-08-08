@@ -112,15 +112,8 @@ export default function AnalyticsPage() {
     }
   }, [query]);
 
-  if (isLoading) {
-    return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
-  }
-
   console.log("fidToAnalytics", fidToAnalytics, "fid", fid);
   const analyticsData = fid ? get(fidToAnalytics, fid) : undefined;
-  if (!analyticsData) {
-    return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
-  }
 
   const renderHeader = () => (
     <div className="flex justify-between items-center">
@@ -140,6 +133,12 @@ export default function AnalyticsPage() {
   );
 
   const renderContent = () => {
+    if (isLoading) {
+      return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
+    }
+    if (!analyticsData) {
+      return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
+    }
     if (analyticsData.status === "pending") {
       return (
         <Loading
@@ -154,10 +153,10 @@ export default function AnalyticsPage() {
       <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {analyticsData?.follows && (
-            <NewFollowersCard data={analyticsData.follows} isLoading />
+            <NewFollowersCard data={analyticsData.follows} isLoading={isLoading} />
           )}
           {analyticsData?.reactions && (
-            <ReactionsCard data={analyticsData.reactions} isLoading />
+            <ReactionsCard data={analyticsData.reactions} isLoading={isLoading} />
           )}
         </div>
         <div>
