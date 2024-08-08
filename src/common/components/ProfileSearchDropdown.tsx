@@ -11,7 +11,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -29,7 +28,11 @@ const neynarClient = new NeynarAPIClient(
   process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
 );
 
-export function ProfileSearchDropdown({ defaultProfiles, selectedProfile, setSelectedProfile }) {
+export function ProfileSearchDropdown({
+  defaultProfiles,
+  selectedProfile,
+  setSelectedProfile,
+}) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [profiles, setProfiles] = useState<SearchedUser[]>([]);
@@ -68,11 +71,26 @@ export function ProfileSearchDropdown({ defaultProfiles, selectedProfile, setSel
           aria-expanded={open}
           className="w-full max-w-[150px] justify-between"
         >
-          {selectedProfile ? selectedProfile?.username : "Select account..."}
+          {selectedProfile ? (
+            <>
+              <Avatar className="h-5 w-5">
+                <AvatarImage
+                  src={selectedProfile.pfp_url}
+                  alt={selectedProfile.username}
+                />
+                <AvatarFallback>
+                  {selectedProfile.username.slice(2)}
+                </AvatarFallback>
+              </Avatar>
+              {selectedProfile?.username}
+            </>
+          ) : (
+            "Select account..."
+          )}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="w-[200px] p-0">
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search users..."
@@ -83,35 +101,39 @@ export function ProfileSearchDropdown({ defaultProfiles, selectedProfile, setSel
             {isLoading && <CommandLoading>Searching...</CommandLoading>}
             <CommandEmpty>No profile found.</CommandEmpty>
             <CommandGroup>
-              {uniqBy([...defaultProfiles, ...profiles], 'fid').map((profile) => (
-                <CommandItem
-                  key={`profile-search-profile-${profile.fid}`}
-                  onSelect={() => {
-                    setSelectedProfile(profile);
-                    setOpen(false);
-                  }}
-                >
-                  <Avatar className="mr-2 h-5 w-5">
-                    <AvatarImage
-                      src={profile.pfp_url}
-                      alt={profile.username}
+              {uniqBy([...defaultProfiles, ...profiles], "fid").map(
+                (profile) => (
+                  <CommandItem
+                    key={`profile-search-profile-${profile.fid}`}
+                    onSelect={() => {
+                      setSelectedProfile(profile);
+                      setOpen(false);
+                    }}
+                  >
+                    <Avatar className="mr-2 h-5 w-5">
+                      <AvatarImage
+                        src={profile.pfp_url}
+                        alt={profile.username}
+                        className={cn(
+                          selectedProfile?.fid !== profile.fid && "grayscale"
+                        )}
+                      />
+                      <AvatarFallback>
+                        {profile.username.slice(2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {profile.username}
+                    <CheckIcon
                       className={cn(
-                        selectedProfile?.fid !== profile.fid && "grayscale"
+                        "ml-auto h-4 w-4",
+                        selectedProfile?.fid === profile.fid
+                          ? "opacity-100"
+                          : "opacity-0"
                       )}
                     />
-                    <AvatarFallback>{profile.username.slice(2)}</AvatarFallback>
-                  </Avatar>
-                  {profile.username}
-                  <CheckIcon
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      selectedProfile?.fid === profile.fid
-                        ? "opacity-100"
-                        : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
+                  </CommandItem>
+                )
+              )}
             </CommandGroup>
           </CommandList>
         </Command>

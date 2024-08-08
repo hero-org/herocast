@@ -93,6 +93,7 @@ export default function AnalyticsPage() {
     return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
   }
 
+  console.log('fidToAnalytics',fidToAnalytics, 'fid', fid);
   const analyticsData = fid ? get(fidToAnalytics, fid) : undefined;
   if (!analyticsData) {
     return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
