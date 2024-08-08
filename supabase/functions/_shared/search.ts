@@ -2,7 +2,6 @@ export enum SearchInterval {
     d1 = "1 day",
     d7 = "7 days",
     d30 = "30 days",
-    m3 = "3 months"
 }
 
 export type RawSearchResult = {
@@ -58,8 +57,6 @@ const getSearchUrl = ({
     }
     if (!params.get("interval")) {
         params.set("interval", SearchInterval.d7);
-    } else if (params.get("interval") === SearchInterval.m3) {
-        params.delete("interval");
     }
     if (!baseUrl) {
         baseUrl = process.env.NEXT_PUBLIC_URL;
