@@ -12,7 +12,6 @@ import isEmpty from "lodash.isempty";
 import { CastThreadView } from "@/common/components/CastThreadView";
 import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
 import { Key } from "ts-key-enum";
-import NewCastModal from "@/common/components/NewCastModal";
 import EmbedsModal from "@/common/components/EmbedsModal";
 import { useInView } from "react-intersection-observer";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,8 @@ import {
 import { useDraftStore } from "@/stores/useDraftStore";
 import CreateAccountPage from "pages/welcome/new";
 import { AccountStatusType } from "@/common/constants/accounts";
+import { createClient } from "@/common/helpers/supabase/component";
+import includes from "lodash.includes";
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -73,6 +74,8 @@ const DEFAULT_FEED_PAGE_SIZE = 15;
 const neynarClient = new NeynarAPIClient(
   process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
 );
+
+const supabaseClient = createClient();
 
 export default function Feeds() {
   const [feeds, setFeeds] = useState<FeedKeyToFeed>({});
@@ -149,6 +152,27 @@ export default function Feeds() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [feedKey]);
+
+  useEffect(() => {
+    const shouldUpdateLastReadTimestamp = !includes(
+      [CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING],
+      feedKey
+    );
+    if (account && account.channels.length && shouldUpdateLastReadTimestamp) {
+      const channelId = account.channels.find(
+        (channel) => channel.url === selectedChannelUrl
+      )?.id;
+      if (!channelId) return;
+
+      supabaseClient
+        .from("accounts_to_channel")
+        .update({
+          last_read: new Date().toISOString(),
+        })
+        .eq("account_id", account.id)
+        .eq("channel_id", channelId);
+    }
+  }, [account, selectedChannelUrl]);
 
   useEffect(() => {
     if (showCastThreadView) return;

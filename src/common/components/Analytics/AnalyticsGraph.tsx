@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import {
   Area,
   AreaChart,

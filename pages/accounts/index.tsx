@@ -90,7 +90,7 @@ export default function Accounts() {
     if (pendingAccounts?.length && signupState === SignupStateEnum.connecting) {
       pendingAccounts.forEach((account) => pollForSigner(account.id));
     }
-  }, [signupState, pendingAccounts, isMounted]);
+  }, [signupState, pendingAccounts, isMounted()]);
 
   useEffect(() => {
     if (hasPendingNewAccounts && signupState === SignupStateEnum.initial) {

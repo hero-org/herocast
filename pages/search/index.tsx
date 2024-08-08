@@ -191,15 +191,18 @@ export default function SearchPage() {
     hideReplies: filterByHideReplies,
   });
 
-  const getMentionFidFromSearchTerm = async (term: string) => {
+  const getMentionFidFromSearchTerm = async (
+    term: string,
+    viewerFid: string
+  ) => {
     const profile = await getProfileFetchIfNeeded({
       username: term,
-      viewerFid: Number(selectedAccount?.platformAccountId),
+      viewerFid,
     });
     return profile?.fid;
   };
 
-  const getFromFidFromSearchTerm = async (term: string) => {
+  const getFromFidFromSearchTerm = async (term: string, viewerFid: string) => {
     const fromIndex = term.indexOf("from:");
     if (fromIndex === -1) {
       return;
@@ -213,7 +216,7 @@ export default function SearchPage() {
     const from = fromTerm[1];
     const profile = await getProfileFetchIfNeeded({
       username: from,
-      viewerFid: Number(selectedAccount?.platformAccountId),
+      viewerFid,
     });
     return profile?.fid;
   };
@@ -239,8 +242,11 @@ export default function SearchPage() {
       });
       const startedAt = Date.now();
       try {
-        const mentionFid = await getMentionFidFromSearchTerm(term);
-        const fromFid = await getFromFidFromSearchTerm(term);
+        const viewerFid = selectedAccount?.platformAccountId || APP_FID;
+        const mentionFid = await getMentionFidFromSearchTerm(term, viewerFid);
+        const fromFid = await getFromFidFromSearchTerm(term, viewerFid);
+
+        console.log('mentionFid', mentionFid, 'fromFid', fromFid);
         const searchResults = await runFarcasterCastSearch({
           searchTerm: term,
           filters,

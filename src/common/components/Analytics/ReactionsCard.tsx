@@ -21,7 +21,7 @@ const ReactionsCard = ({ data, isLoading }: { data; isLoading }) => {
       </CardHeader>
       <CardContent>
         {total > 0 && (
-          <div className="w-full h-full max-h-64">
+          <div className="w-full h-full max-h-70">
             <AnalyticsGraph
               analyticsKey="reactions"
               aggregated={aggregated}
