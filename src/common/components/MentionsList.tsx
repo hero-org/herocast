@@ -73,7 +73,7 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
     },
   }));
 
-  if (!isMounted) return null;
+  if (!isMounted()) return null;
   const noResults =
     props.items && props.items?.length === 1 && props.items[0] === null;
 

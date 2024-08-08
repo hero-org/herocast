@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { castTextStyle } from "@/common/helpers/css";
 import { useAccountStore } from "../../src/stores/useAccountStore";
@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useIsMobile } from "@/common/helpers/hooks";
+import { useIsMobile, useIsMounted } from "@/common/helpers/hooks";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CastRow } from "@/common/components/CastRow";
@@ -76,6 +76,12 @@ const filterNotificationsByActiveTab = (
   );
 };
 
+const renderTabsTrigger = (value: NotificationTab, label: string) => (
+  <TabsTrigger className="w-full" value={value}>
+    {label}
+  </TabsTrigger>
+);
+
 const Notifications = () => {
   const {
     isNewCastModalOpen,
@@ -88,12 +94,6 @@ const Notifications = () => {
     (state) => state.accounts[state.selectedAccountIdx]
   );
   const isMobile = useIsMobile();
-
-  const renderTabsTrigger = (value: NotificationTab, label: string) => (
-    <TabsTrigger className="w-full" value={value}>
-      {label}
-    </TabsTrigger>
-  );
   const [allNotifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedNotificationIdx, setSelectedNotificationIdx] =
@@ -113,13 +113,9 @@ const Notifications = () => {
   const viewerFid = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId
   );
-
-  const now = new Date();
-  const notifications = useMemo(
-    () => filterNotificationsByActiveTab(allNotifications, activeTab),
-    [allNotifications, activeTab]
-  );
-
+  const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
+  console.log('notifications', notifications);
+  
   useEffect(() => {
     // if navigating away, reset the selected cast
     return () => {
@@ -129,7 +125,7 @@ const Notifications = () => {
 
   const loadData = async ({ reset }: { reset?: boolean }) => {
     if (!viewerFid) return;
-
+    console.log('Notifications Page -> loadData | loadMoreCursor', loadMoreCursor);
     setIsLoading(true);
     if (reset) {
       setNotifications([]);

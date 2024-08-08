@@ -7,6 +7,7 @@ import { useAccountStore } from "@/stores/useAccountStore";
 import React, { useEffect, useState } from "react";
 import get from "lodash.get";
 import { Loading } from "@/common/components/Loading";
+import { AccountSelector } from "@/common/components/AccountSelector";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 
@@ -94,6 +95,8 @@ export default function AnalyticsPage() {
 
   return (
     <div className="w-full m-8 space-y-8">
+      <div className="flex items-center justify-between">
+        <AccountSelector
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {analyticsData?.follows && (
           <NewFollowersCard data={analyticsData.follows} isLoading />
