@@ -5,20 +5,24 @@ import { createClient } from "@/common/helpers/supabase/component";
 import { AnalyticsData } from "@/common/types/types";
 import { useAccountStore } from "@/stores/useAccountStore";
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import get from "lodash.get";
 import { Loading } from "@/common/components/Loading";
 import { ProfileSearchDropdown } from "@/common/components/ProfileSearchDropdown";
+import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 
 export default function AnalyticsPage() {
+  const router = useRouter();
+  const { query } = router;
   const supabaseClient = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [fidToAnalytics, setAnalyticsData] = useState<FidToAnalyticsData>({});
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
-  const selectedAccountFid = selectedAccount.platformAccountId;
   const { accounts } = useAccountStore();
 
   const defaultProfiles = useMemo(() => {
@@ -26,8 +30,8 @@ export default function AnalyticsPage() {
       .filter((account) => account.status === "active")
       .map((a) => a.user);
   }, [accounts]);
-  const [selectedProfile, setSelectedProfile] = useState();
-  const fid = get(selectedProfile, "fid");
+  const [selectedProfile, setSelectedProfile] = useState<User>();
+  const fid = get(selectedProfile, "fid")?.toString();
 
   useEffect(() => {
     if (selectedAccount && selectedAccount?.user) {
@@ -36,7 +40,9 @@ export default function AnalyticsPage() {
   }, [selectedAccount]);
 
   useEffect(() => {
-    const fetchAnalytics = async (fid) => {
+    if (!fid) return;
+
+    const fetchAnalytics = async (fid: string) => {
       const { data: analyticsRow, error } = await supabaseClient
         .from("analytics")
         .select("*")
@@ -48,7 +54,7 @@ export default function AnalyticsPage() {
       }
       return analyticsRow;
     };
-    const refreshForNewFid = async () => {
+    const refreshForNewFid = async (fid: string) => {
       if (!fid) return;
 
       let analyticsRow = await fetchAnalytics(fid);
@@ -81,7 +87,7 @@ export default function AnalyticsPage() {
 
     try {
       setIsLoading(true);
-      refreshForNewFid();
+      refreshForNewFid(fid);
     } catch (error) {
       console.error("Error fetching analytics:", error);
     } finally {
@@ -89,25 +95,31 @@ export default function AnalyticsPage() {
     }
   }, [fid]);
 
+  useEffect(() => {
+    const fidFromQuery = query.fid as string;
+    const usernameFromQuery = query.username as string;
+    if (fidFromQuery || usernameFromQuery) {
+      getUserDataForFidOrUsername({
+        username: usernameFromQuery,
+        fid: fidFromQuery,
+        viewerFid: process.env.NEXT_PUBLIC_APP_FID!,
+      }).then((users) => {
+        if (users.length) {
+          setSelectedProfile(users[0]);
+        }
+        setIsLoading(false);
+      });
+    }
+  }, [query]);
+
   if (isLoading) {
     return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
   }
 
-  console.log('fidToAnalytics',fidToAnalytics, 'fid', fid);
+  console.log("fidToAnalytics", fidToAnalytics, "fid", fid);
   const analyticsData = fid ? get(fidToAnalytics, fid) : undefined;
   if (!analyticsData) {
     return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
-  }
-
-  if (analyticsData.status === "pending") {
-    return (
-      <Loading
-        className="ml-8"
-        loadingMessage={
-          "Analytics are being calculated. Please check back in a few minutes."
-        }
-      />
-    );
   }
 
   const renderHeader = () => (
@@ -127,23 +139,41 @@ export default function AnalyticsPage() {
     </div>
   );
 
+  const renderContent = () => {
+    if (analyticsData.status === "pending") {
+      return (
+        <Loading
+          className="ml-8"
+          loadingMessage={
+            "Analytics are being calculated. Please check back in a few minutes."
+          }
+        />
+      );
+    }
+    return (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {analyticsData?.follows && (
+            <NewFollowersCard data={analyticsData.follows} isLoading />
+          )}
+          {analyticsData?.reactions && (
+            <ReactionsCard data={analyticsData.reactions} isLoading />
+          )}
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold">Top casts</h2>
+        </div>
+        {analyticsData.casts && (
+          <CastReactionsTable rawCasts={analyticsData.casts} />
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="w-full m-8 space-y-8">
       {renderHeader()}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {analyticsData?.follows && (
-          <NewFollowersCard data={analyticsData.follows} isLoading />
-        )}
-        {analyticsData?.reactions && (
-          <ReactionsCard data={analyticsData.reactions} isLoading />
-        )}
-      </div>
-      <div>
-        <h2 className="text-2xl font-bold">Top casts</h2>
-      </div>
-      {analyticsData.casts && (
-        <CastReactionsTable rawCasts={analyticsData.casts} />
-      )}
+      {renderContent()}
     </div>
   );
 }

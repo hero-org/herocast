@@ -17,16 +17,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { SearchedUser } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import debounce from "lodash.debounce";
 import { CommandLoading } from "cmdk";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import uniqBy from "lodash.uniqby";
-
-const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-);
+import { getUserDataForFidOrUsername } from "../helpers/neynar";
 
 export function ProfileSearchDropdown({
   defaultProfiles,
@@ -35,7 +31,7 @@ export function ProfileSearchDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [profiles, setProfiles] = useState<SearchedUser[]>([]);
+  const [profiles, setProfiles] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -43,8 +39,11 @@ export function ProfileSearchDropdown({
       (term) => {
         if (term) {
           setIsLoading(true);
-          neynarClient.searchUser(term).then((res) => {
-            setProfiles(res.result.users);
+          getUserDataForFidOrUsername({
+            username: term,
+            viewerFid: process.env.NEXT_PUBLIC_APP_FID!,
+          }).then((users) => {
+            setProfiles(users);
             setIsLoading(false);
           });
         } else {
