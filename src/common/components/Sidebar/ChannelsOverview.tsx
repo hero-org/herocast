@@ -16,12 +16,10 @@ const ChannelsOverview = () => {
 
   const renderCustomChannel = ({
     name,
-    shortcut,
     url,
     onClick,
   }: {
     name: string;
-    shortcut: string;
     url: string;
     onClick: () => void;
   }) => {
@@ -37,9 +35,6 @@ const ChannelsOverview = () => {
           )}
         >
           <span className="flex-nowrap truncate">{name}</span>
-          <Badge variant="outline" className="w-16">
-            {shortcut}
-          </Badge>
         </div>
       </li>
     );
@@ -51,13 +46,11 @@ const ChannelsOverview = () => {
       <ul role="list" className="mt-2 mb-36">
         {renderCustomChannel({
           name: "Follow Feed",
-          shortcut: "Shift + 0",
           url: CUSTOM_CHANNELS.FOLLOWING,
           onClick: resetSelectedChannel,
         })}
         {renderCustomChannel({
           name: "Trending Feed",
-          shortcut: "Shift + 1",
           url: CUSTOM_CHANNELS.TRENDING,
           onClick: () => setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING),
         })}
@@ -87,11 +80,6 @@ const ChannelsOverview = () => {
                 )}
                 <span className="flex-nowrap truncate">{channel.name}</span>
               </div>
-              {idx < 8 && (
-                <Badge variant="outline" className="w-16 hidden lg:flex">
-                  Shift + {idx + 2}
-                </Badge>
-              )}
             </div>
           </li>
         ))}

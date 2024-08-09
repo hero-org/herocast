@@ -563,8 +563,26 @@ const getAccountCommands = () => {
   return accountCommands;
 };
 
-const getChannelCommands = () => {
-  const channelCommands: CommandType[] = [{
+const getCommandsForPinnedChannels = (channels: ChannelType[], state) => {
+  const commands: CommandType[] = [];
+  channels.forEach((channel, i) => {
+    commands.push({
+      name: `Switch to ${channel.name} channel`,
+      options: {
+        enableOnFormTags: false,
+      },
+      iconUrl: channel.icon_url,
+      action: () => {
+        state.setSelectedChannelUrl(channel.url);
+      },
+      page: 'feeds',
+    });
+  });
+  return commands;
+}
+
+export const getChannelCommands = (state) => {
+  let channelCommands: CommandType[] = [{
     name: `Switch to follow feed`,
     aliases: ['following', 'feed', 'home'],
     shortcut: 'shift+0',
@@ -572,7 +590,7 @@ const getChannelCommands = () => {
       enableOnFormTags: false,
     },
     action: () => {
-      useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
+      state.setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
     },
     page: 'feeds',
   },
@@ -584,38 +602,15 @@ const getChannelCommands = () => {
       enableOnFormTags: false,
     },
     action: () => {
-      useAccountStore.getState().setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+      state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
     },
     page: 'feeds',
-  }];
-
-  for (let i = 0; i < 8; i++) {
-    channelCommands.push({
-      name: `Switch to channel ${i + 2}`,
-      aliases: [],
-      shortcut: `shift+${i + 2}`,
-      options: {
-        enableOnFormTags: false,
-      },
-      action: () => {
-        const { accounts, selectedAccountIdx } = useAccountStore.getState();
-        const channels = accounts[selectedAccountIdx]?.channels;
-
-        if (isEmpty(channels) || channels.length <= i) return;
-
-        const state = useAccountStore.getState();
-        state.setSelectedChannelUrl(channels[i].url);
-      },
-      page: 'feeds',
-    });
-  }
-
-  channelCommands.push(...[{
+  },
+  {
     name: `Switch to random channel`,
     aliases: ['random', 'lucky', 'discover'],
     page: 'feeds',
     action: () => {
-      const state = useAccountStore.getState();
       if (isEmpty(state.allChannels)) return;
       const randomIndex = randomNumberBetween(0, state.allChannels.length - 1);
       state.setSelectedChannelUrl(state.allChannels[randomIndex].url);
@@ -627,7 +622,6 @@ const getChannelCommands = () => {
     shortcuts: ['shift+j', 'shift+ArrowDown'],
     page: 'feeds',
     action: () => {
-      const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
       if (isEmpty(channels)) return;
 
@@ -647,7 +641,6 @@ const getChannelCommands = () => {
     shortcuts: ['shift+k', 'shift+ArrowUp'],
     page: 'feeds',
     action: () => {
-      const state = useAccountStore.getState();
       const channels = state.accounts[state.selectedAccountIdx]?.channels;
       if (isEmpty(channels)) return;
 
@@ -666,7 +659,14 @@ const getChannelCommands = () => {
       }
     },
   },
-  ]);
+  ];
+
+  const { accounts, selectedAccountIdx } = state;
+  const channels = accounts[selectedAccountIdx]?.channels;
+
+  if (channels) {
+    channelCommands = channelCommands.concat(getCommandsForPinnedChannels(channels, state));
+  }
 
   return channelCommands;
 }
@@ -680,4 +680,3 @@ const getCurrentChannelIndex = (channelUrl: string, channels: ChannelType[]) => 
 }
 
 export const accountCommands = getAccountCommands();
-export const channelCommands = getChannelCommands();

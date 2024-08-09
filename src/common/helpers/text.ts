@@ -21,3 +21,5 @@ export const formatLargeNumber = (num?: number): string => {
     return num.toString();
   }
 }
+
+export const formatShortcut = (shortcut: string): string => shortcut.replace(/\+/g, " ").replace('cmd', '⌘')

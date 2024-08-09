@@ -1,6 +1,6 @@
 import { NextRouter } from 'next/router'
 import { CommandType } from './common/constants/commands';
-import { MagnifyingGlassIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
+import { ChartBarIcon, MagnifyingGlassIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { BellIcon } from '@heroicons/react/24/outline';
 import { Bars3BottomLeftIcon } from "@heroicons/react/20/solid";
 import { Cog6ToothIcon, UserPlusIcon } from "@heroicons/react/24/outline";
@@ -73,10 +73,16 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
             },
         },
         {
+            name: 'Analytics',
+            aliases: ['stats', 'insights', 'data', 'metrics', 'report'],
+            icon: ChartBarIcon,
+            action: () => router.push('/analytics'),
+        },
+        {
             name: 'Report a Bug',
             aliases: ['bug', 'issue', 'feedback', 'suggestion', 'complaint',],
             icon: BellIcon,
-            action: () => window.open('https://github.com/hero-org/herocast/issues/new/choose'),
+            action: () => window.open('https://github.com/hero-org/herocast/issues/new?assignees=&labels=&projects=&template=bug_report.md&title='),
             options: {
                 enableOnFormTags: false,
             },

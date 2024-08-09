@@ -7,7 +7,7 @@ export type CommandType = {
   shortcut?: string
   shortcuts?: string[]
   action: () => void
-  aliases: string[]
+  aliases?: string[]
   enabled?: boolean | (() => boolean)
   icon?: ForwardRefExoticComponent<Omit<SVGProps<SVGSVGElement>, "ref"> & RefAttributes<SVGSVGElement>>
   iconUrl?: string,

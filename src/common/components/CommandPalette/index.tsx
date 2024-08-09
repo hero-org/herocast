@@ -10,6 +10,7 @@ import { CommandType } from "@/common/constants/commands";
 import {
   accountCommands,
   channelCommands,
+  getChannelCommands,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
@@ -22,20 +23,29 @@ import {
   LaunchCasterScoutDraft,
   NewFeedbackPostDraft,
 } from "@/common/constants/postDrafts";
-import { Combobox, Dialog, Transition } from "@headlessui/react";
 import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandShortcut,
+} from "@/components/ui/command";
+import {
+  ChartBarIcon,
   MagnifyingGlassCircleIcon,
-  MagnifyingGlassIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
-import { FaceSmileIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 import commandScore from "command-score";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useRouter } from "next/router";
 import { getNavigationCommands } from "@/getNavigationCommands";
 import { useTheme } from "next-themes";
 import { getThemeCommands } from "@/getThemeCommands";
-import { formatLargeNumber } from "@/common/helpers/text";
+import { formatShortcut } from "@/common/helpers/text";
 import { DraftType } from "@/common/constants/farcaster";
 import { useDataStore } from "@/stores/useDataStore";
 import { getProfile } from "@/common/helpers/profileUtils";
@@ -108,11 +118,16 @@ export default function CommandPalette() {
   );
 
   const { theme, setTheme } = useTheme();
-
-  const getCommands = useCallback((): CommandType[] => {
-    const themeCommands = getThemeCommands(theme, setTheme);
-    const navigationCommands = getNavigationCommands({ router });
-    const profileCommands = [
+  const themeCommands = useCallback(
+    () => getThemeCommands(theme, setTheme),
+    [theme, setTheme]
+  )();
+  const navigationCommands = useCallback(
+    () => getNavigationCommands({ router }),
+    [router]
+  )();
+  const getProfileCommands = useCallback(() => {
+    return [
       {
         name: "Your profile",
         action: () => {
@@ -122,41 +137,42 @@ export default function CommandPalette() {
           router.push(`/profile/${selectedAccountName}`);
         },
         shortcut: "cmd+shift+p",
-        aliases: [],
         options: {
           enableOnFormTags: false,
         },
+        icon: UserCircleIcon,
+      },
+      {
+        name: "Your Analytics",
+        action: () => {
+          const state = useAccountStore.getState();
+          const fid =
+            state.accounts[state.selectedAccountIdx]?.platformAccountId;
+          const route = fid ? `/analytics?fid=${fid}` : "/analytics";
+          router.push(route);
+        },
+        icon: ChartBarIcon,
       },
     ];
+  }, [router]);
 
+  const profileCommands = getProfileCommands();
+  const channelCommands = useCallback(
+    () => getChannelCommands(useAccountStore.getState()),
+    [useAccountStore.getState()]
+  )();
+
+  const getCommands = useCallback((): CommandType[] => {
     let commands = [
+      ...channelCommands,
       ...navigationCommands,
       ...newPostCommands,
       ...accountCommands,
-      ...channelCommands,
       ...themeCommands,
       ...profileCommands,
     ];
 
     const nonHotkeyCommands: CommandType[] = [];
-    allChannels.map((channel) => {
-      nonHotkeyCommands.push({
-        name: `${channel.name} channel (${formatLargeNumber(
-          channel.data?.followerCount
-        )})`,
-        action: () => {
-          setSelectedChannelUrl(channel.url);
-        },
-        shortcut: "",
-        aliases: ["/" + channel.name.split("/").pop()],
-        options: {
-          enableOnFormTags: false,
-        },
-        iconUrl: channel.icon_url,
-        data: channel.data,
-        page: "feeds",
-      });
-    });
 
     const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
       const { selectedCast } = useDataStore.getState();
@@ -187,7 +203,6 @@ export default function CommandPalette() {
         name,
         action,
         navigateTo,
-        aliases: [],
         options: {
           enableOnFormTags: false,
         },
@@ -273,7 +288,6 @@ export default function CommandPalette() {
 
     return {
       name,
-      aliases: [],
       action: () => {
         if (slug) {
           router.push(`/conversation/${slug}`);
@@ -288,36 +302,28 @@ export default function CommandPalette() {
     };
   };
 
-  const getFilteredCommands = useCallback(() => {
-    let result = commands
-      .map((command: CommandType) => {
-        const namesToScore = [command.name, ...(command.aliases || [])];
-        const scores = namesToScore.map((alias: string) => {
-          return commandScore(alias, query);
-        });
-        return {
-          ...command,
-          score: Math.max(...scores),
-        };
-      })
-      .filter((command: CommandType & { score: number }) => {
-        return command.score > MIN_SCORE_THRESHOLD;
-      })
-      // if there are channels in the commands we should rank them by follower count
-      .sort((a, b) => {
-        if (a.data?.followerCount && b.data?.followerCount) {
-          return b.data.followerCount - a.data.followerCount;
-        }
-        return 0;
-      })
-      .slice(0, 25);
+  const getSearchCommand = (query: string): CommandType => ({
+    name: `Search${query && ` for ${query}`} in all casts`,
+    action: () => {
+      router.push(query ? `/search?q=${query}` : "/search");
+    },
+    icon: MagnifyingGlassCircleIcon,
+  });
+
+  const getFilteredCommands = () => {
+    let result = commands.filter((command: CommandType) => {
+      const namesToScore = [command.name, ...(command.aliases || [])];
+      const scores = namesToScore.map((alias: string) => {
+        return commandScore(alias, query);
+      });
+      return Math.max(...scores) > MIN_SCORE_THRESHOLD;
+    });
 
     if (isWarpcastUrl(query)) {
       result = [getWarpcastCommandForUrl(query), ...result];
     }
 
-    const showCastHashCommand = query.startsWith("0x");
-    if (showCastHashCommand) {
+    if (query.startsWith("0x")) {
       result = [
         {
           name: `Go to cast ${query}`,
@@ -329,8 +335,7 @@ export default function CommandPalette() {
       ];
     }
 
-    const showProfileCommand = query.startsWith("@") || result.length === 0;
-    if (showProfileCommand) {
+    if (query.startsWith("@") || result.length === 0) {
       const profile = getProfile(useDataStore.getState(), query.slice(1));
 
       result = [
@@ -342,31 +347,27 @@ export default function CommandPalette() {
           iconUrl: profile?.pfp_url,
           icon: UserCircleIcon,
         },
-        {
-          name: `Search for ${query} in all casts`,
-          action: () => {
-            router.push(`/search?q=${query}`);
-          },
-          icon: MagnifyingGlassCircleIcon,
-        },
+        getSearchCommand(query),
         ...result,
       ];
     }
 
     return result;
-  }, [query, commands, router, setSelectedChannelByName]);
+  };
 
   const filteredCommands = useMemo(
-    () => (query?.length ? getFilteredCommands() : []),
-    [query, getFilteredCommands]
+    () => getFilteredCommands(),
+    [isCommandPaletteOpen, query, commands, router, setSelectedChannelByName]
   );
 
   const renderIcon = useCallback((command: CommandType, active: boolean) => {
     if (command.iconUrl) {
       return (
-        <img
+        <Image
           src={command.iconUrl}
           alt=""
+          width={20}
+          height={20}
           className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
         />
       );
@@ -390,116 +391,57 @@ export default function CommandPalette() {
     return (
       <Skeleton className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full" />
     );
-  });
+  }, []);
+
+  const renderCommandItem = useCallback(
+    (command: CommandType) => (
+      <CommandItem
+        key={command.name}
+        value={command.name}
+        onSelect={() => onClick(command)}
+        className="flex items-center py-1.5 rounded-lg"
+      >
+        {renderIcon(command, false)}
+        <span className="ml-2 flex-auto truncate">{command.name}</span>
+        {command.shortcut && (
+          <CommandShortcut>{formatShortcut(command.shortcut)}</CommandShortcut>
+        )}
+      </CommandItem>
+    ),
+    []
+  );
+
+  const renderDefaultCommands = () => (
+    <CommandGroup heading="Suggestions">
+      {[...profileCommands, getSearchCommand(query)].map(renderCommandItem)}
+    </CommandGroup>
+  );
+
+  const renderFilteredCommands = () => (
+    <CommandGroup heading="Commands">
+      {filteredCommands.map(renderCommandItem)}
+    </CommandGroup>
+  );
 
   return (
-    <Transition.Root
-      show={isCommandPaletteOpen}
-      as={Fragment}
-      afterLeave={() => setQuery("")}
-      appear
+    <CommandDialog
+      open={isCommandPaletteOpen}
+      onOpenChange={toggleCommandPalette}
+      defaultOpen
     >
-      <Dialog as="div" className="relative z-50" onClose={toggleCommandPalette}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-10"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-10"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-muted/95 transition-opacity" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 z-10 overflow-y-auto p-4 sm:p-6 sm:pt-20 md:p-20">
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-10"
-            enterFrom="opacity-50 scale-98"
-            enterTo="opacity-100 scale-100"
-            leave="ease-in duration-10"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-98"
-          >
-            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-lg bg-background shadow-lg border border-border transition-all">
-              <Combobox
-                onChange={(e: any) => {
-                  onClick(e);
-                }}
-              >
-                <div className="relative">
-                  <MagnifyingGlassIcon
-                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-foreground/80"
-                    aria-hidden="true"
-                  />
-                  <Combobox.Input
-                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-foreground focus:outline-none focus:ring focus:border-gray-500 sm:text-sm"
-                    placeholder="Search Herocast..."
-                    onChange={(event) => setQuery(event.target.value)}
-                  />
-                </div>
-
-                {(query === "" || filteredCommands.length > 0) && (
-                  <Combobox.Options
-                    static
-                    className="max-h-80 scroll-py-2 divide-y divide-gray-500 divide-opacity-20 overflow-y-auto"
-                  >
-                    <ul className="mt-2 text-sm text-foreground/70">
-                      {(
-                        (filteredCommands.length > 0 && filteredCommands) ||
-                        commands.slice(0, 7)
-                      ).map((command) => (
-                        <Combobox.Option
-                          key={command.name}
-                          value={command}
-                          onClick={() => onClick(command)}
-                          className={({ active }) =>
-                            cn(
-                              "flex cursor-default select-none items-center rounded-sm px-3 py-2",
-                              active
-                                ? "bg-foreground/5 text-foreground"
-                                : "text-foreground/80"
-                            )
-                          }
-                        >
-                          {({ active }) => (
-                            <>
-                              {renderIcon(command, active)}
-                              <span className="ml-3 flex-auto truncate">
-                                {command.name}
-                              </span>
-                              {command.shortcut && (
-                                <span className="ml-3 flex-none text-xs px-2 py-1 rounded-md bg-muted text-primary border-foreground/60">
-                                  <kbd className="font-mono">
-                                    {command.shortcut}
-                                  </kbd>
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </Combobox.Option>
-                      ))}
-                    </ul>
-                  </Combobox.Options>
-                )}
-                {query !== "" && filteredCommands.length === 0 && (
-                  <div className="px-6 py-14 text-center sm:px-14">
-                    <FaceSmileIcon
-                      className="mx-auto h-6 w-6 text-foreground/80"
-                      aria-hidden="true"
-                    />
-                    <p className="mt-4 text-sm text-muted-foreground">
-                      nothing found - submit feedback if something should be
-                      here
-                    </p>
-                  </div>
-                )}
-              </Combobox>
-            </Dialog.Panel>
-          </Transition.Child>
-        </div>
-      </Dialog>
-    </Transition.Root>
+      <Command shouldFilter loop>
+        <CommandInput
+          onValueChange={setQuery}
+          autoFocus
+          placeholder="Search Herocast..."
+        />
+        <CommandList className="">
+          <CommandEmpty className="py-4 text-center text-sm text-muted-foreground">
+            No command found.
+          </CommandEmpty>
+          {query ? renderFilteredCommands() : renderDefaultCommands()}
+        </CommandList>
+      </Command>
+    </CommandDialog>
   );
 }
