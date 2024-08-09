@@ -3,7 +3,6 @@ import HelpCard from "@/common/components/HelpCard";
 import { Button } from "@/components/ui/button";
 import {
   accountCommands,
-  channelCommands,
   useAccountStore,
 } from "@/stores/useAccountStore";
 import { newPostCommands } from "@/stores/useDraftStore";
@@ -18,6 +17,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { formatShortcut } from "@/common/helpers/text";
 
 type SimpleCommand = {
   name: string;
@@ -72,7 +72,6 @@ export default function Settings() {
       ...getNavigationCommands({ router }),
       ...newPostCommands,
       ...accountCommands,
-      ...channelCommands,
     ];
 
     const commandsWithShortcuts: SimpleCommand[] = allCommands.filter(
@@ -101,7 +100,7 @@ export default function Settings() {
                     </dt>
                     {command.shortcut && (
                       <dd className="mt-1 text-sm leading-6 font-semibold text-foreground sm:col-span-1 sm:mt-0">
-                        {command.shortcut.replace(/\+/g, " + ")}
+                        {formatShortcut(command.shortcut)}
                       </dd>
                     )}
                   </div>
