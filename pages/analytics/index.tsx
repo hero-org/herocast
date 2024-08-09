@@ -11,10 +11,17 @@ import { Loading } from "@/common/components/Loading";
 import { ProfileSearchDropdown } from "@/common/components/ProfileSearchDropdown";
 import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { useAuth } from "@/common/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { ChartBarIcon } from "@heroicons/react/20/solid";
+import Link from "next/link";
+import ClickToCopyText from "@/common/components/ClickToCopyText";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 
 export default function AnalyticsPage() {
+  const { user } = useAuth();
+
   const router = useRouter();
   const { query } = router;
   const supabaseClient = createClient();
@@ -28,8 +35,9 @@ export default function AnalyticsPage() {
   const defaultProfiles = useMemo(() => {
     return accounts
       .filter((account) => account.status === "active")
-      .map((a) => a.user);
+      .map((a) => a.user) as User[];
   }, [accounts]);
+
   const [selectedProfile, setSelectedProfile] = useState<User>();
   const fid = get(selectedProfile, "fid")?.toString();
 
@@ -112,22 +120,38 @@ export default function AnalyticsPage() {
     }
   }, [query]);
 
-  console.log("fidToAnalytics", fidToAnalytics, "fid", fid);
   const analyticsData = fid ? get(fidToAnalytics, fid) : undefined;
 
   const renderHeader = () => (
     <div className="flex justify-between items-center">
-      <ProfileSearchDropdown
-        defaultProfiles={defaultProfiles}
-        selectedProfile={selectedProfile}
-        setSelectedProfile={setSelectedProfile}
-      />
-      <div>
+      <div className="flex items-center space-x-4">
+        <ProfileSearchDropdown
+          disabled={isLoading || !user}
+          defaultProfiles={defaultProfiles}
+          selectedProfile={selectedProfile}
+          setSelectedProfile={setSelectedProfile}
+        />
+        {!isLoading && !user && (
+          <Link href="/login">
+            <Button variant="default" size="sm">
+              Login to see more insights{" "}
+              <ChartBarIcon className="h-4 w-4 ml-2" />
+            </Button>
+          </Link>
+        )}
+      </div>
+      <div className="flex items-center space-x-2">
         {analyticsData?.updatedAt && (
           <div className="text-sm text-foreground/70">
             Last updated: {new Date(analyticsData.updatedAt).toLocaleString()}
           </div>
         )}
+        <ClickToCopyText
+          disabled={!analyticsData}
+          buttonText="Share"
+          size="sm"
+          text={`https://app.herocast.xyz/analytics?fid=${fid}`}
+        />
       </div>
     </div>
   );
@@ -153,10 +177,16 @@ export default function AnalyticsPage() {
       <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {analyticsData?.follows && (
-            <NewFollowersCard data={analyticsData.follows} isLoading={isLoading} />
+            <NewFollowersCard
+              data={analyticsData.follows}
+              isLoading={isLoading}
+            />
           )}
           {analyticsData?.reactions && (
-            <ReactionsCard data={analyticsData.reactions} isLoading={isLoading} />
+            <ReactionsCard
+              data={analyticsData.reactions}
+              isLoading={isLoading}
+            />
           )}
         </div>
         <div>

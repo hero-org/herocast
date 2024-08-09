@@ -1,15 +1,14 @@
 import React, {
-  Fragment,
   useMemo,
   useState,
   useCallback,
   ComponentType,
   SVGProps,
+  useEffect,
 } from "react";
 import { CommandType } from "@/common/constants/commands";
 import {
   accountCommands,
-  channelCommands,
   getChannelCommands,
   useAccountStore,
 } from "@/stores/useAccountStore";
@@ -116,6 +115,12 @@ export default function CommandPalette() {
     },
     [router]
   );
+
+  useEffect(() => {
+    if (!isCommandPaletteOpen) {
+      setQuery("");
+    }
+  }, [isCommandPaletteOpen]);
 
   const { theme, setTheme } = useTheme();
   const themeCommands = useCallback(

@@ -87,7 +87,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const pageRequiresHydrate =
     asPath !== "/login" &&
     !asPath.startsWith("/profile") &&
-    !asPath.startsWith("/conversation");
+    !asPath.startsWith("/conversation") &&
+    !asPath.startsWith("/analytics");
+    
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
