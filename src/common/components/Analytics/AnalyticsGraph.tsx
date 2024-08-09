@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import {
   Area,
   AreaChart,
@@ -29,7 +29,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   isLoading = false,
 }) => {
   const data = useMemo(() => {
-    if (!aggregated || aggregated?.length === 0) return [];
+    if (!aggregated || aggregated?.length < 7) return [];
 
     const sortedAggregated = [...aggregated].sort(
       (a, b) =>

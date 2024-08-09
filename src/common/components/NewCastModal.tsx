@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import Modal from "./Modal";
+import Modal from "@/common/components/Modal";
 import NewPostEntry from "./Editor/NewCastEditor";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { CastRow } from "./CastRow";
@@ -16,7 +16,11 @@ type NewCastModalProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const NewCastModal = ({ draftId, open, setOpen }: NewCastModalProps) => {
+const NewCastModal: React.FC<NewCastModalProps> = ({
+  draftId,
+  open,
+  setOpen,
+}) => {
   const { castModalView } = useNavigationStore();
   const { selectedCast } = useDataStore();
   const { drafts, removePostDraftById } = useDraftStore();
@@ -59,7 +63,7 @@ const NewCastModal = ({ draftId, open, setOpen }: NewCastModalProps) => {
   };
 
   return (
-    <Modal title={getTitle()} open={open} setOpen={setOpen}>
+    <Modal title={getTitle()} open={open} setOpen={setOpen} focusMode={false}>
       <div className="mt-2 overflow-auto">
         {open && draftId !== undefined && (
           <div

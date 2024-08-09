@@ -40,7 +40,8 @@ export const AuthProvider = ({ children }) => {
     const shouldForward =
       asPath !== "/login" &&
       !asPath.startsWith("/profile") &&
-      !asPath.startsWith("/conversation");
+      !asPath.startsWith("/conversation") && 
+      !asPath.startsWith("/analytics");
 
     if (isLoggedOut && shouldForward) {
       router.push("/login");

@@ -31,10 +31,6 @@ const intervals = [
     label: "30 days",
     value: SearchInterval.d30,
   },
-  {
-    label: "3 months",
-    value: SearchInterval.m3,
-  },
 ];
 
 type SearchIntervalFilterProps = {

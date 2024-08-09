@@ -24,7 +24,6 @@ export const getThemeCommands = (theme?: string, setTheme?: (theme: string) => v
         },
         {
             name: 'Toggle theme',
-            aliases: [],
             icon: ArrowPathRoundedSquareIcon,
             action: () => {
                 if (theme === 'light') {

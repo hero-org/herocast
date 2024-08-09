@@ -198,7 +198,10 @@ export default function SearchPage() {
     hideReplies: filterByHideReplies,
   });
 
-  const getMentionFidFromSearchTerm = async (term: string) => {
+  const getMentionFidFromSearchTerm = async (
+    term: string,
+    viewerFid: string
+  ) => {
     const profile = await getProfileFetchIfNeeded({
       username: term.trim(),
       viewerFid,
@@ -206,7 +209,7 @@ export default function SearchPage() {
     return profile?.fid;
   };
 
-  const getFromFidFromSearchTerm = async (term: string) => {
+  const getFromFidFromSearchTerm = async (term: string, viewerFid: string) => {
     const fromIndex = term.indexOf("from:");
     if (fromIndex === -1) {
       return;

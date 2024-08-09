@@ -16,7 +16,6 @@ import { getFarcasterMentions } from "@mod-protocol/farcaster";
 import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
 import debounce from "lodash.debounce";
 import { Button } from "@/components/ui/button";
-import { MentionList } from "@mod-protocol/react-ui-shadcn/dist/components/mention-list";
 import { take } from "lodash";
 import { ChannelPicker } from "../ChannelPicker";
 import {
@@ -44,13 +43,10 @@ import { cn } from "@/lib/utils";
 import { openSourcePlanLimits } from "../../../config/customerLimitation";
 import Link from "next/link";
 import { isPaidUser } from "@/stores/useUserStore";
+import { MentionList } from "../MentionsList";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
-const debouncedGetMentions = debounce(getMentions, 200, {
-  leading: true,
-  trailing: false,
-});
 const neynarClient = new NeynarAPIClient(
   process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
 );
@@ -195,7 +191,7 @@ export default function NewPostEntry({
       RenderList: ChannelList,
     }),
     renderMentionsSuggestionConfig: createRenderMentionsSuggestionConfig({
-      getResults: debouncedGetMentions,
+      getResults: getMentions,
       RenderList: MentionList,
     }),
     editorOptions: {
