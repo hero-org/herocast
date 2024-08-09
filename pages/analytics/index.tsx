@@ -66,7 +66,7 @@ export default function AnalyticsPage() {
       if (!fid) return;
 
       let analyticsRow = await fetchAnalytics(fid);
-      if (!analyticsRow) {
+      if (!analyticsRow && user) {
         console.error("No analytics found for fid:", fid);
         const { data, error } = await supabaseClient.functions.invoke(
           "create-analytics-data",
@@ -101,7 +101,7 @@ export default function AnalyticsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [fid]);
+  }, [fid, user]);
 
   useEffect(() => {
     const fidFromQuery = query.fid as string;
