@@ -18,7 +18,7 @@ import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
 import { SearchIntervalFilter } from "@/common/components/SearchIntervalFilter";
-import { SearchInterval } from "@/common/helpers/search";
+import { SearchInterval, SearchResponse } from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";
@@ -33,6 +33,8 @@ import ClickToCopyText from "@/common/components/ClickToCopyText";
 import { fetchAndAddUserProfile } from "@/common/helpers/profileUtils";
 import { Badge } from "@/components/ui/badge";
 import { UUID } from "crypto";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 4;
@@ -99,21 +101,22 @@ export default function SearchPage() {
   const selectedAccount = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
+  const viewerFid = selectedAccount?.platformAccountId || APP_FID;
 
   const debouncedUserSearch = useCallback(
     debounce(async (term: string) => {
-      if (term.length >= 3) {
+      if (term.length >= 3 && viewerFid) {
         try {
           await fetchAndAddUserProfile({
             username: term.startsWith("@") ? term.slice(1) : term,
-            viewerFid: Number(selectedAccount?.platformAccountId),
+            viewerFid,
           });
         } catch (error) {
           console.error("Error searching for users:", error);
         }
       }
     }, 300),
-    [selectedAccount]
+    [viewerFid]
   );
 
   useEffect(() => {
@@ -171,6 +174,10 @@ export default function SearchPage() {
   };
 
   const addCastHashes = (newCastHashes: RawSearchResult[], reset: boolean) => {
+    console.log("addCastHashes", newCastHashes);
+    if (!newCastHashes?.length) {
+      setCastHashes((prevCastHashes) => (reset ? [] : prevCastHashes));
+    }
     setCastHashes((prevCastHashes) =>
       uniq([...(reset ? [] : prevCastHashes), ...newCastHashes])
     );
@@ -193,8 +200,8 @@ export default function SearchPage() {
 
   const getMentionFidFromSearchTerm = async (term: string) => {
     const profile = await getProfileFetchIfNeeded({
-      username: term,
-      viewerFid: Number(selectedAccount?.platformAccountId),
+      username: term.trim(),
+      viewerFid,
     });
     return profile?.fid;
   };
@@ -213,7 +220,7 @@ export default function SearchPage() {
     const from = fromTerm[1];
     const profile = await getProfileFetchIfNeeded({
       username: from,
-      viewerFid: Number(selectedAccount?.platformAccountId),
+      viewerFid,
     });
     return profile?.fid;
   };
@@ -239,9 +246,12 @@ export default function SearchPage() {
       });
       const startedAt = Date.now();
       try {
-        const mentionFid = await getMentionFidFromSearchTerm(term);
+        const isOneWordSearch = !/\s/.test(term.trim());
+        const mentionFid = isOneWordSearch
+          ? await getMentionFidFromSearchTerm(term)
+          : undefined;
         const fromFid = await getFromFidFromSearchTerm(term);
-        const searchResults = await runFarcasterCastSearch({
+        const searchResponse = await runFarcasterCastSearch({
           searchTerm: term,
           filters,
           mentionFid,
@@ -251,8 +261,9 @@ export default function SearchPage() {
         if (activeSearchCounter.current !== newSearchCounter) {
           return;
         }
-
         const endedAt = Date.now();
+        const searchResults = searchResponse.results || [];
+
         addSearch({
           term,
           startedAt,
@@ -264,9 +275,7 @@ export default function SearchPage() {
           resultsCount: searchResults.length,
           duration: endedAt - startedAt,
         });
-        if (searchResults.length > 0) {
-          addCastHashes(searchResults, true);
-        }
+        processSearchResponse(searchResponse);
       } catch (error) {
         console.error("Failed to search for text", term, error);
       } finally {
@@ -283,20 +292,40 @@ export default function SearchPage() {
     ]
   );
 
+  const processSearchResponse = (response: SearchResponse) => {
+    const results = response.results || [];
+    if (results.length < SEARCH_LIMIT_NEXT_LOAD) {
+      setHasMore(false);
+    }
+    if (results.length > 0) {
+      addCastHashes(results, true);
+    }
+    const { isTimeout, error } = response;
+    if (isTimeout) {
+      setError(new Error("Search timed out - please try again"));
+    } else if (error) {
+      setError(new Error(error));
+    }
+    setIsLoading(false);
+  };
+
   const onContinueSearch = () => {
     setIsLoading(true);
+    posthog.capture("user_start_castSearch", {
+      term: searchTerm,
+    });
     runFarcasterCastSearch({
       searchTerm,
       filters: getFilters(),
       limit: SEARCH_LIMIT_NEXT_LOAD,
       orderBy: "timestamp DESC",
       offset: castHashes.length,
-    }).then((results) => {
-      if (results.length < SEARCH_LIMIT_NEXT_LOAD) {
-        setHasMore(false);
-      }
-      addCastHashes(results, false);
-      setIsLoading(false);
+    }).then((response) => {
+      posthog.capture("backend_returns_castSearch", {
+        term: searchTerm,
+        resultsCount: (response?.results || []).length,
+      });
+      processSearchResponse(response);
     });
   };
 
@@ -332,7 +361,7 @@ export default function SearchPage() {
           process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
         );
         const apiResponse = await neynarClient.fetchBulkCasts(newCastHashes, {
-          viewerFid: Number(selectedAccount?.platformAccountId || APP_FID),
+          viewerFid: Number(viewerFid),
         });
         const allCasts = [...casts, ...apiResponse.result.casts];
         const sortedCasts = allCasts.sort(
@@ -355,7 +384,7 @@ export default function SearchPage() {
     if (newCastHashes.length > 0) {
       fetchCasts(newCastHashes.slice(0, 2));
     }
-  }, [castHashes, casts]);
+  }, [castHashes, casts, viewerFid]);
 
   const renderSearchResultRow = (row: CastWithInteractions, idx: number) => (
     <li
@@ -563,7 +592,7 @@ export default function SearchPage() {
           </div>
           {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
             renderLoading()}
-          {!isLoading && !isEmpty(castHashes) && isEmpty(casts) && (
+          {!error && !isLoading && searchCounter > 0 && isEmpty(casts) && (
             <div className="flex flex-col text-center mt-8 text-muted-foreground">
               <span>No results found</span>
               {renderTryAgainButton()}
@@ -585,9 +614,11 @@ export default function SearchPage() {
             </div>
           )}
           {error && (
-            <div className="text-center mt-8 text-red-500">
-              Error: {error.message}
-            </div>
+            <Alert variant="default" className="mb-4 max-w-xs">
+              <InformationCircleIcon className="h-4 w-4" />
+              <AlertTitle>Something went wrong</AlertTitle>
+              <AlertDescription>{error.message}</AlertDescription>
+            </Alert>
           )}
           <ManageListModal
             open={isManageListModalOpen}

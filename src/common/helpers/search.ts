@@ -64,17 +64,22 @@ const getSearchUrl = ({
     return url;
 };
 
-export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<RawSearchResult[]> => {
+export type SearchResponse = {
+    results?: RawSearchResult[];
+    error: string;
+    isTimeout: boolean;
+};
+
+export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<SearchResponse> => {
     try {
         const searchUrl = getSearchUrl(params);
         const response = await fetch(searchUrl);
         const data = await response.json();
-        if (!data || data?.error) return [];
-
+        console.log('searchResponseData', data)
         return data;
     } catch (error) {
         console.error("Failed to search for text", params.searchTerm, error);
-        return [];
+        return { error: error as unknown as string, isTimeout: false };
     }
 };
 
@@ -84,7 +89,7 @@ const LANGUAGE = 'english';
 
 export const getTextMatchCondition = (term: string): string => {
     term = term.trim();
-    
+
     if (isSingleWord(term)) {
         return createExactMatchCondition(removeQuotes(term));
     }
@@ -100,31 +105,31 @@ export const getTextMatchCondition = (term: string): string => {
     return createWebSearchQuery(term);
 };
 
-const isSingleWord = (term: string): boolean => 
+const isSingleWord = (term: string): boolean =>
     !term.includes(' ') || (isQuoted(term) && !term.slice(1, -1).includes(' '));
 
-const isQuoted = (term: string): boolean => 
+const isQuoted = (term: string): boolean =>
     term.startsWith('"') && term.endsWith('"');
 
-const removeQuotes = (term: string): string => 
+const removeQuotes = (term: string): string =>
     term.replace(/^"|"$/g, '');
 
-const hasComplexQuery = (term: string): boolean => 
+const hasComplexQuery = (term: string): boolean =>
     term.includes('"') || term.includes('-') || hasBooleanOperators(term);
 
-const hasBooleanOperators = (term: string): boolean => 
+const hasBooleanOperators = (term: string): boolean =>
     /\b(AND|OR)\b/i.test(term);
 
-const isPhrase = (term: string): boolean => 
+const isPhrase = (term: string): boolean =>
     !term.includes('"') || isQuoted(term);
 
-const createExactMatchCondition = (phrase: string): string => 
+const createExactMatchCondition = (phrase: string): string =>
     `${TEXT_COLUMN} ~* '\\m${escapeSingleQuotes(phrase)}\\M'`;
 
-const createWebSearchQuery = (term: string): string => 
+const createWebSearchQuery = (term: string): string =>
     `tsv @@ websearch_to_tsquery('${LANGUAGE}', '${escapeSingleQuotes(term)}')`;
 
-const escapeSingleQuotes = (str: string): string => 
+const escapeSingleQuotes = (str: string): string =>
     str.replace(/'/g, "''");
 
 const handleComplexQuery = (term: string): string => {
@@ -144,7 +149,7 @@ const createCondition = (part: string): string => {
     return createWebSearchQuery(part);
 };
 
-const isBooleanOperator = (part: string): boolean => 
+const isBooleanOperator = (part: string): boolean =>
     ['and', 'or'].includes(part.toLowerCase());
 
 const insertMissingBooleanOperators = (conditions: string[]): void => {

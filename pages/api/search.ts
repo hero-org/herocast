@@ -6,6 +6,9 @@ export const config = {
     maxDuration: 20,
 };
 
+const timeoutThreshold = 19000; // 19 seconds to ensure it sends before the 20-second limit
+const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     let { limit, offset } = req.query;
     const { term, interval, orderBy, onlyPowerBadge, hideReplies, mentionFid, fromFid } = req.query;
@@ -23,8 +26,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const start = process.hrtime();
     const timeout = setTimeout(() => {
-        res.status(503).json({ error: 'Request timed out' });
-    }, 19000); // 19 seconds to ensure it sends before the 20-second limit
+        res.status(503).json({ error: TIMEOUT_ERROR_MESSAGE, results: [], isTimeout: true });
+    }, timeoutThreshold); 
 
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
@@ -71,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const searchRepository = AppDataSource.getRepository(Cast);
         const results = await Promise.race([
             searchRepository.query(query, vars),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), 19000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), timeoutThreshold))
         ]);
         const queryEnd = process.hrtime(queryStart);
         const totalEnd = process.hrtime(start);
@@ -82,10 +85,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log('Search results:', results.length)
 
         clearTimeout(timeout); // Clear the timeout if the request completes in time
-        res.status(200).json(results);
+        res.status(200).json({ results });
     } catch (error) {
         clearTimeout(timeout); // Clear the timeout if the request completes in time
         console.log('error in search', error);
-        res.status(500).json({ error: `Failed to fetch search results: ${error?.message || error}` });
+        res.status(500).json({ error: `Failed to fetch search results: ${error?.message || error}`, results: [] });
     }
 }
