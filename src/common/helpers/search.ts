@@ -61,17 +61,22 @@ const getSearchUrl = ({
     return url;
 };
 
-export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<RawSearchResult[]> => {
+export type SearchResponse = {
+    results?: RawSearchResult[];
+    error: string;
+    isTimeout: boolean;
+};
+
+export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<SearchResponse> => {
     try {
         const searchUrl = getSearchUrl(params);
         const response = await fetch(searchUrl);
         const data = await response.json();
-        if (!data || data?.error) return [];
-
+        console.log('searchResponseData', data)
         return data;
     } catch (error) {
         console.error("Failed to search for text", params.searchTerm, error);
-        return [];
+        return { error: error as unknown as string, isTimeout: false };
     }
 };
 
