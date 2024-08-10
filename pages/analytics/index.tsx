@@ -19,7 +19,45 @@ import ClickToCopyText from "@/common/components/ClickToCopyText";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 
-export default function AnalyticsPage() {
+import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
+import Head from "next/head";
+import {
+  fetchMetadata,
+  metadataToMetaTags,
+} from "frames.js/next/pages-router/client";
+
+export const getServerSideProps = async function getServerSideProps({
+  req,
+  res,
+  query,
+  params,
+}) {
+  console.log("analytics getServerSideProps", query);
+  const queryString = query
+    ? Object.keys(query)
+        .map((key) => key + "=" + query[key])
+        .join("&")
+    : "";
+  return {
+    props: {
+      title: "herocast - Analytics",
+      metadata: await fetchMetadata(
+        new URL(
+          `/api/frames/analytics${queryString ? `?${queryString}` : ""}`,
+          process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : "http://localhost:3000"
+        )
+      ),
+    },
+  };
+} satisfies GetServerSideProps<{
+  metadata: Awaited<ReturnType<typeof fetchMetadata>>;
+}>;
+
+export default function AnalyticsPage({
+  metadata,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { user } = useAuth();
 
   const router = useRouter();
@@ -200,9 +238,12 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="w-full m-8 space-y-8">
-      {renderHeader()}
-      {renderContent()}
-    </div>
+    <>
+      <Head>{metadataToMetaTags(metadata)}</Head>
+      <div className="w-full m-8 space-y-8">
+        {renderHeader()}
+        {renderContent()}
+      </div>
+    </>
   );
 }

@@ -90,6 +90,7 @@
     "date-fns": "^3.6.0",
     "esbuild": "^0.19.8",
     "focus-trap-react": "^10.2.1",
+    "frames.js": "^0.18.1",
     "fuse.js": "^7.0.0",
     "google-protobuf": "^3.21.2",
     "imgur": "^2.4.2",

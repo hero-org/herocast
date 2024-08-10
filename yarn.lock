@@ -9344,6 +9344,16 @@ frames.js@^0.17.0:
     protobufjs "^7.2.6"
     viem "^2.7.8"
 
+frames.js@^0.18.1:
+  version "0.18.1"
+  resolved "https://registry.yarnpkg.com/frames.js/-/frames.js-0.18.1.tgz#35db68fa482242c9d2724940b4301da029e3abfd"
+  integrity sha512-4IFisYMLnu7Adogp6jZSgQF6OtJSA6nmIHUS2Vb4eMqusM3EwqrRQSneW5gU2S6D4UP9UTHWVFqUNOnRtkKusg==
+  dependencies:
+    "@vercel/og" "^0.6.2"
+    cheerio "^1.0.0-rc.12"
+    protobufjs "^7.2.6"
+    viem "^2.7.8"
+
 fs-extra@10.1.0, fs-extra@^10.0.0:
   version "10.1.0"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-10.1.0.tgz#02873cfbc4084dde127eaa5f9905eef2325d1abf"
