@@ -10,69 +10,69 @@ import SearchesOverview from "./SearchesOverview";
 import ListsOverview from "./ListsOverview";
 
 type RightSidebarProps = {
-  showChannels?: boolean;
-  showSearches?: boolean;
-  showAuthorInfo?: boolean;
-  showLists?: boolean;
+    showChannels?: boolean;
+    showSearches?: boolean;
+    showAuthorInfo?: boolean;
+    showLists?: boolean;
 };
 
 const RightSidebar = ({
-  showChannels,
-  showSearches,
-  showLists,
-  showAuthorInfo,
+    showChannels,
+    showSearches,
+    showLists,
+    showAuthorInfo,
 }: RightSidebarProps) => {
-  const router = useRouter();
+    const router = useRouter();
 
-  const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
-  const { selectedCast } = useDataStore();
-  const selectedAccount = accounts[selectedAccountIdx];
+    const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
+    const { selectedCast } = useDataStore();
+    const selectedAccount = accounts[selectedAccountIdx];
 
-  const hasAccounts = !isEmpty(accounts);
+    const hasAccounts = !isEmpty(accounts);
 
-  const renderEmptyState = () => (
-    <div className="ml-6">
-      <EmptyStateWithAction
-        title="Connect Farcaster accounts"
-        description="Get started with herocast"
-        onClick={() => router.push("/accounts")}
-        submitText="Connect account"
-      />
-    </div>
-  );
+    const renderEmptyState = () => (
+        <div className="ml-6">
+            <EmptyStateWithAction
+                title="Connect Farcaster accounts"
+                description="Get started with herocast"
+                onClick={() => router.push("/accounts")}
+                submitText="Connect account"
+            />
+        </div>
+    );
 
-  const renderAuthorInfo = () => {
-    if (!showAuthorInfo || !selectedCast) return null;
+    const renderAuthorInfo = () => {
+        if (!showAuthorInfo || !selectedCast) return null;
+
+        return (
+            <div className="pt-16 mx-4">
+                <ProfileInfo
+                    fid={selectedCast.author.fid}
+                    viewerFid={Number(selectedAccount.platformAccountId)}
+                    showFullInfo
+                />
+            </div>
+        );
+    };
 
     return (
-      <div className="pt-16 mx-4">
-        <ProfileInfo
-          fid={selectedCast.author.fid}
-          viewerFid={Number(selectedAccount.platformAccountId)}
-          showFullInfo
-        />
-      </div>
+        <aside
+            style={{
+                msOverflowStyle: "none",
+                scrollbarWidth: "none",
+                WebkitScrollbar: "none",
+            }}
+            className="h-screen sticky top-0 bg-muted/40  w-full md:border-l md:border-foreground/5 overflow-y-auto"
+        >
+            <div>
+                {isHydrated && renderAuthorInfo()}
+                {isHydrated && !hasAccounts && renderEmptyState()}
+                {showChannels && <ChannelsOverview />}
+                {showLists && <ListsOverview />}
+                {showSearches && <SearchesOverview />}
+            </div>
+        </aside>
     );
-  };
-
-  return (
-    <aside
-      style={{
-        msOverflowStyle: "none",
-        scrollbarWidth: "none",
-        WebkitScrollbar: "none",
-      }}
-      className="min-h-full h-full bg-muted/40 md:fixed md:bottom-0 md:right-0 md:w-48 lg:w-64 md:border-l md:border-foreground/5 overflow-y-auto"
-    >
-      <div>
-        {isHydrated && renderAuthorInfo()}
-        {isHydrated && !hasAccounts && renderEmptyState()}
-        {showChannels && <ChannelsOverview />}
-        {showLists && <ListsOverview />}
-        {showSearches && <SearchesOverview />}
-      </div>
-    </aside>
-  );
 };
 
 export default RightSidebar;
