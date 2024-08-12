@@ -200,7 +200,7 @@ export default function AnalyticsPage() {
           <h2 className="text-2xl font-bold">Top casts</h2>
         </div>
         {analyticsData.casts && (
-          <CastReactionsTable rawCasts={analyticsData.casts} />
+          <CastReactionsTable rawCasts={analyticsData.topCasts} />
         )}
       </>
     );
