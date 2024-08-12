@@ -29,6 +29,13 @@
             "safari 13"
         ]
     },
+    "prettier": {
+        "singleQuote": false,
+        "trailingComma": "es5",
+        "printWidth": 120,
+        "tabWidth": 4,
+        "semi": true
+    },
     "dependencies": {
         "@airstack/node": "^0.0.7",
         "@emotion/react": "11",
