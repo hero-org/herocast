@@ -209,9 +209,9 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
                 statIdx % 2 === 1
                   ? "sm:border-l"
                   : statIdx === 2
-                  ? "lg:border-l"
-                  : "",
-                "border-t border-white/5 py-6 px-4 sm:px-3 lg:px-4"
+                    ? "lg:border-l"
+                    : "",
+                "border-t border-white/5 py-6 px-4 sm:px-3 lg:px-4",
               )}
             >
               <p className="text-sm font-medium leading-6 text-foreground/70">

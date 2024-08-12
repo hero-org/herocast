@@ -41,12 +41,12 @@ export default function ConversationPage() {
 
       try {
         const neynarClient = new NeynarAPIClient(
-          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
         );
         const payload = getPayloadFromSlug();
         const res = await neynarClient.lookUpCastByHashOrWarpcastUrl(
           payload.value,
-          payload.type
+          payload.type,
         );
         if (res && res.cast) {
           setCast(res.cast);

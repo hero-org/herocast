@@ -94,7 +94,7 @@ const ParagraphXyzEmbed: React.FC<ParagraphXyzEmbedProps> = ({ url }) => {
                 <div className="flex flex-row space-x-2">
                   posting since{" "}
                   {new Date(
-                    Number(data.publication.createdAt)
+                    Number(data.publication.createdAt),
                   ).toLocaleDateString()}
                 </div>
               </div>

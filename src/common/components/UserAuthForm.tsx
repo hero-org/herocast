@@ -219,25 +219,25 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
   const localAccounts = accounts.filter(
     (account) =>
-      account.platform === AccountPlatformType.farcaster_local_readonly
+      account.platform === AccountPlatformType.farcaster_local_readonly,
   );
 
   const setupLocalAccount = async ({ fid, username }) => {
     if (!fid || !username) return;
 
     const hasLocalAccountCreated = localAccounts.some(
-      (a) => a.platformAccountId === fid.toString()
+      (a) => a.platformAccountId === fid.toString(),
     );
     setIsLoading(true);
     let account;
     if (hasLocalAccountCreated) {
       account = localAccounts.find(
-        (a) => a.platformAccountId === fid.toString()
+        (a) => a.platformAccountId === fid.toString(),
       );
     } else {
       setUserMessage("Setting up local account...");
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
 
       const users = (
@@ -297,7 +297,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     const buttonMustBeValid = includes(
       [ViewState.SIGNUP, ViewState.LOGIN],
-      view
+      view,
     );
     return (
       <Button
@@ -473,34 +473,36 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           </div>
         </form>
       </Form>
-      {hasSignInWithFarcaster && !signupOnly && view !== ViewState.LOGGED_IN && (
-        <>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+      {hasSignInWithFarcaster &&
+        !signupOnly &&
+        view !== ViewState.LOGGED_IN && (
+          <>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col space-y-4 items-center justify-center text-white">
-            {!isAuthenticated ? (
-              <>
-                <SignInButton hideSignOut />
-                <span className="text-center text-sm text-foreground">
-                  Sign in with Farcaster for read-only access
-                </span>
-              </>
-            ) : (
-              <Button
-                type="button"
-                size="lg"
-                className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
-                disabled
-              >
-                Signed in with Farcaster ☑️
-              </Button>
-            )}
-          </div>
-        </>
-      )}
+            <div className="flex flex-col space-y-4 items-center justify-center text-white">
+              {!isAuthenticated ? (
+                <>
+                  <SignInButton hideSignOut />
+                  <span className="text-center text-sm text-foreground">
+                    Sign in with Farcaster for read-only access
+                  </span>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  size="lg"
+                  className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
+                  disabled
+                >
+                  Signed in with Farcaster ☑️
+                </Button>
+              )}
+            </div>
+          </>
+        )}
     </div>
   );
 }

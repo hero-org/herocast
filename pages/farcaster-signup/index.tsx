@@ -7,7 +7,11 @@ import CreateFarcasterAccount from "@/common/components/CreateFarcasterAccount";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
 import SwitchWalletButton from "@/common/components/SwitchWalletButton";
-import { CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from "@/stores/useAccountStore";
+import {
+  CUSTOM_CHANNELS,
+  hydrateAccounts,
+  useAccountStore,
+} from "@/stores/useAccountStore";
 import { SidebarNavItem } from "@/common/components/Steps/SidebarNav";
 import { getFidForAddress } from "@/common/helpers/farcaster";
 
@@ -50,8 +54,8 @@ const onboardingNavItems: SidebarNavItem[] = [
 export default function Welcome() {
   const { isConnected, address } = useAccount();
   const [step, setStep] = useState<FarcasterSignupNav>(
-    FarcasterSignupNav.connect_wallet
-  );  
+    FarcasterSignupNav.connect_wallet,
+  );
   const { setSelectedChannelUrl } = useAccountStore();
 
   const [isAddressValid, setIsAddressValid] = useState<boolean>(false);
@@ -75,7 +79,7 @@ export default function Welcome() {
   const getStepContent = (
     title: string,
     description: string,
-    children?: ReactNode
+    children?: ReactNode,
   ) => (
     <div className="space-y-6">
       <div>
@@ -100,7 +104,7 @@ export default function Welcome() {
     const fid = await getFidForAddress(address);
     if (fid) {
       setError(
-        `Wallet ${address} already has a registered FID: ${fid}. Please connect to another wallet that is not registered to an account to continue.`
+        `Wallet ${address} already has a registered FID: ${fid}. Please connect to another wallet that is not registered to an account to continue.`,
       );
       setIsAddressValid(false);
     } else {
@@ -114,10 +118,13 @@ export default function Welcome() {
         You are fully onboarded to herocast 🥳
       </h3>
       <div className="grid grid-cols-1 items-center gap-4">
-        <Button variant="default" onClick={() => {
-          setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
-          router.push("/feeds")
-        }}>
+        <Button
+          variant="default"
+          onClick={() => {
+            setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+            router.push("/feeds");
+          }}
+        >
           Start exploring
         </Button>
         <Button variant="outline" onClick={() => router.push("/post")}>
@@ -137,7 +144,7 @@ export default function Welcome() {
             <Button onClick={() => setStep(FarcasterSignupNav.connect_wallet)}>
               Next step
             </Button>
-          </div>
+          </div>,
         );
       case FarcasterSignupNav.connect_wallet:
         return getStepContent(
@@ -166,7 +173,7 @@ export default function Welcome() {
                 </p>
               </div>
             )}
-          </div>
+          </div>,
         );
       case FarcasterSignupNav.create_account_onchain:
         return getStepContent(
@@ -178,7 +185,7 @@ export default function Welcome() {
               await hydrateAccounts();
               setStep(FarcasterSignupNav.register_username);
             }}
-          />
+          />,
         );
       case FarcasterSignupNav.register_username:
         return getStepContent(
@@ -186,13 +193,13 @@ export default function Welcome() {
           "Submit name and bio of your Farcaster account",
           <RegisterFarcasterUsernameForm
             onSuccess={() => setStep(FarcasterSignupNav.explainer)}
-          />
+          />,
         );
       case FarcasterSignupNav.explainer:
         return getStepContent(
           "Let's go 🤩",
           "You just created your Farcaster account",
-          renderExplainer()
+          renderExplainer(),
         );
       default:
         return <></>;

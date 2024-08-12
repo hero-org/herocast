@@ -258,12 +258,12 @@ export const CastRow = ({
       if (isSelected) {
         onClickReaction(
           CastReactionType.likes,
-          reactions[CastReactionType.likes].isActive
+          reactions[CastReactionType.likes].isActive,
         );
       }
     },
     { enabled: isSelected },
-    [isSelected, selectedAccountIdx, authorFid, cast?.hash, reactions?.likes]
+    [isSelected, selectedAccountIdx, authorFid, cast?.hash, reactions?.likes],
   );
 
   useHotkeys(
@@ -272,16 +272,16 @@ export const CastRow = ({
       if (isSelected) {
         onClickReaction(
           CastReactionType.recasts,
-          reactions[CastReactionType.recasts].isActive
+          reactions[CastReactionType.recasts].isActive,
         );
       }
     },
     { enabled: isSelected },
-    [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions?.recasts]
+    [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions?.recasts],
   );
 
   const getChannelForParentUrl = (
-    parentUrl: string | null
+    parentUrl: string | null,
   ): ChannelType | undefined =>
     parentUrl
       ? channels.find((channel) => channel.url === parentUrl)
@@ -289,11 +289,11 @@ export const CastRow = ({
 
   const getIconForCastReactionType = (
     reactionType: CastReactionType,
-    isActive?: boolean
+    isActive?: boolean,
   ): JSX.Element | undefined => {
     const className = cn(
       isActive ? "text-foreground/70" : "",
-      "mt-0.5 w-4 h-4 mr-1"
+      "mt-0.5 w-4 h-4 mr-1",
     );
 
     switch (reactionType) {
@@ -381,7 +381,7 @@ export const CastRow = ({
     key: CastReactionType,
     isActive: boolean,
     count?: number | string,
-    icon?: JSX.Element
+    icon?: JSX.Element,
   ) => {
     return (
       <div
@@ -411,13 +411,13 @@ export const CastRow = ({
           const isActive = get(reactionInfo, "isActive", false);
           const icon = getIconForCastReactionType(
             key as CastReactionType,
-            isActive
+            isActive,
           );
           const reaction = renderReaction(
             key as CastReactionType,
             isActive,
             reactionInfo.count,
-            icon
+            icon,
           );
 
           if (key === "likes" && isSelected) {
@@ -478,7 +478,7 @@ export const CastRow = ({
                   CastReactionType.links,
                   linksCount > 1,
                   linksCount ?? undefined,
-                  getIconForCastReactionType(CastReactionType.links)
+                  getIconForCastReactionType(CastReactionType.links),
                 )}
               </a>
             </HotkeyTooltipWrapper>
@@ -494,7 +494,7 @@ export const CastRow = ({
               CastReactionType.quote,
               true,
               undefined,
-              getIconForCastReactionType(CastReactionType.quote)
+              getIconForCastReactionType(CastReactionType.quote),
             )}
           </HotkeyTooltipWrapper>
         </Tooltip.Provider>
@@ -529,7 +529,7 @@ export const CastRow = ({
           cast.embeds?.length > 1 &&
             !embedsContainsCastEmbed &&
             "grid lg:grid-cols-2 gap-4",
-          "w-full self-start"
+          "w-full self-start",
         )}
         onClick={(e) => e.preventDefault()}
       >
@@ -596,7 +596,7 @@ export const CastRow = ({
           isSelected
             ? "border-l-1 border-foreground/10"
             : "border-l-1 border-transparent",
-          "lg:ml-0 grow rounded-r-sm"
+          "lg:ml-0 grow rounded-r-sm",
         )}
       >
         {isThreadView && (

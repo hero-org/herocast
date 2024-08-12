@@ -1,6 +1,11 @@
 import get from "lodash.get";
 import { getUserDataForFidOrUsername } from "./neynar";
-import { DataStore, useDataStore, UserProfile, PROFILE_UPDATE_INTERVAL } from "@/stores/useDataStore";
+import {
+  DataStore,
+  useDataStore,
+  UserProfile,
+  PROFILE_UPDATE_INTERVAL,
+} from "@/stores/useDataStore";
 
 export const fetchAndAddUserProfile = async ({
   username,
@@ -19,7 +24,9 @@ export const fetchAndAddUserProfile = async ({
   const { addUserProfile } = useDataStore.getState();
   if (users.length) {
     for (const user of users) {
-      const response = await fetch(`/api/additionalProfileInfo?fid=${user.fid}`);
+      const response = await fetch(
+        `/api/additionalProfileInfo?fid=${user.fid}`,
+      );
       if (response.ok) {
         const userProfileInfos = await response.json();
         const enrichedUser = {
@@ -40,10 +47,10 @@ export const fetchAndAddUserProfile = async ({
 export const getProfileFetchIfNeeded = async ({
   username,
   fid,
-  viewerFid
+  viewerFid,
 }: {
   username?: string;
-  viewerFid: string
+  viewerFid: string;
   fid?: string;
 }) => {
   if (!username && !fid) {
@@ -52,21 +59,28 @@ export const getProfileFetchIfNeeded = async ({
 
   let profile = getProfile(useDataStore.getState(), username, fid);
   if (!profile) {
-    username = username && username.startsWith("@") ? username.slice(1) : username;
+    username =
+      username && username.startsWith("@") ? username.slice(1) : username;
     const results = await fetchAndAddUserProfile({
-      username, fid, viewerFid,
+      username,
+      fid,
+      viewerFid,
     });
     const matchingUsernames = [username, `${username}.eth`];
-    profile = results.find((user) =>
-      matchingUsernames.includes(user.username)
-    );
+    profile = results.find((user) => matchingUsernames.includes(user.username));
   }
   return profile;
 };
 
-export const getProfile = (dataStoreState: DataStore, username?: string, fid?: string) => {
+export const getProfile = (
+  dataStoreState: DataStore,
+  username?: string,
+  fid?: string,
+) => {
   if (username) {
-    const usernameToFid = get(dataStoreState.usernameToFid, username) || get(dataStoreState.usernameToFid, `${username}.eth`);
+    const usernameToFid =
+      get(dataStoreState.usernameToFid, username) ||
+      get(dataStoreState.usernameToFid, `${username}.eth`);
     return get(dataStoreState.fidToData, usernameToFid);
   } else if (fid) {
     return get(dataStoreState.fidToData, fid);

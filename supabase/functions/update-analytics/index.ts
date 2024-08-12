@@ -18,14 +18,14 @@ console.log("Hello from update-analytics!");
 Deno.serve(async (req) => {
   try {
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     // Fetch all existing entries in the analytics table
     const { data: analyticsData, error: fetchError } = await supabaseClient
-      .from('analytics')
-      .select('fid');
+      .from("analytics")
+      .select("fid");
 
     if (fetchError) throw fetchError;
 
@@ -36,26 +36,29 @@ Deno.serve(async (req) => {
         "create-analytics-data",
         {
           body: JSON.stringify({ fid }),
-        }
+        },
       );
 
       if (response.error) {
-        console.error(`Failed to update analytics for fid: ${fid}`, response.error);
+        console.error(
+          `Failed to update analytics for fid: ${fid}`,
+          response.error,
+        );
       } else {
         console.log(`Successfully updated analytics for fid: ${fid}`);
       }
     }
 
     return new Response(
-      JSON.stringify({ message: 'All analytics data updated successfully' }),
+      JSON.stringify({ message: "All analytics data updated successfully" }),
       { headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error(error);
-    return new Response(
-      JSON.stringify({ error: 'Internal Server Error' }),
-      { headers: { "Content-Type": "application/json" }, status: 500 }
-    );
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+      headers: { "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
 

@@ -110,7 +110,7 @@ export function PaymentSelector({
               />
               {`${paymentOption.currencyName} on ${getChain(
                 paymentOption.paymentCurrency.split("/")[0],
-                "name"
+                "name",
               )}`}
               <span className="ml-1 text-[0.8rem] text-muted-foreground">
                 ({`${paymentOption.balance} ${paymentOption.currencySymbol}`})
@@ -148,11 +148,11 @@ export function PaymentSelector({
                   />
                   {`${option.currencyName} on ${getChain(
                     option.paymentCurrency.split("/")[0],
-                    "name"
+                    "name",
                   )}`}
                   <span className="ml-1 text-[0.8rem] text-muted-foreground">
                     {`${option.balance} ${option.currencySymbol} (~$${Number(
-                      option.balanceUSD
+                      option.balanceUSD,
                     ).toFixed(2)})`}
                   </span>
                   {paymentOption && (
@@ -163,7 +163,7 @@ export function PaymentSelector({
                           paymentOption.paymentCurrency ===
                             option.paymentCurrency
                             ? "opacity-100"
-                            : "opacity-0"
+                            : "opacity-0",
                         )}
                       />
                     </CommandShortcut>

@@ -169,13 +169,13 @@ function Plan({
           "flex flex-col overflow-hidden rounded-3xl p-6",
           featured
             ? "order-first bg-[#0B0B0B] lg:order-none shadow-xl shadow-gray-300 hover:shadow-gray-400 hover:shadow-2xl transition-shadow duration-100"
-            : "bg-white shadow-lg shadow-gray-900/5"
+            : "bg-white shadow-lg shadow-gray-900/5",
         )}
       >
         <h3
           className={cn(
             "flex items-center text-sm font-semibold",
-            featured ? "text-white" : "text-foreground"
+            featured ? "text-white" : "text-foreground",
           )}
         >
           <Logomark className={cn("h-6 w-6 flex-none", logomarkClassName)} />
@@ -184,7 +184,7 @@ function Plan({
         <p
           className={cn(
             "relative mt-5 flex text-3xl tracking-tight",
-            featured ? "text-white" : "text-foreground"
+            featured ? "text-white" : "text-foreground",
           )}
         >
           {price.Monthly === price.Biannually ? (
@@ -196,7 +196,7 @@ function Plan({
                 className={cn(
                   "transition duration-300",
                   activePeriod === "Biannually" &&
-                    "pointer-events-none translate-x-6 select-none opacity-0"
+                    "pointer-events-none translate-x-6 select-none opacity-0",
                 )}
               >
                 {price.Monthly}
@@ -206,7 +206,7 @@ function Plan({
                 className={cn(
                   "absolute left-0 top-0 transition duration-300",
                   activePeriod === "Monthly" &&
-                    "pointer-events-none -translate-x-6 select-none opacity-0"
+                    "pointer-events-none -translate-x-6 select-none opacity-0",
                 )}
               >
                 {price.Biannually}
@@ -217,7 +217,7 @@ function Plan({
         <p
           className={cn(
             "mt-3 text-sm",
-            featured ? "text-gray-300" : "text-gray-700"
+            featured ? "text-gray-300" : "text-gray-700",
           )}
         >
           {description}
@@ -229,7 +229,7 @@ function Plan({
               "-my-2 divide-y text-sm",
               featured
                 ? "divide-gray-800 text-gray-300"
-                : "divide-gray-200 text-gray-700"
+                : "divide-gray-200 text-gray-700",
             )}
           >
             {features.map((feature) => (
@@ -237,7 +237,7 @@ function Plan({
                 <CheckIcon
                   className={cn(
                     "h-6 w-6 flex-none",
-                    featured ? "text-white" : "text-gray-800"
+                    featured ? "text-white" : "text-gray-800",
                   )}
                 />
                 <span className="ml-4">{feature}</span>
@@ -261,7 +261,7 @@ function Plan({
 
 export function Pricing() {
   const [activePeriod, setActivePeriod] = useState<"Monthly" | "Biannually">(
-    "Biannually"
+    "Biannually",
   );
 
   return (
@@ -282,7 +282,7 @@ export function Pricing() {
                     "cursor-pointer border border-gray-300 px-[calc(theme(spacing.3)-1px)] py-[calc(theme(spacing.2)-1px)] text-sm text-gray-700 outline-2 outline-offset-2 transition-colors hover:border-gray-400",
                     period === "Monthly"
                       ? "rounded-l-lg"
-                      : "-ml-px rounded-r-lg"
+                      : "-ml-px rounded-r-lg",
                   )}
                 >
                   {period}
@@ -295,7 +295,7 @@ export function Pricing() {
                 "pointer-events-none absolute inset-0 z-5 grid grid-cols-2 overflow-hidden rounded-lg bg-gray-900 transition-all duration-300",
                 activePeriod === "Monthly"
                   ? "[clip-path:inset(0_50%_0_0)]"
-                  : "[clip-path:inset(0_0_0_calc(50%-1px))]"
+                  : "[clip-path:inset(0_0_0_calc(50%-1px))]",
               )}
             >
               {["Monthly", "Biannually"].map((period) => (
@@ -303,7 +303,7 @@ export function Pricing() {
                   key={period}
                   className={cn(
                     "py-2 text-center text-sm font-semibold text-white",
-                    period === "Biannually" && "-ml-px"
+                    period === "Biannually" && "-ml-px",
                   )}
                 >
                   {period}

@@ -33,7 +33,7 @@ const AccountManagementModal = ({
         You can&apos;t manage this account yet
         <br />
         <Button
-        className="mt-4"
+          className="mt-4"
           variant="outline"
           onClick={() => router.push("/login?signupOnly=true")}
         >
@@ -44,7 +44,7 @@ const AccountManagementModal = ({
   );
 
   const renderEditableAccountContent = () => (
-    <AccountManagement account={account} onSuccess={() => setOpen(false)}/>
+    <AccountManagement account={account} onSuccess={() => setOpen(false)} />
   );
 
   return (

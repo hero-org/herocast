@@ -76,12 +76,12 @@ const RenameAccountForm = ({
   useEffect(() => {
     const getUserInProtocol = async () => {
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       const user = (
         await neynarClient.fetchBulkUsers(
           [Number(account.platformAccountId!)],
-          { viewerFid: APP_FID }
+          { viewerFid: APP_FID },
         )
       )?.users?.[0];
       if (user) {
@@ -118,11 +118,11 @@ const RenameAccountForm = ({
           return true;
         } else {
           const neynarClient = new NeynarAPIClient(
-            process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+            process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
           );
           const walletsResponse = await neynarClient.fetchBulkUsers(
             [Number(account.platformAccountId)],
-            { viewerFid: APP_FID }
+            { viewerFid: APP_FID },
           );
           const custodyAddress = walletsResponse?.users?.[0]?.custody_address;
           const message = `Your connected wallet does not own the Farcaster account. Please connect with ${custodyAddress}. You are connected with ${address}`;
@@ -160,7 +160,7 @@ const RenameAccountForm = ({
     try {
       const owner = getAddress(address);
       const existingOffchainUsername = await getUsernameForFid(
-        Number(account.platformAccountId!)
+        Number(account.platformAccountId!),
       );
       console.log("offchain username", existingOffchainUsername);
       if (existingOffchainUsername) {
@@ -171,7 +171,7 @@ const RenameAccountForm = ({
             name: existingOffchainUsername,
             owner,
             timestamp: BigInt(timestamp),
-          }
+          },
         );
         console.log("unregisterSignature:", unregisterSignature);
         if (!unregisterSignature) {
@@ -199,7 +199,7 @@ const RenameAccountForm = ({
           name: username,
           owner,
           timestamp: BigInt(timestamp),
-        }
+        },
       );
       if (!registerSignature) {
         throw new Error("Failed to get signature to register username");
@@ -222,7 +222,7 @@ const RenameAccountForm = ({
         account.privateKey!,
         Number(account.platformAccountId!),
         UserDataType.USERNAME,
-        username
+        username,
       );
       updateAccountUsername(account.id);
     } catch (e) {

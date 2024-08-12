@@ -96,7 +96,7 @@ const ConfirmOnchainSignerButton = ({
     return getSignedKeyRequestMetadataFromAppAccount(
       chainId,
       account.publicKey,
-      deadline
+      deadline,
     );
   }, [account, deadline]);
 
@@ -113,7 +113,7 @@ const ConfirmOnchainSignerButton = ({
       if (!isAddKeyTxLoading || !isWalletOwnerOfFid) return;
 
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       const user = (
         await neynarClient.fetchBulkUsers([Number(idOfUser)], {
@@ -140,7 +140,7 @@ const ConfirmOnchainSignerButton = ({
     "addKeySignPending",
     addKeySignPending,
     "addKeyError",
-    addKeyError
+    addKeyError,
   );
 
   const onClick = async () => {
@@ -203,7 +203,12 @@ const ConfirmOnchainSignerButton = ({
         variant="default"
         className="w-full"
         onClick={() => onClick()}
-        disabled={!enabled || (isConnectedToOptimism && !isWalletOwnerOfFid) || isAddKeyTxSuccess || isError}
+        disabled={
+          !enabled ||
+          (isConnectedToOptimism && !isWalletOwnerOfFid) ||
+          isAddKeyTxSuccess ||
+          isError
+        }
       >
         {getButtonText()}
         {isAddKeyTxLoading && (

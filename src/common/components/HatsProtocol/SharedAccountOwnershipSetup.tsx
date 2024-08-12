@@ -30,7 +30,7 @@ export const SharedAccountOwnershipSetup = ({
   casterHatId,
 }: SharedAccountOwnershipSetupProps) => {
   const [state, setState] = useState<OwnershipSetupSteps>(
-    defaultStep || OwnershipSetupSteps.unknown
+    defaultStep || OwnershipSetupSteps.unknown,
   );
 
   useEffect(() => {
@@ -72,12 +72,12 @@ export const SharedAccountOwnershipSetup = ({
   const renderExistingTreeStep = () => (
     <div className="flex flex-col space-x-2 lg:flex-row lg:space-x-8">
       <div className="lg:w-1/2">
-      <DeployHatsDelegatorContract
-        adminHatId={adminHatId}
-        casterHatId={casterHatId}
-        onSuccess={onSuccess}
-        delegatorContractAddress={delegatorContractAddress}
-        setDelegatorContractAddress={setDelegatorContractAddress}
+        <DeployHatsDelegatorContract
+          adminHatId={adminHatId}
+          casterHatId={casterHatId}
+          onSuccess={onSuccess}
+          delegatorContractAddress={delegatorContractAddress}
+          setDelegatorContractAddress={setDelegatorContractAddress}
         />
       </div>
       <div className="mt-4 lg:w-1/2 lg:mt-0">

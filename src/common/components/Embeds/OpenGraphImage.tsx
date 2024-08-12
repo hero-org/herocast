@@ -34,7 +34,7 @@ const OpenGraphImage = ({ url }: { url: string }) => {
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
       const metadata = await request.json();
       setMetadata(metadata[url]);
@@ -51,13 +51,13 @@ const OpenGraphImage = ({ url }: { url: string }) => {
     <div onClick={() => openWindow(url)} className="cursor-pointer">
       <Card className="rounded-sm">
         <CardHeader>
-        {metadata?.image && metadata?.image?.url && (
-          <img
-            className="h-full object-cover max-h-48 rounded-md"
-            src={metadata.image.url}
-            alt={metadata.title}
-          />
-        )}
+          {metadata?.image && metadata?.image?.url && (
+            <img
+              className="h-full object-cover max-h-48 rounded-md"
+              src={metadata.image.url}
+              alt={metadata.title}
+            />
+          )}
           <CardTitle>{metadata.title}</CardTitle>
           <CardDescription>{metadata.description}</CardDescription>
         </CardHeader>

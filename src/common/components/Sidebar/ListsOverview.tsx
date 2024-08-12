@@ -75,7 +75,7 @@ const ListsOverview = () => {
             isSelected
               ? "text-foreground font-semibold"
               : "text-foreground/80 hover:text-foreground/80",
-            "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
+            "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer",
           )}
         >
           <span className="flex-nowrap truncate">{list.name}</span>

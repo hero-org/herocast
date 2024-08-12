@@ -45,12 +45,12 @@ const ConnectAccountPage = () => {
   const pendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.pending &&
-      account.platform === AccountPlatformType.farcaster
+      account.platform === AccountPlatformType.farcaster,
   );
   const pendingAccount = pendingAccounts?.[0];
 
   const checkStatusAndActiveAccount = async (
-    pendingAccount: AccountObjectType
+    pendingAccount: AccountObjectType,
   ) => {
     if (!pendingAccount?.data?.signerToken) return;
 
@@ -61,12 +61,12 @@ const ConnectAccountPage = () => {
     }
 
     const { status, data } = await getWarpcastSignerStatus(
-      pendingAccount.data.signerToken
+      pendingAccount.data.signerToken,
     );
     if (status === WarpcastLoginStatus.success) {
       const fid = data.userFid;
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       const user = (
         await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID! })
@@ -76,7 +76,7 @@ const ConnectAccountPage = () => {
         data,
       });
       await hydrateAccounts();
-      router.push('/welcome/success')
+      router.push("/welcome/success");
     }
   };
 

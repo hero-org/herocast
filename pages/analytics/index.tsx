@@ -28,7 +28,7 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [fidToAnalytics, setAnalyticsData] = useState<FidToAnalyticsData>({});
   const selectedAccount = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
+    (state) => state.accounts[state.selectedAccountIdx],
   );
   const { accounts } = useAccountStore();
 
@@ -72,7 +72,7 @@ export default function AnalyticsPage() {
           "create-analytics-data",
           {
             body: JSON.stringify({ fid }),
-          }
+          },
         );
         if (error) {
           console.error("Error invoking create-analytics-data:", error);

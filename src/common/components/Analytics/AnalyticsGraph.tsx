@@ -33,7 +33,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
 
     const sortedAggregated = [...aggregated].sort(
       (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
 
     return sortedAggregated.map((item) => ({

@@ -45,7 +45,7 @@ export const CastThreadView = ({
 
   const renderGoBackButton = () => (
     <Button
-    size="sm"
+      size="sm"
       variant="outline"
       onClick={() => onBack && onBack()}
       className="w-16 group my-2"
@@ -70,21 +70,21 @@ export const CastThreadView = ({
       if (!threadHash) return;
 
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       try {
         const { conversation } = await neynarClient.lookupCastConversation(
           threadHash,
           CastParamType.Hash,
-          { replyDepth: 1, includeChronologicalParentCasts: true }
+          { replyDepth: 1, includeChronologicalParentCasts: true },
         );
         if (conversation?.cast?.direct_replies) {
           const { direct_replies: replies, ...castObjectWithoutReplies } =
             conversation.cast;
           setCasts(
             (conversation.chronological_parent_casts || []).concat(
-              [castObjectWithoutReplies].concat(replies)
-            )
+              [castObjectWithoutReplies].concat(replies),
+            ),
           );
         }
       } catch (err) {
@@ -112,7 +112,7 @@ export const CastThreadView = ({
           <div
             className={cn(
               idx === 0 ? "-ml-[27px]" : "border-l-2",
-              "relative flex items-start border-muted"
+              "relative flex items-start border-muted",
             )}
           >
             <div className="min-w-0 flex-1">
@@ -122,7 +122,7 @@ export const CastThreadView = ({
                     isRowSelected
                       ? "bg-muted-foreground/50"
                       : "bg-foreground/10",
-                    "absolute top-8 left-[31px] h-[calc(100%-32px)] w-0.5"
+                    "absolute top-8 left-[31px] h-[calc(100%-32px)] w-0.5",
                   )}
                 />
               )}

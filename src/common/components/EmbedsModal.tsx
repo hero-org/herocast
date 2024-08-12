@@ -40,7 +40,7 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
             idx === selectedIdx
               ? "bg-gray-500 text-foreground/80"
               : "text-foreground/70",
-            "cursor-pointer flex text-sm hover:text-foreground/80 hover:bg-gray-500 py-1 px-1.5"
+            "cursor-pointer flex text-sm hover:text-foreground/80 hover:bg-gray-500 py-1 px-1.5",
           )}
         >
           {item.url}
@@ -49,7 +49,10 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
     );
   };
 
-  const urls = uniqBy(cast?.embeds.concat(getUrlsInText(cast.text)), "url") as UrlObject[];
+  const urls = uniqBy(
+    cast?.embeds.concat(getUrlsInText(cast.text)),
+    "url",
+  ) as UrlObject[];
 
   const onSelect = (idx: number) => {
     openWindow(urls[idx].url);

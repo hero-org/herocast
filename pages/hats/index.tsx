@@ -16,7 +16,9 @@ import SwitchWalletButton from "@/common/components/SwitchWalletButton";
 import { Loading } from "@/common/components/Loading";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
-import SharedAccountOwnershipSetup, { OwnershipSetupSteps } from "@/common/components/HatsProtocol/SharedAccountOwnershipSetup";
+import SharedAccountOwnershipSetup, {
+  OwnershipSetupSteps,
+} from "@/common/components/HatsProtocol/SharedAccountOwnershipSetup";
 import { useHotkeys } from "react-hotkeys-hook";
 
 enum HatsSignupNav {
@@ -82,7 +84,7 @@ export default function HatsProtocolPage() {
 
   const getUserByFid = async (fid: number): Promise<User | undefined> => {
     const neynarClient = new NeynarAPIClient(
-      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
     );
     const viewerFid = Number(APP_FID);
     const res = await neynarClient.fetchBulkUsers([fid], {
@@ -97,7 +99,7 @@ export default function HatsProtocolPage() {
     setIsLoadingAccount(true);
     try {
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
 
       const viewerFid = Number(APP_FID);
@@ -112,7 +114,7 @@ export default function HatsProtocolPage() {
         try {
           const userByUsername = await neynarClient.lookupUserByUsername(
             userSearchTerm,
-            viewerFid
+            viewerFid,
           );
           if (userByUsername?.result?.user) {
             user = convertToV2User(userByUsername.result.user);
@@ -139,11 +141,10 @@ export default function HatsProtocolPage() {
     enableOnFormTags: true,
   });
 
-
   const getStepContent = (
     title: string,
     description: ReactNode | string,
-    children?: ReactNode
+    children?: ReactNode,
   ) => (
     <div className="space-y-6">
       <div>
@@ -230,7 +231,7 @@ export default function HatsProtocolPage() {
         >
           Continue
         </Button>
-      </div>
+      </div>,
     );
   };
 
@@ -254,9 +255,9 @@ export default function HatsProtocolPage() {
               {shareWithOthersText}
             </p>
           </div>
-            <Label>
-              Share this to invite other users to join your shared account
-            </Label>
+          <Label>
+            Share this to invite other users to join your shared account
+          </Label>
         </div>
       </div>
     );
@@ -289,7 +290,7 @@ export default function HatsProtocolPage() {
                 },
               ]}
             />
-          </div>
+          </div>,
         );
       case HatsSignupNav.create_hats_tree:
         return getStepContent(
@@ -308,12 +309,12 @@ export default function HatsProtocolPage() {
                 setAdminHatId(adminHatId);
                 setCasterHatId(casterHatId);
                 setSharedAccountOwnershipDefaultStep(
-                  OwnershipSetupSteps.existing_tree
+                  OwnershipSetupSteps.existing_tree,
                 );
                 setStep(HatsSignupNav.account_ownership);
               }}
             />
-          </div>
+          </div>,
         );
       case HatsSignupNav.account_ownership:
         return getStepContent(
@@ -329,7 +330,7 @@ export default function HatsProtocolPage() {
               adminHatId={adminHatId}
               casterHatId={casterHatId}
             />
-          </div>
+          </div>,
         );
       case HatsSignupNav.transfer_ownership:
         return getStepContent(
@@ -342,13 +343,13 @@ export default function HatsProtocolPage() {
               onSuccess={() => setStep(HatsSignupNav.invite)}
               toAddress={delegatorContractAddress!}
             />
-          </div>
+          </div>,
         );
       case HatsSignupNav.invite:
         return getStepContent(
           "Invite others",
           "Let other users join your shared account",
-          renderInvite()
+          renderInvite(),
         );
       default:
         return null;

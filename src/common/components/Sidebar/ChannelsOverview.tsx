@@ -10,7 +10,7 @@ const ChannelsOverview = () => {
     useAccountStore();
 
   let channels: ChannelType[] = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]?.channels
+    (state) => state.accounts[state.selectedAccountIdx]?.channels,
   );
   if (!channels) channels = [];
 
@@ -31,7 +31,7 @@ const ChannelsOverview = () => {
             selectedChannelUrl === url
               ? "text-foreground font-semibold"
               : "text-foreground/70 hover:text-foreground",
-            "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
+            "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer",
           )}
         >
           <span className="flex-nowrap truncate">{name}</span>
@@ -62,7 +62,7 @@ const ChannelsOverview = () => {
                 selectedChannelUrl === channel.url
                   ? "text-foreground font-semibold"
                   : "text-foreground/70 hover:text-foreground",
-                "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
+                "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer",
               )}
             >
               <div className="flex max-w-sm">
@@ -74,7 +74,7 @@ const ChannelsOverview = () => {
                       selectedChannelUrl === channel.url
                         ? "border-gray-100"
                         : "border-gray-400 hover:border-gray-300",
-                      "mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+                      "mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full",
                     )}
                   />
                 )}

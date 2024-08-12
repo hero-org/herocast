@@ -30,7 +30,9 @@ const ProfileHoverCard = ({
   children,
   className,
 }: ProfileHoverCardProps) => {
-  const profile = useDataStore((state) => getProfile(state, username, fid?.toString()));
+  const profile = useDataStore((state) =>
+    getProfile(state, username, fid?.toString()),
+  );
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
@@ -40,8 +42,9 @@ const ProfileHoverCard = ({
 
   useEffect(() => {
     if (!inView) return;
-    
-    const effectiveViewerFid = viewerFid || Number(process.env.NEXT_PUBLIC_APP_FID!);
+
+    const effectiveViewerFid =
+      viewerFid || Number(process.env.NEXT_PUBLIC_APP_FID!);
 
     if (shouldUpdateProfile(profile)) {
       fetchAndAddUserProfile({ username, fid, viewerFid: effectiveViewerFid });

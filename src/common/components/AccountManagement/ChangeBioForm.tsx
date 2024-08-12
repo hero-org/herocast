@@ -49,12 +49,12 @@ const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
   useEffect(() => {
     const getUserInProtocol = async () => {
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       const user = (
         await neynarClient.fetchBulkUsers(
           [Number(account.platformAccountId!)],
-          { viewerFid: APP_FID }
+          { viewerFid: APP_FID },
         )
       ).users[0];
       if (user) {
@@ -87,7 +87,7 @@ const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
         account.privateKey!,
         Number(account.platformAccountId!),
         UserDataType.BIO,
-        bio
+        bio,
       );
       toast.success("Bio changed successfully", {
         duration: 5000,

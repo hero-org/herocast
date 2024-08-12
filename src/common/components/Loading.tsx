@@ -13,12 +13,22 @@ export const Loading = ({
   loadingMessage = "Loading",
 }: LoadingProps) =>
   isInline ? (
-    <span className={clsx(className, "my-4 whitespace-nowrap font-semibold text-foreground")}>
+    <span
+      className={clsx(
+        className,
+        "my-4 whitespace-nowrap font-semibold text-foreground",
+      )}
+    >
       {loadingMessage}
       <span className="animate-pulse">...</span>
     </span>
   ) : (
-    <p className={clsx(className, "my-4 whitespace-nowrap font-semibold text-foreground")}>
+    <p
+      className={clsx(
+        className,
+        "my-4 whitespace-nowrap font-semibold text-foreground",
+      )}
+    >
       {loadingMessage}
       <span className="animate-pulse">...</span>
     </p>

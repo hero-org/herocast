@@ -133,7 +133,7 @@ const TransferAccountToHatsDelegator = ({
 }) => {
   const { address, isConnected } = useAccount();
   const [step, setStep] = useState<TransferAccountToHatsDelegatorStepType>(
-    TransferAccountToHatsDelegatorSteps[0]
+    TransferAccountToHatsDelegatorSteps[0],
   );
   const [errorMessage, setErrorMessage] = useState("");
   const [signature, setSignature] = useState<`0x${string}`>("0x");
@@ -188,7 +188,7 @@ const TransferAccountToHatsDelegator = ({
 
   const setStepToKey = (key: TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS) => {
     const newStep = TransferAccountToHatsDelegatorSteps.find(
-      (step) => step.state === key
+      (step) => step.state === key,
     );
     if (newStep) setStep(newStep);
   };
@@ -212,7 +212,7 @@ const TransferAccountToHatsDelegator = ({
       const newDeadline = getDeadline();
       setDeadline(newDeadline);
       console.log(
-        `setup done -> deadline: ${newDeadline} toAddress: ${toAddress}`
+        `setup done -> deadline: ${newDeadline} toAddress: ${toAddress}`,
       );
     };
 
@@ -240,7 +240,7 @@ const TransferAccountToHatsDelegator = ({
       const result = await waitForTransactionReceipt(config, { hash: tx });
       setStep(TransferAccountToHatsDelegatorSteps[2]);
       setStepToKey(
-        TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_PREPARE_TO_RECEIVE_CONFIRMATION
+        TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_PREPARE_TO_RECEIVE_CONFIRMATION,
       );
     } catch (e) {
       console.error("onExecutePrepareToReceive error", e);
@@ -269,12 +269,12 @@ const TransferAccountToHatsDelegator = ({
     const hasConnectedValidSignerAddress = await isValidSigner(
       toAddress,
       SIGNED_KEY_REQUEST_TYPEHASH,
-      address
+      address,
     );
 
     if (!hasConnectedValidSignerAddress) {
       setErrorMessage(
-        "Your wallet isn't allowed to sign messages for the delegator contract - the admin wallet address / admin hat wearer must sign the transaction."
+        "Your wallet isn't allowed to sign messages for the delegator contract - the admin wallet address / admin hat wearer must sign the transaction.",
       );
       setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR);
       return;
@@ -296,11 +296,11 @@ const TransferAccountToHatsDelegator = ({
     if (!address || signature === "0x" || !fid) return;
 
     const typeHash = keccak256(
-      toHex("Transfer(uint256 fid,address to,uint256 nonce,uint256 deadline)")
+      toHex("Transfer(uint256 fid,address to,uint256 nonce,uint256 deadline)"),
     );
     const sig = encodePacked(
       ["bytes", "bytes32", "uint256", "address", "uint256", "uint256"],
-      [signature, typeHash, BigInt(fid), toAddress, nonce, BigInt(deadline)]
+      [signature, typeHash, BigInt(fid), toAddress, nonce, BigInt(deadline)],
     );
 
     try {
@@ -324,7 +324,7 @@ const TransferAccountToHatsDelegator = ({
       setOnchainTransactionHash(tx);
 
       setStepToKey(
-        TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_ONCHAIN_CONFIRMATION
+        TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_ONCHAIN_CONFIRMATION,
       );
     } catch (e) {
       if ("User rejected the request" in e) {
@@ -382,7 +382,7 @@ const TransferAccountToHatsDelegator = ({
         if (!address) return;
 
         setStepToKey(
-          TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_SIGNATURE_CONFIRMATION
+          TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_SIGNATURE_CONFIRMATION,
         );
         onSignData();
         break;
@@ -399,7 +399,7 @@ const TransferAccountToHatsDelegator = ({
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR:
         setErrorMessage("");
         setStepToKey(
-          TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE
+          TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE,
         );
         break;
       default:
@@ -430,7 +430,7 @@ const TransferAccountToHatsDelegator = ({
                 variant="outline"
                 onClick={() =>
                   setStepToKey(
-                    TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE
+                    TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE,
                   )
                 }
               >
@@ -483,7 +483,7 @@ const TransferAccountToHatsDelegator = ({
               className="w-1/2 mt-4"
               onClick={() =>
                 openWindow(
-                  `https://optimistic.etherscan.io/tx/${onchainTransactionHash}`
+                  `https://optimistic.etherscan.io/tx/${onchainTransactionHash}`,
                 )
               }
             >

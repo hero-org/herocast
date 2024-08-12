@@ -64,7 +64,7 @@ const ProfilePage = () => {
 
     const loadFeed = async () => {
       const client = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
 
       if (feedType === FeedTypeEnum.casts) {

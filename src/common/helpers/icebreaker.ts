@@ -14,22 +14,30 @@ export type IcebreakerSocialInfo = {
   }[];
 };
 
-export async function getIcebreakerSocialInfoForFid(fid: string): Promise<IcebreakerSocialInfo | null> {
+export async function getIcebreakerSocialInfoForFid(
+  fid: string,
+): Promise<IcebreakerSocialInfo | null> {
   try {
-    const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
-      headers: {
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(
+      `https://app.icebreaker.xyz/api/v1/fid/${fid}`,
+      {
+        headers: {
+          accept: "application/json",
+        },
+      },
+    );
     const data = await response.json();
     if (data && data.profiles && data?.profiles.length === 1) {
       const profile = data.profiles[0];
-      return { channels: profile?.channels || [], credentials: profile?.credentials || [] };
+      return {
+        channels: profile?.channels || [],
+        credentials: profile?.credentials || [],
+      };
     } else {
       return null;
     }
   } catch (error) {
-    console.error('Error fetching Icebreaker data:', error);
+    console.error("Error fetching Icebreaker data:", error);
     return null;
   }
 }

@@ -2,8 +2,11 @@ import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { SAVE_DELAY } from "../constants/tauri";
 import { getTauriStore } from "../helpers/tauri/storage";
 
-export function useTauriStore(key: string, defaultValue: unknown, storeName = 'data.dat') {
-
+export function useTauriStore(
+  key: string,
+  defaultValue: unknown,
+  storeName = "data.dat",
+) {
   const [state, setState] = useState(defaultValue);
   const [loading, setLoading] = useState(true);
   const store = getTauriStore(storeName);
@@ -12,13 +15,15 @@ export function useTauriStore(key: string, defaultValue: unknown, storeName = 'd
   // useLayoutEffect will be called before DOM paintings and before useEffect
   useLayoutEffect(() => {
     let allow = true;
-    store.get(key)
-      .then(value => {
-        if (value === null) throw '';
+    store
+      .get(key)
+      .then((value) => {
+        if (value === null) throw "";
         if (allow) setState(value);
-      }).catch(() => {
+      })
+      .catch(() => {
         store.set(key, defaultValue).then(() => {
-          timeoutRef.current = setTimeout(() => store.save(), SAVE_DELAY)
+          timeoutRef.current = setTimeout(() => store.save(), SAVE_DELAY);
         });
       })
       .then(() => {
@@ -38,7 +43,7 @@ export function useTauriStore(key: string, defaultValue: unknown, storeName = 'd
         timeoutRef.current = setTimeout(() => {
           store.save();
           console.log(state);
-        }, SAVE_DELAY)
+        }, SAVE_DELAY);
       });
     }
     // ensure data is saved by not clearing the timeout on unmount

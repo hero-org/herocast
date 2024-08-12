@@ -11,13 +11,13 @@ const WelcomeCards = () => {
 
   const hasAccounts = accounts.length > 0;
   const hasPendingAccount = accounts.some(
-    (account) => account.status === AccountStatusType.pending
+    (account) => account.status === AccountStatusType.pending,
   );
   const isReadOnly =
     hasAccounts &&
     accounts.every(
       (account) =>
-        account.platform === AccountPlatformType.farcaster_local_readonly
+        account.platform === AccountPlatformType.farcaster_local_readonly,
     );
   return (
     <div className="m-8 flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">

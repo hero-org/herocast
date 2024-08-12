@@ -13,7 +13,7 @@ import { FrameUI } from "./FrameUI";
 // Due to issue with FrameImageNext from @frame.js/render/next
 // Implement the exact same thing again
 function FrameImageNext(
-  props: ImgHTMLAttributes<HTMLImageElement> & { src: string }
+  props: ImgHTMLAttributes<HTMLImageElement> & { src: string },
 ): React.JSX.Element {
   return (
     <Image
@@ -62,7 +62,8 @@ const FrameEmbed = ({ url }: FrameArgs) => {
     },
   });
 
-  const { status, frame } = frameState?.currentFrameStackItem?.frameResult ?? {};
+  const { status, frame } =
+    frameState?.currentFrameStackItem?.frameResult ?? {};
   const hasFrameError = status === "failure";
   if (hasFrameError) {
     return frame.ogImage ? <WarpcastImage url={frame.ogImage} /> : null;

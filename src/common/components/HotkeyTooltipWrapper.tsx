@@ -18,7 +18,7 @@ const HotkeyTooltipWrapper = ({
   children,
 }: HotkeyTooltipWrapperProps) => {
   if (!hotkey) return children;
-  
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>

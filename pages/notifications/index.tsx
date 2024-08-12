@@ -66,13 +66,13 @@ const notificationTabToType = (tab: NotificationTab) => {
 
 const filterNotificationsByActiveTab = (
   notifications: Notification[],
-  selectedTab: NotificationTab
+  selectedTab: NotificationTab,
 ) => {
   const notificationType = notificationTabToType(selectedTab);
   if (!notificationType) return notifications;
 
   return notifications.filter(
-    (notification) => notification.type === notificationType
+    (notification) => notification.type === notificationType,
   );
 };
 
@@ -91,7 +91,7 @@ const Notifications = () => {
   } = useNavigationStore();
 
   const selectedAccount = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
+    (state) => state.accounts[state.selectedAccountIdx],
   );
   const isMobile = useIsMobile();
   const [allNotifications, setNotifications] = useState<Notification[]>([]);
@@ -105,17 +105,20 @@ const Notifications = () => {
   const { selectedCast, updateSelectedCast } = useDataStore();
   const [loadMoreCursor, setLoadMoreCursor] = useState<string>();
   const [activeTab, setActiveTab] = useState<NotificationTab>(
-    NotificationTab.all
+    NotificationTab.all,
   );
   const [showReactionsLimit, setShowReactionsLimit] = useState<number>(
-    DEFAULT_SHOW_REACTIONS_LIMIT
+    DEFAULT_SHOW_REACTIONS_LIMIT,
   );
   const viewerFid = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId
+    (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId,
   );
-  const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
-  console.log('notifications', notifications);
-  
+  const notifications = filterNotificationsByActiveTab(
+    allNotifications,
+    activeTab,
+  );
+  console.log("notifications", notifications);
+
   useEffect(() => {
     // if navigating away, reset the selected cast
     return () => {
@@ -125,13 +128,16 @@ const Notifications = () => {
 
   const loadData = async ({ reset }: { reset?: boolean }) => {
     if (!viewerFid) return;
-    console.log('Notifications Page -> loadData | loadMoreCursor', loadMoreCursor);
+    console.log(
+      "Notifications Page -> loadData | loadMoreCursor",
+      loadMoreCursor,
+    );
     setIsLoading(true);
     if (reset) {
       setNotifications([]);
     }
     const neynarClient = new NeynarAPIClient(
-      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
     );
 
     const options = reset
@@ -141,7 +147,7 @@ const Notifications = () => {
         };
     const resp = await neynarClient.fetchAllNotifications(
       Number(viewerFid),
-      options
+      options,
     );
     if (resp.notifications) {
       if (reset) {
@@ -172,7 +178,7 @@ const Notifications = () => {
   useEffect(() => {
     if (parentCastHash) {
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       neynarClient
         .fetchBulkCasts([parentCastHash], { viewerFid: Number(viewerFid) })
@@ -216,7 +222,7 @@ const Notifications = () => {
     {
       enabled: !isNewCastModalOpen,
       preventDefault: true,
-    }
+    },
   );
 
   useHotkeys("shift+1", () => setActiveTab(NotificationTab.all), [], {});
@@ -235,7 +241,7 @@ const Notifications = () => {
     {
       enabled: !isNewCastModalOpen,
       preventDefault: true,
-    }
+    },
   );
 
   useHotkeys(
@@ -247,7 +253,7 @@ const Notifications = () => {
     {
       enabled: !isNewCastModalOpen,
       preventDefault: true,
-    }
+    },
   );
 
   const getActionDescriptionForRow = (notification: Notification): string => {
@@ -271,7 +277,7 @@ const Notifications = () => {
     const { cast } = notification;
 
     const timeAgoStr = formatDistanceToNowStrict(
-      new Date(notification.most_recent_timestamp)
+      new Date(notification.most_recent_timestamp),
     );
     const actionDescription = getActionDescriptionForRow(notification);
     const author =
@@ -293,7 +299,7 @@ const Notifications = () => {
           idx === selectedNotificationIdx
             ? "bg-muted"
             : "cursor-pointer bg-background/80 hover:bg-muted/10",
-          "flex gap-x-4 px-5 py-4 border-b border-muted"
+          "flex gap-x-4 px-5 py-4 border-b border-muted",
         )}
       >
         <img
@@ -361,7 +367,7 @@ const Notifications = () => {
           "overflow-hidden rounded-l-lg border",
           isLeftColumnSelected
             ? "border-muted-foreground/20"
-            : "border-muted-foreground"
+            : "border-muted-foreground",
         )}
       >
         <div
@@ -429,7 +435,7 @@ const Notifications = () => {
           isLeftColumnSelected
             ? "hidden md:block border-muted-foreground"
             : "border-muted-foreground/20",
-          "flex-1 rounded-lg border md:rounded-l-none lg:border-0"
+          "flex-1 rounded-lg border md:rounded-l-none lg:border-0",
         )}
       >
         {renderGoBack()}
@@ -536,7 +542,7 @@ const Notifications = () => {
                 <div
                   className={cn(
                     isLeftColumnSelected ? "block" : "hidden md:block",
-                    "w-full md:w-1/3 md:1/2 shrink-0"
+                    "w-full md:w-1/3 md:1/2 shrink-0",
                   )}
                 >
                   {renderLeftColumn()}

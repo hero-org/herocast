@@ -12,8 +12,8 @@ export async function createInitialTree(
   account: `0x${string}`,
   casterAdmin: `0x${string}`,
   casters: `0x${string}`[],
-  walletClient: WalletClient
-): Promise<{casterHat: bigint, adminHat: bigint}> {
+  walletClient: WalletClient,
+): Promise<{ casterHat: bigint; adminHat: bigint }> {
   const hatsClient = new HatsClient({
     chainId: optimism.id,
     publicClient: publicClient as PublicClient,
@@ -24,13 +24,13 @@ export async function createInitialTree(
   const nextTopHatID = treeIdToTopHatId(currentNumTrees + 1);
   const nextTopHatIdHex = hatIdDecimalToHex(nextTopHatID);
   const autoAdminHatId = hatIdHexToDecimal(
-    (nextTopHatIdHex.substring(0, 10) + "0001").padEnd(66, "0")
+    (nextTopHatIdHex.substring(0, 10) + "0001").padEnd(66, "0"),
   );
   const casterAdminHatId = hatIdHexToDecimal(
-    (nextTopHatIdHex.substring(0, 10) + "00010001").padEnd(66, "0")
+    (nextTopHatIdHex.substring(0, 10) + "00010001").padEnd(66, "0"),
   );
   const casterHatId = hatIdHexToDecimal(
-    (nextTopHatIdHex.substring(0, 10) + "000100010001").padEnd(66, "0")
+    (nextTopHatIdHex.substring(0, 10) + "000100010001").padEnd(66, "0"),
   );
 
   // prepare call data for hats creation

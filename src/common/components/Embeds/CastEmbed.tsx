@@ -5,25 +5,37 @@ import { CastParamType, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { CastResponse } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
-const CastEmbed = ({ url, castId }: { url?: string, castId?: { hash: string, fid: number }}) => {
+const CastEmbed = ({
+  url,
+  castId,
+}: {
+  url?: string;
+  castId?: { hash: string; fid: number };
+}) => {
   const [cast, setCast] = useState<CastWithInteractions | null>(null);
 
   useEffect(() => {
     const getData = async () => {
-    try {
+      try {
         const neynarClient = new NeynarAPIClient(
-          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
         );
-        
+
         let res: CastResponse | null;
         if (url) {
-          res = await neynarClient.lookUpCastByHashOrWarpcastUrl(url, CastParamType.Url);
+          res = await neynarClient.lookUpCastByHashOrWarpcastUrl(
+            url,
+            CastParamType.Url,
+          );
         } else if (castId) {
-          res = await neynarClient.lookUpCastByHashOrWarpcastUrl(castId.hash, CastParamType.Hash);
+          res = await neynarClient.lookUpCastByHashOrWarpcastUrl(
+            castId.hash,
+            CastParamType.Hash,
+          );
         } else {
           return;
         }
-        
+
         if (res && res.cast) {
           setCast(res.cast);
         }
@@ -32,7 +44,7 @@ const CastEmbed = ({ url, castId }: { url?: string, castId?: { hash: string, fid
       }
     };
 
-      getData();
+    getData();
   }, []);
 
   if ((!url && !castId) || isEmpty(cast)) return null;
@@ -45,6 +57,6 @@ const CastEmbed = ({ url, castId }: { url?: string, castId?: { hash: string, fid
       <CastRow cast={cast} showChannel isEmbed />
     </div>
   );
-}
+};
 
 export default CastEmbed;

@@ -11,7 +11,7 @@ const FarcasterIcon = ({ className }: { className?: string }) => {
       fill="#8A63D2"
       className={clsx(
         className,
-        "mx-4 bg-gray-100 rounded-lg inline-block items-center"
+        "mx-4 bg-gray-100 rounded-lg inline-block items-center",
       )}
     >
       <rect width="1024" height="1024" fill="none" />

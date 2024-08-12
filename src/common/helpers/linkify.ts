@@ -1,10 +1,10 @@
-import { State, createTokenClass } from 'linkifyjs';
+import { State, createTokenClass } from "linkifyjs";
 
-const MentionToken = createTokenClass('mention', {
+const MentionToken = createTokenClass("mention", {
   isLink: true,
   toHref() {
-    return '/' + this.toString().slice(1);
-  }
+    return "/" + this.toString().slice(1);
+  },
 });
 
 export default function mentionPlugin({ scanner, parser }) {
@@ -43,7 +43,6 @@ export default function mentionPlugin({ scanner, parser }) {
   MentionDot.ta(domain, Mention);
   MentionDot.tt(HYPHEN, Mention);
   MentionDot.tt(UNDERSCORE, Mention);
-
 }
 export function cashtagPlugin({ scanner, parser }) {
   const { DOLLAR, UNDERSCORE } = scanner.tokens;
@@ -68,7 +67,7 @@ export function cashtagPlugin({ scanner, parser }) {
   Hashtag.tt(UNDERSCORE, Hashtag); // Trailing underscore is okay
 }
 
-export const CashtagToken = createTokenClass('cashtag', { isLink: true });
+export const CashtagToken = createTokenClass("cashtag", { isLink: true });
 
 export function channelPlugin({ scanner, parser }) {
   const { SLASH, UNDERSCORE, WS } = scanner.tokens;
@@ -104,4 +103,4 @@ export function channelPlugin({ scanner, parser }) {
   Channel.ta(emoji, Channel);
 }
 
-export const ChannelToken = createTokenClass('channel', { isLink: true });
+export const ChannelToken = createTokenClass("channel", { isLink: true });

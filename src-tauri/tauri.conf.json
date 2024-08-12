@@ -19,11 +19,7 @@
       "active": true,
       "targets": "all",
       "identifier": "xyz.herocast.app",
-      "icon": [
-        "icons/icon.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
+      "icon": ["icons/icon.png", "icons/icon.icns", "icons/icon.ico"],
       "resources": [],
       "externalBin": [],
       "copyright": "",
@@ -61,9 +57,7 @@
       "http": {
         "all": true,
         "request": true,
-        "scope": [
-          "https://*"
-        ]
+        "scope": ["https://*"]
       }
     },
     "windows": [

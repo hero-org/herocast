@@ -26,7 +26,7 @@ const CreateAccountPage = () => {
   const pendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.pending &&
-      account.platform === AccountPlatformType.farcaster
+      account.platform === AccountPlatformType.farcaster,
   );
 
   const hasPendingNewAccounts = pendingAccounts.length > 0;

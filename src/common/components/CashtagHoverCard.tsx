@@ -29,7 +29,7 @@ const CashtagHoverCard = ({
 }: CashtagHoverCardProps) => {
   const { addTokenData } = useDataStore();
   const tokenData = useDataStore((state) =>
-    get(state.tokenSymbolToData, tokenSymbol)
+    get(state.tokenSymbolToData, tokenSymbol),
   );
   const { ref, inView } = useInView({
     threshold: 0,
@@ -49,14 +49,14 @@ const CashtagHoverCard = ({
         }
 
         const tradingPairs = data.pairs.filter(
-          (pair) => pair.baseToken.symbol === tokenSymbol
+          (pair) => pair.baseToken.symbol === tokenSymbol,
         );
         if (!tradingPairs.length) {
           return;
         }
 
         const pairsSortedByLiquidity = tradingPairs.sort(
-          (a, b) => b.liquidity?.usd - a.liquidity?.usd
+          (a, b) => b.liquidity?.usd - a.liquidity?.usd,
         );
         const mostLiquidityPair: DexPair = pairsSortedByLiquidity[0];
 

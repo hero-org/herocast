@@ -108,12 +108,12 @@ const ProfileInfo = ({
     if (!profile?.icebreakerData?.channels?.length) return null;
 
     const filteredChannels = profile.icebreakerData.channels.filter(
-      (channel) => channel.value && priorityChannels.includes(channel.type)
+      (channel) => channel.value && priorityChannels.includes(channel.type),
     );
 
     const sortedChannels = filteredChannels.sort(
       (a, b) =>
-        priorityChannels.indexOf(a.type) - priorityChannels.indexOf(b.type)
+        priorityChannels.indexOf(a.type) - priorityChannels.indexOf(b.type),
     );
 
     return (

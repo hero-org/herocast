@@ -1,4 +1,4 @@
-import packageJson from '../../../package.json';
+import packageJson from "../../../package.json";
 // import { getTauriVersion } from '@tauri-apps/api/app';
 
 export const SAVE_DELAY = 500;

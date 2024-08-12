@@ -2,10 +2,10 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
     "./node_modules/@mod-protocol/react-ui-shadcn/dist/**/*.{ts,tsx,css,js}",
     "./node_modules/frames.js/dist/render/next/*.{ts,tsx,js,css}",
     "./node_modules/frames.js/dist/render/*.{ts,tsx,js,css}",
@@ -71,13 +71,10 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "overlayShow": 'overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1)',
-        "contentShow": 'contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+        overlayShow: "overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+        contentShow: "contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },
-  plugins: [
-    require("tailwindcss-animate"),
-    require("@tailwindcss/typography"),
-  ],
-}
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+};

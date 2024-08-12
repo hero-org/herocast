@@ -44,7 +44,7 @@ export function SearchIntervalFilter({
 }: SearchIntervalFilterProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState<SearchInterval | undefined>(
-    defaultInterval
+    defaultInterval,
   );
 
   const canSelect = updateInterval !== undefined;
@@ -86,7 +86,7 @@ export function SearchIntervalFilter({
                   <CheckIcon
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === framework.value ? "opacity-100" : "opacity-0"
+                      value === framework.value ? "opacity-100" : "opacity-0",
                     )}
                   />
                   {framework.label}

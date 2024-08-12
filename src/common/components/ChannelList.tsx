@@ -26,7 +26,7 @@ export const ChannelList = forwardRef<ChannelListRef, Props>((props, ref) => {
 
   const upHandler = () => {
     setSelectedIndex(
-      (selectedIndex + props.items.length - 1) % props.items.length
+      (selectedIndex + props.items.length - 1) % props.items.length,
     );
   };
 
@@ -79,7 +79,7 @@ export const ChannelList = forwardRef<ChannelListRef, Props>((props, ref) => {
             <div
               className={clsx(
                 "flex flex-row p-2 px-3 cursor-pointer gap-2 items-center hover:bg-accent hover:text-accent-foreground",
-                index === selectedIndex && "bg-accent text-accent-foreground"
+                index === selectedIndex && "bg-accent text-accent-foreground",
               )}
               key={item.id}
               onClick={() => selectItem(index)}
@@ -101,9 +101,9 @@ export const ChannelList = forwardRef<ChannelListRef, Props>((props, ref) => {
                 </div>
               </div>
             </div>
-          )
+          ),
         )
-      ) : (noResults && props?.query)? (
+      ) : noResults && props?.query ? (
         <div className="flex flex-row p-2 px-3">Not found</div>
       ) : (
         <div className="flex items-center space-x-2 p-2 px-3">

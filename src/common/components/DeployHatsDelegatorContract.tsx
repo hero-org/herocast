@@ -118,7 +118,7 @@ const DeployHatsDelegatorContract = ({
   casterHatId,
 }: DeployHatsDelegatorContractProps) => {
   const [state, setState] = useState<SignupStepType>(
-    HatsProtocolSignupSteps[0]
+    HatsProtocolSignupSteps[0],
   );
   const [errorMessage, setErrorMessage] = useState("");
   const [onchainTransactionHash, setOnchainTransactionHash] =
@@ -183,7 +183,7 @@ const DeployHatsDelegatorContract = ({
 
     await hatsModulesClient.prepare(getCustomRegistry());
     const m = await hatsModulesClient.getModuleById(
-      HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS
+      HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS,
     );
     checkAndEncodeArgs({
       module: m!,
@@ -306,7 +306,7 @@ const DeployHatsDelegatorContract = ({
                     className="cursor-pointer text-foreground/90"
                     onClick={() =>
                       openWindow(
-                        `https://optimistic.etherscan.io/address/${delegatorContractAddress}#code`
+                        `https://optimistic.etherscan.io/address/${delegatorContractAddress}#code`,
                       )
                     }
                   >
@@ -323,7 +323,7 @@ const DeployHatsDelegatorContract = ({
                 className="mt-4"
                 onClick={() =>
                   openWindow(
-                    `https://optimistic.etherscan.io/tx/${onchainTransactionHash}`
+                    `https://optimistic.etherscan.io/tx/${onchainTransactionHash}`,
                   )
                 }
               >

@@ -34,7 +34,7 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
 
   const upHandler = () => {
     setSelectedIndex(
-      (selectedIndex + props.items.length - 1) % props.items.length
+      (selectedIndex + props.items.length - 1) % props.items.length,
     );
   };
 
@@ -85,7 +85,7 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
             <div
               className={cn(
                 "z-50 flex flex-row p-2 px-3 cursor-pointer gap-2 items-center hover:bg-accent hover:text-accent-foreground",
-                index === selectedIndex && "bg-accent text-accent-foreground"
+                index === selectedIndex && "bg-accent text-accent-foreground",
               )}
               key={item.username}
               onClick={() => selectItem(index)}
@@ -108,7 +108,7 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
                 </div>
               </div>
             </div>
-          )
+          ),
         )
       ) : noResults ? (
         <div className="flex flex-row p-2 px-3">Not found</div>

@@ -55,7 +55,7 @@ enum SignupStateEnum {
 export default function Accounts() {
   const router = useRouter();
   const [signupState, setSignupState] = useState<SignupStateEnum>(
-    SignupStateEnum.initial
+    SignupStateEnum.initial,
   );
   const [isModalOpen, setModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,13 +75,13 @@ export default function Accounts() {
     accounts.filter(
       (account) =>
         account.status === AccountStatusType.pending &&
-        account.platform === AccountPlatformType.farcaster
+        account.platform === AccountPlatformType.farcaster,
     ) || [];
   const hasOnlyLocalAccounts =
     accounts.length &&
     accounts.every(
       (account) =>
-        account.platform === AccountPlatformType.farcaster_local_readonly
+        account.platform === AccountPlatformType.farcaster_local_readonly,
     );
   const hasPendingNewAccounts = pendingAccounts.length > 0;
   const pendingAccount = hasPendingNewAccounts ? pendingAccounts[0] : null;
@@ -111,14 +111,14 @@ export default function Accounts() {
   const refreshAccountNames = async () => {
     setIsLoading(true);
     await Promise.all(
-      accounts.map(async (account) => await updateAccountUsername(account.id))
+      accounts.map(async (account) => await updateAccountUsername(account.id)),
     )
       .then(async () => {
         console.log("All account names refreshed successfully");
         await hydrateAccounts();
       })
       .catch((error) =>
-        console.error("Error refreshing account names:", error)
+        console.error("Error refreshing account names:", error),
       );
     setIsLoading(false);
   };
@@ -155,7 +155,7 @@ export default function Accounts() {
   };
 
   const checkStatusAndActiveAccount = async (
-    pendingAccount: AccountObjectType
+    pendingAccount: AccountObjectType,
   ) => {
     if (!pendingAccount?.data?.signerToken) return;
 
@@ -166,12 +166,12 @@ export default function Accounts() {
     }
 
     const { status, data } = await getWarpcastSignerStatus(
-      pendingAccount.data.signerToken
+      pendingAccount.data.signerToken,
     );
     if (status === WarpcastLoginStatus.success) {
       const fid = data.userFid;
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       const user = (
         await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID! })
@@ -335,7 +335,7 @@ export default function Accounts() {
   const renderActiveAccountsOverview = () => {
     const activeAccounts = filter(
       accounts,
-      (account) => account.status === "active"
+      (account) => account.status === "active",
     );
 
     if (isEmpty(activeAccounts)) return null;

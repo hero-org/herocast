@@ -57,32 +57,32 @@ const DraftListTabs = [
 const getDraftsForTab = (
   drafts: DraftType[],
   activeTab: DraftListTab,
-  activeAccountId?: UUID
+  activeAccountId?: UUID,
 ) => {
   switch (activeTab) {
     case DraftListTab.writing:
       return drafts.filter(
         (draft) =>
           draft.status === DraftStatus.writing ||
-          draft.status === DraftStatus.publishing
+          draft.status === DraftStatus.publishing,
       );
     case DraftListTab.scheduled:
       return drafts
         .filter(
           (draft) =>
             (!activeAccountId || draft.accountId === activeAccountId) &&
-            draft.status === DraftStatus.scheduled
+            draft.status === DraftStatus.scheduled,
         )
         .sort(
           (a, b) =>
             new Date(a.scheduledFor).getTime() -
-            new Date(b.scheduledFor).getTime()
+            new Date(b.scheduledFor).getTime(),
         );
     case DraftListTab.published:
       return drafts.filter(
         (draft) =>
           draft.status === DraftStatus.published &&
-          draft.accountId === activeAccountId
+          draft.accountId === activeAccountId,
       );
     default:
       return drafts;
@@ -105,7 +105,7 @@ export default function NewPost() {
   const { accounts, selectedAccountIdx, allChannels } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
   const [activeTab, setActiveTab] = useState<DraftListTab>(
-    DraftListTab.writing
+    DraftListTab.writing,
   );
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -113,11 +113,11 @@ export default function NewPost() {
 
   const draftsForTab = useMemo(
     () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
-    [drafts, activeTab, selectedAccount?.id]
+    [drafts, activeTab, selectedAccount?.id],
   );
   const scheduledCastsCount = useMemo(
     () => getDraftsForTab(drafts, DraftListTab.scheduled).length,
-    [drafts, selectedAccount?.id]
+    [drafts, selectedAccount?.id],
   );
   const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
 
@@ -160,7 +160,7 @@ export default function NewPost() {
 
     const fetchParentCasts = async () => {
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
         viewerFid: Number(selectedAccount?.platformAccountId),
@@ -188,7 +188,7 @@ export default function NewPost() {
     if (!draft) return renderEmptyMainContent();
 
     const parentCast = parentCasts.find(
-      (cast) => cast.hash === draft.parentCastId?.hash
+      (cast) => cast.hash === draft.parentCastId?.hash,
     );
     return (
       <div key={draft.id} className="pt-2 pb-6">
@@ -211,7 +211,7 @@ export default function NewPost() {
     });
 
     const parentCast = parentCasts.find(
-      (cast) => cast.hash === draft.parentCastId?.hash
+      (cast) => cast.hash === draft.parentCastId?.hash,
     );
     const hasEmbeds = draft?.embeds?.length > 0;
     return (
@@ -222,7 +222,7 @@ export default function NewPost() {
             Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}{" "}
             {draft.publishedAt &&
               `· Published at ${getUserLocaleDateFromIsoString(
-                draft.publishedAt
+                draft.publishedAt,
               )}`}
           </span>
           {channel && (
@@ -265,7 +265,7 @@ export default function NewPost() {
         key={draft?.id || draft?.createdAt}
         className={cn(
           "flex flex-col max-w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent cursor-pointer",
-          draft.id === selectedDraftId && "bg-muted"
+          draft.id === selectedDraftId && "bg-muted",
         )}
         onClick={() => {
           setSelectedDraftId(draft.id);
@@ -276,7 +276,7 @@ export default function NewPost() {
             "line-clamp-2 text-xs break-all",
             draft.id === selectedDraftId
               ? "text-foreground"
-              : "text-muted-foreground"
+              : "text-muted-foreground",
           )}
         >
           {draft.text ? draft.text.substring(0, 300) : "New cast"}
@@ -300,7 +300,7 @@ export default function NewPost() {
                 "ml-auto text-xs",
                 draft.id === selectedDraftId
                   ? "text-foreground"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {draft.status === DraftStatus.writing &&
@@ -327,7 +327,7 @@ export default function NewPost() {
                   {getUserLocaleDateFromIsoString(
                     draft.scheduledFor,
                     "short",
-                    "short"
+                    "short",
                   )}
                 </span>
               </div>
@@ -384,7 +384,7 @@ export default function NewPost() {
           {draftsForTab.map(renderDraftListPreview)}
         </div>
         <div className="mt-4">{renderNewDraftButton()}</div>
-      </>
+      </>,
     );
   };
 
@@ -407,7 +407,7 @@ export default function NewPost() {
         <div className="flex flex-col gap-2 p-2 pt-0">
           {draftsForTab.map(renderDraftListPreview)}
         </div>
-      </>
+      </>,
     );
   };
 

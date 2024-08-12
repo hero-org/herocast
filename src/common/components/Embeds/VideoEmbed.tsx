@@ -19,7 +19,7 @@ const VideoEmbed = ({ url }: { url: string }) => {
   // }
 
   const playerRef = React.useRef<HTMLVideoElement | null>(null);
-  
+
   return (
     <div key={`video-embed-${url}`} className="">
       <ReactHlsPlayer

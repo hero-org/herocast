@@ -45,7 +45,7 @@ const ShowLinkCard = ({
         </Button>
       </div>
     </CardContent>
-  </Card>   
+  </Card>
 );
 
 export default ShowLinkCard;

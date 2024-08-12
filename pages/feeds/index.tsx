@@ -72,7 +72,7 @@ const getFeedKey = ({
 
 const DEFAULT_FEED_PAGE_SIZE = 15;
 const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
 );
 
 const supabaseClient = createClient();
@@ -132,7 +132,7 @@ export default function Feeds() {
     updateFeed(
       getFeedKey({ selectedChannelUrl, account }),
       "nextCursor",
-      cursor
+      cursor,
     );
   };
 
@@ -156,11 +156,11 @@ export default function Feeds() {
   useEffect(() => {
     const shouldUpdateLastReadTimestamp = !includes(
       [CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING],
-      feedKey
+      feedKey,
     );
     if (account && account.channels.length && shouldUpdateLastReadTimestamp) {
       const channelId = account.channels.find(
-        (channel) => channel.url === selectedChannelUrl
+        (channel) => channel.url === selectedChannelUrl,
       )?.id;
       if (!channelId) return;
 
@@ -252,7 +252,7 @@ export default function Feeds() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
       enabled: showCastThreadView && !isNewCastModalOpen && !showEmbedsModal,
-    }
+    },
   );
 
   useHotkeys("r", onReply, [openNewCastModal, selectedCast], {
@@ -309,7 +309,7 @@ export default function Feeds() {
       if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
         newFeed = await neynarClient.fetchUserFollowingFeed(
           Number(fid),
-          feedOptions
+          feedOptions,
         );
       } else if (parentUrl === CUSTOM_CHANNELS.TRENDING) {
         newFeed = await neynarClient.fetchTrendingFeed({
@@ -332,13 +332,13 @@ export default function Feeds() {
 
         newFeed = await neynarClient.fetchFeed(
           getFeedType(parentUrl),
-          feedOptions
+          feedOptions,
         );
         if (!newFeed?.casts || newFeed.casts.length === 0) {
           setLoadingMessage("Taking longer than expected, trying again...");
           newFeed = await neynarClient.fetchFeed(
             getFeedType(parentUrl),
-            feedOptions
+            feedOptions,
           );
         }
       }

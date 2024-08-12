@@ -5,10 +5,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { create as mutativeCreate, Draft } from "mutative";
 import { CommandType } from "@/common/constants/commands";
-import {
-  PlusCircleIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { AccountObjectType, useAccountStore } from "./useAccountStore";
 import {
   DraftStatus,
@@ -30,23 +27,26 @@ import {
   toastSuccessCastScheduled,
 } from "@/common/helpers/toast";
 import { NewPostDraft } from "@/common/constants/postDrafts";
-import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import type { FarcasterEmbed } from "@mod-protocol/farcaster";
 import { createClient } from "@/common/helpers/supabase/component";
 import { UUID } from "crypto";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import uniqBy from "lodash.uniqby";
 import { CastModalView, useNavigationStore } from "./useNavigationStore";
 
 const prepareCastBodyForDB = (castBody) => {
   if (castBody.embeds) {
-    castBody.embeds.forEach(embed => {
-      if ('castId' in embed) {
-        embed.castId = { fid: embed.castId.fid, hash: embed?.castId?.hash.toString() };
+    castBody.embeds.forEach((embed) => {
+      if ("castId" in embed) {
+        embed.castId = {
+          fid: embed.castId.fid,
+          hash: embed?.castId?.hash.toString(),
+        };
       }
     });
   }
   return castBody;
-}
+};
 
 export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
   const castBody = await formatPlaintextToHubCastMessage({
@@ -54,7 +54,9 @@ export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
     embeds: draft.embeds || [],
     getMentionFidsByUsernames: getMentionFids,
     parentUrl: draft.parentUrl,
-    parentCastFid: draft.parentCastId ? Number(draft.parentCastId.fid) : undefined,
+    parentCastFid: draft.parentCastId
+      ? Number(draft.parentCastId.fid)
+      : undefined,
     parentCastHash: draft.parentCastId ? draft.parentCastId.hash : undefined,
   });
 
@@ -68,15 +70,18 @@ export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
     };
   }
   if (castBody.embeds) {
-    castBody.embeds.forEach(embed => {
-      if ('castId' in embed) {
-        embed.castId = { fid: Number(embed?.castId?.fid), hash: toBytes(embed?.castId?.hash) };
+    castBody.embeds.forEach((embed) => {
+      if ("castId" in embed) {
+        embed.castId = {
+          fid: Number(embed?.castId?.fid),
+          hash: toBytes(embed?.castId?.hash),
+        };
       }
     });
   }
 
   return castBody;
-}
+};
 
 // todo: get this from supabase DB type
 export type DraftObjectType = {
@@ -85,12 +90,14 @@ export type DraftObjectType = {
   createdAt: string;
   scheduledFor?: string;
   publishedAt?: string;
-  status: DraftStatus
+  status: DraftStatus;
   account_id: UUID;
-}
+};
 
 const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
-  const { data }: {
+  const {
+    data,
+  }: {
     data: {
       rawText?: string;
       parentUrl?: string;
@@ -99,19 +106,23 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
         hash: Uint8Array;
       };
       embeds?: Embed[];
-    }
+    };
   } = draft;
   return {
     id: draft.id,
     text: data.rawText || "",
     parentUrl: data.parentUrl || undefined,
-    parentCastId: data.parentCastId ? {
-      fid: data.parentCastId.fid,
-      hash: data.parentCastId.hash,
-    } : undefined,
-    embeds: data.embeds ? data.embeds.map((embed) => ({
-      url: embed.url,
-    })) : undefined,
+    parentCastId: data.parentCastId
+      ? {
+          fid: data.parentCastId.fid,
+          hash: data.parentCastId.hash,
+        }
+      : undefined,
+    embeds: data.embeds
+      ? data.embeds.map((embed) => ({
+          url: embed.url,
+        }))
+      : undefined,
     // todo: embeds can also be an array of FarcasterEmbed
     // can also be cast_ids etc all of this stuff needs to work
     createdAt: draft.created_at,
@@ -120,9 +131,7 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
     status: draft.status,
     accountId: draft.account_id,
   };
-}
-
-
+};
 
 const getMentionFids = getMentionFidsByUsernames(
   process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!,
@@ -150,9 +159,23 @@ interface NewPostStoreProps {
 
 interface DraftStoreActions {
   updatePostDraft: (draftIdx: number, post: DraftType) => void;
-  updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
-  addNewPostDraft: ({ text, parentCastId, parentUrl, embeds, onSuccess, force }: addNewPostDraftProps) => void;
-  addScheduledDraft: ({ draftIdx, scheduledFor, onSuccess }: addScheduledDraftProps) => void;
+  updateMentionsToFids: (
+    draftIdx: number,
+    mentionsToFids: { [key: string]: string },
+  ) => void;
+  addNewPostDraft: ({
+    text,
+    parentCastId,
+    parentUrl,
+    embeds,
+    onSuccess,
+    force,
+  }: addNewPostDraftProps) => void;
+  addScheduledDraft: ({
+    draftIdx,
+    scheduledFor,
+    onSuccess,
+  }: addScheduledDraftProps) => void;
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => void;
   removePostDraftById: (draftId: UUID) => void;
   removeScheduledDraftFromDB: (draftId: UUID) => Promise<boolean>;
@@ -166,7 +189,7 @@ interface DraftStoreActions {
   hydrate: () => void;
 }
 
-export interface DraftStore extends NewPostStoreProps, DraftStoreActions { }
+export interface DraftStore extends NewPostStoreProps, DraftStoreActions {}
 
 export const mutative = (config) => (set, get) =>
   config((fn) => set(mutativeCreate(fn)), get);
@@ -178,14 +201,28 @@ const supabaseClient = createClient();
 const store = (set: StoreSet) => ({
   drafts: [],
   isHydrated: false,
-  addNewPostDraft: ({ text, parentUrl, parentCastId, embeds, onSuccess, force }: addNewPostDraftProps) => {
+  addNewPostDraft: ({
+    text,
+    parentUrl,
+    parentCastId,
+    embeds,
+    onSuccess,
+    force,
+  }: addNewPostDraftProps) => {
     set((state) => {
-      const pendingDrafts = state.drafts.filter((draft) => draft.status === DraftStatus.writing);
+      const pendingDrafts = state.drafts.filter(
+        (draft) => draft.status === DraftStatus.writing,
+      );
       if (!force && !text && !parentUrl && !parentCastId && !embeds) {
         // check if there is an existing empty draft
         for (let i = 0; i < pendingDrafts.length; i++) {
           const draft = pendingDrafts[i];
-          if (!draft.text && !draft.parentUrl && !draft.parentCastId && !draft.embeds) {
+          if (
+            !draft.text &&
+            !draft.parentUrl &&
+            !draft.parentCastId &&
+            !draft.embeds
+          ) {
             onSuccess?.(draft.id);
             return;
           }
@@ -197,8 +234,7 @@ const store = (set: StoreSet) => ({
           const draft = pendingDrafts[i];
           if (
             (parentUrl && parentUrl === draft.parentUrl) ||
-            (parentCastId &&
-              parentCastId.hash === draft.parentCastId?.hash)
+            (parentCastId && parentCastId.hash === draft.parentCastId?.hash)
           ) {
             onSuccess?.(draft.id);
             return;
@@ -208,7 +244,15 @@ const store = (set: StoreSet) => ({
 
       const createdAt = Date.now();
       const id = uuidv4();
-      const newDraft = { ...NewPostDraft, text: text || '', id, parentUrl, parentCastId, embeds, createdAt };
+      const newDraft = {
+        ...NewPostDraft,
+        text: text || "",
+        id,
+        parentUrl,
+        parentCastId,
+        embeds,
+        createdAt,
+      };
       state.drafts = [...state.drafts, newDraft];
       onSuccess?.(id);
     });
@@ -241,8 +285,8 @@ const store = (set: StoreSet) => ({
   },
   removeEmptyDrafts: () => {
     set((state) => {
-      state.drafts = state.drafts.filter((draft) => Boolean(draft.text.trim()))
-    })
+      state.drafts = state.drafts.filter((draft) => Boolean(draft.text.trim()));
+    });
   },
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => {
     set((state) => {
@@ -298,22 +342,33 @@ const store = (set: StoreSet) => ({
       const draft = state.drafts[draftIdx];
 
       try {
-        await state.updatePostDraft(draftIdx, { ...draft, status: DraftStatus.publishing });
+        await state.updatePostDraft(draftIdx, {
+          ...draft,
+          status: DraftStatus.publishing,
+        });
         const castBody = await prepareCastBody(draft);
-        console.log('castBody', castBody)
+        console.log("castBody", castBody);
         const hash = await submitCast({
           ...castBody,
           signerPrivateKey: account.privateKey!,
           fid: Number(account.platformAccountId),
         });
 
-        await state.updatePostDraft(draftIdx, { ...draft, hash, status: DraftStatus.published, timestamp: new Date().toISOString(), accountId: account.id });
+        await state.updatePostDraft(draftIdx, {
+          ...draft,
+          hash,
+          status: DraftStatus.published,
+          timestamp: new Date().toISOString(),
+          accountId: account.id,
+        });
         toastSuccessCastPublished(draft.text);
 
         if (onPost) onPost();
       } catch (error) {
-        console.error('caught error in newPostStore', error);
-        toastErrorCastPublish(error instanceof Error ? error.message : String(error));
+        console.error("caught error in newPostStore", error);
+        toastErrorCastPublish(
+          error instanceof Error ? error.message : String(error),
+        );
       }
     });
   },
@@ -325,7 +380,7 @@ const store = (set: StoreSet) => ({
       const accountState = useAccountStore.getState();
       const account = accountState.accounts[accountState.selectedAccountIdx];
       await supabaseClient
-        .from('draft')
+        .from("draft")
         .insert({
           account_id: account.id,
           data: { ...castBody, rawText: draft.text },
@@ -335,12 +390,15 @@ const store = (set: StoreSet) => ({
         .select()
         .then(({ data, error }) => {
           if (error || !data) {
-            console.error('Failed to add scheduled draft', error, data);
+            console.error("Failed to add scheduled draft", error, data);
             return;
           }
 
           const draftInDb = data[0];
-          state.updatePostDraft(draftIdx, tranformDBDraftForLocalStore(draftInDb));
+          state.updatePostDraft(
+            draftIdx,
+            tranformDBDraftForLocalStore(draftInDb),
+          );
           toastSuccessCastScheduled(draft.text);
           onSuccess?.();
         });
@@ -348,13 +406,13 @@ const store = (set: StoreSet) => ({
   },
   removeScheduledDraftFromDB: async (draftId: UUID): Promise<boolean> => {
     const { data, error } = await supabaseClient
-      .from('draft')
+      .from("draft")
       .update({ status: DraftStatus.removed })
-      .eq('id', draftId)
-      .select()
+      .eq("id", draftId)
+      .select();
 
     if (error || !data) {
-      console.error('Failed to remove scheduled draft', error, data);
+      console.error("Failed to remove scheduled draft", error, data);
       return false;
     }
 
@@ -365,21 +423,21 @@ const store = (set: StoreSet) => ({
     return true;
   },
   hydrate: async () => {
-    supabaseClient.
-      from('draft')
-      .select('*')
-      .neq('status', DraftStatus.removed)
+    supabaseClient
+      .from("draft")
+      .select("*")
+      .neq("status", DraftStatus.removed)
       .then(({ data, error }) => {
         if (error || !data) {
-          console.error('Failed to hydrate drafts', error, data);
+          console.error("Failed to hydrate drafts", error, data);
           return;
         }
         const state = useDraftStore.getState();
         const dbDrafts = data.map(tranformDBDraftForLocalStore);
-        state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
+        state.drafts = uniqBy([...dbDrafts, ...state.drafts], "id");
         state.isHydrated = true;
       });
-  }
+  },
 });
 export const useDraftStore = create<DraftStore>()(
   persist(mutative(store), {
@@ -397,18 +455,17 @@ export const newPostCommands: CommandType[] = [
     name: "New Post",
     aliases: ["cast", "write", "create", "compose", "draft"],
     icon: PlusCircleIcon,
-    shortcut: 'c',
+    shortcut: "c",
     action: () => {
       useDraftStore.getState().addNewPostDraft({
         onSuccess(draftId) {
-          const {
-            setCastModalView, openNewCastModal, setCastModalDraftId
-          } = useNavigationStore.getState();
+          const { setCastModalView, openNewCastModal, setCastModalDraftId } =
+            useNavigationStore.getState();
 
           setCastModalView(CastModalView.New);
           setCastModalDraftId(draftId);
           openNewCastModal();
-        }
+        },
       });
     },
     options: {

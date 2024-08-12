@@ -37,7 +37,7 @@ export function AccountSelector({
   const [isLoading, setIsLoading] = useState(false);
   const { selectedAccountIdx, setCurrentAccountById } = useAccountStore();
   const accounts = useAccountStore((state) => state.accounts).filter(
-    (account) => (accountFilter ? accountFilter(account) : true)
+    (account) => (accountFilter ? accountFilter(account) : true),
   );
 
   const selectedAccount = useAccountStore((state) => state.accounts)[
@@ -63,7 +63,8 @@ export function AccountSelector({
         </Button>
         <Label className="mt-2">
           Retry fetching accounts. <br />
-          You can refresh the page and navigate back here to continue your account setup.
+          You can refresh the page and navigate back here to continue your
+          account setup.
         </Label>
       </div>
     </>
@@ -111,7 +112,7 @@ export function AccountSelector({
                   <CheckIcon
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedAccountIdx === idx ? "opacity-100" : "opacity-0"
+                      selectedAccountIdx === idx ? "opacity-100" : "opacity-0",
                     )}
                   />
                   <img

@@ -39,7 +39,7 @@ export function ChannelPicker(props: Props) {
   const [isPending, setIsPending] = React.useState(false);
 
   const [channels, setChannels] = React.useState<Channel[]>(
-    props.initialChannels ?? []
+    props.initialChannels ?? [],
   );
 
   const setChannelResults = (newChannels: Channel[]) => {
@@ -77,7 +77,7 @@ export function ChannelPicker(props: Props) {
       setOpen(false);
       onSelect(channel);
     },
-    [onSelect, setOpen]
+    [onSelect, setOpen],
   );
 
   const fuse = new Fuse(channels, {
@@ -91,7 +91,7 @@ export function ChannelPicker(props: Props) {
 
     return take(
       orderBy(map(fuse.search(query), "item"), "follower_count", "desc"),
-      7
+      7,
     );
   }, [query, channels, fuse]);
 
@@ -152,7 +152,7 @@ export function ChannelPicker(props: Props) {
                       </span>
                     )}
                   </CommandItem>
-                )
+                ),
               )}
             </CommandGroup>
           </CommandList>

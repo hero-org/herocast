@@ -48,7 +48,7 @@ import { MentionList } from "../MentionsList";
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
 const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
 );
 
 const getChannels = async (query: string): Promise<Channel[]> => {
@@ -103,7 +103,7 @@ export default function NewPostEntry({
 
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
   const account = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
+    (state) => state.accounts[state.selectedAccountIdx],
   );
   const { allChannels } = useAccountStore();
   const isReply = draft?.parentCastId !== undefined;
@@ -167,7 +167,7 @@ export default function NewPostEntry({
     [onSubmitPost, draft, account],
     {
       enableOnFormTags: true,
-    }
+    },
   );
 
   const isPublishing = draft?.status === DraftStatus.publishing;
@@ -208,7 +208,7 @@ export default function NewPostEntry({
         true,
         {
           preserveWhitespace: "full",
-        }
+        },
       );
     }
 
@@ -273,7 +273,7 @@ export default function NewPostEntry({
 
   const scheduledCastCount =
     useDraftStore((state) =>
-      state.drafts.filter((draft) => draft.status === DraftStatus.scheduled)
+      state.drafts.filter((draft) => draft.status === DraftStatus.scheduled),
     )?.length || 0;
   const hasReachedFreePlanLimit =
     !isPaidUser() &&

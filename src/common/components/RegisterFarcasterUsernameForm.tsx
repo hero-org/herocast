@@ -90,7 +90,7 @@ const RegisterFarcasterUsernameForm = ({
   });
   const { updateAccountUsername } = useAccountStore();
   const account = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
+    (state) => state.accounts[state.selectedAccountIdx],
   );
   const canSubmitForm = !isPending && isConnected && chainId === mainnet.id;
 
@@ -114,7 +114,7 @@ const RegisterFarcasterUsernameForm = ({
   };
 
   const registerFarcasterUsername = async (
-    data: z.infer<typeof FarcasterAccountSetupFormSchema>
+    data: z.infer<typeof FarcasterAccountSetupFormSchema>,
   ) => {
     console.log("registerFarcasterUsername", data);
 
@@ -147,7 +147,7 @@ const RegisterFarcasterUsernameForm = ({
           name: username,
           owner,
           timestamp: BigInt(timestamp),
-        }
+        },
       );
       if (!registerSignature) {
         setIsPending(false);
@@ -173,7 +173,7 @@ const RegisterFarcasterUsernameForm = ({
         account.privateKey!,
         Number(account.platformAccountId!),
         UserDataType.USERNAME,
-        username
+        username,
       );
       updateAccountUsername(account.id);
 
@@ -181,7 +181,7 @@ const RegisterFarcasterUsernameForm = ({
         account.privateKey!,
         Number(account.platformAccountId!),
         UserDataType.DISPLAY,
-        displayName
+        displayName,
       );
 
       if (bio) {
@@ -189,7 +189,7 @@ const RegisterFarcasterUsernameForm = ({
           account.privateKey!,
           Number(account.platformAccountId!),
           UserDataType.BIO,
-          bio
+          bio,
         );
       }
 

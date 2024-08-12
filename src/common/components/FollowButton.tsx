@@ -22,7 +22,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
 
   const [isPending, setIsPending] = useState(false);
   const profile = useDataStore((state) =>
-    get(state.fidToData, get(state.usernameToFid, username))
+    get(state.fidToData, get(state.usernameToFid, username)),
   );
 
   useEffect(() => {
@@ -48,13 +48,13 @@ const FollowButton = ({ username }: FollowButtonProps) => {
       unfollowUser(
         Number(profile.fid),
         Number(selectedAccount.platformAccountId),
-        selectedAccount.privateKey!
+        selectedAccount.privateKey!,
       );
     } else {
       followUser(
         Number(profile.fid),
         Number(selectedAccount.platformAccountId),
-        selectedAccount.privateKey!
+        selectedAccount.privateKey!,
       );
     }
     setIsPending(false);

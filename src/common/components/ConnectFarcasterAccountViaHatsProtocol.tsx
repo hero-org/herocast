@@ -112,7 +112,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const router = useRouter();
 
   const [state, setState] = useState<SignupStepType>(
-    HatsProtocolSignupSteps[0]
+    HatsProtocolSignupSteps[0],
   );
   const [errorMessage, setErrorMessage] = useState("");
   const [accountName, setAccountName] = useState("");
@@ -134,23 +134,23 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
   const hatsProtocolPendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.pending &&
-      account.platform === AccountPlatformType.farcaster_hats_protocol
+      account.platform === AccountPlatformType.farcaster_hats_protocol,
   );
 
   const getFidForUsername = async (username: string) => {
     const neynarClient = new NeynarAPIClient(
-      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+      process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
     );
     try {
       const resp = await neynarClient.lookupUserByUsername(
         accountName,
-        parseInt(APP_FID)
+        parseInt(APP_FID),
       );
       return resp.result.user?.fid;
     } catch (err) {
       console.log(
         "ConnectFarcasterAccountViaHatsProtocol: error getting data",
-        err
+        err,
       );
     }
   };
@@ -161,12 +161,12 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
     const hasConnectedValidSignerAddress = await isValidSigner(
       delegatorContractAddress!,
       SIGNED_KEY_REQUEST_TYPEHASH,
-      address
+      address,
     );
 
     if (!hasConnectedValidSignerAddress) {
       setErrorMessage(
-        `Address ${address} is not a valid signer for contract ${delegatorContractAddress}`
+        `Address ${address} is not a valid signer for contract ${delegatorContractAddress}`,
       );
       setState(HatsProtocolSignupSteps[5]);
       return;
@@ -249,7 +249,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
         fid,
         keccak256(hexStringPublicKey),
         deadline,
-      ]
+      ],
     );
 
     const metadata = encodeAbiParameters(
@@ -283,7 +283,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
           signature: hatsProtocolSignature,
           deadline,
         },
-      ]
+      ],
     );
     try {
       // console.log('isMetadataSignatureValid', await isValidSignature(delegatorContractAddress, metadataHash, metadata));
@@ -420,7 +420,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
                 onChange={(e) =>
                   e.target.value.startsWith("0x")
                     ? setDelegatorContractAddress(
-                        e.target.value as `0x${string}`
+                        e.target.value as `0x${string}`,
                       )
                     : null
                 }

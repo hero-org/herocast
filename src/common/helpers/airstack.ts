@@ -7,7 +7,9 @@ export type AirstackSocialInfo = {
   userCreatedAt: number;
 };
 
-export async function getAirstackSocialInfoForFid(fid: string): Promise<AirstackSocialInfo | null> {
+export async function getAirstackSocialInfoForFid(
+  fid: string,
+): Promise<AirstackSocialInfo | null> {
   const query = `query MyQuery {
         Socials(
           input: {
@@ -42,9 +44,9 @@ export async function getAirstackSocialInfoForFid(fid: string): Promise<Airstack
     return {
       socialCapitalRank: socialInfo.socialCapital.socialCapitalRank,
       userCreatedAt: socialInfo.userCreatedAtBlockTimestamp,
-    }
+    };
   } catch (error) {
-    console.error('Error fetching Airstack data:', error);
+    console.error("Error fetching Airstack data:", error);
     return null;
   }
 }

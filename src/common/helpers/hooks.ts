@@ -1,5 +1,11 @@
-import { useLayoutEffect, useState, useCallback, useEffect, useRef } from "react";
-import debounce from 'lodash/debounce';
+import {
+  useLayoutEffect,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import debounce from "lodash/debounce";
 
 /**
  * This hook provides a function that returns whether the component is still mounted.
@@ -15,11 +21,13 @@ export function useIsMounted(): () => boolean {
       mountedRef.current = false;
     };
   }, []);
-  return useCallback(function isMounted() {
-    return mountedRef.current;
-  }, [mountedRef]);
+  return useCallback(
+    function isMounted() {
+      return mountedRef.current;
+    },
+    [mountedRef],
+  );
 }
-
 
 export const useIsMobile = (): boolean => {
   const [isMobile, setIsMobile] = useState(false);
@@ -28,8 +36,8 @@ export const useIsMobile = (): boolean => {
     const updateSize = (): void => {
       setIsMobile(window.innerWidth < 768);
     };
-    window.addEventListener('resize', debounce(updateSize, 250));
-    return (): void => window.removeEventListener('resize', updateSize);
+    window.addEventListener("resize", debounce(updateSize, 250));
+    return (): void => window.removeEventListener("resize", updateSize);
   }, []);
 
   return isMobile;

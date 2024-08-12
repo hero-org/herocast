@@ -15,12 +15,14 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
   useEffect(() => {
     const fetchData = async () => {
       const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
       );
       const hashes = rawCasts.map((cast: any) => cast.hash);
       const castsResponse = await neynarClient.fetchBulkCasts(hashes);
       if (castsResponse.result.casts) {
-        setCasts(orderBy(castsResponse.result.casts, 'reactions.likes_count', 'desc'));
+        setCasts(
+          orderBy(castsResponse.result.casts, "reactions.likes_count", "desc"),
+        );
       }
     };
 

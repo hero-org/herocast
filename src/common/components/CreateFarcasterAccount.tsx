@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Loading } from "./Loading";
@@ -161,7 +167,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = React.memo(
       nextProps.state.didSignTransactions &&
     prevProps.state.paymentOption === nextProps.state.paymentOption &&
     prevProps.state.isWaitingForFid === nextProps.state.isWaitingForFid &&
-    prevProps.state.isPending === nextProps.state.isPending
+    prevProps.state.isPending === nextProps.state.isPending,
 );
 
 ActionButtons.displayName = "ActionButtons";
@@ -209,12 +215,12 @@ const CreateFarcasterAccount: React.FC<{
   onSuccess?: () => void;
   isAddressValid: boolean;
 }> = ({ onSuccess, isAddressValid }) => {
-  console.log('CreateFarcasterAccount rendered');
+  console.log("CreateFarcasterAccount rendered");
 
   useLayoutEffect(() => {
-    console.log('CreateFarcasterAccount mounted');
+    console.log("CreateFarcasterAccount mounted");
     return () => {
-      console.log('CreateFarcasterAccount unmounted');
+      console.log("CreateFarcasterAccount unmounted");
     };
   }, []);
   const [state, setState] = useState({
@@ -241,7 +247,7 @@ const CreateFarcasterAccount: React.FC<{
   const pendingAccounts = accounts.filter(
     (account) =>
       account.status === AccountStatusType.pending &&
-      account.platform === AccountPlatformType.farcaster
+      account.platform === AccountPlatformType.farcaster,
   );
 
   const chainId = optimismChainId;
@@ -263,7 +269,10 @@ const CreateFarcasterAccount: React.FC<{
   });
 
   const getFidAndUpdateAccount = useCallback(async (): Promise<boolean> => {
-    console.log('getFidAndUpdateAccount called', { transactionResult, pendingAccounts });
+    console.log("getFidAndUpdateAccount called", {
+      transactionResult,
+      pendingAccounts,
+    });
     if (!(transactionResult && pendingAccounts.length > 0)) {
       console.log("No transaction results or pending accounts.");
       return false;
@@ -272,7 +281,7 @@ const CreateFarcasterAccount: React.FC<{
     try {
       const fid = await getFidForAddress(address!);
       if (fid) {
-        console.log('FID found, updating account'); // Debug log
+        console.log("FID found, updating account"); // Debug log
         const accountId = pendingAccounts[0].id;
         setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
           platform_account_id: fid.toString(),
@@ -299,32 +308,36 @@ const CreateFarcasterAccount: React.FC<{
   ]);
 
   useEffect(() => {
-    console.log('useEffect for polling FID triggered', { isConnected, transactionHash: state.transactionHash, transactionResult });
+    console.log("useEffect for polling FID triggered", {
+      isConnected,
+      transactionHash: state.transactionHash,
+      transactionResult,
+    });
     let isMounted = true;
     let timeoutId: NodeJS.Timeout | null = null;
 
     const pollForFid = async () => {
-      console.log('pollForFid called');
+      console.log("pollForFid called");
       if (isConnected && state.transactionHash !== "0x" && transactionResult) {
         const success = await getFidAndUpdateAccount();
-        console.log('getFidAndUpdateAccount result:', success);
+        console.log("getFidAndUpdateAccount result:", success);
         if (success && isMounted) {
           setState((prev) => ({ ...prev, isWaitingForFid: false }));
         } else if (isMounted) {
-          console.log('Scheduling next poll');
+          console.log("Scheduling next poll");
           timeoutId = setTimeout(pollForFid, 1000);
         }
       }
     };
 
     if (isConnected && state.transactionHash !== "0x" && transactionResult) {
-      console.log('Starting FID polling');
+      console.log("Starting FID polling");
       setState((prev) => ({ ...prev, isWaitingForFid: true }));
       pollForFid();
     }
 
     return () => {
-      console.log('Cleaning up FID polling effect');
+      console.log("Cleaning up FID polling effect");
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
@@ -443,7 +456,7 @@ const CreateFarcasterAccount: React.FC<{
       setState((prev) => ({
         ...prev,
         error: `You must switch networks to get available payment methods: ${JSON.stringify(
-          e
+          e,
         )}`,
       }));
     }
@@ -522,7 +535,7 @@ const CreateFarcasterAccount: React.FC<{
     const metadata = await getSignedKeyRequestMetadataFromAppAccount(
       chainId,
       signerPublicKey,
-      registerDeadline
+      registerDeadline,
     );
     setState((prev) => ({ ...prev, registerMetaData: metadata }));
 

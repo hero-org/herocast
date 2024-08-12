@@ -49,7 +49,7 @@ const CreateHatsTreeFormSchema = z.object({
           message: "Invalid address",
         }),
         id: z.string(),
-      })
+      }),
     )
     .nonempty(),
 });
@@ -64,13 +64,19 @@ const casterHatAddressesInitial: CasterHatAddress[] = [
 ];
 
 type CreateHatsTreeFormProps = {
-  onSuccess?: ({ casterHatId, adminHatId }: { casterHatId, adminHatId}) => void;
+  onSuccess?: ({
+    casterHatId,
+    adminHatId,
+  }: {
+    casterHatId;
+    adminHatId;
+  }) => void;
 };
 
 function useZodForm<TSchema extends z.ZodType>(
   props: Omit<UseFormProps<TSchema["_input"]>, "resolver"> & {
     schema: TSchema;
-  }
+  },
 ) {
   const form = useForm<TSchema["_input"]>({
     ...props,
@@ -85,7 +91,7 @@ function useZodForm<TSchema extends z.ZodType>(
 
 const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
   const [formState, setFormState] = useState<CREATE_HATS_TREE_FORM_STEP>(
-    CREATE_HATS_TREE_FORM_STEP.DEFAULT
+    CREATE_HATS_TREE_FORM_STEP.DEFAULT,
   );
   const walletClient = useWalletClient()?.data;
   const { chains, status, switchChain, switchChainAsync } = useSwitchChain();
@@ -142,7 +148,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
 
     const adminHatAddress = await convertEnsNameToAddress(data.adminHatAddress);
     const casterHatAddresses = await convertEnsNamesToAddresses(
-      data.casterHatAddresses.map((obj) => obj.address)
+      data.casterHatAddresses.map((obj) => obj.address),
     );
 
     data.adminHatAddress = adminHatAddress;
@@ -160,7 +166,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
         address as `0x${string}`,
         data.adminHatAddress as `0x${string}`,
         data.casterHatAddresses.map((obj) => obj.address) as `0x${string}`[],
-        walletClient
+        walletClient,
       );
       setCasterHatId(casterHat);
       setAdminHatId(adminHat);

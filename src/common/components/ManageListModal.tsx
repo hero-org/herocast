@@ -23,14 +23,13 @@ const ManageListModal = ({ open, onClose }) => {
   const list = useListStore((state) =>
     state.selectedListId !== undefined
       ? state.lists.find((l) => l.id === state.selectedListId)
-      : undefined
+      : undefined,
   );
   const canSave =
     list &&
     (newName !== list.name ||
       newSearchTerm !== list.contents?.term ||
-      isDailyEmailEnabled !== list.contents?.enabled_daily_email
-    );
+      isDailyEmailEnabled !== list.contents?.enabled_daily_email);
 
   const onClickDelete = (id: UUID) => {
     removeList(id);
@@ -67,7 +66,7 @@ const ManageListModal = ({ open, onClose }) => {
   if (!list) return null;
 
   const searchIntervalKey = Object.keys(SearchInterval).find(
-    (key) => SearchInterval[key] === list?.contents?.filters?.interval
+    (key) => SearchInterval[key] === list?.contents?.filters?.interval,
   );
   const searchInterval = searchIntervalKey
     ? SearchInterval[searchIntervalKey]

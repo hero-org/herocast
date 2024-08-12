@@ -1,10 +1,9 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { create as mutativeCreate, Draft } from 'mutative';
+import { create as mutativeCreate, Draft } from "mutative";
 import { createClient } from "@/common/helpers/supabase/component";
-import { InsertList, List, UpdateList } from '@/common/types/database.types'
+import { InsertList, List, UpdateList } from "@/common/types/database.types";
 import { UUID } from "crypto";
-
 
 export type Search = {
   term: string;
@@ -13,7 +12,7 @@ export type Search = {
   resultsCount: number;
 };
 
-type AddListType = Omit<InsertList, 'user_id'>;
+type AddListType = Omit<InsertList, "user_id">;
 
 interface ListStoreProps {
   searches: Search[];
@@ -31,10 +30,10 @@ interface ListStoreActions {
   setSelectedListId: (id: UUID) => void;
 }
 
-export interface ListStore extends ListStoreProps, ListStoreActions { }
+export interface ListStore extends ListStoreProps, ListStoreActions {}
 
-export const mutative = (config) =>
-  (set, get) => config((fn) => set(mutativeCreate(fn)), get);
+export const mutative = (config) => (set, get) =>
+  config((fn) => set(mutativeCreate(fn)), get);
 
 type StoreSet = (fn: (draft: Draft<ListStore>) => void) => void;
 
@@ -51,16 +50,20 @@ const store = (set: StoreSet) => ({
     });
   },
   addList: async (newList: AddListType) => {
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser();
     if (!user) {
-      throw new Error('User not logged in');
+      throw new Error("User not logged in");
     }
     const { data: list, error } = await supabaseClient
-      .from('list')
+      .from("list")
       .insert([
         {
-          ...newList, user_id: user.id,
-        }])
+          ...newList,
+          user_id: user.id,
+        },
+      ])
       .select();
 
     if (error || !list) {
@@ -71,20 +74,28 @@ const store = (set: StoreSet) => ({
     });
   },
   updateList: async (search: UpdateList) => {
-    if (!search.id) throw new Error('List id is required');
-    const { data, error } = await supabaseClient.from('list').upsert(search).select();
+    if (!search.id) throw new Error("List id is required");
+    const { data, error } = await supabaseClient
+      .from("list")
+      .upsert(search)
+      .select();
     if (error) {
-      throw new Error('Failed to update list');
+      throw new Error("Failed to update list");
     }
-    const idx = useListStore.getState().lists.findIndex((s) => s.id === search.id);
+    const idx = useListStore
+      .getState()
+      .lists.findIndex((s) => s.id === search.id);
     set((state) => {
       state.lists[idx] = data?.[0] as List;
     });
   },
   removeList: async (listId: UUID) => {
-    const { error } = await supabaseClient.from('list').delete().eq('id', listId);
+    const { error } = await supabaseClient
+      .from("list")
+      .delete()
+      .eq("id", listId);
     if (error) {
-      throw new Error('Failed to remove list');
+      throw new Error("Failed to remove list");
     }
     set((state) => {
       state.lists = state.lists.filter((list) => list.id !== listId);
@@ -99,19 +110,20 @@ const store = (set: StoreSet) => ({
     if (useListStore.getState().isHydrated) return;
 
     try {
-      const { data: lists, error } = await supabaseClient.from('list').select('*');
+      const { data: lists, error } = await supabaseClient
+        .from("list")
+        .select("*");
       if (error) {
-        throw new Error('Failed to fetch lists from server');
+        throw new Error("Failed to fetch lists from server");
       }
       set((state) => {
         state.lists = lists as List[];
         state.isHydrated = true;
       });
     } catch (error) {
-      console.error('Failed to hydrate ListStore:', error);
+      console.error("Failed to hydrate ListStore:", error);
     }
-  }
+  },
 });
-
 
 export const useListStore = create<ListStore>()(devtools(mutative(store)));

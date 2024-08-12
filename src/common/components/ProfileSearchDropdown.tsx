@@ -62,7 +62,7 @@ export function ProfileSearchDropdown({
       {
         leading: true,
         trailing: true,
-      }
+      },
     );
 
     debouncedSearch(searchTerm);
@@ -92,7 +92,7 @@ export function ProfileSearchDropdown({
           aria-expanded={open}
           className={cn(
             disabled && "hover:bg-transparent cursor-default",
-            "px-4 max-w-[150px] justify-between"
+            "px-4 max-w-[150px] justify-between",
           )}
         >
           {selectedProfile ? renderSelectedProfile() : "Select account..."}
@@ -127,7 +127,7 @@ export function ProfileSearchDropdown({
                           src={profile.pfp_url}
                           alt={profile.username}
                           className={cn(
-                            selectedProfile?.fid !== profile.fid && "grayscale"
+                            selectedProfile?.fid !== profile.fid && "grayscale",
                           )}
                         />
                         <AvatarFallback>
@@ -140,11 +140,11 @@ export function ProfileSearchDropdown({
                           "ml-auto h-4 w-4",
                           selectedProfile?.fid === profile.fid
                             ? "opacity-100"
-                            : "opacity-0"
+                            : "opacity-0",
                         )}
                       />
                     </CommandItem>
-                  )
+                  ),
                 )}
               </CommandGroup>
             </CommandList>

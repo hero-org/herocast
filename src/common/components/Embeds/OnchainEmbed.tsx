@@ -6,6 +6,6 @@ const OnchainEmbed = ({ url }: { url: string }) => {
       {url}
     </div>
   );
-}
+};
 
 export default OnchainEmbed;

@@ -5,24 +5,25 @@ import { cn } from "@/lib/utils";
 
 type CustomProgressProps = {
   indicatorClassName?: string;
-}
+};
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & CustomProgressProps
+  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> &
+    CustomProgressProps
 >(({ className, indicatorClassName, value, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
       "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
-      className
+      className,
     )}
     {...props}
   >
     <ProgressPrimitive.Indicator
       className={cn(
         "h-full w-full flex-1 bg-primary transition-all",
-        indicatorClassName
+        indicatorClassName,
       )}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />

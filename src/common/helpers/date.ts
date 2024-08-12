@@ -6,13 +6,13 @@
  */
 export function timeDiff(date1: Date, date2: Date): [number, string] {
   if (!(date1 instanceof Date && date2 instanceof Date))
-    throw new RangeError('Invalid date arguments');
+    throw new RangeError("Invalid date arguments");
 
   const timeIntervals = [31536000, 2628000, 604800, 86400, 3600, 60, 1];
-  const intervalNames = ['year', 'month', 'week', 'day', 'h', 'm', 's'];
+  const intervalNames = ["year", "month", "week", "day", "h", "m", "s"];
 
   const diff = Math.abs(date2.getTime() - date1.getTime()) / 1000;
-  const index = timeIntervals.findIndex(i => (diff / i) >= 1);
+  const index = timeIntervals.findIndex((i) => diff / i >= 1);
   const n = Math.floor(diff / timeIntervals[index]);
   const interval = intervalNames[index];
 
@@ -26,26 +26,24 @@ export function timeDiff(date1: Date, date2: Date): [number, string] {
  * @return {string} value and unit, taking plurals into account
  */
 export function localize(value: number, str: string): string {
-  if (!value || !str) return '';
+  if (!value || !str) return "";
 
-  if (value != 1 && str.length > 1)
-    str += 's';
+  if (value != 1 && str.length > 1) str += "s";
 
-  return `${value}${str}`
+  return `${value}${str}`;
 }
 
 import { parseISO, formatDistanceToNow } from "date-fns";
 
-
 export const getUserLocaleDateFromIsoString = (
   isoString: string,
-  dateStyle: "medium" | "full" | "long" | "short" | undefined = 'medium',
-  timeStyle: "medium" | "full" | "long" | "short" | undefined = 'medium'
+  dateStyle: "medium" | "full" | "long" | "short" | undefined = "medium",
+  timeStyle: "medium" | "full" | "long" | "short" | undefined = "medium",
 ) => {
-  // input format: 2024-06-14T11:34:47+00:00, e.g. from 
+  // input format: 2024-06-14T11:34:47+00:00, e.g. from
   const date = parseISO(isoString);
   return new Intl.DateTimeFormat(navigator.language, {
     dateStyle,
-    timeStyle
+    timeStyle,
   }).format(date);
-}
+};

@@ -1,8 +1,8 @@
-import type * as app from '@tauri-apps/api/app';
+import type * as app from "@tauri-apps/api/app";
 
 declare global {
   interface Window {
-    ethereum: import('ethers').providers.ExternalProvider;
+    ethereum: import("ethers").providers.ExternalProvider;
   }
   interface Window {
     __TAURI__: {

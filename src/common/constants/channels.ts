@@ -12,4 +12,4 @@ export type ChannelType = {
     moderatorFid?: string;
     followerCount?: number;
   };
-}
+};

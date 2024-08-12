@@ -78,11 +78,11 @@ function Calendar(props: CalendarProps<DateValue>) {
   } = useCalendar(props, state);
   const { buttonProps: prevButtonProps } = useButton(
     _prevButtonProps,
-    prevButtonRef
+    prevButtonRef,
   );
   const { buttonProps: nextButtonProps } = useButton(
     _nextButtonProps,
-    nextButtonRef
+    nextButtonRef,
   );
 
   return (
@@ -94,7 +94,7 @@ function Calendar(props: CalendarProps<DateValue>) {
           variant="outline"
           size="lg"
           className={cn(
-            "absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+            "absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
           )}
         >
           <ChevronLeftIcon className="h-4 w-4" />
@@ -105,7 +105,7 @@ function Calendar(props: CalendarProps<DateValue>) {
           ref={nextButtonRef}
           variant="outline"
           className={cn(
-            "absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+            "absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
           )}
         >
           <ChevronRightIcon className="h-4 w-4" />
@@ -154,7 +154,7 @@ function CalendarGrid({ state, ...props }: CalendarGridProps) {
                   <CalendarCell key={i} state={state} date={date} />
                 ) : (
                   <td key={i} />
-                )
+                ),
               )}
           </tr>
         ))}
@@ -189,7 +189,7 @@ function CalendarCell({ state, date }: CalendarCellProps) {
       {...cellProps}
       className={cn(
         cellProps.className,
-        "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
+        "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
       )}
     >
       <Button
@@ -204,7 +204,7 @@ function CalendarCell({ state, date }: CalendarCellProps) {
           isSelected &&
             "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
           isOutsideVisibleRange && "text-muted-foreground opacity-50",
-          isDisabled && "text-muted-foreground opacity-50"
+          isDisabled && "text-muted-foreground opacity-50",
         )}
       >
         {formattedDate}
@@ -232,7 +232,7 @@ function DateSegment({ segment, state }: DateSegmentProps) {
       className={cn(
         "focus:rounded-[2px] focus:bg-accent focus:text-accent-foreground focus:outline-none",
         segment.type !== "literal" && "px-[1px]",
-        segment.isPlaceholder && "text-muted-foreground"
+        segment.isPlaceholder && "text-muted-foreground",
       )}
     >
       {segment.text}
@@ -257,7 +257,7 @@ function DateField(props: AriaDatePickerProps<DateValue>) {
       ref={ref}
       className={cn(
         "inline-flex h-8 flex-1 items-center rounded-l-md border-input bg-transparent px-2 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        props.isDisabled && "cursor-not-allowed opacity-50"
+        props.isDisabled && "cursor-not-allowed opacity-50",
       )}
     >
       {state.segments.map((segment, i) => (
@@ -287,7 +287,7 @@ function TimeField(props: AriaTimeFieldProps<TimeValue>) {
       ref={ref}
       className={cn(
         "inline-flex h-10 w-full flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        props.isDisabled && "cursor-not-allowed opacity-50"
+        props.isDisabled && "cursor-not-allowed opacity-50",
       )}
     >
       {state.segments.map((segment, i) => (
@@ -371,7 +371,7 @@ const DateTimePicker = React.forwardRef<
      **/
     if (state.value) {
       const date = parseDateTime(state.value.toString()).toDate(
-        getLocalTimeZone()
+        getLocalTimeZone(),
       );
       setJsDatetime(date);
       onJsDateChange?.(date);
@@ -392,7 +392,7 @@ const DateTimePicker = React.forwardRef<
       ref={divRef}
       className={cn(
         groupProps.className,
-        "w-full max-w-48 flex items-center h-9 rounded-lg px-0 border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+        "w-full max-w-48 flex items-center h-9 rounded-lg px-0 border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
       )}
     >
       <Popover open={props.isOpen} onOpenChange={props.onOpenChange}>
@@ -429,7 +429,7 @@ const DateTimePicker = React.forwardRef<
         <XMarkIcon
           className={cn(
             "h-5 w-5 cursor-pointer text-primary/30",
-            !jsDatetime && "hidden"
+            !jsDatetime && "hidden",
           )}
           onClick={() => onClear()}
         />

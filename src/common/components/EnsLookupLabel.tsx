@@ -12,7 +12,7 @@ const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
 
   useEffect(() => {
     if (!isConnected) return;
-    
+
     if (addressOrName && addressOrName.endsWith(".eth")) {
       getAddressFromEnsName(addressOrName).then((ensAddress) => {
         setAddress(ensAddress);

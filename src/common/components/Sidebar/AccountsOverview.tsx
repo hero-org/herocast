@@ -34,9 +34,7 @@ const AccountsOverview = () => {
       default:
         return (
           <span
-            className={cn(
-              "underline flex-none text-sm text-foreground/70"
-            )}
+            className={cn("underline flex-none text-sm text-foreground/70")}
           >
             {status}
           </span>
@@ -66,7 +64,7 @@ const AccountsOverview = () => {
   const onClickAccount = (
     idx: number,
     isActive: boolean,
-    isReadOnly: boolean
+    isReadOnly: boolean,
   ) => {
     if (isActive) {
       setCurrentAccountIdx(idx);
@@ -107,7 +105,7 @@ const AccountsOverview = () => {
                         idx === selectedAccountIdx
                           ? "border-gray-100"
                           : "grayscale border-gray-400 hover:border-gray-300",
-                        "-mr-1 -mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+                        "-mr-1 -mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full",
                       )}
                     />
                   )}
@@ -116,7 +114,7 @@ const AccountsOverview = () => {
                       idx === selectedAccountIdx
                         ? "text-foreground"
                         : "text-foreground/60",
-                      "flex-auto truncate text-sm font-normal leading-6"
+                      "flex-auto truncate text-sm font-normal leading-6",
                     )}
                   >
                     {account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}

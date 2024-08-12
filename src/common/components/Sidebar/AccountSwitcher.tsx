@@ -61,7 +61,7 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
 
   const accountsByPlatform = accounts.reduce((acc, account) => {
     const labelForAccount = groups.find((group) =>
-      group.platforms.includes(account.platform)
+      group.platforms.includes(account.platform),
     )?.label;
     if (!labelForAccount) {
       console.log("No label found for account", account);
@@ -92,7 +92,7 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
             }}
             className={cn(
               "text-sm truncate",
-              selectedAccount?.id === account.id && "bg-muted"
+              selectedAccount?.id === account.id && "bg-muted",
             )}
           >
             <Avatar className="mr-2 h-5 w-5">
@@ -100,7 +100,7 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
                 src={account.user?.pfp_url}
                 alt={account.name}
                 className={cn(
-                  selectedAccount?.id !== account.id && "grayscale"
+                  selectedAccount?.id !== account.id && "grayscale",
                 )}
               />
               <AvatarFallback>HC</AvatarFallback>
@@ -134,7 +134,10 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
           role="combobox"
           aria-expanded={open}
           aria-label="Select an account"
-          className={cn("px-2 max-w-[130px] min-w-[130px] justify-between", className)}
+          className={cn(
+            "px-2 max-w-[130px] min-w-[130px] justify-between",
+            className,
+          )}
         >
           {selectedAccount ? (
             <div className="flex truncate max-w-full">

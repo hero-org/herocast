@@ -26,7 +26,7 @@ const NewCastModal: React.FC<NewCastModalProps> = ({
   const { drafts, removePostDraftById } = useDraftStore();
   const draftIdx = useMemo(
     () => drafts.findIndex((draft) => draft.id === draftId),
-    [draftId, drafts]
+    [draftId, drafts],
   );
   const draft = draftIdx !== undefined ? drafts[draftIdx] : undefined;
 

@@ -75,7 +75,7 @@ export default function CommandPalette() {
       enableOnFormTags: true,
       preventDefault: true,
     },
-    [toggleCommandPalette]
+    [toggleCommandPalette],
   );
 
   const setupHotkeysForCommands = useCallback(
@@ -109,11 +109,11 @@ export default function CommandPalette() {
             enabled: command.enabled,
             preventDefault: true,
           },
-          [command.action, command.navigateTo, currentPage, router]
+          [command.action, command.navigateTo, currentPage, router],
         );
       });
     },
-    [router]
+    [router],
   );
 
   useEffect(() => {
@@ -125,11 +125,11 @@ export default function CommandPalette() {
   const { theme, setTheme } = useTheme();
   const themeCommands = useCallback(
     () => getThemeCommands(theme, setTheme),
-    [theme, setTheme]
+    [theme, setTheme],
   )();
   const navigationCommands = useCallback(
     () => getNavigationCommands({ router }),
-    [router]
+    [router],
   )();
   const getProfileCommands = useCallback(() => {
     return [
@@ -164,7 +164,7 @@ export default function CommandPalette() {
   const profileCommands = getProfileCommands();
   const channelCommands = useCallback(
     () => getChannelCommands(useAccountStore.getState()),
-    [useAccountStore.getState()]
+    [useAccountStore.getState()],
   )();
 
   const getCommands = useCallback((): CommandType[] => {
@@ -202,7 +202,7 @@ export default function CommandPalette() {
     const createFarcasterBotCommand = (
       name: string,
       action: () => void,
-      navigateTo?: string
+      navigateTo?: string,
     ) => {
       return {
         name,
@@ -239,22 +239,22 @@ export default function CommandPalette() {
       createFarcasterBotCommand(
         "Feedback (send cast to @hellno)",
         () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
-        "/post"
+        "/post",
       ),
       createFarcasterBotCommand(
         "Launch this cast on Launchcaster",
-        launchCastAction
+        launchCastAction,
       ),
       createFarcasterBotCommand(
         "Post new bounty",
         postNewBountyAction,
-        "/post"
+        "/post",
       ),
       createFarcasterBotCommand("Remind me about this", remindMeAction),
       createFarcasterBotCommand("Pay user via paybot", payCasterPayAction),
       createFarcasterBotCommand(
         "Request payment via paybot",
-        payCasterRequestAction
+        payCasterRequestAction,
       ),
     ];
 
@@ -284,7 +284,7 @@ export default function CommandPalette() {
       command.action();
       closeCommandPallete();
     },
-    [router, closeCommandPallete]
+    [router, closeCommandPallete],
   );
 
   const getWarpcastCommandForUrl = (url: string): CommandType => {
@@ -362,7 +362,7 @@ export default function CommandPalette() {
 
   const filteredCommands = useMemo(
     () => getFilteredCommands(),
-    [isCommandPaletteOpen, query, commands, router, setSelectedChannelByName]
+    [isCommandPaletteOpen, query, commands, router, setSelectedChannelByName],
   );
 
   const renderIcon = useCallback((command: CommandType, active: boolean) => {
@@ -386,7 +386,7 @@ export default function CommandPalette() {
         <IconComponent
           className={cn(
             "h-5 w-5 flex-none",
-            active ? "text-foreground" : "text-foreground/80"
+            active ? "text-foreground" : "text-foreground/80",
           )}
           aria-hidden="true"
         />
@@ -413,7 +413,7 @@ export default function CommandPalette() {
         )}
       </CommandItem>
     ),
-    []
+    [],
   );
 
   const renderDefaultCommands = () => (

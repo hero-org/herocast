@@ -1,6 +1,6 @@
-import React from 'react';
-import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import * as AlertDialog from "@radix-ui/react-alert-dialog";
+import { Button } from "@/components/ui/button";
 
 type AlertDialogProps = {
   buttonText: string;
@@ -10,9 +10,7 @@ type AlertDialogProps = {
 const AlertDialogDemo = ({ buttonText, onClick }: AlertDialogProps) => (
   <AlertDialog.Root>
     <AlertDialog.Trigger asChild>
-      <Button variant="destructive">
-        {buttonText}
-      </Button>        
+      <Button variant="destructive">{buttonText}</Button>
     </AlertDialog.Trigger>
     <AlertDialog.Portal>
       <AlertDialog.Overlay className="bg-background/50 data-[state=open]:animate-overlayShow fixed inset-0" />
@@ -21,18 +19,16 @@ const AlertDialogDemo = ({ buttonText, onClick }: AlertDialogProps) => (
           Are you absolutely sure?
         </AlertDialog.Title>
         <AlertDialog.Description className="text-radix-mauve1 mt-4 mb-5 text-[15px] leading-normal">
-          This action cannot be undone. <br />This will remove your account from herocast. <br />You will have to reconnect your account to use herocast again.
+          This action cannot be undone. <br />
+          This will remove your account from herocast. <br />
+          You will have to reconnect your account to use herocast again.
         </AlertDialog.Description>
         <div className="flex justify-end gap-[25px]">
           <AlertDialog.Cancel asChild>
-            <Button variant="outline">
-              Cancel
-            </Button>
+            <Button variant="outline">Cancel</Button>
           </AlertDialog.Cancel>
           <AlertDialog.Action asChild onClick={() => onClick()}>
-            <Button variant="destructive">
-              Yes, disconnect account
-            </Button>
+            <Button variant="destructive">Yes, disconnect account</Button>
           </AlertDialog.Action>
         </div>
       </AlertDialog.Content>

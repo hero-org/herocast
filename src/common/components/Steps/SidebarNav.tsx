@@ -33,7 +33,7 @@ export function SidebarNav({
     <nav
       className={cn(
         "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
-        className!
+        className!,
       )}
       {...props}
     >
@@ -49,7 +49,7 @@ export function SidebarNav({
                 ? "text-foreground/40 hover:bg-transparent hover:underline"
                 : "",
               item.key === step ? "bg-muted hover:bg-muted" : "",
-              "justify-start truncate"
+              "justify-start truncate",
             )}
           >
             {item.title}

@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import HelpCard from "@/common/components/HelpCard";
 import { Button } from "@/components/ui/button";
-import {
-  accountCommands,
-  useAccountStore,
-} from "@/stores/useAccountStore";
+import { accountCommands, useAccountStore } from "@/stores/useAccountStore";
 import { newPostCommands } from "@/stores/useDraftStore";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
@@ -75,7 +72,7 @@ export default function Settings() {
     ];
 
     const commandsWithShortcuts: SimpleCommand[] = allCommands.filter(
-      (command) => command.shortcut !== undefined
+      (command) => command.shortcut !== undefined,
     );
 
     return (

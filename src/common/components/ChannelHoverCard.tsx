@@ -20,7 +20,7 @@ type ProfileHoverCardProps = {
 const ChannelHoverCard = memo(
   ({ channelName, children, className }: ProfileHoverCardProps) => {
     const accountChannels = useAccountStore(
-      (state) => state.accounts[state.selectedAccountIdx]?.channels || []
+      (state) => state.accounts[state.selectedAccountIdx]?.channels || [],
     );
     const {
       addPinnedChannel,
@@ -44,7 +44,7 @@ const ChannelHoverCard = memo(
       () =>
         channel &&
         accountChannels.findIndex((c) => c.url === channel.url) !== -1,
-      [channel, accountChannels]
+      [channel, accountChannels],
     );
 
     const onClick = useCallback(() => {
@@ -120,7 +120,7 @@ const ChannelHoverCard = memo(
         </HoverCardContent>
       </HoverCard>
     );
-  }
+  },
 );
 
 ChannelHoverCard.displayName = "ChannelHoverCard";

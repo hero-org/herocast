@@ -1,8 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
-
 
 @layer base {
   :root {
@@ -32,7 +30,7 @@
     --chart-4: 240 1% 42%;
     --chart-5: 240 2% 26%;
   }
- 
+
   .dark {
     --background: 0deg, 0%, 4.31%;
     --foreground: 0 0% 98%;

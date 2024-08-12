@@ -1,14 +1,14 @@
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
-import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts"
+import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts";
 
-import { createClient } from 'npm:@supabase/supabase-js'
-import { Resend } from 'npm:resend';
-import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
-import { getHtmlEmail } from '../_shared/email.ts';
+import { createClient } from "npm:@supabase/supabase-js";
+import { Resend } from "npm:resend";
+import { SearchInterval, runFarcasterCastSearch } from "../_shared/search.ts";
+import { getHtmlEmail } from "../_shared/email.ts";
 
-console.log("Hello from sending daily emails!")
+console.log("Hello from sending daily emails!");
 
 type Cast = {
   hash: string;
@@ -17,19 +17,19 @@ type Cast = {
   timestamp: string;
 };
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const NEYNAR_API_KEY = Deno.env.get('NEYNAR_API_KEY');
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const NEYNAR_API_KEY = Deno.env.get("NEYNAR_API_KEY");
 
 async function fetchBulkCasts(hashes: string[]): Promise<Cast[]> {
-  const url = 'https://api.neynar.com/v2/farcaster/casts';
-  const params = new URLSearchParams({ casts: hashes.join(',') });
+  const url = "https://api.neynar.com/v2/farcaster/casts";
+  const params = new URLSearchParams({ casts: hashes.join(",") });
 
   try {
     const response = await fetch(`${url}?${params}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'accept': 'application/json',
-        'api_key': NEYNAR_API_KEY || '',
+        accept: "application/json",
+        api_key: NEYNAR_API_KEY || "",
       },
     });
 
@@ -40,20 +40,29 @@ async function fetchBulkCasts(hashes: string[]): Promise<Cast[]> {
     const data = await response.json();
     return data.result.casts;
   } catch (error) {
-    console.error('Error fetching bulk casts:', error);
+    console.error("Error fetching bulk casts:", error);
     return [];
   }
 }
 
-async function sendEmail(resend: Resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]) {
+async function sendEmail(
+  resend: Resend,
+  fromAddress: string,
+  toAddress: string,
+  subject: string,
+  listsWithCasts: { listName: string; searchTerm: string; casts: any[] }[],
+) {
   if (!RESEND_API_KEY) {
-    console.error('RESEND_API_KEY is not set');
-    return new Response(JSON.stringify({ error: 'RESEND_API_KEY is not set' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
+    console.error("RESEND_API_KEY is not set");
+    return new Response(
+      JSON.stringify({ error: "RESEND_API_KEY is not set" }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
   }
 
   try {
@@ -61,13 +70,18 @@ async function sendEmail(resend: Resend, fromAddress: string, toAddress: string,
       from: fromAddress,
       to: [toAddress],
       subject: subject,
-      html: getHtmlEmail({ listsWithCasts })
+      html: getHtmlEmail({ listsWithCasts }),
     });
     if (res?.error) {
-      console.error('Error sending email - response has error:', res, toAddress, listsWithCasts);
+      console.error(
+        "Error sending email - response has error:",
+        res,
+        toAddress,
+        listsWithCasts,
+      );
     }
   } catch (error) {
-    console.error('Error sending email:', error, toAddress, listsWithCasts);
+    console.error("Error sending email:", error, toAddress, listsWithCasts);
   }
 }
 
@@ -76,7 +90,7 @@ async function enrichCastsViaNeynar(casts: Cast[]) {
     const hashes = casts.map((cast) => cast.hash);
     return await fetchBulkCasts(hashes);
   } catch (error) {
-    console.error('Error fetching casts from Neynar:', error);
+    console.error("Error fetching casts from Neynar:", error);
     return casts;
   }
 }
@@ -84,78 +98,95 @@ async function enrichCastsViaNeynar(casts: Cast[]) {
 Deno.serve(async () => {
   try {
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    )
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    );
     const resend = new Resend(RESEND_API_KEY);
 
-    const { data: profilesWithLists, error: profilesError } = await supabaseClient
-      .from('profile')
-      .select(`
+    const { data: profilesWithLists, error: profilesError } =
+      await supabaseClient
+        .from("profile")
+        .select(
+          `
         user_id,
         email,
         lists:list!inner(*)
-      `)
-      .not('email', 'is', null)
-      .eq('list.contents->enabled_daily_email', true)
-      .order('idx', { referencedTable: 'list', ascending: true })
+      `,
+        )
+        .not("email", "is", null)
+        .eq("list.contents->enabled_daily_email", true)
+        .order("idx", { referencedTable: "list", ascending: true });
 
     if (profilesError) {
-      throw new Error(`Error fetching profiles with lists: ${profilesError.message}`);
+      throw new Error(
+        `Error fetching profiles with lists: ${profilesError.message}`,
+      );
     }
 
-    const baseUrl = Deno.env.get('BASE_URL');
+    const baseUrl = Deno.env.get("BASE_URL");
     let count = 0;
     for (const profile of profilesWithLists) {
       if (!profile.email) {
-        console.error(`Profile has daily digest activated but no email address set. user id ${profile.id}`);
+        console.error(
+          `Profile has daily digest activated but no email address set. user id ${profile.id}`,
+        );
         continue;
       }
 
-      console.log(`user ${profile.user_id} has ${profile?.lists?.length || 0} lists`)
+      console.log(
+        `user ${profile.user_id} has ${profile?.lists?.length || 0} lists`,
+      );
 
-      const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
-        const casts = await runFarcasterCastSearch({
-          searchTerm: list.contents.term,
-          filters: { ...list.contents.filters, interval: SearchInterval.d1 },
-          limit: 5,
-          baseUrl,
-        });
+      const listsWithCasts = await Promise.all(
+        profile.lists.map(async (list) => {
+          const casts = await runFarcasterCastSearch({
+            searchTerm: list.contents.term,
+            filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+            limit: 5,
+            baseUrl,
+          });
 
-        const listName = list.name;
+          const listName = list.name;
 
-        if (!casts.length) {
+          if (!casts.length) {
+            return {
+              listName,
+              casts: [],
+              searchTerm: list.contents.term,
+            };
+          }
           return {
             listName,
-            casts: [],
+            casts: await enrichCastsViaNeynar(casts),
             searchTerm: list.contents.term,
           };
-        }
-        return {
-          listName,
-          casts: await enrichCastsViaNeynar(casts),
-          searchTerm: list.contents.term,
-        };
-      }));
+        }),
+      );
 
-      const fromAddress = 'hiro@herocast.xyz';
+      const fromAddress = "hiro@herocast.xyz";
       const toAddress = profile.email;
-      await sendEmail(resend, fromAddress, toAddress, 'herocast daily digest', listsWithCasts);
+      await sendEmail(
+        resend,
+        fromAddress,
+        toAddress,
+        "herocast daily digest",
+        listsWithCasts,
+      );
       count++;
     }
     const message = `sent ${count} emails`;
     console.log(message);
     return new Response(JSON.stringify({ message }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
       status: 200,
-    })
+    });
   } catch (error) {
     return new Response(JSON.stringify({ error: error?.message }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
       status: 400,
-    })
+    });
   }
-})
+});
 
 // To invoke:
 // curl -i --location --request POST 'http://localhost:54321/functions/v1/send-daily-email' \

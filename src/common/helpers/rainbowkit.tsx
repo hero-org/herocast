@@ -14,11 +14,11 @@ import { Chains } from "@paywithglide/glide-js";
 import { http, createConfig } from "@wagmi/core";
 
 const optimismHttp = http(
-  `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+  `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
 );
 
 const mainnetHttp = http(
-  `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`
+  `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
 );
 
 export const publicClient = createPublicClient({

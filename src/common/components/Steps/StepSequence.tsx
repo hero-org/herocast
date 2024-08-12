@@ -27,8 +27,8 @@ const StepSequence = ({
       "keys" in item
         ? includes(item.keys, step)
         : "key" in item
-        ? item.key === step
-        : false
+          ? item.key === step
+          : false,
     ) /
       (navItems.length - 1)) *
     100;

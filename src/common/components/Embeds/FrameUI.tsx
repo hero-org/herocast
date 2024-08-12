@@ -97,7 +97,7 @@ function MessageTooltip({
 }
 
 function getErrorMessageFromFramesStackItem(
-  item: FrameStackMessage | FrameStackRequestError
+  item: FrameStackMessage | FrameStackRequestError,
 ): string {
   if (item.status === "message") {
     return item.message;
@@ -265,8 +265,8 @@ export function FrameUI({
                     // Partial frame could have enough data to handle button press
                     frame as Frame,
                     frameButton,
-                    index
-                  )
+                    index,
+                  ),
                 ).catch((e: unknown) => {
                   // eslint-disable-next-line no-console -- provide feedback to the user
                   console.error(e);

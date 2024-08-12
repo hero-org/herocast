@@ -59,7 +59,7 @@ const FilterBadge = ({
     <Badge
       className={cn(
         isActive && "text-foreground",
-        " h-8 rounded-lg px-3 text-xs shadow-sm hover:bg-accent hover:text-accent-foreground hover:cursor-pointer"
+        " h-8 rounded-lg px-3 text-xs shadow-sm hover:bg-accent hover:text-accent-foreground hover:cursor-pointer",
       )}
       variant="outline"
       onClick={action}
@@ -93,13 +93,13 @@ export default function SearchPage() {
   const selectedList = useListStore((state) =>
     state.selectedListId !== undefined
       ? state.lists.find((list) => list.id === state.selectedListId)
-      : undefined
+      : undefined,
   );
   const canSearch = searchTerm.trim().length >= 3;
   const { updateSelectedCast } = useDataStore();
 
   const selectedAccount = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
+    (state) => state.accounts[state.selectedAccountIdx],
   );
   const viewerFid = selectedAccount?.platformAccountId || APP_FID;
 
@@ -116,7 +116,7 @@ export default function SearchPage() {
         }
       }
     }, 300),
-    [viewerFid]
+    [viewerFid],
   );
 
   useEffect(() => {
@@ -179,7 +179,7 @@ export default function SearchPage() {
       setCastHashes((prevCastHashes) => (reset ? [] : prevCastHashes));
     }
     setCastHashes((prevCastHashes) =>
-      uniq([...(reset ? [] : prevCastHashes), ...newCastHashes])
+      uniq([...(reset ? [] : prevCastHashes), ...newCastHashes]),
     );
   };
 
@@ -200,7 +200,7 @@ export default function SearchPage() {
 
   const getMentionFidFromSearchTerm = async (
     term: string,
-    viewerFid: string
+    viewerFid: string,
   ) => {
     const profile = await getProfileFetchIfNeeded({
       username: term.trim(),
@@ -292,7 +292,7 @@ export default function SearchPage() {
       filterByHideReplies,
       interval,
       posthog,
-    ]
+    ],
   );
 
   const processSearchResponse = (response: SearchResponse) => {
@@ -361,7 +361,7 @@ export default function SearchPage() {
     const fetchCasts = async (newCastHashes: string[]) => {
       try {
         const neynarClient = new NeynarAPIClient(
-          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!,
         );
         const apiResponse = await neynarClient.fetchBulkCasts(newCastHashes, {
           viewerFid: Number(viewerFid),
@@ -369,7 +369,7 @@ export default function SearchPage() {
         const allCasts = [...casts, ...apiResponse.result.casts];
         const sortedCasts = allCasts.sort(
           (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
         );
         setCasts(sortedCasts);
       } catch (error) {
@@ -382,7 +382,7 @@ export default function SearchPage() {
       }
     };
     const newCastHashes = map(castHashes, "hash").filter(
-      (hash) => !casts.find((cast) => cast.hash === hash)
+      (hash) => !casts.find((cast) => cast.hash === hash),
     );
     if (newCastHashes.length > 0) {
       fetchCasts(newCastHashes.slice(0, 2));
@@ -533,7 +533,7 @@ export default function SearchPage() {
                   className={cn(
                     "rounded-r-none",
                     "border-none ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600",
-                    isLoading ? "animate-pulse" : ""
+                    isLoading ? "animate-pulse" : "",
                   )}
                   autoFocus
                 />
@@ -572,7 +572,7 @@ export default function SearchPage() {
                 variant="outline"
                 className={cn(
                   "px-4 col-span-2 md:col-span-1",
-                  showFilter ? "bg-muted text-muted-foreground" : ""
+                  showFilter ? "bg-muted text-muted-foreground" : "",
                 )}
                 onClick={() => setShowFilter((prev) => !prev)}
               >
@@ -583,7 +583,7 @@ export default function SearchPage() {
                 <div
                   className={cn(
                     "w-full col-span-3 flex space-x-2 transition-all duration-200 md:justify-end",
-                    showFilter ? "opacity-100" : "opacity-0"
+                    showFilter ? "opacity-100" : "opacity-0",
                   )}
                 >
                   {renderPowerBadgeFilter()}
