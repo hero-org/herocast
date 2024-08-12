@@ -100,7 +100,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
             dataKey="date"
             tickLine={false}
             tickMargin={8}
-            tickFormatter={(date) => format(new Date(date), "MMM d")}
+            tickFormatter={(date: Date) => format(date, "MMM d")}
           />
           <YAxis />
           <ChartTooltip
