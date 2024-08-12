@@ -27,7 +27,7 @@ export default function AnalyticsPage() {
   const supabaseClient = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [fidToAnalytics, setAnalyticsData] = useState<FidToAnalyticsData>({});
-  const selectedAccount = useAccountStore(
+  const selectedAccountInApp = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]
   );
   const { accounts } = useAccountStore();
@@ -40,12 +40,6 @@ export default function AnalyticsPage() {
 
   const [selectedProfile, setSelectedProfile] = useState<User>();
   const fid = get(selectedProfile, "fid")?.toString();
-
-  useEffect(() => {
-    if (selectedAccount && selectedAccount?.user) {
-      setSelectedProfile(selectedAccount.user);
-    }
-  }, [selectedAccount]);
 
   useEffect(() => {
     if (!fid) return;
@@ -117,8 +111,10 @@ export default function AnalyticsPage() {
         }
         setIsLoading(false);
       });
+    } else if (selectedAccountInApp && selectedAccountInApp?.user) {
+      setSelectedProfile(selectedAccountInApp.user);
     }
-  }, [query]);
+  }, [query, selectedAccountInApp]);
 
   const analyticsData = fid ? get(fidToAnalytics, fid) : undefined;
 
@@ -200,7 +196,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="w-full m-8 space-y-8">
+    <div className="w-full space-y-8 md:p-6">
       {renderHeader()}
       {renderContent()}
     </div>

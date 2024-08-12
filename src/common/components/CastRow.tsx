@@ -192,7 +192,6 @@ export const CastRow = ({
   const authorFid = cast?.author.fid;
   const canSendReaction =
     selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
-  const now = new Date();
 
   const onReply = () => {
     setCastModalView(CastModalView.Reply);
