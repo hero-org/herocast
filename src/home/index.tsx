@@ -1,6 +1,10 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { Cog6ToothIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
+import {
+  ArrowUpCircleIcon,
+  Cog6ToothIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/20/solid";
 import {
   Bars3Icon,
   UserPlusIcon,
@@ -250,18 +254,22 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
           ),
           shortcut: "Shift + A",
-          hide: true,
-        },
-        {
-          name: "Upgrade",
-          router: "/upgrade",
-          hide: true,
         },
       ],
     },
     {
       name: "settings",
       items: [
+        {
+          name: "Upgrade",
+          router: "/upgrade",
+          icon: (
+            <ArrowUpCircleIcon
+              className="h-6 w-6 shrink-0"
+              aria-hidden="true"
+            />
+          ),
+        },
         {
           name: "Channels",
           router: "/channels",
