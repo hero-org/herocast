@@ -6,18 +6,26 @@ export function buildAnalyticsQuery(
     fidFilterColumn: string,
     additionalColumns: string[] = []
 ) {
-    const additionalColumnsString = additionalColumns.length > 0 ? `, ${additionalColumns.join(", ")}` : "";
-    console.log("buildAnalyticsQuery", fid, tableName, additionalColumnsString);
+    const additionalColumnsSelect = additionalColumns.length > 0 
+        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col)), ', ')}` 
+        : sql``;
+    
+    const additionalColumnsGroupBy = additionalColumns.length > 0
+        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col.split(' ').pop()!)), ', ')}`
+        : sql``;
+
+    console.log("buildAnalyticsQuery", fid, tableName, additionalColumns);
+    
     return sql`
         WITH daily_counts AS (
             SELECT
                 date_trunc('day', timestamp) AS day,
                 COUNT(*) AS count
-                ${additionalColumnsString && sql.ref(additionalColumnsString)}
+                ${additionalColumnsSelect}
             FROM ${sql.table(tableName)}
             WHERE timestamp >= NOW() - INTERVAL '30 days'
             AND ${sql.ref(fidFilterColumn)} = ${fid}
-            GROUP BY day
+            GROUP BY day${additionalColumnsGroupBy}
         )
         SELECT
             SUM(count) AS total,
