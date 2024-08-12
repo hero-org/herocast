@@ -29,7 +29,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   isLoading = false,
 }) => {
   const data = useMemo(() => {
-    if (!aggregated || aggregated?.length < 7) return [];
+    if (!aggregated) return [];
 
     const sortedAggregated = [...aggregated].sort(
       (a, b) =>
@@ -41,6 +41,8 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
       count: item.count,
     }));
   }, [aggregated]);
+
+  console.log('data',data)
 
   if (data.length === 0) {
     if (isLoading) {
