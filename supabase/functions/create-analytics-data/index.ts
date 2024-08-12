@@ -91,11 +91,11 @@ Deno.serve(async (req) => {
 
       if (insertError) throw insertError;
 
-      const linksQuery = buildAnalyticsQuery('links', fid, 'target_fid');
+      const linksQuery = buildAnalyticsQuery('links', fid.toString(), 'target_fid');
       const links = (await linksQuery.execute(db)).rows?.[0];
-      const reactionsQuery = buildAnalyticsQuery('reactions', fid, 'target_cast_fid');
+      const reactionsQuery = buildAnalyticsQuery('reactions', fid.toString(), 'target_cast_fid');
       const reactions = (await reactionsQuery.execute(db)).rows?.[0];
-      const castsQuery = buildAnalyticsQuery('casts', fid, 'fid', ['parent_cast_hash is not NULL AS is_reply']);
+      const castsQuery = buildAnalyticsQuery('casts', fid.toString(), 'fid', ['parent_cast_hash is not NULL AS is_reply']);
       const casts = (await castsQuery.execute(db)).rows?.[0];
       const topCastsQuery = getTopCasts(fid);
       const topCasts = (await topCastsQuery.execute(db))?.rows;

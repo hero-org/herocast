@@ -7,11 +7,11 @@ export function buildAnalyticsQuery(
     additionalColumns: string[] = []
 ) {
     const additionalColumnsSelect = additionalColumns.length > 0 
-        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col)), ', ')}` 
+        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col)), sql`, `)}` 
         : sql``;
     
     const additionalColumnsGroupBy = additionalColumns.length > 0
-        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col.split(' ').pop()!)), ', ')}`
+        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col.split(' ').pop()!)), sql`, `)}`
         : sql``;
 
     console.log("buildAnalyticsQuery", fid, tableName, additionalColumns);
