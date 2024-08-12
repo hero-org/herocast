@@ -114,11 +114,9 @@ export default async function handler(
   } catch (error) {
     clearTimeout(timeout); // Clear the timeout if the request completes in time
     console.log("error in search", error);
-    res
-      .status(500)
-      .json({
-        error: `Failed to fetch search results: ${error?.message || error}`,
-        results: [],
-      });
+    res.status(500).json({
+      error: `Failed to fetch search results: ${error?.message || error}`,
+      results: [],
+    });
   }
 }
