@@ -6,13 +6,14 @@ export function buildAnalyticsQuery(
     fidFilterColumn: string,
     additionalColumns: string[] = []
 ) {
-    console.log("buildAnalyticsQuery", fid, tableName);
+    const additionalColumnsString = additionalColumns.length > 0 ? `, ${additionalColumns.join(", ")}` : "";
+    console.log("buildAnalyticsQuery", fid, tableName, additionalColumnsString);
     return sql`
         WITH daily_counts AS (
             SELECT
                 date_trunc('day', timestamp) AS day,
                 COUNT(*) AS count
-                ${additionalColumns.map((col) => `, ${col}`).join("")}
+                ${additionalColumnsString && sql.ref(additionalColumnsString)}
             FROM ${sql.table(tableName)}
             WHERE timestamp >= NOW() - INTERVAL '30 days'
             AND ${sql.ref(fidFilterColumn)} = ${fid}
