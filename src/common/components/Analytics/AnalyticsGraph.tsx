@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
+import { Interval } from "@/common/helpers/search";
 import {
   Area,
   AreaChart,
@@ -21,12 +22,14 @@ type AnalyticsGraphProps = {
   analyticsKey: string;
   aggregated: { timestamp: string; count: number }[];
   isLoading: boolean;
+  interval?: Interval;
 };
 
 const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   analyticsKey,
   aggregated,
   isLoading = false,
+  interval,
 }) => {
   const data = useMemo(() => {
     if (!aggregated) return [];
@@ -36,11 +39,19 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
 
-    return sortedAggregated.map((item) => ({
+    let filteredData = sortedAggregated;
+    if (interval) {
+      const cutoffDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
+      filteredData = sortedAggregated.filter(
+        (item) => new Date(item.timestamp) >= cutoffDate
+      );
+    }
+
+    return filteredData.map((item) => ({
       date: new Date(item.timestamp),
       count: item.count,
     }));
-  }, [aggregated]);
+  }, [aggregated, interval]);
 
   console.log('data',data)
 
