@@ -16,15 +16,19 @@ import { Button } from "@/components/ui/button";
 import { ChartBarIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
+import { Interval } from "@/common/helpers/search";
+import { IntervalFilter } from "@/common/components/IntervalFilter";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
+const intervals = [Interval.d7, Interval.d30];
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
-
   const router = useRouter();
   const { query } = router;
   const supabaseClient = createClient();
+
+  const [interval, setInterval] = useState<Interval>();
   const [isLoading, setIsLoading] = useState(false);
   const [fidToAnalytics, setAnalyticsData] = useState<FidToAnalyticsData>({});
   const selectedAccountInApp = useAccountStore(
@@ -120,7 +124,7 @@ export default function AnalyticsPage() {
 
   const renderHeader = () => (
     <div className="flex justify-between items-center">
-      <div className="flex items-center space-x-4">
+      <div className="flex self-start space-x-4">
         <ProfileSearchDropdown
           disabled={isLoading || !user}
           defaultProfiles={defaultProfiles}
@@ -136,18 +140,25 @@ export default function AnalyticsPage() {
           </Link>
         )}
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col items-end space-y-2">
+        <div className="flex items-center space-x-2">
+          <ClickToCopyText
+            disabled={!analyticsData}
+            buttonText="Share"
+            size="sm"
+            text={`https://app.herocast.xyz/analytics?fid=${fid}`}
+          />
+          <IntervalFilter
+            intervals={intervals}
+            defaultInterval={Interval.d7}
+            updateInterval={setInterval}
+          />
+        </div>
         {analyticsData?.updatedAt && (
           <div className="text-sm text-foreground/70">
             Last updated: {new Date(analyticsData.updatedAt).toLocaleString()}
           </div>
         )}
-        <ClickToCopyText
-          disabled={!analyticsData}
-          buttonText="Share"
-          size="sm"
-          text={`https://app.herocast.xyz/analytics?fid=${fid}`}
-        />
       </div>
     </div>
   );
@@ -196,7 +207,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="w-full space-y-8 md:p-6">
+    <div className="w-full space-y-8 p-2 md:p-6">
       {renderHeader()}
       {renderContent()}
     </div>

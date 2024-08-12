@@ -7,7 +7,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "@supabase/supabase-js";
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 import { Database } from '../_shared/db.ts';
-import { buildAnalyticsQuery, getCastsOverview } from "../_shared/queryHelpers.ts";
+import { buildAnalyticsQuery, formatResponseSection, getTopCasts } from "../_shared/queryHelpers.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import Pool from 'pg-pool'
 
@@ -95,27 +95,16 @@ Deno.serve(async (req) => {
       const links = (await linksQuery.execute(db)).rows?.[0];
       const reactionsQuery = buildAnalyticsQuery('reactions', fid, 'target_cast_fid');
       const reactions = (await reactionsQuery.execute(db)).rows?.[0];
-      const castsQuery = getCastsOverview(fid);
-      const casts = await castsQuery.execute(db);
+      const castsQuery = buildAnalyticsQuery('casts', fid, 'fid', ['parent_cast_hash is not NULL AS is_reply']);
+      const casts = (await castsQuery.execute(db)).rows?.[0];
+      const topCastsQuery = getTopCasts(fid);
+      const topCasts = (await topCastsQuery.execute(db))?.rows;
 
       const res = {
-        follows: {
-          aggregated: links.aggregated,
-          overview: {
-            total: links.total,
-            d7: links.d7,
-            h24: links.h24,
-          }
-        },
-        reactions: {
-          aggregated: reactions.aggregated,
-          overview: {
-            total: reactions.total,
-            d7: reactions.d7,
-            h24: reactions.h24,
-          }
-        },
-        casts: casts.rows
+        follows: formatResponseSection(links),
+        reactions: formatResponseSection(reactions),
+        casts: formatResponseSection(casts),
+        topCasts: topCasts
       }
 
       const { error: upsertError } = await supabaseClient

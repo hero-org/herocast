@@ -70,7 +70,7 @@ export function ProfileSearchDropdown({
 
   const renderSelectedProfile = () => {
     return (
-      <div className="flex items-center">
+      <div className="flex items-center truncate">
         <Avatar className="mr-2 h-5 w-5">
           <AvatarImage
             src={selectedProfile?.pfp_url}
@@ -113,7 +113,7 @@ export function ProfileSearchDropdown({
               {isLoading && <CommandLoading>Searching...</CommandLoading>}
               <CommandEmpty>No profile found.</CommandEmpty>
               <CommandGroup>
-                {uniqBy([...defaultProfiles, ...profiles], "fid").map(
+                {uniqBy([...profiles, ...defaultProfiles], "fid").map(
                   (profile) => (
                     <CommandItem
                       key={`profile-search-profile-${profile.fid}`}

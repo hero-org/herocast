@@ -1,4 +1,4 @@
-export enum SearchInterval {
+export enum Interval {
     d1 = "1 day",
     d7 = "7 days",
     d30 = "30 days",
@@ -13,7 +13,7 @@ export type RawSearchResult = {
 
 export type SearchFilters = {
     onlyPowerBadge: boolean;
-    interval?: SearchInterval;
+    interval?: Interval;
     hideReplies: boolean;
 };
 
@@ -55,7 +55,7 @@ const getSearchUrl = ({
         });
     }
     if (!params.get("interval")) {
-        params.set("interval", SearchInterval.d7);
+        params.set("interval", Interval.d7);
     }
     const url = `/api/search?${params.toString()}`;
     return url;
