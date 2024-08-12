@@ -115,7 +115,7 @@ const PublishedCastsRightSidebar = () => {
         scrollbarWidth: "none",
         WebkitScrollbar: "none",
       }}
-      className="min-h-full h-full bg-muted/40 overflow-y-auto md:fixed md:bottom-0 md:right-0 md:top-16 md:w-48 lg:w-64 md:border-l md:border-foreground/10"
+      className="h-screen sticky top-0 bg-muted/40  w-full md:border-l md:border-foreground/5 overflow-y-auto"
     >
       <div className="">
         <SidebarHeader title="Recent casts" />

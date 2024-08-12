@@ -244,7 +244,7 @@ export default function Channels() {
     renderEmptyState()
   ) : (
     <>
-      <div className="w-full md:max-w-screen-sm xl:max-w-screen-lg m-4">
+      <div className="w-full m-4 px-4 sm:px-6 md:px-4">
         {renderPinnedChannels()}
         {renderAllChannels()}
       </div>

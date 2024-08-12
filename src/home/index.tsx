@@ -89,7 +89,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     !asPath.startsWith("/profile") &&
     !asPath.startsWith("/conversation") &&
     !asPath.startsWith("/analytics");
-    
+
   const isReadOnlyUser = useAccountStore(
     (state) =>
       state.accounts.length === 1 &&
@@ -246,8 +246,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {
           name: "Analytics",
           router: "/analytics",
-          icon: <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: (
+            <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
+          ),
           shortcut: "Shift + A",
+          hide: true,
         },
         {
           name: "Upgrade",
@@ -478,116 +481,122 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         </Dialog>
       </Transition.Root>
-
-      {/* Static sidebar for desktop */}
-      {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-      <div className="hidden lg:flex lg:grow lg:fixed lg:inset-y-0 lg:left-0 lg:z-10 lg:w-52 lg:overflow-y-auto lg:bg-background border-r border-muted">
-        {/* Sidebar component, swap this element with another sidebar if you like */}
-        <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
-          <Link
-            href="/feeds"
-            className="flex h-16 shrink-0 items-center hover:cursor-pointer"
-          >
-            <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
-              herocast
-            </h2>
-          </Link>
-          <div className="flex flex-col justify-between">
-            <nav className="mt-0 divide-y divide-muted-foreground/20">
-              {navigationGroups.map((group) => {
-                const navigation = group.items;
-                return (
-                  <div key={`nav-group-${group.name}`}>
-                    {navigation.map(
-                      (item) =>
-                        !item.hide && (
-                          <ul
-                            key={`nav-item-${item.name}`}
-                            role="list"
-                            className="flex flex-col items-left space-y-1"
-                          >
-                            <li key={item.name}>
-                              <Link href={item.router}>
-                                <div
-                                  className={cn(
-                                    item.router === pathname ||
-                                      item.additionalPaths?.includes(pathname)
-                                      ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                    "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
-                                  )}
-                                >
-                                  {item.icon}
-                                  <span className="">{item.name}</span>
-                                </div>
-                              </Link>
-                            </li>
-                          </ul>
-                        )
-                    )}
+      <div className="container mx-auto">
+        <div className="grid grid-cols-[1fr] lg:grid-cols-[13rem_1fr]">
+          {/* Static sidebar for desktop */}
+          {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
+          <div className="hidden lg:flex lg:grow lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:full lg:overflow-y-auto lg:bg-background border-r border-muted">
+            {/* Sidebar component, swap this element with another sidebar if you like */}
+            <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
+              <Link
+                href="/feeds"
+                className="flex h-16 shrink-0 items-center hover:cursor-pointer"
+              >
+                <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+                  herocast
+                </h2>
+              </Link>
+              <div className="flex flex-col justify-between">
+                <nav className="mt-0 divide-y divide-muted-foreground/20">
+                  {navigationGroups.map((group) => {
+                    const navigation = group.items;
+                    return (
+                      <div key={`nav-group-${group.name}`}>
+                        {navigation.map(
+                          (item) =>
+                            !item.hide && (
+                              <ul
+                                key={`nav-item-${item.name}`}
+                                role="list"
+                                className="flex flex-col items-left space-y-1"
+                              >
+                                <li key={item.name}>
+                                  <Link href={item.router}>
+                                    <div
+                                      className={cn(
+                                        item.router === pathname ||
+                                          item.additionalPaths?.includes(
+                                            pathname
+                                          )
+                                          ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
+                                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                                        "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                      )}
+                                    >
+                                      {item.icon}
+                                      <span className="">{item.name}</span>
+                                    </div>
+                                  </Link>
+                                </li>
+                              </ul>
+                            )
+                        )}
+                      </div>
+                    );
+                  })}
+                </nav>
+              </div>
+              {isReadOnlyUser && renderUpgradeCard()}
+              <div className="mt-auto flex flex-row lg:space-x-2 py-4">
+                <AccountSwitcher />
+                <ThemeToggle />
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-[1fr] md:grid-cols-[1fr_12rem] lg:grid-cols-[1fr_16rem] relative">
+            <div
+              className={
+                sidebarType === RIGHT_SIDEBAR_ENUM.NONE
+                  ? "md:col-span-2 w-full"
+                  : ""
+              }
+            >
+              {/* Sticky header */}
+              {(title || headerActions) && (
+                <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
+                  <button
+                    type="button"
+                    className="-m-2.5 p-2.5 text-foreground lg:hidden"
+                    onClick={() => setSidebarOpen((prev) => !prev)}
+                  >
+                    <span className="sr-only">Open sidebar</span>
+                    <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                  <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">
+                    {title}
+                  </h1>
+                  <div className="flex-grow" />
+                  <div className="flex gap-x-2">
+                    {headerActions.map((action) => (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        key={`header-action-${action.name}`}
+                        onClick={action.onClick}
+                      >
+                        {action.name}
+                      </Button>
+                    ))}
                   </div>
-                );
-              })}
-            </nav>
+                </div>
+              )}
+              <div className="w-full">
+                {pageRequiresHydrate && !isHydrated ? (
+                  <Loading
+                    className="ml-8"
+                    loadingMessage={loadingMessages[currentMessageIndex]}
+                  />
+                ) : (
+                  <div className="w-full">{children}</div>
+                )}
+              </div>
+            </div>
+            {renderRightSidebar()}
           </div>
-          {isReadOnlyUser && renderUpgradeCard()}
-          <div className="mt-auto flex flex-row lg:space-x-2 py-4">
-            <AccountSwitcher />
-            <ThemeToggle />
-          </div>
+          {renderNewCastModal()}
+          <Toaster theme="system" position="bottom-right" />
         </div>
       </div>
-      <div
-        className={cn(
-          sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && "md:pr-48 lg:pr-64",
-          "lg:pl-52"
-        )}
-      >
-        {/* Sticky header */}
-        {(title || headerActions) && (
-          <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
-            <button
-              type="button"
-              className="-m-2.5 p-2.5 text-foreground lg:hidden"
-              onClick={() => setSidebarOpen((prev) => !prev)}
-            >
-              <span className="sr-only">Open sidebar</span>
-              <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-            </button>
-            <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">
-              {title}
-            </h1>
-            <div className="flex-grow" />
-            <div className="flex gap-x-2">
-              {headerActions.map((action) => (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  key={`header-action-${action.name}`}
-                  onClick={action.onClick}
-                >
-                  {action.name}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-        <main>
-          {pageRequiresHydrate && !isHydrated ? (
-            <Loading
-              className="ml-8"
-              loadingMessage={loadingMessages[currentMessageIndex]}
-            />
-          ) : (
-            <div className="w-full max-w-full min-h-screen flex justify-between">
-              {children}
-            </div>
-          )}
-          {renderRightSidebar()}
-        </main>
-      </div>
-      {renderNewCastModal()}
-      <Toaster theme="system" position="bottom-right" />
     </div>
   );
 };

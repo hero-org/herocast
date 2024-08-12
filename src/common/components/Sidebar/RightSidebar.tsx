@@ -62,7 +62,7 @@ const RightSidebar = ({
         scrollbarWidth: "none",
         WebkitScrollbar: "none",
       }}
-      className="min-h-full h-full bg-muted/40 md:fixed md:bottom-0 md:right-0 md:w-48 lg:w-64 md:border-l md:border-foreground/5 overflow-y-auto"
+      className="h-screen sticky top-0 bg-muted/40  w-full md:border-l md:border-foreground/5 overflow-y-auto"
     >
       <div>
         {isHydrated && renderAuthorInfo()}
