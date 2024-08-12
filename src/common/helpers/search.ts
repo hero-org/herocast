@@ -99,7 +99,9 @@ export const getTextMatchCondition = (term: string): string => {
         return createExactMatchCondition(removeQuotes(term));
     }
 
-    return createWebSearchQuery(term);
+    // temporary fix until DB is migrated
+    return createExactMatchCondition(removeQuotes(term))
+    // return createWebSearchQuery(term);
 };
 
 const isSingleWord = (term: string): boolean =>
@@ -143,7 +145,9 @@ const createCondition = (part: string): string => {
     if (isQuoted(part)) {
         return createExactMatchCondition(removeQuotes(part));
     }
-    return createWebSearchQuery(part);
+    // temporary fix until DB is migrated
+    return createExactMatchCondition(removeQuotes(part))
+    // return createWebSearchQuery(part);
 };
 
 const isBooleanOperator = (part: string): boolean =>
