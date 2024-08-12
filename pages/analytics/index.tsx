@@ -187,12 +187,14 @@ export default function AnalyticsPage() {
             <NewFollowersCard
               data={analyticsData.follows}
               isLoading={isLoading}
+              interval={interval}
             />
           )}
           {analyticsData?.reactions && (
             <ReactionsCard
               data={analyticsData.reactions}
               isLoading={isLoading}
+              interval={interval}
             />
           )}
         </div>
