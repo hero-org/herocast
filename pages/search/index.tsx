@@ -171,7 +171,6 @@ export default function SearchPage() {
   };
 
   const addCastHashes = (newCastHashes: RawSearchResult[], reset: boolean) => {
-    console.log("addCastHashes", newCastHashes);
     if (!newCastHashes?.length) {
       setCastHashes((prevCastHashes) => (reset ? [] : prevCastHashes));
     }
@@ -409,16 +408,6 @@ export default function SearchPage() {
     setShowCastThreadView(false);
   }, []);
 
-  const onReply = useCallback(() => {
-    // Implement reply functionality
-    console.log("Reply functionality not implemented yet");
-  }, []);
-
-  const onQuote = useCallback(() => {
-    // Implement quote functionality
-    console.log("Quote functionality not implemented yet");
-  }, []);
-
   const renderLoadMoreButton = () =>
     hasMore ? (
       <Button size="lg" disabled={isLoading} onClick={() => onContinueSearch()}>
@@ -630,8 +619,6 @@ export default function SearchPage() {
         <CastThreadView
           cast={casts[selectedCastIdx]}
           onBack={onBack}
-          onReply={onReply}
-          onQuote={onQuote}
         />
       )}
     </div>
