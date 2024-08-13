@@ -35,6 +35,14 @@ const prepareSearchTerm = (term: string): string => {
     return term.replace(/from:\S+/g, '').trim();
 };
 
+
+export type SearchResponse = {
+    results?: RawSearchResult[];
+    error: string;
+    isTimeout: boolean;
+};
+
+
 const getSearchUrl = ({
     searchTerm, filters, limit, offset, interval, orderBy, mentionFid, fromFid, baseUrl
 }: RunFarcasterCastSearchParams): string => {
@@ -64,16 +72,15 @@ const getSearchUrl = ({
     return `${baseUrl}/api/search?${params.toString()}`;
 };
 
-export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<RawSearchResult[]> => {
+export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<SearchResponse> => {
     try {
+        // console.log('runFarcasterCastSearch params', params);
         const searchUrl = getSearchUrl(params);
         const response = await fetch(searchUrl);
         const data = await response.json();
-        if (!data || data?.error) return [];
-
         return data;
     } catch (error) {
         console.error("Failed to search for text", params.searchTerm, error);
-        return [];
+        return { error: error as unknown as string, isTimeout: false };
     }
 };

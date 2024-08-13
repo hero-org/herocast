@@ -116,7 +116,13 @@ const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
   );
 };
 
+const MAX_CASTS_PER_LIST = 5;
+const MAX_LISTS_PER_EMAIL = 6;
+
 const Email: React.FC<EmailProps> = ({ listsWithCasts }) => {
+  const truncatedLists = listsWithCasts.slice(0, MAX_LISTS_PER_EMAIL);
+  const isListsTruncated = listsWithCasts.length > MAX_LISTS_PER_EMAIL;
+
   return React.createElement(
     Html,
     null,
@@ -132,16 +138,23 @@ const Email: React.FC<EmailProps> = ({ listsWithCasts }) => {
           Container,
           { className: "mx-auto p-8 max-w-2xl" },
           React.createElement(Text, { className: "text-3xl font-bold mb-6 text-[#18181b]" }, "Your Daily Digest from herocast"),
-          listsWithCasts.map(({ listName, searchTerm, casts }) =>
-            React.createElement(
+          truncatedLists.map(({ listName, searchTerm, casts }) => {
+            const truncatedCasts = casts.slice(0, MAX_CASTS_PER_LIST);
+            const isCastsTruncated = casts.length > MAX_CASTS_PER_LIST;
+            
+            return React.createElement(
               Section,
               { key: listName, className: "mb-8" },
               React.createElement(Text, { className: "text-2xl font-semibold mb-4 text-[#18181b]" }, listName),
               casts.length > 0
-                ? casts.map((cast) => React.createElement(CastRow, { key: cast.hash, cast: cast, searchTerm: searchTerm }))
+                ? [
+                    ...truncatedCasts.map((cast) => React.createElement(CastRow, { key: cast.hash, cast: cast, searchTerm: searchTerm })),
+                    isCastsTruncated && React.createElement(Text, { className: "text-sm italic text-gray-500 mt-2" }, `And ${casts.length - MAX_CASTS_PER_LIST} more casts...`)
+                  ]
                 : React.createElement(Text, { className: "text-sm italic text-gray-500" }, "No new casts in this list today.")
-            )
-          )
+            );
+          }),
+          isListsTruncated && React.createElement(Text, { className: "text-md italic text-gray-600 mt-4" }, `You have ${listsWithCasts.length - MAX_LISTS_PER_EMAIL} more lists in herocast...`)
         )
       )
     )
