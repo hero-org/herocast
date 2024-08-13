@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${hideReplies === 'true' ? 'AND casts.parent_cast_hash IS NULL' : ''}
         ${interval ? `AND timestamp >= NOW() - INTERVAL '${interval}'` : ''}
         ${fromFid ? `AND casts.fid = ${fromFid}` : ''}
-    `;
+        `;
 
     const textMatchCondition = getTextMatchCondition(term);
     const query = `
@@ -73,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         const queryStart = process.hrtime();
-        await AppDataSource.query(`SET work_mem TO '64MB'; SET statement_timeout TO '19s';`);
+        await AppDataSource.query(`SET statement_timeout TO '19s';`);
 
         const searchRepository = AppDataSource.getRepository(Cast);
         const results = await Promise.race([
