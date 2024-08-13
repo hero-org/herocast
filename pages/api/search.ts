@@ -1,5 +1,7 @@
 import { getTextMatchCondition } from '@/common/helpers/search';
 import { AppDataSource, Cast, initializeDataSourceWithRetry } from '@/lib/db';
+import uniqBy from 'lodash.uniqby';
+import { orderBy as orderByFn } from 'lodash';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export const config = {
@@ -27,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const start = process.hrtime();
     const timeout = setTimeout(() => {
         res.status(503).json({ error: TIMEOUT_ERROR_MESSAGE, results: [], isTimeout: true });
-    }, timeoutThreshold); 
+    }, timeoutThreshold);
 
     await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
@@ -52,16 +54,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         LIMIT $1 OFFSET $2
     )
     ${mentionFid ? `
-        UNION
+        UNION ALL
         (SELECT 
             casts.hash, casts.fid, casts.text, casts.timestamp
         FROM casts 
             ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
         WHERE 
             ${mentionFid}::int = ANY(casts.mentions)
-            AND ${baseConditions})
+            AND ${baseConditions}
             ${orderBy ? `ORDER BY ${orderBy}` : ''}
-            LIMIT $1 OFFSET $2`
+            LIMIT $1 OFFSET $2
+            )
+            `
             : ''
         }
     `;
@@ -69,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         const queryStart = process.hrtime();
-        await AppDataSource.query(`SET work_mem TO '32MB'; SET statement_timeout TO '19s';`);
+        await AppDataSource.query(`SET work_mem TO '64MB'; SET statement_timeout TO '19s';`);
 
         const searchRepository = AppDataSource.getRepository(Cast);
         const results = await Promise.race([
@@ -83,9 +87,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.log(`Query Execution Time: ${queryEnd[0] * 1000 + queryEnd[1] / 1e6} ms`);
         console.log(`Total Request Time: ${totalEnd[0] * 1000 + totalEnd[1] / 1e6} ms`);
         console.log('Search results:', results.length)
-
+        // uniqBy hash
+        const orderedResults = orderByFn(uniqBy(results, 'hash'), ['timestamp'], ['desc']);
         clearTimeout(timeout); // Clear the timeout if the request completes in time
-        res.status(200).json({ results });
+        res.status(200).json({ results: orderedResults });
     } catch (error) {
         clearTimeout(timeout); // Clear the timeout if the request completes in time
         console.log('error in search', error);

@@ -78,7 +78,7 @@ export default function SearchPage() {
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [searchCounter, setSearchCounter] = useState(0);
-  const [filterByPowerBadge, setFilterByPowerBadge] = useState(true);
+  const [filterByPowerBadge, setFilterByPowerBadge] = useState(false);
   const [filterByHideReplies, setFilterByHideReplies] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const activeSearchCounter = useRef(0);
@@ -251,9 +251,9 @@ export default function SearchPage() {
       try {
         const isOneWordSearch = !/\s/.test(term.trim());
         const mentionFid = isOneWordSearch
-          ? await getMentionFidFromSearchTerm(term)
+          ? await getMentionFidFromSearchTerm(term, viewerFid)
           : undefined;
-        const fromFid = await getFromFidFromSearchTerm(term);
+        const fromFid = await getFromFidFromSearchTerm(term, viewerFid);
         const searchResponse = await runFarcasterCastSearch({
           searchTerm: term,
           filters,
@@ -278,7 +278,7 @@ export default function SearchPage() {
           resultsCount: searchResults.length,
           duration: endedAt - startedAt,
         });
-        processSearchResponse(searchResponse);
+        processSearchResponse(searchResponse, SEARCH_LIMIT_INITIAL_LOAD);
       } catch (error) {
         console.error("Failed to search for text", term, error);
       } finally {
@@ -295,9 +295,9 @@ export default function SearchPage() {
     ]
   );
 
-  const processSearchResponse = (response: SearchResponse) => {
+  const processSearchResponse = (response: SearchResponse, limit: number) => {
     const results = response.results || [];
-    if (results.length < SEARCH_LIMIT_NEXT_LOAD) {
+    if (results.length < limit) {
       setHasMore(false);
     }
     if (results.length > 0) {
@@ -328,7 +328,7 @@ export default function SearchPage() {
         term: searchTerm,
         resultsCount: (response?.results || []).length,
       });
-      processSearchResponse(response);
+      processSearchResponse(response, SEARCH_LIMIT_NEXT_LOAD);
     });
   };
 
@@ -430,7 +430,7 @@ export default function SearchPage() {
       <div className="flex flex-col">
         <div className="text-muted-foreground">
           No more results for {`"${searchTerm}"`} with your selected filters.
-          Add more filters to refine your search and get results faster.
+          Adjust your search to get more results.
         </div>
         {renderTryAgainButton()}
       </div>
@@ -566,7 +566,7 @@ export default function SearchPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 mt-2 md:h-12 md:gap-x-2 ">
+            <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 my-2 md:h-12 md:gap-x-2 ">
               <Button
                 size="sm"
                 variant="outline"
