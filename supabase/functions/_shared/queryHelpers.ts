@@ -74,5 +74,6 @@ export const formatResponseSection = (data: any) => ({
         total: data.total,
         d7: data.d7,
         h24: data.h24,
+        d30: data.d30,
     }
 });

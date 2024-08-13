@@ -28,7 +28,7 @@ export default function AnalyticsPage() {
   const { query } = router;
   const supabaseClient = createClient();
 
-  const [interval, setInterval] = useState<Interval>();
+  const [interval, setInterval] = useState<Interval>(intervals[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [fidToAnalytics, setAnalyticsData] = useState<FidToAnalyticsData>({});
   const selectedAccountInApp = useAccountStore(

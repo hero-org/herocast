@@ -34,26 +34,26 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   const data = useMemo(() => {
     if (!aggregated) return [];
 
-    const sortedAggregated = [...aggregated].sort(
-      (a, b) =>
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
+    // const sortedAggregated = [...aggregated].sort(
+    //   (a, b) =>
+    //     new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    // );
 
-    let filteredData = sortedAggregated;
+    let filteredData = aggregated;
     if (interval) {
       const cutoffDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
-      filteredData = sortedAggregated.filter(
+      filteredData = aggregated.filter(
         (item) => new Date(item.timestamp) >= cutoffDate
       );
     }
 
     return filteredData.map((item) => ({
-      date: new Date(item.timestamp),
-      count: item.count,
+      date: item.timestamp,
+      [analyticsKey]: item.count,
     }));
   }, [aggregated, interval]);
 
-  console.log('data',data)
+  console.log("data", data);
 
   if (data.length === 0) {
     if (isLoading) {
@@ -105,14 +105,22 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
           <YAxis />
           <ChartTooltip
             content={
-              <ChartTooltipContent labelKey={chartConfig[analyticsKey].label} />
+              <ChartTooltipContent
+                labelFormatter={(value) => {
+                  return new Date(value).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  });
+                }}
+              />
             }
             cursor={false}
             defaultIndex={1}
           />
           <Area
             type="monotone"
-            dataKey="count"
+            dataKey={analyticsKey}
             stroke="hsl(var(--muted-foreground))"
             fillOpacity={5}
             fill="url(#colorCount)"
