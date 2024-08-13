@@ -10,6 +10,7 @@ export const config = {
 
 const timeoutThreshold = 19000; // 19 seconds to ensure it sends before the 20-second limit
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
+const powerbadgeFilter = 'AND casts.fid IN (SELECT fid FROM powerbadge)';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     let { limit, offset } = req.query;
@@ -46,10 +47,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     (SELECT 
         casts.hash, casts.fid, casts.text, casts.timestamp
     FROM casts 
-        ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
     WHERE 
-        ${textMatchCondition}
-        AND ${baseConditions}
+        ${baseConditions}
+        AND ${textMatchCondition}
+        ${onlyPowerBadge === 'true' ? powerbadgeFilter : ''}
         ${orderBy ? `ORDER BY ${orderBy}` : ''}
         LIMIT $1 OFFSET $2
     )
@@ -58,15 +59,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         (SELECT 
             casts.hash, casts.fid, casts.text, casts.timestamp
         FROM casts 
-            ${onlyPowerBadge === 'true' ? 'JOIN powerbadge ON powerbadge.fid = casts.fid' : ''}
         WHERE 
-            ${mentionFid}::int = ANY(casts.mentions)
-            AND ${baseConditions}
+            ${baseConditions}
+            AND array_length(casts.mentions, 1) > 0
+            AND casts.mentions @> ARRAY[${mentionFid}]      
+            ${onlyPowerBadge === 'true' ? powerbadgeFilter : ''}
             ${orderBy ? `ORDER BY ${orderBy}` : ''}
             LIMIT $1 OFFSET $2
-            )
-            `
-            : ''
+        )`: ''
         }
     `;
     const vars = [limit, offset];
