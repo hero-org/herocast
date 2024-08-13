@@ -28,8 +28,8 @@ const intervals = [
     value: SearchInterval.d7,
   },
   {
-    label: "30 days",
-    value: SearchInterval.d30,
+    label: "14 days",
+    value: SearchInterval.d14,
   },
 ];
 
