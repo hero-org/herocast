@@ -105,12 +105,9 @@ export default function SearchPage() {
 
   const debouncedUserSearch = useCallback(
     debounce(async (term: string) => {
-      if (term.length >= 3 && viewerFid) {
+      if (term.length > 2 && viewerFid) {
         try {
-          await fetchAndAddUserProfile({
-            username: term.startsWith("@") ? term.slice(1) : term,
-            viewerFid,
-          });
+          getMentionFidFromSearchTerm(term, viewerFid);
         } catch (error) {
           console.error("Error searching for users:", error);
         }
@@ -202,6 +199,10 @@ export default function SearchPage() {
     term: string,
     viewerFid: string
   ) => {
+    const isOneWordSearch = !/\s/.test(term.trim());
+    if (!isOneWordSearch) {
+      return;
+    }
     const profile = await getProfileFetchIfNeeded({
       username: term.trim(),
       viewerFid,
@@ -249,10 +250,7 @@ export default function SearchPage() {
       });
       const startedAt = Date.now();
       try {
-        const isOneWordSearch = !/\s/.test(term.trim());
-        const mentionFid = isOneWordSearch
-          ? await getMentionFidFromSearchTerm(term, viewerFid)
-          : undefined;
+        const mentionFid = await getMentionFidFromSearchTerm(term, viewerFid);
         const fromFid = await getFromFidFromSearchTerm(term, viewerFid);
         const searchResponse = await runFarcasterCastSearch({
           searchTerm: term,
