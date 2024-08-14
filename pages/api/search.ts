@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${baseConditions}
         AND ${textMatchCondition}
         ${onlyPowerBadge === 'true' ? powerbadgeFilter : ''}
-        ${orderBy ? `ORDER BY ${orderBy}` : ''}
+        ${orderBy ? `ORDER BY ${orderBy}` : 'ORDER BY timestamp DESC'}
         LIMIT $1 OFFSET $2
     )
     ${mentionFid ? `
@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             AND array_length(casts.mentions, 1) > 0
             AND casts.mentions @> ARRAY[${mentionFid}]      
             ${onlyPowerBadge === 'true' ? powerbadgeFilter : ''}
-            ${orderBy ? `ORDER BY ${orderBy}` : ''}
+            ${orderBy ? `ORDER BY ${orderBy}` : 'ORDER BY timestamp DESC'}
             LIMIT $1 OFFSET $2
         )`: ''
         }
