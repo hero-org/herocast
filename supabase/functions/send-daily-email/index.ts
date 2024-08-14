@@ -57,29 +57,28 @@ async function fetchBulkCasts(hashes: string[]): Promise<Cast[]> {
   }
 }
 
-async function sendEmail(resend: Resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]) {
+async function sendEmail(resend: Resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]): Promise<boolean> {
   if (!RESEND_API_KEY) {
     console.error('RESEND_API_KEY is not set');
-    return new Response(JSON.stringify({ error: 'RESEND_API_KEY is not set' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return false;
   }
 
   try {
+    const html = getHtmlEmail({ listsWithCasts })
     const res = await resend.emails.send({
       from: fromAddress,
       to: [toAddress],
       subject: subject,
-      html: getHtmlEmail({ listsWithCasts })
+      html
     });
     if (res?.error) {
       console.error('Error sending email - response has error:', res, toAddress, listsWithCasts);
     }
+    return true;
   } catch (error) {
-    console.error('Error sending email:', error, toAddress, listsWithCasts);
+    console.error('Error sending email:', error, toAddress);
+    console.error('Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    return false;
   }
 }
 
@@ -161,8 +160,10 @@ Deno.serve(async (req) => {
 
         const fromAddress = 'hiro@herocast.xyz';
         const toAddress = profile.email;
-        await sendEmail(resend, fromAddress, toAddress, 'herocast daily digest', listsWithCasts);
-        count++;
+        const didSend = await sendEmail(resend, fromAddress, toAddress, 'herocast daily digest', listsWithCasts);
+        if (didSend) {
+          count++;
+        }
       }
       const message = `sent ${count} emails`;
       console.log(message);
