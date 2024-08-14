@@ -24,7 +24,7 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
       }
     };
 
-    if (rawCasts.length) {
+    if (rawCasts?.length) {
       fetchData();
     }
   }, [rawCasts]);

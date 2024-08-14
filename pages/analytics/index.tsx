@@ -18,6 +18,7 @@ import Link from "next/link";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
 import { Interval } from "@/common/helpers/search";
 import { IntervalFilter } from "@/common/components/IntervalFilter";
+import DynamicChartCard from "@/common/components/Analytics/DynamicChartCard";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 const intervals = [Interval.d7, Interval.d30];
@@ -198,10 +199,17 @@ export default function AnalyticsPage() {
             />
           )}
         </div>
+        <div className="mt-8">
+          <DynamicChartCard
+            analyticsData={analyticsData}
+            isLoading={isLoading}
+            interval={interval}
+            />
+        </div>
         <div>
           <h2 className="text-2xl font-bold">Top casts</h2>
         </div>
-        {analyticsData.casts && (
+        {analyticsData.topCasts && (
           <CastReactionsTable rawCasts={analyticsData.topCasts} />
         )}
       </>
