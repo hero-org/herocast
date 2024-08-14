@@ -132,8 +132,12 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        console.log(`user ${profile.user_id} has ${profile?.lists?.length || 0} lists`)
-
+        if (!profile.lists || !profile.lists.length) {
+          console.log(`skip user ${profile.user_id}: no lists`);
+          continue;
+        }
+        
+        console.log(`user ${profile.user_id} has ${profile?.lists?.length} lists`)
         const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
           const searchResult = await runFarcasterCastSearch({
             searchTerm: list.contents.term,
@@ -157,6 +161,12 @@ Deno.serve(async (req) => {
             searchTerm: list.contents.term,
           };
         }));
+
+        const hasOnlyEmptyLists = listsWithCasts.every((list) => list.casts.length === 0);
+        if (hasOnlyEmptyLists) {
+          console.log(`skip user ${profile.user_id}: all lists are empty`);
+          continue;
+        }
 
         const fromAddress = 'hiro@herocast.xyz';
         const toAddress = profile.email;
