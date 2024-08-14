@@ -58,4 +58,10 @@ describe('getTextMatchCondition', () => {
     const result = getTextMatchCondition(query);
     expect(result).toBe(`(${TEXT_COLUMN} ~* '\\mhappy days\\M') OR (${TEXT_COLUMN} ~* '\\msunny skies\\M')`);
   });
+
+  test('should handle three phrases with OR operator and no quotation marks', () => {
+    const query = 'happy days OR sunny skies OR rainy nights';
+    const result = getTextMatchCondition(query);
+    expect(result).toBe(`(${TEXT_COLUMN} ~* '\\mhappy days\\M') OR (${TEXT_COLUMN} ~* '\\msunny skies\\M') OR (${TEXT_COLUMN} ~* '\\mrainy nights\\M')`);
+  });
 });
