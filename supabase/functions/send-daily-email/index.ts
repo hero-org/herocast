@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
           console.log(`skip user ${profile.user_id}: no lists`);
           continue;
         }
-        
+
         console.log(`user ${profile.user_id} has ${profile?.lists?.length} lists`)
         const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
           const searchResult = await runFarcasterCastSearch({
