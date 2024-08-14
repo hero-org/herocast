@@ -92,7 +92,7 @@ export const getTextMatchCondition = (term: string): string => {
     }
 
     if (term.includes(' OR ')) {
-        return handleTwoPhrasesWithOR(term);
+        return handlePhrasesWithOR(term);
     }
 
     if (hasComplexQuery(term)) {
@@ -140,12 +140,9 @@ const handleComplexQuery = (term: string): string => {
     return conditions.join(' ');
 };
 
-const handleTwoPhrasesWithOR = (term: string): string => {
+const handlePhrasesWithOR = (term: string): string => {
     const parts = term.split(/\s+OR\s+/);
-    if (parts.length === 2) {
-        return parts.map(part => `(${createCondition(part)})`).join(' OR ');
-    }
-    return handleComplexQuery(term);
+    return parts.map(part => `(${createCondition(part)})`).join(' OR ');
 };
 
 const createCondition = (part: string): string => {
