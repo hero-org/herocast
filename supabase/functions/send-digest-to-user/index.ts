@@ -125,12 +125,30 @@ async function processUser(supabaseClient: any, userId: string) {
 
   console.log(`user ${profile.user_id} has ${profile?.lists?.length} lists`);
   const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
-    const searchResult = await runFarcasterCastSearch({
+    let searchResult = await runFarcasterCastSearch({
       searchTerm: list.contents.term,
       filters: { ...list.contents.filters, interval: SearchInterval.d1 },
       limit: 5,
       baseUrl,
     });
+    if (searchResult.error) {
+      console.error(`search error for term ${list.contents.term} for user ${profile.user_id} - skip`);
+      return {
+        listName: list.name,
+        casts: [],
+        searchTerm: list.contents.term,
+      };
+    }
+    else if (searchResult.isTimeout) {
+      console.log(`search timeout for term ${list.contents.term} for user ${profile.user_id} - try again`);
+      searchResult = await runFarcasterCastSearch({
+        searchTerm: list.contents.term,
+        filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+        limit: 5,
+        baseUrl,
+      });
+      console.log(`retry search result: timeout ${searchResult.isTimeout} error: ${searchResult.error}`);
+    }
 
     const listName = list.name;
     const casts = searchResult.results || [];

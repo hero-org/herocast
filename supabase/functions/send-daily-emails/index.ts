@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
         throw new Error(`Error fetching user IDs: ${userIdsError.message}`);
       }
       const userIds = profiles.map((profile) => profile.user_id);
-      console.log(`Processing ${userIds.length} users - userIds: ${JSON.stringify(userIds)}`);
+      console.log(`Processing ${userIds.length} users`);
       for (const userId of userIds) {
         const { data: invokeData, error: invokeError } = await supabaseClient.functions.invoke(
           'send-digest-to-user', {
