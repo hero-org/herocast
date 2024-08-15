@@ -92,103 +92,126 @@ async function enrichCastsViaNeynar(casts: Cast[]) {
   }
 }
 
+async function processUser(supabaseClient: any, userId: string) {
+  const resend = new Resend(RESEND_API_KEY);
+  const baseUrl = Deno.env.get('BASE_URL');
+
+  const { data: profile, error: profileError } = await supabaseClient
+    .from('profile')
+    .select(`
+      user_id,
+      email,
+      lists:list!inner(*)
+    `)
+    .eq('user_id', userId)
+    .not('email', 'is', null)
+    .eq('list.contents->enabled_daily_email', true)
+    .order('idx', { referencedTable: 'list', ascending: true })
+    .single();
+
+  if (profileError) {
+    throw new Error(`Error fetching profile: ${profileError.message}`);
+  }
+
+  if (!profile.email) {
+    console.error(`Profile has daily digest activated but no email address set. user id ${profile.user_id}`);
+    return;
+  }
+
+  if (!profile.lists || !profile.lists.length) {
+    console.log(`skip user ${profile.user_id}: no lists`);
+    return;
+  }
+
+  console.log(`user ${profile.user_id} has ${profile?.lists?.length} lists`);
+  const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
+    const searchResult = await runFarcasterCastSearch({
+      searchTerm: list.contents.term,
+      filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+      limit: 5,
+      baseUrl,
+    });
+
+    const listName = list.name;
+    const casts = searchResult.results || [];
+    if (!casts.length) {
+      return {
+        listName,
+        casts: [],
+        searchTerm: list.contents.term,
+      };
+    }
+    return {
+      listName,
+      casts: await enrichCastsViaNeynar(casts),
+      searchTerm: list.contents.term,
+    };
+  }));
+
+  const hasOnlyEmptyLists = listsWithCasts.every((list) => list.casts.length === 0);
+  if (hasOnlyEmptyLists) {
+    console.log(`skip user ${profile.user_id}: all lists are empty`);
+    return;
+  }
+
+  const fromAddress = 'hiro@herocast.xyz';
+  const toAddress = profile.email;
+  const didSend = await sendEmail(resend, fromAddress, toAddress, 'herocast daily digest', listsWithCasts);
+  return didSend;
+}
+
 Deno.serve(async (req) => {
   return Sentry.withScope(async (scope) => {
-
     try {
-      const body = await req.json()
+      const body = await req.json();
       const userId = body.user_id;
 
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      )
-      const resend = new Resend(RESEND_API_KEY);
+      );
 
-      const { data: profilesWithLists, error: profilesError } = await supabaseClient
-        .from('profile')
-        .select(`
-        user_id,
-        email,
-        lists:list!inner(*)
-      `)
-        .not('email', 'is', null)
-        .eq('list.contents->enabled_daily_email', true)
-        .order('idx', { referencedTable: 'list', ascending: true })
+      if (userId) {
+        // Process a single user
+        const didSend = await processUser(supabaseClient, userId);
+        const message = didSend ? 'Email sent successfully' : 'No email sent';
+        return new Response(JSON.stringify({ message }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      } else {
+        // Get all userIds and process them
+        const { data: userIds, error: userIdsError } = await supabaseClient
+          .from('profile')
+          .select('user_id')
+          .not('email', 'is', null)
+          .eq('list.contents->enabled_daily_email', true);
 
-      if (profilesError) {
-        throw new Error(`Error fetching profiles with lists: ${profilesError.message}`);
-      }
-      console.log(`Processing ${profilesWithLists.length} profiles`);
-      const baseUrl = Deno.env.get('BASE_URL');
-      let count = 0;
-      for (const profile of profilesWithLists) {
-        if (userId && profile.user_id !== userId) {
-          continue
+        if (userIdsError) {
+          throw new Error(`Error fetching user IDs: ${userIdsError.message}`);
         }
 
-        if (!profile.email) {
-          console.error(`Profile has daily digest activated but no email address set. user id ${profile.id}`);
-          continue;
-        }
-
-        if (!profile.lists || !profile.lists.length) {
-          console.log(`skip user ${profile.user_id}: no lists`);
-          continue;
-        }
-
-        console.log(`user ${profile.user_id} has ${profile?.lists?.length} lists`)
-        const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
-          const searchResult = await runFarcasterCastSearch({
-            searchTerm: list.contents.term,
-            filters: { ...list.contents.filters, interval: SearchInterval.d1 },
-            limit: 5,
-            baseUrl,
+        console.log(`Processing ${userIds.length} users`);
+        for (const user of userIds) {
+          await supabaseClient.functions.invoke('send-daily-email', {
+            body: { user_id: user.user_id },
           });
-
-          const listName = list.name;
-          const casts = searchResult.results || [];
-          if (!casts.length) {
-            return {
-              listName,
-              casts: [],
-              searchTerm: list.contents.term,
-            };
-          }
-          return {
-            listName,
-            casts: await enrichCastsViaNeynar(casts),
-            searchTerm: list.contents.term,
-          };
-        }));
-
-        const hasOnlyEmptyLists = listsWithCasts.every((list) => list.casts.length === 0);
-        if (hasOnlyEmptyLists) {
-          console.log(`skip user ${profile.user_id}: all lists are empty`);
-          continue;
         }
 
-        const fromAddress = 'hiro@herocast.xyz';
-        const toAddress = profile.email;
-        const didSend = await sendEmail(resend, fromAddress, toAddress, 'herocast daily digest', listsWithCasts);
-        if (didSend) {
-          count++;
-        }
+        const message = `Processed ${userIds.length} users`;
+        return new Response(JSON.stringify({ message }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 200,
+        });
       }
-      const message = `sent ${count} emails`;
-      console.log(message);
-      return new Response(JSON.stringify({ message }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 200,
-      })
     } catch (error) {
       return new Response(JSON.stringify({ error: error?.message }), {
         headers: { 'Content-Type': 'application/json' },
         status: 400,
-      })
+      });
     }
-  })
-})
+  });
+});
 
 /*
 To invoke:
