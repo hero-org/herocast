@@ -3,7 +3,7 @@
 // This enables autocomplete, go to definition, etc.
 import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts"
 
-import { createClient } from 'npm:@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'npm:resend';
 import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
 import { getHtmlEmail } from '../_shared/email.ts';
@@ -19,7 +19,7 @@ Sentry.init({
 Sentry.setTag('region', Deno.env.get('SB_REGION'));
 Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
 
-console.log("Hello from sending daily emails!")
+console.log("Hello from sending digest to user!")
 
 type Cast = {
   hash: string;
@@ -163,9 +163,9 @@ async function processUser(supabaseClient: any, userId: string) {
 Deno.serve(async (req) => {
   return Sentry.withScope(async (scope) => {
     try {
+      console.log('hihi send-digest-to-user',)
       const body = await req.json();
       const userId = body.user_id;
-      const sendAll = body.send_all;
 
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
@@ -173,42 +173,22 @@ Deno.serve(async (req) => {
       );
 
       if (userId) {
-        // Process a single user
         const didSend = await processUser(supabaseClient, userId);
         const message = didSend ? 'Email sent successfully' : 'No email sent';
         return new Response(JSON.stringify({ message }), {
           headers: { 'Content-Type': 'application/json' },
           status: 200,
         });
-      } else if (sendAll) {
-        // Get all userIds and process them
-        const { data: userIds, error: userIdsError } = await supabaseClient
-          .from('profile')
-          .select('user_id')
-          .not('email', 'is', null)
-          .eq('list.contents->enabled_daily_email', true);
-
-        if (userIdsError) {
-          throw new Error(`Error fetching user IDs: ${userIdsError.message}`);
-        }
-
-        console.log(`Processing ${userIds.length} users`);
-        for (const user of userIds) {
-          await supabaseClient.functions.invoke('send-daily-email', {
-            body: { user_id: user.user_id },
-          });
-        }
-
-        const message = `Processed ${userIds.length} users`;
-        return new Response(JSON.stringify({ message }), {
-          headers: { 'Content-Type': 'application/json' },
-          status: 200,
-        });
       } else {
-        // Neither user_id nor send_all parameter provided
-        throw new Error('Either user_id or send_all parameter is required');
+        // no user_id provided
+        return new Response(JSON.stringify({ error: 'user_id is required' }),
+          {
+            headers: { 'Content-Type': 'application/json' },
+            status: 400,
+          });
       }
     } catch (error) {
+      Sentry.captureException(error);
       return new Response(JSON.stringify({ error: error?.message }), {
         headers: { 'Content-Type': 'application/json' },
         status: 400,
@@ -219,9 +199,9 @@ Deno.serve(async (req) => {
 
 /*
 To invoke:
-curl -i --location --request POST 'http://localhost:54321/functions/v1/send-daily-email' \
+curl -i --location --request POST 'http://localhost:54321/functions/v1/send-digest-to-user' \
   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
   --header 'Content-Type: application/json' \
-  --data '{"name":"Functions"}'
+  --data '{"name":"Functions", "user_id": "123"}'
 
   */
