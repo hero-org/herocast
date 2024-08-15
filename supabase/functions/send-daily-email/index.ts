@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       if (profilesError) {
         throw new Error(`Error fetching profiles with lists: ${profilesError.message}`);
       }
-
+      console.log(`Processing ${profilesWithLists.length} profiles`);
       const baseUrl = Deno.env.get('BASE_URL');
       let count = 0;
       for (const profile of profilesWithLists) {
