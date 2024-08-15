@@ -165,6 +165,7 @@ Deno.serve(async (req) => {
     try {
       const body = await req.json();
       const userId = body.user_id;
+      const sendAll = body.send_all;
 
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
@@ -179,7 +180,7 @@ Deno.serve(async (req) => {
           headers: { 'Content-Type': 'application/json' },
           status: 200,
         });
-      } else {
+      } else if (sendAll) {
         // Get all userIds and process them
         const { data: userIds, error: userIdsError } = await supabaseClient
           .from('profile')
@@ -203,6 +204,9 @@ Deno.serve(async (req) => {
           headers: { 'Content-Type': 'application/json' },
           status: 200,
         });
+      } else {
+        // Neither user_id nor send_all parameter provided
+        throw new Error('Either user_id or send_all parameter is required');
       }
     } catch (error) {
       return new Response(JSON.stringify({ error: error?.message }), {
