@@ -35,11 +35,6 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   const data = useMemo(() => {
     if (!aggregated) return [];
 
-    // const sortedAggregated = [...aggregated].sort(
-    //   (a, b) =>
-    //     new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    // );
-
     let filteredData = aggregated;
     if (interval) {
       const cutoffDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
@@ -53,8 +48,6 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
       [analyticsKey]: item.count,
     }));
   }, [aggregated, interval]);
-
-  console.log("data", data);
 
   if (data.length === 0) {
     if (isLoading) {

@@ -29,20 +29,15 @@ const NewFollowersCard = ({
 
   const cumulativeAggregated = useMemo(() => {
     const startDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
-    // aggreagated is array of { timestamp: string, followers: number }
-    // we want followers to be cumulative
-
-    // filter for only timestamp > startDate
     const filtered = aggregated.filter(
       (item) => new Date(item.timestamp) >= startDate
     );
-    // we want followers to be a cumulative chart
-    // this means we have to use followerCount and remove it by going back in time each day
-    // and adding the new followers
 
     return filtered.reduceRight(
       (acc, curr, i, arr) => {
-        const count = followerCount - (arr.slice(i + 1).reduce((sum, item) => sum + item.count, 0));
+        const count =
+          followerCount -
+          arr.slice(i + 1).reduce((sum, item) => sum + item.count, 0);
         return [{ ...curr, count }, ...acc];
       },
       [] as CombinedActivityData["aggregated"]

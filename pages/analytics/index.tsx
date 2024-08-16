@@ -226,13 +226,13 @@ export default function AnalyticsPage() {
             />
           )}
         </div>
-        {/* <div className="mt-8">
+        <div className="mt-8">
           <DynamicChartCard
             analyticsData={analyticsData}
             isLoading={isLoading}
             interval={interval}
           />
-        </div> */}
+        </div>
         <div>
           <h2 className="text-2xl font-bold">Top casts</h2>
         </div>
