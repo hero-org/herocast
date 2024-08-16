@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { toastSuccessSavedSearchUpdate } from "../helpers/toast";
 import { BellIcon } from "@heroicons/react/24/outline";
 
+const intervals = [Interval.d1, Interval.d7, Interval.d14];
+
 const ManageListModal = ({ open, onClose }) => {
   const posthog = usePostHog();
 
@@ -106,7 +108,7 @@ const ManageListModal = ({ open, onClose }) => {
         <div className="flex flex-row space-x-4">
           <div className="flex flex-col">
             <Label>Search Interval</Label>
-            <IntervalFilter defaultInterval={searchInterval} />
+            <IntervalFilter defaultInterval={searchInterval} intervals={intervals} />
           </div>
           <div className="flex flex-col">
             <Label>Hide replies</Label>

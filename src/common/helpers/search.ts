@@ -2,6 +2,7 @@ export enum Interval {
     d1 = "1 day",
     d7 = "7 days",
     d14 = "14 days",
+    d30 = "30 days",
 }
 
 export type RawSearchResult = {

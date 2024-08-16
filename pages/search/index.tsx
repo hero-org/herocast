@@ -45,7 +45,7 @@ export const DEFAULT_FILTERS: SearchFilters = {
   hideReplies: true,
 };
 
-const intervals = [Interval.d1, Interval.d7, Interval.d30];
+const intervals = [Interval.d1, Interval.d7, Interval.d14];
 
 const FilterBadge = ({
   children,
