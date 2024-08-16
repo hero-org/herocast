@@ -21,6 +21,10 @@ export async function getIcebreakerSocialInfoForFid(fid: string): Promise<Icebre
         'accept': 'application/json'
       }
     });
+    if (!response.ok) {
+      console.log('Error fetching Icebreaker data:', response.statusText);
+      return null;
+    }
     const data = await response.json();
     if (data && data.profiles && data?.profiles.length === 1) {
       const profile = data.profiles[0];
