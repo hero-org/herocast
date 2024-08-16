@@ -6,22 +6,22 @@ import { openWindow } from "@/common/helpers/navigation";
 import { Button } from "@/components/ui/button";
 
 const HelpCard = () => (
-    <Card>
-        <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Need help?</CardTitle>
-            <CardDescription>Did anything break? Need support? Want to chat about Farcaster apps?</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col space-y-2">
-            <Button variant="default" onClick={() => openWindow("https://warpcast.com/hellno")}>
-                <ChatBubbleLeftEllipsisIcon className="mr-2 h-4 w-4" />
-                Talk to us on Warpcast
-            </Button>
-            <Button variant="outline" onClick={() => openWindow("https://t.me/HELLNO_HELLNO")}>
-                <PaperAirplaneIcon className="mr-2 h-4 w-4" />
-                Talk to us on Telegram
-            </Button>
-        </CardContent>
-    </Card>
+  <Card>
+    <CardHeader className="space-y-1">
+      <CardTitle className="text-2xl">Need help?</CardTitle>
+      <CardDescription>Did anything break? Need support? Want to chat about Farcaster apps?</CardDescription>
+    </CardHeader>
+    <CardContent className="flex flex-col space-y-2">
+      <Button variant="default" onClick={() => openWindow("https://warpcast.com/hellno")}>
+        <ChatBubbleLeftEllipsisIcon className="mr-2 h-4 w-4" />
+        Talk to us on Warpcast
+      </Button>
+      <Button variant="outline" onClick={() => openWindow("https://t.me/HELLNO_HELLNO")}>
+        <PaperAirplaneIcon className="mr-2 h-4 w-4" />
+        Talk to us on Telegram
+      </Button>
+    </CardContent>
+  </Card>
 );
 
 export default HelpCard;

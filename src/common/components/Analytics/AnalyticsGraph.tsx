@@ -7,78 +7,78 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { Skeleton } from "@/components/ui/skeleton";
 
 type AnalyticsGraphProps = {
-    analyticsKey: string;
-    aggregated: { timestamp: string; count: number }[];
-    isLoading: boolean;
+  analyticsKey: string;
+  aggregated: { timestamp: string; count: number }[];
+  isLoading: boolean;
 };
 
 const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregated, isLoading = false }) => {
-    const data = useMemo(() => {
-        if (!aggregated || aggregated?.length < 7) return [];
+  const data = useMemo(() => {
+    if (!aggregated || aggregated?.length < 7) return [];
 
-        const sortedAggregated = [...aggregated].sort(
-            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
-
-        return sortedAggregated.map((item) => ({
-            date: new Date(item.timestamp),
-            count: item.count,
-        }));
-    }, [aggregated]);
-
-    if (data.length === 0) {
-        if (isLoading) {
-            return (
-                <div className="w-full h-[180px]">
-                    <Skeleton className="w-full h-full" />
-                </div>
-            );
-        } else {
-            return null;
-        }
-    }
-
-    const chartConfig = {
-        [analyticsKey]: {
-            label: analyticsKey,
-            color: "hsl(var(--chart-1))",
-        },
-    };
-
-    return (
-        <ChartContainer config={chartConfig} className="-ml-8 w-full min-w-full h-full">
-            <ResponsiveContainer width="100%" height="100%">
-                <AreaChart accessibilityLayer data={data}>
-                    <defs>
-                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                        dataKey="date"
-                        tickLine={false}
-                        tickMargin={8}
-                        tickFormatter={(date) => format(new Date(date), "MMM d")}
-                    />
-                    <YAxis />
-                    <ChartTooltip
-                        content={<ChartTooltipContent labelKey={chartConfig[analyticsKey].label} />}
-                        cursor={false}
-                        defaultIndex={1}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="count"
-                        stroke="hsl(var(--muted-foreground))"
-                        fillOpacity={5}
-                        fill="url(#colorCount)"
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
-        </ChartContainer>
+    const sortedAggregated = [...aggregated].sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
+
+    return sortedAggregated.map((item) => ({
+      date: new Date(item.timestamp),
+      count: item.count,
+    }));
+  }, [aggregated]);
+
+  if (data.length === 0) {
+    if (isLoading) {
+      return (
+        <div className="w-full h-[180px]">
+          <Skeleton className="w-full h-full" />
+        </div>
+      );
+    } else {
+      return null;
+    }
+  }
+
+  const chartConfig = {
+    [analyticsKey]: {
+      label: analyticsKey,
+      color: "hsl(var(--chart-1))",
+    },
+  };
+
+  return (
+    <ChartContainer config={chartConfig} className="-ml-8 w-full min-w-full h-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart accessibilityLayer data={data}>
+          <defs>
+            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="date"
+            tickLine={false}
+            tickMargin={8}
+            tickFormatter={(date) => format(new Date(date), "MMM d")}
+          />
+          <YAxis />
+          <ChartTooltip
+            content={<ChartTooltipContent labelKey={chartConfig[analyticsKey].label} />}
+            cursor={false}
+            defaultIndex={1}
+          />
+          <Area
+            type="monotone"
+            dataKey="count"
+            stroke="hsl(var(--muted-foreground))"
+            fillOpacity={5}
+            fill="url(#colorCount)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </ChartContainer>
+  );
 };
 
 export default AnalyticsGraph;

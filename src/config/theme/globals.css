@@ -20,69 +20,69 @@
 */
 
 @keyframes pulse {
-    0% {
-        background-color: #001f3f;
-    }
+  0% {
+    background-color: #001f3f;
+  }
 
-    100% {
-        background-color: #ff4136;
-    }
+  100% {
+    background-color: #ff4136;
+  }
 }
 
 .noselect {
-    -webkit-touch-callout: none;
-    /* iOS Safari */
-    -webkit-user-select: none;
-    /* Safari */
-    -khtml-user-select: none;
-    /* Konqueror HTML */
-    -moz-user-select: none;
-    /* Old versions of Firefox */
-    -ms-user-select: none;
-    /* Internet Explorer/Edge */
-    user-select: none;
-    /* Non-prefixed version, currently
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Safari */
+  -khtml-user-select: none;
+  /* Konqueror HTML */
+  -moz-user-select: none;
+  /* Old versions of Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
 .fade-enter {
-    opacity: 0;
+  opacity: 0;
 }
 
 .fade-exit {
-    opacity: 1;
+  opacity: 1;
 }
 
 .fade-enter-active {
-    opacity: 1;
+  opacity: 1;
 }
 
 .fade-exit-active {
-    opacity: 0;
+  opacity: 0;
 }
 
 .fade-enter-active,
 .fade-exit-active {
-    transition: opacity 500ms;
+  transition: opacity 500ms;
 }
 
 @keyframes float {
-    0% {
-        transform: translatey(0px);
-    }
+  0% {
+    transform: translatey(0px);
+  }
 
-    50% {
-        transform: translatey(-5px);
-    }
+  50% {
+    transform: translatey(-5px);
+  }
 
-    100% {
-        transform: translatey(0px);
-    }
+  100% {
+    transform: translatey(0px);
+  }
 }
 
 input::-ms-reveal,
 input::-ms-clear {
-    display: none;
+  display: none;
 }
 
 /*
@@ -93,27 +93,27 @@ input::-ms-clear {
 */
 
 .titlebar {
-    height: 30px;
-    background: #686868;
-    user-select: none;
-    display: flex;
-    justify-content: flex-end;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    overflow-y: hidden;
+  height: 30px;
+  background: #686868;
+  user-select: none;
+  display: flex;
+  justify-content: flex-end;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  overflow-y: hidden;
 }
 
 .titlebar-button {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 30px;
-    height: 30px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
 }
 
 .titlebar-button:hover {
-    background: #5bbec3;
+  background: #5bbec3;
 }

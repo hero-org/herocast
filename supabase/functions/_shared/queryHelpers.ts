@@ -1,8 +1,8 @@
 import { sql } from "kysely";
 
 export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterColumn: string) {
-    console.log("buildAnalyticsQuery", fid, tableName);
-    return sql`
+  console.log("buildAnalyticsQuery", fid, tableName);
+  return sql`
         WITH daily_counts AS (
             SELECT
                 date_trunc('day', timestamp) AS day,
@@ -22,7 +22,7 @@ export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterCol
 }
 
 export function getCastsOverview(fid: number, limit: number = 30) {
-    return sql`
+  return sql`
         WITH relevant_casts AS (
             SELECT hash, timestamp, parent_cast_hash is not NULL AS is_reply
             FROM casts

@@ -18,9 +18,9 @@
 
 We're currently looking for contributions for the following:
 
--   [ ] fix bugs
--   [ ] build new features
--   [ ] improve the design
--   [ ] create documentation
+- [ ] fix bugs
+- [ ] build new features
+- [ ] improve the design
+- [ ] create documentation
 
 For more information, please refer to our [CONTRIBUTING](CONTRIBUTING.md) guide.
