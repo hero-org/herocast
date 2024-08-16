@@ -17,8 +17,8 @@ import { useListStore } from "@/stores/useListStore";
 import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
-import { SearchIntervalFilter } from "@/common/components/SearchIntervalFilter";
-import { SearchInterval, SearchResponse } from "@/common/helpers/search";
+import { IntervalFilter } from "@/common/components/IntervalFilter";
+import { Interval, SearchResponse } from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";
@@ -30,21 +30,22 @@ import {
 import ManageListModal from "@/common/components/ManageListModal";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
-import { fetchAndAddUserProfile } from "@/common/helpers/profileUtils";
 import { Badge } from "@/components/ui/badge";
 import { UUID } from "crypto";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
-const SEARCH_LIMIT_INITIAL_LOAD = 4;
+const SEARCH_LIMIT_INITIAL_LOAD = 5;
 const SEARCH_LIMIT_NEXT_LOAD = 10;
 
 export const DEFAULT_FILTERS: SearchFilters = {
   onlyPowerBadge: true,
-  interval: SearchInterval.d7,
+  interval: Interval.d7,
   hideReplies: true,
 };
+
+const intervals = [Interval.d1, Interval.d7, Interval.d14];
 
 const FilterBadge = ({
   children,
@@ -78,11 +79,11 @@ export default function SearchPage() {
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [searchCounter, setSearchCounter] = useState(0);
-  const [filterByPowerBadge, setFilterByPowerBadge] = useState(true);
+  const [filterByPowerBadge, setFilterByPowerBadge] = useState(false);
   const [filterByHideReplies, setFilterByHideReplies] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const activeSearchCounter = useRef(0);
-  const [interval, setInterval] = useState<SearchInterval>();
+  const [interval, setInterval] = useState<Interval>();
   const [showFilter, setShowFilter] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
@@ -105,12 +106,9 @@ export default function SearchPage() {
 
   const debouncedUserSearch = useCallback(
     debounce(async (term: string) => {
-      if (term.length >= 3 && viewerFid) {
+      if (term.length > 2 && viewerFid) {
         try {
-          await fetchAndAddUserProfile({
-            username: term.startsWith("@") ? term.slice(1) : term,
-            viewerFid,
-          });
+          getMentionFidFromSearchTerm(term, viewerFid);
         } catch (error) {
           console.error("Error searching for users:", error);
         }
@@ -174,12 +172,9 @@ export default function SearchPage() {
   };
 
   const addCastHashes = (newCastHashes: RawSearchResult[], reset: boolean) => {
-    console.log("addCastHashes", newCastHashes);
-    if (!newCastHashes?.length) {
-      setCastHashes((prevCastHashes) => (reset ? [] : prevCastHashes));
-    }
+    console.log("addCastHashes", newCastHashes?.length, "reset: ", reset);
     setCastHashes((prevCastHashes) =>
-      uniq([...(reset ? [] : prevCastHashes), ...newCastHashes])
+      uniq([...(reset ? [] : prevCastHashes), ...(newCastHashes || [])])
     );
   };
 
@@ -202,6 +197,10 @@ export default function SearchPage() {
     term: string,
     viewerFid: string
   ) => {
+    const isOneWordSearch = !/\s/.test(term.trim());
+    if (!isOneWordSearch) {
+      return;
+    }
     const profile = await getProfileFetchIfNeeded({
       username: term.trim(),
       viewerFid,
@@ -249,11 +248,8 @@ export default function SearchPage() {
       });
       const startedAt = Date.now();
       try {
-        const isOneWordSearch = !/\s/.test(term.trim());
-        const mentionFid = isOneWordSearch
-          ? await getMentionFidFromSearchTerm(term)
-          : undefined;
-        const fromFid = await getFromFidFromSearchTerm(term);
+        const mentionFid = await getMentionFidFromSearchTerm(term, viewerFid);
+        const fromFid = await getFromFidFromSearchTerm(term, viewerFid);
         const searchResponse = await runFarcasterCastSearch({
           searchTerm: term,
           filters,
@@ -278,7 +274,7 @@ export default function SearchPage() {
           resultsCount: searchResults.length,
           duration: endedAt - startedAt,
         });
-        processSearchResponse(searchResponse);
+        processSearchResponse(searchResponse, SEARCH_LIMIT_INITIAL_LOAD);
       } catch (error) {
         console.error("Failed to search for text", term, error);
       } finally {
@@ -295,13 +291,14 @@ export default function SearchPage() {
     ]
   );
 
-  const processSearchResponse = (response: SearchResponse) => {
+  const processSearchResponse = (response: SearchResponse, limit: number) => {
     const results = response.results || [];
-    if (results.length < SEARCH_LIMIT_NEXT_LOAD) {
+    console.log("processSearchResponse - results", results.length);
+    if (results.length < limit) {
       setHasMore(false);
     }
     if (results.length > 0) {
-      addCastHashes(results, true);
+      addCastHashes(results, false);
     }
     const { isTimeout, error } = response;
     if (isTimeout) {
@@ -328,7 +325,7 @@ export default function SearchPage() {
         term: searchTerm,
         resultsCount: (response?.results || []).length,
       });
-      processSearchResponse(response);
+      processSearchResponse(response, SEARCH_LIMIT_NEXT_LOAD);
     });
   };
 
@@ -411,16 +408,6 @@ export default function SearchPage() {
     setShowCastThreadView(false);
   }, []);
 
-  const onReply = useCallback(() => {
-    // Implement reply functionality
-    console.log("Reply functionality not implemented yet");
-  }, []);
-
-  const onQuote = useCallback(() => {
-    // Implement quote functionality
-    console.log("Quote functionality not implemented yet");
-  }, []);
-
   const renderLoadMoreButton = () =>
     hasMore ? (
       <Button size="lg" disabled={isLoading} onClick={() => onContinueSearch()}>
@@ -430,7 +417,7 @@ export default function SearchPage() {
       <div className="flex flex-col">
         <div className="text-muted-foreground">
           No more results for {`"${searchTerm}"`} with your selected filters.
-          Add more filters to refine your search and get results faster.
+          Adjust your search to get more results.
         </div>
         {renderTryAgainButton()}
       </div>
@@ -509,8 +496,9 @@ export default function SearchPage() {
   );
 
   const renderIntervalFilter = () => (
-    <SearchIntervalFilter
-      defaultInterval={SearchInterval.d7}
+    <IntervalFilter
+      intervals={intervals}
+      defaultInterval={Interval.d7}
       updateInterval={setInterval}
     />
   );
@@ -566,7 +554,7 @@ export default function SearchPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 mt-2 md:h-12 md:gap-x-2 ">
+            <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-y-2 my-2 md:h-12 md:gap-x-2 ">
               <Button
                 size="sm"
                 variant="outline"
@@ -593,6 +581,11 @@ export default function SearchPage() {
               )}
             </div>
           </div>
+          {casts.length > 0 && (
+            <span className="text-muted-foreground text-sm">
+              {casts.length} casts {hasMore && "with more to load"}
+            </span>
+          )}
           {(isLoading || (castHashes.length !== 0 && casts.length === 0)) &&
             renderLoading()}
           {!error && !isLoading && searchCounter > 0 && isEmpty(casts) && (
@@ -629,12 +622,7 @@ export default function SearchPage() {
           />
         </>
       ) : (
-        <CastThreadView
-          cast={casts[selectedCastIdx]}
-          onBack={onBack}
-          onReply={onReply}
-          onQuote={onQuote}
-        />
+        <CastThreadView cast={casts[selectedCastIdx]} onBack={onBack} />
       )}
     </div>
   );

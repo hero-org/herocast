@@ -12,7 +12,7 @@ import { openWindow } from "@/common/helpers/navigation";
 import { Button } from "@/components/ui/button";
 
 const HelpCard = () => (
-  <Card>
+  <Card className="max-w-2xl">
     <CardHeader className="space-y-1">
       <CardTitle className="text-2xl">Need help?</CardTitle>
       <CardDescription>
