@@ -4,6 +4,7 @@ import {
   ArrowUpCircleIcon,
   Cog6ToothIcon,
   PencilSquareIcon,
+  UserIcon,
 } from "@heroicons/react/20/solid";
 import {
   Bars3Icon,
@@ -254,6 +255,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
           ),
           shortcut: "Shift + A",
+        },
+        {
+          name: "Profile",
+          router: "/profile",
+          icon: <UserIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
         },
       ],
     },
