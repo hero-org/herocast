@@ -6,11 +6,13 @@ import { UUID } from "crypto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SearchIntervalFilter } from "./SearchIntervalFilter";
-import { SearchInterval } from "../helpers/search";
+import { IntervalFilter } from "./IntervalFilter";
+import { Interval } from "../helpers/search";
 import { Switch } from "@/components/ui/switch";
 import { toastSuccessSavedSearchUpdate } from "../helpers/toast";
 import { BellIcon } from "@heroicons/react/24/outline";
+
+const intervals = [Interval.d1, Interval.d7, Interval.d14];
 
 const ManageListModal = ({ open, onClose }) => {
   const posthog = usePostHog();
@@ -66,11 +68,11 @@ const ManageListModal = ({ open, onClose }) => {
 
   if (!list) return null;
 
-  const searchIntervalKey = Object.keys(SearchInterval).find(
-    (key) => SearchInterval[key] === list?.contents?.filters?.interval
+  const searchIntervalKey = Object.keys(Interval).find(
+    (key) => Interval[key] === list?.contents?.filters?.interval
   );
   const searchInterval = searchIntervalKey
-    ? SearchInterval[searchIntervalKey]
+    ? Interval[searchIntervalKey]
     : undefined;
 
   return (
@@ -106,7 +108,7 @@ const ManageListModal = ({ open, onClose }) => {
         <div className="flex flex-row space-x-4">
           <div className="flex flex-col">
             <Label>Search Interval</Label>
-            <SearchIntervalFilter defaultInterval={searchInterval} />
+            <IntervalFilter defaultInterval={searchInterval} intervals={intervals} />
           </div>
           <div className="flex flex-col">
             <Label>Hide replies</Label>

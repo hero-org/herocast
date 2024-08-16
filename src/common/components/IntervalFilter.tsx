@@ -16,39 +16,26 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { SearchInterval } from "../helpers/search";
+import { Interval } from "../helpers/search";
 
-const intervals = [
-  {
-    label: "1 day",
-    value: SearchInterval.d1,
-  },
-  {
-    label: "7 days",
-    value: SearchInterval.d7,
-  },
-  {
-    label: "14 days",
-    value: SearchInterval.d14,
-  },
-];
-
-type SearchIntervalFilterProps = {
-  defaultInterval?: SearchInterval;
-  updateInterval?: (value: SearchInterval) => void;
+type IntervalFilterProps = {
+  intervals: Interval[];
+  defaultInterval?: Interval;
+  updateInterval?: (value: Interval) => void;
 };
 
-export function SearchIntervalFilter({
+export function IntervalFilter({
+  intervals,
   defaultInterval,
   updateInterval,
-}: SearchIntervalFilterProps) {
+}: IntervalFilterProps) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState<SearchInterval | undefined>(
+  const [value, setValue] = React.useState<Interval | undefined>(
     defaultInterval
   );
 
   const canSelect = updateInterval !== undefined;
-  const handleSelect = (currentValue: SearchInterval) => {
+  const handleSelect = (currentValue: Interval) => {
     setValue(currentValue === value ? undefined : currentValue);
     updateInterval?.(currentValue);
     setOpen(false);
@@ -66,7 +53,7 @@ export function SearchIntervalFilter({
           className="w-[110px] justify-between"
         >
           {value !== undefined
-            ? intervals.find((framework) => framework.value === value)?.label
+            ? intervals.find((interval) => interval === value)
             : "Interval..."}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -75,21 +62,21 @@ export function SearchIntervalFilter({
         <Command>
           <CommandList>
             <CommandGroup>
-              {intervals.map((framework) => (
+              {intervals.map((interval) => (
                 <CommandItem
-                  key={framework.value}
-                  value={framework.value.toString()}
+                  key={interval}
+                  value={interval.toString()}
                   onSelect={(value) =>
-                    handleSelect(value as unknown as SearchInterval)
+                    handleSelect(value as unknown as Interval)
                   }
                 >
                   <CheckIcon
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === framework.value ? "opacity-100" : "opacity-0"
+                      value === interval ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {framework.label}
+                  {interval}
                 </CommandItem>
               ))}
             </CommandGroup>

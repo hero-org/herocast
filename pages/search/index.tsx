@@ -17,8 +17,8 @@ import { useListStore } from "@/stores/useListStore";
 import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
-import { SearchIntervalFilter } from "@/common/components/SearchIntervalFilter";
-import { SearchInterval, SearchResponse } from "@/common/helpers/search";
+import { IntervalFilter } from "@/common/components/IntervalFilter";
+import { Interval, SearchResponse } from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";
@@ -41,9 +41,11 @@ const SEARCH_LIMIT_NEXT_LOAD = 10;
 
 export const DEFAULT_FILTERS: SearchFilters = {
   onlyPowerBadge: true,
-  interval: SearchInterval.d7,
+  interval: Interval.d7,
   hideReplies: true,
 };
+
+const intervals = [Interval.d1, Interval.d7, Interval.d14];
 
 const FilterBadge = ({
   children,
@@ -81,7 +83,7 @@ export default function SearchPage() {
   const [filterByHideReplies, setFilterByHideReplies] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const activeSearchCounter = useRef(0);
-  const [interval, setInterval] = useState<SearchInterval>();
+  const [interval, setInterval] = useState<Interval>();
   const [showFilter, setShowFilter] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
@@ -494,8 +496,9 @@ export default function SearchPage() {
   );
 
   const renderIntervalFilter = () => (
-    <SearchIntervalFilter
-      defaultInterval={SearchInterval.d7}
+    <IntervalFilter
+      intervals={intervals}
+      defaultInterval={Interval.d7}
       updateInterval={setInterval}
     />
   );
