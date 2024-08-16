@@ -6,9 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import AnalyticsGraph from "./AnalyticsGraph";
-import { AnalyticsData, CombinedActivityData } from "@/common/types/types";
-import { formatLargeNumber } from "@/common/helpers/text";
+import { AnalyticsData } from "@/common/types/types";
 import { format, subDays } from "date-fns";
 import { Interval } from "@/common/helpers/search";
 import {
@@ -126,8 +124,6 @@ const getAggregatedDataForKey = (
 
 const mergeData = (data1, data2, startDate: Date, dataKeys: string[]) => {
   const dataMap = new Map();
-  console.log("data1", data1);
-  console.log("data2", data2);
   data1.forEach((item) => {
     dataMap.set(item.date, { ...dataMap.get(item.date), ...item });
   });
@@ -140,17 +136,14 @@ const mergeData = (data1, data2, startDate: Date, dataKeys: string[]) => {
   const today = new Date();
   while (currentDate <= today) {
     const dateString = normalizeTimestampToDate(currentDate.toISOString());
-    if (!dataMap.has(dateString)) {
-      dataMap.set(dateString, {
-        date: dateString,
-        [dataKeys[0]]: 0,
-        [dataKeys[1]]: 0,
-      });
-    }
-    const dataEntry = dataMap.get(dateString);
-    if (dataEntry) {
-      result.push(dataEntry);
-    }
+    const existingEntry = dataMap.get(dateString) || {};
+    const newEntry = {
+      date: dateString,
+      [dataKeys[0]]: existingEntry[dataKeys[0]] || 0,
+      [dataKeys[1]]: existingEntry[dataKeys[1]] || 0,
+    };
+    dataMap.set(dateString, newEntry);
+    result.push(newEntry);
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
@@ -218,10 +211,10 @@ const DynamicChartCard = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="pt-6 w-full h-full max-h-70">
+        <div className="pt-6 w-full max-h-full">
           <ChartContainer
             config={chartConfig}
-            className="-ml-8 w-full min-w-full h-full"
+            className="-ml-8 w-full min-w-full h-full max-h-52"
           >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart accessibilityLayer data={data}>
@@ -283,7 +276,6 @@ const DynamicChartCard = ({
                   stroke="hsl(var(--muted-foreground))"
                   fill={chartConfig[dataKey1].color}
                   fillOpacity={0.5}
-                  // fill="url(#colorCount)"
                   stackId="a"
                 />
                 <Area
@@ -293,7 +285,6 @@ const DynamicChartCard = ({
                   stroke="hsl(var(--muted-foreground))"
                   fill={chartConfig[dataKey2].color}
                   fillOpacity={0.1}
-                  // fill="url(#colorCount)"
                   stackId="b"
                 />
               </AreaChart>
