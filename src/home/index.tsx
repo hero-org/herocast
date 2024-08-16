@@ -210,7 +210,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             return actions;
           },
           shortcut: "Shift + F",
-          additionalPaths: ["/profile/[slug]", "/conversation/[...slug]"],
+          additionalPaths: ["/conversation/[...slug]"],
         },
         {
           name: "Post",
@@ -260,6 +260,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           name: "Profile",
           router: "/profile",
           icon: <UserIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          additionalPaths: ["/profile", "/profile/[slug]"],
         },
       ],
     },
