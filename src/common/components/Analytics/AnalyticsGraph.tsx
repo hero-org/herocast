@@ -1,30 +1,35 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
+import { Interval } from "@/common/helpers/search";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
+import { roundToNextDigit } from "@/common/helpers/math";
 
 type AnalyticsGraphProps = {
   analyticsKey: string;
   aggregated: { timestamp: string; count: number }[];
   isLoading: boolean;
+  interval?: Interval;
 };
 
-const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregated, isLoading = false }) => {
+const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregated, isLoading = false, interval }) => {
   const data = useMemo(() => {
-    if (!aggregated || aggregated?.length < 7) return [];
+    if (!aggregated) return [];
 
-    const sortedAggregated = [...aggregated].sort(
-      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
+    let filteredData = aggregated;
+    if (interval) {
+      const cutoffDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
+      filteredData = aggregated.filter((item) => new Date(item.timestamp) >= cutoffDate);
+    }
 
-    return sortedAggregated.map((item) => ({
-      date: new Date(item.timestamp),
-      count: item.count,
+    return filteredData.map((item) => ({
+      date: item.timestamp,
+      [analyticsKey]: item.count,
     }));
-  }, [aggregated]);
+  }, [aggregated, interval]);
 
   if (data.length === 0) {
     if (isLoading) {
@@ -56,21 +61,29 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregate
             </linearGradient>
           </defs>
           <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey="date"
-            tickLine={false}
-            tickMargin={8}
-            tickFormatter={(date) => format(new Date(date), "MMM d")}
+          <XAxis dataKey="date" tickLine={false} tickMargin={8} tickFormatter={(date: Date) => format(date, "MMM d")} />
+          <YAxis
+            interval="preserveStartEnd"
+            domain={([dataMin, dataMax]) => [Math.floor(dataMin / 10) * 10, Math.ceil((dataMax + 20) / 10) * 10]}
           />
-          <YAxis />
           <ChartTooltip
-            content={<ChartTooltipContent labelKey={chartConfig[analyticsKey].label} />}
+            content={
+              <ChartTooltipContent
+                labelFormatter={(value) => {
+                  return new Date(value).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  });
+                }}
+              />
+            }
             cursor={false}
             defaultIndex={1}
           />
           <Area
             type="monotone"
-            dataKey="count"
+            dataKey={analyticsKey}
             stroke="hsl(var(--muted-foreground))"
             fillOpacity={5}
             fill="url(#colorCount)"

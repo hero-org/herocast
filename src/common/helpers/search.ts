@@ -1,6 +1,7 @@
-export enum SearchInterval {
+export enum Interval {
   d1 = "1 day",
   d7 = "7 days",
+  d14 = "14 days",
   d30 = "30 days",
 }
 
@@ -13,7 +14,7 @@ export type RawSearchResult = {
 
 export type SearchFilters = {
   onlyPowerBadge: boolean;
-  interval?: SearchInterval;
+  interval?: Interval;
   hideReplies: boolean;
 };
 
@@ -62,7 +63,7 @@ const getSearchUrl = ({
     });
   }
   if (!params.get("interval")) {
-    params.set("interval", SearchInterval.d7);
+    params.set("interval", Interval.d7);
   }
   const url = `/api/search?${params.toString()}`;
   return url;
@@ -95,6 +96,10 @@ export const getTextMatchCondition = (term: string): string => {
 
   if (isSingleWord(term)) {
     return createExactMatchCondition(removeQuotes(term));
+  }
+
+  if (term.includes(" OR ")) {
+    return handlePhrasesWithOR(term);
   }
 
   if (hasComplexQuery(term)) {
@@ -136,12 +141,20 @@ const handleComplexQuery = (term: string): string => {
   return conditions.join(" ");
 };
 
+const handlePhrasesWithOR = (term: string): string => {
+  const parts = term.split(/\s+OR\s+/);
+  return parts.map((part) => `(${createCondition(part)})`).join(" OR ");
+};
+
 const createCondition = (part: string): string => {
   if (isBooleanOperator(part)) {
     return part.toUpperCase();
   }
   if (isQuoted(part)) {
     return createExactMatchCondition(removeQuotes(part));
+  }
+  if (part.includes(" ")) {
+    return createExactMatchCondition(part);
   }
   return createWebSearchQuery(part);
 };

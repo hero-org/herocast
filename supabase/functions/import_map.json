@@ -6,6 +6,6 @@
     "kysely": "npm:kysely@^0.27.3",
     "pg": "npm:pg",
     "pg-pool": "npm:pg-pool",
-    "postgres": "https://deno.land/x/postgres@v0.17.0/mod.ts"
+    "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts"
   }
 }

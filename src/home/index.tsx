@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { Cog6ToothIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
+import { ArrowUpCircleIcon, Cog6ToothIcon, PencilSquareIcon, UserIcon } from "@heroicons/react/20/solid";
 import {
   Bars3Icon,
   UserPlusIcon,
@@ -177,7 +177,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             return actions;
           },
           shortcut: "Shift + F",
-          additionalPaths: ["/profile/[slug]", "/conversation/[...slug]"],
+          additionalPaths: ["/conversation/[...slug]"],
         },
         {
           name: "Post",
@@ -213,18 +213,23 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           router: "/analytics",
           icon: <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: "Shift + A",
-          hide: true,
         },
         {
-          name: "Upgrade",
-          router: "/upgrade",
-          hide: true,
+          name: "Profile",
+          router: "/profile",
+          icon: <UserIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          additionalPaths: ["/profile", "/profile/[slug]"],
         },
       ],
     },
     {
       name: "settings",
       items: [
+        {
+          name: "Upgrade",
+          router: "/upgrade",
+          icon: <ArrowUpCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+        },
         {
           name: "Channels",
           router: "/channels",

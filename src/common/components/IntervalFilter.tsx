@@ -7,34 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { SearchInterval } from "../helpers/search";
+import { Interval } from "../helpers/search";
 
-const intervals = [
-  {
-    label: "1 day",
-    value: SearchInterval.d1,
-  },
-  {
-    label: "7 days",
-    value: SearchInterval.d7,
-  },
-  {
-    label: "30 days",
-    value: SearchInterval.d30,
-  },
-];
-
-type SearchIntervalFilterProps = {
-  defaultInterval?: SearchInterval;
-  updateInterval?: (value: SearchInterval) => void;
+type IntervalFilterProps = {
+  intervals: Interval[];
+  defaultInterval?: Interval;
+  updateInterval?: (value: Interval) => void;
 };
 
-export function SearchIntervalFilter({ defaultInterval, updateInterval }: SearchIntervalFilterProps) {
+export function IntervalFilter({ intervals, defaultInterval, updateInterval }: IntervalFilterProps) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState<SearchInterval | undefined>(defaultInterval);
+  const [value, setValue] = React.useState<Interval | undefined>(defaultInterval);
 
   const canSelect = updateInterval !== undefined;
-  const handleSelect = (currentValue: SearchInterval) => {
+  const handleSelect = (currentValue: Interval) => {
     setValue(currentValue === value ? undefined : currentValue);
     updateInterval?.(currentValue);
     setOpen(false);
@@ -51,7 +37,7 @@ export function SearchIntervalFilter({ defaultInterval, updateInterval }: Search
           aria-expanded={open}
           className="w-[110px] justify-between"
         >
-          {value !== undefined ? intervals.find((framework) => framework.value === value)?.label : "Interval..."}
+          {value !== undefined ? intervals.find((interval) => interval === value) : "Interval..."}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -59,14 +45,14 @@ export function SearchIntervalFilter({ defaultInterval, updateInterval }: Search
         <Command>
           <CommandList>
             <CommandGroup>
-              {intervals.map((framework) => (
+              {intervals.map((interval) => (
                 <CommandItem
-                  key={framework.value}
-                  value={framework.value.toString()}
-                  onSelect={(value) => handleSelect(value as unknown as SearchInterval)}
+                  key={interval}
+                  value={interval.toString()}
+                  onSelect={(value) => handleSelect(value as unknown as Interval)}
                 >
-                  <CheckIcon className={cn("mr-2 h-4 w-4", value === framework.value ? "opacity-100" : "opacity-0")} />
-                  {framework.label}
+                  <CheckIcon className={cn("mr-2 h-4 w-4", value === interval ? "opacity-100" : "opacity-0")} />
+                  {interval}
                 </CommandItem>
               ))}
             </CommandGroup>

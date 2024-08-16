@@ -22,7 +22,7 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
       }
     };
 
-    if (rawCasts) {
+    if (rawCasts?.length) {
       fetchData();
     }
   }, [rawCasts]);
@@ -41,8 +41,8 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
         <tbody className="text-foreground-muted text-sm font-light">
           {casts.map((cast) => (
             <tr key={cast.hash} className="border-b border-gray-200 hover:bg-foreground/10">
-              <td className="py-3 px-6 text-left">
-                <CastRow hideAuthor hideReactions cast={cast} />
+              <td className="px-6 text-left">
+                <CastRow showChannel hideAuthor hideReactions cast={cast} />
               </td>
               <td className="py-3 px-6 text-center">{cast.reactions.likes_count}</td>
               <td className="py-3 px-6 text-center">{cast.reactions.recasts_count}</td>

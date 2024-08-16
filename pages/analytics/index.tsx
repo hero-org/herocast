@@ -16,18 +16,40 @@ import { Button } from "@/components/ui/button";
 import { ChartBarIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 import ClickToCopyText from "@/common/components/ClickToCopyText";
+import { Interval } from "@/common/helpers/search";
+import { IntervalFilter } from "@/common/components/IntervalFilter";
+import DynamicChartCard from "@/common/components/Analytics/DynamicChartCard";
+import { addDays, formatDistanceToNow, isBefore } from "date-fns";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
+const intervals = [Interval.d7, Interval.d30];
 
+function timeUntilNextUTCHour(hour: number): string {
+  const now = new Date();
+
+  // Create a Date object for 4:00 AM UTC today
+  let next4amUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0));
+
+  // If the current time is already past 4:00 AM UTC, move to the next day
+  if (isBefore(next4amUTC, now)) {
+    next4amUTC = addDays(next4amUTC, 1);
+  }
+
+  // Calculate the time until next 4:00 AM UTC
+  const timeRemaining = formatDistanceToNow(next4amUTC, { addSuffix: true });
+
+  return timeRemaining;
+}
 export default function AnalyticsPage() {
   const { user } = useAuth();
-
   const router = useRouter();
   const { query } = router;
   const supabaseClient = createClient();
+
+  const [interval, setInterval] = useState<Interval>(intervals[0]);
   const [isLoading, setIsLoading] = useState(false);
   const [fidToAnalytics, setAnalyticsData] = useState<FidToAnalyticsData>({});
-  const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
+  const selectedAccountInApp = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const { accounts } = useAccountStore();
 
   const defaultProfiles = useMemo(() => {
@@ -36,12 +58,6 @@ export default function AnalyticsPage() {
 
   const [selectedProfile, setSelectedProfile] = useState<User>();
   const fid = get(selectedProfile, "fid")?.toString();
-
-  useEffect(() => {
-    if (selectedAccount && selectedAccount?.user) {
-      setSelectedProfile(selectedAccount.user);
-    }
-  }, [selectedAccount]);
 
   useEffect(() => {
     if (!fid) return;
@@ -110,14 +126,16 @@ export default function AnalyticsPage() {
         }
         setIsLoading(false);
       });
+    } else if (selectedAccountInApp && selectedAccountInApp?.user) {
+      setSelectedProfile(selectedAccountInApp.user);
     }
-  }, [query]);
+  }, [query, selectedAccountInApp]);
 
   const analyticsData = fid ? get(fidToAnalytics, fid) : undefined;
 
   const renderHeader = () => (
     <div className="flex justify-between items-center">
-      <div className="flex items-center space-x-4">
+      <div className="flex self-start space-x-4">
         <ProfileSearchDropdown
           disabled={isLoading || !user}
           defaultProfiles={defaultProfiles}
@@ -132,18 +150,19 @@ export default function AnalyticsPage() {
           </Link>
         )}
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col items-end space-y-2">
+        <div className="flex items-center space-x-2">
+          <ClickToCopyText
+            disabled={!analyticsData}
+            buttonText="Share"
+            size="sm"
+            text={`https://app.herocast.xyz/analytics?fid=${fid}`}
+          />
+          <IntervalFilter intervals={intervals} defaultInterval={Interval.d7} updateInterval={setInterval} />
+        </div>
         {analyticsData?.updatedAt && (
-          <div className="text-sm text-foreground/70">
-            Last updated: {new Date(analyticsData.updatedAt).toLocaleString()}
-          </div>
+          <div className="text-sm text-foreground/70">Next update {timeUntilNextUTCHour(4)}</div>
         )}
-        <ClickToCopyText
-          disabled={!analyticsData}
-          buttonText="Share"
-          size="sm"
-          text={`https://app.herocast.xyz/analytics?fid=${fid}`}
-        />
       </div>
     </div>
   );
@@ -166,19 +185,31 @@ export default function AnalyticsPage() {
     return (
       <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {analyticsData?.follows && <NewFollowersCard data={analyticsData.follows} isLoading={isLoading} />}
-          {analyticsData?.reactions && <ReactionsCard data={analyticsData.reactions} isLoading={isLoading} />}
+          {analyticsData?.follows && (
+            <NewFollowersCard
+              followerCount={selectedProfile?.follower_count}
+              data={analyticsData.follows}
+              isLoading={isLoading}
+              interval={interval}
+            />
+          )}
+          {analyticsData?.reactions && (
+            <ReactionsCard data={analyticsData.reactions} isLoading={isLoading} interval={interval} />
+          )}
+        </div>
+        <div className="mt-8">
+          <DynamicChartCard analyticsData={analyticsData} isLoading={isLoading} interval={interval} />
         </div>
         <div>
           <h2 className="text-2xl font-bold">Top casts</h2>
         </div>
-        {analyticsData.casts && <CastReactionsTable rawCasts={analyticsData.casts} />}
+        {analyticsData.topCasts && <CastReactionsTable rawCasts={analyticsData.topCasts} />}
       </>
     );
   };
 
   return (
-    <div className="w-full m-8 space-y-8">
+    <div className="w-full space-y-8 p-2 md:p-6">
       {renderHeader()}
       {renderContent()}
     </div>

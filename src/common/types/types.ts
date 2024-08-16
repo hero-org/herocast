@@ -1,5 +1,5 @@
 export type AggregatedAnalytics = {
-  timestamp: number;
+  timestamp: string;
   count: number;
 };
 
@@ -18,19 +18,19 @@ export type CastData = {
   recast_count: string;
 };
 
+export type CombinedActivityData = {
+  overview: OverviewAnalytics;
+  aggregated: AggregatedAnalytics[];
+};
+
 export type AnalyticsData = {
   fid?: number;
   updatedAt: number;
   status: string;
-  follows: {
-    overview: OverviewAnalytics;
-    aggregated: AggregatedAnalytics[];
-  };
-  reactions: {
-    overview: OverviewAnalytics;
-    aggregated: AggregatedAnalytics[];
-  };
-  casts: CastData[];
+  follows: CombinedActivityData;
+  reactions: CombinedActivityData;
+  casts: CombinedActivityData;
+  topCasts: CastData[];
 };
 
 export type AnalyticsKey = "follows" | "casts" | "reactions";
