@@ -22,7 +22,7 @@ export async function getIcebreakerSocialInfoForFid(fid: string): Promise<Icebre
       },
     });
     if (!response.ok) {
-      console.log('Error fetching Icebreaker data:', response.statusText);
+      console.log("Error fetching Icebreaker data:", response.statusText);
       return null;
     }
     const data = await response.json();
