@@ -1,41 +1,27 @@
-export function buildAnalyticsQuery(
-    tableName: string,
-    fid: string,
-    fidFilterColumn: string,
-    additionalColumns: string[] = []
-) {
-    const additionalColumnsSelect = additionalColumns.length > 0 
-        ? `, ${additionalColumns.join(', ')}` 
-        : '';
-    
-    const additionalColumnsGroupBy = additionalColumns.length > 0
-        ? `, ${additionalColumns.map(col => col.split(' ').pop()).join(', ')}`
-        : '';
+import { sql } from 'kysely'
 
-    console.log("buildAnalyticsQuery", fid, tableName, additionalColumns);
-    
-    return `
+export function buildAnalyticsQuery(tableName: string, fid: string, fidFilterColumn: string) {
+    console.log('buildAnalyticsQuery', fid, tableName);
+    return sql`
         WITH daily_counts AS (
             SELECT
                 date_trunc('day', timestamp) AS day,
                 COUNT(*) AS count
-                ${additionalColumnsSelect}
-            FROM ${tableName}
-            WHERE timestamp >= NOW() - INTERVAL '30 days'
-            AND ${fidFilterColumn} = $1
-            GROUP BY day${additionalColumnsGroupBy}
+            FROM ${sql.table(tableName)}
+            WHERE timestamp >= NOW() - INTERVAL '7 days'
+            AND ${sql.ref(fidFilterColumn)} = ${fid}
+            GROUP BY day
         )
         SELECT
             SUM(count) AS total,
             SUM(CASE WHEN day >= NOW() - INTERVAL '24 hours' THEN count ELSE 0 END) AS h24,
             SUM(CASE WHEN day >= NOW() - INTERVAL '7 days' THEN count ELSE 0 END) AS d7,
-            SUM(CASE WHEN day >= NOW() - INTERVAL '30 days' THEN count ELSE 0 END) AS d30,
             json_agg(json_build_object('timestamp', day, 'count', count) ORDER BY day) AS aggregated
         FROM daily_counts
     `;
 }
 
-export function getTopCasts(fid: number, limit: number = 30) {
+export function getCastsOverview(fid: number, limit: number = 30) {
     return sql`
         WITH relevant_casts AS (
             SELECT hash, timestamp, parent_cast_hash is not NULL AS is_reply
@@ -65,13 +51,3 @@ export function getTopCasts(fid: number, limit: number = 30) {
             c.timestamp DESC;
     `;
 }
-
-export const formatResponseSection = (data: any) => ({
-    aggregated: data.aggregated,
-    overview: {
-        total: data.total,
-        d7: data.d7,
-        h24: data.h24,
-        d30: data.d30,
-    }
-});
