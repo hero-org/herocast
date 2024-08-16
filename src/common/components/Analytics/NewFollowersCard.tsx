@@ -5,24 +5,49 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import React from "react";
+import React, { useMemo } from "react";
 import AnalyticsGraph from "./AnalyticsGraph";
 import { CombinedActivityData } from "@/common/types/types";
 import { Interval } from "@/common/helpers/search";
 import { formatLargeNumber } from "@/common/helpers/text";
+import { subDays } from "date-fns";
 
 type StatsWithGraphCard = {
+  followerCount: number;
   interval: Interval;
   data: CombinedActivityData;
   isLoading: boolean;
 };
 
 const NewFollowersCard = ({
+  followerCount,
   interval,
   data,
   isLoading,
 }: StatsWithGraphCard) => {
   const { overview, aggregated = [] } = data;
+
+  const cumulativeAggregated = useMemo(() => {
+    const startDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
+    // aggreagated is array of { timestamp: string, followers: number }
+    // we want followers to be cumulative
+
+    // filter for only timestamp > startDate
+    const filtered = aggregated.filter(
+      (item) => new Date(item.timestamp) >= startDate
+    );
+    // we want followers to be a cumulative chart
+    // this means we have to use followerCount and remove it by going back in time each day
+    // and adding the new followers
+
+    return filtered.reduceRight(
+      (acc, curr, i, arr) => {
+        const count = followerCount - (arr.slice(i + 1).reduce((sum, item) => sum + item.count, 0));
+        return [{ ...curr, count }, ...acc];
+      },
+      [] as CombinedActivityData["aggregated"]
+    );
+  }, [aggregated, interval]);
   const value = overview[interval === Interval.d7 ? "d7" : "d30"] || 0;
   return (
     <Card className="h-fit">
@@ -46,7 +71,7 @@ const NewFollowersCard = ({
             <AnalyticsGraph
               interval={interval}
               analyticsKey="followers"
-              aggregated={aggregated}
+              aggregated={cumulativeAggregated}
               isLoading={isLoading}
             />
           </div>

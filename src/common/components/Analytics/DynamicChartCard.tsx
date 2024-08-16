@@ -38,6 +38,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { roundToNextDigit } from "@/common/helpers/math";
 
 type DynamicChartCardProps = {
   interval: Interval;
@@ -104,18 +105,56 @@ function DataPickerDropdown({ values, defaultValue, updateValue }) {
 
 const values = ["casts", "follows", "reactions"];
 
+const normalizeTimestampToDate = (timestamp: string) => {
+  return new Date(timestamp).toISOString().split("T")[0];
+};
+
 const getAggregatedDataForKey = (
   analyticsData: AnalyticsData,
   dataKey: string,
-  cutoffDate: Date
+  startDate: Date
 ) => {
-  const data = analyticsData[dataKey].aggregated;
-  console.log('getAggregatedDataForKey', dataKey, data)
-  const res = data.map((item) => ({
-    date: item.timestamp,
+  const activityData = analyticsData[dataKey];
+  if (!activityData || !activityData?.aggregated) return [];
+
+  const res = activityData.aggregated.map((item) => ({
+    date: normalizeTimestampToDate(item.timestamp),
     [dataKey]: item.count,
   }));
-  return res.filter((item) => new Date(item.date) >= cutoffDate);
+  return res.filter((item) => new Date(item.date) >= startDate);
+};
+
+const mergeData = (data1, data2, startDate: Date, dataKeys: string[]) => {
+  const dataMap = new Map();
+  console.log("data1", data1);
+  console.log("data2", data2);
+  data1.forEach((item) => {
+    dataMap.set(item.date, { ...dataMap.get(item.date), ...item });
+  });
+  data2.forEach((item) => {
+    dataMap.set(item.date, { ...dataMap.get(item.date), ...item });
+  });
+
+  const result = [];
+  const currentDate = startDate;
+  const today = new Date();
+  while (currentDate <= today) {
+    const dateString = normalizeTimestampToDate(currentDate.toISOString());
+    if (!dataMap.has(dateString)) {
+      dataMap.set(dateString, {
+        date: dateString,
+        [dataKeys[0]]: 0,
+        [dataKeys[1]]: 0,
+      });
+    }
+    const dataEntry = dataMap.get(dateString);
+    if (dataEntry) {
+      result.push(dataEntry);
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return result;
 };
 
 const DynamicChartCard = ({
@@ -140,36 +179,16 @@ const DynamicChartCard = ({
   const data = useMemo(() => {
     if (!analyticsData) return [];
 
-    const cutoffDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
+    const startDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
 
-    const data1 = getAggregatedDataForKey(analyticsData, dataKey1, cutoffDate);
-    const data2 = getAggregatedDataForKey(analyticsData, dataKey2, cutoffDate);
+    const data1 = getAggregatedDataForKey(analyticsData, dataKey1, startDate);
+    const data2 = getAggregatedDataForKey(analyticsData, dataKey2, startDate);
     if (!data1 || !data2) return [];
-    const mergeData = (data1, data2) => {
-      const merged = {};
 
-      data1.forEach((item) => {
-        if (!merged[item.date]) {
-          merged[item.date] = { date: item.date, [dataKey1]: item[dataKey1] };
-        } else {
-          merged[item.date][dataKey1] = item[dataKey1];
-        }
-      });
-
-      data2.forEach((item) => {
-        if (!merged[item.date]) {
-          merged[item.date] = { date: item.date, [dataKey2]: item[dataKey2] };
-        } else {
-          merged[item.date][dataKey2] = item[dataKey2];
-        }
-      });
-
-      return Object.values(merged);
-    };
-
-    return mergeData(data1, data2);
+    return mergeData(data1, data2, startDate, [dataKey1, dataKey2]);
   }, [analyticsData, interval, dataKey1, dataKey2]);
 
+  console.log("DynamicChartCard data", data);
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
@@ -215,7 +234,7 @@ const DynamicChartCard = ({
                     />
                     <stop
                       offset="95%"
-                      stopColor="hsl(var(--chart-1))"
+                      stopColor="hsl(var(--chart-2))"
                       stopOpacity={0}
                     />
                   </linearGradient>
@@ -227,7 +246,21 @@ const DynamicChartCard = ({
                   tickMargin={8}
                   tickFormatter={(date: Date) => format(date, "MMM d")}
                 />
-                <YAxis />
+                <YAxis
+                  yAxisId={dataKey1}
+                  domain={([dataMin, dataMax]) => [
+                    dataMin,
+                    roundToNextDigit(dataMax),
+                  ]}
+                />
+                <YAxis
+                  yAxisId={dataKey2}
+                  orientation="right"
+                  domain={([dataMin, dataMax]) => [
+                    dataMin,
+                    roundToNextDigit(dataMax),
+                  ]}
+                />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
@@ -244,19 +277,23 @@ const DynamicChartCard = ({
                   defaultIndex={1}
                 />
                 <Area
+                  yAxisId={dataKey1}
                   type="monotone"
                   dataKey={dataKey1}
                   stroke="hsl(var(--muted-foreground))"
-                  fillOpacity={5}
-                  fill="url(#colorCount)"
+                  fill={chartConfig[dataKey1].color}
+                  fillOpacity={0.5}
+                  // fill="url(#colorCount)"
                   stackId="a"
                 />
                 <Area
+                  yAxisId={dataKey2}
                   type="monotone"
                   dataKey={dataKey2}
                   stroke="hsl(var(--muted-foreground))"
-                  fillOpacity={5}
-                  fill="url(#colorCount)"
+                  fill={chartConfig[dataKey2].color}
+                  fillOpacity={0.1}
+                  // fill="url(#colorCount)"
                   stackId="b"
                 />
               </AreaChart>

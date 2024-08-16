@@ -17,6 +17,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
+import { roundToNextDigit } from "@/common/helpers/math";
 
 type AnalyticsGraphProps = {
   analyticsKey: string;
@@ -102,7 +103,13 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
             tickMargin={8}
             tickFormatter={(date: Date) => format(date, "MMM d")}
           />
-          <YAxis />
+          <YAxis
+            interval="preserveStartEnd"
+            domain={([dataMin, dataMax]) => [
+              Math.floor(dataMin / 10) * 10,
+              Math.ceil((dataMax + 20 )/ 10) * 10,
+            ]}
+          />
           <ChartTooltip
             content={
               <ChartTooltipContent

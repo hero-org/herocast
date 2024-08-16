@@ -1,5 +1,3 @@
-import { sql } from "kysely";
-
 export function buildAnalyticsQuery(
     tableName: string,
     fid: string,
@@ -7,24 +5,24 @@ export function buildAnalyticsQuery(
     additionalColumns: string[] = []
 ) {
     const additionalColumnsSelect = additionalColumns.length > 0 
-        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col)), sql`, `)}` 
-        : sql``;
+        ? `, ${additionalColumns.join(', ')}` 
+        : '';
     
     const additionalColumnsGroupBy = additionalColumns.length > 0
-        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col.split(' ').pop()!)), sql`, `)}`
-        : sql``;
+        ? `, ${additionalColumns.map(col => col.split(' ').pop()).join(', ')}`
+        : '';
 
     console.log("buildAnalyticsQuery", fid, tableName, additionalColumns);
     
-    return sql`
+    return `
         WITH daily_counts AS (
             SELECT
                 date_trunc('day', timestamp) AS day,
                 COUNT(*) AS count
                 ${additionalColumnsSelect}
-            FROM ${sql.table(tableName)}
+            FROM ${tableName}
             WHERE timestamp >= NOW() - INTERVAL '30 days'
-            AND ${sql.ref(fidFilterColumn)} = ${fid}
+            AND ${fidFilterColumn} = $1
             GROUP BY day${additionalColumnsGroupBy}
         )
         SELECT

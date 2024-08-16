@@ -9,12 +9,10 @@ import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 import { Database } from '../_shared/db.ts';
 import { buildAnalyticsQuery, formatResponseSection, getTopCasts } from "../_shared/queryHelpers.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import Pool from 'pg-pool'
-
-import {
-  Kysely,
-  PostgresDialect,
-} from 'kysely'
+import { Kysely, PostgresAdapter, PostgresDialect, PostgresIntrospector, PostgresQueryCompiler, sql } from 'kysely'
+// import { Client } from "postgres";
+import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
+import { PostgreSQLDriver } from "https://deno.land/x/kysely_deno_postgres/mod.ts";
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
@@ -57,28 +55,50 @@ Deno.serve(async (req) => {
     }
 
     try {
+      const sslCertFormatted = sslCert.replace(/\\n/g, '\n');
+      const parsedUrl = new URL(dbUrl);
+      const driver = new PostgreSQLDriver({
+        connection: {
+          attempts: 1,
+        },
+        hostname: parsedUrl.hostname,
+        port: parseInt(parsedUrl.port),
+        database: parsedUrl.pathname.slice(1),
+        user: parsedUrl.username,
+        password: parsedUrl.password,
+        host_type: 'tcp',
+        tls: {
+          enabled: true,
+          enforce: true,
+          caCertificates: [sslCertFormatted],
+        },
+      });
+
+      const db = new Kysely({
+        dialect: {
+          createAdapter() {
+            return new PostgresAdapter();
+          },
+          createDriver() {
+            return driver;
+          },
+          createIntrospector(db: Kysely<unknown>) {
+            return new PostgresIntrospector(db);
+          },
+          createQueryCompiler() {
+            return new PostgresQueryCompiler();
+          },
+        },
+        log(event) {
+          console.log('KYSELY:', event)
+        }
+      });
+      
+
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       )
-      const sslCertFormatted = sslCert.replace(/\\n/g, '\n');
-      const parsedUrl = new URL(dbUrl);
-      const pool = new Pool({
-        database: parsedUrl.pathname.slice(1),
-        host: parsedUrl.hostname,
-        port: parseInt(parsedUrl.port),
-        user: parsedUrl.username,
-        password: parsedUrl.password,
-        ssl: { rejectUnauthorized: true, ca: sslCertFormatted },
-      });
-      const dialect = new PostgresDialect({ pool })
-      const db = new Kysely<Database>({
-        dialect,
-        log(event) {
-          console.log('KYSELY:', event)
-        }
-      })
-
       const { error: insertError } = await supabaseClient
         .from('analytics')
         .upsert(
@@ -88,7 +108,6 @@ Deno.serve(async (req) => {
           },
           { onConflict: 'fid' }
         );
-
       if (insertError) throw insertError;
 
       const linksQuery = buildAnalyticsQuery('links', fid.toString(), 'target_fid');
@@ -129,7 +148,7 @@ Deno.serve(async (req) => {
       console.error(error)
       Sentry.captureException(error)
       return new Response(
-        JSON.stringify({ error: 'Internal Server Error' }),
+        JSON.stringify({ error: 'Internal Server Error', message: JSON.stringify(error?.message || error) }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       )
     }
