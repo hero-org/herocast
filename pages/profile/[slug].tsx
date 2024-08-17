@@ -111,6 +111,7 @@ const ProfilePage = () => {
         showChannel
         isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
+        showAdminActions={selectedAccount?.status === 'active' && profile?.fid === viewerFid}
       />
     </li>
   );
