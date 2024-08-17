@@ -154,8 +154,17 @@ export const submitCast = async ({
   const publishCastResponse = response.data as CastAdd;
   console.log(`new cast hash: ${publishCastResponse.hash}`);
   return publishCastResponse.hash;
-}
+};
 
+export const removeCast = async (castHash: string, fid: number, signerPrivateKey: string) => {
+  const writeClient = new HubRestAPIClient({
+    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
+    axiosInstance
+  });
+
+  const response = await writeClient.removeCast(castHash, fid, signerPrivateKey);
+  console.log(`remove cast hash: ${response?.hash}`);
+}
 
 export const getDeadline = (): bigint => {
   const now = Math.floor(Date.now() / 1000);
