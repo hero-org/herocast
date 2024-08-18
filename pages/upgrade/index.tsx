@@ -432,7 +432,7 @@ export default function UpgradePage() {
 
   return (
     <div className="bg-background">
-      {false ? renderUpgradeSuccessContent() : renderUpgradeContent()}
+      {isPayingUser ? renderUpgradeSuccessContent() : renderUpgradeContent()}
     </div>
   );
 }
