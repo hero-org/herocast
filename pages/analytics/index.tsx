@@ -20,6 +20,14 @@ import { Interval } from "@/common/helpers/search";
 import { IntervalFilter } from "@/common/components/IntervalFilter";
 import DynamicChartCard from "@/common/components/Analytics/DynamicChartCard";
 import { addDays, formatDistanceToNow, isBefore } from "date-fns";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import CastsCard from "@/common/components/Analytics/CastsCard";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 const intervals = [Interval.d7, Interval.d30];
@@ -209,23 +217,46 @@ export default function AnalyticsPage() {
     }
     return (
       <>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {analyticsData?.follows && (
-            <NewFollowersCard
-              followerCount={selectedProfile?.follower_count}
-              data={analyticsData.follows}
-              isLoading={isLoading}
-              interval={interval}
-            />
-          )}
-          {analyticsData?.reactions && (
-            <ReactionsCard
-              data={analyticsData.reactions}
-              isLoading={isLoading}
-              interval={interval}
-            />
-          )}
-        </div>
+        <Carousel
+          opts={{
+            align: "start",
+          }}
+          className="md:mx-8 lg:mx-0"
+        >
+          <CarouselContent className="">
+            {" "}
+            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+              {analyticsData?.follows && (
+                <NewFollowersCard
+                  // followerCount={selectedProfile?.follower_count}
+                  data={analyticsData.follows}
+                  isLoading={isLoading}
+                  interval={interval}
+                />
+              )}
+            </CarouselItem>
+            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+              {analyticsData?.reactions && (
+                <ReactionsCard
+                  data={analyticsData.reactions}
+                  isLoading={isLoading}
+                  interval={interval}
+                />
+              )}
+            </CarouselItem>
+            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+              {analyticsData?.casts && (
+                <CastsCard
+                  data={analyticsData.casts}
+                  isLoading={isLoading}
+                  interval={interval}
+                />
+              )}
+            </CarouselItem>
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
         <div className="mt-8">
           <DynamicChartCard
             analyticsData={analyticsData}

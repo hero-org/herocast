@@ -13,7 +13,7 @@ import { formatLargeNumber } from "@/common/helpers/text";
 import { subDays } from "date-fns";
 
 type StatsWithGraphCard = {
-  followerCount: number;
+  followerCount: number | undefined;
   interval: Interval;
   data: CombinedActivityData;
   isLoading: boolean;
@@ -32,6 +32,20 @@ const NewFollowersCard = ({
     const filtered = aggregated.filter(
       (item) => new Date(item.timestamp) >= startDate
     );
+
+    if (!followerCount) {
+      // accumulate from the start with reduce functions
+      // sum of all previous counts
+      return filtered.reduceRight(
+        (acc, curr, i, arr) => {
+          const count = arr
+            .slice(i + 1)
+            .reduce((sum, item) => sum + item.count, 0);
+          return [{ ...curr, count }, ...acc];
+        },
+        [] as CombinedActivityData["aggregated"]
+      );
+    }
 
     return filtered.reduceRight(
       (acc, curr, i, arr) => {
