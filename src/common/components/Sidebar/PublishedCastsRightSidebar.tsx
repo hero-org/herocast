@@ -7,11 +7,8 @@ import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v1";
 import { useDraftStore } from "@/stores/useDraftStore";
 import orderBy from "lodash.orderby";
 import filter from "lodash.filter";
-import { useDataStore, UserProfile } from "@/stores/useDataStore";
-import {
-  getProfile,
-  getProfileFetchIfNeeded,
-} from "@/common/helpers/profileUtils";
+import { UserProfile } from "@/stores/useDataStore";
+import { getProfileFetchIfNeeded } from "@/common/helpers/profileUtils";
 import { UUID } from "crypto";
 import isEmpty from "lodash.isempty";
 import uniqBy from "lodash.uniqby";

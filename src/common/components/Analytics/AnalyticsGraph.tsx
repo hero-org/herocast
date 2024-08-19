@@ -99,7 +99,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
           tickCount={7}
           domain={([dataMin, dataMax]) => [
             Math.floor(dataMin / 100) * 100,
-            Math.ceil((dataMax + 20) / 100) * 100,
+            Math.ceil(((dataMax + 5)/ 10) * 10),
           ]}
         />
         <ChartTooltip
