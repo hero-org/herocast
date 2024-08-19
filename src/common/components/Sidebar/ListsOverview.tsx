@@ -50,11 +50,12 @@ const ListsOverview = () => {
     useListStore((state) => state.lists),
     (s) => s.idx
   );
-  const { accounts, selectedAccountIdx } = useAccountStore();
+  const { setSelectedChannelUrl } = useAccountStore();
   const [isShowAllLists, setIsShowAllLists] = useState(true);
 
   const updateSelectedList = (id: UUID) => {
     setSelectedListId(id);
+    setSelectedChannelUrl(null);
   };
 
   const renderFeedHeader = (title: string, button?) => {

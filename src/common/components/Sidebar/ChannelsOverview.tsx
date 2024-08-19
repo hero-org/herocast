@@ -11,13 +11,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { take } from "lodash";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { useListStore } from "@/stores/useListStore";
 
 const ChannelsOverview = () => {
   const { selectedChannelUrl, setSelectedChannelUrl, resetSelectedChannel } =
     useAccountStore();
+
+  const { setSelectedListId } = useListStore();
 
   let channels: ChannelType[] = useAccountStore(
     (state) => state.accounts[state.selectedAccountIdx]?.channels
@@ -25,21 +25,24 @@ const ChannelsOverview = () => {
   const [isShowAllChannels, setIsShowAllChannels] = useState(false);
   if (!channels) channels = [];
 
+  const onUpdateChannel = (url: string) => {
+    setSelectedChannelUrl(url);
+    setSelectedListId(undefined);
+  };
+
   const renderCustomChannel = ({
     name,
     url,
-    onClick,
     icon,
   }: {
     name: string;
     url: string;
-    onClick: () => void;
     icon?: React.ReactNode;
   }) => {
     return (
       <li key={`custom-channel-${name}`} className="px-2 sm:px-3 lg:px-4">
         <div
-          onClick={() => onClick()}
+          onClick={() => onUpdateChannel(url)}
           className={cn(
             selectedChannelUrl === url
               ? "text-foreground font-semibold"
@@ -69,7 +72,7 @@ const ChannelsOverview = () => {
 
   const renderChannel = (channel: ChannelType) => (
     <div
-      onClick={() => setSelectedChannelUrl(channel.url)}
+      onClick={() => onUpdateChannel(channel.url)}
       className={cn(
         selectedChannelUrl === channel.url
           ? "text-foreground font-semibold"
@@ -141,7 +144,6 @@ const ChannelsOverview = () => {
         {renderCustomChannel({
           name: "Follow Feed",
           url: CUSTOM_CHANNELS.FOLLOWING,
-          onClick: resetSelectedChannel,
           icon: (
             <HomeIcon className="border-gray-400 hover:border-gray-300 mr-1 mt-0.5 bg-gray-100 border h-5 w-5 p-0.5 flex-none rounded-full" />
           ),
@@ -149,7 +151,6 @@ const ChannelsOverview = () => {
         {renderCustomChannel({
           name: "Trending Feed",
           url: CUSTOM_CHANNELS.TRENDING,
-          onClick: () => setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING),
           icon: (
             <ArrowTrendingUpIcon className="border-gray-400 hover:border-gray-300 mr-1 mt-0.5 bg-gray-100 border h-5 w-5 p-0.5 flex-none rounded-full" />
           ),

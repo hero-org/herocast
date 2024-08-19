@@ -95,6 +95,7 @@ export default function Feeds() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
 
+  console.log("feeds", feeds);
   const { lists, selectedListId } = useListStore();
   const {
     isNewCastModalOpen,
@@ -109,13 +110,8 @@ export default function Feeds() {
     threshold: 0,
     delay: 100,
   });
-  const {
-    accounts,
-    selectedAccountIdx,
-    selectedChannelUrl,
-    setSelectedChannelUrl,
-    isHydrated,
-  } = useAccountStore();
+  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated } =
+    useAccountStore();
 
   const { selectedCast, updateSelectedCast } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
@@ -146,25 +142,12 @@ export default function Feeds() {
   };
 
   const setNextFeedCursor = (cursor: string) => {
-    updateFeed(
-      getFeedKey({ selectedChannelUrl, account, selectedListId }),
-      "nextCursor",
-      cursor
-    );
+    updateFeed(feedKey, "nextCursor", cursor);
   };
 
   const feedKey = getFeedKey({ selectedChannelUrl, account, selectedListId });
   const feed = feedKey ? get(feeds, feedKey, EMPTY_FEED) : EMPTY_FEED;
   const { isLoading: isLoadingFeed, nextCursor, casts } = feed;
-
-  console.log(
-    "rendering feedKey",
-    feedKey,
-    "feed",
-    feed,
-    "isLoadingFeed",
-    isLoadingFeed
-  );
 
   const onOpenLinkInCast = useCallback(() => {
     setShowEmbedsModal(true);
@@ -326,15 +309,6 @@ export default function Feeds() {
       return;
     }
 
-    console.log(
-      "getFeed",
-      fid,
-      "feedKey",
-      feedKey,
-      parentUrl,
-      selectedListId,
-      cursor
-    );
     setIsLoadingFeed(feedKey, true);
     try {
       let feedOptions = {
@@ -353,17 +327,19 @@ export default function Feeds() {
         if (!filters) {
           filters = {
             onlyPowerBadge: false,
-            interval: Interval.d7,
             hideReplies: true,
           };
         }
+        filters.interval = Interval.d14;
+        filters.hideReplies = true;
+
         newFeed = await getCastsFromSearch({
           term,
           filters,
           viewerFid: fid,
           limit: DEFAULT_FEED_PAGE_SIZE,
+          offset: Number(cursor) || 0,
         });
-        console.log("newFeed from getCastsFromSearch", newFeed);
       } else if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
         newFeed = await neynarClient.fetchUserFollowingFeed(
           Number(fid),
@@ -401,9 +377,12 @@ export default function Feeds() {
         }
       }
 
-      setCastsForFeed(feedKey, uniqBy([...casts, ...newFeed.casts], "hash"));
+      const castsInFeed = uniqBy([...casts, ...newFeed.casts], "hash");
+      setCastsForFeed(feedKey, castsInFeed);
       if (newFeed?.next?.cursor) {
         setNextFeedCursor(newFeed.next.cursor);
+      } else {
+        setNextFeedCursor(castsInFeed.length.toString());
       }
     } catch (e) {
       console.error("Error fetching feed", e);
@@ -424,7 +403,7 @@ export default function Feeds() {
     closeNewCastModal();
     setShowCastThreadView(false);
     setSelectedCastIdx(-1);
-  }, [selectedChannelUrl]);
+  }, [selectedChannelUrl, selectedListId]);
 
   const renderRow = (item: any, idx: number) => (
     <li
@@ -460,6 +439,7 @@ export default function Feeds() {
         getFeed({
           fid: account.platformAccountId!,
           parentUrl: selectedChannelUrl,
+          selectedListId,
           cursor: nextCursor,
         })
       }

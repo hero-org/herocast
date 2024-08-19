@@ -73,6 +73,7 @@ export type SearchResponse = {
 };
 
 export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<SearchResponse> => {
+    console.log('runFarcasterCastSearch', params)
     try {
         const searchUrl = getSearchUrl(params);
         const response = await fetch(searchUrl);
@@ -213,9 +214,10 @@ type getCastsFromSearchProps = {
     viewerFid: string;
     limit: number;
     filters: SearchFilters;
+    offset: number;
 };
 
-export const getCastsFromSearch = async ({ term, viewerFid, limit, filters }: getCastsFromSearchProps): Promise<CastsResponseResult> => {
+export const getCastsFromSearch = async ({ term, viewerFid, limit, filters, offset }: getCastsFromSearchProps): Promise<CastsResponseResult> => {
     const mentionFid = await getMentionFidFromSearchTerm(term, viewerFid);
     const fromFid = await getFromFidFromSearchTerm(term, viewerFid);
     console.log('getCastsFromSearch', term, filters)
@@ -225,6 +227,7 @@ export const getCastsFromSearch = async ({ term, viewerFid, limit, filters }: ge
         mentionFid,
         fromFid,
         limit,
+        offset,
     })
     const castHashes = searchResponse.results?.map((result) => result.hash) || [];
     const neynarClient = new NeynarAPIClient(
