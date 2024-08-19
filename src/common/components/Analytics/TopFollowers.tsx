@@ -1,14 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import Link from "next/link";
 import ProfileInfoContent from "../ProfileInfoContent";
 import {
@@ -17,6 +10,7 @@ import {
 } from "@/common/helpers/profileUtils";
 import { useDataStore } from "@/stores/useDataStore";
 
+const TOP_FOLLOWERS_LIMIT = 12;
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 type TopFollowersProps = {
   fid: number;
@@ -29,6 +23,7 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
       (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId
     ) || APP_FID
   );
+
   useEffect(() => {
     const getData = async () => {
       const neynarClient = new NeynarAPIClient(
@@ -39,7 +34,7 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
         .then((response) =>
           response.all_relevant_followers_dehydrated
             .map((follower) => follower.user?.fid)
-            .slice(0, 12)
+            .slice(0, TOP_FOLLOWERS_LIMIT)
         );
       setTopFollowerFids(fids);
       fids.forEach((fid) =>
@@ -54,7 +49,6 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
     }
   }, [fid]);
 
-  console.log("topFollowerFids", topFollowerFids);
   const profiles = useMemo(() => {
     const dataStore = useDataStore.getState();
     const followers = topFollowerFids.map((fid) =>
@@ -62,7 +56,7 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
     );
     return followers.filter((follower) => follower !== undefined);
   }, [topFollowerFids]);
-  console.log("profiles", profiles);
+
   return (
     <Card className="h-fit py-8 px-4">
       <CardContent className="items-start grid gap-8 grid-cols-2 grid-flow-row">
