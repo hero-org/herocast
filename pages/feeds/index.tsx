@@ -38,6 +38,12 @@ import CreateAccountPage from "pages/welcome/new";
 import { AccountStatusType } from "@/common/constants/accounts";
 import { createClient } from "@/common/helpers/supabase/component";
 import includes from "lodash.includes";
+import { useListStore } from "@/stores/useListStore";
+import {
+  getCastsFromSearch,
+  Interval,
+  SearchFilters,
+} from "@/common/helpers/search";
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -58,11 +64,15 @@ const EMPTY_FEED: Feed = {
 const getFeedKey = ({
   selectedChannelUrl,
   account,
+  selectedListId,
 }: {
   selectedChannelUrl?: string;
   account: AccountObjectType;
+  selectedListId?: string;
 }) => {
-  if (selectedChannelUrl) {
+  if (selectedListId) {
+    return selectedListId;
+  } else if (selectedChannelUrl) {
     return selectedChannelUrl;
   } else if (account) {
     return account.platformAccountId!;
@@ -84,6 +94,8 @@ export default function Feeds() {
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
+
+  const { lists, selectedListId } = useListStore();
   const {
     isNewCastModalOpen,
     setCastModalView,
@@ -97,8 +109,13 @@ export default function Feeds() {
     threshold: 0,
     delay: 100,
   });
-  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated } =
-    useAccountStore();
+  const {
+    accounts,
+    selectedAccountIdx,
+    selectedChannelUrl,
+    setSelectedChannelUrl,
+    isHydrated,
+  } = useAccountStore();
 
   const { selectedCast, updateSelectedCast } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
@@ -130,15 +147,24 @@ export default function Feeds() {
 
   const setNextFeedCursor = (cursor: string) => {
     updateFeed(
-      getFeedKey({ selectedChannelUrl, account }),
+      getFeedKey({ selectedChannelUrl, account, selectedListId }),
       "nextCursor",
       cursor
     );
   };
 
-  const feedKey = getFeedKey({ selectedChannelUrl, account });
+  const feedKey = getFeedKey({ selectedChannelUrl, account, selectedListId });
   const feed = feedKey ? get(feeds, feedKey, EMPTY_FEED) : EMPTY_FEED;
   const { isLoading: isLoadingFeed, nextCursor, casts } = feed;
+
+  console.log(
+    "rendering feedKey",
+    feedKey,
+    "feed",
+    feed,
+    "isLoadingFeed",
+    isLoadingFeed
+  );
 
   const onOpenLinkInCast = useCallback(() => {
     setShowEmbedsModal(true);
@@ -288,16 +314,27 @@ export default function Feeds() {
   const getFeed = async ({
     fid,
     parentUrl,
+    selectedListId,
     cursor,
   }: {
     fid: string;
     parentUrl?: string;
+    selectedListId?: string;
     cursor?: string;
   }) => {
     if (isLoadingFeed) {
       return;
     }
 
+    console.log(
+      "getFeed",
+      fid,
+      "feedKey",
+      feedKey,
+      parentUrl,
+      selectedListId,
+      cursor
+    );
     setIsLoadingFeed(feedKey, true);
     try {
       let feedOptions = {
@@ -306,7 +343,28 @@ export default function Feeds() {
       };
 
       let newFeed;
-      if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
+      if (selectedListId) {
+        const selectedList = lists.find((list) => list.id === selectedListId);
+        if (!selectedList) {
+          throw new Error("Selected list not found");
+        }
+        const { term } = selectedList.contents as { term: string };
+        let { filters } = selectedList.contents as { filters: SearchFilters };
+        if (!filters) {
+          filters = {
+            onlyPowerBadge: false,
+            interval: Interval.d7,
+            hideReplies: true,
+          };
+        }
+        newFeed = await getCastsFromSearch({
+          term,
+          filters,
+          viewerFid: fid,
+          limit: DEFAULT_FEED_PAGE_SIZE,
+        });
+        console.log("newFeed from getCastsFromSearch", newFeed);
+      } else if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
         newFeed = await neynarClient.fetchUserFollowingFeed(
           Number(fid),
           feedOptions
@@ -358,9 +416,9 @@ export default function Feeds() {
   useEffect(() => {
     if (account?.platformAccountId && !showCastThreadView) {
       const fid = account.platformAccountId!;
-      getFeed({ parentUrl: selectedChannelUrl, fid });
+      getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
     }
-  }, [account, selectedChannelUrl, showCastThreadView]);
+  }, [account, selectedChannelUrl, showCastThreadView, selectedListId]);
 
   useEffect(() => {
     closeNewCastModal();
@@ -463,12 +521,6 @@ export default function Feeds() {
               Seems like there is nothing to see here.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="max-w-lg">
-              Start following people or channels to see their posts here. You
-              can refresh the feed, if you think something is wrong.
-            </p>
-          </CardContent>
           <CardFooter>
             <Button
               className="w-1/2"
@@ -479,6 +531,7 @@ export default function Feeds() {
                 await getFeed({
                   fid: account.platformAccountId!,
                   parentUrl: selectedChannelUrl,
+                  selectedListId,
                 });
                 setIsRefreshingPage(false);
               }}
@@ -504,7 +557,7 @@ export default function Feeds() {
         <>
           {renderFeed()}
           {renderWelcomeMessage()}
-          {renderLoadMoreButton()}
+          {!isEmpty(casts) && renderLoadMoreButton()}
         </>
       )}
       {renderEmbedsModal()}

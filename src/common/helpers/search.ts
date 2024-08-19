@@ -1,3 +1,7 @@
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { getProfileFetchIfNeeded } from "./profileUtils";
+import { CastsResponseResult } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+
 export enum Interval {
     d1 = "1 day",
     d7 = "7 days",
@@ -169,3 +173,65 @@ const insertMissingBooleanOperators = (conditions: string[]): void => {
         }
     }
 };
+
+export const getMentionFidFromSearchTerm = async (
+    term: string,
+    viewerFid: string
+) => {
+    const isOneWordSearch = !/\s/.test(term.trim());
+    if (!isOneWordSearch) {
+        return;
+    }
+    const profile = await getProfileFetchIfNeeded({
+        username: term.trim(),
+        viewerFid,
+    });
+    return profile?.fid;
+};
+
+export const getFromFidFromSearchTerm = async (term: string, viewerFid: string) => {
+    const fromIndex = term.indexOf("from:");
+    if (fromIndex === -1) {
+        return;
+    }
+
+    const fromTerm = term.match(/from:([^\s]+)/);
+    if (!fromTerm) {
+        return;
+    }
+
+    const from = fromTerm[1];
+    const profile = await getProfileFetchIfNeeded({
+        username: from,
+        viewerFid,
+    });
+    return profile?.fid;
+};
+
+type getCastsFromSearchProps = {
+    term: string;
+    viewerFid: string;
+    limit: number;
+    filters: SearchFilters;
+};
+
+export const getCastsFromSearch = async ({ term, viewerFid, limit, filters }: getCastsFromSearchProps): Promise<CastsResponseResult> => {
+    const mentionFid = await getMentionFidFromSearchTerm(term, viewerFid);
+    const fromFid = await getFromFidFromSearchTerm(term, viewerFid);
+    console.log('getCastsFromSearch', term, filters)
+    const searchResponse = await runFarcasterCastSearch({
+        searchTerm: term,
+        filters,
+        mentionFid,
+        fromFid,
+        limit,
+    })
+    const castHashes = searchResponse.results?.map((result) => result.hash) || [];
+    const neynarClient = new NeynarAPIClient(
+        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
+    );
+    const apiResponse = await neynarClient.fetchBulkCasts(castHashes, {
+        viewerFid: Number(viewerFid),
+    });
+    return apiResponse.result;
+}

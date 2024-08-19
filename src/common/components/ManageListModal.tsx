@@ -31,8 +31,7 @@ const ManageListModal = ({ open, onClose }) => {
     list &&
     (newName !== list.name ||
       newSearchTerm !== list.contents?.term ||
-      isDailyEmailEnabled !== list.contents?.enabled_daily_email
-    );
+      isDailyEmailEnabled !== list.contents?.enabled_daily_email);
 
   const onClickDelete = (id: UUID) => {
     removeList(id);
@@ -108,7 +107,10 @@ const ManageListModal = ({ open, onClose }) => {
         <div className="flex flex-row space-x-4">
           <div className="flex flex-col">
             <Label>Search Interval</Label>
-            <IntervalFilter defaultInterval={searchInterval} intervals={intervals} />
+            <IntervalFilter
+              defaultInterval={searchInterval}
+              intervals={intervals}
+            />
           </div>
           <div className="flex flex-col">
             <Label>Hide replies</Label>
@@ -125,7 +127,7 @@ const ManageListModal = ({ open, onClose }) => {
             variant="destructive"
             onClick={() => onClickDelete(list.id)}
           >
-            Delete List
+            Delete Search
           </Button>
           <Button disabled={!canSave} size="sm" onClick={() => onClickSave()}>
             Save
