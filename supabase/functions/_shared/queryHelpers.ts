@@ -50,8 +50,8 @@ export function getTopCasts(fid: number, limit: number = 30) {
             c.hash,
             c.timestamp,
             c.is_reply,
-            COALESCE(r.like_count::text, '0') AS like_count,
-            COALESCE(r.recast_count::text, '0') AS recast_count
+            COALESCE(r.like_count::int, 0) AS like_count,
+            COALESCE(r.recast_count::int, 0) AS recast_count
         FROM 
             relevant_casts c
         LEFT JOIN 
@@ -64,7 +64,7 @@ export function getTopCasts(fid: number, limit: number = 30) {
             AND target_cast_hash IN (SELECT hash FROM relevant_casts)
             GROUP BY target_cast_hash) r ON c.hash = r.target_cast_hash
         ORDER BY 
-            like_count DESC
+            COALESCE(like_count::int, 0) DESC
         LIMIT ${limit};
     `;
 }
