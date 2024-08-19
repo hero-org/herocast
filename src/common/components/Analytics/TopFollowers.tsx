@@ -9,6 +9,7 @@ import {
   getProfileFetchIfNeeded,
 } from "@/common/helpers/profileUtils";
 import { useDataStore } from "@/stores/useDataStore";
+import { Loading } from "../Loading";
 
 const TOP_FOLLOWERS_LIMIT = 12;
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
@@ -17,7 +18,9 @@ type TopFollowersProps = {
 };
 
 const TopFollowers = ({ fid }: TopFollowersProps) => {
-  const [topFollowerFids, setTopFollowerFids] = useState<string[]>([]);
+  const [topFollowerFids, setTopFollowerFids] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const viewerFid = Number(
     useAccountStore(
       (state) => state.accounts[state.selectedAccountIdx]?.platformAccountId
@@ -26,23 +29,33 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
 
   useEffect(() => {
     const getData = async () => {
-      const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
-      const fids = await neynarClient
-        .fetchRelevantFollowers(fid, viewerFid)
-        .then((response) =>
-          response.all_relevant_followers_dehydrated
-            .map((follower) => follower.user?.fid)
-            .slice(0, TOP_FOLLOWERS_LIMIT)
+      setIsLoading(true);
+      try {
+        const neynarClient = new NeynarAPIClient(
+          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
         );
-      setTopFollowerFids(fids);
-      fids.forEach((fid) =>
-        getProfileFetchIfNeeded({
-          fid: fid?.toString(),
-          viewerFid: viewerFid.toString(),
-        })
-      );
+        const fids = await neynarClient
+          .fetchRelevantFollowers(fid, viewerFid)
+          .then((response) =>
+            response.all_relevant_followers_dehydrated.map(
+              (follower) => follower.user?.fid
+            )
+          );
+        console.log("fids", fids);
+        setTopFollowerFids(
+          fids.filter((fid) => fid !== undefined).slice(0, TOP_FOLLOWERS_LIMIT)
+        );
+        fids.forEach((fid) =>
+          getProfileFetchIfNeeded({
+            fid: fid?.toString(),
+            viewerFid: viewerFid.toString(),
+          })
+        );
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
     };
     if (fid) {
       getData();
@@ -60,6 +73,7 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
   return (
     <Card className="h-fit py-8 px-4">
       <CardContent className="items-start grid gap-8 grid-cols-2 grid-flow-row">
+        {isLoading && <Loading />}
         {profiles.map((profile) => (
           <div
             key={`top-follower-${profile.fid}`}

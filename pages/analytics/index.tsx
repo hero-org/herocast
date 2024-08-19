@@ -270,8 +270,8 @@ export default function AnalyticsPage() {
           <div className="flex items-center mb-4">
             <TabsList>
               <TabsTrigger value="default">Top Casts</TabsTrigger>
-              <TabsTrigger value="followers">Top Followers</TabsTrigger>
-              <TabsTrigger value="unfollows">Unfollows</TabsTrigger>
+              <TabsTrigger value="followers">Top Followers (beta)</TabsTrigger>
+              <TabsTrigger value="unfollows">Unfollows (soon)</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="default" className="max-w-2xl">
