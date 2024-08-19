@@ -181,7 +181,6 @@ const DynamicChartCard = ({
     return mergeData(data1, data2, startDate, [dataKey1, dataKey2]);
   }, [analyticsData, interval, dataKey1, dataKey2]);
 
-  console.log("DynamicChartCard data", data);
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b border-foreground/20 p-0 sm:flex-row">

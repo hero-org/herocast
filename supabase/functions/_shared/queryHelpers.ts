@@ -64,7 +64,7 @@ export function getTopCasts(fid: number, limit: number = 30) {
             AND target_cast_hash IN (SELECT hash FROM relevant_casts)
             GROUP BY target_cast_hash) r ON c.hash = r.target_cast_hash
         ORDER BY 
-            c.timestamp DESC
+            like_count DESC
         LIMIT ${limit};
     `;
 }
