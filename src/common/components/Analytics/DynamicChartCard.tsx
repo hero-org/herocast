@@ -157,17 +157,10 @@ const DynamicChartCard = ({
 }: DynamicChartCardProps) => {
   const [dataKey1, setDataKey1] = React.useState(values[0]);
   const [dataKey2, setDataKey2] = React.useState(values[1]);
-
-  const chartConfig = React.useMemo(() => {
-    const config = {};
-    values.forEach((value, index) => {
-      config[value] = {
-        label: value,
-        color: `hsl(var(--chart-${index + 1}))`,
-      };
-    });
-    return config;
-  }, [values]);
+  const chartConfig = React.useMemo(
+    () => Object.fromEntries(values.map((value) => [value, { label: value }])),
+    [values]
+  );
 
   const data = useMemo(() => {
     if (!analyticsData) return [];
@@ -273,8 +266,8 @@ const DynamicChartCard = ({
                   type="monotone"
                   dataKey={dataKey1}
                   stroke="hsl(var(--muted-foreground))"
-                  fill={chartConfig[dataKey1].color}
-                  fillOpacity={0.5}
+                  fill="hsl(var(--chart-dynamic-1))"
+                  fillOpacity={0.4}
                   stackId="a"
                 />
                 <Area
@@ -282,8 +275,8 @@ const DynamicChartCard = ({
                   type="monotone"
                   dataKey={dataKey2}
                   stroke="hsl(var(--muted-foreground))"
-                  fill={chartConfig[dataKey2].color}
-                  fillOpacity={0.1}
+                  fill="hsl(var(--chart-dynamic-2))"
+                  fillOpacity={0.6}
                   stackId="b"
                 />
               </AreaChart>

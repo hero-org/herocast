@@ -31,6 +31,8 @@
     --chart-3: 240 1% 58%;
     --chart-4: 240 1% 42%;
     --chart-5: 240 2% 26%;
+    --chart-dynamic-1: 213deg, 93.9%, 67.8%;
+    --chart-dynamic-2: 183deg, 93.9%, 67.8%;
   }
  
   .dark {
@@ -58,6 +60,8 @@
     --chart-3: 240 1% 58%;
     --chart-4: 240 1% 42%;
     --chart-5: 240 2% 26%;
+    --chart-dynamic-1: 213deg, 93.9%, 67.8%;
+    --chart-dynamic-2: 183deg, 93.9%, 67.8%;
   }
 }
 
