@@ -33,40 +33,37 @@ const NewFollowersCard = ({
       (item) => new Date(item.timestamp) >= startDate
     );
 
-    if (!followerCount) {
-      // accumulate from the start with reduce functions
-      // sum of all previous counts
-      return filtered.reduceRight(
-        (acc, curr, i, arr) => {
-          const count = arr
-            .slice(i + 1)
-            .reduce((sum, item) => sum + item.count, 0);
-          return [{ ...curr, count }, ...acc];
-        },
-        [] as CombinedActivityData["aggregated"]
-      );
-    }
+    const calculateCount = (
+      arr: typeof aggregated,
+      i: number,
+      baseCount: number
+    ) => {
+      const count = arr.slice(i + 1).reduce((sum, item) => sum + item.count, 0);
+      return baseCount ? baseCount - count : count;
+    };
 
-    return filtered.reduceRight(
-      (acc, curr, i, arr) => {
-        const count =
-          followerCount -
-          arr.slice(i + 1).reduce((sum, item) => sum + item.count, 0);
-        return [{ ...curr, count }, ...acc];
-      },
-      [] as CombinedActivityData["aggregated"]
-    );
+    if (!followerCount) {
+      return filtered.reduce((acc, curr, i, arr) => {
+        return [{ ...curr, count: calculateCount(arr, i, 0) }, ...acc];
+      }, [] as CombinedActivityData["aggregated"]);
+    }
+    return filtered.reduceRight((acc, curr, i, arr) => {
+      return [
+        { ...curr, count: calculateCount(arr, i, followerCount) },
+        ...acc,
+      ];
+    }, [] as CombinedActivityData["aggregated"]);
   }, [aggregated, interval]);
   const value = overview[interval === Interval.d7 ? "d7" : "d30"] || 0;
   return (
     <Card className="h-fit">
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
+      <CardHeader className="flex flex-row items-stretch space-y-0 border-b border-foreground/20 p-0">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
           <CardTitle>New Followers</CardTitle>
           <CardDescription>Followers in the last {interval}</CardDescription>
         </div>
         <div className="flex">
-          <div className="relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6">
+          <div className="relative flex flex-1 flex-col justify-center gap-1 px-6 py-4 text-left border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 border-foreground/20 sm:px-8 sm:py-6">
             <span className="text-xs text-muted-foreground">{interval}</span>
             <span className="text-lg font-bold leading-none sm:text-3xl">
               {formatLargeNumber(value)}
@@ -76,7 +73,7 @@ const NewFollowersCard = ({
       </CardHeader>
       <CardContent>
         {value > 0 && (
-          <div className="pt-6 w-full h-full max-h-70">
+          <div className="pt-6 w-full h-full sm:max-h-52 lg:max-h-70">
             <AnalyticsGraph
               interval={interval}
               analyticsKey="followers"

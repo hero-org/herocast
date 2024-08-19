@@ -220,15 +220,16 @@ export default function AnalyticsPage() {
         <Carousel
           opts={{
             align: "start",
+            loop: true,
           }}
-          className="md:mx-8 lg:mx-0"
+          className="mr-12 lg:mx-0"
         >
           <CarouselContent className="">
             {" "}
             <CarouselItem className="md:basis-1/2 lg:basis-1/3">
               {analyticsData?.follows && (
                 <NewFollowersCard
-                  // followerCount={selectedProfile?.follower_count}
+                  followerCount={selectedProfile?.follower_count}
                   data={analyticsData.follows}
                   isLoading={isLoading}
                   interval={interval}
@@ -254,8 +255,7 @@ export default function AnalyticsPage() {
               )}
             </CarouselItem>
           </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
+          <CarouselNext className="lg:hidden" />
         </Carousel>
         <div className="mt-8">
           <DynamicChartCard
