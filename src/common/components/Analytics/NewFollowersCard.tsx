@@ -28,6 +28,10 @@ const NewFollowersCard = ({
   const { overview, aggregated = [] } = data;
 
   const cumulativeAggregated = useMemo(() => {
+    if (!aggregated?.length) {
+      return [];
+    }
+
     const startDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
     const filtered = aggregated.filter(
       (item) => new Date(item.timestamp) >= startDate

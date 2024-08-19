@@ -28,6 +28,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import CastsCard from "@/common/components/Analytics/CastsCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TopFollowers from "@/common/components/Analytics/TopFollowers";
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 const intervals = [Interval.d7, Interval.d30];
@@ -264,12 +266,35 @@ export default function AnalyticsPage() {
             interval={interval}
           />
         </div>
-        <div>
-          <h2 className="text-2xl font-bold">Top casts</h2>
-        </div>
-        {analyticsData.topCasts && (
-          <CastReactionsTable rawCasts={analyticsData.topCasts} />
-        )}
+        <Tabs defaultValue="default">
+          <div className="flex items-center mb-4">
+            <TabsList>
+              <TabsTrigger value="default">Top Casts</TabsTrigger>
+              <TabsTrigger value="followers">Top Followers</TabsTrigger>
+              <TabsTrigger value="unfollows">Unfollows</TabsTrigger>
+            </TabsList>
+          </div>
+          <TabsContent value="default" className="max-w-2xl">
+            <div className="my-4">
+              <h2 className="text-2xl font-bold">Top casts</h2>
+            </div>
+            {analyticsData.topCasts && (
+              <CastReactionsTable rawCasts={analyticsData.topCasts} />
+            )}
+          </TabsContent>
+          <TabsContent value="followers" className="max-w-2xl">
+            <div className="my-4">
+              <h2 className="text-2xl font-bold">Top followers</h2>
+            </div>
+            <TopFollowers fid={fid} />
+          </TabsContent>
+          <TabsContent value="unfollows" className="max-w-2xl">
+            <div className="my-4">
+              <h2 className="text-2xl font-bold">Unfollows</h2>
+            </div>
+            <div>Coming soon...</div>
+          </TabsContent>
+        </Tabs>
       </>
     );
   };
