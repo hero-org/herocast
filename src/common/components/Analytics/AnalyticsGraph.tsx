@@ -17,7 +17,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { roundToNextDigit } from "@/common/helpers/math";
 
 type AnalyticsGraphProps = {
   analyticsKey: string;
@@ -73,7 +72,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
       config={chartConfig}
       className="-ml-8 w-full min-w-full h-full"
     >
-      <ResponsiveContainer width="100%" height="100%">
+      {/* <ResponsiveContainer width="100%" height="100%"> */}
         <AreaChart accessibilityLayer data={data}>
           <defs>
             <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
@@ -126,7 +125,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
             fill="url(#colorCount)"
           />
         </AreaChart>
-      </ResponsiveContainer>
+      {/* </ResponsiveContainer> */}
     </ChartContainer>
   );
 };

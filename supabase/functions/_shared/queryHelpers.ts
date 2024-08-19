@@ -41,9 +41,10 @@ export function getTopCasts(fid: number, limit: number = 30) {
         WITH relevant_casts AS (
             SELECT hash, timestamp, parent_cast_hash is not NULL AS is_reply
             FROM casts
-            WHERE fid = ${fid}
+            WHERE 
+            fid = ${fid}
+            AND timestamp >= NOW() - INTERVAL '30 days'
             ORDER BY timestamp DESC
-            LIMIT ${limit}
         )
         SELECT 
             c.hash,
@@ -63,7 +64,8 @@ export function getTopCasts(fid: number, limit: number = 30) {
             AND target_cast_hash IN (SELECT hash FROM relevant_casts)
             GROUP BY target_cast_hash) r ON c.hash = r.target_cast_hash
         ORDER BY 
-            c.timestamp DESC;
+            c.timestamp DESC
+        LIMIT ${limit};
     `;
 }
 

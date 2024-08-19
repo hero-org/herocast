@@ -18,7 +18,7 @@ const ClickToCopyText = ({
   disabled,
   buttonText,
   text,
-  size = "lg"
+  size = "lg",
 }: ClickToCopyTextProps) => {
   const [didClickCopyShare, setDidClickCopyShare] = useState(false);
 
@@ -42,13 +42,14 @@ const ClickToCopyText = ({
         }, 2000);
       }}
     >
-      {getButtonText()}
       <ClipboardDocumentIcon
         className={clsx(
-          size === "sm" ? "h-4 w-4" : "h-5 w-5", "mt-0.5",
+          size === "sm" ? "h-4 w-4" : "h-5 w-5",
+          "mt-0.5",
           didClickCopyShare ? "text-muted-foreground" : "text-foreground"
         )}
       />
+      {getButtonText()}
     </Button>
   );
 };
