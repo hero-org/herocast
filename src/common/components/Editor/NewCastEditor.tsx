@@ -14,7 +14,6 @@ import {
 } from "@mod-protocol/core";
 import { getFarcasterMentions } from "@mod-protocol/farcaster";
 import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
-import debounce from "lodash.debounce";
 import { Button } from "@/components/ui/button";
 import { take } from "lodash";
 import { ChannelPicker } from "../ChannelPicker";
@@ -40,7 +39,7 @@ import { toast } from "sonner";
 import { usePostHog } from "posthog-js/react";
 import { useTextLength } from "../../helpers/editor";
 import { cn } from "@/lib/utils";
-import { openSourcePlanLimits } from "../../../config/customerLimitation";
+import { openSourcePlanLimits } from "@/config/customerLimitation";
 import Link from "next/link";
 import { isPaidUser } from "@/stores/useUserStore";
 import { MentionList } from "../MentionsList";
@@ -418,7 +417,16 @@ export default function NewPostEntry({
         <div className="mt-8 rounded-md bg-muted/50 p-2 w-full break-all">
           {map(draft.embeds, (embed) => (
             <div key={`cast-embed-${embed?.url || embed?.hash}`}>
-              {renderEmbedForUrl(embed)}
+              {renderEmbedForUrl({
+                ...embed,
+                onRemove: () => {
+                  const newEmbeds = draft.embeds.filter(
+                    (e) => e.url !== embed.url
+                  );
+                  updatePostDraft(draftIdx, { ...draft, embeds: newEmbeds });
+                  window.location.reload();
+                },
+              })}
             </div>
           ))}
         </div>
