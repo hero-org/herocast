@@ -89,7 +89,7 @@ type addTokenDataProps = {
 
 type AdditionalUserInfo = {
   airstackSocialInfo: AirstackSocialInfo;
-  icebreakerData: IcebreakerSocialInfo;
+  icebreakerSocialInfo: IcebreakerSocialInfo;
 };
 
 type addUserProfileProps = {

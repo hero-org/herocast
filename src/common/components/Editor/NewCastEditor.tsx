@@ -93,7 +93,6 @@ export default function NewPostEntry({
   hideChannel,
   hideSchedule,
 }: NewPostEntryProps) {
-  console.log('draft.embeds', draft.embeds)
   const posthog = usePostHog();
   const { addScheduledDraft, updatePostDraft, publishPostDraft } =
     useDraftStore();
