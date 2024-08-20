@@ -13,7 +13,11 @@ import {
   DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
-import { publishReaction, removeCast, removeReaction } from "../helpers/farcaster";
+import {
+  publishReaction,
+  removeCast,
+  removeReaction,
+} from "../helpers/farcaster";
 import includes from "lodash.includes";
 import map from "lodash.map";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -32,7 +36,12 @@ import mentionPlugin, {
   channelPlugin,
 } from "../helpers/linkify";
 import { AccountPlatformType } from "../constants/accounts";
-import { toastCopiedToClipboard, toastInfoReadOnlyMode, toastSuccessCastDeleted, toastUnableToDeleteCast } from "../helpers/toast";
+import {
+  toastCopiedToClipboard,
+  toastInfoReadOnlyMode,
+  toastSuccessCastDeleted,
+  toastUnableToDeleteCast,
+} from "../helpers/toast";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { Button } from "@/components/ui/button";
@@ -588,7 +597,7 @@ export const CastRow = ({
       ? getChannelForParentUrl(cast.parent_url)
       : null;
   const timeAgoStr = formatDistanceToNowStrict(new Date(cast.timestamp), {
-    addSuffix: true,
+    addSuffix: false,
   });
   const pfpUrl = cast.author.pfp_url || cast.author?.pfp?.url;
   const displayName = cast.author.display_name || cast.author.displayName;
@@ -631,7 +640,11 @@ export const CastRow = ({
                       return;
                     }
 
-                    removeCast(cast.hash, Number(selectedAccount.platformAccountId), selectedAccount.privateKey!).then(() => {
+                    removeCast(
+                      cast.hash,
+                      Number(selectedAccount.platformAccountId),
+                      selectedAccount.privateKey!
+                    ).then(() => {
                       toastSuccessCastDeleted(cast?.text);
                     });
                   }}
@@ -748,7 +761,7 @@ export const CastRow = ({
                     viewerFid={userFid}
                     username={cast.author.username}
                   >
-                    <span className="items-center flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
+                    <span className="items-center flex font-semibold text-foreground truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                       {isEmbed && (
                         <img
                           className="relative h-4 w-4 mr-1 flex-none bg-background rounded-full"
@@ -756,8 +769,8 @@ export const CastRow = ({
                         />
                       )}
                       {displayName}
-                      <span className="hidden font-normal lg:ml-1 lg:block">
-                        (@{cast.author.username})
+                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">
+                        @{cast.author.username}
                       </span>
                       <span>
                         {cast.author.power_badge && (
@@ -805,7 +818,7 @@ export const CastRow = ({
             )}
             <div
               onClick={() => onSelect && onSelect()}
-              className="w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
+              className="mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
               style={castTextStyle}
             >
               {getText()}
