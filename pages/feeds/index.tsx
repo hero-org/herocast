@@ -95,7 +95,6 @@ export default function Feeds() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
 
-  console.log("feeds", feeds);
   const { lists, selectedListId } = useListStore();
   const {
     isNewCastModalOpen,
@@ -330,7 +329,7 @@ export default function Feeds() {
             hideReplies: true,
           };
         }
-        filters.interval = Interval.d14;
+        filters.interval = cursor ? Interval.d14 : Interval.d7;
         filters.hideReplies = true;
 
         newFeed = await getCastsFromSearch({

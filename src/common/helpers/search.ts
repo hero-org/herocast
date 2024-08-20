@@ -78,7 +78,6 @@ export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParam
         const searchUrl = getSearchUrl(params);
         const response = await fetch(searchUrl);
         const data = await response.json();
-        console.log('searchResponseData', data)
         return data;
     } catch (error) {
         console.error("Failed to search for text", params.searchTerm, error);
