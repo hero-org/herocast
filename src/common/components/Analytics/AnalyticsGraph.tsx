@@ -70,7 +70,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   return (
     <ChartContainer
       config={chartConfig}
-      className="-ml-8 w-full min-w-full h-full"
+      className="-ml-8 w-full min-w-full h-full sm:max-h-52 lg:max-h-70"
     >
       {/* <ResponsiveContainer width="100%" height="100%"> */}
       <AreaChart accessibilityLayer data={data}>

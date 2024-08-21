@@ -1,9 +1,7 @@
-import { addDays, startOfDay, subDays } from "date-fns";
 import { AggregatedAnalytics } from "../types/types";
 import { UTCDate } from "@date-fns/utc";
 
 export const fillMissingDaysBetweenDates = (data: AggregatedAnalytics[], startDate: Date, endDate: Date) => {
-    console.log('data input', data);
     const filledData: AggregatedAnalytics[] = [];
     const currentDate = new UTCDate(startDate);
     const utcEndDate = new UTCDate(endDate);
@@ -12,8 +10,8 @@ export const fillMissingDaysBetweenDates = (data: AggregatedAnalytics[], startDa
         const existingData = data.find(item => {
             const itemDate = new UTCDate(item.timestamp);
             return itemDate.getUTCFullYear() === currentDate.getUTCFullYear() &&
-                   itemDate.getUTCMonth() === currentDate.getUTCMonth() &&
-                   itemDate.getUTCDate() === currentDate.getUTCDate();
+                itemDate.getUTCMonth() === currentDate.getUTCMonth() &&
+                itemDate.getUTCDate() === currentDate.getUTCDate();
         });
 
         if (existingData) {

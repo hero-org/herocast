@@ -38,8 +38,6 @@ const NewFollowersCard = ({
       (item) => new Date(item.timestamp) >= startDate
     );
 
-    // make sure that between startDate and now there are no missing days
-    // if there are, fill them with 0
     filtered = fillMissingDaysBetweenDates(filtered, startDate, new Date());
     const calculateCount = (
       arr: typeof aggregated,
