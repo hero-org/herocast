@@ -137,6 +137,7 @@ export default function SearchPage() {
     // if navigating away, reset the selected cast
     return () => {
       updateSelectedCast();
+      setSelectedListId();
     };
   }, []);
 

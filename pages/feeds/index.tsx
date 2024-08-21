@@ -95,7 +95,7 @@ export default function Feeds() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
 
-  const { lists, selectedListId } = useListStore();
+  const { lists, selectedListId, setSelectedListId } = useListStore();
   const {
     isNewCastModalOpen,
     setCastModalView,
@@ -119,6 +119,7 @@ export default function Feeds() {
     // if navigating away, reset the selected cast
     return () => {
       updateSelectedCast();
+      setSelectedListId();
     };
   }, []);
 
