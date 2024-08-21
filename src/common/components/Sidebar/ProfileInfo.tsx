@@ -80,9 +80,10 @@ const ProfileInfo = ({
         </Tooltip>
       </TooltipProvider>
     );
-    console.log('profile', profile)
+
   const shouldRenderFullInfo =
-    showFullInfo && (profile?.airstackSocialInfo || profile?.icebreakerSocialInfo);
+    showFullInfo &&
+    (profile?.airstackSocialInfo || profile?.icebreakerSocialInfo);
 
   const renderIcebreakerCredentials = () => {
     if (!profile?.icebreakerSocialInfo?.credentials?.length) return null;
@@ -91,14 +92,16 @@ const ProfileInfo = ({
       <div className="mt-2">
         <span className="text-sm text-foreground mb-2">Credentials</span>
         <div className="flex flex-wrap gap-1">
-          {take(profile.icebreakerSocialInfo.credentials, 5).map((credential) => (
-            <span
-              key={`${fid}-${credential.name}`}
-              className="rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center"
-            >
-              {credential.name}
-            </span>
-          ))}
+          {take(profile.icebreakerSocialInfo.credentials, 5).map(
+            (credential) => (
+              <span
+                key={`${fid}-${credential.name}`}
+                className="rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center"
+              >
+                {credential.name}
+              </span>
+            )
+          )}
         </div>
       </div>
     );
