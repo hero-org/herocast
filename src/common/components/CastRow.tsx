@@ -561,7 +561,7 @@ export const CastRow = ({
           cast.embeds?.length > 1 &&
             !embedsContainsCastEmbed &&
             "grid lg:grid-cols-2 gap-4",
-          "w-full self-start"
+          "max-w-lg self-start"
         )}
         onClick={(e) => e.preventDefault()}
       >
@@ -570,7 +570,7 @@ export const CastRow = ({
             <div
               key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}
             >
-              {renderEmbedForUrl(embed)}
+              {renderEmbedForUrl({...embed, hideReactions})}
             </div>
           ))}
         </ErrorBoundary>
