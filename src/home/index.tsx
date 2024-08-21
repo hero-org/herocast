@@ -177,7 +177,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               ) !== -1;
             const isChannelFeed =
               selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
-              selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING;
+              selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING && 
+              !selectedList;
             const actions = [
               {
                 name: "Cast",

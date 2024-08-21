@@ -434,7 +434,7 @@ export default function CommandPalette() {
       onOpenChange={toggleCommandPalette}
       defaultOpen
     >
-      <Command shouldFilter loop>
+      <Command shouldFilter={false} loop>
         <CommandInput
           onValueChange={setQuery}
           autoFocus

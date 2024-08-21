@@ -93,12 +93,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   );
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem
-      disableTransitionOnChange
-    >
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
       {children}
     </ThemeProvider>
   );

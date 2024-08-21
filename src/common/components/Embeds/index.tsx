@@ -22,9 +22,10 @@ type CastEmbedType = {
     hash: string;
   };
   onRemove?: () => void;
+  hideReactions?: boolean;
 };
 
-const getEmbedForUrl = (url: string) => {
+const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
   if (
     url.includes("i.imgur.com") ||
     url.startsWith("https://imagedelivery.net") ||
@@ -36,7 +37,7 @@ const getEmbedForUrl = (url: string) => {
   } else if (url.startsWith("https://stream.warpcast.com")) {
     return <VideoEmbed url={url} />;
   } else if (url.startsWith("https://warpcast.com") && !url.includes("/~/")) {
-    return <CastEmbed url={url} />;
+    return <CastEmbed url={url} hideReactions={hideReactions} />;
   } else if (
     (url.includes("twitter.com") || url.startsWith("https://x.com")) &&
     url.includes("status/")
@@ -58,13 +59,14 @@ export const renderEmbedForUrl = ({
   cast_id,
   castId,
   onRemove,
+  hideReactions,
 }: CastEmbedType) => {
   if (castId || cast_id) {
-    return <CastEmbed castId={castId || cast_id} />;
+    return <CastEmbed castId={castId || cast_id} hideReactions={hideReactions} />;
   }
   if (!url) return null;
 
-  const embed = getEmbedForUrl(url);
+  const embed = getEmbedForUrl(url, hideReactions);
   if (!embed) return null;
 
   return (

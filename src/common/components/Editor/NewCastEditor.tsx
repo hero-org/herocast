@@ -5,6 +5,7 @@ import { DraftStatus, DraftType } from "../../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
+
 import {
   ModManifest,
   fetchUrlMetadata,
@@ -17,11 +18,7 @@ import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-sha
 import { Button } from "@/components/ui/button";
 import { take } from "lodash";
 import { ChannelPicker } from "../ChannelPicker";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CreationMod } from "@mod-protocol/react";
 import { creationMods } from "@mod-protocol/mod-registry";
 import { renderers } from "@mod-protocol/react-ui-shadcn/dist/renderers";
@@ -43,12 +40,11 @@ import { openSourcePlanLimits } from "@/config/customerLimitation";
 import Link from "next/link";
 import { isPaidUser } from "@/stores/useUserStore";
 import { MentionList } from "../MentionsList";
+import { useImgurUpload } from "@/common/hooks/useImgurUpload";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
-const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-);
+const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const getChannels = async (query: string): Promise<Channel[]> => {
   let channels: Channel[] = [];
@@ -94,16 +90,13 @@ export default function NewPostEntry({
   hideSchedule,
 }: NewPostEntryProps) {
   const posthog = usePostHog();
-  const { addScheduledDraft, updatePostDraft, publishPostDraft } =
-    useDraftStore();
+  const { addScheduledDraft, updatePostDraft, publishPostDraft } = useDraftStore();
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
 
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
-  const account = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
-  );
+  const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const { allChannels } = useAccountStore();
   const isReply = draft?.parentCastId !== undefined;
 
@@ -160,55 +153,86 @@ export default function NewPostEntry({
     return true;
   };
 
-  const ref = useHotkeys(
-    "meta+enter",
-    onSubmitPost,
-    [onSubmitPost, draft, account],
-    {
-      enableOnFormTags: true,
+  const ref = useHotkeys("meta+enter", onSubmitPost, [onSubmitPost, draft, account], {
+    enableOnFormTags: true,
+  });
+
+  const { uploadImage, isUploading, error, image } = useImgurUpload();
+
+  useEffect(() => {
+    if (isUploading) {
+      toast.loading("Uploading image...", {
+        id: "image-upload",
+      });
+    } else if (image) {
+      toast.success("Image uploaded", {
+        id: "image-upload",
+      });
+
+      if (!embeds.find((embed) => "url" in embed && embed.url === image.link)) {
+        setEmbeds([
+          ...embeds,
+          {
+            status: "loaded",
+            url: image.link,
+            metadata: {
+              image: {
+                url: image.link,
+                width: image.width,
+                height: image.height,
+              },
+            },
+          },
+        ]);
+      }
+    } else if (error) {
+      console.error("failed uploading to imgur", error);
+      toast.error(error, {
+        id: "image-upload",
+      });
     }
-  );
+  }, [isUploading, error, image]);
 
   const isPublishing = draft?.status === DraftStatus.publishing;
-  const {
-    editor,
-    getText,
-    addEmbed,
-    getEmbeds,
-    setEmbeds,
-    setChannel,
-    getChannel,
-    handleSubmit,
-    setText,
-  } = useEditor({
-    fetchUrlMetadata: getUrlMetadata,
-    onError,
-    onSubmit: onSubmitPost,
-    linkClassName: "text-blue-500",
-    renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
-      getResults: getChannels,
-      RenderList: ChannelList,
-    }),
-    renderMentionsSuggestionConfig: createRenderMentionsSuggestionConfig({
-      getResults: getMentions,
-      RenderList: MentionList,
-    }),
-    editorOptions: {
-      parseOptions: {
-        preserveWhitespace: "full",
+  const { editor, getText, addEmbed, getEmbeds, setEmbeds, setChannel, getChannel, handleSubmit, setText } =
+    useEditor({
+      fetchUrlMetadata: getUrlMetadata,
+      onError,
+      onSubmit: onSubmitPost,
+      linkClassName: "text-blue-500",
+      renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
+        getResults: getChannels,
+        RenderList: ChannelList,
+      }),
+      renderMentionsSuggestionConfig: createRenderMentionsSuggestionConfig({
+        getResults: getMentions,
+        RenderList: MentionList,
+      }),
+      editorOptions: {
+        editorProps: {
+          handlePaste: (view, event) =>
+            extractImageAndUpload({
+              data: event.clipboardData,
+              uploadImage,
+            }),
+          handleDrop: (view, event) =>
+            extractImageAndUpload({
+              data: event.dataTransfer,
+              uploadImage,
+            }),
+        },
+
+        parseOptions: {
+          preserveWhitespace: "full",
+        },
       },
-    },
-  });
+    });
 
   useEffect(() => {
     if (!text && draft?.text && isEmpty(draft.mentionsToFids)) {
-      editor?.commands.setContent(
-        `<p>${draft.text.replace(/\n/g, "<br>")}</p>`,
-        true,
-        {
-          preserveWhitespace: "full",
-        }
-      );
+      editor?.commands.setContent(`<p>${draft.text.replace(/\n/g, "<br>")}</p>`, true, {
+        preserveWhitespace: "full",
+      });
     }
 
     if (draft?.embeds) {
@@ -262,25 +286,18 @@ export default function NewPostEntry({
   }, [draft?.parentUrl]);
 
   const getButtonText = () => {
-    if (isPublishing)
-      return scheduleDateTime ? "Scheduling..." : "Publishing...";
+    if (isPublishing) return scheduleDateTime ? "Scheduling..." : "Publishing...";
 
-    return `${scheduleDateTime ? "Schedule" : "Cast"}${
-      account ? ` as ${account.name}` : ""
-    }`;
+    return `${scheduleDateTime ? "Schedule" : "Cast"}${account ? ` as ${account.name}` : ""}`;
   };
 
   const scheduledCastCount =
-    useDraftStore((state) =>
-      state.drafts.filter((draft) => draft.status === DraftStatus.scheduled)
-    )?.length || 0;
+    useDraftStore((state) => state.drafts.filter((draft) => draft.status === DraftStatus.scheduled))
+      ?.length || 0;
   const hasReachedFreePlanLimit =
-    !isPaidUser() &&
-    scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
+    !isPaidUser() && scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
   const isButtonDisabled =
-    isPublishing ||
-    !textLengthIsValid ||
-    (scheduleDateTime && hasReachedFreePlanLimit);
+    isPublishing || !textLengthIsValid || (scheduleDateTime && hasReachedFreePlanLimit);
 
   if (!draft) return null;
 
@@ -305,11 +322,7 @@ export default function NewPostEntry({
               autoFocus
               className="w-full h-full min-h-[150px] text-foreground/80"
             />
-            <EmbedsEditor
-              embeds={[]}
-              setEmbeds={setEmbeds}
-              RichEmbed={() => <div />}
-            />
+            <EmbedsEditor embeds={[]} setEmbeds={setEmbeds} RichEmbed={() => <div />} />
           </div>
         )}
 
@@ -364,9 +377,7 @@ export default function NewPostEntry({
             </PopoverContent>
           </Popover>
           {textLengthWarning && (
-            <div className={cn("my-2 ml-2 text-sm", textLengthTailwind)}>
-              {textLengthWarning}
-            </div>
+            <div className={cn("my-2 ml-2 text-sm", textLengthTailwind)}>{textLengthWarning}</div>
           )}
           <div className="grow"></div>
           {onRemove && (
@@ -413,6 +424,7 @@ export default function NewPostEntry({
           </Button>
         </div>
       </form>
+
       {hasEmbeds && (
         <div className="mt-8 rounded-md bg-muted/50 p-2 w-full break-all">
           {map(draft.embeds, (embed) => (
@@ -420,9 +432,7 @@ export default function NewPostEntry({
               {renderEmbedForUrl({
                 ...embed,
                 onRemove: () => {
-                  const newEmbeds = draft.embeds.filter(
-                    (e) => e.url !== embed.url
-                  );
+                  const newEmbeds = draft.embeds.filter((e) => e.url !== embed.url);
                   updatePostDraft(draftIdx, { ...draft, embeds: newEmbeds });
                   window.location.reload();
                 },
@@ -433,4 +443,27 @@ export default function NewPostEntry({
       )}
     </div>
   );
+}
+
+function extractImageAndUpload(args: {
+  data: DataTransfer | null;
+  uploadImage: (file: File) => void;
+}): boolean {
+  const { data, uploadImage } = args;
+
+  if (!data) {
+    return false;
+  }
+
+  const items = Array.from(data.items);
+  for (const item of items) {
+    if (item.type.indexOf("image") === 0) {
+      const file = item.getAsFile();
+      if (file) {
+        uploadImage(file);
+        return true;
+      }
+    }
+  }
+  return false;
 }

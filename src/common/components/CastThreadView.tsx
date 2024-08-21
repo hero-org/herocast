@@ -45,10 +45,10 @@ export const CastThreadView = ({
 
   const renderGoBackButton = () => (
     <Button
-    size="sm"
+      size="sm"
       variant="outline"
       onClick={() => onBack && onBack()}
-      className="w-16 group my-2"
+      className="ml-2 w-16 group my-2"
     >
       <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
         <HotkeyTooltipWrapper hotkey="Esc" side="right">
