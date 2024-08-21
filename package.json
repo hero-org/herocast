@@ -15,7 +15,7 @@
     "serve": "serve -s build",
     "lint": "next lint",
     "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx src",
-    "format": "prettier --write .",
+    "format": "prettier --log-level warn --write .",
     "test": "jest",
     "prepare": "husky"
   },
