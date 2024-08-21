@@ -1,8 +1,8 @@
-import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loading } from "./Loading";
-import { formatLargeNumber } from "../helpers/text";
-import FollowButton from "./FollowButton";
+import React from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Loading } from './Loading';
+import { formatLargeNumber } from '../helpers/text';
+import FollowButton from './FollowButton';
 
 type ProfileInfoContentProps = {
   profile: any;
@@ -32,7 +32,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
         <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1">{profile.display_name}</h2>
         <h3 className="text-sm font-regular">@{profile.username}</h3>
       </div>
-      <p className={`flex pt-2 text-sm break-words ${isHoverCard ? "" : "pr-4 overflow-x-hidden"}`}>
+      <p className={`flex pt-2 text-sm break-words ${isHoverCard ? '' : 'pr-4 overflow-x-hidden'}`}>
         {profile.profile?.bio?.text}
       </p>
       <div className="flex flex-col pt-2 text-sm text-muted-foreground">

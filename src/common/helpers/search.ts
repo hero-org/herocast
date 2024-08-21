@@ -1,12 +1,12 @@
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { getProfileFetchIfNeeded } from "./profileUtils";
-import { CastsResponseResult } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { getProfileFetchIfNeeded } from './profileUtils';
+import { CastsResponseResult } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 export enum Interval {
-  d1 = "1 day",
-  d7 = "7 days",
-  d14 = "14 days",
-  d30 = "30 days",
+  d1 = '1 day',
+  d7 = '7 days',
+  d14 = '14 days',
+  d30 = '30 days',
 }
 
 export type RawSearchResult = {
@@ -36,7 +36,7 @@ export type RunFarcasterCastSearchParams = {
 const prepareSearchTerm = (term: string): string => {
   // remove from:username
   // remove whitespaces in front and back
-  return term.replace(/from:\S+/g, "").trim();
+  return term.replace(/from:\S+/g, '').trim();
 };
 
 const getSearchUrl = ({
@@ -51,13 +51,13 @@ const getSearchUrl = ({
 }: RunFarcasterCastSearchParams): string => {
   const term = prepareSearchTerm(searchTerm);
   const params = new URLSearchParams({ term });
-  if (limit) params.append("limit", limit.toString());
-  if (offset) params.append("offset", offset.toString());
-  if (interval) params.append("interval", interval);
-  if (orderBy) params.append("orderBy", orderBy);
-  if (mentionFid) params.append("mentionFid", mentionFid.toString());
+  if (limit) params.append('limit', limit.toString());
+  if (offset) params.append('offset', offset.toString());
+  if (interval) params.append('interval', interval);
+  if (orderBy) params.append('orderBy', orderBy);
+  if (mentionFid) params.append('mentionFid', mentionFid.toString());
   if (fromFid) {
-    params.append("fromFid", fromFid.toString());
+    params.append('fromFid', fromFid.toString());
   }
   if (filters) {
     Object.keys(filters).forEach((key) => {
@@ -66,8 +66,8 @@ const getSearchUrl = ({
       }
     });
   }
-  if (!params.get("interval")) {
-    params.set("interval", Interval.d7);
+  if (!params.get('interval')) {
+    params.set('interval', Interval.d7);
   }
   const url = `/api/search?${params.toString()}`;
   return url;
@@ -80,20 +80,20 @@ export type SearchResponse = {
 };
 
 export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParams): Promise<SearchResponse> => {
-  console.log("runFarcasterCastSearch", params);
+  console.log('runFarcasterCastSearch', params);
   try {
     const searchUrl = getSearchUrl(params);
     const response = await fetch(searchUrl);
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Failed to search for text", params.searchTerm, error);
+    console.error('Failed to search for text', params.searchTerm, error);
     return { error: error as unknown as string, isTimeout: false };
   }
 };
 
-const TEXT_COLUMN = "casts.text";
-const LANGUAGE = "english";
+const TEXT_COLUMN = 'casts.text';
+const LANGUAGE = 'english';
 
 export const getTextMatchCondition = (term: string): string => {
   term = term.trim();
@@ -102,7 +102,7 @@ export const getTextMatchCondition = (term: string): string => {
     return createExactMatchCondition(removeQuotes(term));
   }
 
-  if (term.includes(" OR ")) {
+  if (term.includes(' OR ')) {
     return handlePhrasesWithOR(term);
   }
 
@@ -118,14 +118,14 @@ export const getTextMatchCondition = (term: string): string => {
 };
 
 const isSingleWord = (term: string): boolean =>
-  !term.includes(" ") || (isQuoted(term) && !term.slice(1, -1).includes(" "));
+  !term.includes(' ') || (isQuoted(term) && !term.slice(1, -1).includes(' '));
 
 const isQuoted = (term: string): boolean => term.startsWith('"') && term.endsWith('"');
 
-const removeQuotes = (term: string): string => term.replace(/^"|"$/g, "");
+const removeQuotes = (term: string): string => term.replace(/^"|"$/g, '');
 
 const hasComplexQuery = (term: string): boolean =>
-  term.includes('"') || term.includes("-") || hasBooleanOperators(term);
+  term.includes('"') || term.includes('-') || hasBooleanOperators(term);
 
 const hasBooleanOperators = (term: string): boolean => /\b(AND|OR)\b/i.test(term);
 
@@ -142,12 +142,12 @@ const handleComplexQuery = (term: string): string => {
   const parts = term.match(/"[^"]+"|[^\s]+/g) || [];
   const conditions = parts.map(createCondition);
   insertMissingBooleanOperators(conditions);
-  return conditions.join(" ");
+  return conditions.join(' ');
 };
 
 const handlePhrasesWithOR = (term: string): string => {
   const parts = term.split(/\s+OR\s+/);
-  return parts.map((part) => `(${createCondition(part)})`).join(" OR ");
+  return parts.map((part) => `(${createCondition(part)})`).join(' OR ');
 };
 
 const createCondition = (part: string): string => {
@@ -157,18 +157,18 @@ const createCondition = (part: string): string => {
   if (isQuoted(part)) {
     return createExactMatchCondition(removeQuotes(part));
   }
-  if (part.includes(" ")) {
+  if (part.includes(' ')) {
     return createExactMatchCondition(part);
   }
   return createWebSearchQuery(part);
 };
 
-const isBooleanOperator = (part: string): boolean => ["and", "or"].includes(part.toLowerCase());
+const isBooleanOperator = (part: string): boolean => ['and', 'or'].includes(part.toLowerCase());
 
 const insertMissingBooleanOperators = (conditions: string[]): void => {
   for (let i = 1; i < conditions.length; i += 2) {
     if (!isBooleanOperator(conditions[i])) {
-      conditions.splice(i, 0, "AND");
+      conditions.splice(i, 0, 'AND');
     }
   }
 };
@@ -186,7 +186,7 @@ export const getMentionFidFromSearchTerm = async (term: string, viewerFid: strin
 };
 
 export const getFromFidFromSearchTerm = async (term: string, viewerFid: string) => {
-  const fromIndex = term.indexOf("from:");
+  const fromIndex = term.indexOf('from:');
   if (fromIndex === -1) {
     return;
   }
@@ -221,7 +221,7 @@ export const getCastsFromSearch = async ({
 }: getCastsFromSearchProps): Promise<CastsResponseResult> => {
   const mentionFid = await getMentionFidFromSearchTerm(term, viewerFid);
   const fromFid = await getFromFidFromSearchTerm(term, viewerFid);
-  console.log("getCastsFromSearch", term, filters);
+  console.log('getCastsFromSearch', term, filters);
   const searchResponse = await runFarcasterCastSearch({
     searchTerm: term,
     filters,

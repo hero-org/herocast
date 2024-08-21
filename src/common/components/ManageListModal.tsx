@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
-import Modal from "./Modal";
-import { usePostHog } from "posthog-js/react";
-import { useListStore } from "@/stores/useListStore";
-import { UUID } from "crypto";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { IntervalFilter } from "./IntervalFilter";
-import { Interval } from "../helpers/search";
-import { Switch } from "@/components/ui/switch";
-import { toastSuccessSavedSearchUpdate } from "../helpers/toast";
-import { BellIcon } from "@heroicons/react/24/outline";
+import React, { useEffect, useState } from 'react';
+import Modal from './Modal';
+import { usePostHog } from 'posthog-js/react';
+import { useListStore } from '@/stores/useListStore';
+import { UUID } from 'crypto';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { IntervalFilter } from './IntervalFilter';
+import { Interval } from '../helpers/search';
+import { Switch } from '@/components/ui/switch';
+import { toastSuccessSavedSearchUpdate } from '../helpers/toast';
+import { BellIcon } from '@heroicons/react/24/outline';
 
 const intervals = [Interval.d1, Interval.d7, Interval.d14];
 
@@ -18,8 +18,8 @@ const ManageListModal = ({ open, onClose }) => {
   const posthog = usePostHog();
 
   const { updateList, removeList } = useListStore();
-  const [newName, setNewName] = useState("");
-  const [newSearchTerm, setNewSearchTerm] = useState("");
+  const [newName, setNewName] = useState('');
+  const [newSearchTerm, setNewSearchTerm] = useState('');
   const [isDailyEmailEnabled, setIsDailyEmailEnabled] = useState(false);
 
   const list = useListStore((state) =>
@@ -33,7 +33,7 @@ const ManageListModal = ({ open, onClose }) => {
 
   const onClickDelete = (id: UUID) => {
     removeList(id);
-    posthog.capture("user_delete_list");
+    posthog.capture('user_delete_list');
   };
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const ManageListModal = ({ open, onClose }) => {
       toastSuccessSavedSearchUpdate(newName);
       onClose();
     });
-    posthog.capture("user_save_list");
+    posthog.capture('user_save_list');
   };
 
   if (!list) return null;

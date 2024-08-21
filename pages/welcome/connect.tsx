@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AccountObjectType, hydrateAccounts, useAccountStore } from "@/stores/useAccountStore";
-import { useAccount } from "wagmi";
-import ConfirmOnchainSignerButton from "@/common/components/ConfirmOnchainSignerButton";
-import SwitchWalletButton from "@/common/components/SwitchWalletButton";
-import { QrCode } from "@/common/components/QrCode";
-import { getTimestamp } from "@/common/helpers/farcaster";
-import { WarpcastLoginStatus, getWarpcastSignerStatus } from "@/common/helpers/warpcastLogin";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { useIsMounted } from "@/common/helpers/hooks";
-import { useRouter } from "next/router";
+import React, { useEffect, useState } from 'react';
+import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
+import { useAccount } from 'wagmi';
+import ConfirmOnchainSignerButton from '@/common/components/ConfirmOnchainSignerButton';
+import SwitchWalletButton from '@/common/components/SwitchWalletButton';
+import { QrCode } from '@/common/components/QrCode';
+import { getTimestamp } from '@/common/helpers/farcaster';
+import { WarpcastLoginStatus, getWarpcastSignerStatus } from '@/common/helpers/warpcastLogin';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { useIsMounted } from '@/common/helpers/hooks';
+import { useRouter } from 'next/router';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -50,7 +50,7 @@ const ConnectAccountPage = () => {
         data,
       });
       await hydrateAccounts();
-      router.push("/welcome/success");
+      router.push('/welcome/success');
     }
   };
 

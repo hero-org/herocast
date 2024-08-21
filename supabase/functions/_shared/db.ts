@@ -1,4 +1,4 @@
-import type { ColumnType } from "kysely";
+import type { ColumnType } from 'kysely';
 
 export type ArrayType<T> = ArrayTypeImpl<T> extends (infer U)[] ? U[] : ArrayTypeImpl<T>;
 

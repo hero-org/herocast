@@ -1,38 +1,38 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
-import { Input } from "@/components/ui/input";
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
+import { Input } from '@/components/ui/input';
 import {
   ID_GATEWAY_ADDRESS,
   KEY_GATEWAY_ADDRESS,
   KEY_REGISTRY_ADDRESS,
   SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
-} from "@farcaster/hub-web";
-import { ID_REGISTRY_ADDRESS } from "@farcaster/hub-web";
-import { publicClient } from "@/common/helpers/rainbowkit";
-import { useWaitForTransactionReceipt } from "wagmi";
-import { z } from "zod";
-import { parseEventLogs, zeroAddress } from "viem";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { HatsModulesClient, checkAndEncodeArgs } from "@hatsprotocol/modules-sdk";
-import { getCustomRegistry } from "../../lib/hats";
-import { openWindow } from "@/common/helpers/navigation";
-import { HatsModuleFactoryAbi } from "@/common/constants/contracts/HatsModuleFactory";
-import { AddressSchema } from "@hatsprotocol/modules-sdk/dist/schemas";
-import { optimism } from "wagmi/chains";
+} from '@farcaster/hub-web';
+import { ID_REGISTRY_ADDRESS } from '@farcaster/hub-web';
+import { publicClient } from '@/common/helpers/rainbowkit';
+import { useWaitForTransactionReceipt } from 'wagmi';
+import { z } from 'zod';
+import { parseEventLogs, zeroAddress } from 'viem';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { HatsModulesClient, checkAndEncodeArgs } from '@hatsprotocol/modules-sdk';
+import { getCustomRegistry } from '../../lib/hats';
+import { openWindow } from '@/common/helpers/navigation';
+import { HatsModuleFactoryAbi } from '@/common/constants/contracts/HatsModuleFactory';
+import { AddressSchema } from '@hatsprotocol/modules-sdk/dist/schemas';
+import { optimism } from 'wagmi/chains';
 
-const HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS: `0x${string}` = "0xa947334c33dadca4bcbb396395ecfd66601bb38c";
+const HATS_FARCASTER_DELEGATOR_CONTRACT_ADDRESS: `0x${string}` = '0xa947334c33dadca4bcbb396395ecfd66601bb38c';
 // const HATS_MODULE_FACTORY_ADDRESS: `0x${string}` = '0xfE661c01891172046feE16D3a57c3Cf456729efA';
 
 enum DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS {
-  "CONNECT_WALLET",
-  "EXECUTE_ONCHAIN",
-  "PENDING_ONCHAIN_CONFIRMATION",
-  "CONFIRMED",
-  "ERROR",
+  'CONNECT_WALLET',
+  'EXECUTE_ONCHAIN',
+  'PENDING_ONCHAIN_CONFIRMATION',
+  'CONFIRMED',
+  'ERROR',
 }
 
 type SignupStepType = {
@@ -45,33 +45,33 @@ type SignupStepType = {
 const HatsProtocolSignupSteps: SignupStepType[] = [
   {
     state: DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.EXECUTE_ONCHAIN,
-    title: "Connected",
-    description: "Enter Hats tree details to deploy your delegator contract onchain",
+    title: 'Connected',
+    description: 'Enter Hats tree details to deploy your delegator contract onchain',
     idx: 0,
   },
   {
     state: DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.PENDING_ONCHAIN_CONFIRMATION,
-    title: "",
-    description: "Pending onchain deployment",
+    title: '',
+    description: 'Pending onchain deployment',
     idx: 1,
   },
   {
     state: DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.CONFIRMED,
-    title: "",
-    description: "You have successfully deployed the contract onchain ✅",
+    title: '',
+    description: 'You have successfully deployed the contract onchain ✅',
     idx: 2,
   },
   {
     state: DEPLOY_HATS_DELEGATOR_CONTRACT_STEPS.ERROR,
-    title: "Error",
-    description: "Something went wrong",
+    title: 'Error',
+    description: 'Something went wrong',
     idx: 3,
   },
 ];
 
 const HatId = z.custom<string>((data) => {
   return String(data);
-}, "Invalid Hat ID");
+}, 'Invalid Hat ID');
 
 export type DeployHatsDelegatorContractFormValues = z.infer<typeof DeployHatsDelegatorContractFormSchema>;
 
@@ -96,8 +96,8 @@ const DeployHatsDelegatorContract = ({
   casterHatId,
 }: DeployHatsDelegatorContractProps) => {
   const [state, setState] = useState<SignupStepType>(HatsProtocolSignupSteps[0]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [onchainTransactionHash, setOnchainTransactionHash] = useState<`0x${string}`>("0x");
+  const [errorMessage, setErrorMessage] = useState('');
+  const [onchainTransactionHash, setOnchainTransactionHash] = useState<`0x${string}`>('0x');
   const form = useForm<DeployHatsDelegatorContractFormValues>({
     resolver: zodResolver(DeployHatsDelegatorContractFormSchema),
     defaultValues:
@@ -120,7 +120,7 @@ const DeployHatsDelegatorContract = ({
   const canSubmitForm = chainId === optimism.id && !!address;
 
   useEffect(() => {
-    if (onchainTransactionHash === "0x") return;
+    if (onchainTransactionHash === '0x') return;
 
     if (transactionResult?.data) {
       setState(HatsProtocolSignupSteps[2]);
@@ -131,7 +131,7 @@ const DeployHatsDelegatorContract = ({
       });
       const instance = logs[0].args.instance;
       setDelegatorContractAddress(instance);
-      console.log("transactionResult", transactionResult.data);
+      console.log('transactionResult', transactionResult.data);
     }
   }, [onchainTransactionHash, transactionResult]);
 
@@ -172,15 +172,15 @@ const DeployHatsDelegatorContract = ({
         immutableArgs,
         mutableArgs,
       });
-      console.log("createInstanceResult", createInstanceResult);
+      console.log('createInstanceResult', createInstanceResult);
       setOnchainTransactionHash(createInstanceResult.transactionHash);
     } catch (e: unknown) {
       if (e instanceof Error) {
         console.error(e);
         setErrorMessage(e.message);
       } else {
-        console.error("An unknown error occurred", e);
-        setErrorMessage("An unknown error occurred");
+        console.error('An unknown error occurred', e);
+        setErrorMessage('An unknown error occurred');
       }
       setState(HatsProtocolSignupSteps[3]);
     }
@@ -303,7 +303,7 @@ const DeployHatsDelegatorContract = ({
   };
 
   const onResetError = () => {
-    setErrorMessage("");
+    setErrorMessage('');
     setState(HatsProtocolSignupSteps[0]);
   };
 

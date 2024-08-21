@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAccount, useWalletClient } from "wagmi";
-import { UserDataType } from "@farcaster/hub-web";
+import React, { useEffect, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAccount, useWalletClient } from 'wagmi';
+import { UserDataType } from '@farcaster/hub-web';
 import {
   getFidForAddress,
   getSignatureForUsernameProof,
@@ -15,15 +15,15 @@ import {
   setUserDataInProtocol,
   updateUsernameOffchain,
   validateUsernameIsAvailable,
-} from "@/common/helpers/farcaster";
-import { getAddress } from "viem";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import { AccountPlatformType } from "@/common/constants/accounts";
-import { Cog6ToothIcon, ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { mainnet } from "viem/chains";
-import { switchChain } from "viem/actions";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+} from '@/common/helpers/farcaster';
+import { getAddress } from 'viem';
+import { AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
+import { AccountPlatformType } from '@/common/constants/accounts';
+import { Cog6ToothIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { mainnet } from 'viem/chains';
+import { switchChain } from 'viem/actions';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 export type RenameAccountFormValues = z.infer<typeof RenameAccountFormSchema>;
 
@@ -33,10 +33,10 @@ const RenameAccountFormSchema = z.object({
   username: z
     .string()
     .min(2, {
-      message: "Username must be at least 1 characters.",
+      message: 'Username must be at least 1 characters.',
     })
     .max(30, {
-      message: "Username must not be longer than 30 characters.",
+      message: 'Username must not be longer than 30 characters.',
     }),
 });
 
@@ -58,10 +58,10 @@ const RenameAccountForm = ({
 
   const form = useForm<RenameAccountFormValues>({
     resolver: zodResolver(RenameAccountFormSchema),
-    mode: "onSubmit",
+    mode: 'onSubmit',
   });
   const canSubmitForm = !isPending && isConnected && chainId === mainnet.id;
-  const hasUsernameInProtocol = !userInProtocol?.username.startsWith("!");
+  const hasUsernameInProtocol = !userInProtocol?.username.startsWith('!');
   useEffect(() => {
     const getUserInProtocol = async () => {
       const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
@@ -80,9 +80,9 @@ const RenameAccountForm = ({
   const validateUsername = async (username: string): Promise<boolean> => {
     const isValidNewUsername = await validateUsernameIsAvailable(username);
     if (!isValidNewUsername) {
-      form.setError("username", {
-        type: "manual",
-        message: "Username is already taken",
+      form.setError('username', {
+        type: 'manual',
+        message: 'Username is already taken',
       });
     }
     return isValidNewUsername;
@@ -93,9 +93,9 @@ const RenameAccountForm = ({
 
     if (account.platform === AccountPlatformType.farcaster) {
       return getFidForAddress(address).then(async (fid) => {
-        console.log("fid for wallet", fid, address, account.platformAccountId!);
+        console.log('fid for wallet', fid, address, account.platformAccountId!);
         if (fid === BigInt(account.platformAccountId!)) {
-          console.log("wallet owns fid");
+          console.log('wallet owns fid');
           return true;
         } else {
           const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
@@ -105,8 +105,8 @@ const RenameAccountForm = ({
           const custodyAddress = walletsResponse?.users?.[0]?.custody_address;
           const message = `Your connected wallet does not own the Farcaster account. Please connect with ${custodyAddress}. You are connected with ${address}`;
           console.log(message);
-          form.setError("username", {
-            type: "manual",
+          form.setError('username', {
+            type: 'manual',
             message,
           });
           return false;
@@ -119,7 +119,7 @@ const RenameAccountForm = ({
   };
 
   const renameAccount = async (data) => {
-    console.log("renameAccount - data", data);
+    console.log('renameAccount - data', data);
 
     if (!address || !client || !userInProtocol) return;
 
@@ -129,29 +129,29 @@ const RenameAccountForm = ({
     if (!(await validateConnectedWalletOwnsFid())) return;
     setIsPending(true);
 
-    console.log("herocast account", account);
-    console.log("userInProtocol", userInProtocol);
+    console.log('herocast account', account);
+    console.log('userInProtocol', userInProtocol);
     let timestamp = getTimestamp();
 
     try {
       const owner = getAddress(address);
       const existingOffchainUsername = await getUsernameForFid(Number(account.platformAccountId!));
-      console.log("offchain username", existingOffchainUsername);
+      console.log('offchain username', existingOffchainUsername);
       if (existingOffchainUsername) {
         const unregisterSignature = await getSignatureForUsernameProof(client, address, {
           name: existingOffchainUsername,
           owner,
           timestamp: BigInt(timestamp),
         });
-        console.log("unregisterSignature:", unregisterSignature);
+        console.log('unregisterSignature:', unregisterSignature);
         if (!unregisterSignature) {
-          throw new Error("Failed to get signature to unregister username");
+          throw new Error('Failed to get signature to unregister username');
         }
         // unregister old username
         await updateUsernameOffchain({
           timestamp,
           owner,
-          toFid: "0",
+          toFid: '0',
           fromFid: account.platformAccountId!,
           fid: account.platformAccountId!,
           username: existingOffchainUsername,
@@ -168,20 +168,20 @@ const RenameAccountForm = ({
         timestamp: BigInt(timestamp),
       });
       if (!registerSignature) {
-        throw new Error("Failed to get signature to register username");
+        throw new Error('Failed to get signature to register username');
       }
 
       // register new username
       const result = await updateUsernameOffchain({
         timestamp,
         owner,
-        fromFid: "0",
+        fromFid: '0',
         toFid: account.platformAccountId!,
         fid: account.platformAccountId!,
         username: username,
         signature: registerSignature,
       });
-      console.log("updateUsername result", result);
+      console.log('updateUsername result', result);
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       await setUserDataInProtocol(
@@ -192,9 +192,9 @@ const RenameAccountForm = ({
       );
       updateAccountUsername(account.id);
     } catch (e) {
-      console.error("renameAccount error", e);
-      form.setError("username", {
-        type: "manual",
+      console.error('renameAccount error', e);
+      form.setError('username', {
+        type: 'manual',
         message: `Error renaming account -> ${e}`,
       });
     } finally {
@@ -212,7 +212,7 @@ const RenameAccountForm = ({
             <FormItem>
               <FormLabel>New username</FormLabel>
               <FormControl>
-                <Input placeholder={hasUsernameInProtocol ? userInProtocol?.username : "New username"} {...field} />
+                <Input placeholder={hasUsernameInProtocol ? userInProtocol?.username : 'New username'} {...field} />
               </FormControl>
               <FormDescription>This will be your new public username on Farcaster.</FormDescription>
               <FormMessage />
@@ -226,7 +226,7 @@ const RenameAccountForm = ({
         )}
         <Button disabled={!canSubmitForm} variant="default" type="submit" className="w-74">
           {isPending && <Cog6ToothIcon className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
-          {hasUsernameInProtocol ? "Rename account" : "Set username"}
+          {hasUsernameInProtocol ? 'Rename account' : 'Set username'}
         </Button>
         {chainId !== mainnet.id && (
           <Button variant="default" className="ml-4" onClick={() => switchChain(client!, { id: mainnet.id })}>

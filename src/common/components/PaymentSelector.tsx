@@ -1,20 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-import { CheckIcon, CaretSortIcon } from "@radix-ui/react-icons";
+import { CheckIcon, CaretSortIcon } from '@radix-ui/react-icons';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-import { Command, CommandGroup, CommandItem, CommandList, CommandShortcut } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useAccount } from "wagmi";
-import { getChain, getGlidePaymentOptions } from "../helpers/glide";
-import { PaymentOption } from "node_modules/@paywithglide/glide-js/dist/types";
-import { Hex } from "viem";
-import { Loading } from "./Loading";
+import { Command, CommandGroup, CommandItem, CommandList, CommandShortcut } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useAccount } from 'wagmi';
+import { getChain, getGlidePaymentOptions } from '../helpers/glide';
+import { PaymentOption } from 'node_modules/@paywithglide/glide-js/dist/types';
+import { Hex } from 'viem';
+import { Loading } from './Loading';
 
 export interface RegistrationTransactionData {
   address?: Hex;
@@ -47,7 +47,7 @@ export function PaymentSelector({
 
   const updatePaymentOptions = async (): Promise<void> => {
     if (!address || !registerSignature || !publicKey || !metadata || !deadline) return;
-    console.log("updatePaymentOptions", registerPrice);
+    console.log('updatePaymentOptions', registerPrice);
     setIsLoading(true);
     setIsRetry(false);
     try {
@@ -61,7 +61,7 @@ export function PaymentSelector({
         deadline,
         price: registerPrice,
       });
-      console.log("glide paymentOptions", paymentOptions);
+      console.log('glide paymentOptions', paymentOptions);
       setPaymentOptions(paymentOptions);
       setIsLoading(false);
     } catch (error: any) {
@@ -94,13 +94,13 @@ export function PaymentSelector({
           {paymentOption ? (
             <div className="flex">
               <img src={paymentOption.currencyLogoURL} className="h-4 w-4 shrink-0 mr-1" />
-              {`${paymentOption.currencyName} on ${getChain(paymentOption.paymentCurrency.split("/")[0], "name")}`}
+              {`${paymentOption.currencyName} on ${getChain(paymentOption.paymentCurrency.split('/')[0], 'name')}`}
               <span className="ml-1 text-[0.8rem] text-muted-foreground">
                 ({`${paymentOption.balance} ${paymentOption.currencySymbol}`})
               </span>
             </div>
           ) : (
-            "Select token..."
+            'Select token...'
           )}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -123,7 +123,7 @@ export function PaymentSelector({
                   }}
                 >
                   <img src={option.currencyLogoURL} className="h-3 w-3 shrink-0 mr-1" />
-                  {`${option.currencyName} on ${getChain(option.paymentCurrency.split("/")[0], "name")}`}
+                  {`${option.currencyName} on ${getChain(option.paymentCurrency.split('/')[0], 'name')}`}
                   <span className="ml-1 text-[0.8rem] text-muted-foreground">
                     {`${option.balance} ${option.currencySymbol} (~$${Number(option.balanceUSD).toFixed(2)})`}
                   </span>
@@ -131,8 +131,8 @@ export function PaymentSelector({
                     <CommandShortcut>
                       <CheckIcon
                         className={cn(
-                          "mr-2 h-4 w-4",
-                          paymentOption.paymentCurrency === option.paymentCurrency ? "opacity-100" : "opacity-0"
+                          'mr-2 h-4 w-4',
+                          paymentOption.paymentCurrency === option.paymentCurrency ? 'opacity-100' : 'opacity-0'
                         )}
                       />
                     </CommandShortcut>
@@ -155,7 +155,7 @@ export function PaymentSelector({
           Retry
         </Button>
       ) : (
-        "No Payment Methods Available"
+        'No Payment Methods Available'
       )}
     </div>
   ) : (

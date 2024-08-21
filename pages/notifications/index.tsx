@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-import { castTextStyle } from "@/common/helpers/css";
-import { useAccountStore } from "../../src/stores/useAccountStore";
-import { SelectableListWithHotkeys } from "../../src/common/components/SelectableListWithHotkeys";
-import isEmpty from "lodash.isempty";
-import { useHotkeys } from "react-hotkeys-hook";
-import { Key } from "ts-key-enum";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { castTextStyle } from '@/common/helpers/css';
+import { useAccountStore } from '../../src/stores/useAccountStore';
+import { SelectableListWithHotkeys } from '../../src/common/components/SelectableListWithHotkeys';
+import isEmpty from 'lodash.isempty';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { Key } from 'ts-key-enum';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import {
   CastWithInteractions,
   Notification,
   NotificationTypeEnum,
   ReactionWithUserInfo,
-} from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { useDataStore } from "@/stores/useDataStore";
-import { Loading } from "@/common/components/Loading";
-import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import orderBy from "lodash.orderby";
-import { Button } from "@/components/ui/button";
+} from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useDataStore } from '@/stores/useDataStore';
+import { Loading } from '@/common/components/Loading';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import orderBy from 'lodash.orderby';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,25 +25,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useIsMobile, useIsMounted } from "@/common/helpers/hooks";
+} from '@/components/ui/dropdown-menu';
+import { useIsMobile, useIsMounted } from '@/common/helpers/hooks';
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CastRow } from "@/common/components/CastRow";
-import SkeletonCastRow from "@/common/components/SkeletonCastRow";
-import ProfileInfo from "@/common/components/Sidebar/ProfileInfo";
-import { cn } from "@/lib/utils";
-import { formatDistanceToNowStrict } from "date-fns";
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CastRow } from '@/common/components/CastRow';
+import SkeletonCastRow from '@/common/components/SkeletonCastRow';
+import ProfileInfo from '@/common/components/Sidebar/ProfileInfo';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNowStrict } from 'date-fns';
 
 const DEFAULT_SHOW_REACTIONS_LIMIT = 15;
 
 enum NotificationTab {
-  all = "all",
-  mentions = "mentions",
-  replies = "replies",
-  likes = "likes",
-  recasts = "recasts",
-  follows = "follows",
+  all = 'all',
+  mentions = 'mentions',
+  replies = 'replies',
+  likes = 'likes',
+  recasts = 'recasts',
+  follows = 'follows',
 }
 
 const notificationTabToType = (tab: NotificationTab) => {
@@ -94,7 +94,7 @@ const Notifications = () => {
   const [showReactionsLimit, setShowReactionsLimit] = useState<number>(DEFAULT_SHOW_REACTIONS_LIMIT);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
-  console.log("notifications", notifications);
+  console.log('notifications', notifications);
 
   useEffect(() => {
     // if navigating away, reset the selected cast
@@ -105,7 +105,7 @@ const Notifications = () => {
 
   const loadData = async ({ reset }: { reset?: boolean }) => {
     if (!viewerFid) return;
-    console.log("Notifications Page -> loadData | loadMoreCursor", loadMoreCursor);
+    console.log('Notifications Page -> loadData | loadMoreCursor', loadMoreCursor);
     setIsLoading(true);
     if (reset) {
       setNotifications([]);
@@ -168,20 +168,20 @@ const Notifications = () => {
     openNewCastModal();
   };
 
-  useHotkeys("r", onReply, [openNewCastModal], {
+  useHotkeys('r', onReply, [openNewCastModal], {
     enabled: !isNewCastModalOpen,
     enableOnFormTags: false,
     preventDefault: true,
   });
 
-  useHotkeys("q", onQuote, [openNewCastModal], {
+  useHotkeys('q', onQuote, [openNewCastModal], {
     enabled: !isNewCastModalOpen,
     enableOnFormTags: false,
     preventDefault: true,
   });
 
   useHotkeys(
-    ["tab", "shift+tab"],
+    ['tab', 'shift+tab'],
     () => {
       setIsLeftColumnSelected(!isLeftColumnSelected);
     },
@@ -192,15 +192,15 @@ const Notifications = () => {
     }
   );
 
-  useHotkeys("shift+1", () => setActiveTab(NotificationTab.all), [], {});
-  useHotkeys("shift+2", () => setActiveTab(NotificationTab.replies), [], {});
-  useHotkeys("shift+3", () => setActiveTab(NotificationTab.mentions), [], {});
-  useHotkeys("shift+4", () => setActiveTab(NotificationTab.likes), [], {});
-  useHotkeys("shift+5", () => setActiveTab(NotificationTab.recasts), [], {});
-  useHotkeys("shift+6", () => setActiveTab(NotificationTab.follows), [], {});
+  useHotkeys('shift+1', () => setActiveTab(NotificationTab.all), [], {});
+  useHotkeys('shift+2', () => setActiveTab(NotificationTab.replies), [], {});
+  useHotkeys('shift+3', () => setActiveTab(NotificationTab.mentions), [], {});
+  useHotkeys('shift+4', () => setActiveTab(NotificationTab.likes), [], {});
+  useHotkeys('shift+5', () => setActiveTab(NotificationTab.recasts), [], {});
+  useHotkeys('shift+6', () => setActiveTab(NotificationTab.follows), [], {});
 
   useHotkeys(
-    ["l", "o", Key.Enter, Key.ArrowRight],
+    ['l', 'o', Key.Enter, Key.ArrowRight],
     () => {
       setIsLeftColumnSelected(false);
     },
@@ -212,7 +212,7 @@ const Notifications = () => {
   );
 
   useHotkeys(
-    ["h", Key.Escape, Key.ArrowLeft],
+    ['h', Key.Escape, Key.ArrowLeft],
     () => {
       setIsLeftColumnSelected(true);
     },
@@ -227,9 +227,9 @@ const Notifications = () => {
     const cast = notification.cast;
     switch (notification.type) {
       case NotificationTypeEnum.Reply:
-        return cast ? `@${cast.author.username} replied` : "Someone replied";
+        return cast ? `@${cast.author.username} replied` : 'Someone replied';
       case NotificationTypeEnum.Mention:
-        return cast ? `@${cast.author.username} mentioned you` : "Someone mentioned you";
+        return cast ? `@${cast.author.username} mentioned you` : 'Someone mentioned you';
       case NotificationTypeEnum.Likes:
         return `Received ${notification.reactions?.length} likes`;
       case NotificationTypeEnum.Follows:
@@ -237,7 +237,7 @@ const Notifications = () => {
       case NotificationTypeEnum.Recasts:
         return `Received ${notification.reactions?.length} recasts`;
       default:
-        return "";
+        return '';
     }
   };
 
@@ -259,8 +259,8 @@ const Notifications = () => {
           }
         }}
         className={cn(
-          idx === selectedNotificationIdx ? "bg-muted" : "cursor-pointer bg-background/80 hover:bg-muted/10",
-          "flex gap-x-4 px-5 py-4 border-b border-muted"
+          idx === selectedNotificationIdx ? 'bg-muted' : 'cursor-pointer bg-background/80 hover:bg-muted/10',
+          'flex gap-x-4 px-5 py-4 border-b border-muted'
         )}
       >
         <img className="mt-1.5 rounded-lg h-10 w-10 flex-none bg-background" src={author?.pfp_url} alt="" />
@@ -288,7 +288,7 @@ const Notifications = () => {
   const renderLoadNotificationsButton = () => (
     <div className="flex justify-center my-8">
       <Button variant="outline" size="lg" disabled={isLoading} onClick={() => loadData({ reset: false })}>
-        {isLoading ? <Loading /> : `Load ${notifications.length === 0 ? "" : "more"}`}
+        {isLoading ? <Loading /> : `Load ${notifications.length === 0 ? '' : 'more'}`}
       </Button>
     </div>
   );
@@ -310,8 +310,8 @@ const Notifications = () => {
     return (
       <div
         className={cn(
-          "overflow-hidden rounded-l-lg border",
-          isLeftColumnSelected ? "border-muted-foreground/20" : "border-muted-foreground"
+          'overflow-hidden rounded-l-lg border',
+          isLeftColumnSelected ? 'border-muted-foreground/20' : 'border-muted-foreground'
         )}
       >
         <div key={`left-column-${activeTab}`} className="divide-y divide-white/5">
@@ -332,7 +332,7 @@ const Notifications = () => {
   const renderProfilesFromReactions = (reactions?: ReactionWithUserInfo[]) => {
     if (!reactions) return null;
 
-    const reactionFids = orderBy(reactions, ["user.follower_count"], ["desc"])
+    const reactionFids = orderBy(reactions, ['user.follower_count'], ['desc'])
       .slice(0, showReactionsLimit)
       .map((reaction) => reaction.user.fid);
     return (
@@ -361,8 +361,8 @@ const Notifications = () => {
     return (
       <div
         className={cn(
-          isLeftColumnSelected ? "hidden md:block border-muted-foreground" : "border-muted-foreground/20",
-          "flex-1 rounded-lg border md:rounded-l-none lg:border-0"
+          isLeftColumnSelected ? 'hidden md:block border-muted-foreground' : 'border-muted-foreground/20',
+          'flex-1 rounded-lg border md:rounded-l-none lg:border-0'
         )}
       >
         {renderGoBack()}
@@ -439,18 +439,18 @@ const Notifications = () => {
           >
             <div className="w-full md:max-w-xl md:mx-4">
               <TabsList className="grid grid-cols-3 md:grid-cols-6">
-                {renderTabsTrigger(NotificationTab.all, "All")}
-                {renderTabsTrigger(NotificationTab.replies, "Replies")}
-                {renderTabsTrigger(NotificationTab.mentions, "Mentions")}
-                {renderTabsTrigger(NotificationTab.likes, "Likes")}
-                {renderTabsTrigger(NotificationTab.recasts, "Recasts")}
-                {renderTabsTrigger(NotificationTab.follows, "Follows")}
+                {renderTabsTrigger(NotificationTab.all, 'All')}
+                {renderTabsTrigger(NotificationTab.replies, 'Replies')}
+                {renderTabsTrigger(NotificationTab.mentions, 'Mentions')}
+                {renderTabsTrigger(NotificationTab.likes, 'Likes')}
+                {renderTabsTrigger(NotificationTab.recasts, 'Recasts')}
+                {renderTabsTrigger(NotificationTab.follows, 'Follows')}
               </TabsList>
             </div>
             <div className="mt-4">
               <div className="mx-auto flex w-full max-w-7xl items-start px-0 md:px-4">
                 <div
-                  className={cn(isLeftColumnSelected ? "block" : "hidden md:block", "w-full md:w-1/3 md:1/2 shrink-0")}
+                  className={cn(isLeftColumnSelected ? 'block' : 'hidden md:block', 'w-full md:w-1/3 md:1/2 shrink-0')}
                 >
                   {renderLeftColumn()}
                 </div>

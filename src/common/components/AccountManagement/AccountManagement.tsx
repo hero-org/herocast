@@ -1,10 +1,10 @@
-import React from "react";
-import { AccountObjectType } from "@/stores/useAccountStore";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import RenameAccountForm from "./RenameAccountForm";
-import ChangeBioForm from "./ChangeBioForm";
-import ChangeDisplayNameForm from "./ChangeDisplayNameForm";
-import ChangeProfilePictureForm from "./ChangeProfilePictureForm";
+import React from 'react';
+import { AccountObjectType } from '@/stores/useAccountStore';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import RenameAccountForm from './RenameAccountForm';
+import ChangeBioForm from './ChangeBioForm';
+import ChangeDisplayNameForm from './ChangeDisplayNameForm';
+import ChangeProfilePictureForm from './ChangeProfilePictureForm';
 
 type AccountManagementProps = {
   account: AccountObjectType;
@@ -12,28 +12,28 @@ type AccountManagementProps = {
 };
 
 enum AccountManagementTab {
-  NAME = "NAME",
-  PROFILE_PICTURE = "PROFILE_PICTURE",
-  BIO = "BIO",
-  DISPLAY_NAME = "DISPLAY_NAME",
+  NAME = 'NAME',
+  PROFILE_PICTURE = 'PROFILE_PICTURE',
+  BIO = 'BIO',
+  DISPLAY_NAME = 'DISPLAY_NAME',
 }
 
 const AccountManagementTabs = [
   {
     key: AccountManagementTab.DISPLAY_NAME,
-    label: "Display Name",
+    label: 'Display Name',
   },
   {
     key: AccountManagementTab.PROFILE_PICTURE,
-    label: "Profile Picture",
+    label: 'Profile Picture',
   },
   {
     key: AccountManagementTab.BIO,
-    label: "Bio",
+    label: 'Bio',
   },
   {
     key: AccountManagementTab.NAME,
-    label: "Name",
+    label: 'Name',
   },
 ];
 

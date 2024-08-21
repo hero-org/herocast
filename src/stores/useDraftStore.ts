@@ -1,36 +1,36 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/require-await */
 
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { create as mutativeCreate, Draft } from "mutative";
-import { CommandType } from "@/common/constants/commands";
-import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { AccountObjectType, useAccountStore } from "./useAccountStore";
-import { DraftStatus, DraftType, ParentCastIdType } from "@/common/constants/farcaster";
-import { getMentionFidsByUsernames, formatPlaintextToHubCastMessage } from "@mod-protocol/farcaster";
-import { submitCast } from "@/common/helpers/farcaster";
-import { toBytes, toHex } from "viem";
-import { CastAddBody, CastId, Embed } from "@farcaster/hub-web";
-import { AccountPlatformType } from "@/common/constants/accounts";
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { create as mutativeCreate, Draft } from 'mutative';
+import { CommandType } from '@/common/constants/commands';
+import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { AccountObjectType, useAccountStore } from './useAccountStore';
+import { DraftStatus, DraftType, ParentCastIdType } from '@/common/constants/farcaster';
+import { getMentionFidsByUsernames, formatPlaintextToHubCastMessage } from '@mod-protocol/farcaster';
+import { submitCast } from '@/common/helpers/farcaster';
+import { toBytes, toHex } from 'viem';
+import { CastAddBody, CastId, Embed } from '@farcaster/hub-web';
+import { AccountPlatformType } from '@/common/constants/accounts';
 import {
   toastErrorCastPublish,
   toastInfoReadOnlyMode,
   toastSuccessCastPublished,
   toastSuccessCastScheduled,
-} from "@/common/helpers/toast";
-import { NewPostDraft } from "@/common/constants/postDrafts";
-import type { FarcasterEmbed } from "@mod-protocol/farcaster";
-import { createClient } from "@/common/helpers/supabase/component";
-import { UUID } from "crypto";
-import { v4 as uuidv4 } from "uuid";
-import uniqBy from "lodash.uniqby";
-import { CastModalView, useNavigationStore } from "./useNavigationStore";
+} from '@/common/helpers/toast';
+import { NewPostDraft } from '@/common/constants/postDrafts';
+import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import { createClient } from '@/common/helpers/supabase/component';
+import { UUID } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
+import uniqBy from 'lodash.uniqby';
+import { CastModalView, useNavigationStore } from './useNavigationStore';
 
 const prepareCastBodyForDB = (castBody) => {
   if (castBody.embeds) {
     castBody.embeds.forEach((embed) => {
-      if ("castId" in embed) {
+      if ('castId' in embed) {
         embed.castId = {
           fid: embed.castId.fid,
           hash: embed?.castId?.hash.toString(),
@@ -52,7 +52,7 @@ export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
   });
 
   if (!castBody) {
-    throw new Error("Failed to prepare cast");
+    throw new Error('Failed to prepare cast');
   }
   if (castBody.parentCastId) {
     castBody.parentCastId = {
@@ -62,7 +62,7 @@ export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
   }
   if (castBody.embeds) {
     castBody.embeds.forEach((embed) => {
-      if ("castId" in embed) {
+      if ('castId' in embed) {
         embed.castId = {
           fid: Number(embed?.castId?.fid),
           hash: toBytes(embed?.castId?.hash),
@@ -101,7 +101,7 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
   } = draft;
   return {
     id: draft.id,
-    text: data.rawText || "",
+    text: data.rawText || '',
     parentUrl: data.parentUrl || undefined,
     parentCastId: data.parentCastId
       ? {
@@ -202,7 +202,7 @@ const store = (set: StoreSet) => ({
       const id = uuidv4();
       const newDraft = {
         ...NewPostDraft,
-        text: text || "",
+        text: text || '',
         id,
         parentUrl,
         parentCastId,
@@ -296,7 +296,7 @@ const store = (set: StoreSet) => ({
           status: DraftStatus.publishing,
         });
         const castBody = await prepareCastBody(draft);
-        console.log("castBody", castBody);
+        console.log('castBody', castBody);
         const hash = await submitCast({
           ...castBody,
           signerPrivateKey: account.privateKey!,
@@ -314,7 +314,7 @@ const store = (set: StoreSet) => ({
 
         if (onPost) onPost();
       } catch (error) {
-        console.error("caught error in newPostStore", error);
+        console.error('caught error in newPostStore', error);
         toastErrorCastPublish(error instanceof Error ? error.message : String(error));
       }
     });
@@ -327,7 +327,7 @@ const store = (set: StoreSet) => ({
       const accountState = useAccountStore.getState();
       const account = accountState.accounts[accountState.selectedAccountIdx];
       await supabaseClient
-        .from("draft")
+        .from('draft')
         .insert({
           account_id: account.id,
           data: { ...castBody, rawText: draft.text },
@@ -337,7 +337,7 @@ const store = (set: StoreSet) => ({
         .select()
         .then(({ data, error }) => {
           if (error || !data) {
-            console.error("Failed to add scheduled draft", error, data);
+            console.error('Failed to add scheduled draft', error, data);
             return;
           }
 
@@ -350,13 +350,13 @@ const store = (set: StoreSet) => ({
   },
   removeScheduledDraftFromDB: async (draftId: UUID): Promise<boolean> => {
     const { data, error } = await supabaseClient
-      .from("draft")
+      .from('draft')
       .update({ status: DraftStatus.removed })
-      .eq("id", draftId)
+      .eq('id', draftId)
       .select();
 
     if (error || !data) {
-      console.error("Failed to remove scheduled draft", error, data);
+      console.error('Failed to remove scheduled draft', error, data);
       return false;
     }
 
@@ -368,24 +368,24 @@ const store = (set: StoreSet) => ({
   },
   hydrate: async () => {
     supabaseClient
-      .from("draft")
-      .select("*")
-      .neq("status", DraftStatus.removed)
+      .from('draft')
+      .select('*')
+      .neq('status', DraftStatus.removed)
       .then(({ data, error }) => {
         if (error || !data) {
-          console.error("Failed to hydrate drafts", error, data);
+          console.error('Failed to hydrate drafts', error, data);
           return;
         }
         const state = useDraftStore.getState();
         const dbDrafts = data.map(tranformDBDraftForLocalStore);
-        state.drafts = uniqBy([...dbDrafts, ...state.drafts], "id");
+        state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
         state.isHydrated = true;
       });
   },
 });
 export const useDraftStore = create<DraftStore>()(
   persist(mutative(store), {
-    name: "herocast-post-store",
+    name: 'herocast-post-store',
     storage: createJSONStorage(() => sessionStorage),
     partialize: (state) => ({
       drafts: state.drafts,
@@ -396,10 +396,10 @@ export const useDraftStore = create<DraftStore>()(
 
 export const newPostCommands: CommandType[] = [
   {
-    name: "New Post",
-    aliases: ["cast", "write", "create", "compose", "draft"],
+    name: 'New Post',
+    aliases: ['cast', 'write', 'create', 'compose', 'draft'],
     icon: PlusCircleIcon,
-    shortcut: "c",
+    shortcut: 'c',
     action: () => {
       useDraftStore.getState().addNewPostDraft({
         onSuccess(draftId) {
@@ -417,10 +417,10 @@ export const newPostCommands: CommandType[] = [
     },
   },
   {
-    name: "Remove all drafts",
-    aliases: ["cleanup"],
+    name: 'Remove all drafts',
+    aliases: ['cleanup'],
     icon: TrashIcon,
     action: () => useDraftStore.getState().removeAllPostDrafts(),
-    navigateTo: "/post",
+    navigateTo: '/post',
   },
 ];

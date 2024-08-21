@@ -1,10 +1,10 @@
-import { BUNDLER_ADDRESS, bundlerABI } from "@farcaster/hub-web";
-import { createGlideClient, Chains } from "@paywithglide/glide-js";
-import { encodeFunctionData, toHex } from "viem";
-import { WARPCAST_RECOVERY_PROXY } from "./farcaster";
-import { RegistrationTransactionData } from "../components/PaymentSelector";
-import { PaymentOption } from "node_modules/@paywithglide/glide-js/dist/types";
-import { isDev } from "./env";
+import { BUNDLER_ADDRESS, bundlerABI } from '@farcaster/hub-web';
+import { createGlideClient, Chains } from '@paywithglide/glide-js';
+import { encodeFunctionData, toHex } from 'viem';
+import { WARPCAST_RECOVERY_PROXY } from './farcaster';
+import { RegistrationTransactionData } from '../components/PaymentSelector';
+import { PaymentOption } from 'node_modules/@paywithglide/glide-js/dist/types';
+import { isDev } from './env';
 
 const chains = isDev()
   ? [
@@ -21,12 +21,12 @@ const chains = isDev()
   : [Chains.Optimism, Chains.Ethereum, Chains.Base, Chains.Arbitrum, Chains.Avalanche, Chains.Polygon, Chains.Zora];
 
 export const glideClient = createGlideClient({
-  projectId: process.env.NEXT_PUBLIC_GLIDE_PROJECT_ID || "",
+  projectId: process.env.NEXT_PUBLIC_GLIDE_PROJECT_ID || '',
   chains,
 });
 
 export function getChain(chainAddress: string, property?: string) {
-  const [, chainIdStr] = chainAddress.split(":");
+  const [, chainIdStr] = chainAddress.split(':');
   const chain = chains.find((chain) => chain.id === parseInt(chainIdStr));
   if (property && chain && chain[property]) {
     return chain[property];
@@ -52,7 +52,7 @@ export const getGlidePaymentOptions = async ({
       value: toHex(price),
       input: encodeFunctionData({
         abi: bundlerABI,
-        functionName: "register",
+        functionName: 'register',
         args: [
           {
             to: address,

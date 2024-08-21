@@ -1,7 +1,7 @@
 export enum SearchInterval {
-  d1 = "1 day",
-  d7 = "7 days",
-  d30 = "30 days",
+  d1 = '1 day',
+  d7 = '7 days',
+  d30 = '30 days',
 }
 
 export type RawSearchResult = {
@@ -32,7 +32,7 @@ export type RunFarcasterCastSearchParams = {
 const prepareSearchTerm = (term: string): string => {
   // remove from:username
   // remove whitespaces in front and back
-  return term.replace(/from:\S+/g, "").trim();
+  return term.replace(/from:\S+/g, '').trim();
 };
 
 export type SearchResponse = {
@@ -54,13 +54,13 @@ const getSearchUrl = ({
 }: RunFarcasterCastSearchParams): string => {
   const term = prepareSearchTerm(searchTerm);
   const params = new URLSearchParams({ term });
-  if (limit) params.append("limit", limit.toString());
-  if (offset) params.append("offset", offset.toString());
-  if (interval) params.append("interval", interval);
-  if (orderBy) params.append("orderBy", orderBy);
-  if (mentionFid) params.append("mentionFid", mentionFid.toString());
+  if (limit) params.append('limit', limit.toString());
+  if (offset) params.append('offset', offset.toString());
+  if (interval) params.append('interval', interval);
+  if (orderBy) params.append('orderBy', orderBy);
+  if (mentionFid) params.append('mentionFid', mentionFid.toString());
   if (fromFid) {
-    params.append("fromFid", fromFid.toString());
+    params.append('fromFid', fromFid.toString());
   }
   if (filters) {
     Object.keys(filters).forEach((key) => {
@@ -69,8 +69,8 @@ const getSearchUrl = ({
       }
     });
   }
-  if (!params.get("interval")) {
-    params.set("interval", SearchInterval.d7);
+  if (!params.get('interval')) {
+    params.set('interval', SearchInterval.d7);
   }
   if (!baseUrl) {
     baseUrl = process.env.NEXT_PUBLIC_URL;
@@ -86,7 +86,7 @@ export const runFarcasterCastSearch = async (params: RunFarcasterCastSearchParam
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Failed to search for text", params.searchTerm, error);
+    console.error('Failed to search for text', params.searchTerm, error);
     return { error: error as unknown as string, isTimeout: false };
   }
 };

@@ -1,10 +1,10 @@
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from '@sentry/nextjs';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   swcMinify: false,
   // output: 'export', // Outputs a Single-Page Application (SPA).
   // distDir: './dist', // Changes the build output directory to `./dist/`.
-  transpilePackages: ["react-tweet"], // https://react-tweet.vercel.app/next,
+  transpilePackages: ['react-tweet'], // https://react-tweet.vercel.app/next,
   typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete even if
@@ -15,25 +15,25 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: "*",
-        protocol: "http",
+        hostname: '*',
+        protocol: 'http',
       },
       {
-        hostname: "*",
-        protocol: "https",
+        hostname: '*',
+        protocol: 'https',
       },
     ],
   },
   async redirects() {
     return [
       {
-        source: "/demo",
-        destination: "/login",
+        source: '/demo',
+        destination: '/login',
         permanent: false,
       },
       {
-        source: "/",
-        destination: "/login",
+        source: '/',
+        destination: '/login',
         permanent: false,
       },
     ];
@@ -41,20 +41,20 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/api/search",
+        source: '/api/search',
         headers: [
           {
-            key: "Cache-Control",
-            value: "public, max-age=300, s-maxage=300, stale-while-revalidate=300",
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=300, stale-while-revalidate=300',
           },
         ],
       },
       {
-        source: "/api/additionalProfileInfo",
+        source: '/api/additionalProfileInfo',
         headers: [
           {
-            key: "Cache-Control",
-            value: "public, max-age=3600, s-maxage=3600, stale-while-revalidate=3600",
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=3600',
           },
         ],
       },
@@ -70,8 +70,8 @@ export default withSentryConfig(
 
     // Suppresses source map uploading logs during build
     silent: true,
-    org: "herocast-xyz",
-    project: "herocast",
+    org: 'herocast-xyz',
+    project: 'herocast',
   },
   {
     // For all available options, see:

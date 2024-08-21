@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { ChannelType } from "../constants/channels";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loading } from "./Loading";
-import { Button } from "@/components/ui/button";
-import { formatLargeNumber } from "../helpers/text";
+import React, { useEffect, useState, useMemo, useCallback, memo } from 'react';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { ChannelType } from '../constants/channels';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Loading } from './Loading';
+import { Button } from '@/components/ui/button';
+import { formatLargeNumber } from '../helpers/text';
 
 type ProfileHoverCardProps = {
   channelName: string;
@@ -19,7 +19,7 @@ const ChannelHoverCard = memo(({ channelName, children, className }: ProfileHove
   const [channel, setChannel] = useState<ChannelType | undefined>();
 
   const foundChannel = useMemo(() => {
-    const findableName = channelName.replace(/[-\s]\//g, "").toLowerCase();
+    const findableName = channelName.replace(/[-\s]\//g, '').toLowerCase();
     return allChannels.find((c) => c.name.toLowerCase() === findableName);
   }, [channelName, allChannels]);
 
@@ -62,7 +62,7 @@ const ChannelHoverCard = memo(({ channelName, children, className }: ProfileHove
               View
             </Button>
             <Button variant="outline" size="sm" onClick={onClickTogglePin}>
-              {isChannelPinned ? "Unpin" : "Pin"}
+              {isChannelPinned ? 'Unpin' : 'Pin'}
             </Button>
           </div>
         </div>
@@ -98,6 +98,6 @@ const ChannelHoverCard = memo(({ channelName, children, className }: ProfileHove
   );
 });
 
-ChannelHoverCard.displayName = "ChannelHoverCard";
+ChannelHoverCard.displayName = 'ChannelHoverCard';
 
 export default ChannelHoverCard;

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { CastParamType, CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { useRouter } from "next/router";
-import { CastThreadView } from "@/common/components/CastThreadView";
-import { useDataStore } from "@/stores/useDataStore";
+import React, { useEffect, useState } from 'react';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { CastParamType, CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useRouter } from 'next/router';
+import { CastThreadView } from '@/common/components/CastThreadView';
+import { useDataStore } from '@/stores/useDataStore';
 
 export default function ConversationPage() {
   const router = useRouter();
@@ -33,8 +33,8 @@ export default function ConversationPage() {
   useEffect(() => {
     const getData = async () => {
       if (!slug || slug.length === 0) return;
-      if (slug.length === 1 && !slug[0].startsWith("0x")) return;
-      if (slug.length === 2 && !slug[1].startsWith("0x")) return;
+      if (slug.length === 1 && !slug[0].startsWith('0x')) return;
+      if (slug.length === 2 && !slug[1].startsWith('0x')) return;
 
       try {
         const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);

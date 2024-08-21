@@ -1,42 +1,42 @@
-import React, { ReactNode, useEffect, useState } from "react";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import StepSequence from "@/common/components/Steps/StepSequence";
-import RegisterFarcasterUsernameForm from "@/common/components/RegisterFarcasterUsernameForm";
-import CreateFarcasterAccount from "@/common/components/CreateFarcasterAccount";
-import { useAccount } from "wagmi";
-import { useRouter } from "next/router";
-import SwitchWalletButton from "@/common/components/SwitchWalletButton";
-import { CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from "@/stores/useAccountStore";
-import { SidebarNavItem } from "@/common/components/Steps/SidebarNav";
-import { getFidForAddress } from "@/common/helpers/farcaster";
+import React, { ReactNode, useEffect, useState } from 'react';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import StepSequence from '@/common/components/Steps/StepSequence';
+import RegisterFarcasterUsernameForm from '@/common/components/RegisterFarcasterUsernameForm';
+import CreateFarcasterAccount from '@/common/components/CreateFarcasterAccount';
+import { useAccount } from 'wagmi';
+import { useRouter } from 'next/router';
+import SwitchWalletButton from '@/common/components/SwitchWalletButton';
+import { CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
+import { SidebarNavItem } from '@/common/components/Steps/SidebarNav';
+import { getFidForAddress } from '@/common/helpers/farcaster';
 
 enum FarcasterSignupNav {
-  login = "LOGIN",
-  connect_wallet = "CONNECT_WALLET",
-  create_account_onchain = "CREATE_ACCOUNT_ONCHAIN",
-  register_username = "REGISTER_USERNAME",
-  explainer = "EXPLAINER",
+  login = 'LOGIN',
+  connect_wallet = 'CONNECT_WALLET',
+  create_account_onchain = 'CREATE_ACCOUNT_ONCHAIN',
+  register_username = 'REGISTER_USERNAME',
+  explainer = 'EXPLAINER',
 }
 
 const onboardingNavItems: SidebarNavItem[] = [
   {
-    title: "Login",
+    title: 'Login',
     idx: 0,
     keys: [FarcasterSignupNav.login],
   },
   {
-    title: "Connect wallet",
+    title: 'Connect wallet',
     idx: 1,
     keys: [FarcasterSignupNav.connect_wallet],
   },
   {
-    title: "Create account onchain",
+    title: 'Create account onchain',
     idx: 2,
     keys: [FarcasterSignupNav.create_account_onchain],
   },
   {
-    title: "Register username",
+    title: 'Register username',
     idx: 3,
     keys: [FarcasterSignupNav.register_username],
   },
@@ -82,7 +82,7 @@ export default function Welcome() {
   }, [isConnected, address]);
 
   const validateWalletHasNoFid = async (): Promise<void> => {
-    setError("");
+    setError('');
     if (!isConnected || !address) {
       return;
     }
@@ -106,12 +106,12 @@ export default function Welcome() {
           variant="default"
           onClick={() => {
             setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
-            router.push("/feeds");
+            router.push('/feeds');
           }}
         >
           Start exploring
         </Button>
-        <Button variant="outline" onClick={() => router.push("/post")}>
+        <Button variant="outline" onClick={() => router.push('/post')}>
           Post your first cast
         </Button>
       </div>
@@ -122,16 +122,16 @@ export default function Welcome() {
     switch (step) {
       case FarcasterSignupNav.login:
         return getStepContent(
-          "Login",
-          "Congrats, you are already logged in to herocast.",
+          'Login',
+          'Congrats, you are already logged in to herocast.',
           <div className="flex flex-col gap-4">
             <Button onClick={() => setStep(FarcasterSignupNav.connect_wallet)}>Next step</Button>
           </div>
         );
       case FarcasterSignupNav.connect_wallet:
         return getStepContent(
-          "Connect your wallet",
-          "We will create a Farcaster account onchain in the next step.",
+          'Connect your wallet',
+          'We will create a Farcaster account onchain in the next step.',
           <div className="flex flex-col gap-4">
             <SwitchWalletButton />
             <Separator />
@@ -155,7 +155,7 @@ export default function Welcome() {
         );
       case FarcasterSignupNav.create_account_onchain:
         return getStepContent(
-          "Create your Farcaster account",
+          'Create your Farcaster account',
           "Let's get you onchain",
           <CreateFarcasterAccount
             isAddressValid={isAddressValid}
@@ -167,12 +167,12 @@ export default function Welcome() {
         );
       case FarcasterSignupNav.register_username:
         return getStepContent(
-          "Register your username",
-          "Submit name and bio of your Farcaster account",
+          'Register your username',
+          'Submit name and bio of your Farcaster account',
           <RegisterFarcasterUsernameForm onSuccess={() => setStep(FarcasterSignupNav.explainer)} />
         );
       case FarcasterSignupNav.explainer:
-        return getStepContent("Let's go 🤩", "You just created your Farcaster account", renderExplainer());
+        return getStepContent("Let's go 🤩", 'You just created your Farcaster account', renderExplainer());
       default:
         return <></>;
     }

@@ -1,22 +1,22 @@
-import { GET, POST } from "@frames.js/render/next";
-import { NextRequest, NextResponse } from "next/server";
+import { GET, POST } from '@frames.js/render/next';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const { method } = req;
 
-  if (pathname === "/api/frames") {
+  if (pathname === '/api/frames') {
     try {
       let response: Response;
 
-      if (method === "GET") {
+      if (method === 'GET') {
         response = await GET(req);
-      } else if (method === "POST") {
+      } else if (method === 'POST') {
         response = await POST(req);
       } else {
-        return new NextResponse(JSON.stringify({ error: "Method Not Allowed" }), {
+        return new NextResponse(JSON.stringify({ error: 'Method Not Allowed' }), {
           status: 405,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json' },
         });
       }
 
@@ -30,9 +30,9 @@ export async function middleware(req: NextRequest) {
 
       return response;
     } catch (error) {
-      return new NextResponse(JSON.stringify({ error: "Internal Server Error" }), {
+      return new NextResponse(JSON.stringify({ error: 'Internal Server Error' }), {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -41,5 +41,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  unstable_allowDynamic: ["/node_modules/@protobufjs/inquire/index.js"],
+  unstable_allowDynamic: ['/node_modules/@protobufjs/inquire/index.js'],
 };

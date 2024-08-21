@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { makeGraphqlRequest } from "@/common/helpers/graphql";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
-import get from "lodash.get";
-import isEmpty from "lodash.isempty";
-import { openWindow } from "../../helpers/navigation";
+import React, { useEffect, useState } from 'react';
+import { makeGraphqlRequest } from '@/common/helpers/graphql';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import get from 'lodash.get';
+import isEmpty from 'lodash.isempty';
+import { openWindow } from '../../helpers/navigation';
 
 type StatsType = {
   name: string;
@@ -12,10 +12,10 @@ type StatsType = {
 };
 
 const NOUNS_BUILDER_GRAPHQL_ENDPOINT = {
-  mainnet: "https://api.thegraph.com/subgraphs/name/neokry/nouns-builder-mainnet",
-  ethereum: "https://api.thegraph.com/subgraphs/name/neokry/nouns-builder-mainnet",
-  zora: "https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-zora-mainnet/stable/gn",
-  optimism: "https://api.thegraph.com/subgraphs/name/neokry/noun-builder-optimism-mainnet",
+  mainnet: 'https://api.thegraph.com/subgraphs/name/neokry/nouns-builder-mainnet',
+  ethereum: 'https://api.thegraph.com/subgraphs/name/neokry/nouns-builder-mainnet',
+  zora: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-zora-mainnet/stable/gn',
+  optimism: 'https://api.thegraph.com/subgraphs/name/neokry/noun-builder-optimism-mainnet',
 };
 
 const query = `
@@ -57,28 +57,28 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
 
   useEffect(() => {
     const getData = async () => {
-      let chain = "mainnet";
-      let tokenAddress = "",
+      let chain = 'mainnet';
+      let tokenAddress = '',
         proposalNumber: number | null = null,
-        proposalId = "",
+        proposalId = '',
         tokenId: number | null = null;
-      const firstParam = url.split("https://nouns.build/dao/")[1].split("/")[0];
-      if (firstParam.startsWith("0x")) {
+      const firstParam = url.split('https://nouns.build/dao/')[1].split('/')[0];
+      if (firstParam.startsWith('0x')) {
         tokenAddress = firstParam;
       } else {
-        tokenAddress = url.split("https://nouns.build/dao/")[1].split("/")[1];
+        tokenAddress = url.split('https://nouns.build/dao/')[1].split('/')[1];
         chain = firstParam;
       }
 
-      const proposalStr = url.split("vote/")[1];
+      const proposalStr = url.split('vote/')[1];
       if (proposalStr) {
-        if (proposalStr.startsWith("0x")) {
+        if (proposalStr.startsWith('0x')) {
           proposalId = proposalStr;
         } else {
           proposalNumber = parseInt(proposalStr);
         }
       } else {
-        const urlParts = url.split("/");
+        const urlParts = url.split('/');
         tokenId = parseInt(urlParts[urlParts.length - 1]);
       }
 
@@ -91,7 +91,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
 
       const endpoint = get(NOUNS_BUILDER_GRAPHQL_ENDPOINT, chain);
       if (!endpoint) {
-        console.error("NounsBuildEmbed: no endpoint for chain", chain);
+        console.error('NounsBuildEmbed: no endpoint for chain', chain);
         return;
       }
 
@@ -100,39 +100,39 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
     try {
       getData();
     } catch (e) {
-      console.log("NounsBuildEmbed: ", url, "error", e);
+      console.log('NounsBuildEmbed: ', url, 'error', e);
     }
   }, []);
 
   const getProposalStatus = (proposal) => {
     if (proposal.voteEnd * 1000 < Date.now()) {
       if (proposal.executed) {
-        return "Executed";
+        return 'Executed';
       } else if (proposal.queued) {
-        return "Queued";
+        return 'Queued';
       } else if (proposal.canceled) {
-        return "Canceled";
+        return 'Canceled';
       }
-      return "Done";
+      return 'Done';
     }
     if (proposal.voteStart * 1000 > Date.now()) {
-      return "Not started";
+      return 'Not started';
     }
-    return "In progress";
+    return 'In progress';
   };
 
   const getProposalStats = (proposal) => {
     return [
-      { name: "Status", value: getProposalStatus(proposal) },
-      { name: "Voted for", value: proposal.forVotes, unit: "votes" },
-      { name: "Voted against", value: proposal.againstVotes, unit: "votes" },
-      { name: "Vote threshold", value: proposal.quorumVotes, unit: "votes" },
+      { name: 'Status', value: getProposalStatus(proposal) },
+      { name: 'Voted for', value: proposal.forVotes, unit: 'votes' },
+      { name: 'Voted against', value: proposal.againstVotes, unit: 'votes' },
+      { name: 'Vote threshold', value: proposal.quorumVotes, unit: 'votes' },
       {
-        name: "Date ending",
+        name: 'Date ending',
         value: new Date(Number(proposal.voteEnd) * 1000).toLocaleString(),
       },
       {
-        name: "Date starting",
+        name: 'Date starting',
         value: new Date(Number(proposal.voteStart) * 1000).toLocaleString(),
       },
     ];
@@ -151,7 +151,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
     } else if (token) {
       stats = [
         {
-          name: "Minted at",
+          name: 'Minted at',
           value: new Date(Number(token.mintedAt) * 1000).toLocaleDateString(),
         },
       ];
@@ -193,8 +193,8 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
             <div
               key={stat.name}
               className={cn(
-                statIdx % 2 === 1 ? "sm:border-l" : statIdx === 2 ? "lg:border-l" : "",
-                "border-t border-white/5 py-6 px-4 sm:px-3 lg:px-4"
+                statIdx % 2 === 1 ? 'sm:border-l' : statIdx === 2 ? 'lg:border-l' : '',
+                'border-t border-white/5 py-6 px-4 sm:px-3 lg:px-4'
               )}
             >
               <p className="text-sm font-medium leading-6 text-foreground/70">{stat.name}</p>

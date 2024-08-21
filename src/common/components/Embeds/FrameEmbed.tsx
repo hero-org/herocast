@@ -1,19 +1,19 @@
-import React, { useState } from "react";
-import { fallbackFrameContext } from "@frames.js/render";
-import { signFrameAction } from "@frames.js/render/farcaster";
-import { useFrame } from "@frames.js/render/use-frame";
-import { AccountObjectType, useAccountStore } from "@/stores/useAccountStore";
-import { framesJsAccountStatusMap } from "@/common/constants/accounts";
-import Image from "next/image";
-import type { ImgHTMLAttributes } from "react";
-import { isUndefined } from "lodash";
-import { WarpcastImage } from "../PostEmbeddedContent";
-import { FrameUI } from "./FrameUI";
+import React, { useState } from 'react';
+import { fallbackFrameContext } from '@frames.js/render';
+import { signFrameAction } from '@frames.js/render/farcaster';
+import { useFrame } from '@frames.js/render/use-frame';
+import { AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
+import { framesJsAccountStatusMap } from '@/common/constants/accounts';
+import Image from 'next/image';
+import type { ImgHTMLAttributes } from 'react';
+import { isUndefined } from 'lodash';
+import { WarpcastImage } from '../PostEmbeddedContent';
+import { FrameUI } from './FrameUI';
 
 // Due to issue with FrameImageNext from @frame.js/render/next
 // Implement the exact same thing again
 function FrameImageNext(props: ImgHTMLAttributes<HTMLImageElement> & { src: string }): React.JSX.Element {
-  return <Image {...props} alt={props.alt ?? ""} sizes="100vw" height={0} width={0} />;
+  return <Image {...props} alt={props.alt ?? ''} sizes="100vw" height={0} width={0} />;
 }
 
 type FrameArgs = {
@@ -29,7 +29,7 @@ const FrameEmbed = ({ url }: FrameArgs) => {
       ? {
           ...account,
           fid: Number(account.platformAccountId),
-          status: framesJsAccountStatusMap[account.status] || "impersonating",
+          status: framesJsAccountStatusMap[account.status] || 'impersonating',
           privateKey: account.privateKey!,
           publicKey: account.publicKey!,
         }
@@ -37,8 +37,8 @@ const FrameEmbed = ({ url }: FrameArgs) => {
 
   const frameState = useFrame({
     homeframeUrl: url,
-    frameActionProxy: "/api/frames",
-    frameGetProxy: "/api/frames",
+    frameActionProxy: '/api/frames',
+    frameGetProxy: '/api/frames',
     frameContext: fallbackFrameContext,
     connectedAddress: undefined,
     dangerousSkipSigning: false,
@@ -46,14 +46,14 @@ const FrameEmbed = ({ url }: FrameArgs) => {
       hasSigner: !isUndefined(signer),
       signer,
       onSignerlessFramePress: () => {
-        alert("A frame button was pressed without a signer.");
+        alert('A frame button was pressed without a signer.');
       },
       signFrameAction: signFrameAction,
     },
   });
 
   const { status, frame } = frameState?.currentFrameStackItem?.frameResult ?? {};
-  const hasFrameError = status === "failure";
+  const hasFrameError = status === 'failure';
   if (hasFrameError) {
     return frame.ogImage ? <WarpcastImage url={frame.ogImage} /> : null;
   }

@@ -1,38 +1,38 @@
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
-import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts";
+import 'https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts';
 
-import { createClient } from "@supabase/supabase-js";
-import * as Sentry from "https://deno.land/x/sentry/index.mjs";
-import { FunctionsHttpError, FunctionsRelayError, FunctionsFetchError } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
+import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
+import { FunctionsHttpError, FunctionsRelayError, FunctionsFetchError } from '@supabase/supabase-js';
 
 Sentry.init({
-  dsn: Deno.env.get("SENTRY_DSN"),
+  dsn: Deno.env.get('SENTRY_DSN'),
   defaultIntegrations: false,
   tracesSampleRate: 1.0,
   profilesSampleRate: 1.0,
 });
 
-Sentry.setTag("region", Deno.env.get("SB_REGION"));
-Sentry.setTag("execution_id", Deno.env.get("SB_EXECUTION_ID"));
+Sentry.setTag('region', Deno.env.get('SB_REGION'));
+Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
 
-console.log("Hello from sending daily emails!");
+console.log('Hello from sending daily emails!');
 
 Deno.serve(async (req) => {
   return Sentry.withScope(async (scope) => {
     try {
       const supabaseClient = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
 
       // Get all userIds and process them
       const { data: profiles, error: userIdsError } = await supabaseClient
-        .from("profile")
-        .select("user_id,lists:list!inner(*)")
-        .not("email", "is", null)
-        .eq("list.contents->enabled_daily_email", true);
+        .from('profile')
+        .select('user_id,lists:list!inner(*)')
+        .not('email', 'is', null)
+        .eq('list.contents->enabled_daily_email', true);
 
       if (userIdsError) {
         throw new Error(`Error fetching user IDs: ${userIdsError.message}`);
@@ -40,17 +40,17 @@ Deno.serve(async (req) => {
       const userIds = profiles.map((profile) => profile.user_id);
       console.log(`Processing ${userIds.length} users`);
       for (const userId of userIds) {
-        const { data: invokeData, error: invokeError } = await supabaseClient.functions.invoke("send-digest-to-user", {
+        const { data: invokeData, error: invokeError } = await supabaseClient.functions.invoke('send-digest-to-user', {
           body: { user_id: userId },
         });
 
         if (invokeError instanceof FunctionsHttpError) {
           const errorMessage = await invokeError.context.json();
-          console.log("Function returned an error", errorMessage);
+          console.log('Function returned an error', errorMessage);
         } else if (invokeError instanceof FunctionsRelayError) {
-          console.log("Relay error:", invokeError.message);
+          console.log('Relay error:', invokeError.message);
         } else if (invokeError instanceof FunctionsFetchError) {
-          console.log("Fetch error:", invokeError.message);
+          console.log('Fetch error:', invokeError.message);
         }
         if (invokeError) {
           Sentry.captureException(new Error(JSON.stringify(invokeError)));
@@ -62,13 +62,13 @@ Deno.serve(async (req) => {
 
       const message = `Processed ${userIds.length} users`;
       return new Response(JSON.stringify({ message }), {
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
         status: 200,
       });
     } catch (error) {
       Sentry.captureException(error);
       return new Response(JSON.stringify({ error: error?.message }), {
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
         status: 400,
       });
     }

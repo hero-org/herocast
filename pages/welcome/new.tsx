@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { UserPlusIcon } from "@heroicons/react/20/solid";
-import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
-import { Card, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { Button } from "@/components/ui/button";
-import { generateWarpcastSigner, callCreateSignerRequest } from "@/common/helpers/warpcastLogin";
-import { useRouter } from "next/router";
+import React, { useState } from 'react';
+import { UserPlusIcon } from '@heroicons/react/20/solid';
+import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
+import { Card, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { Button } from '@/components/ui/button';
+import { generateWarpcastSigner, callCreateSignerRequest } from '@/common/helpers/warpcastLogin';
+import { useRouter } from 'next/router';
 
 const CreateAccountPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +20,7 @@ const CreateAccountPage = () => {
 
   const onCreateNewAccount = async () => {
     if (hasPendingNewAccounts) {
-      router.push("/welcome/connect");
+      router.push('/welcome/connect');
       return;
     }
 
@@ -47,9 +47,9 @@ const CreateAccountPage = () => {
       });
       // Artificial delay to ensure the account has the pending state before navigating
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      router.push("/welcome/connect");
+      router.push('/welcome/connect');
     } catch (e) {
-      console.error("Error when trying to add account", e);
+      console.error('Error when trying to add account', e);
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +70,7 @@ const CreateAccountPage = () => {
             <CardFooter>
               <Button className="w-full" variant="default" onClick={onCreateNewAccount}>
                 <UserPlusIcon className="mr-1.5 h-5 w-5" aria-hidden="true" />
-                {isLoading ? "Creating account..." : "Get Started"}
+                {isLoading ? 'Creating account...' : 'Get Started'}
               </Button>
             </CardFooter>
           </Card>

@@ -1,9 +1,9 @@
-import React, { ReactNode } from "react";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { SidebarNav, SidebarNavItem } from "./SidebarNav";
-import findIndex from "lodash.findindex";
-import includes from "lodash.includes";
+import React, { ReactNode } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { SidebarNav, SidebarNavItem } from './SidebarNav';
+import findIndex from 'lodash.findindex';
+import includes from 'lodash.includes';
 
 type StepSequenceProps = {
   title: string;
@@ -17,7 +17,7 @@ type StepSequenceProps = {
 const StepSequence = ({ title, description, navItems, step, setStep, renderStep }: StepSequenceProps) => {
   const progressPercent =
     (findIndex(navItems, (item) =>
-      "keys" in item ? includes(item.keys, step) : "key" in item ? item.key === step : false
+      'keys' in item ? includes(item.keys, step) : 'key' in item ? item.key === step : false
     ) /
       (navItems.length - 1)) *
     100;

@@ -1,1 +1,1 @@
-export * from "./WarpcastImage";
+export * from './WarpcastImage';

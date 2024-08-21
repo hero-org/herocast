@@ -1,6 +1,6 @@
-import React from "react";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import * as AlertDialog from '@radix-ui/react-alert-dialog';
+import { Button } from '@/components/ui/button';
 
 type AlertDialogProps = {
   buttonText: string;

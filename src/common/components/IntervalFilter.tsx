@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { Interval } from "../helpers/search";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { Interval } from '../helpers/search';
 
 type IntervalFilterProps = {
   intervals: Interval[];
@@ -37,7 +37,7 @@ export function IntervalFilter({ intervals, defaultInterval, updateInterval }: I
           aria-expanded={open}
           className="w-[110px] justify-between"
         >
-          {value !== undefined ? intervals.find((interval) => interval === value) : "Interval..."}
+          {value !== undefined ? intervals.find((interval) => interval === value) : 'Interval...'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -51,7 +51,7 @@ export function IntervalFilter({ intervals, defaultInterval, updateInterval }: I
                   value={interval.toString()}
                   onSelect={(value) => handleSelect(value as unknown as Interval)}
                 >
-                  <CheckIcon className={cn("mr-2 h-4 w-4", value === interval ? "opacity-100" : "opacity-0")} />
+                  <CheckIcon className={cn('mr-2 h-4 w-4', value === interval ? 'opacity-100' : 'opacity-0')} />
                   {interval}
                 </CommandItem>
               ))}

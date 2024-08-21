@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-import { Button } from "@/components/ui/button";
-import clsx from "clsx";
-import { followUser, unfollowUser } from "../helpers/farcaster";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { useRouter } from "next/router";
-import { useDataStore } from "@/stores/useDataStore";
-import get from "lodash.get";
-import { AccountPlatformType } from "../constants/accounts";
-import { toastInfoReadOnlyMode } from "../helpers/toast";
+import { Button } from '@/components/ui/button';
+import clsx from 'clsx';
+import { followUser, unfollowUser } from '../helpers/farcaster';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useRouter } from 'next/router';
+import { useDataStore } from '@/stores/useDataStore';
+import get from 'lodash.get';
+import { AccountPlatformType } from '../constants/accounts';
+import { toastInfoReadOnlyMode } from '../helpers/toast';
 
 type FollowButtonProps = {
   username: string;
@@ -50,26 +50,26 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   };
 
   const getButtonText = () => {
-    if (!selectedAccount) return "Login";
-    if (isPending) return "Pending";
-    if (isFollowing) return "Following";
-    return "Follow";
+    if (!selectedAccount) return 'Login';
+    if (isPending) return 'Pending';
+    if (isFollowing) return 'Following';
+    return 'Follow';
   };
 
   return (
     <Button
-      variant={isFollowing ? "secondary" : "default"}
+      variant={isFollowing ? 'secondary' : 'default'}
       className="group"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (!selectedAccount) router.push("/login");
+        if (!selectedAccount) router.push('/login');
 
         updateFollowStatus();
       }}
     >
-      <span className={clsx(isFollowing && "group-hover:hidden", "block")}>{getButtonText()}</span>
+      <span className={clsx(isFollowing && 'group-hover:hidden', 'block')}>{getButtonText()}</span>
       {isFollowing && <span className="hidden group-hover:block group-hover:text-red-600">Unfollow</span>}
     </Button>
   );

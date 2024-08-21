@@ -1,12 +1,12 @@
-import React, { useEffect } from "react";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { useInView } from "react-intersection-observer";
-import { useDataStore } from "@/stores/useDataStore";
-import { fetchAndAddUserProfile, shouldUpdateProfile } from "../helpers/profileUtils";
-import { getProfile } from "../helpers/profileUtils";
-import ProfileInfoContent from "./ProfileInfoContent";
-import Link from "next/link";
-import { useMemo } from "react";
+import React, { useEffect } from 'react';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { useInView } from 'react-intersection-observer';
+import { useDataStore } from '@/stores/useDataStore';
+import { fetchAndAddUserProfile, shouldUpdateProfile } from '../helpers/profileUtils';
+import { getProfile } from '../helpers/profileUtils';
+import ProfileInfoContent from './ProfileInfoContent';
+import Link from 'next/link';
+import { useMemo } from 'react';
 
 type ProfileHoverCardProps = {
   fid?: number;

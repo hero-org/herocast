@@ -1,31 +1,31 @@
-import React, { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
+import React, { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
 import {
   getSignatureForUsernameProof,
   getTimestamp,
   setUserDataInProtocol,
   updateUsernameOffchain,
   validateUsernameIsAvailable,
-} from "../helpers/farcaster";
-import { getAddress } from "viem";
-import { PENDING_ACCOUNT_NAME_PLACEHOLDER, hydrateAccounts, useAccountStore } from "@/stores/useAccountStore";
-import { AccountPlatformType } from "../constants/accounts";
-import { mainnet } from "viem/chains";
-import { validations, UserDataType } from "@farcaster/hub-web";
-import { AccountSelector } from "./AccountSelector";
-import { Cog6ToothIcon } from "@heroicons/react/20/solid";
+} from '../helpers/farcaster';
+import { getAddress } from 'viem';
+import { PENDING_ACCOUNT_NAME_PLACEHOLDER, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
+import { AccountPlatformType } from '../constants/accounts';
+import { mainnet } from 'viem/chains';
+import { validations, UserDataType } from '@farcaster/hub-web';
+import { AccountSelector } from './AccountSelector';
+import { Cog6ToothIcon } from '@heroicons/react/20/solid';
 
 export type FarcasterAccountSetupFormValues = z.infer<typeof FarcasterAccountSetupFormSchema>;
 
 const FarcasterAccountSetupFormSchema = z.object({
   username: z.string().min(5, {
-    message: "Username must be at least 5 characters",
+    message: 'Username must be at least 5 characters',
   }),
   displayName: z
     .union([
@@ -33,28 +33,28 @@ const FarcasterAccountSetupFormSchema = z.object({
       z
         .string()
         .min(4, {
-          message: "Display name must be at least 4 characters.",
+          message: 'Display name must be at least 4 characters.',
         })
         .max(20, {
-          message: "Display name must not be longer than 20 characters.",
+          message: 'Display name must not be longer than 20 characters.',
         }),
     ])
     .optional()
-    .transform((e) => (e === "" ? undefined : e)),
+    .transform((e) => (e === '' ? undefined : e)),
   bio: z
     .union([
       z.string().length(0),
       z
         .string()
         .min(4, {
-          message: "Bio must be at least 4 characters.",
+          message: 'Bio must be at least 4 characters.',
         })
         .max(160, {
-          message: "Bio must not be longer than 20 characters.",
+          message: 'Bio must not be longer than 20 characters.',
         }),
     ])
     .optional()
-    .transform((e) => (e === "" ? undefined : e)),
+    .transform((e) => (e === '' ? undefined : e)),
 });
 
 const RegisterFarcasterUsernameForm = ({
@@ -72,7 +72,7 @@ const RegisterFarcasterUsernameForm = ({
   })?.data;
   const form = useForm<FarcasterAccountSetupFormValues>({
     resolver: zodResolver(FarcasterAccountSetupFormSchema),
-    defaultValues: { username: "", displayName: "", bio: "" },
+    defaultValues: { username: '', displayName: '', bio: '' },
   });
   const { updateAccountUsername } = useAccountStore();
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
@@ -81,29 +81,29 @@ const RegisterFarcasterUsernameForm = ({
   const validateUsername = async (username: string): Promise<boolean> => {
     const validationResults = validations.validateFname(username);
     if (validationResults.isErr()) {
-      form.setError("username", {
-        type: "manual",
+      form.setError('username', {
+        type: 'manual',
         message: validationResults.error.message,
       });
       return false;
     }
     const isValidNewUsername = await validateUsernameIsAvailable(username);
     if (!isValidNewUsername) {
-      form.setError("username", {
-        type: "manual",
-        message: "Username is already taken",
+      form.setError('username', {
+        type: 'manual',
+        message: 'Username is already taken',
       });
     }
     return isValidNewUsername;
   };
 
   const registerFarcasterUsername = async (data: z.infer<typeof FarcasterAccountSetupFormSchema>) => {
-    console.log("registerFarcasterUsername", data);
+    console.log('registerFarcasterUsername', data);
 
     if (!address) {
-      form.setError("username", {
-        type: "manual",
-        message: "Connect your wallet to continue",
+      form.setError('username', {
+        type: 'manual',
+        message: 'Connect your wallet to continue',
       });
       return;
     }
@@ -129,7 +129,7 @@ const RegisterFarcasterUsernameForm = ({
       });
       if (!registerSignature) {
         setIsPending(false);
-        throw new Error("Failed to get signature to register username");
+        throw new Error('Failed to get signature to register username');
       }
 
       // todo: fix this can happen if account.getPlatformAccountId() is not set
@@ -138,13 +138,13 @@ const RegisterFarcasterUsernameForm = ({
       const result = await updateUsernameOffchain({
         timestamp,
         owner,
-        fromFid: "0",
+        fromFid: '0',
         toFid: account.platformAccountId!.toString(),
         fid: account.platformAccountId!.toString(),
         username: username,
         signature: registerSignature,
       });
-      console.log("updateUsername result", result);
+      console.log('updateUsername result', result);
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       await setUserDataInProtocol(
@@ -169,8 +169,8 @@ const RegisterFarcasterUsernameForm = ({
       await hydrateAccounts();
       onSuccess?.(data);
     } catch (e) {
-      console.error("Failed to register username", e);
-      setError("Failed to register username");
+      console.error('Failed to register username', e);
+      setError('Failed to register username');
       setIsPending(false);
     }
   };
@@ -244,7 +244,7 @@ const RegisterFarcasterUsernameForm = ({
     <div className="w-full space-y-4">
       <AccountSelector
         accountFilter={(account) =>
-          account.status === "active" &&
+          account.status === 'active' &&
           account.platform === AccountPlatformType.farcaster &&
           (!account.name || account.name === PENDING_ACCOUNT_NAME_PLACEHOLDER)
         }

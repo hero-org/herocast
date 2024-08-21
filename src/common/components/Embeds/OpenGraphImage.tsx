@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { openWindow } from "@/common/helpers/navigation";
+import React, { useEffect, useState } from 'react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { openWindow } from '@/common/helpers/navigation';
 
 type OpenGraphMetadata = {
   image: {
@@ -19,11 +19,11 @@ const OpenGraphImage = ({ url }: { url: string }) => {
 
   useEffect(() => {
     const fetchMetadata = async () => {
-      const request = await fetch("https://api.modprotocol.org/api/cast-embeds-metadata/by-url", {
+      const request = await fetch('https://api.modprotocol.org/api/cast-embeds-metadata/by-url', {
         body: JSON.stringify([url]),
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       });
       const metadata = await request.json();

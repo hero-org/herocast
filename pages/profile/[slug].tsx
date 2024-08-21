@@ -1,33 +1,33 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
-import { CastRow } from "@/common/components/CastRow";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { useDataStore } from "@/stores/useDataStore";
-import { fetchAndAddUserProfile, getProfile, shouldUpdateProfile } from "@/common/helpers/profileUtils";
-import { useRouter } from "next/router";
-import { Loading } from "@/common/components/Loading";
-import ProfileInfo from "@/common/components/Sidebar/ProfileInfo";
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import { CastRow } from '@/common/components/CastRow';
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { fetchAndAddUserProfile, getProfile, shouldUpdateProfile } from '@/common/helpers/profileUtils';
+import { useRouter } from 'next/router';
+import { Loading } from '@/common/components/Loading';
+import ProfileInfo from '@/common/components/Sidebar/ProfileInfo';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 enum FeedTypeEnum {
-  "casts" = "Casts",
-  "likes" = "Likes",
+  'casts' = 'Casts',
+  'likes' = 'Likes',
 }
 
 const getUsernameAndFidFromSlug = (slug?: string) => {
   if (!slug) {
     return { username: undefined, fid: undefined };
   }
-  const fid = slug.startsWith("fid:") ? slug.slice(4) : undefined;
+  const fid = slug.startsWith('fid:') ? slug.slice(4) : undefined;
   if (fid) {
     return { username: undefined, fid };
   }
-  const username = slug.startsWith("@") ? slug.slice(1) : slug;
+  const username = slug.startsWith('@') ? slug.slice(1) : slug;
   return { username, fid };
 };
 
@@ -63,8 +63,8 @@ const ProfilePage = () => {
 
       if (feedType === FeedTypeEnum.casts) {
         client
-          .fetchFeed("filter", {
-            filterType: "fids",
+          .fetchFeed('filter', {
+            filterType: 'fids',
             fids: [profile.fid],
             withRecasts: true,
             limit: 25,
@@ -75,7 +75,7 @@ const ProfilePage = () => {
           .catch((err) => console.log(`failed to fetch ${err}`));
       } else if (feedType === FeedTypeEnum.likes) {
         client
-          .fetchUserReactions(profile.fid, "likes", {
+          .fetchUserReactions(profile.fid, 'likes', {
             limit: 25,
           })
           .then(({ reactions }) => {
@@ -105,7 +105,7 @@ const ProfilePage = () => {
         showChannel
         isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
-        showAdminActions={selectedAccount?.status === "active" && profile?.fid === viewerFid}
+        showAdminActions={selectedAccount?.status === 'active' && profile?.fid === viewerFid}
       />
     </li>
   );

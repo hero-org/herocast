@@ -1,12 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { useAccountStore } from "@/stores/useAccountStore";
-import Link from "next/link";
-import ProfileInfoContent from "../ProfileInfoContent";
-import { getProfile, getProfileFetchIfNeeded } from "@/common/helpers/profileUtils";
-import { useDataStore } from "@/stores/useDataStore";
-import { Loading } from "../Loading";
+import React, { useEffect, useMemo, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { useAccountStore } from '@/stores/useAccountStore';
+import Link from 'next/link';
+import ProfileInfoContent from '../ProfileInfoContent';
+import { getProfile, getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
+import { useDataStore } from '@/stores/useDataStore';
+import { Loading } from '../Loading';
 
 const TOP_FOLLOWERS_LIMIT = 12;
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
@@ -30,7 +30,7 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
         const fids = await neynarClient
           .fetchRelevantFollowers(fid, viewerFid)
           .then((response) => response.all_relevant_followers_dehydrated.map((follower) => follower.user?.fid));
-        console.log("fids", fids);
+        console.log('fids', fids);
         setTopFollowerFids(fids.filter((fid) => fid !== undefined).slice(0, TOP_FOLLOWERS_LIMIT));
         fids.forEach((fid) =>
           getProfileFetchIfNeeded({

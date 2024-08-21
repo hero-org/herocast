@@ -1,5 +1,5 @@
-import React from "react";
-import { Tweet } from "react-tweet";
+import React from 'react';
+import { Tweet } from 'react-tweet';
 
 interface TweetEmbedProps {
   tweetId: string;

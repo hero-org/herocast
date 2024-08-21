@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { CastRow } from "@/common/components/CastRow";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { CastData } from "@/common/types/types";
-import orderBy from "lodash.orderby";
+import React, { useEffect, useState } from 'react';
+import { CastRow } from '@/common/components/CastRow';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { CastData } from '@/common/types/types';
+import orderBy from 'lodash.orderby';
 
 interface CastReactionsTableProps {
   rawCasts: CastData[];
@@ -18,7 +18,7 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
       const hashes = rawCasts.map((cast: any) => cast.hash);
       const castsResponse = await neynarClient.fetchBulkCasts(hashes);
       if (castsResponse.result.casts) {
-        setCasts(orderBy(castsResponse.result.casts, "reactions.likes_count", "desc"));
+        setCasts(orderBy(castsResponse.result.casts, 'reactions.likes_count', 'desc'));
       }
     };
 
@@ -46,7 +46,7 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
               </td>
               <td className="py-3 px-6 text-center">{cast.reactions.likes_count}</td>
               <td className="py-3 px-6 text-center">{cast.reactions.recasts_count}</td>
-              <td className="py-3 px-6 text-center">{cast.parent_hash ? "Reply" : "Original"}</td>
+              <td className="py-3 px-6 text-center">{cast.parent_hash ? 'Reply' : 'Original'}</td>
             </tr>
           ))}
         </tbody>

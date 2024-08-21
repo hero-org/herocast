@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import React, { useMemo } from "react";
-import { format, subDays } from "date-fns";
-import { Interval } from "@/common/helpers/search";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Skeleton } from "@/components/ui/skeleton";
+import React, { useMemo } from 'react';
+import { format, subDays } from 'date-fns';
+import { Interval } from '@/common/helpers/search';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type AnalyticsGraphProps = {
   analyticsKey: string;
@@ -45,7 +45,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregate
   const chartConfig = {
     [analyticsKey]: {
       label: analyticsKey,
-      color: "hsl(var(--chart-1))",
+      color: 'hsl(var(--chart-1))',
     },
   };
 
@@ -60,7 +60,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregate
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} />
-        <XAxis dataKey="date" tickLine={false} tickMargin={8} tickFormatter={(date: Date) => format(date, "MMM d")} />
+        <XAxis dataKey="date" tickLine={false} tickMargin={8} tickFormatter={(date: Date) => format(date, 'MMM d')} />
         <YAxis
           tickCount={7}
           domain={([dataMin, dataMax]) => [Math.floor(dataMin / 100) * 100, Math.ceil(((dataMax + 5) / 10) * 10)]}
@@ -69,10 +69,10 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregate
           content={
             <ChartTooltipContent
               labelFormatter={(value) => {
-                return new Date(value).toLocaleDateString("en-US", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
+                return new Date(value).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
                 });
               }}
             />

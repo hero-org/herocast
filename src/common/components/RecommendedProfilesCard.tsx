@@ -1,30 +1,30 @@
-import React, { useEffect, useState } from "react";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import FollowButton from "./FollowButton";
-import { useDataStore } from "@/stores/useDataStore";
+import React, { useEffect, useState } from 'react';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import FollowButton from './FollowButton';
+import { useDataStore } from '@/stores/useDataStore';
 
 const defaultProfiles: User[] = [
   {
-    username: "hellno",
+    username: 'hellno',
     fid: 13596,
     profile: {
       bio: {
-        text: "dev + founder | @herocast",
+        text: 'dev + founder | @herocast',
       },
     },
-    display_name: "hellno the optimist",
+    display_name: 'hellno the optimist',
     pfp_url:
-      "https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/https://i.imgur.com/u5kUjiN.png",
+      'https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/https://i.imgur.com/u5kUjiN.png',
   },
   {
-    username: "herocast",
+    username: 'herocast',
     fid: 18665,
-    display_name: "herocast",
-    pfp_url: "https://i.imgur.com/Ai9jiC3.jpg",
+    display_name: 'herocast',
+    pfp_url: 'https://i.imgur.com/Ai9jiC3.jpg',
     profile: {
       bio: {
-        text: "you are using herocast right now 👋🏻",
+        text: 'you are using herocast right now 👋🏻',
       },
     },
   },

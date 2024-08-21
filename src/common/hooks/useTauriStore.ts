@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
-import { SAVE_DELAY } from "../constants/tauri";
-import { getTauriStore } from "../helpers/tauri/storage";
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { SAVE_DELAY } from '../constants/tauri';
+import { getTauriStore } from '../helpers/tauri/storage';
 
-export function useTauriStore(key: string, defaultValue: unknown, storeName = "data.dat") {
+export function useTauriStore(key: string, defaultValue: unknown, storeName = 'data.dat') {
   const [state, setState] = useState(defaultValue);
   const [loading, setLoading] = useState(true);
   const store = getTauriStore(storeName);
@@ -14,7 +14,7 @@ export function useTauriStore(key: string, defaultValue: unknown, storeName = "d
     store
       .get(key)
       .then((value) => {
-        if (value === null) throw "";
+        if (value === null) throw '';
         if (allow) setState(value);
       })
       .catch(() => {

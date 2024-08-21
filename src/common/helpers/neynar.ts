@@ -1,5 +1,5 @@
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 type GetUserDataForFidOrUsernameProps = {
   username?: string;
@@ -31,7 +31,7 @@ export const getUserDataForFidOrUsername = async ({
 
     return [];
   } catch (err) {
-    console.error("Error fetching user data for fid or username", {
+    console.error('Error fetching user data for fid or username', {
       fid,
       username,
       err,

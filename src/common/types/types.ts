@@ -33,4 +33,4 @@ export type AnalyticsData = {
   topCasts: CastData[];
 };
 
-export type AnalyticsKey = "follows" | "casts" | "reactions";
+export type AnalyticsKey = 'follows' | 'casts' | 'reactions';

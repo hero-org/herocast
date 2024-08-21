@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { UserDataType } from "@farcaster/hub-web";
-import { setUserDataInProtocol } from "@/common/helpers/farcaster";
-import { AccountObjectType } from "@/stores/useAccountStore";
-import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import React, { useEffect, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { UserDataType } from '@farcaster/hub-web';
+import { setUserDataInProtocol } from '@/common/helpers/farcaster';
+import { AccountObjectType } from '@/stores/useAccountStore';
+import { Cog6ToothIcon } from '@heroicons/react/20/solid';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 type ChangeDisplayNameFormValues = z.infer<typeof ChangeDisplayNameFormSchema>;
 
@@ -23,7 +23,7 @@ const validateMaxBytes32 = (value: string) => {
 
 const ChangeDisplayNameFormSchema = z.object({
   displayName: z.string().refine(validateMaxBytes32, {
-    message: "Display name must not be longer than 32 bytes.",
+    message: 'Display name must not be longer than 32 bytes.',
   }),
 });
 
@@ -38,7 +38,7 @@ const ChangeDisplayNameForm = ({ account, onSuccess }: ChangeDisplayNameFormProp
 
   const form = useForm<ChangeDisplayNameFormValues>({
     resolver: zodResolver(ChangeDisplayNameFormSchema),
-    mode: "onSubmit",
+    mode: 'onSubmit',
   });
   const canSubmitForm = !isPending && userInProtocol;
 
@@ -63,9 +63,9 @@ const ChangeDisplayNameForm = ({ account, onSuccess }: ChangeDisplayNameFormProp
     const { displayName } = data;
 
     if (displayName === userInProtocol?.display_name) {
-      form.setError("displayName", {
-        type: "manual",
-        message: "Please enter a new display name.",
+      form.setError('displayName', {
+        type: 'manual',
+        message: 'Please enter a new display name.',
       });
       return;
     }
@@ -79,15 +79,15 @@ const ChangeDisplayNameForm = ({ account, onSuccess }: ChangeDisplayNameFormProp
         UserDataType.DISPLAY,
         displayName
       );
-      toast.success("Display name changed successfully", {
+      toast.success('Display name changed successfully', {
         duration: 5000,
         closeButton: true,
       });
       onSuccess?.();
     } catch (e) {
-      console.error("ChangeDisplayName error", e);
-      form.setError("displayName", {
-        type: "manual",
+      console.error('ChangeDisplayName error', e);
+      form.setError('displayName', {
+        type: 'manual',
         message: `Error setting displayName -> ${e}`,
       });
     } finally {

@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
-import BigOptionSelector from "@/common/components/BigOptionSelector";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { isAddress } from "viem";
-import DeployHatsDelegatorContract from "../DeployHatsDelegatorContract";
-import { WarpcastImage } from "../PostEmbeddedContent/WarpcastImage";
+import React, { useEffect, useState } from 'react';
+import BigOptionSelector from '@/common/components/BigOptionSelector';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { isAddress } from 'viem';
+import DeployHatsDelegatorContract from '../DeployHatsDelegatorContract';
+import { WarpcastImage } from '../PostEmbeddedContent/WarpcastImage';
 
 export enum OwnershipSetupSteps {
-  unknown = "UNKNOWN",
-  new_tree = "NEW_TREE",
-  existing_tree = "EXISTING_TREE",
+  unknown = 'UNKNOWN',
+  new_tree = 'NEW_TREE',
+  existing_tree = 'EXISTING_TREE',
 }
 
 type SharedAccountOwnershipSetupProps = {
@@ -53,10 +53,10 @@ export const SharedAccountOwnershipSetup = ({
   const renderUnpreparedStep = () => (
     <div>
       Go to Hats Protocol to create a Hats tree and then come back here to continue <br />
-      Visit{" "}
+      Visit{' '}
       <a href=" https://app.hatsprotocol.xyz/trees/new" target="_blank" className="underline" rel="noreferrer">
         https://app.hatsprotocol.xyz
-      </a>{" "}
+      </a>{' '}
       to create a tree.
     </div>
   );
@@ -76,10 +76,10 @@ export const SharedAccountOwnershipSetup = ({
         <div className="mx-0 max-w-2xl">
           <h3 className="text-lg font-semibold tracking-tight text-foreground">How to get your Hats IDs</h3>
           <p className="mt-2 text-md leading-8 text-foreground/70">
-            Go to the{" "}
+            Go to the{' '}
             <a href="https://app.hatsprotocol.xyz" className="underline" target="_blank" rel="noreferrer">
               Hats app
-            </a>{" "}
+            </a>{' '}
             and click on the tree you want to use. In the top right corner, you will see the tree ID and the Hats ID.
             You will need to use the Hats ID for the admin role and for the caster role.
           </p>
@@ -100,14 +100,14 @@ export const SharedAccountOwnershipSetup = ({
     <BigOptionSelector
       options={[
         {
-          title: "I have no delegator contract",
+          title: 'I have no delegator contract',
           description: "Let's deploy your own Farcaster delegator contract",
-          buttonText: "Create a delegator contract",
+          buttonText: 'Create a delegator contract',
           onClick: () => setState(OwnershipSetupSteps.existing_tree),
         },
         {
-          title: "I have deployed a delegator contract",
-          description: "Submit the Optimism contract address and continue",
+          title: 'I have deployed a delegator contract',
+          description: 'Submit the Optimism contract address and continue',
           content: (
             <div className="flex gap-4">
               <Input

@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { Radio, RadioGroup } from "@headlessui/react";
-import { Button } from "@/components/ui/button";
-import { CheckIcon } from "@heroicons/react/24/outline";
-import { XCircleIcon } from "@heroicons/react/24/solid";
-import { cn } from "@/lib/utils";
-import { isPaidUser, useUserStore } from "../../src/stores/useUserStore";
-import { useRouter } from "next/router";
-import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon } from "@heroicons/react/20/solid";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { openWindow } from "@/common/helpers/navigation";
-import Link from "next/link";
-function Logomark(props: React.ComponentPropsWithoutRef<"svg">) {
+import React, { useEffect, useState } from 'react';
+import { Radio, RadioGroup } from '@headlessui/react';
+import { Button } from '@/components/ui/button';
+import { CheckIcon } from '@heroicons/react/24/outline';
+import { XCircleIcon } from '@heroicons/react/24/solid';
+import { cn } from '@/lib/utils';
+import { isPaidUser, useUserStore } from '../../src/stores/useUserStore';
+import { useRouter } from 'next/router';
+import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon } from '@heroicons/react/20/solid';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { openWindow } from '@/common/helpers/navigation';
+import Link from 'next/link';
+function Logomark(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
     <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
       <path
@@ -24,85 +24,85 @@ function Logomark(props: React.ComponentPropsWithoutRef<"svg">) {
 
 const plans = [
   {
-    name: "Open source",
+    name: 'Open source',
     featured: false,
-    price: { Monthly: "€0", Biannually: "€0" },
-    description: "Perfect for starters. Enjoy growth with no costs.",
+    price: { Monthly: '€0', Biannually: '€0' },
+    description: 'Perfect for starters. Enjoy growth with no costs.',
     button: {
       Monthly: {
-        label: "Get started for free",
-        href: "https://app.herocast.xyz/login",
+        label: 'Get started for free',
+        href: 'https://app.herocast.xyz/login',
       },
       Biannually: {
-        label: "Get started for free",
-        href: "https://app.herocast.xyz/login",
+        label: 'Get started for free',
+        href: 'https://app.herocast.xyz/login',
       },
     },
     features: [
-      "Custom feeds ",
-      "Custom notifications",
-      "Schedule up to 3 casts",
-      "Monitoring of 1 search term",
-      "Connect up to 2 accounts",
+      'Custom feeds ',
+      'Custom notifications',
+      'Schedule up to 3 casts',
+      'Monitoring of 1 search term',
+      'Connect up to 2 accounts',
     ],
-    unavilableFeatures: ["Shared accounts", "Analytics", "Bespoke insights", "KOL identification"],
-    logomarkClassName: "fill-gray-300",
+    unavilableFeatures: ['Shared accounts', 'Analytics', 'Bespoke insights', 'KOL identification'],
+    logomarkClassName: 'fill-gray-300',
   },
   {
-    name: "Pro",
+    name: 'Pro',
     featured: true,
-    price: { Monthly: "€50", Biannually: "€30" },
-    description: "Ideal for those looking to accelerate their growth.",
+    price: { Monthly: '€50', Biannually: '€30' },
+    description: 'Ideal for those looking to accelerate their growth.',
     button: {
       Monthly: {
-        label: "Subscribe",
-        href: "https://buy.stripe.com/4gw03YeoO3Pz93i146",
+        label: 'Subscribe',
+        href: 'https://buy.stripe.com/4gw03YeoO3Pz93i146',
       },
       Biannually: {
-        label: "Subscribe",
-        href: "https://buy.stripe.com/fZeg2WeoObi193i288",
+        label: 'Subscribe',
+        href: 'https://buy.stripe.com/fZeg2WeoObi193i288',
       },
     },
     features: [
-      "Custom feeds ",
-      "Custom notifications",
-      "Schedule up to 10 casts",
-      "Monitoring of 10 search term",
-      "Connect up to 5 accounts",
-      "Shared accounts",
-      "Analytics",
+      'Custom feeds ',
+      'Custom notifications',
+      'Schedule up to 10 casts',
+      'Monitoring of 10 search term',
+      'Connect up to 5 accounts',
+      'Shared accounts',
+      'Analytics',
     ],
-    unavilableFeatures: ["Bespoke insights", "KOL identification"],
-    logomarkClassName: "fill-white",
+    unavilableFeatures: ['Bespoke insights', 'KOL identification'],
+    logomarkClassName: 'fill-white',
   },
   {
-    name: "Agency",
+    name: 'Agency',
     featured: false,
-    price: { Monthly: "Talk to us", Biannually: "Talk to us" },
-    description: "Best for maximizing growth with all features.",
+    price: { Monthly: 'Talk to us', Biannually: 'Talk to us' },
+    description: 'Best for maximizing growth with all features.',
     button: {
       Monthly: {
-        label: "Reach out",
-        href: "https://calendly.com/bijanfarsijani/25mincoffee",
+        label: 'Reach out',
+        href: 'https://calendly.com/bijanfarsijani/25mincoffee',
       },
       Biannually: {
-        label: "Reach out",
-        href: "https://calendly.com/bijanfarsijani/25mincoffee",
+        label: 'Reach out',
+        href: 'https://calendly.com/bijanfarsijani/25mincoffee',
       },
     },
     features: [
-      "Custom feeds ",
-      "Custom notifications",
-      "Schedule unlimited casts",
-      "Monitoring of unlimited search term",
-      "Connect unlimited accounts",
-      "Shared accounts",
-      "Analytics",
-      "Bespoke insights",
-      "KOL identification",
+      'Custom feeds ',
+      'Custom notifications',
+      'Schedule unlimited casts',
+      'Monitoring of unlimited search term',
+      'Connect unlimited accounts',
+      'Shared accounts',
+      'Analytics',
+      'Bespoke insights',
+      'KOL identification',
     ],
     unavilableFeatures: [],
-    logomarkClassName: "fill-gray-500",
+    logomarkClassName: 'fill-gray-500',
   },
 ];
 
@@ -119,7 +119,7 @@ type PlanProps = {
   };
   features: Array<string>;
   unavilableFeatures: Array<string>;
-  activePeriod: "Monthly" | "Biannually";
+  activePeriod: 'Monthly' | 'Biannually';
   logomarkClassName?: string;
   featured?: boolean;
 };
@@ -136,7 +136,7 @@ function Plan({
   featured = false,
 }: PlanProps) {
   const isPayingUser = isPaidUser();
-  const isPaidPlan = price.Monthly !== "€0";
+  const isPaidPlan = price.Monthly !== '€0';
 
   const renderPlanButton = () => (
     <Link href={button[activePeriod].href} prefetch={false} className="w-full mx-auto">
@@ -145,7 +145,7 @@ function Plan({
         disabled={!isPayingUser && !isPaidPlan}
         aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
       >
-        {!isPayingUser && isPaidPlan ? "Upgrade" : "Your plan"}
+        {!isPayingUser && isPaidPlan ? 'Upgrade' : 'Your plan'}
       </Button>
     </Link>
   );
@@ -154,35 +154,35 @@ function Plan({
     <div>
       <Card
         className={cn(
-          "flex flex-col overflow-hidden rounded-3xl p-6",
+          'flex flex-col overflow-hidden rounded-3xl p-6',
           featured
-            ? "order-first bg-gray-900 lg:order-none shadow-sm shadow-muted-foreground hover:shadow-foreground/40 hover:shadow-md transition-shadow duration-100"
-            : "bg-white shadow-sm shadow-gray-900/5"
+            ? 'order-first bg-gray-900 lg:order-none shadow-sm shadow-muted-foreground hover:shadow-foreground/40 hover:shadow-md transition-shadow duration-100'
+            : 'bg-white shadow-sm shadow-gray-900/5'
         )}
       >
-        <h3 className={cn("flex items-center text-sm font-semibold", featured ? "text-white" : "text-gray-800")}>
-          <Logomark className={cn("h-6 w-6 flex-none", logomarkClassName)} />
+        <h3 className={cn('flex items-center text-sm font-semibold', featured ? 'text-white' : 'text-gray-800')}>
+          <Logomark className={cn('h-6 w-6 flex-none', logomarkClassName)} />
           <span className="ml-4">{name}</span>
         </h3>
-        <p className={cn("relative mt-5 flex text-3xl tracking-tight", featured ? "text-white" : "text-gray-800")}>
+        <p className={cn('relative mt-5 flex text-3xl tracking-tight', featured ? 'text-white' : 'text-gray-800')}>
           {price.Monthly === price.Biannually ? (
             price.Monthly
           ) : (
             <>
               <span
-                aria-hidden={activePeriod === "Biannually"}
+                aria-hidden={activePeriod === 'Biannually'}
                 className={cn(
-                  "transition duration-300",
-                  activePeriod === "Biannually" && "pointer-events-none translate-x-6 select-none opacity-0"
+                  'transition duration-300',
+                  activePeriod === 'Biannually' && 'pointer-events-none translate-x-6 select-none opacity-0'
                 )}
               >
                 {price.Monthly}
               </span>
               <span
-                aria-hidden={activePeriod === "Monthly"}
+                aria-hidden={activePeriod === 'Monthly'}
                 className={cn(
-                  "absolute left-0 top-0 transition duration-300",
-                  activePeriod === "Monthly" && "pointer-events-none -translate-x-6 select-none opacity-0"
+                  'absolute left-0 top-0 transition duration-300',
+                  activePeriod === 'Monthly' && 'pointer-events-none -translate-x-6 select-none opacity-0'
                 )}
               >
                 {price.Biannually}
@@ -190,18 +190,18 @@ function Plan({
             </>
           )}
         </p>
-        <p className={cn("mt-3 text-sm", featured ? "text-gray-300" : "text-gray-700")}>{description}</p>
+        <p className={cn('mt-3 text-sm', featured ? 'text-gray-300' : 'text-gray-700')}>{description}</p>
         <div className="order-last mt-6">
           <ul
             role="list"
             className={cn(
-              "-my-2 divide-y text-sm",
-              featured ? "divide-gray-800 text-gray-300" : "divide-gray-200 text-gray-700"
+              '-my-2 divide-y text-sm',
+              featured ? 'divide-gray-800 text-gray-300' : 'divide-gray-200 text-gray-700'
             )}
           >
             {features.map((feature) => (
               <li key={feature} className="flex py-2">
-                <CheckIcon className={cn("h-6 w-6 flex-none", featured ? "text-white" : "text-gray-800")} />
+                <CheckIcon className={cn('h-6 w-6 flex-none', featured ? 'text-white' : 'text-gray-800')} />
                 <span className="ml-4">{feature}</span>
               </li>
             ))}
@@ -221,7 +221,7 @@ function Plan({
 }
 
 export function Pricing() {
-  const [activePeriod, setActivePeriod] = useState<"Monthly" | "Biannually">("Biannually");
+  const [activePeriod, setActivePeriod] = useState<'Monthly' | 'Biannually'>('Biannually');
 
   return (
     <section id="pricing" aria-labelledby="pricing-title" className="py-12">
@@ -229,13 +229,13 @@ export function Pricing() {
         <div className="mt-8 flex justify-center">
           <div className="relative">
             <RadioGroup value={activePeriod} onChange={setActivePeriod} className="grid grid-cols-2">
-              {["Monthly", "Biannually"].map((period) => (
+              {['Monthly', 'Biannually'].map((period) => (
                 <Radio
                   key={period}
                   value={period}
                   className={cn(
-                    "cursor-pointer border border-muted-foreground/30 px-[calc(theme(spacing.3)-1px)] py-[calc(theme(spacing.2)-1px)] text-sm text-foreground outline-2 outline-offset-2 transition-colors hover:border-foreground/10",
-                    period === "Monthly" ? "rounded-l-lg" : "-ml-px rounded-r-lg"
+                    'cursor-pointer border border-muted-foreground/30 px-[calc(theme(spacing.3)-1px)] py-[calc(theme(spacing.2)-1px)] text-sm text-foreground outline-2 outline-offset-2 transition-colors hover:border-foreground/10',
+                    period === 'Monthly' ? 'rounded-l-lg' : '-ml-px rounded-r-lg'
                   )}
                 >
                   {period}
@@ -245,16 +245,16 @@ export function Pricing() {
             <div
               aria-hidden="true"
               className={cn(
-                "pointer-events-none absolute inset-0 z-5 shadow-none grid grid-cols-2 overflow-hidden rounded-md bg-gray-900 transition-all duration-300",
-                activePeriod === "Monthly" ? "[clip-path:inset(0_50%_0_0)]" : "[clip-path:inset(0_0_0_calc(50%-1px))]"
+                'pointer-events-none absolute inset-0 z-5 shadow-none grid grid-cols-2 overflow-hidden rounded-md bg-gray-900 transition-all duration-300',
+                activePeriod === 'Monthly' ? '[clip-path:inset(0_50%_0_0)]' : '[clip-path:inset(0_0_0_calc(50%-1px))]'
               )}
             >
-              {["Monthly", "Biannually"].map((period) => (
+              {['Monthly', 'Biannually'].map((period) => (
                 <div
                   key={period}
                   className={cn(
-                    "py-2 text-center text-sm font-semibold text-white",
-                    period === "Biannually" && "-ml-px"
+                    'py-2 text-center text-sm font-semibold text-white',
+                    period === 'Biannually' && '-ml-px'
                   )}
                 >
                   {period}
@@ -276,14 +276,14 @@ export function Pricing() {
 export default function UpgradePage() {
   const router = useRouter();
   const { addUnsafeCustomerForUser } = useUserStore();
-  const hasPaidViaStripe = router.query.success === "true";
+  const hasPaidViaStripe = router.query.success === 'true';
   const isPayingUser = isPaidUser();
 
   useEffect(() => {
     if (hasPaidViaStripe && !isPayingUser) {
       // this is a temporary hack until we integrate with Stripe webhooks
       addUnsafeCustomerForUser({
-        stripe_customer_id: "manual_entry",
+        stripe_customer_id: 'manual_entry',
       });
     }
   }, [hasPaidViaStripe, isPayingUser]);
@@ -304,7 +304,7 @@ export default function UpgradePage() {
             type="button"
             size="lg"
             className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
-            onClick={() => openWindow("https://www.hypersub.xyz/s/herocast-hyper-club-dbbiuv3cjwn4")}
+            onClick={() => openWindow('https://www.hypersub.xyz/s/herocast-hyper-club-dbbiuv3cjwn4')}
           >
             Upgrade on Hypersub <span className="ml-2">→</span>
           </Button>
@@ -333,11 +333,11 @@ export default function UpgradePage() {
           </CardHeader>
           <CardContent>
             <div className="-mx-2 -my-1.5 flex">
-              <Button onClick={() => router.push("/search")} type="button" variant="default">
+              <Button onClick={() => router.push('/search')} type="button" variant="default">
                 Add more search alerts
                 <MagnifyingGlassIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button onClick={() => router.push("/post")} type="button" variant="outline" className="ml-4">
+              <Button onClick={() => router.push('/post')} type="button" variant="outline" className="ml-4">
                 Schedule more casts
                 <PencilSquareIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
               </Button>

@@ -1,9 +1,9 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { CheckCircleIcon } from "@heroicons/react/20/solid";
-import findIndex from "lodash.findindex";
-import includes from "lodash.includes";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { CheckCircleIcon } from '@heroicons/react/20/solid';
+import findIndex from 'lodash.findindex';
+import includes from 'lodash.includes';
+import { cn } from '@/lib/utils';
 
 export type SidebarNavItem = {
   idx: number;
@@ -24,7 +24,7 @@ export function SidebarNav({ className, items, step, onClick, ...props }: Sideba
   const currentStepIdx = getIdxForStep(step);
 
   return (
-    <nav className={cn("flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1", className!)} {...props}>
+    <nav className={cn('flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1', className!)} {...props}>
       {items.map((item) => {
         const enabled = item.idx <= currentStepIdx;
         return (
@@ -33,9 +33,9 @@ export function SidebarNav({ className, items, step, onClick, ...props }: Sideba
             key={item.keys[0]}
             variant="ghost"
             className={cn(
-              enabled ? "text-foreground/40 hover:bg-transparent hover:underline" : "",
-              item.key === step ? "bg-muted hover:bg-muted" : "",
-              "justify-start truncate"
+              enabled ? 'text-foreground/40 hover:bg-transparent hover:underline' : '',
+              item.key === step ? 'bg-muted hover:bg-muted' : '',
+              'justify-start truncate'
             )}
           >
             {item.title}

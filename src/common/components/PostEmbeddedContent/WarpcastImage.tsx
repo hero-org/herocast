@@ -1,14 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useState } from "react";
-import { PhotoIcon } from "@heroicons/react/24/solid";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Label } from "@/components/ui/label";
+import React, { useState } from 'react';
+import { PhotoIcon } from '@heroicons/react/24/solid';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
 
 const getImageViaCdnUrl = (imgUrl: string, skipCdn: boolean) => {
-  if (imgUrl.startsWith("https://imagedelivery.net")) return imgUrl;
+  if (imgUrl.startsWith('https://imagedelivery.net')) return imgUrl;
 
-  if (!skipCdn && imgUrl.includes("imgur.com")) {
-    const fileSuffix = imgUrl.split(".").slice(-1)[0];
+  if (!skipCdn && imgUrl.includes('imgur.com')) {
+    const fileSuffix = imgUrl.split('.').slice(-1)[0];
     return `https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_${fileSuffix}/${imgUrl}`;
   }
   return imgUrl;
@@ -20,7 +20,7 @@ export const WarpcastImage = ({ url }: { url: string }) => {
 
   const onImageLoad = (e: any) => {
     setIsLoading(false);
-    e.currentTarget.style.display = "block";
+    e.currentTarget.style.display = 'block';
   };
 
   const renderLoadingPlaceholder = () => {
@@ -36,14 +36,14 @@ export const WarpcastImage = ({ url }: { url: string }) => {
     <>
       <img
         className="max-h-48 md:max-h-72 object-left rounded-md"
-        style={{ display: "none" }}
+        style={{ display: 'none' }}
         src={getImageViaCdnUrl(url, skipCdn)}
         alt=""
         referrerPolicy="no-referrer"
         onError={(e) => {
           if (skipCdn) return;
 
-          console.log("error loading image, retry without CDN", url);
+          console.log('error loading image, retry without CDN', url);
           setSkipCdn(true);
         }}
         onLoad={(e) => onImageLoad(e)}

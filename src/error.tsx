@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 // import herocastImg from '../public/images/herocast.png';
 
 export default function ErrorPage() {
@@ -20,7 +20,7 @@ export default function ErrorPage() {
         <div className="max-w-lg">
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground/80 sm:text-5xl">Error</h1>
           <p className="mt-2 text-base leading-7 text-foreground/80">
-            {error?.statusText || error?.message || "Unknown error"}
+            {error?.statusText || error?.message || 'Unknown error'}
           </p>
           <div className="mt-10">
             <a href="/" className="text-sm font-semibold leading-7 text-foreground/80">

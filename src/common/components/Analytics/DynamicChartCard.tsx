@@ -1,16 +1,16 @@
-import React, { useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AnalyticsData } from "@/common/types/types";
-import { format, subDays } from "date-fns";
-import { Interval } from "@/common/helpers/search";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { roundToNextDigit } from "@/common/helpers/math";
+import React, { useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnalyticsData } from '@/common/types/types';
+import { format, subDays } from 'date-fns';
+import { Interval } from '@/common/helpers/search';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { roundToNextDigit } from '@/common/helpers/math';
 
 type DynamicChartCardProps = {
   interval: Interval;
@@ -40,7 +40,7 @@ function DataPickerDropdown({ values, defaultValue, updateValue }) {
           aria-expanded={open}
           className="w-[110px] justify-between"
         >
-          {value !== undefined ? values.find((interval) => interval === value) : "Interval..."}
+          {value !== undefined ? values.find((interval) => interval === value) : 'Interval...'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -54,7 +54,7 @@ function DataPickerDropdown({ values, defaultValue, updateValue }) {
                   value={interval.toString()}
                   onSelect={(value) => handleSelect(value as unknown as Interval)}
                 >
-                  <CheckIcon className={cn("mr-2 h-4 w-4", value === interval ? "opacity-100" : "opacity-0")} />
+                  <CheckIcon className={cn('mr-2 h-4 w-4', value === interval ? 'opacity-100' : 'opacity-0')} />
                   {interval}
                 </CommandItem>
               ))}
@@ -66,10 +66,10 @@ function DataPickerDropdown({ values, defaultValue, updateValue }) {
   );
 }
 
-const values = ["casts", "follows", "reactions"];
+const values = ['casts', 'follows', 'reactions'];
 
 const normalizeTimestampToDate = (timestamp: string) => {
-  return new Date(timestamp).toISOString().split("T")[0];
+  return new Date(timestamp).toISOString().split('T')[0];
 };
 
 const getAggregatedDataForKey = (analyticsData: AnalyticsData, dataKey: string, startDate: Date) => {
@@ -167,7 +167,7 @@ const DynamicChartCard = ({ interval, analyticsData, isLoading }: DynamicChartCa
                   dataKey="date"
                   tickLine={false}
                   tickMargin={8}
-                  tickFormatter={(date: Date) => format(date, "MMM d")}
+                  tickFormatter={(date: Date) => format(date, 'MMM d')}
                 />
                 <YAxis yAxisId={dataKey1} domain={([dataMin, dataMax]) => [dataMin, roundToNextDigit(dataMax)]} />
                 <YAxis
@@ -179,10 +179,10 @@ const DynamicChartCard = ({ interval, analyticsData, isLoading }: DynamicChartCa
                   content={
                     <ChartTooltipContent
                       labelFormatter={(value) => {
-                        return new Date(value).toLocaleDateString("en-US", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
+                        return new Date(value).toLocaleDateString('en-US', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
                         });
                       }}
                     />

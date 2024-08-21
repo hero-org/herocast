@@ -1,7 +1,7 @@
-import { useAccountStore } from "./useAccountStore";
-import { useListStore } from "./useListStore";
-import { useDraftStore } from "./useDraftStore";
-import { useUserStore } from "./useUserStore";
+import { useAccountStore } from './useAccountStore';
+import { useListStore } from './useListStore';
+import { useDraftStore } from './useDraftStore';
+import { useUserStore } from './useUserStore';
 
 export const initializeStores = async () => {
   // console.log('Start initializing stores 🤩')

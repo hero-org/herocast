@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { UserDataType } from "@farcaster/hub-web";
-import { setUserDataInProtocol } from "@/common/helpers/farcaster";
-import { AccountObjectType } from "@/stores/useAccountStore";
-import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { toast } from "sonner";
-import ImgurUpload from "../ImgurUpload";
-import { Input } from "@/components/ui/input";
+import React, { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { UserDataType } from '@farcaster/hub-web';
+import { setUserDataInProtocol } from '@/common/helpers/farcaster';
+import { AccountObjectType } from '@/stores/useAccountStore';
+import { Cog6ToothIcon } from '@heroicons/react/20/solid';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { toast } from 'sonner';
+import ImgurUpload from '../ImgurUpload';
+import { Input } from '@/components/ui/input';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -47,13 +47,13 @@ const ChangeProfilePictureForm = ({ account, onSuccess }: ChangeProfilePictureFo
     setIsPending(true);
     try {
       await setUserDataInProtocol(account.privateKey!, Number(account.platformAccountId!), UserDataType.PFP, newPfpUrl);
-      toast.success("Profile picture changed successfully", {
+      toast.success('Profile picture changed successfully', {
         duration: 5000,
         closeButton: true,
       });
       onSuccess?.();
     } catch (e) {
-      console.error("ChangeProfilePicture error", e);
+      console.error('ChangeProfilePicture error', e);
       setError(`Error setting profile picture -> ${e}`);
     } finally {
       setIsPending(false);
@@ -62,7 +62,7 @@ const ChangeProfilePictureForm = ({ account, onSuccess }: ChangeProfilePictureFo
 
   const renderForm = () => (
     <div className="flex flex-col gap-y-2 max-w-sm">
-      {" "}
+      {' '}
       <ImgurUpload onSuccess={setNewPfpUrl} />
       <Input variantSize="sm" placeholder="https://i.imgur.com/..." onChange={(e) => setNewPfpUrl(e.target.value)} />
       <Button variant="default" type="submit" className="w-74" disabled={!canSubmit} onClick={changeProfilePicture}>

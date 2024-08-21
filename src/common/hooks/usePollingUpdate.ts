@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 const usePollingUpdate = (pollingFunction: (() => void) | null, interval: number) => {
   const [subscription, setSubscription] = useState(null);

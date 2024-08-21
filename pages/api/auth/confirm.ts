@@ -1,14 +1,14 @@
-import { type EmailOtpType } from "@supabase/supabase-js";
-import type { NextApiRequest, NextApiResponse } from "next";
-import createClient from "@/common/helpers/supabase/api";
+import { type EmailOtpType } from '@supabase/supabase-js';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import createClient from '@/common/helpers/supabase/api';
 
 function stringOrFirstString(item: string | string[] | undefined) {
   return Array.isArray(item) ? item[0] : item;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") {
-    res.status(405).appendHeader("Allow", "GET").end();
+  if (req.method !== 'GET') {
+    res.status(405).appendHeader('Allow', 'GET').end();
     return;
   }
 
@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const token_hash = stringOrFirstString(queryParams.token_hash);
   const type = stringOrFirstString(queryParams.type);
 
-  let next = "/error";
+  let next = '/error';
 
   if (token_hash && type) {
     const supabase = createClient(req, res);
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (error) {
       console.error(error);
     } else {
-      next = stringOrFirstString(queryParams.next) || "/";
+      next = stringOrFirstString(queryParams.next) || '/';
     }
   }
 

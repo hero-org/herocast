@@ -1,10 +1,10 @@
 // needs to be wrapped in <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
-import React from "react";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import React from 'react';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 type HotkeyTooltipWrapperProps = {
   hotkey?: string | React.ReactNode;
-  side: "top" | "right" | "bottom" | "left";
+  side: 'top' | 'right' | 'bottom' | 'left';
   children: React.ReactNode;
 };
 
@@ -15,7 +15,7 @@ const HotkeyTooltipWrapper = ({ hotkey, side, children }: HotkeyTooltipWrapperPr
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent
-        align={"center"}
+        align={'center'}
         className="bg-background border border-muted text-foreground/80"
         side={side}
         sideOffset={5}

@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
-import { Key } from "ts-key-enum";
-import { useInView } from "react-intersection-observer";
-import isEmpty from "lodash.isempty";
+import React, { useEffect, useRef } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { Key } from 'ts-key-enum';
+import { useInView } from 'react-intersection-observer';
+import isEmpty from 'lodash.isempty';
 
 type SelectableListWithHotkeysProps = {
   data: any[];
@@ -39,14 +39,14 @@ export const SelectableListWithHotkeys = ({
   useEffect(() => {
     if (!disableScroll && scollToRef.current) {
       (scollToRef.current as HTMLElement).scrollIntoView({
-        behavior: "auto",
-        block: "start",
+        behavior: 'auto',
+        block: 'start',
       });
     }
   }, [selectedIdx]);
 
   useHotkeys(
-    ["o", Key.Enter],
+    ['o', Key.Enter],
     () => {
       onSelect?.(selectedIdx);
     },
@@ -57,7 +57,7 @@ export const SelectableListWithHotkeys = ({
   );
 
   useHotkeys(
-    "shift+o",
+    'shift+o',
     () => {
       onExpand && onExpand(selectedIdx);
     },
@@ -68,7 +68,7 @@ export const SelectableListWithHotkeys = ({
   );
 
   useHotkeys(
-    ["j", Key.ArrowDown],
+    ['j', Key.ArrowDown],
     () => {
       onDown?.();
 
@@ -83,7 +83,7 @@ export const SelectableListWithHotkeys = ({
   );
 
   useHotkeys(
-    ["k", Key.ArrowUp],
+    ['k', Key.ArrowUp],
     () => {
       onUp?.();
 

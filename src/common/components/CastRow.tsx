@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { castTextStyle } from "@/common/helpers/css";
-import { CastReactionType } from "@/common/constants/farcaster";
-import { ChannelType } from "@/common/constants/channels";
-import { useAccountStore } from "@/stores/useAccountStore";
+import React, { useState } from 'react';
+import { castTextStyle } from '@/common/helpers/css';
+import { CastReactionType } from '@/common/constants/farcaster';
+import { ChannelType } from '@/common/constants/channels';
+import { useAccountStore } from '@/stores/useAccountStore';
 import {
   ArrowPathRoundedSquareIcon,
   ArrowTopRightOnSquareIcon,
@@ -11,38 +11,38 @@ import {
   ChatBubbleLeftRightIcon,
   TrashIcon,
   DocumentDuplicateIcon,
-} from "@heroicons/react/24/outline";
-import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
-import { publishReaction, removeCast, removeReaction } from "../helpers/farcaster";
-import includes from "lodash.includes";
-import map from "lodash.map";
-import { useHotkeys } from "react-hotkeys-hook";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
-import get from "lodash.get";
-import Linkify from "linkify-react";
-import { ErrorBoundary } from "@sentry/react";
-import { renderEmbedForUrl } from "./Embeds";
-import ProfileHoverCard from "./ProfileHoverCard";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { registerPlugin } from "linkifyjs";
-import CashtagHoverCard from "./CashtagHoverCard";
-import mentionPlugin, { cashtagPlugin, channelPlugin } from "../helpers/linkify";
-import { AccountPlatformType } from "../constants/accounts";
+} from '@heroicons/react/24/outline';
+import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
+import { publishReaction, removeCast, removeReaction } from '../helpers/farcaster';
+import includes from 'lodash.includes';
+import map from 'lodash.map';
+import { useHotkeys } from 'react-hotkeys-hook';
+import * as Tooltip from '@radix-ui/react-tooltip';
+import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
+import get from 'lodash.get';
+import Linkify from 'linkify-react';
+import { ErrorBoundary } from '@sentry/react';
+import { renderEmbedForUrl } from './Embeds';
+import ProfileHoverCard from './ProfileHoverCard';
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { registerPlugin } from 'linkifyjs';
+import CashtagHoverCard from './CashtagHoverCard';
+import mentionPlugin, { cashtagPlugin, channelPlugin } from '../helpers/linkify';
+import { AccountPlatformType } from '../constants/accounts';
 import {
   toastCopiedToClipboard,
   toastInfoReadOnlyMode,
   toastSuccessCastDeleted,
   toastUnableToDeleteCast,
-} from "../helpers/toast";
-import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import { useDataStore } from "@/stores/useDataStore";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { useDraftStore } from "@/stores/useDraftStore";
-import ChannelHoverCard from "./ChannelHoverCard";
-import { formatDistanceToNowStrict } from "date-fns";
+} from '../helpers/toast';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { useDraftStore } from '@/stores/useDraftStore';
+import ChannelHoverCard from './ChannelHoverCard';
+import { formatDistanceToNowStrict } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,8 +50,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
+} from '@/components/ui/dropdown-menu';
+import { EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
 import {
   Dialog,
   DialogContent,
@@ -61,12 +61,12 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
-import { addToClipboard } from "../helpers/clipboard";
+} from '@/components/ui/dialog';
+import { addToClipboard } from '../helpers/clipboard';
 
-registerPlugin("mention", mentionPlugin);
-registerPlugin("cashtag", cashtagPlugin);
-registerPlugin("channel", channelPlugin);
+registerPlugin('mention', mentionPlugin);
+registerPlugin('cashtag', cashtagPlugin);
+registerPlugin('channel', channelPlugin);
 
 export type CastToReplyType = {
   hash: string;
@@ -120,7 +120,7 @@ const renderLink = ({ attributes, content }) => {
       className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
       onClick={(event) => {
         event.stopPropagation();
-        window.open(href, "_blank");
+        window.open(href, '_blank');
       }}
       rel="noopener noreferrer"
     >
@@ -151,7 +151,7 @@ const renderCashtag = ({ attributes, content }) => {
   }
 
   const tokenSymbol = content.slice(1);
-  if (tokenSymbol === "usd") return null;
+  if (tokenSymbol === 'usd') return null;
 
   const { userFid } = attributes;
 
@@ -253,8 +253,8 @@ export const CastRow = ({
     const recastsCount = cast.reactions?.recasts_count || cast.recasts?.count || 0;
     const likesCount = cast.reactions?.likes_count || cast.reactions?.count || 0;
 
-    const likeFids = map(cast.reactions?.likes, "fid") || [];
-    const recastFids = map(cast.reactions?.recasts, "fid") || [];
+    const likeFids = map(cast.reactions?.likes, 'fid') || [];
+    const recastFids = map(cast.reactions?.recasts, 'fid') || [];
     return {
       [CastReactionType.replies]: { count: repliesCount },
       [CastReactionType.recasts]: {
@@ -271,7 +271,7 @@ export const CastRow = ({
   const reactions = getCastReactionsObj();
 
   useHotkeys(
-    "l",
+    'l',
     () => {
       if (isSelected) {
         onClickReaction(CastReactionType.likes, reactions[CastReactionType.likes].isActive);
@@ -282,7 +282,7 @@ export const CastRow = ({
   );
 
   useHotkeys(
-    "shift+r",
+    'shift+r',
     () => {
       if (isSelected) {
         onClickReaction(CastReactionType.recasts, reactions[CastReactionType.recasts].isActive);
@@ -296,7 +296,7 @@ export const CastRow = ({
     parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined;
 
   const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
-    const className = cn(isActive ? "text-foreground/70" : "", "mt-0.5 w-4 h-4 mr-1");
+    const className = cn(isActive ? 'text-foreground/70' : '', 'mt-0.5 w-4 h-4 mr-1');
 
     switch (reactionType) {
       case CastReactionType.likes:
@@ -346,7 +346,7 @@ export const CastRow = ({
         return;
       }
 
-      const reactionBodyType: "like" | "recast" = key === CastReactionType.likes ? "like" : "recast";
+      const reactionBodyType: 'like' | 'recast' = key === CastReactionType.likes ? 'like' : 'recast';
       const reaction = {
         type: reactionBodyType,
         target: { fid: Number(authorFid), hash: cast.hash },
@@ -387,16 +387,16 @@ export const CastRow = ({
 
   const renderCastReactions = (cast: CastWithInteractions) => {
     const linksCount = cast?.embeds ? cast.embeds.length : 0;
-    const isOnchainLink = linksCount > 0 && "url" in cast.embeds[0] ? cast.embeds[0].url.startsWith("chain:") : false;
+    const isOnchainLink = linksCount > 0 && 'url' in cast.embeds[0] ? cast.embeds[0].url.startsWith('chain:') : false;
 
     return (
       <div className="-ml-1.5 flex space-x-3">
         {Object.entries(reactions).map(([key, reactionInfo]) => {
-          const isActive = get(reactionInfo, "isActive", false);
+          const isActive = get(reactionInfo, 'isActive', false);
           const icon = getIconForCastReactionType(key as CastReactionType, isActive);
           const reaction = renderReaction(key as CastReactionType, isActive, reactionInfo.count, icon);
 
-          if (key === "likes" && isSelected) {
+          if (key === 'likes' && isSelected) {
             return (
               <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="L" side="bottom">
@@ -404,7 +404,7 @@ export const CastRow = ({
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
             );
-          } else if (key === "recasts" && isSelected) {
+          } else if (key === 'recasts' && isSelected) {
             return (
               <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="Shift + R" side="bottom">
@@ -412,7 +412,7 @@ export const CastRow = ({
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
             );
-          } else if (key === "replies" && isSelected) {
+          } else if (key === 'replies' && isSelected) {
             return (
               <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="R" side="bottom">
@@ -429,7 +429,7 @@ export const CastRow = ({
             <HotkeyTooltipWrapper hotkey="O" side="bottom">
               <a
                 tabIndex={-1}
-                href={"url" in cast.embeds[0] ? cast.embeds[0].url : "#"}
+                href={'url' in cast.embeds[0] ? cast.embeds[0].url : '#'}
                 target="_blank"
                 rel="noreferrer"
                 className="cursor-pointer"
@@ -459,7 +459,7 @@ export const CastRow = ({
   };
 
   const getText = () =>
-    "text" in cast && cast.text ? (
+    'text' in cast && cast.text ? (
       <ErrorBoundary>
         <Linkify
           as="span"
@@ -468,13 +468,13 @@ export const CastRow = ({
             attributes: { userFid, setSelectedChannelByName },
           }}
         >
-          {cast.text}{" "}
+          {cast.text}{' '}
         </Linkify>
       </ErrorBoundary>
     ) : null;
 
   const renderEmbeds = () => {
-    if (!("embeds" in cast) || !cast.embeds.length) {
+    if (!('embeds' in cast) || !cast.embeds.length) {
       return null;
     }
 
@@ -482,8 +482,8 @@ export const CastRow = ({
     return (
       <div
         className={cn(
-          cast.embeds?.length > 1 && !embedsContainsCastEmbed && "grid lg:grid-cols-2 gap-4",
-          "max-w-lg self-start"
+          cast.embeds?.length > 1 && !embedsContainsCastEmbed && 'grid lg:grid-cols-2 gap-4',
+          'max-w-lg self-start'
         )}
         onClick={(e) => e.preventDefault()}
       >
@@ -500,7 +500,7 @@ export const CastRow = ({
 
   const renderRecastBadge = () => {
     const shouldShowBadge =
-      "inclusion_context" in cast &&
+      'inclusion_context' in cast &&
       cast.inclusion_context?.is_following_recaster &&
       !cast.inclusion_context?.is_following_author;
 
@@ -512,7 +512,7 @@ export const CastRow = ({
     );
   };
 
-  const channel = showChannel && "parent_url" in cast ? getChannelForParentUrl(cast.parent_url) : null;
+  const channel = showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null;
   const timeAgoStr = formatDistanceToNowStrict(new Date(cast.timestamp), {
     addSuffix: false,
   });
@@ -534,9 +534,9 @@ export const CastRow = ({
   const renderAdminActions = () => {
     const actions = [
       {
-        key: "delete",
+        key: 'delete',
         isDialog: true,
-        label: "Delete",
+        label: 'Delete',
         icon: <TrashIcon className="h-4 w-4 mr-1" />,
         content: (
           <DialogContent>
@@ -570,8 +570,8 @@ export const CastRow = ({
         ),
       },
       {
-        key: "copy-cast-link",
-        label: "Copy cast link",
+        key: 'copy-cast-link',
+        label: 'Copy cast link',
         icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
         onClick: () => {
           const url = `${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`;
@@ -580,8 +580,8 @@ export const CastRow = ({
         },
       },
       {
-        key: "copy-cast-hash",
-        label: "Copy cast hash",
+        key: 'copy-cast-hash',
+        label: 'Copy cast hash',
         icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
         onClick: () => {
           addToClipboard(cast.hash);
@@ -634,10 +634,10 @@ export const CastRow = ({
           onSelect && onSelect();
         }}
         className={cn(
-          "p-3",
-          isSelected && isEmbed ? "bg-muted" : "cursor-pointer",
-          isSelected ? "border-l-1 border-foreground/10" : "border-l-1 border-transparent",
-          "lg:ml-0 grow rounded-r-sm"
+          'p-3',
+          isSelected && isEmbed ? 'bg-muted' : 'cursor-pointer',
+          isSelected ? 'border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
+          'lg:ml-0 grow rounded-r-sm'
         )}
       >
         {isThreadView && <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />}
@@ -699,7 +699,7 @@ export const CastRow = ({
             </div>
             {showParentDetails && cast?.parent_hash && (
               <div className="flex flex-row items-center">
-                <span className="text-sm text-foreground/50">{cast.parent_hash && "Replying"}</span>
+                <span className="text-sm text-foreground/50">{cast.parent_hash && 'Replying'}</span>
               </div>
             )}
             <div

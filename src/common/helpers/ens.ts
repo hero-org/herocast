@@ -1,6 +1,6 @@
-import { getEnsAddress, getEnsName } from "@wagmi/core";
-import { normalize } from "viem/ens";
-import { mainnetConfig } from "./rainbowkit";
+import { getEnsAddress, getEnsName } from '@wagmi/core';
+import { normalize } from 'viem/ens';
+import { mainnetConfig } from './rainbowkit';
 
 export const getAddressFromEnsName = async (name: string) => {
   try {
@@ -27,7 +27,7 @@ export const getEnsNameForAddress = async (address: `0x${string}`) => {
 };
 
 export const convertEnsNameToAddress = async (ensName: string) => {
-  if (ensName.endsWith(".eth")) {
+  if (ensName.endsWith('.eth')) {
     return await getAddressFromEnsName(ensName);
   }
   return ensName;

@@ -18,11 +18,11 @@ export async function getIcebreakerSocialInfoForFid(fid: string): Promise<Icebre
   try {
     const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
       headers: {
-        accept: "application/json",
+        accept: 'application/json',
       },
     });
     if (!response.ok) {
-      console.log("Error fetching Icebreaker data:", response.statusText);
+      console.log('Error fetching Icebreaker data:', response.statusText);
       return null;
     }
     const data = await response.json();
@@ -36,7 +36,7 @@ export async function getIcebreakerSocialInfoForFid(fid: string): Promise<Icebre
       return null;
     }
   } catch (error) {
-    console.error("Error fetching Icebreaker data:", error);
+    console.error('Error fetching Icebreaker data:', error);
     return null;
   }
 }

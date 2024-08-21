@@ -1,45 +1,45 @@
-import React, { useEffect, useState } from "react";
-import { UserPlusIcon } from "@heroicons/react/20/solid";
-import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
+import React, { useEffect, useState } from 'react';
+import { UserPlusIcon } from '@heroicons/react/20/solid';
+import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import {
   AccountObjectType,
   PENDING_ACCOUNT_NAME_PLACEHOLDER,
   hydrateAccounts,
   useAccountStore,
-} from "@/stores/useAccountStore";
-import isEmpty from "lodash.isempty";
-import { AccountPlatformType, AccountStatusType } from "@/common/constants/accounts";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { QrCode } from "@/common/components/QrCode";
-import ConnectFarcasterAccountViaHatsProtocol from "@/common/components/ConnectFarcasterAccountViaHatsProtocol";
-import { useAccount } from "wagmi";
+} from '@/stores/useAccountStore';
+import isEmpty from 'lodash.isempty';
+import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { QrCode } from '@/common/components/QrCode';
+import ConnectFarcasterAccountViaHatsProtocol from '@/common/components/ConnectFarcasterAccountViaHatsProtocol';
+import { useAccount } from 'wagmi';
 import {
   WarpcastLoginStatus,
   callCreateSignerRequest,
   generateWarpcastSigner,
   getWarpcastSignerStatus,
-} from "@/common/helpers/warpcastLogin";
-import HelpCard from "@/common/components/HelpCard";
-import { useIsMounted } from "@/common/helpers/hooks";
-import { useRouter } from "next/router";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { openWindow } from "@/common/helpers/navigation";
-import ConfirmOnchainSignerButton from "@/common/components/ConfirmOnchainSignerButton";
-import SwitchWalletButton from "@/common/components/SwitchWalletButton";
-import { getTimestamp } from "@/common/helpers/farcaster";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AlertDialogDemo from "@/common/components/AlertDialog";
-import AccountManagementModal from "@/common/components/AccountManagement/AccountManagementModal";
-import { cn } from "@/lib/utils";
-import { filter } from "lodash";
+} from '@/common/helpers/warpcastLogin';
+import HelpCard from '@/common/components/HelpCard';
+import { useIsMounted } from '@/common/helpers/hooks';
+import { useRouter } from 'next/router';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { openWindow } from '@/common/helpers/navigation';
+import ConfirmOnchainSignerButton from '@/common/components/ConfirmOnchainSignerButton';
+import SwitchWalletButton from '@/common/components/SwitchWalletButton';
+import { getTimestamp } from '@/common/helpers/farcaster';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AlertDialogDemo from '@/common/components/AlertDialog';
+import AccountManagementModal from '@/common/components/AccountManagement/AccountManagementModal';
+import { cn } from '@/lib/utils';
+import { filter } from 'lodash';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 enum SignupStateEnum {
-  "initial",
-  "connecting",
-  "done",
+  'initial',
+  'connecting',
+  'done',
 }
 
 export default function Accounts() {
@@ -85,10 +85,10 @@ export default function Accounts() {
     setIsLoading(true);
     await Promise.all(accounts.map(async (account) => await updateAccountUsername(account.id)))
       .then(async () => {
-        console.log("All account names refreshed successfully");
+        console.log('All account names refreshed successfully');
         await hydrateAccounts();
       })
-      .catch((error) => console.error("Error refreshing account names:", error));
+      .catch((error) => console.error('Error refreshing account names:', error));
     setIsLoading(false);
   };
 
@@ -116,7 +116,7 @@ export default function Accounts() {
       setIsLoading(false);
       setSignupState(SignupStateEnum.connecting);
     } catch (e) {
-      console.log("error when trying to add account", e);
+      console.log('error when trying to add account', e);
       setIsLoading(false);
       setSignupState(SignupStateEnum.initial);
     }
@@ -192,7 +192,7 @@ export default function Accounts() {
       <CardFooter>
         <Button className="w-full" variant="default" onClick={() => onCreateNewAccount()}>
           <UserPlusIcon className="mr-1.5 h-5 w-5" aria-hidden="true" />
-          {isLoading ? "Creating account..." : "Connect"}
+          {isLoading ? 'Creating account...' : 'Connect'}
         </Button>
       </CardFooter>
     </Card>
@@ -253,7 +253,7 @@ export default function Accounts() {
       </CardHeader>
       <CardContent className="grid">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Button variant="default" onClick={() => router.push("/farcaster-signup")}>
+          <Button variant="default" onClick={() => router.push('/farcaster-signup')}>
             Create new account
           </Button>
         </div>
@@ -262,7 +262,7 @@ export default function Accounts() {
   );
 
   const renderActiveAccountsOverview = () => {
-    const activeAccounts = filter(accounts, (account) => account.status === "active");
+    const activeAccounts = filter(accounts, (account) => account.status === 'active');
 
     if (isEmpty(activeAccounts)) return null;
 
@@ -326,7 +326,7 @@ export default function Accounts() {
               </CardHeader>
               <CardContent className="w-full max-w-lg"></CardContent>
               <CardFooter className="flex flex-col">
-                <Button className="w-full" variant="default" onClick={() => router.push("/hats")}>
+                <Button className="w-full" variant="default" onClick={() => router.push('/hats')}>
                   Go to setup →
                 </Button>
               </CardFooter>
@@ -338,7 +338,7 @@ export default function Accounts() {
             <h1 className="text-xl font-semibold leading-7 text-foreground/80">Farcaster accounts</h1>
             <Button variant="outline" className="h-8" disabled={isLoading} onClick={() => refreshAccountNames()}>
               Reload accounts
-              <ArrowPathIcon className={cn(isLoading && "animate-spin", "ml-1 w-4 h-4")} />
+              <ArrowPathIcon className={cn(isLoading && 'animate-spin', 'ml-1 w-4 h-4')} />
             </Button>
           </div>
           <ul role="list" className="divide-y divide-white/5">
@@ -348,14 +348,14 @@ export default function Accounts() {
                   <h3 className="text-foreground/80 flex-auto truncate text-sm font-semibold leading-6">
                     {item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
                   </h3>
-                  {item.platformAccountId && item.status !== "active" && (
+                  {item.platformAccountId && item.status !== 'active' && (
                     <p className="truncate text-sm text-foreground/80">{item.status}</p>
                   )}
                   {item.platform === AccountPlatformType.farcaster_hats_protocol && <p className="text-sm">🧢</p>}
-                  {item.platformAccountId && item.status === "active" && (
+                  {item.platformAccountId && item.status === 'active' && (
                     <p className="font-mono truncate text-sm text-foreground/80">fid: {item.platformAccountId}</p>
                   )}
-                  {item.status === "active" && (
+                  {item.status === 'active' && (
                     <Button variant="secondary" onClick={() => onClickManageAccount(item)}>
                       Manage
                     </Button>

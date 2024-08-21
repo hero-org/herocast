@@ -1,20 +1,20 @@
-import { RUNNING_IN_TAURI } from "@/common/constants/tauri";
-import { open } from "@tauri-apps/api/shell";
+import { RUNNING_IN_TAURI } from '@/common/constants/tauri';
+import { open } from '@tauri-apps/api/shell';
 
 export const openWindow = (url: string) => {
   if (!url) return;
-  url = url.match(/^https?:/) ? url : "//" + url;
+  url = url.match(/^https?:/) ? url : '//' + url;
 
   if (RUNNING_IN_TAURI) {
     open(url);
   } else {
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 };
 
 export const findParamInHashUrlPath = (url: string, param: string) => {
   return url
-    .split("&")
+    .split('&')
     .find((item) => item.startsWith(param))
-    ?.replace(`${param}=`, "");
+    ?.replace(`${param}=`, '');
 };

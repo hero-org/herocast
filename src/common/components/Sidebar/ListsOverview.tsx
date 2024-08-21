@@ -1,32 +1,32 @@
-import React, { useState } from "react";
-import { SidebarHeader } from "./SidebarHeader";
-import { useListStore } from "@/stores/useListStore";
-import sortBy from "lodash.sortby";
-import { List } from "@/common/types/database.types";
+import React, { useState } from 'react';
+import { SidebarHeader } from './SidebarHeader';
+import { useListStore } from '@/stores/useListStore';
+import sortBy from 'lodash.sortby';
+import { List } from '@/common/types/database.types';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
   Cog6ToothIcon,
   BellIcon,
   EnvelopeIcon,
-} from "@heroicons/react/24/outline";
-import { useNavigationStore } from "@/stores/useNavigationStore";
-import { UUID } from "crypto";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAccountStore } from "@/stores/useAccountStore";
-import UpgradeFreePlanCard from "../UpgradeFreePlanCard";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { PlusIcon } from "@heroicons/react/24/solid";
+} from '@heroicons/react/24/outline';
+import { useNavigationStore } from '@/stores/useNavigationStore';
+import { UUID } from 'crypto';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAccountStore } from '@/stores/useAccountStore';
+import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { PlusIcon } from '@heroicons/react/24/solid';
 
 type ListsOverviewProps = {
   hideHeader?: boolean;
@@ -64,8 +64,8 @@ const ListsOverview = () => {
         <div
           onClick={() => updateSelectedList(list.id)}
           className={cn(
-            isSelected ? "text-foreground font-semibold" : "text-foreground/80 hover:text-foreground/80",
-            "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
+            isSelected ? 'text-foreground font-semibold' : 'text-foreground/80 hover:text-foreground/80',
+            'flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
           )}
         >
           <span className="flex-nowrap truncate">{list.name}</span>
@@ -83,7 +83,7 @@ const ListsOverview = () => {
           {lists.length > 5 && (
             <CollapsibleTrigger asChild>
               <Button variant="outline" size="sm" className="h-6 px-1">
-                <span className="">Show {isShowAllLists ? "less" : "more"}</span>
+                <span className="">Show {isShowAllLists ? 'less' : 'more'}</span>
               </Button>
             </CollapsibleTrigger>
           )}
@@ -105,7 +105,7 @@ const ListsOverview = () => {
   return (
     <div className="">
       {renderFeedHeader(
-        "Searches",
+        'Searches',
         <Link href="/search">
           <Button size="sm" variant="outline" className="h-6 px-2">
             Add search

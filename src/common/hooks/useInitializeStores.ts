@@ -1,11 +1,11 @@
-import { initializeStores } from "@/stores/initializeStores";
-import { useEffect, useState, useRef } from "react";
-import { useAuth } from "../context/AuthContext";
+import { initializeStores } from '@/stores/initializeStores';
+import { useEffect, useState, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 enum InitStatus {
-  uninitialized = "uninitialized",
-  pending = "pending",
-  initialized = "initialized",
+  uninitialized = 'uninitialized',
+  pending = 'pending',
+  initialized = 'initialized',
 }
 
 const useInitializeStores = () => {
@@ -23,7 +23,7 @@ const useInitializeStores = () => {
           await initializeStores();
           setStatus(InitStatus.initialized);
         } catch (error) {
-          console.error("Failed to initialize stores:", error);
+          console.error('Failed to initialize stores:', error);
           setStatus(InitStatus.uninitialized);
         }
       }

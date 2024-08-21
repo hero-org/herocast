@@ -4,4 +4,4 @@ export const openSourcePlanLimits = {
   maxScheduledCasts: 3,
 };
 
-export type openSourceLimits = "maxSavedSearches" | "maxAccounts" | "maxScheduledCasts";
+export type openSourceLimits = 'maxSavedSearches' | 'maxAccounts' | 'maxScheduledCasts';

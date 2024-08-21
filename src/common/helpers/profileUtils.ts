@@ -1,6 +1,6 @@
-import get from "lodash.get";
-import { getUserDataForFidOrUsername } from "./neynar";
-import { DataStore, useDataStore, UserProfile, PROFILE_UPDATE_INTERVAL } from "@/stores/useDataStore";
+import get from 'lodash.get';
+import { getUserDataForFidOrUsername } from './neynar';
+import { DataStore, useDataStore, UserProfile, PROFILE_UPDATE_INTERVAL } from '@/stores/useDataStore';
 
 export const fetchAndAddUserProfile = async ({
   username,
@@ -52,7 +52,7 @@ export const getProfileFetchIfNeeded = async ({
 
   let profile = getProfile(useDataStore.getState(), username, fid);
   if (!profile) {
-    username = username && username.startsWith("@") ? username.slice(1) : username;
+    username = username && username.startsWith('@') ? username.slice(1) : username;
     const results = await fetchAndAddUserProfile({
       username,
       fid,

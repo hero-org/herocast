@@ -1,9 +1,9 @@
-import "reflect-metadata";
-import { DataSource } from "typeorm";
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { Analytics } from "./entities/Analytics";
+import 'reflect-metadata';
+import { DataSource } from 'typeorm';
+import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Analytics } from './entities/Analytics';
 
-@Entity({ name: "casts" })
+@Entity({ name: 'casts' })
 export class Cast {
   @PrimaryColumn()
   fid: number;
@@ -11,10 +11,10 @@ export class Cast {
   @Column()
   hash: string;
 
-  @CreateDateColumn({ type: "timestamptz" })
+  @CreateDateColumn({ type: 'timestamptz' })
   timestamp: Date;
 
-  @Column("jsonb", { array: true })
+  @Column('jsonb', { array: true })
   embeds: object[];
 
   @Column({ nullable: true })
@@ -29,37 +29,37 @@ export class Cast {
   @Column()
   text: string;
 
-  @Column("int", { array: true })
+  @Column('int', { array: true })
   mentions: number[];
 
-  @Column("int", { array: true })
+  @Column('int', { array: true })
   mentions_positions: number[];
 
-  @UpdateDateColumn({ type: "timestamptz", nullable: true })
+  @UpdateDateColumn({ type: 'timestamptz', nullable: true })
   deleted_at: Date;
 
-  @Column({ type: "tsvector" })
+  @Column({ type: 'tsvector' })
   tsv: string;
 }
 
-@Entity({ name: "powerbadge" })
+@Entity({ name: 'powerbadge' })
 class Powerbadge {
   @PrimaryColumn()
   fid: number;
 
-  @CreateDateColumn({ type: "timestamptz", nullable: false })
+  @CreateDateColumn({ type: 'timestamptz', nullable: false })
   updated_at: Date;
 
-  @UpdateDateColumn({ type: "timestamptz", nullable: false })
+  @UpdateDateColumn({ type: 'timestamptz', nullable: false })
   updated_at: Date;
 }
 
-@Entity({ name: "reactions" })
+@Entity({ name: 'reactions' })
 class Reaction {
   @PrimaryColumn()
   fid: number;
 
-  @CreateDateColumn({ type: "timestamptz", nullable: false })
+  @CreateDateColumn({ type: 'timestamptz', nullable: false })
   timestamp: Date;
 
   @Column()
@@ -74,11 +74,11 @@ class Reaction {
 
 export const initializeDataSourceWithRetry = async (retries = 3) => {
   const AppDataSource = new DataSource({
-    type: "postgres",
+    type: 'postgres',
     url: process.env.DATABASE_URL,
     synchronize: false,
     entities: [Cast, Powerbadge, Reaction, Analytics],
-    logging: "all",
+    logging: 'all',
     extra: {
       ssl: {
         rejectUnauthorized: false,
@@ -95,7 +95,7 @@ export const initializeDataSourceWithRetry = async (retries = 3) => {
       console.log(`Data Source has been initialized! Time taken: ${timeTaken.toFixed(2)} ms`);
       break;
     } catch (err) {
-      console.error("Error during Data Source initialization:", err);
+      console.error('Error during Data Source initialization:', err);
       retries -= 1;
       console.log(`Retries left: ${retries}`);
       await new Promise((res) => setTimeout(res, 5000)); // Wait 5 seconds before retrying
@@ -103,7 +103,7 @@ export const initializeDataSourceWithRetry = async (retries = 3) => {
   }
 
   if (!retries) {
-    console.error("Failed to initialize Data Source after multiple attempts");
+    console.error('Failed to initialize Data Source after multiple attempts');
   }
   return AppDataSource;
 };

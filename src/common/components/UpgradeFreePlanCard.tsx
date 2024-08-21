@@ -1,14 +1,14 @@
-import React from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { Progress } from "@/components/ui/progress";
-import { openSourceLimits, openSourcePlanLimits } from "@/config/customerLimitation";
-import Link from "next/link";
-import { useListStore } from "@/stores/useListStore";
-import { useDraftStore } from "../../stores/useDraftStore";
-import { DraftStatus } from "../constants/farcaster";
-import { Button } from "@/components/ui/button";
-import { isPaidUser } from "@/stores/useUserStore";
+import React from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { Progress } from '@/components/ui/progress';
+import { openSourceLimits, openSourcePlanLimits } from '@/config/customerLimitation';
+import Link from 'next/link';
+import { useListStore } from '@/stores/useListStore';
+import { useDraftStore } from '../../stores/useDraftStore';
+import { DraftStatus } from '../constants/farcaster';
+import { Button } from '@/components/ui/button';
+import { isPaidUser } from '@/stores/useUserStore';
 
 type UpgradeFreePlanCardProps = {
   limit: openSourceLimits;
@@ -23,11 +23,11 @@ const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
 
   const getValueForLimit = () => {
     switch (limit) {
-      case "maxSavedSearches":
+      case 'maxSavedSearches':
         return lists.length;
-      case "maxAccounts":
+      case 'maxAccounts':
         return accounts.length;
-      case "maxScheduledCasts":
+      case 'maxScheduledCasts':
         return drafts.filter((draft) => draft.status === DraftStatus.scheduled).length;
     }
   };
@@ -36,23 +36,23 @@ const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
 
   const getTitle = () => {
     switch (limit) {
-      case "maxSavedSearches":
+      case 'maxSavedSearches':
         return `You have ${value} saved searches`;
-      case "maxAccounts":
+      case 'maxAccounts':
         return `You have ${value} accounts`;
-      case "maxScheduledCasts":
+      case 'maxScheduledCasts':
         return `You have ${value} scheduled casts`;
     }
   };
 
   const getContent = () => {
     switch (limit) {
-      case "maxSavedSearches":
-        return "Upgrade to get more saved searches.";
-      case "maxAccounts":
-        return "Upgrade to get more accounts.";
-      case "maxScheduledCasts":
-        return "Upgrade to get more scheduled casts.";
+      case 'maxSavedSearches':
+        return 'Upgrade to get more saved searches.';
+      case 'maxAccounts':
+        return 'Upgrade to get more accounts.';
+      case 'maxScheduledCasts':
+        return 'Upgrade to get more scheduled casts.';
     }
   };
 
@@ -66,7 +66,7 @@ const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
       </CardContent>
       <CardFooter>
         <Link href="/upgrade" prefetch={false}>
-          <Button className="w-44" size="sm" variant={hasReachedFreePlanLimit ? "default" : "outline"}>
+          <Button className="w-44" size="sm" variant={hasReachedFreePlanLimit ? 'default' : 'outline'}>
             Upgrade
           </Button>
         </Link>

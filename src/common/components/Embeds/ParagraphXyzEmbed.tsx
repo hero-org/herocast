@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { ParagraphXyzArticleType, getParagraphXyzArticle } from "../../helpers/paragraph";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { openWindow } from "@/common/helpers/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React, { useEffect, useState } from 'react';
+import { ParagraphXyzArticleType, getParagraphXyzArticle } from '../../helpers/paragraph';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { openWindow } from '@/common/helpers/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 type ParagraphXyzEmbedProps = {
   url: string;
 };

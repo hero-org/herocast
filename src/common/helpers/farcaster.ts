@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios';
 import {
   CastAddBody,
   Embed,
@@ -17,18 +17,18 @@ import {
   makeCastAdd,
   makeUserDataAdd,
   signedKeyRequestValidatorABI,
-} from "@farcaster/hub-web";
-import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from "@standard-crypto/farcaster-js-hub-rest";
-import { Address, encodeAbiParameters, toBytes, toHex } from "viem";
-import { publicClient, publicClientTestnet } from "./rainbowkit";
-import { mnemonicToAccount } from "viem/accounts";
-import { isDev, optimismChainId } from "./env";
+} from '@farcaster/hub-web';
+import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
+import { Address, encodeAbiParameters, toBytes, toHex } from 'viem';
+import { publicClient, publicClientTestnet } from './rainbowkit';
+import { mnemonicToAccount } from 'viem/accounts';
+import { isDev, optimismChainId } from './env';
 
-export const WARPCAST_RECOVERY_PROXY: `0x${string}` = "0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7";
+export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 
 const axiosInstance = axios.create({
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     api_key: process.env.NEXT_PUBLIC_NEYNAR_API_KEY,
   },
 });
@@ -37,7 +37,7 @@ type PublishReactionParams = {
   authorFid: number;
   privateKey: string;
   reaction: {
-    type: "like" | "recast";
+    type: 'like' | 'recast';
     target:
       | CastId
       | {
@@ -50,7 +50,7 @@ type RemoveReactionParams = {
   authorFid: number;
   privateKey: string;
   reaction: {
-    type: "like" | "recast";
+    type: 'like' | 'recast';
     target:
       | CastId
       | {
@@ -155,7 +155,7 @@ export const submitCast = async ({
         };
       },
       (err) => {
-        console.log("submitCast parentCastId error", err);
+        console.log('submitCast parentCastId error', err);
         throw err;
       }
     );
@@ -198,7 +198,7 @@ export const readNoncesFromKeyGateway = async (account: `0x${string}`) => {
   return await publicClient.readContract({
     abi: keyGatewayABI,
     address: KEY_GATEWAY_ADDRESS,
-    functionName: "nonces",
+    functionName: 'nonces',
     args: [account],
   });
 };
@@ -211,7 +211,7 @@ export async function isValidSignedKeyRequest(
   const res = await publicClient.readContract({
     address: SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
     abi: signedKeyRequestValidatorABI,
-    functionName: "validate",
+    functionName: 'validate',
     args: [fid, key, signedKeyRequest],
   });
   return res;
@@ -233,7 +233,7 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (
     types: {
       SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
     },
-    primaryType: "SignedKeyRequest",
+    primaryType: 'SignedKeyRequest',
     message: {
       requestFid: fid,
       key: signerPublicKey,
@@ -246,23 +246,23 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (
       {
         components: [
           {
-            name: "requestFid",
-            type: "uint256",
+            name: 'requestFid',
+            type: 'uint256',
           },
           {
-            name: "requestSigner",
-            type: "address",
+            name: 'requestSigner',
+            type: 'address',
           },
           {
-            name: "signature",
-            type: "bytes",
+            name: 'signature',
+            type: 'bytes',
           },
           {
-            name: "deadline",
-            type: "uint256",
+            name: 'deadline',
+            type: 'uint256',
           },
         ],
-        type: "tuple",
+        type: 'tuple',
       },
     ],
     [
@@ -289,22 +289,22 @@ export const getFidForAddress = async (address: `0x${string}`): Promise<bigint |
 
   return await client.readContract({
     ...IdContract,
-    functionName: "idOf",
+    functionName: 'idOf',
     args: [address],
   });
 };
 
-const FARCASTER_FNAME_ENDPOINT = "https://fnames.farcaster.xyz/transfers";
+const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';
 
 // example implementation here:
 // https://github.com/us3r-network/u3/blob/a6910b01fa0cf5cdba384f935544c6ba94dc7d64/apps/u3/src/components/social/farcaster/signupv2/FnameRegister.tsx
 
 export const validateUsernameIsAvailable = async (username: string) => {
-  console.log("validateUsernameIsAvailable", username);
+  console.log('validateUsernameIsAvailable', username);
 
   const response = await axios.get(`${FARCASTER_FNAME_ENDPOINT}?name=${username}`);
   if (response.status !== 200) {
-    throw new Error("Failed to validate username");
+    throw new Error('Failed to validate username');
   }
 
   const transfers = response.data.transfers;
@@ -314,7 +314,7 @@ export const validateUsernameIsAvailable = async (username: string) => {
 export const getUsernameForFid = async (fid: number) => {
   const response = await axios.get(`${FARCASTER_FNAME_ENDPOINT}?fid=${fid}`);
   if (response.status !== 200) {
-    throw new Error("Failed to get username for fid");
+    throw new Error('Failed to get username for fid');
   }
 
   const transfers = response.data.transfers.filter((t) => t.to === fid);
@@ -344,9 +344,9 @@ export const updateUsernameOffchain = async ({
   owner,
   signature,
 }: UpdateUsernameParams) => {
-  console.log("updateUsername", username, fid, fromFid, toFid);
+  console.log('updateUsername', username, fid, fromFid, toFid);
   if (!fromFid && !toFid) {
-    throw new Error("fromFid or toFid must be provided");
+    throw new Error('fromFid or toFid must be provided');
   }
   // {
   //   "name": "hubble", // Name to register
@@ -371,17 +371,17 @@ export const updateUsernameOffchain = async ({
       signature,
     };
 
-    console.log("updateUsername payload", payload);
+    console.log('updateUsername payload', payload);
     const res = await axios.post(FARCASTER_FNAME_ENDPOINT, payload);
-    console.log("updateUsername response", res, res?.data);
+    console.log('updateUsername response', res, res?.data);
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     return res.data;
   } catch (e: any) {
-    console.error("updateUsername error", e);
-    if (e.response.data.code === "THROTTLED") throw new Error("You can only change your username every 28 days.");
+    console.error('updateUsername error', e);
+    if (e.response.data.code === 'THROTTLED') throw new Error('You can only change your username every 28 days.');
     else
-      throw new Error("Failed to register current username: " + e.response.data?.error + " " + e.response.data?.code);
+      throw new Error('Failed to register current username: ' + e.response.data?.error + ' ' + e.response.data?.code);
   }
 };
 
@@ -406,16 +406,16 @@ export const setUserDataInProtocol = async (privateKey: string, fid: number, typ
 };
 
 const EIP_712_USERNAME_PROOF = [
-  { name: "name", type: "string" },
-  { name: "timestamp", type: "uint256" },
-  { name: "owner", type: "address" },
+  { name: 'name', type: 'string' },
+  { name: 'timestamp', type: 'uint256' },
+  { name: 'owner', type: 'address' },
 ];
 
 const EIP_712_USERNAME_DOMAIN = {
-  name: "Farcaster name verification",
-  version: "1",
+  name: 'Farcaster name verification',
+  version: '1',
   chainId: 1,
-  verifyingContract: "0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1" as Address,
+  verifyingContract: '0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1' as Address,
 };
 
 const USERNAME_PROOF_EIP_712_TYPES = {
@@ -437,10 +437,10 @@ export const getSignatureForUsernameProof = async (
   const signature = await client.signTypedData({
     ...USERNAME_PROOF_EIP_712_TYPES,
     account: address,
-    primaryType: "UserNameProof",
+    primaryType: 'UserNameProof',
     message: message,
   });
-  console.log("getSignatureForUsernameProof:", signature);
+  console.log('getSignatureForUsernameProof:', signature);
   return signature;
 };
 

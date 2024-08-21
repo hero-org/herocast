@@ -1,4 +1,4 @@
-import { createClient as createClientPrimitive } from "@supabase/supabase-js";
+import { createClient as createClientPrimitive } from '@supabase/supabase-js';
 
 export function createClient() {
   const supabase = createClientPrimitive(

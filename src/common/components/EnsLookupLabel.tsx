@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
-import { isAddress } from "viem";
-import { getAddressFromEnsName } from "../helpers/ens";
-import { getEnsNameForAddress } from "../helpers/ens";
-import { useAccount } from "wagmi";
+import React, { useEffect, useState } from 'react';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
+import { isAddress } from 'viem';
+import { getAddressFromEnsName } from '../helpers/ens';
+import { getEnsNameForAddress } from '../helpers/ens';
+import { useAccount } from 'wagmi';
 
 const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
   const [ensName, setEnsName] = useState<string | null>(null);
@@ -13,7 +13,7 @@ const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
   useEffect(() => {
     if (!isConnected) return;
 
-    if (addressOrName && addressOrName.endsWith(".eth")) {
+    if (addressOrName && addressOrName.endsWith('.eth')) {
       getAddressFromEnsName(addressOrName).then((ensAddress) => {
         setAddress(ensAddress);
       });

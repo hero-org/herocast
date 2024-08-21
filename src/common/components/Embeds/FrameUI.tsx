@@ -1,19 +1,19 @@
-import type { ImgHTMLAttributes } from "react";
-import React, { useState } from "react";
-import type { Frame, FrameButton } from "frames.js";
-import type { FrameStackMessage, FrameStackRequestError, FrameState, FrameTheme } from "@frames.js/render";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Loading } from "../Loading";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import type { ImgHTMLAttributes } from 'react';
+import React, { useState } from 'react';
+import type { Frame, FrameButton } from 'frames.js';
+import type { FrameStackMessage, FrameStackRequestError, FrameState, FrameTheme } from '@frames.js/render';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loading } from '../Loading';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export const defaultTheme: Required<FrameTheme> = {
-  buttonBg: "#fff",
-  buttonBorderColor: "#ccc",
-  buttonHoverBg: "#efefef",
-  buttonColor: "#444",
-  buttonRadius: "4",
-  bg: "#efefef",
+  buttonBg: '#fff',
+  buttonBorderColor: '#ccc',
+  buttonHoverBg: '#efefef',
+  buttonColor: '#444',
+  buttonRadius: '4',
+  bg: '#efefef',
 };
 
 const messageSquareIcon = (
@@ -63,28 +63,28 @@ type MessageTooltipProps = {
   /**
    * @defaultValue 'message'
    */
-  variant?: "message" | "error";
+  variant?: 'message' | 'error';
   /**
    * @defaultValue false
    */
   inline?: boolean;
 };
 
-function MessageTooltip({ inline = false, message, variant = "message" }: MessageTooltipProps): JSX.Element {
+function MessageTooltip({ inline = false, message, variant = 'message' }: MessageTooltipProps): JSX.Element {
   return (
     <div
       className={`${
-        inline ? "" : "absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2 bg-white"
-      } ${variant === "error" ? "text-red-500" : ""} items-center p-2 flex gap-2 text-sm`}
+        inline ? '' : 'absolute bottom-2 border border-slate-100 rounded-sm shadow-md inset-x-2 bg-white'
+      } ${variant === 'error' ? 'text-red-500' : ''} items-center p-2 flex gap-2 text-sm`}
     >
-      {variant === "message" ? messageSquareIcon : octagonXIcon}
+      {variant === 'message' ? messageSquareIcon : octagonXIcon}
       {message}
     </div>
   );
 }
 
 function getErrorMessageFromFramesStackItem(item: FrameStackMessage | FrameStackRequestError): string {
-  if (item.status === "message") {
+  if (item.status === 'message') {
     return item.message;
   }
 
@@ -92,7 +92,7 @@ function getErrorMessageFromFramesStackItem(item: FrameStackMessage | FrameStack
     return item.requestError.message;
   }
 
-  return "An error occurred";
+  return 'An error occurred';
 }
 
 export type FrameUIProps = {
@@ -105,7 +105,7 @@ export type FrameUIProps = {
 export function FrameUI({ frameState, theme, FrameImage, allowPartialFrame }: FrameUIProps): React.JSX.Element | null {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const currentFrame = frameState.currentFrameStackItem;
-  const isLoading = currentFrame?.status === "pending" || isImageLoading;
+  const isLoading = currentFrame?.status === 'pending' || isImageLoading;
   const resolvedTheme = getThemeWithDefaults(theme ?? {});
 
   if (!frameState.homeframeUrl) {
@@ -117,8 +117,8 @@ export function FrameUI({ frameState, theme, FrameImage, allowPartialFrame }: Fr
   }
 
   if (
-    currentFrame.status === "done" &&
-    currentFrame.frameResult.status === "failure" &&
+    currentFrame.status === 'done' &&
+    currentFrame.frameResult.status === 'failure' &&
     !(
       allowPartialFrame &&
       // Need at least image and buttons to render a partial frame
@@ -131,36 +131,36 @@ export function FrameUI({ frameState, theme, FrameImage, allowPartialFrame }: Fr
 
   let frame: Frame | Partial<Frame> | undefined;
 
-  if (currentFrame.status === "done") {
+  if (currentFrame.status === 'done') {
     frame = currentFrame.frameResult.frame;
-  } else if (currentFrame.status === "message") {
+  } else if (currentFrame.status === 'message') {
     frame = currentFrame.request.sourceFrame;
-  } else if (currentFrame.status === "requestError") {
-    frame = "sourceFrame" in currentFrame.request ? currentFrame.request.sourceFrame : undefined;
+  } else if (currentFrame.status === 'requestError') {
+    frame = 'sourceFrame' in currentFrame.request ? currentFrame.request.sourceFrame : undefined;
   }
 
-  const ImageEl = FrameImage ? FrameImage : "img";
+  const ImageEl = FrameImage ? FrameImage : 'img';
   return (
     <div
       //   style={{ backgroundColor: resolvedTheme.bg }}
       className="flex flex-col w-full gap-2 rounded-br rounded-bl"
     >
-      <div className="relative w-full" style={{ height: "100%" }}>
-        {" "}
+      <div className="relative w-full" style={{ height: '100%' }}>
+        {' '}
         {/* Ensure the container fills the height */}
-        {currentFrame.status === "message" ? (
+        {currentFrame.status === 'message' ? (
           <MessageTooltip
-            inline={!frame || !("image" in frame) || !frame.image}
+            inline={!frame || !('image' in frame) || !frame.image}
             message={getErrorMessageFromFramesStackItem(currentFrame)}
-            variant={currentFrame.type === "error" ? "error" : "message"}
+            variant={currentFrame.type === 'error' ? 'error' : 'message'}
           />
         ) : null}
         {isLoading && !frame?.image && (
           <div
             className="flex flex-col space-y-3"
             style={{
-              width: "100%",
-              aspectRatio: (frame?.imageAspectRatio ?? "1.91:1") === "1:1" ? "1/1" : "1.91/1",
+              width: '100%',
+              aspectRatio: (frame?.imageAspectRatio ?? '1.91:1') === '1:1' ? '1/1' : '1.91/1',
             }}
           >
             <Skeleton className="h-full w-full rounded-lg items-center text-center">
@@ -181,13 +181,13 @@ export function FrameUI({ frameState, theme, FrameImage, allowPartialFrame }: Fr
             alt="Frame image"
             width="100%"
             style={{
-              filter: isLoading ? "blur(4px)" : undefined,
+              filter: isLoading ? 'blur(4px)' : undefined,
               borderTopLeftRadius: `${resolvedTheme.buttonRadius}px`,
               borderTopRightRadius: `${resolvedTheme.buttonRadius}px`,
               border: `1px solid ${resolvedTheme.buttonBorderColor}`,
-              objectFit: "cover",
-              width: "100%",
-              aspectRatio: (frame.imageAspectRatio ?? "1.91:1") === "1:1" ? "1/1" : "1.91/1",
+              objectFit: 'cover',
+              width: '100%',
+              aspectRatio: (frame.imageAspectRatio ?? '1.91:1') === '1:1' ? '1/1' : '1.91/1',
             }}
             onLoadStart={() => {
               setIsImageLoading(true);
@@ -223,9 +223,9 @@ export function FrameUI({ frameState, theme, FrameImage, allowPartialFrame }: Fr
               variant="outline"
               type="button"
               disabled={isLoading}
-              className={cn("px-1", isLoading ? "bg-muted-foreground/20" : "")}
+              className={cn('px-1', isLoading ? 'bg-muted-foreground/20' : '')}
               style={{
-                flex: "1 1 0px",
+                flex: '1 1 0px',
               }}
               onClick={(e) => {
                 e.preventDefault();
@@ -244,9 +244,9 @@ export function FrameUI({ frameState, theme, FrameImage, allowPartialFrame }: Fr
               // eslint-disable-next-line react/no-array-index-key -- this is fine
               key={index}
             >
-              {frameButton.action === "mint" ? `⬗ ` : ""}
+              {frameButton.action === 'mint' ? `⬗ ` : ''}
               {frameButton.label}
-              {frameButton.action === "tx" ? (
+              {frameButton.action === 'tx' ? (
                 <svg
                   aria-hidden="true"
                   focusable="false"
@@ -260,9 +260,9 @@ export function FrameUI({ frameState, theme, FrameImage, allowPartialFrame }: Fr
                   <path d="M9.504.43a1.516 1.516 0 0 1 2.437 1.713L10.415 5.5h2.123c1.57 0 2.346 1.909 1.22 3.004l-7.34 7.142a1.249 1.249 0 0 1-.871.354h-.302a1.25 1.25 0 0 1-1.157-1.723L5.633 10.5H3.462c-1.57 0-2.346-1.909-1.22-3.004L9.503.429Zm1.047 1.074L3.286 8.571A.25.25 0 0 0 3.462 9H6.75a.75.75 0 0 1 .694 1.034l-1.713 4.188 6.982-6.793A.25.25 0 0 0 12.538 7H9.25a.75.75 0 0 1-.683-1.06l2.008-4.418.003-.006a.036.036 0 0 0-.004-.009l-.006-.006-.008-.001c-.003 0-.006.002-.009.004Z" />
                 </svg>
               ) : (
-                ""
+                ''
               )}
-              {frameButton.action === "post_redirect" || frameButton.action === "link" ? ` ↗` : ""}
+              {frameButton.action === 'post_redirect' || frameButton.action === 'link' ? ` ↗` : ''}
             </Button>
           ))}
         </div>

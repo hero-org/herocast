@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import { create as mutativeCreate, Draft } from "mutative";
-import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { IcebreakerSocialInfo } from "@/common/helpers/icebreaker";
-import { AirstackSocialInfo } from "@/common/helpers/airstack";
-import { AnalyticsData } from "@/common/types/types";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+import { create as mutativeCreate, Draft } from 'mutative';
+import { CastWithInteractions, User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
+import { AirstackSocialInfo } from '@/common/helpers/airstack';
+import { AnalyticsData } from '@/common/types/types';
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 

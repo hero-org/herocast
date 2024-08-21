@@ -1,29 +1,29 @@
-import NewFollowersCard from "@/common/components/Analytics/NewFollowersCard";
-import ReactionsCard from "@/common/components/Analytics/ReactionsCard";
-import CastReactionsTable from "@/common/components/Analytics/CastReactionsTable";
-import { createClient } from "@/common/helpers/supabase/component";
-import { AnalyticsData } from "@/common/types/types";
-import { useAccountStore } from "@/stores/useAccountStore";
-import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/router";
-import get from "lodash.get";
-import { Loading } from "@/common/components/Loading";
-import { ProfileSearchDropdown } from "@/common/components/ProfileSearchDropdown";
-import { getUserDataForFidOrUsername } from "@/common/helpers/neynar";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { useAuth } from "@/common/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { ChartBarIcon } from "@heroicons/react/20/solid";
-import Link from "next/link";
-import ClickToCopyText from "@/common/components/ClickToCopyText";
-import { Interval } from "@/common/helpers/search";
-import { IntervalFilter } from "@/common/components/IntervalFilter";
-import DynamicChartCard from "@/common/components/Analytics/DynamicChartCard";
-import { addDays, formatDistanceToNow, isBefore } from "date-fns";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import CastsCard from "@/common/components/Analytics/CastsCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TopFollowers from "@/common/components/Analytics/TopFollowers";
+import NewFollowersCard from '@/common/components/Analytics/NewFollowersCard';
+import ReactionsCard from '@/common/components/Analytics/ReactionsCard';
+import CastReactionsTable from '@/common/components/Analytics/CastReactionsTable';
+import { createClient } from '@/common/helpers/supabase/component';
+import { AnalyticsData } from '@/common/types/types';
+import { useAccountStore } from '@/stores/useAccountStore';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
+import get from 'lodash.get';
+import { Loading } from '@/common/components/Loading';
+import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
+import { getUserDataForFidOrUsername } from '@/common/helpers/neynar';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useAuth } from '@/common/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { ChartBarIcon } from '@heroicons/react/20/solid';
+import Link from 'next/link';
+import ClickToCopyText from '@/common/components/ClickToCopyText';
+import { Interval } from '@/common/helpers/search';
+import { IntervalFilter } from '@/common/components/IntervalFilter';
+import DynamicChartCard from '@/common/components/Analytics/DynamicChartCard';
+import { addDays, formatDistanceToNow, isBefore } from 'date-fns';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import CastsCard from '@/common/components/Analytics/CastsCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TopFollowers from '@/common/components/Analytics/TopFollowers';
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 const intervals = [Interval.d7, Interval.d30];
@@ -57,23 +57,23 @@ export default function AnalyticsPage() {
   const { accounts } = useAccountStore();
 
   const defaultProfiles = useMemo(() => {
-    return accounts.filter((account) => account.status === "active").map((a) => a.user) as User[];
+    return accounts.filter((account) => account.status === 'active').map((a) => a.user) as User[];
   }, [accounts]);
 
   const [selectedProfile, setSelectedProfile] = useState<User>();
-  const fid = get(selectedProfile, "fid")?.toString();
+  const fid = get(selectedProfile, 'fid')?.toString();
 
   useEffect(() => {
     if (!fid) return;
 
     const fetchAnalytics = async (fid: string) => {
       const { data: analyticsRow, error } = await supabaseClient
-        .from("analytics")
-        .select("*")
-        .eq("fid", fid)
+        .from('analytics')
+        .select('*')
+        .eq('fid', fid)
         .maybeSingle();
       if (error) {
-        console.error("Error fetching analytics:", error);
+        console.error('Error fetching analytics:', error);
         return false;
       }
       return analyticsRow;
@@ -83,14 +83,14 @@ export default function AnalyticsPage() {
 
       let analyticsRow = await fetchAnalytics(fid);
       if (!analyticsRow && user) {
-        console.error("No analytics found for fid:", fid);
-        const { data, error } = await supabaseClient.functions.invoke("create-analytics-data", {
+        console.error('No analytics found for fid:', fid);
+        const { data, error } = await supabaseClient.functions.invoke('create-analytics-data', {
           body: JSON.stringify({ fid }),
         });
         if (error) {
-          console.error("Error invoking create-analytics-data:", error);
+          console.error('Error invoking create-analytics-data:', error);
         } else {
-          console.log("create-analytics-data response:", data);
+          console.log('create-analytics-data response:', data);
           analyticsRow = await fetchAnalytics(fid);
         }
       }
@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
       setIsLoading(true);
       refreshForNewFid(fid);
     } catch (error) {
-      console.error("Error fetching analytics:", error);
+      console.error('Error fetching analytics:', error);
     } finally {
       setIsLoading(false);
     }
@@ -173,16 +173,16 @@ export default function AnalyticsPage() {
 
   const renderContent = () => {
     if (isLoading) {
-      return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
+      return <Loading className="ml-8" loadingMessage={'Loading analytics'} />;
     }
     if (!analyticsData) {
-      return <Loading className="ml-8" loadingMessage={"Loading analytics"} />;
+      return <Loading className="ml-8" loadingMessage={'Loading analytics'} />;
     }
-    if (analyticsData.status === "pending") {
+    if (analyticsData.status === 'pending') {
       return (
         <Loading
           className="ml-8"
-          loadingMessage={"Analytics are being calculated. Please check back in a few minutes."}
+          loadingMessage={'Analytics are being calculated. Please check back in a few minutes.'}
         />
       );
     }
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
       <>
         <Carousel
           opts={{
-            align: "start",
+            align: 'start',
             loop: true,
           }}
           className="mr-12 lg:mx-0"

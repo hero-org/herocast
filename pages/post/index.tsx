@@ -1,49 +1,49 @@
-import NewPostEntry from "@/common/components/Editor/NewCastEditor";
-import { useDraftStore } from "@/stores/useDraftStore";
-import React, { useEffect, useMemo, useState, useRef } from "react";
-import { ClockIcon, PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
-import { Button } from "@/components/ui/button";
-import { CastRow } from "@/common/components/CastRow";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDistanceToNow } from "date-fns";
-import { DraftStatus, DraftType } from "@/common/constants/farcaster";
-import map from "lodash.map";
-import { renderEmbedForUrl } from "@/common/components/Embeds";
-import { getUserLocaleDateFromIsoString, localize } from "@/common/helpers/date";
-import { ChannelType } from "@/common/constants/channels";
-import { UUID } from "crypto";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Progress } from "@/components/ui/progress";
-import { openSourcePlanLimits } from "@/config/customerLimitation";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import Link from "next/link";
-import UpgradeFreePlanCard from "../../src/common/components/UpgradeFreePlanCard";
+import NewPostEntry from '@/common/components/Editor/NewCastEditor';
+import { useDraftStore } from '@/stores/useDraftStore';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { ClockIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon } from '@heroicons/react/20/solid';
+import { Button } from '@/components/ui/button';
+import { CastRow } from '@/common/components/CastRow';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatDistanceToNow } from 'date-fns';
+import { DraftStatus, DraftType } from '@/common/constants/farcaster';
+import map from 'lodash.map';
+import { renderEmbedForUrl } from '@/common/components/Embeds';
+import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date';
+import { ChannelType } from '@/common/constants/channels';
+import { UUID } from 'crypto';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Progress } from '@/components/ui/progress';
+import { openSourcePlanLimits } from '@/config/customerLimitation';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import Link from 'next/link';
+import UpgradeFreePlanCard from '../../src/common/components/UpgradeFreePlanCard';
 
 enum DraftListTab {
-  writing = "writing",
-  scheduled = "scheduled",
-  published = "published",
+  writing = 'writing',
+  scheduled = 'scheduled',
+  published = 'published',
 }
 
 const DraftListTabs = [
   {
     key: DraftListTab.writing,
-    label: "Writing",
+    label: 'Writing',
   },
   {
     key: DraftListTab.scheduled,
-    label: "Scheduled",
+    label: 'Scheduled',
   },
   {
     key: DraftListTab.published,
-    label: "Published",
+    label: 'Published',
   },
 ];
 
@@ -92,8 +92,8 @@ export default function NewPost() {
   };
 
   useEffect(() => {
-    if (searchParams.has("text")) {
-      const text = searchParams.getAll("text").join(". ");
+    if (searchParams.has('text')) {
+      const text = searchParams.getAll('text').join('. ');
 
       if (text) {
         addNewPostDraft({ text });
@@ -174,7 +174,7 @@ export default function NewPost() {
         <div className="flex items-center text-xs text-muted-foreground">
           <ClockIcon className="w-5 h-5" />
           <span className="ml-1">
-            Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}{" "}
+            Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}{' '}
             {draft.publishedAt && `· Published at ${getUserLocaleDateFromIsoString(draft.publishedAt)}`}
           </span>
           {channel && (
@@ -212,8 +212,8 @@ export default function NewPost() {
       <div
         key={draft?.id || draft?.createdAt}
         className={cn(
-          "flex flex-col max-w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent cursor-pointer",
-          draft.id === selectedDraftId && "bg-muted"
+          'flex flex-col max-w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent cursor-pointer',
+          draft.id === selectedDraftId && 'bg-muted'
         )}
         onClick={() => {
           setSelectedDraftId(draft.id);
@@ -221,17 +221,17 @@ export default function NewPost() {
       >
         <div
           className={cn(
-            "line-clamp-2 text-xs break-all",
-            draft.id === selectedDraftId ? "text-foreground" : "text-muted-foreground"
+            'line-clamp-2 text-xs break-all',
+            draft.id === selectedDraftId ? 'text-foreground' : 'text-muted-foreground'
           )}
         >
-          {draft.text ? draft.text.substring(0, 300) : "New cast"}
+          {draft.text ? draft.text.substring(0, 300) : 'New cast'}
         </div>
         <div className="flex w-full flex-col gap-1">
           <div className="flex items-center gap-2">
             {draft?.embeds?.length ? (
               <div className="flex items-center gap-2">
-                <Badge variant="outline">{localize(draft.embeds.length, " embed")}</Badge>
+                <Badge variant="outline">{localize(draft.embeds.length, ' embed')}</Badge>
               </div>
             ) : null}
             {channel && (
@@ -241,8 +241,8 @@ export default function NewPost() {
             )}
             <div
               className={cn(
-                "ml-auto text-xs",
-                draft.id === selectedDraftId ? "text-foreground" : "text-muted-foreground"
+                'ml-auto text-xs',
+                draft.id === selectedDraftId ? 'text-foreground' : 'text-muted-foreground'
               )}
             >
               {draft.status === DraftStatus.writing &&
@@ -265,7 +265,7 @@ export default function NewPost() {
               <div className="flex items-center gap-2">
                 <ClockIcon className="w-4 h-4" />
                 <span className="text-xs text-muted-foreground">
-                  Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor, "short", "short")}
+                  Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor, 'short', 'short')}
                 </span>
               </div>
             )}

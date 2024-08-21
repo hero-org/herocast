@@ -1,11 +1,11 @@
-import React from "react";
-import Modal from "../Modal";
-import { AccountObjectType } from "@/stores/useAccountStore";
-import AccountManagement from "./AccountManagement";
-import { AccountPlatformType } from "@/common/constants/accounts";
-import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/router";
+import React from 'react';
+import Modal from '../Modal';
+import { AccountObjectType } from '@/stores/useAccountStore';
+import AccountManagement from './AccountManagement';
+import { AccountPlatformType } from '@/common/constants/accounts';
+import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/router';
 
 type AccountManagementModalProps = {
   account?: AccountObjectType;
@@ -26,7 +26,7 @@ const AccountManagementModal = ({ account, open, setOpen }: AccountManagementMod
       <div className="text-sm text-center text-foreground/70">
         You can&apos;t manage this account yet
         <br />
-        <Button className="mt-4" variant="outline" onClick={() => router.push("/login?signupOnly=true")}>
+        <Button className="mt-4" variant="outline" onClick={() => router.push('/login?signupOnly=true')}>
           Switch to a full account to manage this account ↗️
         </Button>
       </div>

@@ -1,22 +1,22 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { encodeAbiParameters } from "viem";
-import { useAccount, useReadContract, useSwitchChain, useWaitForTransactionReceipt } from "wagmi";
-import { Button } from "@/components/ui/button";
-import { mnemonicToAccount } from "viem/accounts";
-import { AccountObjectType, hydrateAccounts, useAccountStore } from "@/stores/useAccountStore";
-import isEmpty from "lodash.isempty";
-import { useAccountModal } from "@rainbow-me/rainbowkit";
-import { getChainId } from "@wagmi/core";
-import { config } from "../helpers/rainbowkit";
-import { writeContract } from "@wagmi/core";
-import SwitchWalletButton from "./SwitchWalletButton";
-import { KEY_GATEWAY } from "../constants/contracts/key-gateway";
-import { getSignedKeyRequestMetadataFromAppAccount } from "../helpers/farcaster";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { Label } from "@/components/ui/label";
-import { optimismChainId } from "../helpers/env";
-import { Cog6ToothIcon, CheckCircleIcon } from "@heroicons/react/20/solid";
-import { ID_REGISTRY_ADDRESS, idRegistryABI } from "@farcaster/hub-web";
+import React, { useCallback, useEffect, useState } from 'react';
+import { encodeAbiParameters } from 'viem';
+import { useAccount, useReadContract, useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
+import { Button } from '@/components/ui/button';
+import { mnemonicToAccount } from 'viem/accounts';
+import { AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
+import isEmpty from 'lodash.isempty';
+import { useAccountModal } from '@rainbow-me/rainbowkit';
+import { getChainId } from '@wagmi/core';
+import { config } from '../helpers/rainbowkit';
+import { writeContract } from '@wagmi/core';
+import SwitchWalletButton from './SwitchWalletButton';
+import { KEY_GATEWAY } from '../constants/contracts/key-gateway';
+import { getSignedKeyRequestMetadataFromAppAccount } from '../helpers/farcaster';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { Label } from '@/components/ui/label';
+import { optimismChainId } from '../helpers/env';
+import { Cog6ToothIcon, CheckCircleIcon } from '@heroicons/react/20/solid';
+import { ID_REGISTRY_ADDRESS, idRegistryABI } from '@farcaster/hub-web';
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC!;
@@ -25,29 +25,29 @@ const SIGNED_KEY_REQUEST_TYPE_V2 = [
   {
     components: [
       {
-        internalType: "uint256",
-        name: "requestFid",
-        type: "uint256",
+        internalType: 'uint256',
+        name: 'requestFid',
+        type: 'uint256',
       },
       {
-        internalType: "address",
-        name: "requestSigner",
-        type: "address",
+        internalType: 'address',
+        name: 'requestSigner',
+        type: 'address',
       },
       {
-        internalType: "bytes",
-        name: "signature",
-        type: "bytes",
+        internalType: 'bytes',
+        name: 'signature',
+        type: 'bytes',
       },
       {
-        internalType: "uint256",
-        name: "deadline",
-        type: "uint256",
+        internalType: 'uint256',
+        name: 'deadline',
+        type: 'uint256',
       },
     ],
-    internalType: "struct SignedKeyRequestValidator.SignedKeyRequestMetadata",
-    name: "metadata",
-    type: "tuple",
+    internalType: 'struct SignedKeyRequestValidator.SignedKeyRequestMetadata',
+    name: 'metadata',
+    type: 'tuple',
   },
 ] as const;
 
@@ -67,13 +67,13 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
     abi: idRegistryABI,
     address: ID_REGISTRY_ADDRESS,
     chainId: optimismChainId,
-    functionName: address ? "idOf" : undefined,
+    functionName: address ? 'idOf' : undefined,
     args: address ? [address] : undefined,
   });
 
   const isWalletOwnerOfFid = idOfUser !== 0n;
   const isConnectedToOptimism = address && chainId === optimismChainId;
-  if (idOfUserError) console.log("idOfUserError", idOfUserError);
+  if (idOfUserError) console.log('idOfUserError', idOfUserError);
 
   const { setAccountActive } = useAccountStore();
   const appAccount = mnemonicToAccount(APP_MNENOMIC);
@@ -114,15 +114,15 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
   }, [idOfUser, isAddKeyTxSuccess]);
 
   console.log(
-    "addKeyTxReceipt",
+    'addKeyTxReceipt',
     addKeyTxReceipt,
-    "isAddKeyTxSuccess",
+    'isAddKeyTxSuccess',
     isAddKeyTxSuccess,
-    "isAddKeyTxLoading",
+    'isAddKeyTxLoading',
     isAddKeyTxLoading,
-    "addKeySignPending",
+    'addKeySignPending',
     addKeySignPending,
-    "addKeyError",
+    'addKeyError',
     addKeyError
   );
 
@@ -135,12 +135,12 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
       try {
         const signature = await getSignature();
         if (!signature) {
-          throw new Error("Failed to get signature to confirm onchain account");
+          throw new Error('Failed to get signature to confirm onchain account');
         }
-        console.log("signature", signature);
+        console.log('signature', signature);
         const addKeyTx = await writeContract(config, {
           ...KEY_GATEWAY,
-          functionName: "add",
+          functionName: 'add',
           args: [
             1,
             account.publicKey as `0x${string}`,
@@ -157,7 +157,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
         });
         setAddKeyTx(addKeyTx);
       } catch (e) {
-        console.error("Error submitting message: ", e);
+        console.error('Error submitting message: ', e);
       }
     }
   };
@@ -166,12 +166,12 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
 
   const getButtonText = () => {
     // if (addKeySignPending) return 'Waiting for you to sign in your wallet'
-    if (chainId !== optimismChainId) return "Switch to Optimism";
-    if (isAddKeyTxLoading) return "Waiting for onchain transaction to be confirmed";
-    if (isAddKeyTxSuccess) return "Confirmed onchain";
+    if (chainId !== optimismChainId) return 'Switch to Optimism';
+    if (isAddKeyTxLoading) return 'Waiting for onchain transaction to be confirmed';
+    if (isAddKeyTxSuccess) return 'Confirmed onchain';
     // if (prepareToAddKeyError) return 'Failed to prepare onchain request'
-    if (addKeyError) return "Failed to execute onchain request";
-    return "Confirm account onchain";
+    if (addKeyError) return 'Failed to execute onchain request';
+    return 'Confirm account onchain';
   };
 
   return (

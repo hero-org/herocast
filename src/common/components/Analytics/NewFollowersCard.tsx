@@ -1,10 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useMemo } from "react";
-import AnalyticsGraph from "./AnalyticsGraph";
-import { CombinedActivityData } from "@/common/types/types";
-import { Interval } from "@/common/helpers/search";
-import { formatLargeNumber } from "@/common/helpers/text";
-import { subDays } from "date-fns";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useMemo } from 'react';
+import AnalyticsGraph from './AnalyticsGraph';
+import { CombinedActivityData } from '@/common/types/types';
+import { Interval } from '@/common/helpers/search';
+import { formatLargeNumber } from '@/common/helpers/text';
+import { subDays } from 'date-fns';
 
 type StatsWithGraphCard = {
   followerCount: number | undefined;
@@ -34,17 +34,17 @@ const NewFollowersCard = ({ followerCount, interval, data, isLoading }: StatsWit
         (acc, curr, i, arr) => {
           return [{ ...curr, count: calculateCount(arr, i, 0) }, ...acc];
         },
-        [] as CombinedActivityData["aggregated"]
+        [] as CombinedActivityData['aggregated']
       );
     }
     return filtered.reduceRight(
       (acc, curr, i, arr) => {
         return [{ ...curr, count: calculateCount(arr, i, followerCount) }, ...acc];
       },
-      [] as CombinedActivityData["aggregated"]
+      [] as CombinedActivityData['aggregated']
     );
   }, [aggregated, interval]);
-  const value = overview[interval === Interval.d7 ? "d7" : "d30"] || 0;
+  const value = overview[interval === Interval.d7 ? 'd7' : 'd30'] || 0;
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-row items-stretch space-y-0 border-b border-foreground/20 p-0">

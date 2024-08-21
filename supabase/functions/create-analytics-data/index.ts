@@ -3,58 +3,58 @@
 // This enables autocomplete, go to definition, etc.
 
 // Setup type definitions for built-in Supabase Runtime APIs
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "@supabase/supabase-js";
-import * as Sentry from "https://deno.land/x/sentry/index.mjs";
-import { Database } from "../_shared/db.ts";
-import { buildAnalyticsQuery, formatResponseSection, getTopCasts } from "../_shared/queryHelpers.ts";
-import { corsHeaders } from "../_shared/cors.ts";
-import { Kysely, PostgresAdapter, PostgresDialect, PostgresIntrospector, PostgresQueryCompiler, sql } from "kysely";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { createClient } from '@supabase/supabase-js';
+import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
+import { Database } from '../_shared/db.ts';
+import { buildAnalyticsQuery, formatResponseSection, getTopCasts } from '../_shared/queryHelpers.ts';
+import { corsHeaders } from '../_shared/cors.ts';
+import { Kysely, PostgresAdapter, PostgresDialect, PostgresIntrospector, PostgresQueryCompiler, sql } from 'kysely';
 // import { Client } from "postgres";
-import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
-import { PostgreSQLDriver } from "https://deno.land/x/kysely_deno_postgres/mod.ts";
+import { Pool } from 'https://deno.land/x/postgres@v0.17.0/mod.ts';
+import { PostgreSQLDriver } from 'https://deno.land/x/kysely_deno_postgres/mod.ts';
 
 Sentry.init({
-  dsn: Deno.env.get("SENTRY_DSN"),
+  dsn: Deno.env.get('SENTRY_DSN'),
   defaultIntegrations: false,
   tracesSampleRate: 1.0,
   profilesSampleRate: 1.0,
 });
 
-Sentry.setTag("region", Deno.env.get("SB_REGION"));
-Sentry.setTag("execution_id", Deno.env.get("SB_EXECUTION_ID"));
+Sentry.setTag('region', Deno.env.get('SB_REGION'));
+Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
 
-console.log("Hello from create analytics data");
+console.log('Hello from create analytics data');
 
-const dbUrl = Deno.env.get("DATABASE_URL");
-const sslCert = Deno.env.get("DATABASE_SSL_CERT");
+const dbUrl = Deno.env.get('DATABASE_URL');
+const sslCert = Deno.env.get('DATABASE_SSL_CERT');
 if (!dbUrl || !sslCert) {
-  console.error("DATABASE_URL or DATABASE_SSL_CERT is not set");
+  console.error('DATABASE_URL or DATABASE_SSL_CERT is not set');
   Deno.exit(1);
 }
 
 Deno.serve(async (req) => {
   return Sentry.withScope(async (scope) => {
-    if (req.method === "OPTIONS") {
-      return new Response("ok", { headers: corsHeaders });
+    if (req.method === 'OPTIONS') {
+      return new Response('ok', { headers: corsHeaders });
     }
     let fid;
     try {
       const body = await req.json();
       fid = body.fid;
       if (!fid) {
-        throw new Error("FID is required");
+        throw new Error('FID is required');
       }
     } catch (error) {
-      console.error("Error parsing request body:", error);
-      return new Response(JSON.stringify({ error: "Invalid request body" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      console.error('Error parsing request body:', error);
+      return new Response(JSON.stringify({ error: 'Invalid request body' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       });
     }
 
     try {
-      const sslCertFormatted = sslCert.replace(/\\n/g, "\n");
+      const sslCertFormatted = sslCert.replace(/\\n/g, '\n');
       const parsedUrl = new URL(dbUrl);
       const driver = new PostgreSQLDriver({
         connection: {
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
         database: parsedUrl.pathname.slice(1),
         user: parsedUrl.username,
         password: parsedUrl.password,
-        host_type: "tcp",
+        host_type: 'tcp',
         tls: {
           enabled: true,
           enforce: true,
@@ -89,31 +89,31 @@ Deno.serve(async (req) => {
           },
         },
         log(event) {
-          if (event.level !== "query") {
-            console.log("KYSELY:", event);
+          if (event.level !== 'query') {
+            console.log('KYSELY:', event);
           }
         },
       });
 
       const supabaseClient = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
-      const { error: insertError } = await supabaseClient.from("analytics").upsert(
+      const { error: insertError } = await supabaseClient.from('analytics').upsert(
         {
           fid,
-          status: "pending",
+          status: 'pending',
         },
-        { onConflict: "fid" }
+        { onConflict: 'fid' }
       );
       if (insertError) throw insertError;
 
-      const linksQuery = buildAnalyticsQuery("links", fid.toString(), "target_fid");
+      const linksQuery = buildAnalyticsQuery('links', fid.toString(), 'target_fid');
       const links = (await linksQuery.execute(db)).rows?.[0];
-      const reactionsQuery = buildAnalyticsQuery("reactions", fid.toString(), "target_cast_fid");
+      const reactionsQuery = buildAnalyticsQuery('reactions', fid.toString(), 'target_cast_fid');
       const reactions = (await reactionsQuery.execute(db)).rows?.[0];
-      const castsQuery = buildAnalyticsQuery("casts", fid.toString(), "fid", [
-        "parent_cast_hash is not NULL AS is_reply",
+      const castsQuery = buildAnalyticsQuery('casts', fid.toString(), 'fid', [
+        'parent_cast_hash is not NULL AS is_reply',
       ]);
       const casts = (await castsQuery.execute(db)).rows?.[0];
       const topCastsQuery = getTopCasts(fid);
@@ -126,27 +126,27 @@ Deno.serve(async (req) => {
         topCasts: topCasts,
       };
 
-      const { error: upsertError } = await supabaseClient.from("analytics").upsert(
+      const { error: upsertError } = await supabaseClient.from('analytics').upsert(
         {
           fid,
           data: res,
-          status: "done",
+          status: 'done',
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "fid" }
+        { onConflict: 'fid' }
       );
 
       if (upsertError) throw upsertError;
 
-      return new Response(JSON.stringify({ fid, message: "success" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ fid, message: 'success' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (error) {
       console.error(error);
       Sentry.captureException(error);
       return new Response(
-        JSON.stringify({ error: "Internal Server Error", message: JSON.stringify(error?.message || error) }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        JSON.stringify({ error: 'Internal Server Error', message: JSON.stringify(error?.message || error) }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
   });

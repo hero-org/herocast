@@ -1,58 +1,58 @@
-import React, { ReactNode, useState } from "react";
-import { Separator } from "@/components/ui/separator";
-import StepSequence from "@/common/components/Steps/StepSequence";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useAccount } from "wagmi";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import TransferAccountToHatsDelegator from "@/common/components/HatsProtocol/TransferAccountToHatsDelegator";
-import CreateHatsTreeForm from "@/common/components/HatsProtocol/CreateHatsTreeForm";
-import { NeynarAPIClient, convertToV2User } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import BigOptionSelector from "@/common/components/BigOptionSelector";
-import isEmpty from "lodash.isempty";
-import SwitchWalletButton from "@/common/components/SwitchWalletButton";
-import { Loading } from "@/common/components/Loading";
-import ClickToCopyText from "@/common/components/ClickToCopyText";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import React, { ReactNode, useState } from 'react';
+import { Separator } from '@/components/ui/separator';
+import StepSequence from '@/common/components/Steps/StepSequence';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAccount } from 'wagmi';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import TransferAccountToHatsDelegator from '@/common/components/HatsProtocol/TransferAccountToHatsDelegator';
+import CreateHatsTreeForm from '@/common/components/HatsProtocol/CreateHatsTreeForm';
+import { NeynarAPIClient, convertToV2User } from '@neynar/nodejs-sdk';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import BigOptionSelector from '@/common/components/BigOptionSelector';
+import isEmpty from 'lodash.isempty';
+import SwitchWalletButton from '@/common/components/SwitchWalletButton';
+import { Loading } from '@/common/components/Loading';
+import ClickToCopyText from '@/common/components/ClickToCopyText';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import SharedAccountOwnershipSetup, {
   OwnershipSetupSteps,
-} from "@/common/components/HatsProtocol/SharedAccountOwnershipSetup";
-import { useHotkeys } from "react-hotkeys-hook";
+} from '@/common/components/HatsProtocol/SharedAccountOwnershipSetup';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 enum HatsSignupNav {
-  select_account = "SELECT_ACCOUNT",
-  decide_hats_protocol_setup = "DECIDE_HATS_PROTOCOL_SETUP",
-  create_hats_tree = "CREATE_HATS_TREE",
-  account_ownership = "ACCOUNT_OWNERSHIP",
-  transfer_ownership = "TRANSFER_OWNERSHIP",
-  invite = "INVITE",
+  select_account = 'SELECT_ACCOUNT',
+  decide_hats_protocol_setup = 'DECIDE_HATS_PROTOCOL_SETUP',
+  create_hats_tree = 'CREATE_HATS_TREE',
+  account_ownership = 'ACCOUNT_OWNERSHIP',
+  transfer_ownership = 'TRANSFER_OWNERSHIP',
+  invite = 'INVITE',
 }
 
 const hatsSignupSteps = [
   {
-    title: "Select account",
+    title: 'Select account',
     idx: 0,
     keys: [HatsSignupNav.select_account],
   },
   {
-    title: "Onchain Permissions",
+    title: 'Onchain Permissions',
     idx: 1,
     keys: [HatsSignupNav.decide_hats_protocol_setup, HatsSignupNav.create_hats_tree],
   },
   {
-    title: "Account ownership",
+    title: 'Account ownership',
     idx: 2,
     keys: [HatsSignupNav.account_ownership],
   },
   {
-    title: "Transfer ownership",
+    title: 'Transfer ownership',
     idx: 3,
     keys: [HatsSignupNav.transfer_ownership],
   },
   {
-    title: "Invite others",
+    title: 'Invite others',
     idx: 4,
     keys: [HatsSignupNav.invite],
   },
@@ -71,7 +71,7 @@ export default function HatsProtocolPage() {
   );
   const [infoMessage, setInfoMessage] = useState<string | null>();
   const { address, isConnected } = useAccount();
-  const [userInput, setUserInput] = useState<string>("");
+  const [userInput, setUserInput] = useState<string>('');
   const [isLoadingAccount, setIsLoadingAccount] = useState(false);
   const shareWithOthersText = `Join my shared Farcaster account with delegator contract
   address: ${delegatorContractAddress} and FID ${accountToTransfer?.fid}`;
@@ -99,7 +99,7 @@ export default function HatsProtocolPage() {
         fid = Number(userInput);
         setAccountToTransfer(await getUserByFid(fid));
       } else {
-        const userSearchTerm = userInput.replace("@", "").trim();
+        const userSearchTerm = userInput.replace('@', '').trim();
         let user: User | undefined;
         try {
           const userByUsername = await neynarClient.lookupUserByUsername(userSearchTerm, viewerFid);
@@ -118,13 +118,13 @@ export default function HatsProtocolPage() {
       }
     } catch (error) {
       console.error(error);
-      setInfoMessage("User not found, please try again");
+      setInfoMessage('User not found, please try again');
     } finally {
       setIsLoadingAccount(false);
     }
   };
 
-  useHotkeys("meta+enter", fetchUser, [fetchUser], {
+  useHotkeys('meta+enter', fetchUser, [fetchUser], {
     enableOnFormTags: true,
   });
 
@@ -132,7 +132,7 @@ export default function HatsProtocolPage() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium">{title}</h3>
-        {typeof description === "string" ? <p className="text-sm text-muted-foreground">{description}</p> : description}
+        {typeof description === 'string' ? <p className="text-sm text-muted-foreground">{description}</p> : description}
       </div>
       <Separator />
       {children}
@@ -153,7 +153,7 @@ export default function HatsProtocolPage() {
             setUserInput(e.target.value);
           }}
         />
-        <Button size="lg" className="w-1/3" variant={accountToTransfer ? "outline" : "default"} onClick={fetchUser}>
+        <Button size="lg" className="w-1/3" variant={accountToTransfer ? 'outline' : 'default'} onClick={fetchUser}>
           Search
         </Button>
       </div>
@@ -183,8 +183,8 @@ export default function HatsProtocolPage() {
 
   const renderSelectAccount = () => {
     return getStepContent(
-      "Select account",
-      "You need to connect your wallet to select a Farcaster account to share",
+      'Select account',
+      'You need to connect your wallet to select a Farcaster account to share',
       <div className="flex flex-col space-y-8 w-1/2">
         <SwitchWalletButton />
         {renderUserInputForm()}
@@ -227,23 +227,23 @@ export default function HatsProtocolPage() {
         return renderSelectAccount();
       case HatsSignupNav.decide_hats_protocol_setup:
         return getStepContent(
-          "Onchain Permissions",
-          "Setup your Hats tree and deploy a delegator contract",
+          'Onchain Permissions',
+          'Setup your Hats tree and deploy a delegator contract',
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <BigOptionSelector
               disabled={isEmpty(accountToTransfer)}
               options={[
                 {
-                  title: "I have not used Hats Protocol before",
-                  description: "herocast will guide you through the setup",
-                  buttonText: "Get started",
+                  title: 'I have not used Hats Protocol before',
+                  description: 'herocast will guide you through the setup',
+                  buttonText: 'Get started',
                   onClick: () => setStep(HatsSignupNav.create_hats_tree),
                 },
                 {
-                  title: "My organization has a Hats tree",
-                  description: "herocast helps you import your permissions",
-                  buttonText: "I have a Hats tree",
+                  title: 'My organization has a Hats tree',
+                  description: 'herocast helps you import your permissions',
+                  buttonText: 'I have a Hats tree',
                   onClick: () => setStep(HatsSignupNav.account_ownership),
                 },
               ]}
@@ -252,7 +252,7 @@ export default function HatsProtocolPage() {
         );
       case HatsSignupNav.create_hats_tree:
         return getStepContent(
-          "Setup onchain permissions for your shared account",
+          'Setup onchain permissions for your shared account',
           <a href="https://docs.hatsprotocol.xyz/" className="flex text-sm text-muted-foreground hover:underline">
             Learn more about Hats Protocol <ArrowTopRightOnSquareIcon className="ml-1 mt-px h-4 w-4" />
           </a>,
@@ -270,8 +270,8 @@ export default function HatsProtocolPage() {
         );
       case HatsSignupNav.account_ownership:
         return getStepContent(
-          "Account ownership",
-          "Decide where the Farcaster account will be owned and managed",
+          'Account ownership',
+          'Decide where the Farcaster account will be owned and managed',
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <SharedAccountOwnershipSetup
@@ -286,8 +286,8 @@ export default function HatsProtocolPage() {
         );
       case HatsSignupNav.transfer_ownership:
         return getStepContent(
-          "Transfer ownership",
-          "Send your Farcaster account to the delegator contract",
+          'Transfer ownership',
+          'Send your Farcaster account to the delegator contract',
           <div>
             {accountToTransfer && renderAccountToTransferPreview()}
             <TransferAccountToHatsDelegator
@@ -298,7 +298,7 @@ export default function HatsProtocolPage() {
           </div>
         );
       case HatsSignupNav.invite:
-        return getStepContent("Invite others", "Let other users join your shared account", renderInvite());
+        return getStepContent('Invite others', 'Let other users join your shared account', renderInvite());
       default:
         return null;
     }

@@ -1,23 +1,23 @@
-import "@farcaster/auth-kit/styles.css";
-import React, { useEffect, useState } from "react";
-import { UserAuthForm } from "@/common/components/UserAuthForm";
-import { AuthKitProvider } from "@farcaster/auth-kit";
-import { useRouter } from "next/router";
+import '@farcaster/auth-kit/styles.css';
+import React, { useEffect, useState } from 'react';
+import { UserAuthForm } from '@/common/components/UserAuthForm';
+import { AuthKitProvider } from '@farcaster/auth-kit';
+import { useRouter } from 'next/router';
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-  domain: "app.herocast.xyz",
+  domain: 'app.herocast.xyz',
   // siweUri: `${process.env.NEXT_PUBLIC_URL}/api/auth/siwe`,
 };
 
 export default function Login() {
   const router = useRouter();
   const { signupOnly, view, error, error_description } = router.query;
-  const showOnlySignup = signupOnly === "true" || view === "reset";
+  const showOnlySignup = signupOnly === 'true' || view === 'reset';
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function Login() {
             alt="herocast-app-screenshot"
             width="1920"
             height="1080"
-            style={{ objectPosition: "left" }}
+            style={{ objectPosition: 'left' }}
             className="w-full object-cover dark:brightness-[0.8]"
           />
         </div>

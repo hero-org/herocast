@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Loading } from "./Loading";
-import { ArrowPathIcon } from "@heroicons/react/20/solid";
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Loading } from './Loading';
+import { ArrowPathIcon } from '@heroicons/react/20/solid';
 import {
   useAccount,
   useReadContract,
@@ -11,32 +11,32 @@ import {
   useSwitchChain,
   useWaitForTransactionReceipt,
   useWalletClient,
-} from "wagmi";
+} from 'wagmi';
 import {
   BUNDLER_ADDRESS,
   bundlerABI,
   ID_GATEWAY_EIP_712_TYPES,
   KEY_GATEWAY_EIP_712_TYPES,
   bytesToHexString,
-} from "@farcaster/hub-web";
+} from '@farcaster/hub-web';
 import {
   WARPCAST_RECOVERY_PROXY,
   getDeadline,
   getFidForAddress,
   getSignedKeyRequestMetadataFromAppAccount,
   readNoncesFromKeyGateway,
-} from "../helpers/farcaster";
-import { Hex, formatEther } from "viem";
-import { PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from "@/stores/useAccountStore";
-import { AccountPlatformType, AccountStatusType } from "../constants/accounts";
-import { generateKeyPair } from "../helpers/warpcastLogin";
-import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { glideClient } from "../helpers/glide";
-import { NoPaymentOptionsError } from "@paywithglide/glide-js";
-import { PaymentSelector } from "./PaymentSelector";
-import { PaymentOption } from "@paywithglide/glide-js/dist/types";
-import { optimismChainId } from "../helpers/env";
-import { config } from "../helpers/rainbowkit";
+} from '../helpers/farcaster';
+import { Hex, formatEther } from 'viem';
+import { PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
+import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
+import { generateKeyPair } from '../helpers/warpcastLogin';
+import { Cog6ToothIcon } from '@heroicons/react/20/solid';
+import { glideClient } from '../helpers/glide';
+import { NoPaymentOptionsError } from '@paywithglide/glide-js';
+import { PaymentSelector } from './PaymentSelector';
+import { PaymentOption } from '@paywithglide/glide-js/dist/types';
+import { optimismChainId } from '../helpers/env';
+import { config } from '../helpers/rainbowkit';
 
 const PaymentSection: React.FC<{
   state: {
@@ -108,11 +108,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = React.memo(
     <div className="flex flex-col space-y-4">
       {state.didSignTransactions && state.paymentOption && !state.isWaitingForFid && (
         <Button
-          variant={state.isPending ? "outline" : "default"}
+          variant={state.isPending ? 'outline' : 'default'}
           disabled={state.isPending || !state.didSignTransactions || !state.paymentOption}
           onClick={registerAccount}
         >
-          {state.isPending ? <Loading isInline /> : "Create account"}
+          {state.isPending ? <Loading isInline /> : 'Create account'}
         </Button>
       )}
       {state.isWaitingForFid && (
@@ -140,7 +140,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = React.memo(
     prevProps.state.isPending === nextProps.state.isPending
 );
 
-ActionButtons.displayName = "ActionButtons";
+ActionButtons.displayName = 'ActionButtons';
 
 const ErrorMessage: React.FC<{ error: string | undefined }> = ({ error }) =>
   error && (
@@ -164,7 +164,7 @@ const GlideAttribution: React.FC = () => (
 
 const InfoSection: React.FC<{ price: bigint | undefined }> = ({ price }) => (
   <p className="text-[0.8rem] text-muted-foreground">
-    The yearly Farcaster platform fee is{" "}
+    The yearly Farcaster platform fee is{' '}
     {price && price > 0n ? `~${parseFloat(formatEther(price)).toFixed(8)} ETH right now.` : <Loading isInline />}
     <br />
     <br />
@@ -179,18 +179,18 @@ const CreateFarcasterAccount: React.FC<{
   onSuccess?: () => void;
   isAddressValid: boolean;
 }> = ({ onSuccess, isAddressValid }) => {
-  console.log("CreateFarcasterAccount rendered");
+  console.log('CreateFarcasterAccount rendered');
 
   useLayoutEffect(() => {
-    console.log("CreateFarcasterAccount mounted");
+    console.log('CreateFarcasterAccount mounted');
     return () => {
-      console.log("CreateFarcasterAccount unmounted");
+      console.log('CreateFarcasterAccount unmounted');
     };
   }, []);
   const [state, setState] = useState({
     isPending: false,
-    error: "",
-    transactionHash: "0x" as Hex,
+    error: '',
+    transactionHash: '0x' as Hex,
     paymentOption: undefined as PaymentOption | undefined,
     didSignTransactions: false,
     registerSignature: undefined as Hex | undefined,
@@ -218,7 +218,7 @@ const CreateFarcasterAccount: React.FC<{
     chainId,
     address: BUNDLER_ADDRESS,
     abi: bundlerABI,
-    functionName: "price",
+    functionName: 'price',
     args: [0n],
   });
 
@@ -226,24 +226,24 @@ const CreateFarcasterAccount: React.FC<{
     hash: state.transactionHash,
     config,
     query: {
-      enabled: state.transactionHash !== "0x",
+      enabled: state.transactionHash !== '0x',
     },
   });
 
   const getFidAndUpdateAccount = useCallback(async (): Promise<boolean> => {
-    console.log("getFidAndUpdateAccount called", {
+    console.log('getFidAndUpdateAccount called', {
       transactionResult,
       pendingAccounts,
     });
     if (!(transactionResult && pendingAccounts.length > 0)) {
-      console.log("No transaction results or pending accounts.");
+      console.log('No transaction results or pending accounts.');
       return false;
     }
 
     try {
       const fid = await getFidForAddress(address!);
       if (fid) {
-        console.log("FID found, updating account"); // Debug log
+        console.log('FID found, updating account'); // Debug log
         const accountId = pendingAccounts[0].id;
         setAccountActive(accountId, PENDING_ACCOUNT_NAME_PLACEHOLDER, {
           platform_account_id: fid.toString(),
@@ -253,7 +253,7 @@ const CreateFarcasterAccount: React.FC<{
         return true;
       }
     } catch (e) {
-      console.error("Error when trying to get fid", e);
+      console.error('Error when trying to get fid', e);
       setState((prev) => ({
         ...prev,
         error: `Error when trying to get fid: ${e}`,
@@ -263,7 +263,7 @@ const CreateFarcasterAccount: React.FC<{
   }, [address, pendingAccounts, transactionResult, setAccountActive, onSuccess, setState]);
 
   useEffect(() => {
-    console.log("useEffect for polling FID triggered", {
+    console.log('useEffect for polling FID triggered', {
       isConnected,
       transactionHash: state.transactionHash,
       transactionResult,
@@ -272,27 +272,27 @@ const CreateFarcasterAccount: React.FC<{
     let timeoutId: NodeJS.Timeout | null = null;
 
     const pollForFid = async () => {
-      console.log("pollForFid called");
-      if (isConnected && state.transactionHash !== "0x" && transactionResult) {
+      console.log('pollForFid called');
+      if (isConnected && state.transactionHash !== '0x' && transactionResult) {
         const success = await getFidAndUpdateAccount();
-        console.log("getFidAndUpdateAccount result:", success);
+        console.log('getFidAndUpdateAccount result:', success);
         if (success && isMounted) {
           setState((prev) => ({ ...prev, isWaitingForFid: false }));
         } else if (isMounted) {
-          console.log("Scheduling next poll");
+          console.log('Scheduling next poll');
           timeoutId = setTimeout(pollForFid, 1000);
         }
       }
     };
 
-    if (isConnected && state.transactionHash !== "0x" && transactionResult) {
-      console.log("Starting FID polling");
+    if (isConnected && state.transactionHash !== '0x' && transactionResult) {
+      console.log('Starting FID polling');
       setState((prev) => ({ ...prev, isWaitingForFid: true }));
       pollForFid();
     }
 
     return () => {
-      console.log("Cleaning up FID polling effect");
+      console.log('Cleaning up FID polling effect');
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
@@ -304,7 +304,7 @@ const CreateFarcasterAccount: React.FC<{
     if (!registerSignature || !savedPublicKey || !address || !registerMetaData || !deadline || !addSignature) {
       setState((prev) => ({
         ...prev,
-        error: "Something went wrong setting up the glide payment transaction!",
+        error: 'Something went wrong setting up the glide payment transaction!',
       }));
       return;
     }
@@ -312,7 +312,7 @@ const CreateFarcasterAccount: React.FC<{
     if (!paymentOption) {
       setState((prev) => ({
         ...prev,
-        error: "You need to select a payment option to proceed!",
+        error: 'You need to select a payment option to proceed!',
       }));
       return;
     }
@@ -326,7 +326,7 @@ const CreateFarcasterAccount: React.FC<{
         value: price,
         address: BUNDLER_ADDRESS,
         abi: bundlerABI,
-        functionName: "register",
+        functionName: 'register',
         args: [
           {
             to: address,
@@ -360,12 +360,12 @@ const CreateFarcasterAccount: React.FC<{
       if (e instanceof NoPaymentOptionsError) {
         setState((prev) => ({
           ...prev,
-          error: "Wallet has no tokens to pay for transaction. Please add tokens to your wallet.",
+          error: 'Wallet has no tokens to pay for transaction. Please add tokens to your wallet.',
           isPending: false,
         }));
       } else {
-        console.error("Error when trying to write contract", e);
-        const errorStr = String(e).split("Raw Call Arguments")[0];
+        console.error('Error when trying to write contract', e);
+        const errorStr = String(e).split('Raw Call Arguments')[0];
         setState((prev) => ({
           ...prev,
           error: `Error when adding account onchain: ${errorStr}`,
@@ -376,7 +376,7 @@ const CreateFarcasterAccount: React.FC<{
   };
 
   const switchNetwork = async () => {
-    setState((prev) => ({ ...prev, error: "" }));
+    setState((prev) => ({ ...prev, error: '' }));
     try {
       const result = await switchChainAsync({ chainId });
       if (result.id !== chainId) {
@@ -421,7 +421,7 @@ const CreateFarcasterAccount: React.FC<{
           },
         });
       } catch (e) {
-        console.error("Error when trying to add account", e);
+        console.error('Error when trying to add account', e);
         setState((prev) => ({
           ...prev,
           isPending: false,
@@ -446,7 +446,7 @@ const CreateFarcasterAccount: React.FC<{
       const registerSignature = await walletClient.data?.signTypedData({
         ...ID_GATEWAY_EIP_712_TYPES,
         domain: { ...ID_GATEWAY_EIP_712_TYPES.domain, chainId },
-        primaryType: "Register",
+        primaryType: 'Register',
         message: {
           to: address!,
           recovery: WARPCAST_RECOVERY_PROXY,
@@ -454,7 +454,7 @@ const CreateFarcasterAccount: React.FC<{
           deadline: registerDeadline,
         },
       });
-      if (!registerSignature) throw new Error("No signature");
+      if (!registerSignature) throw new Error('No signature');
       setState((prev) => ({ ...prev, registerSignature }));
     } catch (e) {
       setState((prev) => ({
@@ -472,7 +472,7 @@ const CreateFarcasterAccount: React.FC<{
       const addSignature = await walletClient.data?.signTypedData({
         ...KEY_GATEWAY_EIP_712_TYPES,
         domain: { ...KEY_GATEWAY_EIP_712_TYPES.domain, chainId },
-        primaryType: "Add",
+        primaryType: 'Add',
         message: {
           owner: address!,
           keyType: 1,
@@ -490,7 +490,7 @@ const CreateFarcasterAccount: React.FC<{
         isPending: false,
       }));
     } catch (e) {
-      console.error("Error when trying to sign add", e);
+      console.error('Error when trying to sign add', e);
       setState((prev) => ({
         ...prev,
         error: `Error when trying to sign add: ${e}`,

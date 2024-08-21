@@ -1,37 +1,37 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-import { AccountPlatformType, AccountStatusType } from "../../src/common/constants/accounts";
-import { ChannelType } from "../../src/common/constants/channels";
-import { CommandType } from "../../src/common/constants/commands";
-import { randomNumberBetween } from "../../src/common/helpers/math";
-import { getAccountsForUser } from "../../src/common/helpers/supabase";
-import { Draft, create as mutativeCreate } from "mutative";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import isEmpty from "lodash.isempty";
-import findIndex from "lodash.findindex";
-import sortBy from "lodash.sortby";
-import cloneDeep from "lodash.clonedeep";
-import { UUID } from "crypto";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { createClient } from "@/common/helpers/supabase/component";
-import includes from "lodash.includes";
-import uniqBy from "lodash.uniqby";
-import { v4 as uuidv4 } from "uuid";
-import { getUsernameForFid } from "@/common/helpers/farcaster";
-import { IndexedDBStorage } from "./StoreStorage";
-import { ArrowTrendingUpIcon, BeakerIcon, HomeIcon } from "@heroicons/react/20/solid";
+import { AccountPlatformType, AccountStatusType } from '../../src/common/constants/accounts';
+import { ChannelType } from '../../src/common/constants/channels';
+import { CommandType } from '../../src/common/constants/commands';
+import { randomNumberBetween } from '../../src/common/helpers/math';
+import { getAccountsForUser } from '../../src/common/helpers/supabase';
+import { Draft, create as mutativeCreate } from 'mutative';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import isEmpty from 'lodash.isempty';
+import findIndex from 'lodash.findindex';
+import sortBy from 'lodash.sortby';
+import cloneDeep from 'lodash.clonedeep';
+import { UUID } from 'crypto';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { createClient } from '@/common/helpers/supabase/component';
+import includes from 'lodash.includes';
+import uniqBy from 'lodash.uniqby';
+import { v4 as uuidv4 } from 'uuid';
+import { getUsernameForFid } from '@/common/helpers/farcaster';
+import { IndexedDBStorage } from './StoreStorage';
+import { ArrowTrendingUpIcon, BeakerIcon, HomeIcon } from '@heroicons/react/20/solid';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 120; // 5 days;
 const CHANNEL_UPDATE_RELEASE_DATE = 1722607765000;
 
-export const PENDING_ACCOUNT_NAME_PLACEHOLDER = "New Account";
+export const PENDING_ACCOUNT_NAME_PLACEHOLDER = 'New Account';
 export enum CUSTOM_CHANNELS {
-  FOLLOWING = "following",
-  TRENDING = "trending",
+  FOLLOWING = 'following',
+  TRENDING = 'trending',
 }
 
 const CUSTOM_CHANNEL_TO_IDX = {
@@ -42,7 +42,7 @@ const CUSTOM_CHANNEL_TO_IDX = {
 const CUSTOM_CHANNEL_COUNT = 2;
 
 export const DEFAULT_CHANNEL_URL = CUSTOM_CHANNELS.FOLLOWING;
-const DEFAULT_LOCAL_ACCOUNT_CHANNELS = ["Farcaster", "herocast", "Base", "Founders", "Product", "EVM", "GM", "dev"];
+const DEFAULT_LOCAL_ACCOUNT_CHANNELS = ['Farcaster', 'herocast', 'Base', 'Founders', 'Product', 'EVM', 'GM', 'dev'];
 type AccountChannelType = ChannelType & {
   idx: number;
   lastRead?: string; // can be a timestamp
@@ -56,7 +56,7 @@ type AddChannelProps = {
 };
 
 type AddAccountProps = {
-  account: Omit<AccountObjectType, "channels" | "id"> & { privateKey?: string };
+  account: Omit<AccountObjectType, 'channels' | 'id'> & { privateKey?: string };
   localOnly?: boolean;
 };
 
@@ -143,9 +143,9 @@ const store = (set: StoreSet) => ({
       });
       return;
     } else {
-      console.log("adding account to DB", account);
+      console.log('adding account to DB', account);
       await supabaseClient
-        .from("accounts")
+        .from('accounts')
         .insert({
           name: account.name,
           status: account.status,
@@ -164,14 +164,14 @@ const store = (set: StoreSet) => ({
           });
         });
     }
-    console.log("----> addAccount done");
+    console.log('----> addAccount done');
   },
   setAccountActive: async (accountId: UUID, name: string, data: { platform_account_id: string; data?: object }) => {
     set(async (state) => {
       const { error } = await supabaseClient
-        .from("accounts")
+        .from('accounts')
         .update({ name, status: AccountStatusType.active, ...data })
-        .eq("id", accountId)
+        .eq('id', accountId)
         .select();
 
       // console.log('response setAccountActive - data', data, 'error', error);
@@ -181,7 +181,7 @@ const store = (set: StoreSet) => ({
         account.status = AccountStatusType.active;
         state.accounts[accountIndex] = account;
       }
-      console.log("-----> setAcountActive done");
+      console.log('-----> setAcountActive done');
     });
   },
   updateAccountUsername: async (accountId: UUID) => {
@@ -191,13 +191,13 @@ const store = (set: StoreSet) => ({
 
       try {
         const fid = account.platformAccountId;
-        if (fid && account.status === "active") {
+        if (fid && account.status === 'active') {
           const username = await getUsernameForFid(Number(fid));
           if (username && username !== account.name) {
             const { data, error } = await supabaseClient
-              .from("accounts")
+              .from('accounts')
               .update({ name: username })
-              .eq("id", accountId)
+              .eq('id', accountId)
               .select();
 
             // console.log('response updateAccountUsername - data', data, 'error', error);
@@ -208,19 +208,19 @@ const store = (set: StoreSet) => ({
           }
         }
       } catch (error) {
-        console.error("Failed to sync account name from protocol to DB", error);
+        console.error('Failed to sync account name from protocol to DB', error);
       }
     });
     await new Promise((resolve) => setTimeout(resolve, 500)); // sleep to avoid rate limiting
   },
   removeAccount: async (id: string) => {
     await supabaseClient
-      .from("accounts")
+      .from('accounts')
       .update({ status: AccountStatusType.removed })
-      .eq("id", id)
+      .eq('id', id)
       .select()
       .then(({ error, data }) => {
-        console.log("removeAccount - data", data, "error", error);
+        console.log('removeAccount - data', data, 'error', error);
       });
 
     set((state) => {
@@ -251,7 +251,7 @@ const store = (set: StoreSet) => ({
   },
   setSelectedChannelByName: (name: string) => {
     set((state) => {
-      name = (name.startsWith("/") ? name.slice(1) : name).toLowerCase();
+      name = (name.startsWith('/') ? name.slice(1) : name).toLowerCase();
       const channel = state.allChannels.find(
         (channel) => channel.name === name || channel.url === `https://warpcast.com/~/channel/${name}`
       );
@@ -282,13 +282,13 @@ const store = (set: StoreSet) => ({
 
       if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
         supabaseClient
-          .from("accounts_to_channel")
+          .from('accounts_to_channel')
           .insert({
             account_id: account.id,
             channel_id: channel.id,
             index: idx,
           })
-          .select("*")
+          .select('*')
           .then(({ error, data }) => {
             // console.log('response - data', data, 'error', error);
           });
@@ -300,10 +300,10 @@ const store = (set: StoreSet) => ({
       const account = state.accounts[state.selectedAccountIdx];
 
       if (!channel) {
-        console.log("no channel or account id", channel);
+        console.log('no channel or account id', channel);
         return;
       }
-      const index = findIndex(account.channels, ["url", channel.url]);
+      const index = findIndex(account.channels, ['url', channel.url]);
       const copy = [...account.channels];
       copy.splice(index, 1);
       account.channels = copy;
@@ -311,10 +311,10 @@ const store = (set: StoreSet) => ({
 
       if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
         supabaseClient
-          .from("accounts_to_channel")
+          .from('accounts_to_channel')
           .delete()
-          .eq("account_id", account.id)
-          .eq("channel_id", channel.id)
+          .eq('account_id', account.id)
+          .eq('channel_id', channel.id)
           .then(({ error, data }) => {
             // console.log('response - data', data, 'error', error);
           });
@@ -324,7 +324,7 @@ const store = (set: StoreSet) => ({
   addChannel: ({ name, url, iconUrl, account }: AddChannelProps) => {
     set(async (state) => {
       await supabaseClient
-        .from("channel")
+        .from('channel')
         .insert({
           name,
           url,
@@ -355,14 +355,14 @@ const store = (set: StoreSet) => ({
 
       if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
         supabaseClient
-          .from("accounts_to_channel")
+          .from('accounts_to_channel')
           .update({ index: newIndex })
-          .eq("account_id", accountId)
-          .eq("channel_id", channels[oldIndex].id)
-          .select("*, channel(*)")
+          .eq('account_id', accountId)
+          .eq('channel_id', channels[oldIndex].id)
+          .select('*, channel(*)')
           .then(({ error }) => {
             if (error) {
-              console.log("failed to update channel", channels[oldIndex].id);
+              console.log('failed to update channel', channels[oldIndex].id);
               return;
             }
           });
@@ -380,14 +380,14 @@ const store = (set: StoreSet) => ({
         newChannels[to].idx = to;
         if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
           supabaseClient
-            .from("accounts_to_channel")
+            .from('accounts_to_channel')
             .update({ index: to })
-            .eq("account_id", accountId)
-            .eq("channel_id", channels[from].id)
-            .select("*, channel(*)")
+            .eq('account_id', accountId)
+            .eq('channel_id', channels[from].id)
+            .select('*, channel(*)')
             .then(({ error }) => {
               if (error) {
-                console.log("failed to update channel", channels[oldIndex].id);
+                console.log('failed to update channel', channels[oldIndex].id);
                 return;
               }
             });
@@ -402,7 +402,7 @@ const store = (set: StoreSet) => ({
   hydrate: async () => {
     if (useAccountStore.getState().isHydrated) return;
 
-    console.log("hydrating 💦");
+    console.log('hydrating 💦');
     const accounts = await hydrateAccounts();
     if (accounts.length) {
       await hydrateChannels();
@@ -414,14 +414,14 @@ const store = (set: StoreSet) => ({
       isHydrated: true,
     });
 
-    console.log("done hydrating 🌊 happy casting");
+    console.log('done hydrating 🌊 happy casting');
   },
 });
 
-const storage = new IndexedDBStorage("herocast-accounts-store");
+const storage = new IndexedDBStorage('herocast-accounts-store');
 export const useAccountStore = create<AccountStore>()(
   persist(mutative(store), {
-    name: "herocast-accounts-store",
+    name: 'herocast-accounts-store',
     storage: createJSONStorage(() => storage), // (optional) by default, 'localStorage' is used
     partialize: (state) => ({
       selectedAccountIdx: state.selectedAccountIdx,
@@ -438,34 +438,34 @@ export const useAccountStore = create<AccountStore>()(
 const fetchAllChannels = async (): Promise<ChannelType[]> => {
   let channelData = [];
   let hasMoreChannels = false;
-  console.log("fetching existing channels in DB");
+  console.log('fetching existing channels in DB');
   do {
     const start = channelData.length;
     const end = start + 999;
     const { data, error, count } = await supabaseClient
-      .from("channel")
-      .select("*", { count: "exact" })
-      .not("data", "is", null)
-      .gt("data -> followerCount", 50)
+      .from('channel')
+      .select('*', { count: 'exact' })
+      .not('data', 'is', null)
+      .gt('data -> followerCount', 50)
       .range(start, end);
-    console.log("count", count);
+    console.log('count', count);
     if (error) throw error;
     channelData = channelData.concat(data);
     hasMoreChannels = data.length > 0;
   } while (hasMoreChannels);
-  console.log("done fetching channels in DB", channelData.length);
+  console.log('done fetching channels in DB', channelData.length);
   return channelData || [];
 };
 
 export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
-  console.log("hydrating accounts 🌊");
+  console.log('hydrating accounts 🌊');
   const accountData = await getAccountsForUser(supabaseClient);
   let accounts: AccountObjectType[] = [];
   if (accountData.length === 0) {
-    console.log("no accounts found");
+    console.log('no accounts found');
   } else {
     accounts = accountData.map((account) => {
-      const channels: AccountChannelType[] = sortBy(account.accounts_to_channel, "index").map((accountToChannel) => ({
+      const channels: AccountChannelType[] = sortBy(account.accounts_to_channel, 'index').map((accountToChannel) => ({
         idx: accountToChannel.index,
         lastRead: accountToChannel.last_read,
         id: accountToChannel.channel_id,
@@ -502,7 +502,7 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
           return account;
         });
       } catch (e) {
-        console.log("error failed to fetch user metadata", e);
+        console.log('error failed to fetch user metadata', e);
       }
     }
     return accounts;
@@ -511,12 +511,12 @@ export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
   const localOnlyAccounts = useAccountStore
     .getState()
     .accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);
-  console.log("done hydrating accounts 🌊");
-  return [...accounts, ...uniqBy(localOnlyAccounts, "platformAccountId")];
+  console.log('done hydrating accounts 🌊');
+  return [...accounts, ...uniqBy(localOnlyAccounts, 'platformAccountId')];
 };
 
 export const hydrateChannels = async () => {
-  console.log("hydrating channels 🌊");
+  console.log('hydrating channels 🌊');
   const state = useAccountStore.getState();
 
   let allChannels: ChannelType[] = state.allChannels;
@@ -537,7 +537,7 @@ export const hydrateChannels = async () => {
     allChannels,
     downloadedChannelsAt: downloadedChannelsAt,
   });
-  console.log("done hydrating channels 🌊");
+  console.log('done hydrating channels 🌊');
 };
 
 const switchAccountTo = (idx: number) => {
@@ -584,7 +584,7 @@ const getCommandsForPinnedChannels = (channels: ChannelType[], state) => {
       action: () => {
         state.setSelectedChannelUrl(channel.url);
       },
-      page: "feeds",
+      page: 'feeds',
     });
   });
   return commands;
@@ -595,34 +595,34 @@ export const getChannelCommands = (state) => {
     {
       icon: HomeIcon,
       name: `Switch to follow feed`,
-      aliases: ["following", "feed", "home"],
-      shortcut: "shift+0",
+      aliases: ['following', 'feed', 'home'],
+      shortcut: 'shift+0',
       options: {
         enableOnFormTags: false,
       },
       action: () => {
         state.setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
       },
-      page: "feeds",
+      page: 'feeds',
     },
     {
       icon: ArrowTrendingUpIcon,
       name: `Switch to trending feed`,
-      aliases: ["trending", "popular"],
-      shortcut: "shift+1",
+      aliases: ['trending', 'popular'],
+      shortcut: 'shift+1',
       options: {
         enableOnFormTags: false,
       },
       action: () => {
         state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
       },
-      page: "feeds",
+      page: 'feeds',
     },
     {
       icon: BeakerIcon,
-      name: "Switch to random channel",
-      aliases: ["random", "lucky", "discover"],
-      page: "feeds",
+      name: 'Switch to random channel',
+      aliases: ['random', 'lucky', 'discover'],
+      page: 'feeds',
       action: () => {
         if (isEmpty(state.allChannels)) return;
         const randomIndex = randomNumberBetween(0, state.allChannels.length - 1);
@@ -630,10 +630,10 @@ export const getChannelCommands = (state) => {
       },
     },
     {
-      name: "Switch to next channel",
-      aliases: ["next", "forward"],
-      shortcuts: ["shift+j", "shift+ArrowDown"],
-      page: "feeds",
+      name: 'Switch to next channel',
+      aliases: ['next', 'forward'],
+      shortcuts: ['shift+j', 'shift+ArrowDown'],
+      page: 'feeds',
       action: () => {
         const channels = state.accounts[state.selectedAccountIdx]?.channels;
         if (isEmpty(channels)) return;
@@ -650,10 +650,10 @@ export const getChannelCommands = (state) => {
       },
     },
     {
-      name: "Switch to previous channel",
-      aliases: ["previous", "back"],
-      shortcuts: ["shift+k", "shift+ArrowUp"],
-      page: "feeds",
+      name: 'Switch to previous channel',
+      aliases: ['previous', 'back'],
+      shortcuts: ['shift+k', 'shift+ArrowUp'],
+      page: 'feeds',
       action: () => {
         const channels = state.accounts[state.selectedAccountIdx]?.channels;
         if (isEmpty(channels)) return;

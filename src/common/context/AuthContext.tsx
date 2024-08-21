@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { createClient } from "../helpers/supabase/component";
-import { User } from "@supabase/supabase-js";
-import { useRouter } from "next/router";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createClient } from '../helpers/supabase/component';
+import { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/router';
 
 interface AuthContextType {
   user: User | null;
@@ -36,13 +36,13 @@ export const AuthProvider = ({ children }) => {
 
     const isLoggedOut = !user;
     const shouldForward =
-      asPath !== "/login" &&
-      !asPath.startsWith("/profile") &&
-      !asPath.startsWith("/conversation") &&
-      !asPath.startsWith("/analytics");
+      asPath !== '/login' &&
+      !asPath.startsWith('/profile') &&
+      !asPath.startsWith('/conversation') &&
+      !asPath.startsWith('/analytics');
 
     if (isLoggedOut && shouldForward) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [user, asPath, didLoad]);
 
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === null) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

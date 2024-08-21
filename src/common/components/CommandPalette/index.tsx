@@ -1,8 +1,8 @@
-import React, { useMemo, useState, useCallback, ComponentType, SVGProps, useEffect } from "react";
-import { CommandType } from "@/common/constants/commands";
-import { accountCommands, getChannelCommands, useAccountStore } from "@/stores/useAccountStore";
-import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import { newPostCommands, useDraftStore } from "@/stores/useDraftStore";
+import React, { useMemo, useState, useCallback, ComponentType, SVGProps, useEffect } from 'react';
+import { CommandType } from '@/common/constants/commands';
+import { accountCommands, getChannelCommands, useAccountStore } from '@/stores/useAccountStore';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { newPostCommands, useDraftStore } from '@/stores/useDraftStore';
 import {
   PayCasterBotPayDraft,
   PayCasterBotRequestDraft,
@@ -10,7 +10,7 @@ import {
   BountyCasterBotDraft,
   LaunchCasterScoutDraft,
   NewFeedbackPostDraft,
-} from "@/common/constants/postDrafts";
+} from '@/common/constants/postDrafts';
 import {
   Command,
   CommandDialog,
@@ -20,35 +20,35 @@ import {
   CommandItem,
   CommandList,
   CommandShortcut,
-} from "@/components/ui/command";
-import { ChartBarIcon, MagnifyingGlassCircleIcon, UserCircleIcon } from "@heroicons/react/20/solid";
-import Image from "next/image";
-import commandScore from "command-score";
-import { useHotkeys } from "react-hotkeys-hook";
-import { useRouter } from "next/router";
-import { getNavigationCommands } from "@/getNavigationCommands";
-import { useTheme } from "next-themes";
-import { getThemeCommands } from "@/getThemeCommands";
-import { formatShortcut } from "@/common/helpers/text";
-import { DraftType } from "@/common/constants/farcaster";
-import { useDataStore } from "@/stores/useDataStore";
-import { getProfile } from "@/common/helpers/profileUtils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from "@/common/helpers/warpcast";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/command';
+import { ChartBarIcon, MagnifyingGlassCircleIcon, UserCircleIcon } from '@heroicons/react/20/solid';
+import Image from 'next/image';
+import commandScore from 'command-score';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { useRouter } from 'next/router';
+import { getNavigationCommands } from '@/getNavigationCommands';
+import { useTheme } from 'next-themes';
+import { getThemeCommands } from '@/getThemeCommands';
+import { formatShortcut } from '@/common/helpers/text';
+import { DraftType } from '@/common/constants/farcaster';
+import { useDataStore } from '@/stores/useDataStore';
+import { getProfile } from '@/common/helpers/profileUtils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
+import { cn } from '@/lib/utils';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
 export default function CommandPalette() {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
 
   const { allChannels, setSelectedChannelUrl, setSelectedChannelByName } = useAccountStore();
 
   useHotkeys(
-    "meta+k",
+    'meta+k',
     toggleCommandPalette,
     {
       enableOnFormTags: true,
@@ -59,7 +59,7 @@ export default function CommandPalette() {
 
   const setupHotkeysForCommands = useCallback(
     (commands: CommandType[]) => {
-      const currentPage = router.pathname.split("/")[1];
+      const currentPage = router.pathname.split('/')[1];
 
       commands.forEach((command) => {
         if (!command.shortcut && !command.shortcuts) {
@@ -67,7 +67,7 @@ export default function CommandPalette() {
         }
 
         const shortcuts = (command.shortcuts || [command.shortcut])
-          .map((s) => s?.replace("cmd", "meta"))
+          .map((s) => s?.replace('cmd', 'meta'))
           .filter((s): s is string => s !== undefined);
 
         useHotkeys(
@@ -84,7 +84,7 @@ export default function CommandPalette() {
           },
           {
             ...(command.options || {}),
-            splitKey: "-",
+            splitKey: '-',
             enabled: command.enabled,
             preventDefault: true,
           },
@@ -97,7 +97,7 @@ export default function CommandPalette() {
 
   useEffect(() => {
     if (!isCommandPaletteOpen) {
-      setQuery("");
+      setQuery('');
     }
   }, [isCommandPaletteOpen]);
 
@@ -107,24 +107,24 @@ export default function CommandPalette() {
   const getProfileCommands = useCallback(() => {
     return [
       {
-        name: "Your profile",
+        name: 'Your profile',
         action: () => {
           const state = useAccountStore.getState();
           const selectedAccountName = state.accounts[state.selectedAccountIdx].user?.username;
           router.push(`/profile/${selectedAccountName}`);
         },
-        shortcut: "cmd+shift+p",
+        shortcut: 'cmd+shift+p',
         options: {
           enableOnFormTags: false,
         },
         icon: UserCircleIcon,
       },
       {
-        name: "Your Analytics",
+        name: 'Your Analytics',
         action: () => {
           const state = useAccountStore.getState();
           const fid = state.accounts[state.selectedAccountIdx]?.platformAccountId;
-          const route = fid ? `/analytics?fid=${fid}` : "/analytics";
+          const route = fid ? `/analytics?fid=${fid}` : '/analytics';
           router.push(route);
         },
         icon: ChartBarIcon,
@@ -203,15 +203,15 @@ export default function CommandPalette() {
 
     const farcasterBotCommands: CommandType[] = [
       createFarcasterBotCommand(
-        "Feedback (send cast to @hellno)",
+        'Feedback (send cast to @hellno)',
         () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
-        "/post"
+        '/post'
       ),
-      createFarcasterBotCommand("Launch this cast on Launchcaster", launchCastAction),
-      createFarcasterBotCommand("Post new bounty", postNewBountyAction, "/post"),
-      createFarcasterBotCommand("Remind me about this", remindMeAction),
-      createFarcasterBotCommand("Pay user via paybot", payCasterPayAction),
-      createFarcasterBotCommand("Request payment via paybot", payCasterRequestAction),
+      createFarcasterBotCommand('Launch this cast on Launchcaster', launchCastAction),
+      createFarcasterBotCommand('Post new bounty', postNewBountyAction, '/post'),
+      createFarcasterBotCommand('Remind me about this', remindMeAction),
+      createFarcasterBotCommand('Pay user via paybot', payCasterPayAction),
+      createFarcasterBotCommand('Request payment via paybot', payCasterRequestAction),
     ];
 
     commands = commands.concat(farcasterBotCommands);
@@ -259,7 +259,7 @@ export default function CommandPalette() {
   const getSearchCommand = (query: string): CommandType => ({
     name: `Search${query && ` for ${query}`} in all casts`,
     action: () => {
-      router.push(query ? `/search?q=${query}` : "/search");
+      router.push(query ? `/search?q=${query}` : '/search');
     },
     icon: MagnifyingGlassCircleIcon,
   });
@@ -277,7 +277,7 @@ export default function CommandPalette() {
       result = [getWarpcastCommandForUrl(query), ...result];
     }
 
-    if (query.startsWith("0x")) {
+    if (query.startsWith('0x')) {
       result = [
         {
           name: `Go to cast ${query}`,
@@ -289,7 +289,7 @@ export default function CommandPalette() {
       ];
     }
 
-    if (query.startsWith("@") || result.length === 0) {
+    if (query.startsWith('@') || result.length === 0) {
       const profile = getProfile(useDataStore.getState(), query.slice(1));
 
       result = [
@@ -331,7 +331,7 @@ export default function CommandPalette() {
       const IconComponent = command.icon as ComponentType<SVGProps<SVGSVGElement>>;
       return (
         <IconComponent
-          className={cn("h-5 w-5 flex-none", active ? "text-foreground" : "text-foreground/80")}
+          className={cn('h-5 w-5 flex-none', active ? 'text-foreground' : 'text-foreground/80')}
           aria-hidden="true"
         />
       );

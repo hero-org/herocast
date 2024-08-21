@@ -1,13 +1,13 @@
-import * as ed from "@noble/ed25519";
+import * as ed from '@noble/ed25519';
 import {
   NobleEd25519Signer,
   SIGNED_KEY_REQUEST_TYPE,
   SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
   bytesToHexString,
-} from "@farcaster/hub-web";
-import { toBytes } from "viem";
-import { mnemonicToAccount } from "viem/accounts";
-import axios from "axios";
+} from '@farcaster/hub-web';
+import { toBytes } from 'viem';
+import { mnemonicToAccount } from 'viem/accounts';
+import axios from 'axios';
 
 type KeyPairType = {
   publicKey: Uint8Array;
@@ -28,16 +28,16 @@ type WarpcastSignerType = {
 };
 
 export enum WarpcastLoginStatus {
-  pending = "pending",
-  success = "success",
-  failure = "failure",
+  pending = 'pending',
+  success = 'success',
+  failure = 'failure',
 }
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID;
 const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC;
 
-const WARPCAST_API_ENDPOINT = "https://api.warpcast.com/v2/";
-const headers = { "Content-Type": "application/json" };
+const WARPCAST_API_ENDPOINT = 'https://api.warpcast.com/v2/';
+const headers = { 'Content-Type': 'application/json' };
 
 export const generateKeyPair = async (): Promise<KeyPairType> => {
   const privateKey = ed.utils.randomPrivateKey();
@@ -54,8 +54,8 @@ type CreateSignerRequestType = {
 };
 
 export const callCreateSignerRequest = async (data: CreateSignerRequestType): Promise<WarpcastLoginType> => {
-  const response = await fetch("/api/signerRequest", {
-    method: "POST",
+  const response = await fetch('/api/signerRequest', {
+    method: 'POST',
     body: JSON.stringify(data),
   });
   return response.json();
@@ -79,12 +79,12 @@ export const createSignerRequest = async (data: CreateSignerRequestType): Promis
 
 const callGetSignerRequestStatus = async (signerToken: string) => {
   if (!signerToken) {
-    return { state: "error", error: "No signer token provided" };
+    return { state: 'error', error: 'No signer token provided' };
   }
   const response = await fetch(`/api/signerRequest?signerToken=${signerToken}`, {
-    method: "GET",
+    method: 'GET',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   });
   return response.json();
@@ -110,7 +110,7 @@ const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
     types: {
       SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
     },
-    primaryType: "SignedKeyRequest",
+    primaryType: 'SignedKeyRequest',
     message: {
       requestFid: BigInt(requestFid!),
       key: hexStringPublicKey,
@@ -130,7 +130,7 @@ const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
 const getWarpcastSignerStatus = async (signerToken: string): Promise<{ status: WarpcastLoginStatus; data: any }> => {
   const data = await callGetSignerRequestStatus(signerToken);
   const status =
-    data && (data.state === "approved" || data.state === "completed")
+    data && (data.state === 'approved' || data.state === 'completed')
       ? WarpcastLoginStatus.success
       : WarpcastLoginStatus.pending;
   return { status, data: data };

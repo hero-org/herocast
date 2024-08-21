@@ -1,14 +1,14 @@
-import React from "react";
-import { useAccountStore } from "@/stores/useAccountStore";
-import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
-import isEmpty from "lodash.isempty";
-import ChannelsOverview from "./ChannelsOverview";
-import { useRouter } from "next/router";
-import { useDataStore } from "@/stores/useDataStore";
-import ProfileInfo from "./ProfileInfo";
-import SearchesOverview from "./SearchesOverview";
-import ListsOverview from "./ListsOverview";
-import ManageListsOverview from "./ManageListsOverview";
+import React from 'react';
+import { useAccountStore } from '@/stores/useAccountStore';
+import EmptyStateWithAction from '@/common/components/EmptyStateWithAction';
+import isEmpty from 'lodash.isempty';
+import ChannelsOverview from './ChannelsOverview';
+import { useRouter } from 'next/router';
+import { useDataStore } from '@/stores/useDataStore';
+import ProfileInfo from './ProfileInfo';
+import SearchesOverview from './SearchesOverview';
+import ListsOverview from './ListsOverview';
+import ManageListsOverview from './ManageListsOverview';
 
 type RightSidebarProps = {
   showFeeds?: boolean;
@@ -32,7 +32,7 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
       <EmptyStateWithAction
         title="Connect Farcaster accounts"
         description="Get started with herocast"
-        onClick={() => router.push("/accounts")}
+        onClick={() => router.push('/accounts')}
         submitText="Connect account"
       />
     </div>
@@ -51,9 +51,9 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
   return (
     <aside
       style={{
-        msOverflowStyle: "none",
-        scrollbarWidth: "none",
-        WebkitScrollbar: "none",
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        WebkitScrollbar: 'none',
       }}
       className="h-screen sticky top-0 bg-muted/40  w-full md:border-l md:border-foreground/5 overflow-y-auto"
     >

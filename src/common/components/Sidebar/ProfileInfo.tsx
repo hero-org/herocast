@@ -1,15 +1,15 @@
-import React, { useEffect } from "react";
-import { fetchAndAddUserProfile, shouldUpdateProfile } from "../../helpers/profileUtils";
-import { useDataStore } from "@/stores/useDataStore";
-import get from "lodash.get";
-import Link from "next/link";
-import ProfileInfoContent from "../ProfileInfoContent";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { take } from "lodash";
-import { formatDistanceToNow } from "date-fns";
+import React, { useEffect } from 'react';
+import { fetchAndAddUserProfile, shouldUpdateProfile } from '../../helpers/profileUtils';
+import { useDataStore } from '@/stores/useDataStore';
+import get from 'lodash.get';
+import Link from 'next/link';
+import ProfileInfoContent from '../ProfileInfoContent';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { take } from 'lodash';
+import { formatDistanceToNow } from 'date-fns';
 
-const priorityChannels = ["email", "linkedin", "telegram", "twitter", "github"];
+const priorityChannels = ['email', 'linkedin', 'telegram', 'twitter', 'github'];
 
 const ProfileInfo = ({
   fid,
@@ -36,7 +36,7 @@ const ProfileInfo = ({
       <p className="text-sm text-muted-foreground">
         <span className="font-semibold text-foreground">
           {formatDistanceToNow(profile.airstackSocialInfo?.userCreatedAt)}
-        </span>{" "}
+        </span>{' '}
         account age
       </p>
     );
@@ -47,7 +47,7 @@ const ProfileInfo = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{profile?.airstackSocialInfo?.socialCapitalRank}</span>{" "}
+              <span className="font-semibold text-foreground">{profile?.airstackSocialInfo?.socialCapitalRank}</span>{' '}
               social rank
             </span>
           </TooltipTrigger>
@@ -57,7 +57,7 @@ const ProfileInfo = ({
             sideOffset={5}
           >
             Social Capital Scores (SCS) are a measure of each Farcaster user&apos;s influence in the network. Learn more
-            at{" "}
+            at{' '}
             <a
               target="_blank"
               rel="noreferrer"

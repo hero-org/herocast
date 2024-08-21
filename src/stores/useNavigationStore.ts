@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { UUID } from "crypto";
-import { Draft, create as mutativeCreate } from "mutative";
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { UUID } from 'crypto';
+import { Draft, create as mutativeCreate } from 'mutative';
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
 export enum CastModalView {
-  New = "new",
-  Reply = "reply",
-  Quote = "quote",
+  New = 'new',
+  Reply = 'reply',
+  Quote = 'quote',
 }
 
 interface NavigationStoreProps {

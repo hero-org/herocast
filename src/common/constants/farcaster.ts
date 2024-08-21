@@ -1,5 +1,5 @@
-import type { FarcasterEmbed } from "@mod-protocol/farcaster";
-import { UUID } from "crypto";
+import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import { UUID } from 'crypto';
 
 export type ParentCastIdType = {
   fid: number;
@@ -7,12 +7,12 @@ export type ParentCastIdType = {
 };
 
 export enum DraftStatus {
-  writing = "writing",
-  scheduled = "scheduled",
-  publishing = "publishing",
-  published = "published",
-  removed = "removed",
-  failed = "failed",
+  writing = 'writing',
+  scheduled = 'scheduled',
+  publishing = 'publishing',
+  published = 'published',
+  removed = 'removed',
+  failed = 'failed',
 }
 
 export type DraftType = {
@@ -30,7 +30,7 @@ export type DraftType = {
 };
 
 // drafttype without createdAt
-export type DraftTemplateType = Omit<DraftType, "createdAt">;
+export type DraftTemplateType = Omit<DraftType, 'createdAt'>;
 
 export type AuthorType = {
   fid: string;
@@ -48,11 +48,11 @@ export type EmbedType = {
 };
 
 export enum CastReactionType {
-  likes = "likes",
-  recasts = "recasts",
-  replies = "replies",
-  quote = "quote",
-  links = "links",
+  likes = 'likes',
+  recasts = 'recasts',
+  replies = 'replies',
+  quote = 'quote',
+  links = 'links',
 }
 
 export type CastReactionsType = {

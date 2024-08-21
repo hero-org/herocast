@@ -1,24 +1,24 @@
-import React, { useState } from "react";
-import { useAccountStore } from "../../src/stores/useAccountStore";
-import isEmpty from "lodash.isempty";
-import { ChannelType } from "../../src/common/constants/channels";
-import findIndex from "lodash.findindex";
-import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
-import SortableList, { SortableItem } from "react-easy-sort";
-import { take } from "lodash";
-import Fuse from "fuse.js";
-import map from "lodash.map";
-import orderBy from "lodash.orderby";
-import { PersonIcon } from "@radix-ui/react-icons";
-import { formatLargeNumber } from "@/common/helpers/text";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/router";
-import filter from "lodash.filter";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { useAccountStore } from '../../src/stores/useAccountStore';
+import isEmpty from 'lodash.isempty';
+import { ChannelType } from '../../src/common/constants/channels';
+import findIndex from 'lodash.findindex';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import SortableList, { SortableItem } from 'react-easy-sort';
+import { take } from 'lodash';
+import Fuse from 'fuse.js';
+import map from 'lodash.map';
+import orderBy from 'lodash.orderby';
+import { PersonIcon } from '@radix-ui/react-icons';
+import { formatLargeNumber } from '@/common/helpers/text';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/router';
+import filter from 'lodash.filter';
+import { cn } from '@/lib/utils';
 
 export default function Channels() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const {
     setSelectedChannelUrl,
     addPinnedChannel,
@@ -32,13 +32,13 @@ export default function Channels() {
   const channels = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels || []);
 
   const fuse = new Fuse(allChannels, {
-    keys: ["name", "url"],
+    keys: ['name', 'url'],
   });
 
   const searchResults = take(
     searchTerm
-      ? map(fuse.search(searchTerm), "item")
-      : orderBy(filter(allChannels, "data.followerCount"), "data.followerCount", "desc"),
+      ? map(fuse.search(searchTerm), 'item')
+      : orderBy(filter(allChannels, 'data.followerCount'), 'data.followerCount', 'desc'),
     50
   );
 
@@ -51,15 +51,15 @@ export default function Channels() {
   };
 
   const renderChannelCard = (channel: ChannelType, idx?: number) => {
-    const index = findIndex(channels, ["url", channel.url]);
+    const index = findIndex(channels, ['url', channel.url]);
     const enabled = index !== -1;
 
     return (
-      <div className={cn(enabled ? "cursor-move" : "", "flex flex-row w-full max-w-lg")}>
+      <div className={cn(enabled ? 'cursor-move' : '', 'flex flex-row w-full max-w-lg')}>
         {enabled && idx !== undefined && (
           <div
             className={cn(
-              "text-background bg-green-600/80 border-foreground/60 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-lg text-lg font-medium"
+              'text-background bg-green-600/80 border-foreground/60 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-lg text-lg font-medium'
             )}
           >
             {idx + 1}
@@ -67,8 +67,8 @@ export default function Channels() {
         )}
         <div
           className={cn(
-            enabled && idx !== undefined ? "rounded-r-lg border-b border-r border-t" : "rounded-lg border",
-            "flex flex-1 items-center justify-between truncate border-foreground/60 bg-muted-background p-2 pr-4"
+            enabled && idx !== undefined ? 'rounded-r-lg border-b border-r border-t' : 'rounded-lg border',
+            'flex flex-1 items-center justify-between truncate border-foreground/60 bg-muted-background p-2 pr-4'
           )}
         >
           {channel.icon_url ? (
@@ -85,7 +85,7 @@ export default function Channels() {
               {channel.name}
               {channel.data?.followerCount && (
                 <span className="ml-1 border-l border-foreground/10 text-foreground/60">
-                  {" "}
+                  {' '}
                   <PersonIcon className="mb-1 h-3 w-3 inline" /> {formatLargeNumber(channel.data.followerCount)}
                 </span>
               )}
@@ -98,7 +98,7 @@ export default function Channels() {
             className="mr-2"
             onClick={() => {
               setSelectedChannelUrl(channel.url);
-              router.push("/feeds");
+              router.push('/feeds');
             }}
           >
             View
@@ -108,7 +108,7 @@ export default function Channels() {
             size="sm"
             onClick={() => (enabled ? removePinnedChannel(channel) : addPinnedChannel(channel))}
           >
-            {enabled ? "Remove" : "Pin"}
+            {enabled ? 'Remove' : 'Pin'}
           </Button>
         </div>
       </div>

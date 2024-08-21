@@ -1,4 +1,4 @@
-import { sql } from "kysely";
+import { sql } from 'kysely';
 
 export function buildAnalyticsQuery(
   tableName: string,
@@ -16,12 +16,12 @@ export function buildAnalyticsQuery(
   const additionalColumnsGroupBy =
     additionalColumns.length > 0
       ? sql`, ${sql.join(
-          additionalColumns.map((col) => sql.raw(col.split(" ").pop()!)),
+          additionalColumns.map((col) => sql.raw(col.split(' ').pop()!)),
           sql`, `
         )}`
       : sql``;
 
-  console.log("buildAnalyticsQuery", fid, tableName, additionalColumns);
+  console.log('buildAnalyticsQuery', fid, tableName, additionalColumns);
 
   return sql`
         WITH daily_counts AS (
