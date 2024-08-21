@@ -180,7 +180,7 @@ export function FrameUI({
             variant={currentFrame.type === "error" ? "error" : "message"}
           />
         ) : null}
-        {isLoading && (
+        {isLoading && !frame?.image && (
           <div
             className="flex flex-col space-y-3"
             style={{
