@@ -399,15 +399,20 @@ export default function UpgradePage() {
   const isPayingUser = false; //isPaidUser();
 
   useEffect(() => {
-    const hasPaidViaStripe = router.query.success === "true";
-
-    if (hasPaidViaStripe && !isPayingUser) {
-      const plan = router.query.plan as string;
+    const onAddCustomer = async (product: string) => {
       // this is a temporary hack until we integrate with Stripe webhooks
       addUnsafeCustomerForUser({
-        stripe_customer_id: `manual_entry_${plan}`,
+        stripe_customer_id: `manual_entry`,
+        product,
       });
     }
+
+    const hasPaidViaStripe = router.query.success === "true";
+    if (hasPaidViaStripe && !isPayingUser) {
+      const product = router.query.product as string;
+      onAddCustomer(product)
+    }
+
   }, [router.query, isPayingUser]);
 
   const renderUpgradeContent = () => (

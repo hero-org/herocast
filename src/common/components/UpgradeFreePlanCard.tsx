@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAccountStore } from "@/stores/useAccountStore";
-import { Progress } from "@/components/ui/progress";
 import {
   openSourceLimits,
   openSourcePlanLimits,
