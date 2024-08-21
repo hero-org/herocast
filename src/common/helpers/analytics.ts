@@ -6,7 +6,7 @@ export const fillMissingDaysBetweenDates = (data: AggregatedAnalytics[], startDa
     const currentDate = new UTCDate(startDate);
     const utcEndDate = new UTCDate(endDate);
 
-    while (currentDate <= utcEndDate) {
+    while (currentDate < utcEndDate) {
         const existingData = data.find(item => {
             const itemDate = new UTCDate(item.timestamp);
             return itemDate.getUTCFullYear() === currentDate.getUTCFullYear() &&
@@ -26,6 +26,5 @@ export const fillMissingDaysBetweenDates = (data: AggregatedAnalytics[], startDa
         currentDate.setUTCDate(currentDate.getUTCDate() + 1);
     }
 
-    console.log('filled data output', filledData);
     return filledData;
 };

@@ -45,9 +45,8 @@ const ReactionsCard = ({ interval, data, isLoading }: ReactionsCardProps) => {
       <CardContent>
         <div className="pt-6 w-full h-full sm:max-h-52 lg:max-h-70">
           <AnalyticsGraph
-            interval={interval}
             analyticsKey="reactions"
-            aggregated={fillMissingDaysBetweenDates(aggregated, startDate, new Date())}
+            data={fillMissingDaysBetweenDates(aggregated, startDate, new Date())}
             isLoading={isLoading}
           />
         </div>

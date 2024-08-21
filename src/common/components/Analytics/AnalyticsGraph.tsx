@@ -20,33 +20,23 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 type AnalyticsGraphProps = {
   analyticsKey: string;
-  aggregated: { timestamp: string; count: number }[];
+  data: { timestamp: string; count: number }[];
   isLoading: boolean;
-  interval?: Interval;
 };
 
 const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   analyticsKey,
-  aggregated,
+  data,
   isLoading = false,
-  interval,
 }) => {
-  const data = useMemo(() => {
-    if (!aggregated) return [];
+  const chartData = useMemo(() => {
+    if (!data) return [];
 
-    let filteredData = aggregated;
-    if (interval) {
-      const cutoffDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
-      filteredData = aggregated.filter(
-        (item) => new Date(item.timestamp) >= cutoffDate
-      );
-    }
-
-    return filteredData.map((item) => ({
+    return data.map((item) => ({
       date: item.timestamp,
       [analyticsKey]: item.count,
     }));
-  }, [aggregated, interval]);
+  }, [data]);
 
   if (data.length === 0) {
     if (isLoading) {
@@ -73,7 +63,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
       className="-ml-8 w-full min-w-full h-full sm:max-h-52 lg:max-h-70"
     >
       {/* <ResponsiveContainer width="100%" height="100%"> */}
-      <AreaChart accessibilityLayer data={data}>
+      <AreaChart accessibilityLayer data={chartData}>
         <defs>
           <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
             <stop
@@ -99,7 +89,7 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
           tickCount={7}
           domain={([dataMin, dataMax]) => [
             Math.floor(dataMin / 100) * 100,
-            Math.ceil(((dataMax + 5)/ 10) * 10),
+            Math.ceil(((dataMax + 5) / 10) * 10),
           ]}
         />
         <ChartTooltip

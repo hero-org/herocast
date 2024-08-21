@@ -82,9 +82,8 @@ const NewFollowersCard = ({
         {value > 0 && (
           <div className="pt-6 w-full h-full sm:max-h-52 lg:max-h-70">
             <AnalyticsGraph
-              interval={interval}
               analyticsKey="followers"
-              aggregated={cumulativeAggregated}
+              data={cumulativeAggregated}
               isLoading={isLoading}
             />
           </div>
