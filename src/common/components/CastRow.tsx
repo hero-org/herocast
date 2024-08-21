@@ -9,9 +9,11 @@ import {
   ChatBubbleLeftIcon,
   HeartIcon,
   ChatBubbleLeftRightIcon,
+  TrashIcon,
+  DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
-import { publishReaction, removeReaction } from "../helpers/farcaster";
+import { publishReaction, removeCast, removeReaction } from "../helpers/farcaster";
 import includes from "lodash.includes";
 import map from "lodash.map";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -27,7 +29,12 @@ import { registerPlugin } from "linkifyjs";
 import CashtagHoverCard from "./CashtagHoverCard";
 import mentionPlugin, { cashtagPlugin, channelPlugin } from "../helpers/linkify";
 import { AccountPlatformType } from "../constants/accounts";
-import { toastInfoReadOnlyMode } from "../helpers/toast";
+import {
+  toastCopiedToClipboard,
+  toastInfoReadOnlyMode,
+  toastSuccessCastDeleted,
+  toastUnableToDeleteCast,
+} from "../helpers/toast";
 import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { Button } from "@/components/ui/button";
@@ -36,6 +43,26 @@ import { cn } from "@/lib/utils";
 import { useDraftStore } from "@/stores/useDraftStore";
 import ChannelHoverCard from "./ChannelHoverCard";
 import { formatDistanceToNowStrict } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { addToClipboard } from "../helpers/clipboard";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -66,6 +93,7 @@ interface CastRowProps {
   hideReactions?: boolean;
   showParentDetails?: boolean;
   hideAuthor?: boolean;
+  showAdminActions?: boolean;
 }
 
 const renderMention = ({ attributes, content }) => {
@@ -164,6 +192,7 @@ export const CastRow = ({
   hideReactions = false,
   showParentDetails = false,
   hideAuthor = false,
+  showAdminActions = false,
 }: CastRowProps) => {
   const {
     accounts,
@@ -454,13 +483,15 @@ export const CastRow = ({
       <div
         className={cn(
           cast.embeds?.length > 1 && !embedsContainsCastEmbed && "grid lg:grid-cols-2 gap-4",
-          "w-full self-start"
+          "max-w-lg self-start"
         )}
         onClick={(e) => e.preventDefault()}
       >
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
-            <div key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}>{renderEmbedForUrl(embed)}</div>
+            <div key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}>
+              {renderEmbedForUrl({ ...embed, hideReactions })}
+            </div>
           ))}
         </ErrorBoundary>
       </div>
@@ -483,7 +514,7 @@ export const CastRow = ({
 
   const channel = showChannel && "parent_url" in cast ? getChannelForParentUrl(cast.parent_url) : null;
   const timeAgoStr = formatDistanceToNowStrict(new Date(cast.timestamp), {
-    addSuffix: true,
+    addSuffix: false,
   });
   const pfpUrl = cast.author.pfp_url || cast.author?.pfp?.url;
   const displayName = cast.author.display_name || cast.author.displayName;
@@ -499,6 +530,100 @@ export const CastRow = ({
         {channel.name}
       </Button>
     );
+
+  const renderAdminActions = () => {
+    const actions = [
+      {
+        key: "delete",
+        isDialog: true,
+        label: "Delete",
+        icon: <TrashIcon className="h-4 w-4 mr-1" />,
+        content: (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Are you sure?</DialogTitle>
+              <DialogDescription>Do you want to permanently delete this cast?</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose>
+                <Button
+                  variant="destructive"
+                  type="submit"
+                  onClick={() => {
+                    if (!selectedAccount) {
+                      toastUnableToDeleteCast();
+                      return;
+                    }
+
+                    removeCast(cast.hash, Number(selectedAccount.platformAccountId), selectedAccount.privateKey!).then(
+                      () => {
+                        toastSuccessCastDeleted(cast?.text);
+                      }
+                    );
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        ),
+      },
+      {
+        key: "copy-cast-link",
+        label: "Copy cast link",
+        icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
+        onClick: () => {
+          const url = `${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`;
+          addToClipboard(url);
+          toastCopiedToClipboard(url);
+        },
+      },
+      {
+        key: "copy-cast-hash",
+        label: "Copy cast hash",
+        icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
+        onClick: () => {
+          addToClipboard(cast.hash);
+          toastCopiedToClipboard(cast.hash);
+        },
+      },
+    ];
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild className="ml-1">
+          <Button size="icon" variant="outline" className="rounded-full h-6 w-6">
+            <EllipsisHorizontalIcon className="h-3.5 w-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <Dialog>
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {actions.map(({ key, label, icon, onClick, isDialog }) => {
+              if (isDialog) {
+                return (
+                  <DialogTrigger key={`dialog-trigger-${key}`} asChild>
+                    <DropdownMenuItem key={key} onSelect={(e) => e.preventDefault()}>
+                      {icon}
+                      {label}
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                );
+              }
+              return (
+                <DropdownMenuItem key={key} onClick={onClick}>
+                  {icon}
+                  {label}
+                </DropdownMenuItem>
+              );
+            })}
+            {actions.map(({ content }) => content)}
+          </Dialog>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   return (
     <div className="flex min-w-full w-full max-w-2xl">
@@ -532,7 +657,7 @@ export const CastRow = ({
                   <span className="text-sm leading-5 text-foreground/50">@{cast.author.username}</span>
                 ) : (
                   <MemoizedProfileHoverCard fid={cast.author.fid} viewerFid={userFid} username={cast.author.username}>
-                    <span className="items-center flex font-semibold text-foreground/80 truncate cursor-pointer w-full max-w-54 lg:max-w-full">
+                    <span className="items-center flex font-semibold text-foreground truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                       {isEmbed && (
                         <img
                           className="relative h-4 w-4 mr-1 flex-none bg-background rounded-full"
@@ -540,7 +665,9 @@ export const CastRow = ({
                         />
                       )}
                       {displayName}
-                      <span className="hidden font-normal lg:ml-1 lg:block">(@{cast.author.username})</span>
+                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">
+                        @{cast.author.username}
+                      </span>
                       <span>
                         {cast.author.power_badge && (
                           <img
@@ -567,6 +694,7 @@ export const CastRow = ({
                 >
                   <ArrowTopRightOnSquareIcon className="mt-0.5 w-4 h-4 ml-1.5" />
                 </Link>
+                {showAdminActions && renderAdminActions()}
               </div>
             </div>
             {showParentDetails && cast?.parent_hash && (
@@ -576,7 +704,7 @@ export const CastRow = ({
             )}
             <div
               onClick={() => onSelect && onSelect()}
-              className="w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
+              className="mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
               style={castTextStyle}
             >
               {getText()}

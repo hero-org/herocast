@@ -30,6 +30,7 @@ import { useDraftStore } from "@/stores/useDraftStore";
 import Link from "next/link";
 import { ChartBarIcon } from "@heroicons/react/20/solid";
 import PublishedCastsRightSidebar from "@/common/components/Sidebar/PublishedCastsRightSidebar";
+import { useListStore } from "@/stores/useListStore";
 
 type NavigationGroupType = {
   name: string;
@@ -68,6 +69,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     setCastModalView,
     setCastModalDraftId,
   } = useNavigationStore();
+  const selectedList = useListStore((state) => state.lists.find((l) => l.id === state.selectedListId));
   const { addNewPostDraft } = useDraftStore();
   const channels = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels || []);
   const pageRequiresHydrate =
@@ -99,6 +101,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   }, [isHydrated]);
 
   const getFeedTitle = () => {
+    if (selectedList) {
+      return selectedList.name;
+    }
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
       return "Following Feed";
     }
@@ -139,7 +144,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           getHeaderActions: () => {
             const isChannelPinned = channels.findIndex((channel) => channel.url === selectedChannelUrl) !== -1;
             const isChannelFeed =
-              selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING && selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING;
+              selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
+              selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING &&
+              !selectedList;
             const actions = [
               {
                 name: "Cast",
@@ -304,15 +311,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const renderRightSidebar = () => {
     switch (sidebarType) {
       case RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR:
-        return <RightSidebar showChannels showAuthorInfo />;
+        return <RightSidebar showFeeds showLists showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.CAST_INFO:
         return <RightSidebar showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.PUBLISHED_CASTS:
         return <PublishedCastsRightSidebar />;
-      case RIGHT_SIDEBAR_ENUM.CHANNELS:
-        return <ChannelsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.SEARCH:
-        return <RightSidebar showLists showSearches showAuthorInfo />;
+        return <RightSidebar showManageLists showSearches showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.NONE:
       default:
         return null;

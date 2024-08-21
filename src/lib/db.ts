@@ -72,28 +72,27 @@ class Reaction {
   type: string;
 }
 
-export const AppDataSource = new DataSource({
-  type: "postgres",
-  url: process.env.DATABASE_URL,
-  synchronize: false,
-  entities: [Cast, Powerbadge, Reaction, Analytics],
-  logging: "all",
-  extra: {
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  },
-});
-
-let initialized = false;
 export const initializeDataSourceWithRetry = async (retries = 3) => {
-  if (initialized) return;
+  const AppDataSource = new DataSource({
+    type: "postgres",
+    url: process.env.DATABASE_URL,
+    synchronize: false,
+    entities: [Cast, Powerbadge, Reaction, Analytics],
+    logging: "all",
+    extra: {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    },
+  });
 
   while (retries) {
     try {
+      const start = process.hrtime();
       await AppDataSource.initialize();
-      initialized = true;
-      console.log("Data Source has been initialized!");
+      const end = process.hrtime(start);
+      const timeTaken = end[0] * 1000 + end[1] / 1e6; // Convert to milliseconds
+      console.log(`Data Source has been initialized! Time taken: ${timeTaken.toFixed(2)} ms`);
       break;
     } catch (err) {
       console.error("Error during Data Source initialization:", err);
@@ -106,4 +105,5 @@ export const initializeDataSourceWithRetry = async (retries = 3) => {
   if (!retries) {
     console.error("Failed to initialize Data Source after multiple attempts");
   }
+  return AppDataSource;
 };

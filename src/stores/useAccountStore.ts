@@ -22,6 +22,7 @@ import uniqBy from "lodash.uniqby";
 import { v4 as uuidv4 } from "uuid";
 import { getUsernameForFid } from "@/common/helpers/farcaster";
 import { IndexedDBStorage } from "./StoreStorage";
+import { ArrowTrendingUpIcon, BeakerIcon, HomeIcon } from "@heroicons/react/20/solid";
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 120; // 5 days;
@@ -592,6 +593,7 @@ const getCommandsForPinnedChannels = (channels: ChannelType[], state) => {
 export const getChannelCommands = (state) => {
   let channelCommands: CommandType[] = [
     {
+      icon: HomeIcon,
       name: `Switch to follow feed`,
       aliases: ["following", "feed", "home"],
       shortcut: "shift+0",
@@ -604,6 +606,7 @@ export const getChannelCommands = (state) => {
       page: "feeds",
     },
     {
+      icon: ArrowTrendingUpIcon,
       name: `Switch to trending feed`,
       aliases: ["trending", "popular"],
       shortcut: "shift+1",
@@ -616,7 +619,8 @@ export const getChannelCommands = (state) => {
       page: "feeds",
     },
     {
-      name: `Switch to random channel`,
+      icon: BeakerIcon,
+      name: "Switch to random channel",
       aliases: ["random", "lucky", "discover"],
       page: "feeds",
       action: () => {

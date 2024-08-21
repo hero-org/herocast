@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { SidebarHeader } from "./SidebarHeader";
 import { useListStore } from "@/stores/useListStore";
 import sortBy from "lodash.sortby";
@@ -24,43 +24,43 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAccountStore } from "@/stores/useAccountStore";
 import UpgradeFreePlanCard from "../UpgradeFreePlanCard";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { PlusIcon } from "@heroicons/react/24/solid";
+
+type ListsOverviewProps = {
+  hideHeader?: boolean;
+  collapsible?: boolean;
+};
 
 const ListsOverview = () => {
-  const { searches, selectedListId, setSelectedListId, addList, lists } = useListStore();
-  const { accounts, selectedAccountIdx } = useAccountStore();
-  const selectedAccountId = accounts[selectedAccountIdx]?.id;
-
-  const { setIsManageListModalOpen } = useNavigationStore();
-
-  const onOpenManageListModal = (id: UUID) => {
-    updateSelectedList(id);
-    setIsManageListModalOpen(true);
-  };
+  const { selectedListId, setSelectedListId } = useListStore();
+  const lists = sortBy(
+    useListStore((state) => state.lists),
+    (s) => s.idx
+  );
+  const { setSelectedChannelUrl } = useAccountStore();
+  const [isShowAllLists, setIsShowAllLists] = useState(true);
 
   const updateSelectedList = (id: UUID) => {
     setSelectedListId(id);
+    setSelectedChannelUrl(null);
   };
 
-  const onClickSaveLastSearch = () => {
-    const lastSearch = searches[searches.length - 1];
-    if (lastSearch && selectedAccountId) {
-      addList({
-        name: lastSearch.term,
-        account_id: selectedAccountId,
-        contents: {
-          term: lastSearch.term,
-        },
-        idx: 0,
-        type: "search",
-      });
-    }
+  const renderFeedHeader = (title: string, button?) => {
+    return (
+      <div className="flex items-center px-4 py-1 sm:px-4">
+        <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary">{title}</h3>
+        {button}
+      </div>
+    );
   };
 
   const renderList = (list: List & { id: UUID }) => {
     const isSelected = selectedListId === list.id;
 
     return (
-      <li key={`list-${list.id}`} className="px-2 sm:px-3 lg:px-4">
+      <li key={`list-${list.id}`}>
         <div
           onClick={() => updateSelectedList(list.id)}
           className={cn(
@@ -69,77 +69,50 @@ const ListsOverview = () => {
           )}
         >
           <span className="flex-nowrap truncate">{list.name}</span>
-          <div className="flex">
-            {list?.contents?.enabled_daily_email && (
-              <EnvelopeIcon className="h-4 w-4 mt-1 mr-1 text-muted-foreground/50" />
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="outline" className="rounded-lg h-6 w-5">
-                  <EllipsisVerticalIcon className="h-3.5 w-3.5" />
-                  <span className="sr-only">More</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-lg">
-                <DropdownMenuItem onClick={() => updateSelectedList(list.id)}>
-                  <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
-                  Search
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onOpenManageListModal(list.id)}>
-                  <Cog6ToothIcon className="h-4 w-4 mr-2" />
-                  Manage
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
       </li>
     );
   };
 
-  const renderEmptyListsCard = () => (
-    <Card className="m-4">
-      <CardHeader>
-        <CardTitle className="text-sm flex items-center">No saved searches yet</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <CardDescription>Save your searches to quickly access them later</CardDescription>
-      </CardContent>
-      {searches.length > 0 && (
-        <CardFooter>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={searches.length === 0 || !selectedAccountId}
-            onClick={() => onClickSaveLastSearch()}
-          >
-            Save last search
-          </Button>
-        </CardFooter>
-      )}
-    </Card>
-  );
-
   const renderLists = () => (
     <div className="flex flex-col">
-      <UpgradeFreePlanCard limit="maxSavedSearches" />
-      <ul role="list" className="mt-2 mb-12">
-        {sortBy(lists, (s) => s.idx).map(renderList)}
+      <ul role="list" className="px-4 py-1 sm:px-4">
+        <Collapsible open={isShowAllLists} onOpenChange={setIsShowAllLists}>
+          {lists.slice(0, 5).map(renderList)}
+          <CollapsibleContent className="">{lists.slice(5).map(renderList)}</CollapsibleContent>
+          {lists.length > 5 && (
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" size="sm" className="h-6 px-1">
+                <span className="">Show {isShowAllLists ? "less" : "more"}</span>
+              </Button>
+            </CollapsibleTrigger>
+          )}
+        </Collapsible>
       </ul>
     </div>
   );
+
+  const renderAddFirstSearchButton = () => (
+    <Link href="/search" className="px-4 py-3 sm:px-4 sm:py-3">
+      <Button size="sm" className="mt-2">
+        Add keyword search
+      </Button>
+    </Link>
+  );
+
+  const hasLists = lists.length > 0;
+
   return (
     <div className="">
-      <SidebarHeader
-        title={
-          <span className="flex align-center">
-            <BellIcon className="h-5 w-5 mt-1 mr-1" />
-            Saved Searches
-          </span>
-        }
-      />
-      {lists.length === 0 ? renderEmptyListsCard() : renderLists()}
+      {renderFeedHeader(
+        "Searches",
+        <Link href="/search">
+          <Button size="sm" variant="outline" className="h-6 px-2">
+            Add search
+          </Button>
+        </Link>
+      )}
+      {hasLists ? renderLists() : renderAddFirstSearchButton()}
     </div>
   );
 };

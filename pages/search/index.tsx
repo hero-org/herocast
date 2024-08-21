@@ -18,7 +18,12 @@ import { map, uniq, debounce } from "lodash";
 import SkeletonCastRow from "@/common/components/SkeletonCastRow";
 import { Switch } from "@/components/ui/switch";
 import { IntervalFilter } from "@/common/components/IntervalFilter";
-import { Interval, SearchResponse } from "@/common/helpers/search";
+import {
+  getFromFidFromSearchTerm,
+  getMentionFidFromSearchTerm,
+  Interval,
+  SearchResponse,
+} from "@/common/helpers/search";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 import { usePostHog } from "posthog-js/react";
@@ -181,37 +186,6 @@ export default function SearchPage() {
     onlyPowerBadge: filterByPowerBadge,
     hideReplies: filterByHideReplies,
   });
-
-  const getMentionFidFromSearchTerm = async (term: string, viewerFid: string) => {
-    const isOneWordSearch = !/\s/.test(term.trim());
-    if (!isOneWordSearch) {
-      return;
-    }
-    const profile = await getProfileFetchIfNeeded({
-      username: term.trim(),
-      viewerFid,
-    });
-    return profile?.fid;
-  };
-
-  const getFromFidFromSearchTerm = async (term: string, viewerFid: string) => {
-    const fromIndex = term.indexOf("from:");
-    if (fromIndex === -1) {
-      return;
-    }
-
-    const fromTerm = term.match(/from:([^\s]+)/);
-    if (!fromTerm) {
-      return;
-    }
-
-    const from = fromTerm[1];
-    const profile = await getProfileFetchIfNeeded({
-      username: from,
-      viewerFid,
-    });
-    return profile?.fid;
-  };
 
   const onSearch = useCallback(
     async (term?: string, filters?: SearchFilters) => {

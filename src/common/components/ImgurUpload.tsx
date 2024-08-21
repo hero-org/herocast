@@ -1,14 +1,8 @@
-import React, { useRef, useState } from "react";
-import { ImgurClient } from "imgur";
-import { Button } from "@/components/ui/button";
+import React, { useRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-const client = new ImgurClient({
-  clientId: process.env.NEXT_PUBLIC_IMGUR_CLIENT_ID,
-  clientSecret: process.env.NEXT_PUBLIC_IMGUR_CLIENT_SECRET,
-});
+import { useImgurUpload } from "@/common/hooks/useImgurUpload";
 
 type ImgurUploadProps = {
   onSuccess?: (string) => void;
@@ -16,56 +10,21 @@ type ImgurUploadProps = {
 
 const ImgurUpload = ({ onSuccess }: ImgurUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState<string>();
+  const { uploadImage, isUploading, error, uploadProgress, image } = useImgurUpload();
 
-  client.on("uploadProgress", (progress) => {
-    console.log("uploadProgress", progress);
-    setUploadProgress(progress?.percent);
-  });
-
-  const validateFile = (file: File | undefined): boolean => {
-    if (!file) {
-      console.error("No file selected for upload.");
-      setError("No file selected for upload.");
-      return false;
-    }
-
-    const validImageTypes = ["image/gif", "image/jpeg", "image/png"];
-    if (file && !validImageTypes.includes(file.type)) {
-      console.error("Invalid file type. Please select an image file.");
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleUpload = (e: React.FormEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.FormEvent<HTMLInputElement>) => {
     e.preventDefault();
-    setError(undefined);
-    setUploadProgress(0);
-
     const file = e.currentTarget.files?.[0];
-    if (!validateFile(file)) return;
-
-    console.log("file", file);
-    client
-      .upload({ image: file?.stream() })
-      .then((response) => {
-        if (response.success) {
-          setUploadProgress(100);
-          onSuccess?.(response.data.link);
-        } else {
-          setError(`Failed to upload - ${response.data}`);
-        }
-        console.log("response", response);
-        console.log(response.data);
-      })
-      .catch((err) => {
-        setError(err.message);
-        console.error(err);
-      });
+    if (file) {
+      await uploadImage(file);
+    }
   };
+
+  React.useEffect(() => {
+    if (image?.link) {
+      onSuccess?.(image.link);
+    }
+  }, [image, onSuccess]);
 
   return (
     <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -75,15 +34,11 @@ const ImgurUpload = ({ onSuccess }: ImgurUploadProps) => {
           type="file"
           ref={fileInputRef}
           className="h-9 pt-1.5"
-          onInput={(e) => {
-            handleUpload(e);
-          }}
+          onInput={handleUpload}
+          disabled={isUploading}
         />
-        {/* <Button onClick={handleUpload} disabled={!fileInputRef.current}>
-          Upload
-        </Button> */}
       </div>
-      {uploadProgress !== 0 && !error && (
+      {uploadProgress > 0 && !error && (
         <Progress
           value={uploadProgress}
           indicatorClassName="bg-gradient-to-r from-green-400 to-green-600 animate-pulse"

@@ -158,37 +158,37 @@ export default function Channels() {
             <h2 className="text-lg font-medium text-foreground/80 leading-6">All channels</h2>
             <h3 className="text-sm font-medium text-foreground/80">Search and pin new channels</h3>
           </div>
-          <div className="pb-3 mt-3 sm:ml-4 sm:mt-0">
-            <label htmlFor="mobile-search-channel" className="sr-only">
-              Search
-            </label>
-            <label htmlFor="desktop-search-channel" className="sr-only">
-              Search
-            </label>
-            <div className="flex rounded-md shadow-sm max-w-md">
-              <div className="relative flex-grow focus-within:z-10">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-foreground/70" aria-hidden="true" />
-                </div>
-                <input
-                  onChange={handleSearchChange}
-                  value={searchTerm}
-                  type="text"
-                  name="mobile-search-channel"
-                  id="mobile-search-channel"
-                  className="block w-full rounded-md border-0 py-2.5 pl-10 bg-white/20 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/10 focus:text-foreground ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 sm:hidden"
-                  placeholder="Search"
-                />
-                <input
-                  onChange={handleSearchChange}
-                  value={searchTerm}
-                  type="text"
-                  name="desktop-search-channel"
-                  id="desktop-search-channel"
-                  className="hidden w-full rounded-md border-0 py-2 pl-10 bg-white/20 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/10 focus:text-foreground ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 sm:block"
-                  placeholder="Search channels"
-                />
+        </div>
+        <div className="my-4">
+          <label htmlFor="mobile-search-channel" className="sr-only">
+            Search
+          </label>
+          <label htmlFor="desktop-search-channel" className="sr-only">
+            Search
+          </label>
+          <div className="flex rounded-md shadow-sm max-w-md">
+            <div className="relative flex-grow focus-within:z-10">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <MagnifyingGlassIcon className="h-5 w-5 text-foreground/70" aria-hidden="true" />
               </div>
+              <input
+                onChange={handleSearchChange}
+                value={searchTerm}
+                type="text"
+                name="mobile-search-channel"
+                id="mobile-search-channel"
+                className="block w-full rounded-md border-0 py-2.5 pl-10 bg-white/20 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/10 focus:text-foreground ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 sm:hidden"
+                placeholder="Search"
+              />
+              <input
+                onChange={handleSearchChange}
+                value={searchTerm}
+                type="text"
+                name="desktop-search-channel"
+                id="desktop-search-channel"
+                className="hidden w-full rounded-md border-0 py-2 pl-10 bg-white/20 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/10 focus:text-foreground ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 sm:block"
+                placeholder="Search channels"
+              />
             </div>
           </div>
         </div>

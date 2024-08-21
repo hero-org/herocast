@@ -5,10 +5,10 @@ import { DraftStatus, DraftType } from "../../constants/farcaster";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useEditor, EditorContent } from "@mod-protocol/react-editor";
 import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
+
 import { ModManifest, fetchUrlMetadata, handleAddEmbed, handleOpenFile, handleSetInput } from "@mod-protocol/core";
 import { getFarcasterMentions } from "@mod-protocol/farcaster";
 import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
-import debounce from "lodash.debounce";
 import { Button } from "@/components/ui/button";
 import { take } from "lodash";
 import { ChannelPicker } from "../ChannelPicker";
@@ -30,10 +30,11 @@ import { toast } from "sonner";
 import { usePostHog } from "posthog-js/react";
 import { useTextLength } from "../../helpers/editor";
 import { cn } from "@/lib/utils";
-import { openSourcePlanLimits } from "../../../config/customerLimitation";
+import { openSourcePlanLimits } from "@/config/customerLimitation";
 import Link from "next/link";
 import { isPaidUser } from "@/stores/useUserStore";
 import { MentionList } from "../MentionsList";
+import { useImgurUpload } from "@/common/hooks/useImgurUpload";
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -150,6 +151,42 @@ export default function NewPostEntry({
     enableOnFormTags: true,
   });
 
+  const { uploadImage, isUploading, error, image } = useImgurUpload();
+
+  useEffect(() => {
+    if (isUploading) {
+      toast.loading("Uploading image...", {
+        id: "image-upload",
+      });
+    } else if (image) {
+      toast.success("Image uploaded", {
+        id: "image-upload",
+      });
+
+      if (!embeds.find((embed) => "url" in embed && embed.url === image.link)) {
+        setEmbeds([
+          ...embeds,
+          {
+            status: "loaded",
+            url: image.link,
+            metadata: {
+              image: {
+                url: image.link,
+                width: image.width,
+                height: image.height,
+              },
+            },
+          },
+        ]);
+      }
+    } else if (error) {
+      console.error("failed uploading to imgur", error);
+      toast.error(error, {
+        id: "image-upload",
+      });
+    }
+  }, [isUploading, error, image]);
+
   const isPublishing = draft?.status === DraftStatus.publishing;
   const { editor, getText, addEmbed, getEmbeds, setEmbeds, setChannel, getChannel, handleSubmit, setText } = useEditor({
     fetchUrlMetadata: getUrlMetadata,
@@ -165,6 +202,19 @@ export default function NewPostEntry({
       RenderList: MentionList,
     }),
     editorOptions: {
+      editorProps: {
+        handlePaste: (view, event) =>
+          extractImageAndUpload({
+            data: event.clipboardData,
+            uploadImage,
+          }),
+        handleDrop: (view, event) =>
+          extractImageAndUpload({
+            data: event.dataTransfer,
+            uploadImage,
+          }),
+      },
+
       parseOptions: {
         preserveWhitespace: "full",
       },
@@ -350,13 +400,43 @@ export default function NewPostEntry({
           </Button>
         </div>
       </form>
+
       {hasEmbeds && (
         <div className="mt-8 rounded-md bg-muted/50 p-2 w-full break-all">
           {map(draft.embeds, (embed) => (
-            <div key={`cast-embed-${embed?.url || embed?.hash}`}>{renderEmbedForUrl(embed)}</div>
+            <div key={`cast-embed-${embed?.url || embed?.hash}`}>
+              {renderEmbedForUrl({
+                ...embed,
+                onRemove: () => {
+                  const newEmbeds = draft.embeds.filter((e) => e.url !== embed.url);
+                  updatePostDraft(draftIdx, { ...draft, embeds: newEmbeds });
+                  window.location.reload();
+                },
+              })}
+            </div>
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function extractImageAndUpload(args: { data: DataTransfer | null; uploadImage: (file: File) => void }): boolean {
+  const { data, uploadImage } = args;
+
+  if (!data) {
+    return false;
+  }
+
+  const items = Array.from(data.items);
+  for (const item of items) {
+    if (item.type.indexOf("image") === 0) {
+      const file = item.getAsFile();
+      if (file) {
+        uploadImage(file);
+        return true;
+      }
+    }
+  }
+  return false;
 }

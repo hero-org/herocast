@@ -5,7 +5,13 @@ import { CastParamType, NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { CastResponse } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
-const CastEmbed = ({ url, castId }: { url?: string; castId?: { hash: string; fid: number } }) => {
+type CastEmbedProps = {
+  url?: string;
+  castId?: { hash: string; fid: number };
+  hideReactions?: boolean;
+};
+
+const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
   const [cast, setCast] = useState<CastWithInteractions | null>(null);
 
   useEffect(() => {
@@ -37,7 +43,7 @@ const CastEmbed = ({ url, castId }: { url?: string; castId?: { hash: string; fid
 
   return (
     <div key={`cast-embed-${url}`} className="border border-foreground/30 rounded-lg">
-      <CastRow cast={cast} showChannel isEmbed />
+      <CastRow cast={cast} hideReactions={hideReactions} showChannel isEmbed />
     </div>
   );
 };

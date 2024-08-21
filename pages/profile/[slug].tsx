@@ -100,7 +100,13 @@ const ProfilePage = () => {
       key={item?.hash}
       className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl"
     >
-      <CastRow cast={item} showChannel isSelected={selectedFeedIdx === idx} onSelect={() => onSelectCast(idx)} />
+      <CastRow
+        cast={item}
+        showChannel
+        isSelected={selectedFeedIdx === idx}
+        onSelect={() => onSelectCast(idx)}
+        showAdminActions={selectedAccount?.status === "active" && profile?.fid === viewerFid}
+      />
     </li>
   );
 

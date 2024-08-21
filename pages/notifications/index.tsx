@@ -224,11 +224,12 @@ const Notifications = () => {
   );
 
   const getActionDescriptionForRow = (notification: Notification): string => {
+    const cast = notification.cast;  
     switch (notification.type) {
       case NotificationTypeEnum.Reply:
-        return `@${notification.cast.author.username} replied`;
+        return cast ? `@${cast.author.username} replied` : "Someone replied";
       case NotificationTypeEnum.Mention:
-        return `@${notification.cast.author.username} mentioned you`;
+        return cast ? `@${cast.author.username} mentioned you` : "Someone mentioned you";
       case NotificationTypeEnum.Likes:
         return `Received ${notification.reactions?.length} likes`;
       case NotificationTypeEnum.Follows:

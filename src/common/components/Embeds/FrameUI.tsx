@@ -155,7 +155,7 @@ export function FrameUI({ frameState, theme, FrameImage, allowPartialFrame }: Fr
             variant={currentFrame.type === "error" ? "error" : "message"}
           />
         ) : null}
-        {isLoading && (
+        {isLoading && !frame?.image && (
           <div
             className="flex flex-col space-y-3"
             style={{

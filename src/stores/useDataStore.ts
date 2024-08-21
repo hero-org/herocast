@@ -88,14 +88,14 @@ type addTokenDataProps = {
 
 type AdditionalUserInfo = {
   airstackSocialInfo: AirstackSocialInfo;
-  icebreakerData: IcebreakerSocialInfo;
+  icebreakerSocialInfo: IcebreakerSocialInfo;
 };
 
 type addUserProfileProps = {
-  user: User & AdditionalUserInfo;
+  user: User & Partial<AdditionalUserInfo>;
 };
 
-export type UserProfile = User & AdditionalUserInfo & { updatedAt: number };
+export type UserProfile = User & { updatedAt: number } & Partial<AdditionalUserInfo>;
 
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;

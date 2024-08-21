@@ -368,7 +368,7 @@ export default function CommandPalette() {
 
   return (
     <CommandDialog open={isCommandPaletteOpen} onOpenChange={toggleCommandPalette} defaultOpen>
-      <Command shouldFilter loop>
+      <Command shouldFilter={false} loop>
         <CommandInput onValueChange={setQuery} autoFocus placeholder="Search Herocast..." />
         <CommandList className="">
           <CommandEmpty className="py-4 text-center text-sm text-muted-foreground">No command found.</CommandEmpty>

@@ -49,16 +49,17 @@ export function getTopCasts(fid: number, limit: number = 30) {
         WITH relevant_casts AS (
             SELECT hash, timestamp, parent_cast_hash is not NULL AS is_reply
             FROM casts
-            WHERE fid = ${fid}
+            WHERE 
+            fid = ${fid}
+            AND timestamp >= NOW() - INTERVAL '30 days'
             ORDER BY timestamp DESC
-            LIMIT ${limit}
         )
         SELECT 
             c.hash,
             c.timestamp,
             c.is_reply,
-            COALESCE(r.like_count::text, '0') AS like_count,
-            COALESCE(r.recast_count::text, '0') AS recast_count
+            COALESCE(r.like_count::int, 0) AS like_count,
+            COALESCE(r.recast_count::int, 0) AS recast_count
         FROM 
             relevant_casts c
         LEFT JOIN 
@@ -71,7 +72,8 @@ export function getTopCasts(fid: number, limit: number = 30) {
             AND target_cast_hash IN (SELECT hash FROM relevant_casts)
             GROUP BY target_cast_hash) r ON c.hash = r.target_cast_hash
         ORDER BY 
-            c.timestamp DESC;
+            COALESCE(like_count::int, 0) DESC
+        LIMIT ${limit};
     `;
 }
 

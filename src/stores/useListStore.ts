@@ -27,7 +27,7 @@ interface ListStoreActions {
   updateList: (search: UpdateList) => void;
   addList: (newList: AddListType) => void;
   removeList: (listId: UUID) => void;
-  setSelectedListId: (id: UUID) => void;
+  setSelectedListId: (id: UUID | undefined) => void;
 }
 
 export interface ListStore extends ListStoreProps, ListStoreActions {}
@@ -92,7 +92,7 @@ const store = (set: StoreSet) => ({
       state.lists = state.lists.filter((list) => list.id !== listId);
     });
   },
-  setSelectedListId: (id?: UUID) => {
+  setSelectedListId: (id: UUID |null) => {
     set((state) => {
       state.selectedListId = id;
     });

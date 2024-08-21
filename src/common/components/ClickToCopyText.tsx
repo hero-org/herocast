@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
+import { addToClipboard } from "../helpers/clipboard";
 
 type ClickToCopyTextProps = {
   className?: string;
@@ -29,13 +30,12 @@ const ClickToCopyText = ({ className, disabled, buttonText, text, size = "lg" }:
       disabled={didClickCopyShare || disabled}
       onClick={() => {
         setDidClickCopyShare(true);
-        navigator.clipboard.writeText(text);
+        addToClipboard(text);
         setTimeout(() => {
           setDidClickCopyShare(false);
         }, 2000);
       }}
     >
-      {getButtonText()}
       <ClipboardDocumentIcon
         className={clsx(
           size === "sm" ? "h-4 w-4" : "h-5 w-5",
@@ -43,6 +43,7 @@ const ClickToCopyText = ({ className, disabled, buttonText, text, size = "lg" }:
           didClickCopyShare ? "text-muted-foreground" : "text-foreground"
         )}
       />
+      {getButtonText()}
     </Button>
   );
 };

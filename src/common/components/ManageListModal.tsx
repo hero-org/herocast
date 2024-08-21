@@ -106,7 +106,7 @@ const ManageListModal = ({ open, onClose }) => {
         </div>
         <div className="flex justify-end gap-4">
           <Button size="sm" variant="destructive" onClick={() => onClickDelete(list.id)}>
-            Delete List
+            Delete Search
           </Button>
           <Button disabled={!canSave} size="sm" onClick={() => onClickSave()}>
             Save

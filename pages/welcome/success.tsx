@@ -1,10 +1,18 @@
 import React from "react";
-import { CheckCircleIcon, NewspaperIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+import {
+  CheckCircleIcon,
+  MagnifyingGlassIcon,
+  NewspaperIcon,
+  PencilSquareIcon,
+  PlusCircleIcon,
+  RectangleGroupIcon,
+} from "@heroicons/react/20/solid";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { useDraftStore } from "@/stores/useDraftStore";
 import { JoinedHerocastPostDraft } from "@/common/constants/postDrafts";
+import Link from "next/link";
 
 const WelcomeSuccessPage = () => {
   const router = useRouter();
@@ -18,28 +26,42 @@ const WelcomeSuccessPage = () => {
     <div className="w-full flex flex-col mt-24 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
         <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast</h2>
-        <p className="text-lg text-muted-foreground">Build, engage and grow on Farcaster. Faster.</p>
-        <div className="lg:max-w-lg mx-auto">
+        <div className="max-w-xl mx-auto">
           <Card className="min-w-max bg-background text-foreground">
             <CardHeader className="space-y-1">
               <CardTitle className="flex">
                 <CheckCircleIcon className="-mt-0.5 mr-1 h-5 w-5 text-foreground/80" aria-hidden="true" />
                 Account added to herocast
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
-                You can start casting and browsing your feed
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="-mx-2 -my-1.5 flex">
-                <Button onClick={() => router.push("/feeds")} type="button" variant="default">
-                  Scroll your feeds
-                  <NewspaperIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
-                </Button>
-                <Button onClick={() => onStartCasting()} type="button" variant="outline" className="ml-4">
-                  Start casting
-                  <PlusCircleIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
-                </Button>
+              <div className="flex flex-col gap-y-4 text-left">
+                <div>
+                  <span className="text-md font-semibold">Get started with herocast</span>
+                  <ul className="ml-1 list-disc list-inside">
+                    <li>Create an alert to get notified when someone mentions a keyword</li>
+                    <li>Pin Channels to access them faster in your Feeds</li>
+                    <li>Schedule casts to save time</li>
+                  </ul>
+                </div>
+                <div className="gap-x-4 mt-2 flex">
+                  <Link href="/search">
+                    <Button size="lg" type="button" variant="default">
+                      <MagnifyingGlassIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+                      Setup a keyword alert
+                    </Button>
+                  </Link>
+                  <Link href="/channels">
+                    <Button size="lg" type="button" variant="outline">
+                      <RectangleGroupIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+                      Pin your channels
+                    </Button>
+                  </Link>
+                  <Button onClick={() => onStartCasting()} type="button" variant="outline" size="lg">
+                    <PencilSquareIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+                    Start casting
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

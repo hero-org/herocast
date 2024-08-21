@@ -63,4 +63,4 @@ hellno [Warpcast](https://warpcast.com/hellno.eth)
 
 Website: https://herocast.xyz
 
-Github: https://github.com/hellno/herocast
+GitHub: https://github.com/hellno/herocast
