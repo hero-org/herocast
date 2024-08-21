@@ -1,36 +1,29 @@
-import React from "react";
-import { SidebarHeader } from "./SidebarHeader";
-import { useListStore } from "@/stores/useListStore";
-import sortBy from "lodash.sortby";
-import { List } from "@/common/types/database.types";
+import React from 'react';
+import { SidebarHeader } from './SidebarHeader';
+import { useListStore } from '@/stores/useListStore';
+import sortBy from 'lodash.sortby';
+import { List } from '@/common/types/database.types';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import {
   EllipsisVerticalIcon,
   MagnifyingGlassIcon,
   Cog6ToothIcon,
   BellIcon,
   EnvelopeIcon,
-} from "@heroicons/react/24/outline";
-import { useNavigationStore } from "@/stores/useNavigationStore";
-import { UUID } from "crypto";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useAccountStore } from "@/stores/useAccountStore";
-import UpgradeFreePlanCard from "../UpgradeFreePlanCard";
-import { cn } from "@/lib/utils";
+} from '@heroicons/react/24/outline';
+import { useNavigationStore } from '@/stores/useNavigationStore';
+import { UUID } from 'crypto';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAccountStore } from '@/stores/useAccountStore';
+import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
+import { cn } from '@/lib/utils';
 
 type ListsOverviewProps = {
   hideHeader?: boolean;
@@ -38,8 +31,7 @@ type ListsOverviewProps = {
 };
 
 const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) => {
-  const { searches, selectedListId, setSelectedListId, addList, lists } =
-    useListStore();
+  const { searches, selectedListId, setSelectedListId, addList, lists } = useListStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccountId = accounts[selectedAccountIdx]?.id;
 
@@ -64,7 +56,7 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
           term: lastSearch.term,
         },
         idx: 0,
-        type: "search",
+        type: 'search',
       });
     }
   };
@@ -77,10 +69,8 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
         <div
           onClick={() => updateSelectedList(list.id)}
           className={cn(
-            isSelected
-              ? "text-foreground font-semibold"
-              : "text-foreground/80 hover:text-foreground/80",
-            "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
+            isSelected ? 'text-foreground font-semibold' : 'text-foreground/80 hover:text-foreground/80',
+            'flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
           )}
         >
           <span className="flex-nowrap truncate">{list.name}</span>
@@ -90,11 +80,7 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="rounded-lg h-6 w-5"
-                >
+                <Button size="icon" variant="outline" className="rounded-lg h-6 w-5">
                   <EllipsisVerticalIcon className="h-3.5 w-3.5" />
                   <span className="sr-only">More</span>
                 </Button>
@@ -105,9 +91,7 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
                   Search
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onOpenManageListModal(list.id)}
-                >
+                <DropdownMenuItem onClick={() => onOpenManageListModal(list.id)}>
                   <Cog6ToothIcon className="h-4 w-4 mr-2" />
                   Manage
                 </DropdownMenuItem>
@@ -122,14 +106,10 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
   const renderEmptyListsCard = () => (
     <Card className="m-4">
       <CardHeader>
-        <CardTitle className="text-sm flex items-center">
-          No saved searches yet
-        </CardTitle>
+        <CardTitle className="text-sm flex items-center">No saved searches yet</CardTitle>
       </CardHeader>
       <CardContent>
-        <CardDescription>
-          Save your searches to quickly access them later
-        </CardDescription>
+        <CardDescription>Save your searches to quickly access them later</CardDescription>
       </CardContent>
       {searches.length > 0 && (
         <CardFooter>
@@ -157,14 +137,16 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
 
   return (
     <div className="">
-      {!hideHeader && <SidebarHeader
-        title={
-          <span className="flex align-center">
-            <BellIcon className="h-5 w-5 mt-1 mr-1" />
-            Saved Searches
-          </span>
-        }
-      />}
+      {!hideHeader && (
+        <SidebarHeader
+          title={
+            <span className="flex align-center">
+              <BellIcon className="h-5 w-5 mt-1 mr-1" />
+              Saved Searches
+            </span>
+          }
+        />
+      )}
       {lists.length === 0 ? renderEmptyListsCard() : renderLists()}
     </div>
   );

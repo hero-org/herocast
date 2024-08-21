@@ -1,8 +1,8 @@
-import React, { useRef } from "react";
-import { Progress } from "@/components/ui/progress";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { useImgurUpload } from "@/common/hooks/useImgurUpload";
+import React, { useRef } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { useImgurUpload } from '@/common/hooks/useImgurUpload';
 
 type ImgurUploadProps = {
   onSuccess?: (string) => void;

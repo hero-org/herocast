@@ -10,34 +10,29 @@
   Simple logic because it refreshes all analytics data, independent if it has been viewed recently or not.
 */
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "@supabase/supabase-js";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { createClient } from '@supabase/supabase-js';
 
-console.log("Hello from update-analytics!");
+console.log('Hello from update-analytics!');
 
 Deno.serve(async (req) => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     // Fetch all existing entries in the analytics table
-    const { data: analyticsData, error: fetchError } = await supabaseClient
-      .from('analytics')
-      .select('fid');
+    const { data: analyticsData, error: fetchError } = await supabaseClient.from('analytics').select('fid');
 
     if (fetchError) throw fetchError;
 
     // Iterate over each fid and call the create-analytics-data function
     for (const entry of analyticsData) {
       const fid = entry.fid;
-      const response = await supabaseClient.functions.invoke(
-        "create-analytics-data",
-        {
-          body: JSON.stringify({ fid }),
-        }
-      );
+      const response = await supabaseClient.functions.invoke('create-analytics-data', {
+        body: JSON.stringify({ fid }),
+      });
 
       if (response.error) {
         console.error(`Failed to update analytics for fid: ${fid}`, response.error);
@@ -46,16 +41,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({ message: 'All analytics data updated successfully' }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ message: 'All analytics data updated successfully' }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error(error);
-    return new Response(
-      JSON.stringify({ error: 'Internal Server Error' }),
-      { headers: { "Content-Type": "application/json" }, status: 500 }
-    );
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 });
 

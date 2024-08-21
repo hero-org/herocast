@@ -1,4 +1,4 @@
-import { UUID } from "crypto";
+import { UUID } from 'crypto';
 
 export type ChannelType = {
   id: UUID;
@@ -12,4 +12,4 @@ export type ChannelType = {
     moderatorFid?: string;
     followerCount?: number;
   };
-}
+};

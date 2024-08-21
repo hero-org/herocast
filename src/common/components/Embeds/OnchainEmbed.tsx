@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 const OnchainEmbed = ({ url }: { url: string }) => {
   return (
@@ -6,6 +6,6 @@ const OnchainEmbed = ({ url }: { url: string }) => {
       {url}
     </div>
   );
-}
+};
 
 export default OnchainEmbed;

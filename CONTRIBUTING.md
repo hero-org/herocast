@@ -40,15 +40,15 @@ git clone https://github.com/hellno/herocast.git
   yarn
   ```
 
-4. Create a file `.env.development.local`:
+4. Create a file `.env.local`:
 
 - For macOS or Linux:
   ```bash
-  cp .env.example .env.development.local
+  cp .env.example .env.local
   ```
 - For Windows:
   ```bash
-  xcopy .env.example .env.development.local
+  xcopy .env.example .env.local
   ```
 
 5. Set up your environment variables:
@@ -67,7 +67,7 @@ git clone https://github.com/hellno/herocast.git
 - Create a new account and select the "Free" option.
 - Select the "Optimism" chain and fill out the necessary information.
 - In the "Apps" section, find your Optimism App and click the "API Key" button.
-- Copy the API Key to your `.env.development.local`.
+- Copy the API Key to your `.env.local`.
   ```bash
   NEXT_PUBLIC_ALCHEMY_API_KEY = 'alchemy-api-key-here'
   ```
@@ -134,7 +134,7 @@ This will output:
 ```bash
 $ next dev
   - Local:        http://localhost:3000
-  - Environments: .env.development.local, .env.development
+  - Environments: .env.local, .env.development
 ...
 ✓ Ready in 2.4s
 ```

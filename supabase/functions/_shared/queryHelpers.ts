@@ -1,21 +1,29 @@
-import { sql } from 'kysely'
+import { sql } from 'kysely';
 
 export function buildAnalyticsQuery(
-    tableName: string,
-    fid: string,
-    fidFilterColumn: string,
-    additionalColumns: string[] = []
+  tableName: string,
+  fid: string,
+  fidFilterColumn: string,
+  additionalColumns: string[] = []
 ) {
-    const additionalColumnsSelect = additionalColumns.length > 0
-        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col)), sql`, `)}`
-        : sql``;
-    const additionalColumnsGroupBy = additionalColumns.length > 0
-        ? sql`, ${sql.join(additionalColumns.map(col => sql.raw(col.split(' ').pop()!)), sql`, `)}`
-        : sql``;
+  const additionalColumnsSelect =
+    additionalColumns.length > 0
+      ? sql`, ${sql.join(
+          additionalColumns.map((col) => sql.raw(col)),
+          sql`, `
+        )}`
+      : sql``;
+  const additionalColumnsGroupBy =
+    additionalColumns.length > 0
+      ? sql`, ${sql.join(
+          additionalColumns.map((col) => sql.raw(col.split(' ').pop()!)),
+          sql`, `
+        )}`
+      : sql``;
 
-    console.log("buildAnalyticsQuery", fid, tableName, additionalColumns);
+  console.log('buildAnalyticsQuery', fid, tableName, additionalColumns);
 
-    return sql`
+  return sql`
         WITH daily_counts AS (
             SELECT
                 date_trunc('day', timestamp) AS day,
@@ -37,7 +45,7 @@ export function buildAnalyticsQuery(
 }
 
 export function getTopCasts(fid: number, limit: number = 30) {
-    return sql`
+  return sql`
         WITH relevant_casts AS (
             SELECT hash, timestamp, parent_cast_hash is not NULL AS is_reply
             FROM casts
@@ -70,11 +78,11 @@ export function getTopCasts(fid: number, limit: number = 30) {
 }
 
 export const formatResponseSection = (data: any) => ({
-    aggregated: data.aggregated,
-    overview: {
-        total: data.total,
-        d7: data.d7,
-        h24: data.h24,
-        d30: data.d30,
-    }
+  aggregated: data.aggregated,
+  overview: {
+    total: data.total,
+    d7: data.d7,
+    h24: data.h24,
+    d30: data.d30,
+  },
 });

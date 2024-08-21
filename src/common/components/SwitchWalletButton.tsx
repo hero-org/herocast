@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-import { Button } from "@/components/ui/button";
-import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
-import { useAccount, useDisconnect } from "wagmi";
-import { cn } from "@/lib/utils";
+import { Button } from '@/components/ui/button';
+import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount, useDisconnect } from 'wagmi';
+import { cn } from '@/lib/utils';
 
 type SwitchWalletButtonProps = {
   className?: string;
@@ -22,7 +22,7 @@ const SwitchWalletButton = ({ className }: SwitchWalletButtonProps) => {
   }, []);
 
   return (
-    <div className={cn("flex flex-col", className)}>
+    <div className={cn('flex flex-col', className)}>
       {isClient && isConnected && (
         <Button variant="outline" className="border-red-700" onClick={() => disconnect()}>
           Disconnect
@@ -32,16 +32,13 @@ const SwitchWalletButton = ({ className }: SwitchWalletButtonProps) => {
       <Button
         type="button"
         variant="outline"
-        className={`${isClient && isConnected ? "mt-2" : ""}`}
+        className={`${isClient && isConnected ? 'mt-2' : ''}`}
         onClick={() => openConnectModal?.() || openAccountModal?.()}
       >
         {`${
           isClient && isConnected
-            ? `Connected to ${address.substring(0, 6)}...${address.substring(
-                address.length - 4,
-                address.length
-              )}`
-            : "Connect wallet"
+            ? `Connected to ${address.substring(0, 6)}...${address.substring(address.length - 4, address.length)}`
+            : 'Connect wallet'
         }`}
       </Button>
     </div>

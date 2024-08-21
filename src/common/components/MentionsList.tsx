@@ -1,15 +1,10 @@
-"use client";
+'use client';
 
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useState,
-  useEffect,
-} from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { FarcasterMention } from "@mod-protocol/farcaster";
-import { cn } from "@/lib/utils";
-import { useIsMounted } from "../helpers/hooks";
+import React, { forwardRef, useImperativeHandle, useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { FarcasterMention } from '@mod-protocol/farcaster';
+import { cn } from '@/lib/utils';
+import { useIsMounted } from '../helpers/hooks';
 
 type MentionListRef = {
   onKeyDown: (props: { event: Event }) => boolean;
@@ -33,9 +28,7 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
   };
 
   const upHandler = () => {
-    setSelectedIndex(
-      (selectedIndex + props.items.length - 1) % props.items.length
-    );
+    setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length);
   };
 
   const downHandler = () => {
@@ -54,17 +47,17 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
         return false;
       }
 
-      if (event.key === "ArrowUp") {
+      if (event.key === 'ArrowUp') {
         upHandler();
         return true;
       }
 
-      if (event.key === "ArrowDown") {
+      if (event.key === 'ArrowDown') {
         downHandler();
         return true;
       }
 
-      if (event.key === "Enter") {
+      if (event.key === 'Enter') {
         enterHandler();
         return true;
       }
@@ -74,8 +67,7 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
   }));
 
   if (!isMounted()) return null;
-  const noResults =
-    props.items && props.items?.length === 1 && props.items[0] === null;
+  const noResults = props.items && props.items?.length === 1 && props.items[0] === null;
 
   return (
     <div className="overflow-y-auto z-50 min-w-[20rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
@@ -84,28 +76,26 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
           !item ? null : (
             <div
               className={cn(
-                "z-50 flex flex-row p-2 px-3 cursor-pointer gap-2 items-center hover:bg-accent hover:text-accent-foreground",
-                index === selectedIndex && "bg-accent text-accent-foreground"
+                'z-50 flex flex-row p-2 px-3 cursor-pointer gap-2 items-center hover:bg-accent hover:text-accent-foreground',
+                index === selectedIndex && 'bg-accent text-accent-foreground'
               )}
               key={item.username}
               onClick={() => selectItem(index)}
             >
               <div
                 style={{
-                  borderRadius: "100%",
-                  width: "48px",
-                  height: "48px",
+                  borderRadius: '100%',
+                  width: '48px',
+                  height: '48px',
                   // image may not be a square
                   backgroundImage: `url(${item.avatar_url})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
                 }}
               />
               <div>
                 <div className="font-bold text-sm">{item.display_name}</div>
-                <div className="font-bold text-muted-foreground text-sm">
-                  @{item.username}
-                </div>
+                <div className="font-bold text-muted-foreground text-sm">@{item.username}</div>
               </div>
             </div>
           )
@@ -125,4 +115,4 @@ export const MentionList = forwardRef<MentionListRef, Props>((props, ref) => {
   );
 });
 
-MentionList.displayName = "MentionList";
+MentionList.displayName = 'MentionList';

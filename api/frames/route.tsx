@@ -1,1 +1,1 @@
-export { GET, POST } from "@frames.js/render/next";
+export { GET, POST } from '@frames.js/render/next';

@@ -1,19 +1,27 @@
-import { BUNDLER_ADDRESS, bundlerABI } from "@farcaster/hub-web";
-import { createGlideClient, Chains } from "@paywithglide/glide-js";
-import { encodeFunctionData, toHex } from "viem";
-import { WARPCAST_RECOVERY_PROXY } from "./farcaster";
-import { RegistrationTransactionData } from "../components/PaymentSelector";
-import { PaymentOption } from "node_modules/@paywithglide/glide-js/dist/types";
-import { isDev } from "./env";
-
+import { BUNDLER_ADDRESS, bundlerABI } from '@farcaster/hub-web';
+import { createGlideClient, Chains } from '@paywithglide/glide-js';
+import { encodeFunctionData, toHex } from 'viem';
+import { WARPCAST_RECOVERY_PROXY } from './farcaster';
+import { RegistrationTransactionData } from '../components/PaymentSelector';
+import { PaymentOption } from 'node_modules/@paywithglide/glide-js/dist/types';
+import { isDev } from './env';
 
 const chains = isDev()
-  ? [Chains.BaseTestnet, Chains.OptimismTestnet, Chains.Optimism, Chains.Ethereum, Chains.Base, Chains.Arbitrum, Chains.Avalanche, Chains.Polygon, Chains.Zora]
+  ? [
+      Chains.BaseTestnet,
+      Chains.OptimismTestnet,
+      Chains.Optimism,
+      Chains.Ethereum,
+      Chains.Base,
+      Chains.Arbitrum,
+      Chains.Avalanche,
+      Chains.Polygon,
+      Chains.Zora,
+    ]
   : [Chains.Optimism, Chains.Ethereum, Chains.Base, Chains.Arbitrum, Chains.Avalanche, Chains.Polygon, Chains.Zora];
 
-
 export const glideClient = createGlideClient({
-  projectId: process.env.NEXT_PUBLIC_GLIDE_PROJECT_ID || "",
+  projectId: process.env.NEXT_PUBLIC_GLIDE_PROJECT_ID || '',
   chains,
 });
 
@@ -23,7 +31,7 @@ export function getChain(chainAddress: string, property?: string) {
   if (property && chain && chain[property]) {
     return chain[property];
   }
-  return chain
+  return chain;
 }
 
 export const getGlidePaymentOptions = async ({
@@ -34,17 +42,9 @@ export const getGlidePaymentOptions = async ({
   publicKey,
   metadata,
   deadline,
-  price
+  price,
 }: RegistrationTransactionData): Promise<PaymentOption[]> => {
-  if (
-    !address
-    || !registerSignature
-    || !publicKey
-    || !metadata
-    || !deadline
-    || !addSignature
-    || !price
-  ) return [];
+  if (!address || !registerSignature || !publicKey || !metadata || !deadline || !addSignature || !price) return [];
   return await glideClient.listPaymentOptions({
     transaction: {
       chainId: `eip155:${chainId}`,
@@ -52,13 +52,13 @@ export const getGlidePaymentOptions = async ({
       value: toHex(price),
       input: encodeFunctionData({
         abi: bundlerABI,
-        functionName: "register",
+        functionName: 'register',
         args: [
           {
             to: address,
             recovery: WARPCAST_RECOVERY_PROXY,
             deadline,
-            sig: registerSignature
+            sig: registerSignature,
           },
           [
             {
@@ -70,11 +70,10 @@ export const getGlidePaymentOptions = async ({
               deadline,
             },
           ],
-          0n
+          0n,
         ],
       }),
     },
     payerWalletAddress: address,
   });
 };
-

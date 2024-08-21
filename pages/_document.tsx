@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-title-in-document-head */
 import React from 'react';
 import { Html, Head, Main, NextScript } from 'next/document';
- 
+
 export default function Document() {
   return (
     <Html lang="en">
@@ -11,7 +11,10 @@ export default function Document() {
         <meta property="og:site_name" content="herocast" />
         <meta property="og:title" content="herocast" />
         <meta property="og:type" content="website" />
-        <meta property="og:description" content="herocast - #1 open-source Farcaster client for professionals and teams" />
+        <meta
+          property="og:description"
+          content="herocast - #1 open-source Farcaster client for professionals and teams"
+        />
         <meta property="og:url" content="https://app.herocast.xyz" />
         <meta property="og:image" content="/images/herocast_og.png" />
         <meta property="og:image:width" content="1200" />
@@ -27,5 +30,5 @@ export default function Document() {
         <NextScript />
       </body>
     </Html>
-  )
+  );
 }

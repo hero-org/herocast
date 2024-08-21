@@ -1,9 +1,9 @@
-import React, { ReactNode } from "react";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { SidebarNav, SidebarNavItem } from "./SidebarNav";
-import findIndex from "lodash.findindex";
-import includes from "lodash.includes";
+import React, { ReactNode } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { SidebarNav, SidebarNavItem } from './SidebarNav';
+import findIndex from 'lodash.findindex';
+import includes from 'lodash.includes';
 
 type StepSequenceProps = {
   title: string;
@@ -14,21 +14,10 @@ type StepSequenceProps = {
   renderStep: (string) => ReactNode;
 };
 
-const StepSequence = ({
-  title,
-  description,
-  navItems,
-  step,
-  setStep,
-  renderStep,
-}: StepSequenceProps) => {
+const StepSequence = ({ title, description, navItems, step, setStep, renderStep }: StepSequenceProps) => {
   const progressPercent =
     (findIndex(navItems, (item) =>
-      "keys" in item
-        ? includes(item.keys, step)
-        : "key" in item
-        ? item.key === step
-        : false
+      'keys' in item ? includes(item.keys, step) : 'key' in item ? item.key === step : false
     ) /
       (navItems.length - 1)) *
     100;
@@ -47,11 +36,7 @@ const StepSequence = ({
         <Separator className="my-6" />
         <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
           <aside className="-mx-4 lg:w-2/7">
-            <SidebarNav
-              items={navItems}
-              step={step}
-              onClick={(step) => setStep(step)}
-            />
+            <SidebarNav items={navItems} step={step} onClick={(step) => setStep(step)} />
           </aside>
           <div className="flex-1 max-w-xl lg:max-w-4xl">{renderStep(step)}</div>
         </div>

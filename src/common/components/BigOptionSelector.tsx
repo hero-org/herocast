@@ -1,13 +1,6 @@
-import React from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 type OptionSelectorType =
   | {
@@ -39,11 +32,7 @@ const BigOptionSelector = ({ disabled, options }: BigOptionSelectorProps) => {
         {option.content ? <CardContent>{option.content}</CardContent> : null}
         {option.buttonText ? (
           <CardFooter>
-            <Button
-              className="w-full"
-              disabled={disabled || option.disabled}
-              onClick={() => option.onClick?.()}
-            >
+            <Button className="w-full" disabled={disabled || option.disabled} onClick={() => option.onClick?.()}>
               {option.buttonText}
             </Button>
           </CardFooter>
@@ -51,11 +40,7 @@ const BigOptionSelector = ({ disabled, options }: BigOptionSelectorProps) => {
       </Card>
     );
   };
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {options.map((option) => renderOption(option))}
-    </div>
-  );
+  return <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{options.map((option) => renderOption(option))}</div>;
 };
 
 export default BigOptionSelector;

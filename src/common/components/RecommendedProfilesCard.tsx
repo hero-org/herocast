@@ -1,30 +1,30 @@
-import React, { useEffect, useState } from "react";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import FollowButton from "./FollowButton";
-import { useDataStore } from "@/stores/useDataStore";
+import React, { useEffect, useState } from 'react';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import FollowButton from './FollowButton';
+import { useDataStore } from '@/stores/useDataStore';
 
 const defaultProfiles: User[] = [
   {
-    username: "hellno",
+    username: 'hellno',
     fid: 13596,
     profile: {
       bio: {
-        text: "dev + founder | @herocast",
+        text: 'dev + founder | @herocast',
       },
     },
-    display_name: "hellno the optimist",
+    display_name: 'hellno the optimist',
     pfp_url:
-      "https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/https://i.imgur.com/u5kUjiN.png",
+      'https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/https://i.imgur.com/u5kUjiN.png',
   },
   {
-    username: "herocast",
+    username: 'herocast',
     fid: 18665,
-    display_name: "herocast",
-    pfp_url: "https://i.imgur.com/Ai9jiC3.jpg",
+    display_name: 'herocast',
+    pfp_url: 'https://i.imgur.com/Ai9jiC3.jpg',
     profile: {
       bio: {
-        text: "you are using herocast right now 👋🏻",
+        text: 'you are using herocast right now 👋🏻',
       },
     },
   },
@@ -37,9 +37,7 @@ const RecommendedProfilesCard = () => {
 
   useEffect(() => {
     const getProfiles = async () => {
-      const client = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
+      const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
       const relevantFollowers = await client.fetchActiveUsers({
         limit: 14,
@@ -68,8 +66,7 @@ const RecommendedProfilesCard = () => {
           Follow more profiles to see more content
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The more profiles you follow, the more content you will see in your
-          feed.
+          The more profiles you follow, the more content you will see in your feed.
         </p>
       </div>
       <ul
@@ -78,11 +75,7 @@ const RecommendedProfilesCard = () => {
       >
         {profiles.map((person) => (
           <li key={person.username}>
-            <img
-              className="mx-auto h-24 w-24 rounded-full"
-              src={person.pfp_url}
-              alt=""
-            />
+            <img className="mx-auto h-24 w-24 rounded-full" src={person.pfp_url} alt="" />
             <h3 className="my-2 text-base font-semibold leading-7 tracking-tight text-foreground">
               {person.display_name}
             </h3>

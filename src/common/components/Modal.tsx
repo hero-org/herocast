@@ -1,6 +1,6 @@
-import React from "react";
-import * as Dialog from "@radix-ui/react-dialog";
-import { Cross2Icon } from "@radix-ui/react-icons";
+import React from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
+import { Cross2Icon } from '@radix-ui/react-icons';
 
 type ModalProps = {
   open: boolean;
@@ -11,24 +11,13 @@ type ModalProps = {
   focusMode?: boolean;
 };
 
-const Modal: React.FC<ModalProps> = ({
-  open,
-  setOpen,
-  title,
-  description,
-  children,
-  focusMode,
-}) => {
+const Modal: React.FC<ModalProps> = ({ open, setOpen, title, description, children, focusMode }) => {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="z-50 bg-muted/95 data-[state=open]:animate-overlayShow fixed inset-0" />
         <Dialog.Content className="z-50 data-[state=open]:animate-contentShow fixed bg-background top-[45%] left-[50%] w-[100vw] max-w-[600px] translate-x-[-50%] translate-y-[-40%] rounded-[6px] p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none">
-          {title && (
-            <Dialog.Title className="text-card-foreground m-0 text-[17px] font-medium">
-              {title}
-            </Dialog.Title>
-          )}
+          {title && <Dialog.Title className="text-card-foreground m-0 text-[17px] font-medium">{title}</Dialog.Title>}
           {description && (
             <Dialog.Description className="text-card-foreground/80 mt-[10px] mb-5 text-[15px] leading-normal">
               {description}

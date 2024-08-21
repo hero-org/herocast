@@ -1,15 +1,9 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import React from "react";
-import AnalyticsGraph from "./AnalyticsGraph";
-import { CombinedActivityData } from "@/common/types/types";
-import { Interval } from "@/common/helpers/search";
-import { formatLargeNumber } from "@/common/helpers/text";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import AnalyticsGraph from './AnalyticsGraph';
+import { CombinedActivityData } from '@/common/types/types';
+import { Interval } from '@/common/helpers/search';
+import { formatLargeNumber } from '@/common/helpers/text';
 
 type StatsWithGraphCard = {
   interval: Interval;
@@ -19,8 +13,7 @@ type StatsWithGraphCard = {
 
 const CastsCard = ({ interval, data, isLoading }: StatsWithGraphCard) => {
   const { overview, aggregated = [] } = data;
-  const value =
-    (overview && overview[interval === Interval.d7 ? "d7" : "d30"]) || 0;
+  const value = (overview && overview[interval === Interval.d7 ? 'd7' : 'd30']) || 0;
 
   return (
     <Card className="h-fit">
@@ -32,21 +25,14 @@ const CastsCard = ({ interval, data, isLoading }: StatsWithGraphCard) => {
         <div className="flex">
           <div className="relative flex flex-1 flex-col justify-center gap-1 px-6 py-4 text-left border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 border-foreground/20 sm:px-8 sm:py-6">
             <span className="text-xs text-muted-foreground">{interval}</span>
-            <span className="text-lg font-bold leading-none sm:text-3xl">
-              {formatLargeNumber(value)}
-            </span>
+            <span className="text-lg font-bold leading-none sm:text-3xl">{formatLargeNumber(value)}</span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         {value > 0 && (
           <div className="pt-6 w-full h-full sm:max-h-52 lg:max-h-70">
-            <AnalyticsGraph
-              interval={interval}
-              analyticsKey="casts"
-              aggregated={aggregated}
-              isLoading={isLoading}
-            />
+            <AnalyticsGraph interval={interval} analyticsKey="casts" aggregated={aggregated} isLoading={isLoading} />
           </div>
         )}
       </CardContent>

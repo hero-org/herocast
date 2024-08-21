@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import Modal from "./Modal";
-import { SelectableListWithHotkeys } from "./SelectableListWithHotkeys";
-import { openWindow } from "../helpers/navigation";
-import { getUrlsInText } from "../helpers/text";
-import uniqBy from "lodash.uniqby";
-import OpenGraphImage from "./Embeds/OpenGraphImage";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { cn } from "@/lib/utils";
+import React, { useEffect, useState } from 'react';
+import Modal from './Modal';
+import { SelectableListWithHotkeys } from './SelectableListWithHotkeys';
+import { openWindow } from '../helpers/navigation';
+import { getUrlsInText } from '../helpers/text';
+import uniqBy from 'lodash.uniqby';
+import OpenGraphImage from './Embeds/OpenGraphImage';
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { cn } from '@/lib/utils';
 
 type EmbedsModalProps = {
   cast: CastWithInteractions;
@@ -37,10 +37,8 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
         <span
           onClick={() => onSelect(idx)}
           className={cn(
-            idx === selectedIdx
-              ? "bg-gray-500 text-foreground/80"
-              : "text-foreground/70",
-            "cursor-pointer flex text-sm hover:text-foreground/80 hover:bg-gray-500 py-1 px-1.5"
+            idx === selectedIdx ? 'bg-gray-500 text-foreground/80' : 'text-foreground/70',
+            'cursor-pointer flex text-sm hover:text-foreground/80 hover:bg-gray-500 py-1 px-1.5'
           )}
         >
           {item.url}
@@ -49,18 +47,14 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
     );
   };
 
-  const urls = uniqBy(cast?.embeds.concat(getUrlsInText(cast.text)), "url") as UrlObject[];
+  const urls = uniqBy(cast?.embeds.concat(getUrlsInText(cast.text)), 'url') as UrlObject[];
 
   const onSelect = (idx: number) => {
     openWindow(urls[idx].url);
   };
 
   return (
-    <Modal
-      title={`Links in cast by ${cast?.author.display_name}`}
-      open={open}
-      setOpen={setOpen}
-    >
+    <Modal title={`Links in cast by ${cast?.author.display_name}`} open={open} setOpen={setOpen}>
       <div className="my-4">
         <SelectableListWithHotkeys
           data={urls}
@@ -71,9 +65,7 @@ const EmbedsModal = ({ cast, open, setOpen }: EmbedsModalProps) => {
           isActive={open}
         />
       </div>
-      <span className="ml-1 text-sm text-foreground/80">
-        Use J and K no navigate down and up. Enter to open.
-      </span>
+      <span className="ml-1 text-sm text-foreground/80">Use J and K no navigate down and up. Enter to open.</span>
     </Modal>
   );
 };
