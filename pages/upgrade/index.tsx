@@ -52,11 +52,11 @@ const plans = [
     },
     features: [
       "1 Keyword Feed",
-      "Schedule up to 3 casts",
+      "3 scheduled casts",
       "1 Keyword Alert",
       "Analytics (7 days)",
       "Onchain user insights",
-      "Connect up to 2 accounts",
+      "2 connected accounts",
     ],
     unavilableFeatures: [
       "Shared accounts",
@@ -73,20 +73,24 @@ const plans = [
     button: {
       Monthly: {
         label: "Subscribe",
-        href: "https://buy.stripe.com/4gw03YeoO3Pz93i146",
+        href: "https://buy.stripe.com/14k182fsSgCl7Ze3cj",
       },
       Annually: {
         label: "Subscribe",
-        href: "https://buy.stripe.com/fZeg2WeoObi193i288",
+        href: "https://buy.stripe.com/5kA9Ey4OeadX93i6ow",
+      },
+      Hypersub: {
+        label: "Upgrade on Hypersub",
+        href: "https://www.hypersub.xyz/s/herocast-hyper-club-dbbiuv3cj",
       },
     },
     features: [
       "2 Keyword Feeds",
-      "Schedule up to 15 casts",
-      "2 Keyword Alert",
+      "15 scheduled casts",
+      "2 Keyword Alerts",
       "Analytics (1 month)",
       "Onchain user insights",
-      "Connect up to 2 accounts",
+      "2 connected accounts",
     ],
     unavilableFeatures: [
       "Shared accounts",
@@ -103,20 +107,24 @@ const plans = [
     button: {
       Monthly: {
         label: "Subscribe",
-        href: "",
+        href: "https://buy.stripe.com/bIYdUO1C21HrgvK28e",
       },
       Annually: {
         label: "Subscribe",
-        href: "",
+        href: "https://buy.stripe.com/5kA6smgwW1Hr93i147",
+      },
+      Hypersub: {
+        label: "Upgrade on Hypersub",
+        href: "https://www.hypersub.xyz/s/herocast-hyper-club-dbbiuv3cj",
       },
     },
     features: [
       "10 Keyword Feeds",
-      "Schedule unlimited casts",
-      "10 Keyword Alert",
+      "Unlimited scheduled casts",
+      "10 Keyword Alerts",
       "Analytics (3 months)",
       "Onchain user insights",
-      "Connect up to 5 accounts",
+      "5 connected accounts",
       "Shared accounts",
     ],
     unavilableFeatures: ["Bespoke insights", "KOL identification"],
@@ -139,11 +147,11 @@ const plans = [
     },
     features: [
       "15+ Keyword Feeds",
-      "Schedule unlimited casts",
-      "15+ Keyword Alert",
-      "Analytics all-time history",
+      "Unlimited scheduled casts",
+      "15+ Keyword Alerts",
+      "Analytics (all-time)",
       "Onchain user insights",
-      "Connect 5+ accounts",
+      "5+ connected accounts",
       "Shared accounts",
       "Bespoke insights",
       "KOL identification",
@@ -163,6 +171,7 @@ type PlanProps = {
   button: {
     Monthly: { label: string; href: string };
     Annually: { label: string; href: string };
+    Hypersub?: { href: string };
   };
   features: Array<string>;
   unavilableFeatures: Array<string>;
@@ -185,21 +194,40 @@ function Plan({
   const isPayingUser = false; // isPaidUser();
   const isPaidPlan = price.Monthly !== "$0";
 
-  const renderPlanButton = () => (
+  const renderStripeButton = () => (
     <Link
       href={button[activePeriod].href}
       prefetch={false}
       className="w-full mx-auto"
     >
       <Button
-        className="mt-6 w-full"
+        className="w-full"
         disabled={!isPayingUser && !isPaidPlan}
         aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
       >
-        {!isPayingUser && isPaidPlan ? "Upgrade" : "Your plan"}
+        {!isPayingUser && isPaidPlan ? button[activePeriod].label : "Your plan"}
       </Button>
     </Link>
   );
+
+  const renderHypersubButton = () => {
+    return (
+      button.Hypersub && (
+        <Link
+          href={button.Hypersub.href}
+          prefetch={false}
+          className="w-full mx-auto"
+        >
+          <Button
+            type="button"
+            className="w-full text-white h-9 rounded-lg px-4 py-2 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+          >
+            Hypersub
+          </Button>
+        </Link>
+      )
+    );
+  };
 
   return (
     <div>
@@ -217,7 +245,9 @@ function Plan({
             featured ? "text-white" : "text-gray-800"
           )}
         >
-          <Logo className={cn("h-6 w-6 rounded-lg flex-none", logomarkClassName)} />
+          <Logo
+            className={cn("h-6 w-6 rounded-lg flex-none", logomarkClassName)}
+          />
           <span className="ml-2">{name}</span>
         </h3>
         <p
@@ -291,7 +321,10 @@ function Plan({
               ))}
           </ul>
         </div>
-        {renderPlanButton()}
+        <div className="flex flex-col mt-6 space-y-2">
+          {renderStripeButton()}
+          {renderHypersubButton()}
+        </div>
       </Card>
     </div>
   );
@@ -303,9 +336,9 @@ export function Pricing() {
   );
 
   return (
-    <section id="pricing" aria-labelledby="pricing-title" className="py-12">
+    <section id="pricing" aria-labelledby="pricing-title" className="py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mt-8 flex justify-center">
+        <div className="mt-4 flex justify-center">
           <div className="relative">
             <RadioGroup
               value={activePeriod}
@@ -363,17 +396,19 @@ export function Pricing() {
 export default function UpgradePage() {
   const router = useRouter();
   const { addUnsafeCustomerForUser } = useUserStore();
-  const hasPaidViaStripe = router.query.success === "true";
   const isPayingUser = false; //isPaidUser();
 
   useEffect(() => {
+    const hasPaidViaStripe = router.query.success === "true";
+
     if (hasPaidViaStripe && !isPayingUser) {
+      const plan = router.query.plan as string;
       // this is a temporary hack until we integrate with Stripe webhooks
       addUnsafeCustomerForUser({
-        stripe_customer_id: "manual_entry",
+        stripe_customer_id: `manual_entry_${plan}`,
       });
     }
-  }, [hasPaidViaStripe, isPayingUser]);
+  }, [router.query, isPayingUser]);
 
   const renderUpgradeContent = () => (
     <div className="flex min-h-full flex-1 flex-col px-6 py-8 lg:px-8 space-y-4">
