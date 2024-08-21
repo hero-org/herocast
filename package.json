@@ -82,7 +82,7 @@
     "@tauri-apps/api": "^1.4",
     "@visx/visx": "^3.11.0",
     "@webscopeio/react-textarea-autocomplete": "^4.9.2",
-    "axios": "^1.6.7",
+    "axios": "^1.7.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^1.0.0",
