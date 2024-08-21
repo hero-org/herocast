@@ -26,11 +26,13 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.3rem;
-    --chart-1: 359 2% 90%;
+    --chart-1: 0 2% 90%;
     --chart-2: 240 1% 74%;
     --chart-3: 240 1% 58%;
     --chart-4: 240 1% 42%;
     --chart-5: 240 2% 26%;
+    --chart-dynamic-1: 213deg, 93.9%, 67.8%;
+    --chart-dynamic-2: 183deg, 93.9%, 67.8%;
   }
  
   .dark {
@@ -58,6 +60,8 @@
     --chart-3: 240 1% 58%;
     --chart-4: 240 1% 42%;
     --chart-5: 240 2% 26%;
+    --chart-dynamic-1: 213deg, 93.9%, 67.8%;
+    --chart-dynamic-2: 183deg, 93.9%, 67.8%;
   }
 }
 

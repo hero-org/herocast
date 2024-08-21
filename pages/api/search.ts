@@ -1,5 +1,5 @@
 import { getTextMatchCondition } from '@/common/helpers/search';
-import { AppDataSource, Cast, initializeDataSourceWithRetry } from '@/lib/db';
+import { Cast, initializeDataSourceWithRetry } from '@/lib/db';
 import uniqBy from 'lodash.uniqby';
 import { orderBy as orderByFn } from 'lodash';
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.status(503).json({ error: TIMEOUT_ERROR_MESSAGE, results: [], isTimeout: true });
     }, timeoutThreshold);
 
-    await initializeDataSourceWithRetry();
+    const AppDataSource = await initializeDataSourceWithRetry();
     const dbConnectEnd = process.hrtime(start);
 
     const baseConditions = `
@@ -76,10 +76,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await AppDataSource.query(`SET statement_timeout TO '19s';`);
 
         const searchRepository = AppDataSource.getRepository(Cast);
-        const results = await Promise.race([
-            searchRepository.query(query, vars),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout')), timeoutThreshold))
-        ]);
+        const queryPromise = await searchRepository.query(query, vars);
+        const results = await queryPromise;
         const queryEnd = process.hrtime(queryStart);
         const totalEnd = process.hrtime(start);
 

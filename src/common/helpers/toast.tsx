@@ -23,6 +23,12 @@ export const toastErrorCastPublish = (err?: string) => {
   toast.error("Error publishing cast :(", { description: err, duration: 5000 });
 };
 
+export const toastSuccessCastDeleted = (text: string) => {
+  toast.success("Cast deleted successfully", {
+    description: truncate(text, { length: 25 }),
+  });
+};
+
 export const toastSuccessCastScheduled = (text: string) => {
   toast.success("Cast scheduled successfully", {
     description: truncate(text, { length: 25 }),
@@ -31,4 +37,14 @@ export const toastSuccessCastScheduled = (text: string) => {
 
 export const toastSuccessSavedSearchUpdate = (name: string) => {
   toast.success(`Saved search "${name}" updated successfully`);
+};
+
+export const toastCopiedToClipboard = (text: string) => {
+  toast.success("Copied to clipboard", {
+    description: truncate(text, { length: 25 }),
+  });
+};
+
+export const toastUnableToDeleteCast = () => {
+  toast.error("Unable to delete cast", { duration: 5000 });
 };

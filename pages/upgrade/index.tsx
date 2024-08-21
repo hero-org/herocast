@@ -18,6 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { openWindow } from "@/common/helpers/navigation";
+import Link from "next/link";
 function Logomark(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
     <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
@@ -83,7 +85,7 @@ const plans = [
       "Monitoring of 10 search term",
       "Connect up to 5 accounts",
       "Shared accounts",
-      "Analytics (soon)",
+      "Analytics",
     ],
     unavilableFeatures: ["Bespoke insights", "KOL identification"],
     logomarkClassName: "fill-white",
@@ -110,7 +112,7 @@ const plans = [
       "Monitoring of unlimited search term",
       "Connect unlimited accounts",
       "Shared accounts",
-      "Analytics (soon)",
+      "Analytics",
       "Bespoke insights",
       "KOL identification",
     ],
@@ -152,14 +154,19 @@ function Plan({
   const isPaidPlan = price.Monthly !== "€0";
 
   const renderPlanButton = () => (
-    <Button
+    <Link
       href={button[activePeriod].href}
-      className="mt-6"
-      disabled={!isPayingUser && !isPaidPlan}
-      aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
+      prefetch={false}
+      className="w-full mx-auto"
     >
-      {!isPayingUser && isPaidPlan ? "Upgrade" : "Your plan"}
-    </Button>
+      <Button
+        className="mt-6 w-full"
+        disabled={!isPayingUser && !isPaidPlan}
+        aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
+      >
+        {!isPayingUser && isPaidPlan ? "Upgrade" : "Your plan"}
+      </Button>
+    </Link>
   );
 
   return (
@@ -168,14 +175,14 @@ function Plan({
         className={cn(
           "flex flex-col overflow-hidden rounded-3xl p-6",
           featured
-            ? "order-first bg-[#0B0B0B] lg:order-none shadow-xl shadow-gray-300 hover:shadow-gray-400 hover:shadow-2xl transition-shadow duration-100"
-            : "bg-white shadow-lg shadow-gray-900/5"
+            ? "order-first bg-gray-900 lg:order-none shadow-sm shadow-muted-foreground hover:shadow-foreground/40 hover:shadow-md transition-shadow duration-100"
+            : "bg-white shadow-sm shadow-gray-900/5"
         )}
       >
         <h3
           className={cn(
             "flex items-center text-sm font-semibold",
-            featured ? "text-white" : "text-foreground"
+            featured ? "text-white" : "text-gray-800"
           )}
         >
           <Logomark className={cn("h-6 w-6 flex-none", logomarkClassName)} />
@@ -184,7 +191,7 @@ function Plan({
         <p
           className={cn(
             "relative mt-5 flex text-3xl tracking-tight",
-            featured ? "text-white" : "text-foreground"
+            featured ? "text-white" : "text-gray-800"
           )}
         >
           {price.Monthly === price.Biannually ? (
@@ -254,7 +261,6 @@ function Plan({
         </div>
         {renderPlanButton()}
       </Card>
-      {isPaidPlan && <div className="text-center">{renderPlanButton()}</div>}
     </div>
   );
 }
@@ -279,7 +285,7 @@ export function Pricing() {
                   key={period}
                   value={period}
                   className={cn(
-                    "cursor-pointer border border-gray-300 px-[calc(theme(spacing.3)-1px)] py-[calc(theme(spacing.2)-1px)] text-sm text-gray-700 outline-2 outline-offset-2 transition-colors hover:border-gray-400",
+                    "cursor-pointer border border-muted-foreground/30 px-[calc(theme(spacing.3)-1px)] py-[calc(theme(spacing.2)-1px)] text-sm text-foreground outline-2 outline-offset-2 transition-colors hover:border-foreground/10",
                     period === "Monthly"
                       ? "rounded-l-lg"
                       : "-ml-px rounded-r-lg"
@@ -292,7 +298,7 @@ export function Pricing() {
             <div
               aria-hidden="true"
               className={cn(
-                "pointer-events-none absolute inset-0 z-5 grid grid-cols-2 overflow-hidden rounded-lg bg-gray-900 transition-all duration-300",
+                "pointer-events-none absolute inset-0 z-5 shadow-none grid grid-cols-2 overflow-hidden rounded-md bg-gray-900 transition-all duration-300",
                 activePeriod === "Monthly"
                   ? "[clip-path:inset(0_50%_0_0)]"
                   : "[clip-path:inset(0_0_0_calc(50%-1px))]"
@@ -338,7 +344,7 @@ export default function UpgradePage() {
   }, [hasPaidViaStripe, isPayingUser]);
 
   const renderUpgradeContent = () => (
-    <div className="flex min-h-full flex-1 flex-col px-6 py-8 lg:px-8">
+    <div className="flex min-h-full flex-1 flex-col px-6 py-8 lg:px-8 space-y-4">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <h2 className="mt-6 text-center text-3xl font-bold leading-9 tracking-tight text-foreground">
           Upgrade Herocast
@@ -348,6 +354,22 @@ export default function UpgradePage() {
           to the next level.
         </p>
       </div>
+      {!isPayingUser && (
+        <div className="flex mx-auto">
+          <Button
+            type="button"
+            size="lg"
+            className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+            onClick={() =>
+              openWindow(
+                "https://www.hypersub.xyz/s/herocast-hyper-club-dbbiuv3cjwn4"
+              )
+            }
+          >
+            Upgrade on Hypersub <span className="ml-2">→</span>
+          </Button>
+        </div>
+      )}
       <Pricing />
     </div>
   );

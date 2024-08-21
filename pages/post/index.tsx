@@ -400,7 +400,7 @@ export default function NewPost() {
               setActiveTab(DraftListTab.writing);
             }}
           >
-            <PlusCircleIcon className="w-5 h-5" />
+            <PencilSquareIcon className="w-5 h-5" />
             <span>New draft</span>
           </Button>
         )}

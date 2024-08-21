@@ -157,17 +157,10 @@ const DynamicChartCard = ({
 }: DynamicChartCardProps) => {
   const [dataKey1, setDataKey1] = React.useState(values[0]);
   const [dataKey2, setDataKey2] = React.useState(values[1]);
-
-  const chartConfig = React.useMemo(() => {
-    const config = {};
-    values.forEach((value, index) => {
-      config[value] = {
-        label: value,
-        color: `hsl(var(--chart-${index + 1}))`,
-      };
-    });
-    return config;
-  }, [values]);
+  const chartConfig = React.useMemo(
+    () => Object.fromEntries(values.map((value) => [value, { label: value }])),
+    [values]
+  );
 
   const data = useMemo(() => {
     if (!analyticsData) return [];
@@ -181,10 +174,9 @@ const DynamicChartCard = ({
     return mergeData(data1, data2, startDate, [dataKey1, dataKey2]);
   }, [analyticsData, interval, dataKey1, dataKey2]);
 
-  console.log("DynamicChartCard data", data);
   return (
     <Card className="h-fit">
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
+      <CardHeader className="flex flex-col items-stretch space-y-0 border-b border-foreground/20 p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
           <CardTitle>
             Compare {dataKey1} with {dataKey2}
@@ -192,7 +184,7 @@ const DynamicChartCard = ({
           <CardDescription> in the last {interval}</CardDescription>
         </div>
         <div className="flex">
-          <div className="relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6">
+          <div className="relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 border-foreground/20 sm:px-8 sm:py-6">
             <span className="text-lg font-bold leading-none sm:text-3xl">
               <DataPickerDropdown
                 values={values}
@@ -201,7 +193,7 @@ const DynamicChartCard = ({
               />
             </span>
           </div>
-          <div className="relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6">
+          <div className="relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 border-foreground/20 sm:px-8 sm:py-6">
             <DataPickerDropdown
               values={values}
               defaultValue={values[1]}
@@ -274,8 +266,8 @@ const DynamicChartCard = ({
                   type="monotone"
                   dataKey={dataKey1}
                   stroke="hsl(var(--muted-foreground))"
-                  fill={chartConfig[dataKey1].color}
-                  fillOpacity={0.5}
+                  fill="hsl(var(--chart-dynamic-1))"
+                  fillOpacity={0.4}
                   stackId="a"
                 />
                 <Area
@@ -283,8 +275,8 @@ const DynamicChartCard = ({
                   type="monotone"
                   dataKey={dataKey2}
                   stroke="hsl(var(--muted-foreground))"
-                  fill={chartConfig[dataKey2].color}
-                  fillOpacity={0.1}
+                  fill="hsl(var(--chart-dynamic-2))"
+                  fillOpacity={0.6}
                   stackId="b"
                 />
               </AreaChart>

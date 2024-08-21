@@ -8,18 +8,21 @@ import { useDataStore } from "@/stores/useDataStore";
 import ProfileInfo from "./ProfileInfo";
 import SearchesOverview from "./SearchesOverview";
 import ListsOverview from "./ListsOverview";
+import ManageListsOverview from "./ManageListsOverview";
 
 type RightSidebarProps = {
-  showChannels?: boolean;
+  showFeeds?: boolean;
   showSearches?: boolean;
   showAuthorInfo?: boolean;
+  showManageLists?: boolean;
   showLists?: boolean;
 };
 
 const RightSidebar = ({
-  showChannels,
+  showFeeds,
   showSearches,
   showLists,
+  showManageLists,
   showAuthorInfo,
 }: RightSidebarProps) => {
   const router = useRouter();
@@ -67,8 +70,9 @@ const RightSidebar = ({
       <div>
         {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}
-        {showChannels && <ChannelsOverview />}
+        {showFeeds && <ChannelsOverview />}
         {showLists && <ListsOverview />}
+        {showManageLists && <ManageListsOverview />}
         {showSearches && <SearchesOverview />}
       </div>
     </aside>

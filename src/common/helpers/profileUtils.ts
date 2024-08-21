@@ -25,7 +25,7 @@ export const fetchAndAddUserProfile = async ({
         const enrichedUser = {
           ...user,
           airstackSocialInfo: userProfileInfos.airstackSocialInfo,
-          icebreakerData: userProfileInfos.icebreakerData,
+          icebreakerSocialInfo: userProfileInfos.icebreakerSocialInfo,
         };
         addUserProfile({ user: enrichedUser });
       } else {

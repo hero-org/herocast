@@ -111,7 +111,7 @@ export const CastThreadView = ({
           {/* this is the left line */}
           <div
             className={cn(
-              idx === 0 ? "-ml-[27px]" : "border-l-2",
+              idx === 0 ? "-ml-[31px]" : "border-l-2",
               "relative flex items-start border-muted"
             )}
           >

@@ -90,10 +90,11 @@ Deno.serve(async (req) => {
           },
         },
         log(event) {
-          console.log('KYSELY:', event)
+          if (event.level !== 'query') {
+            console.log('KYSELY:', event)
+          }
         }
       });
-      
 
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',

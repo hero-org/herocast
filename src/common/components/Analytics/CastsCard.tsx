@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Card,
   CardContent,
@@ -6,28 +5,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import React from "react";
 import AnalyticsGraph from "./AnalyticsGraph";
-import { Interval } from "@/common/helpers/search";
 import { CombinedActivityData } from "@/common/types/types";
+import { Interval } from "@/common/helpers/search";
 import { formatLargeNumber } from "@/common/helpers/text";
 
-type ReactionsCardProps = {
+type StatsWithGraphCard = {
   interval: Interval;
   data: CombinedActivityData;
   isLoading: boolean;
 };
 
-const ReactionsCard = ({ interval, data, isLoading }: ReactionsCardProps) => {
+const CastsCard = ({ interval, data, isLoading }: StatsWithGraphCard) => {
   const { overview, aggregated = [] } = data;
-
   const value =
     (overview && overview[interval === Interval.d7 ? "d7" : "d30"]) || 0;
+
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-row items-stretch space-y-0 border-b border-foreground/20 p-0">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>New reactions</CardTitle>
-          <CardDescription>Reactions in the last {interval}</CardDescription>
+          <CardTitle>New casts</CardTitle>
+          <CardDescription>Casts in the last {interval}</CardDescription>
         </div>
         <div className="flex">
           <div className="relative flex flex-1 flex-col justify-center gap-1 px-6 py-4 text-left border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 border-foreground/20 sm:px-8 sm:py-6">
@@ -43,7 +43,7 @@ const ReactionsCard = ({ interval, data, isLoading }: ReactionsCardProps) => {
           <div className="pt-6 w-full h-full sm:max-h-52 lg:max-h-70">
             <AnalyticsGraph
               interval={interval}
-              analyticsKey="reactions"
+              analyticsKey="casts"
               aggregated={aggregated}
               isLoading={isLoading}
             />
@@ -54,4 +54,4 @@ const ReactionsCard = ({ interval, data, isLoading }: ReactionsCardProps) => {
   );
 };
 
-export default ReactionsCard;
+export default CastsCard;

@@ -80,18 +80,18 @@ const ProfileInfo = ({
         </Tooltip>
       </TooltipProvider>
     );
-
+    console.log('profile', profile)
   const shouldRenderFullInfo =
-    showFullInfo && (profile?.airstackSocialInfo || profile?.icebreakerData);
+    showFullInfo && (profile?.airstackSocialInfo || profile?.icebreakerSocialInfo);
 
   const renderIcebreakerCredentials = () => {
-    if (!profile?.icebreakerData?.credentials?.length) return null;
+    if (!profile?.icebreakerSocialInfo?.credentials?.length) return null;
 
     return (
       <div className="mt-2">
         <span className="text-sm text-foreground mb-2">Credentials</span>
         <div className="flex flex-wrap gap-1">
-          {take(profile.icebreakerData.credentials, 5).map((credential) => (
+          {take(profile.icebreakerSocialInfo.credentials, 5).map((credential) => (
             <span
               key={`${fid}-${credential.name}`}
               className="rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center"
@@ -105,9 +105,9 @@ const ProfileInfo = ({
   };
 
   const renderIcebreakerChannels = () => {
-    if (!profile?.icebreakerData?.channels?.length) return null;
+    if (!profile?.icebreakerSocialInfo?.channels?.length) return null;
 
-    const filteredChannels = profile.icebreakerData.channels.filter(
+    const filteredChannels = profile.icebreakerSocialInfo.channels.filter(
       (channel) => channel.value && priorityChannels.includes(channel.type)
     );
 
