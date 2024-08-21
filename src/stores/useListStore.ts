@@ -1,10 +1,9 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 import { create as mutativeCreate, Draft } from 'mutative';
-import { createClient } from "@/common/helpers/supabase/component";
-import { InsertList, List, UpdateList } from '@/common/types/database.types'
-import { UUID } from "crypto";
-
+import { createClient } from '@/common/helpers/supabase/component';
+import { InsertList, List, UpdateList } from '@/common/types/database.types';
+import { UUID } from 'crypto';
 
 export type Search = {
   term: string;
@@ -31,10 +30,9 @@ interface ListStoreActions {
   setSelectedListId: (id: UUID | undefined) => void;
 }
 
-export interface ListStore extends ListStoreProps, ListStoreActions { }
+export interface ListStore extends ListStoreProps, ListStoreActions {}
 
-export const mutative = (config) =>
-  (set, get) => config((fn) => set(mutativeCreate(fn)), get);
+export const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
 
 type StoreSet = (fn: (draft: Draft<ListStore>) => void) => void;
 
@@ -51,7 +49,9 @@ const store = (set: StoreSet) => ({
     });
   },
   addList: async (newList: AddListType) => {
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser();
     if (!user) {
       throw new Error('User not logged in');
     }
@@ -59,8 +59,10 @@ const store = (set: StoreSet) => ({
       .from('list')
       .insert([
         {
-          ...newList, user_id: user.id,
-        }])
+          ...newList,
+          user_id: user.id,
+        },
+      ])
       .select();
 
     if (error || !list) {
@@ -90,7 +92,7 @@ const store = (set: StoreSet) => ({
       state.lists = state.lists.filter((list) => list.id !== listId);
     });
   },
-  setSelectedListId: (id: UUID |null) => {
+  setSelectedListId: (id: UUID | null) => {
     set((state) => {
       state.selectedListId = id;
     });
@@ -110,8 +112,7 @@ const store = (set: StoreSet) => ({
     } catch (error) {
       console.error('Failed to hydrate ListStore:', error);
     }
-  }
+  },
 });
-
 
 export const useListStore = create<ListStore>()(devtools(mutative(store)));

@@ -1,11 +1,11 @@
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
-import "https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts"
+import 'https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts';
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'npm:resend';
-import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts'
+import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts';
 import { getHtmlEmail } from '../_shared/email.ts';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 
@@ -19,7 +19,7 @@ Sentry.init({
 Sentry.setTag('region', Deno.env.get('SB_REGION'));
 Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
 
-console.log("Hello from sending digest to user!")
+console.log('Hello from sending digest to user!');
 
 type Cast = {
   hash: string;
@@ -31,7 +31,6 @@ type Cast = {
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const NEYNAR_API_KEY = Deno.env.get('NEYNAR_API_KEY');
 
-
 async function fetchBulkCasts(hashes: string[]): Promise<Cast[]> {
   const url = 'https://api.neynar.com/v2/farcaster/casts';
   const params = new URLSearchParams({ casts: hashes.join(',') });
@@ -40,8 +39,8 @@ async function fetchBulkCasts(hashes: string[]): Promise<Cast[]> {
     const response = await fetch(`${url}?${params}`, {
       method: 'GET',
       headers: {
-        'accept': 'application/json',
-        'api_key': NEYNAR_API_KEY || '',
+        accept: 'application/json',
+        api_key: NEYNAR_API_KEY || '',
       },
     });
 
@@ -57,19 +56,25 @@ async function fetchBulkCasts(hashes: string[]): Promise<Cast[]> {
   }
 }
 
-async function sendEmail(resend: Resend, fromAddress: string, toAddress: string, subject: string, listsWithCasts: { listName: string, searchTerm: string, casts: any[] }[]): Promise<boolean> {
+async function sendEmail(
+  resend: Resend,
+  fromAddress: string,
+  toAddress: string,
+  subject: string,
+  listsWithCasts: { listName: string; searchTerm: string; casts: any[] }[]
+): Promise<boolean> {
   if (!RESEND_API_KEY) {
     console.error('RESEND_API_KEY is not set');
     return false;
   }
 
   try {
-    const html = getHtmlEmail({ listsWithCasts })
+    const html = getHtmlEmail({ listsWithCasts });
     const res = await resend.emails.send({
       from: fromAddress,
       to: [toAddress],
       subject: subject,
-      html
+      html,
     });
     if (res?.error) {
       console.error('Error sending email - response has error:', res, toAddress, listsWithCasts);
@@ -98,11 +103,13 @@ async function processUser(supabaseClient: any, userId: string) {
 
   const { data: profile, error: profileError } = await supabaseClient
     .from('profile')
-    .select(`
+    .select(
+      `
       user_id,
       email,
       lists:list!inner(*)
-    `)
+    `
+    )
     .eq('user_id', userId)
     .not('email', 'is', null)
     .eq('list.contents->enabled_daily_email', true)
@@ -124,47 +131,48 @@ async function processUser(supabaseClient: any, userId: string) {
   }
 
   console.log(`user ${profile.user_id} has ${profile?.lists?.length} lists`);
-  const listsWithCasts = await Promise.all(profile.lists.map(async (list) => {
-    let searchResult = await runFarcasterCastSearch({
-      searchTerm: list.contents.term,
-      filters: { ...list.contents.filters, interval: SearchInterval.d1 },
-      limit: 5,
-      baseUrl,
-    });
-    if (searchResult.error) {
-      console.error(`search error for term ${list.contents.term} for user ${profile.user_id} - skip`);
-      return {
-        listName: list.name,
-        casts: [],
-        searchTerm: list.contents.term,
-      };
-    }
-    else if (searchResult.isTimeout) {
-      console.log(`search timeout for term ${list.contents.term} for user ${profile.user_id} - try again`);
-      searchResult = await runFarcasterCastSearch({
+  const listsWithCasts = await Promise.all(
+    profile.lists.map(async (list) => {
+      let searchResult = await runFarcasterCastSearch({
         searchTerm: list.contents.term,
         filters: { ...list.contents.filters, interval: SearchInterval.d1 },
         limit: 5,
         baseUrl,
       });
-      console.log(`retry search result: timeout ${searchResult.isTimeout} error: ${searchResult.error}`);
-    }
+      if (searchResult.error) {
+        console.error(`search error for term ${list.contents.term} for user ${profile.user_id} - skip`);
+        return {
+          listName: list.name,
+          casts: [],
+          searchTerm: list.contents.term,
+        };
+      } else if (searchResult.isTimeout) {
+        console.log(`search timeout for term ${list.contents.term} for user ${profile.user_id} - try again`);
+        searchResult = await runFarcasterCastSearch({
+          searchTerm: list.contents.term,
+          filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+          limit: 5,
+          baseUrl,
+        });
+        console.log(`retry search result: timeout ${searchResult.isTimeout} error: ${searchResult.error}`);
+      }
 
-    const listName = list.name;
-    const casts = searchResult.results || [];
-    if (!casts.length) {
+      const listName = list.name;
+      const casts = searchResult.results || [];
+      if (!casts.length) {
+        return {
+          listName,
+          casts: [],
+          searchTerm: list.contents.term,
+        };
+      }
       return {
         listName,
-        casts: [],
+        casts: await enrichCastsViaNeynar(casts),
         searchTerm: list.contents.term,
       };
-    }
-    return {
-      listName,
-      casts: await enrichCastsViaNeynar(casts),
-      searchTerm: list.contents.term,
-    };
-  }));
+    })
+  );
 
   const hasOnlyEmptyLists = listsWithCasts.every((list) => list.casts.length === 0);
   if (hasOnlyEmptyLists) {
@@ -181,13 +189,13 @@ async function processUser(supabaseClient: any, userId: string) {
 Deno.serve(async (req) => {
   return Sentry.withScope(async (scope) => {
     try {
-      console.log('hihi send-digest-to-user',)
+      console.log('hihi send-digest-to-user');
       const body = await req.json();
       const userId = body.user_id;
 
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
 
       if (userId) {
@@ -199,11 +207,10 @@ Deno.serve(async (req) => {
         });
       } else {
         // no user_id provided
-        return new Response(JSON.stringify({ error: 'user_id is required' }),
-          {
-            headers: { 'Content-Type': 'application/json' },
-            status: 400,
-          });
+        return new Response(JSON.stringify({ error: 'user_id is required' }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 400,
+        });
       }
     } catch (error) {
       Sentry.captureException(error);

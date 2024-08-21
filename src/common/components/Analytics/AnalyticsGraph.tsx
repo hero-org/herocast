@@ -1,22 +1,11 @@
-"use client";
+'use client';
 
-import React, { useMemo } from "react";
-import { format, subDays } from "date-fns";
-import { Interval } from "@/common/helpers/search";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Skeleton } from "@/components/ui/skeleton";
+import React, { useMemo } from 'react';
+import { format, subDays } from 'date-fns';
+import { Interval } from '@/common/helpers/search';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type AnalyticsGraphProps = {
   analyticsKey: string;
@@ -25,21 +14,14 @@ type AnalyticsGraphProps = {
   interval?: Interval;
 };
 
-const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
-  analyticsKey,
-  aggregated,
-  isLoading = false,
-  interval,
-}) => {
+const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregated, isLoading = false, interval }) => {
   const data = useMemo(() => {
     if (!aggregated) return [];
 
     let filteredData = aggregated;
     if (interval) {
       const cutoffDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
-      filteredData = aggregated.filter(
-        (item) => new Date(item.timestamp) >= cutoffDate
-      );
+      filteredData = aggregated.filter((item) => new Date(item.timestamp) >= cutoffDate);
     }
 
     return filteredData.map((item) => ({
@@ -63,53 +45,34 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({
   const chartConfig = {
     [analyticsKey]: {
       label: analyticsKey,
-      color: "hsl(var(--chart-1))",
+      color: 'hsl(var(--chart-1))',
     },
   };
 
   return (
-    <ChartContainer
-      config={chartConfig}
-      className="-ml-8 w-full min-w-full h-full"
-    >
+    <ChartContainer config={chartConfig} className="-ml-8 w-full min-w-full h-full">
       {/* <ResponsiveContainer width="100%" height="100%"> */}
       <AreaChart accessibilityLayer data={data}>
         <defs>
           <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-            <stop
-              offset="25%"
-              stopColor="hsl(var(--chart-1))"
-              stopOpacity={0.8}
-            />
-            <stop
-              offset="95%"
-              stopColor="hsl(var(--chart-1))"
-              stopOpacity={0}
-            />
+            <stop offset="25%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
+            <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickLine={false}
-          tickMargin={8}
-          tickFormatter={(date: Date) => format(date, "MMM d")}
-        />
+        <XAxis dataKey="date" tickLine={false} tickMargin={8} tickFormatter={(date: Date) => format(date, 'MMM d')} />
         <YAxis
           tickCount={7}
-          domain={([dataMin, dataMax]) => [
-            Math.floor(dataMin / 100) * 100,
-            Math.ceil(((dataMax + 5)/ 10) * 10),
-          ]}
+          domain={([dataMin, dataMax]) => [Math.floor(dataMin / 100) * 100, Math.ceil(((dataMax + 5) / 10) * 10)]}
         />
         <ChartTooltip
           content={
             <ChartTooltipContent
               labelFormatter={(value) => {
-                return new Date(value).toLocaleDateString("en-US", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
+                return new Date(value).toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
                 });
               }}
             />

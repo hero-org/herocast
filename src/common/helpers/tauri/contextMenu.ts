@@ -1,24 +1,31 @@
-
 export const disableContextMenu = async () => {
   if (window.location.hostname !== 'tauri.localhost') {
-    return
+    return;
   }
 
-  document.addEventListener('contextmenu', e => {
-    e.preventDefault();
-    return false;
-  }, { capture: true })
+  document.addEventListener(
+    'contextmenu',
+    (e) => {
+      e.preventDefault();
+      return false;
+    },
+    { capture: true }
+  );
 
-  document.addEventListener('selectstart', e => {
-    e.preventDefault();
-    return false;
-  }, { capture: true })
+  document.addEventListener(
+    'selectstart',
+    (e) => {
+      e.preventDefault();
+      return false;
+    },
+    { capture: true }
+  );
 
   document.addEventListener('dragstart', (e) => {
-    e.preventDefault()
-  })
+    e.preventDefault();
+  });
 
   document.addEventListener('drop', (e) => {
-    e.preventDefault()
-  })
-}
+    e.preventDefault();
+  });
+};

@@ -1,52 +1,41 @@
-import React, { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { UseFormProps, useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { AccountObjectType } from "@/stores/useAccountStore";
-import { Cog6ToothIcon } from "@heroicons/react/20/solid";
-import { toast } from "sonner";
-import { isAddress } from "viem";
-import { Input } from "@/components/ui/input";
-import { createInitialTree } from "@/common/helpers/hats";
-import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
-import {
-  convertEnsNameToAddress,
-  convertEnsNamesToAddresses,
-} from "@/common/helpers/ens";
-import EnsLookupLabel from "../EnsLookupLabel";
-import { optimism } from "wagmi/chains";
-import SwitchWalletButton from "../SwitchWalletButton";
+import React, { useEffect, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { UseFormProps, useFieldArray, useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { AccountObjectType } from '@/stores/useAccountStore';
+import { Cog6ToothIcon } from '@heroicons/react/20/solid';
+import { toast } from 'sonner';
+import { isAddress } from 'viem';
+import { Input } from '@/components/ui/input';
+import { createInitialTree } from '@/common/helpers/hats';
+import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
+import { convertEnsNameToAddress, convertEnsNamesToAddresses } from '@/common/helpers/ens';
+import EnsLookupLabel from '../EnsLookupLabel';
+import { optimism } from 'wagmi/chains';
+import SwitchWalletButton from '../SwitchWalletButton';
 
 enum CREATE_HATS_TREE_FORM_STEP {
-  DEFAULT = "DEFAULT",
-  PENDING_ONCHAIN_CONFIRMATION = "PENDING_ONCHAIN_CONFIRMATION",
-  SUCCESS = "SUCCESS",
-  ERROR = "ERROR",
+  DEFAULT = 'DEFAULT',
+  PENDING_ONCHAIN_CONFIRMATION = 'PENDING_ONCHAIN_CONFIRMATION',
+  SUCCESS = 'SUCCESS',
+  ERROR = 'ERROR',
 }
 
 const isValidFormAddressInput = (input: string) => {
-  return isAddress(input) || input.endsWith(".eth");
+  return isAddress(input) || input.endsWith('.eth');
 };
 
 const CreateHatsTreeFormSchema = z.object({
   adminHatAddress: z.string().refine(isValidFormAddressInput, {
-    message: "Invalid address",
+    message: 'Invalid address',
   }),
   casterHatAddresses: z
     .array(
       z.object({
         address: z.string().refine(isValidFormAddressInput, {
-          message: "Invalid address",
+          message: 'Invalid address',
         }),
         id: z.string(),
       })
@@ -54,25 +43,23 @@ const CreateHatsTreeFormSchema = z.object({
     .nonempty(),
 });
 
-type CasterHatAddress = z.infer<
-  typeof CreateHatsTreeFormSchema
->["casterHatAddresses"][number];
+type CasterHatAddress = z.infer<typeof CreateHatsTreeFormSchema>['casterHatAddresses'][number];
 
 const casterHatAddressesInitial: CasterHatAddress[] = [
-  { id: "1", address: "" },
-  { id: "2", address: "" },
+  { id: '1', address: '' },
+  { id: '2', address: '' },
 ];
 
 type CreateHatsTreeFormProps = {
-  onSuccess?: ({ casterHatId, adminHatId }: { casterHatId, adminHatId}) => void;
+  onSuccess?: ({ casterHatId, adminHatId }: { casterHatId; adminHatId }) => void;
 };
 
 function useZodForm<TSchema extends z.ZodType>(
-  props: Omit<UseFormProps<TSchema["_input"]>, "resolver"> & {
+  props: Omit<UseFormProps<TSchema['_input']>, 'resolver'> & {
     schema: TSchema;
   }
 ) {
-  const form = useForm<TSchema["_input"]>({
+  const form = useForm<TSchema['_input']>({
     ...props,
     resolver: zodResolver(props.schema, undefined, {
       // This makes it so we can use `.transform()`s on the schema without same transform getting applied again when it reaches the server
@@ -84,9 +71,7 @@ function useZodForm<TSchema extends z.ZodType>(
 }
 
 const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
-  const [formState, setFormState] = useState<CREATE_HATS_TREE_FORM_STEP>(
-    CREATE_HATS_TREE_FORM_STEP.DEFAULT
-  );
+  const [formState, setFormState] = useState<CREATE_HATS_TREE_FORM_STEP>(CREATE_HATS_TREE_FORM_STEP.DEFAULT);
   const walletClient = useWalletClient()?.data;
   const { chains, status, switchChain, switchChainAsync } = useSwitchChain();
   const [isPending, setIsPending] = useState(false);
@@ -95,7 +80,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
   const { isConnected, address, chainId } = useAccount();
   const form = useZodForm({
     schema: CreateHatsTreeFormSchema,
-    mode: "onChange",
+    mode: 'onChange',
     defaultValues: {
       adminHatAddress: address,
       casterHatAddresses: casterHatAddressesInitial,
@@ -103,13 +88,13 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
   });
 
   const { fields, append, remove } = useFieldArray({
-    name: "casterHatAddresses",
+    name: 'casterHatAddresses',
     control: form.control,
     rules: {},
   });
 
   const onHatsTreeCreated = () => {
-    toast.success("Created your Hats tree successfully", {
+    toast.success('Created your Hats tree successfully', {
       duration: 7000,
     });
     onSuccess?.({ adminHatId, casterHatId });
@@ -127,11 +112,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
     }
   }, [formState]);
 
-  const canSubmitForm =
-    !isPending &&
-    !!form.formState.isDirty &&
-    !!form.formState.isValid &&
-    chainId;
+  const canSubmitForm = !isPending && !!form.formState.isDirty && !!form.formState.isValid && chainId;
 
   const createHatsTree = async (data) => {
     if (!walletClient) {
@@ -141,9 +122,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
     setIsPending(true);
 
     const adminHatAddress = await convertEnsNameToAddress(data.adminHatAddress);
-    const casterHatAddresses = await convertEnsNamesToAddresses(
-      data.casterHatAddresses.map((obj) => obj.address)
-    );
+    const casterHatAddresses = await convertEnsNamesToAddresses(data.casterHatAddresses.map((obj) => obj.address));
 
     data.adminHatAddress = adminHatAddress;
     data.casterHatAddresses = data.casterHatAddresses.map((obj, index) => {
@@ -167,9 +146,9 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
 
       setFormState(CREATE_HATS_TREE_FORM_STEP.PENDING_ONCHAIN_CONFIRMATION);
     } catch (e) {
-      console.log("Error:", e);
-      form.setError("adminHatAddress", {
-        type: "manual",
+      console.log('Error:', e);
+      form.setError('adminHatAddress', {
+        type: 'manual',
         message: `Error creating hats tree -> ${e}`,
       });
     } finally {
@@ -191,8 +170,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
               </FormControl>
               <EnsLookupLabel addressOrName={field.value} />
               <FormDescription className="w-96">
-                This address will be able to add or remove people from the
-                shared account.
+                This address will be able to add or remove people from the shared account.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -208,27 +186,18 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
                     <FormItem className="w-full" {...field}>
                       <FormLabel>Caster Address {index + 1}</FormLabel>
                       <FormControl>
-                        <Input
-                          className="w-96"
-                          placeholder="0x..."
-                          {...field}
-                        />
+                        <Input className="w-96" placeholder="0x..." {...field} />
                       </FormControl>
                       <EnsLookupLabel addressOrName={field.value} />
                       <FormDescription className="w-96">
-                        This address will be able to read and write from the
-                        shared account.
+                        This address will be able to read and write from the shared account.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 {index > 0 && (
-                  <Button
-                    variant="outline"
-                    onClick={() => remove(index)}
-                    className="ml-4 mt-7 w-36"
-                  >
+                  <Button variant="outline" onClick={() => remove(index)} className="ml-4 mt-7 w-36">
                     Remove
                   </Button>
                 )}
@@ -242,7 +211,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
             onClick={() =>
               append({
                 id: String(fields.length + 1),
-                address: "0x",
+                address: '0x',
               })
             }
           >
@@ -252,9 +221,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
         <div className="flex flex-col gap-y-4">
           {!isConnected && (
             <>
-              <FormMessage className="text-red-500">
-                Connect a wallet to create a Hats tree
-              </FormMessage>
+              <FormMessage className="text-red-500">Connect a wallet to create a Hats tree</FormMessage>
               <SwitchWalletButton />
             </>
           )}
@@ -268,18 +235,8 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
               Switch to Optimism
             </Button>
           )}
-          <Button
-            disabled={!canSubmitForm}
-            variant="default"
-            type="submit"
-            className="w-48"
-          >
-            {isPending && (
-              <Cog6ToothIcon
-                className="mr-2 h-5 w-5 animate-spin"
-                aria-hidden="true"
-              />
-            )}
+          <Button disabled={!canSubmitForm} variant="default" type="submit" className="w-48">
+            {isPending && <Cog6ToothIcon className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
             <p>Create Hats tree</p>
           </Button>
         </div>
@@ -314,9 +271,7 @@ const CreateHatsTreeForm = ({ onSuccess }: CreateHatsTreeFormProps) => {
     }
   };
 
-  return (
-    <div className="max-w-lg flex flex-col gap-y-4">{renderContent()}</div>
-  );
+  return <div className="max-w-lg flex flex-col gap-y-4">{renderContent()}</div>;
 };
 
 export default CreateHatsTreeForm;

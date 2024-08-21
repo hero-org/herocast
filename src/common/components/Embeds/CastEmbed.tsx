@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { CastRow } from "../CastRow";
-import isEmpty from "lodash.isempty";
-import { CastParamType, NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { CastResponse } from "@neynar/nodejs-sdk/build/neynar-api/v2";
+import React, { useEffect, useState } from 'react';
+import { CastRow } from '../CastRow';
+import isEmpty from 'lodash.isempty';
+import { CastParamType, NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { CastResponse } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 type CastEmbedProps = {
   url?: string;
@@ -16,11 +16,9 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
 
   useEffect(() => {
     const getData = async () => {
-    try {
-        const neynarClient = new NeynarAPIClient(
-          process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-        );
-        
+      try {
+        const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+
         let res: CastResponse | null;
         if (url) {
           res = await neynarClient.lookUpCastByHashOrWarpcastUrl(url, CastParamType.Url);
@@ -29,7 +27,7 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
         } else {
           return;
         }
-        
+
         if (res && res.cast) {
           setCast(res.cast);
         }
@@ -38,19 +36,16 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
       }
     };
 
-      getData();
+    getData();
   }, []);
 
   if ((!url && !castId) || isEmpty(cast)) return null;
 
   return (
-    <div
-      key={`cast-embed-${url}`}
-      className="border border-foreground/30 rounded-lg"
-    >
+    <div key={`cast-embed-${url}`} className="border border-foreground/30 rounded-lg">
       <CastRow cast={cast} hideReactions={hideReactions} showChannel isEmbed />
     </div>
   );
-}
+};
 
 export default CastEmbed;

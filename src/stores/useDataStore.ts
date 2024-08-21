@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 import { create as mutativeCreate, Draft } from 'mutative';
-import { CastWithInteractions, User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { IcebreakerSocialInfo } from "@/common/helpers/icebreaker";
-import { AirstackSocialInfo } from "@/common/helpers/airstack";
-import { AnalyticsData } from "@/common/types/types";
+import { CastWithInteractions, User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
+import { AirstackSocialInfo } from '@/common/helpers/airstack';
+import { AnalyticsData } from '@/common/types/types';
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
@@ -81,7 +81,6 @@ export type DexPair = {
   info: TokenInfo;
 };
 
-
 type addTokenDataProps = {
   tokenSymbol: string;
   data: DexPair;
@@ -98,11 +97,10 @@ type addUserProfileProps = {
 
 export type UserProfile = User & { updatedAt: number } & Partial<AdditionalUserInfo>;
 
-
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;
   usernameToFid: Record<string, number>;
-  fidToData: Record<number, UserProfile>,
+  fidToData: Record<number, UserProfile>;
   tokenSymbolToData: Record<string, DexPair>;
 }
 
@@ -113,10 +111,9 @@ interface DataStoreActions {
   addAnalytics: (fid: number, analytics: AnalyticsData) => void;
 }
 
-export interface DataStore extends DataStoreProps, DataStoreActions { }
+export interface DataStore extends DataStoreProps, DataStoreActions {}
 
-export const mutative = (config) =>
-  (set, get) => config((fn) => set(mutativeCreate(fn)), get);
+export const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
 
 type StoreSet = (fn: (draft: Draft<DataStore>) => void) => void;
 
@@ -132,7 +129,10 @@ const store = (set: StoreSet) => ({
   },
   addUserProfile: async ({ user }: addUserProfileProps) => {
     set((state) => {
-      state.usernameToFid = { ...state.usernameToFid, ...{ [user.username]: user.fid } };
+      state.usernameToFid = {
+        ...state.usernameToFid,
+        ...{ [user.username]: user.fid },
+      };
       const userObject = {
         ...user,
         updatedAt: Date.now(),
@@ -142,7 +142,10 @@ const store = (set: StoreSet) => ({
   },
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => {
     set((state) => {
-      state.tokenSymbolToData = { ...state.tokenSymbolToData, ...{ [tokenSymbol]: data } };
+      state.tokenSymbolToData = {
+        ...state.tokenSymbolToData,
+        ...{ [tokenSymbol]: data },
+      };
     });
   },
 });

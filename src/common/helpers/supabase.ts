@@ -3,7 +3,9 @@ import { AccountStatusType } from '../constants/accounts';
 import { Customer, InsertCustomer } from '../types/database.types';
 
 export const getAccountsForUser = async (supabaseClient) => {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const {
+    data: { user },
+  } = await supabaseClient.auth.getUser();
   if (isEmpty(user)) {
     console.log('no account to hydrate');
     return [];
@@ -21,10 +23,12 @@ export const getAccountsForUser = async (supabaseClient) => {
     return [];
   }
   return accountData;
-}
+};
 
 export const getCustomersForUser = async (supabaseClient): Promise<Customer | undefined> => {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const {
+    data: { user },
+  } = await supabaseClient.auth.getUser();
   if (isEmpty(user)) {
     console.log('no customer to hydrate');
     return undefined;
@@ -41,11 +45,16 @@ export const getCustomersForUser = async (supabaseClient): Promise<Customer | un
     return undefined;
   }
   return customerData;
-}
+};
 
 // this is a temporary hack until we integrate with Stripe webhooks
-export const addUnsafeCustomerForUser = async (supabaseClient, customer: Omit<InsertCustomer, 'user_id'>): Promise<boolean> => {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+export const addUnsafeCustomerForUser = async (
+  supabaseClient,
+  customer: Omit<InsertCustomer, 'user_id'>
+): Promise<boolean> => {
+  const {
+    data: { user },
+  } = await supabaseClient.auth.getUser();
   if (isEmpty(user)) {
     console.log('no user to add customer to');
     return false;
@@ -64,4 +73,4 @@ export const addUnsafeCustomerForUser = async (supabaseClient, customer: Omit<In
     return false;
   }
   return true;
-}
+};

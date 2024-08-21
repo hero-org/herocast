@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { UUID } from 'crypto';
 import { Draft, create as mutativeCreate } from 'mutative';
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
 export enum CastModalView {
-  New = "new",
-  Reply = "reply",
-  Quote = "quote",
+  New = 'new',
+  Reply = 'reply',
+  Quote = 'quote',
 }
 
 interface NavigationStoreProps {
@@ -28,10 +28,9 @@ interface NavigationStoreActions {
   toggleCommandPalette: () => void;
 }
 
-export interface NavigationStore extends NavigationStoreProps, NavigationStoreActions { }
+export interface NavigationStore extends NavigationStoreProps, NavigationStoreActions {}
 
-export const mutative = (config) =>
-  (set, get) => config((fn) => set(mutativeCreate(fn)), get);
+export const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
 
 type StoreSet = (fn: (draft: Draft<NavigationStore>) => void) => void;
 

@@ -1,4 +1,4 @@
-import { init, fetchQuery } from "@airstack/node";
+import { init, fetchQuery } from '@airstack/node';
 
 init(process.env.NEXT_PUBLIC_AIRSTACK_API_KEY!);
 
@@ -31,7 +31,7 @@ export async function getAirstackSocialInfoForFid(fid: string): Promise<Airstack
   try {
     const { data, error } = await fetchQuery(query);
     if (error) {
-      console.error("Error fetching airstack capital score:", error);
+      console.error('Error fetching airstack capital score:', error);
       return null;
     }
     const socialInfo = data?.Socials?.Social?.[0];
@@ -42,7 +42,7 @@ export async function getAirstackSocialInfoForFid(fid: string): Promise<Airstack
     return {
       socialCapitalRank: socialInfo.socialCapital.socialCapitalRank,
       userCreatedAt: socialInfo.userCreatedAtBlockTimestamp,
-    }
+    };
   } catch (error) {
     console.error('Error fetching Airstack data:', error);
     return null;

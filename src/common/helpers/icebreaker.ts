@@ -18,8 +18,8 @@ export async function getIcebreakerSocialInfoForFid(fid: string): Promise<Icebre
   try {
     const response = await fetch(`https://app.icebreaker.xyz/api/v1/fid/${fid}`, {
       headers: {
-        'accept': 'application/json'
-      }
+        accept: 'application/json',
+      },
     });
     if (!response.ok) {
       console.log('Error fetching Icebreaker data:', response.statusText);
@@ -28,7 +28,10 @@ export async function getIcebreakerSocialInfoForFid(fid: string): Promise<Icebre
     const data = await response.json();
     if (data && data.profiles && data?.profiles.length === 1) {
       const profile = data.profiles[0];
-      return { channels: profile?.channels || [], credentials: profile?.credentials || [] };
+      return {
+        channels: profile?.channels || [],
+        credentials: profile?.credentials || [],
+      };
     } else {
       return null;
     }

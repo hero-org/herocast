@@ -1,112 +1,78 @@
-import NewPostEntry from "@/common/components/Editor/NewCastEditor";
-import { useDraftStore } from "@/stores/useDraftStore";
-import React, { useEffect, useMemo, useState, useRef } from "react";
-import {
-  ClockIcon,
-  PlusCircleIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
-import { Button } from "@/components/ui/button";
-import { CastRow } from "@/common/components/CastRow";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDistanceToNow } from "date-fns";
-import { DraftStatus, DraftType } from "@/common/constants/farcaster";
-import map from "lodash.map";
-import { renderEmbedForUrl } from "@/common/components/Embeds";
-import {
-  getUserLocaleDateFromIsoString,
-  localize,
-} from "@/common/helpers/date";
-import { ChannelType } from "@/common/constants/channels";
-import { UUID } from "crypto";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Progress } from "@/components/ui/progress";
-import { openSourcePlanLimits } from "@/config/customerLimitation";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import Link from "next/link";
-import UpgradeFreePlanCard from "../../src/common/components/UpgradeFreePlanCard";
+import NewPostEntry from '@/common/components/Editor/NewCastEditor';
+import { useDraftStore } from '@/stores/useDraftStore';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { ClockIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon } from '@heroicons/react/20/solid';
+import { Button } from '@/components/ui/button';
+import { CastRow } from '@/common/components/CastRow';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatDistanceToNow } from 'date-fns';
+import { DraftStatus, DraftType } from '@/common/constants/farcaster';
+import map from 'lodash.map';
+import { renderEmbedForUrl } from '@/common/components/Embeds';
+import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date';
+import { ChannelType } from '@/common/constants/channels';
+import { UUID } from 'crypto';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Progress } from '@/components/ui/progress';
+import { openSourcePlanLimits } from '@/config/customerLimitation';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import Link from 'next/link';
+import UpgradeFreePlanCard from '../../src/common/components/UpgradeFreePlanCard';
 
 enum DraftListTab {
-  writing = "writing",
-  scheduled = "scheduled",
-  published = "published",
+  writing = 'writing',
+  scheduled = 'scheduled',
+  published = 'published',
 }
 
 const DraftListTabs = [
   {
     key: DraftListTab.writing,
-    label: "Writing",
+    label: 'Writing',
   },
   {
     key: DraftListTab.scheduled,
-    label: "Scheduled",
+    label: 'Scheduled',
   },
   {
     key: DraftListTab.published,
-    label: "Published",
+    label: 'Published',
   },
 ];
 
-const getDraftsForTab = (
-  drafts: DraftType[],
-  activeTab: DraftListTab,
-  activeAccountId?: UUID
-) => {
+const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAccountId?: UUID) => {
   switch (activeTab) {
     case DraftListTab.writing:
-      return drafts.filter(
-        (draft) =>
-          draft.status === DraftStatus.writing ||
-          draft.status === DraftStatus.publishing
-      );
+      return drafts.filter((draft) => draft.status === DraftStatus.writing || draft.status === DraftStatus.publishing);
     case DraftListTab.scheduled:
       return drafts
         .filter(
-          (draft) =>
-            (!activeAccountId || draft.accountId === activeAccountId) &&
-            draft.status === DraftStatus.scheduled
+          (draft) => (!activeAccountId || draft.accountId === activeAccountId) && draft.status === DraftStatus.scheduled
         )
-        .sort(
-          (a, b) =>
-            new Date(a.scheduledFor).getTime() -
-            new Date(b.scheduledFor).getTime()
-        );
+        .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime());
     case DraftListTab.published:
-      return drafts.filter(
-        (draft) =>
-          draft.status === DraftStatus.published &&
-          draft.accountId === activeAccountId
-      );
+      return drafts.filter((draft) => draft.status === DraftStatus.published && draft.accountId === activeAccountId);
     default:
       return drafts;
   }
 };
 
-const getChannelForParentUrl = ({
-  channels,
-  parentUrl,
-}: {
-  channels: ChannelType[];
-  parentUrl: string | null;
-}) =>
+const getChannelForParentUrl = ({ channels, parentUrl }: { channels: ChannelType[]; parentUrl: string | null }) =>
   parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined;
 
 export default function NewPost() {
-  const { drafts, addNewPostDraft, removePostDraftById, removeEmptyDrafts } =
-    useDraftStore();
+  const { drafts, addNewPostDraft, removePostDraftById, removeEmptyDrafts } = useDraftStore();
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
   const { accounts, selectedAccountIdx, allChannels } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
-  const [activeTab, setActiveTab] = useState<DraftListTab>(
-    DraftListTab.writing
-  );
+  const [activeTab, setActiveTab] = useState<DraftListTab>(DraftListTab.writing);
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const savedPathname = useRef(pathname);
@@ -126,8 +92,8 @@ export default function NewPost() {
   };
 
   useEffect(() => {
-    if (searchParams.has("text")) {
-      const text = searchParams.getAll("text").join(". ");
+    if (searchParams.has('text')) {
+      const text = searchParams.getAll('text').join('. ');
 
       if (text) {
         addNewPostDraft({ text });
@@ -145,23 +111,16 @@ export default function NewPost() {
 
   useEffect(() => {
     // when drafts change, we want to make sure that selectedDraftId is always a valid draft id
-    if (
-      !draftsForTab.find((draft) => draft.id === selectedDraftId) &&
-      draftsForTab.length > 0
-    ) {
+    if (!draftsForTab.find((draft) => draft.id === selectedDraftId) && draftsForTab.length > 0) {
       setSelectedDraftId(draftsForTab[0]?.id);
     }
   }, [draftsForTab]);
 
   useEffect(() => {
-    const parentCastIds = drafts
-      .map((draft) => draft?.parentCastId?.hash)
-      .filter(Boolean) as unknown as string[];
+    const parentCastIds = drafts.map((draft) => draft?.parentCastId?.hash).filter(Boolean) as unknown as string[];
 
     const fetchParentCasts = async () => {
-      const neynarClient = new NeynarAPIClient(
-        process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-      );
+      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
         viewerFid: Number(selectedAccount?.platformAccountId),
       });
@@ -187,9 +146,7 @@ export default function NewPost() {
   const renderWritingDraft = (draft) => {
     if (!draft) return renderEmptyMainContent();
 
-    const parentCast = parentCasts.find(
-      (cast) => cast.hash === draft.parentCastId?.hash
-    );
+    const parentCast = parentCasts.find((cast) => cast.hash === draft.parentCastId?.hash);
     return (
       <div key={draft.id} className="pt-2 pb-6">
         {parentCast && <CastRow cast={parentCast} />}
@@ -210,20 +167,15 @@ export default function NewPost() {
       parentUrl: draft.parentUrl,
     });
 
-    const parentCast = parentCasts.find(
-      (cast) => cast.hash === draft.parentCastId?.hash
-    );
+    const parentCast = parentCasts.find((cast) => cast.hash === draft.parentCastId?.hash);
     const hasEmbeds = draft?.embeds?.length > 0;
     return (
       <div className="pt-4 pb-6">
         <div className="flex items-center text-xs text-muted-foreground">
           <ClockIcon className="w-5 h-5" />
           <span className="ml-1">
-            Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}{" "}
-            {draft.publishedAt &&
-              `· Published at ${getUserLocaleDateFromIsoString(
-                draft.publishedAt
-              )}`}
+            Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}{' '}
+            {draft.publishedAt && `· Published at ${getUserLocaleDateFromIsoString(draft.publishedAt)}`}
           </span>
           {channel && (
             <p>
@@ -235,9 +187,7 @@ export default function NewPost() {
           )}
         </div>
         {parentCast && (
-          <div className="flex border p-2 mt-2">
-            {<CastRow cast={parentCast} isEmbed hideReactions />}
-          </div>
+          <div className="flex border p-2 mt-2">{<CastRow cast={parentCast} isEmbed hideReactions />}</div>
         )}
         <div className="mt-4 px-2 py-1 bg-muted border rounded-lg w-full h-full min-h-[60px] max-h-[150px]">
           {draft.text}
@@ -245,9 +195,7 @@ export default function NewPost() {
         {hasEmbeds && (
           <div className="mt-8 rounded-md bg-muted p-2 w-full break-all">
             {map(draft.embeds, (embed) => (
-              <div key={`cast-embed-${embed.url || embed.hash}`}>
-                {renderEmbedForUrl(embed)}
-              </div>
+              <div key={`cast-embed-${embed.url || embed.hash}`}>{renderEmbedForUrl(embed)}</div>
             ))}
           </div>
         )}
@@ -264,8 +212,8 @@ export default function NewPost() {
       <div
         key={draft?.id || draft?.createdAt}
         className={cn(
-          "flex flex-col max-w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent cursor-pointer",
-          draft.id === selectedDraftId && "bg-muted"
+          'flex flex-col max-w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent cursor-pointer',
+          draft.id === selectedDraftId && 'bg-muted'
         )}
         onClick={() => {
           setSelectedDraftId(draft.id);
@@ -273,21 +221,17 @@ export default function NewPost() {
       >
         <div
           className={cn(
-            "line-clamp-2 text-xs break-all",
-            draft.id === selectedDraftId
-              ? "text-foreground"
-              : "text-muted-foreground"
+            'line-clamp-2 text-xs break-all',
+            draft.id === selectedDraftId ? 'text-foreground' : 'text-muted-foreground'
           )}
         >
-          {draft.text ? draft.text.substring(0, 300) : "New cast"}
+          {draft.text ? draft.text.substring(0, 300) : 'New cast'}
         </div>
         <div className="flex w-full flex-col gap-1">
           <div className="flex items-center gap-2">
             {draft?.embeds?.length ? (
               <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  {localize(draft.embeds.length, " embed")}
-                </Badge>
+                <Badge variant="outline">{localize(draft.embeds.length, ' embed')}</Badge>
               </div>
             ) : null}
             {channel && (
@@ -297,10 +241,8 @@ export default function NewPost() {
             )}
             <div
               className={cn(
-                "ml-auto text-xs",
-                draft.id === selectedDraftId
-                  ? "text-foreground"
-                  : "text-muted-foreground"
+                'ml-auto text-xs',
+                draft.id === selectedDraftId ? 'text-foreground' : 'text-muted-foreground'
               )}
             >
               {draft.status === DraftStatus.writing &&
@@ -323,12 +265,7 @@ export default function NewPost() {
               <div className="flex items-center gap-2">
                 <ClockIcon className="w-4 h-4" />
                 <span className="text-xs text-muted-foreground">
-                  Scheduled for{" "}
-                  {getUserLocaleDateFromIsoString(
-                    draft.scheduledFor,
-                    "short",
-                    "short"
-                  )}
+                  Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor, 'short', 'short')}
                 </span>
               </div>
             )}
@@ -343,11 +280,7 @@ export default function NewPost() {
       <div className="flex items-center py-2 w-full">
         <TabsList className="flex w-full">
           {DraftListTabs.map((tab) => (
-            <TabsTrigger
-              key={tab.key}
-              value={tab.key}
-              className="text-zinc-600 dark:text-zinc-200"
-            >
+            <TabsTrigger key={tab.key} value={tab.key} className="text-zinc-600 dark:text-zinc-200">
               {tab.label}
             </TabsTrigger>
           ))}
@@ -380,9 +313,7 @@ export default function NewPost() {
   const renderDraftList = () => {
     return renderScrollableList(
       <>
-        <div className="flex flex-col gap-2 p-2 pt-0">
-          {draftsForTab.map(renderDraftListPreview)}
-        </div>
+        <div className="flex flex-col gap-2 p-2 pt-0">{draftsForTab.map(renderDraftListPreview)}</div>
         <div className="mt-4">{renderNewDraftButton()}</div>
       </>
     );
@@ -404,9 +335,7 @@ export default function NewPost() {
             <span>New draft</span>
           </Button>
         )}
-        <div className="flex flex-col gap-2 p-2 pt-0">
-          {draftsForTab.map(renderDraftListPreview)}
-        </div>
+        <div className="flex flex-col gap-2 p-2 pt-0">{draftsForTab.map(renderDraftListPreview)}</div>
       </>
     );
   };
@@ -440,17 +369,14 @@ export default function NewPost() {
           >
             {renderTabsSelector()}
             <TabsContent value={DraftListTab.writing}>
-              {scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts &&
-                renderFreePlanCard()}
+              {scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts && renderFreePlanCard()}
               {renderDraftList()}
             </TabsContent>
             <TabsContent value={DraftListTab.scheduled}>
               {renderFreePlanCard()}
               {renderScheduledList()}
             </TabsContent>
-            <TabsContent value={DraftListTab.published}>
-              {renderScheduledList()}
-            </TabsContent>
+            <TabsContent value={DraftListTab.published}>{renderScheduledList()}</TabsContent>
           </Tabs>
         </div>
       </div>

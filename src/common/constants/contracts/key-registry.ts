@@ -1,5 +1,4 @@
-const KEY_REGISTRY_ADDRESS =
-  '0x00000000fC9e66f1c6d86D750B4af47fF0Cc343d' as `0x${string}`
+const KEY_REGISTRY_ADDRESS = '0x00000000fC9e66f1c6d86D750B4af47fF0Cc343d' as `0x${string}`;
 
 const KEY_REGISTRY_ABI = [
   {
@@ -404,9 +403,7 @@ const KEY_REGISTRY_ABI = [
   {
     inputs: [],
     name: 'idRegistry',
-    outputs: [
-      { internalType: 'contract IdRegistryLike', name: '', type: 'address' },
-    ],
+    outputs: [{ internalType: 'contract IdRegistryLike', name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -541,9 +538,7 @@ const KEY_REGISTRY_ABI = [
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'address', name: '_trustedCaller', type: 'address' },
-    ],
+    inputs: [{ internalType: 'address', name: '_trustedCaller', type: 'address' }],
     name: 'setTrustedCaller',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -621,9 +616,9 @@ const KEY_REGISTRY_ABI = [
     stateMutability: 'view',
     type: 'function',
   },
-] as const
+] as const;
 
 export const KEY_REGISTRY = {
   address: KEY_REGISTRY_ADDRESS,
   abi: KEY_REGISTRY_ABI,
-}
+};

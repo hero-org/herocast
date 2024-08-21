@@ -1,4 +1,3 @@
-
 ![herocast_logo_wide](https://github.com/hero-org/.github/blob/main/assets/herocast-logo.png?raw=true)  
 <br />
 [![build](https://github.com/hellno/herocast/actions/workflows/build.yaml/badge.svg)](https://github.com/hellno/herocast/actions/workflows/build.yaml)
@@ -58,7 +57,6 @@ GRANT
 
 Distributed under the AGPLv3 License. See LICENSE for more information.
 
-
 ## Contact
 
 hellno [Warpcast](https://warpcast.com/hellno.eth)
@@ -66,4 +64,3 @@ hellno [Warpcast](https://warpcast.com/hellno.eth)
 Website: https://herocast.xyz
 
 GitHub: https://github.com/hellno/herocast
-

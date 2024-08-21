@@ -1,11 +1,11 @@
-import { useState, useCallback } from "react";
-import axios from "axios";
+import { useState, useCallback } from 'react';
+import axios from 'axios';
 
 type UploadState = {
   isUploading: boolean;
   error: string | null;
   uploadProgress: number;
-  image: ImgurResponse["data"] | null;
+  image: ImgurResponse['data'] | null;
 };
 
 type ImgurResponse = {
@@ -27,7 +27,7 @@ export const useImgurUpload = () => {
 
   const uploadImage = useCallback(async (file: File): Promise<void> => {
     const validateFile = (file: File): boolean => {
-      const validImageTypes = ["image/gif", "image/jpeg", "image/png"];
+      const validImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
       return validImageTypes.includes(file.type);
     };
 
@@ -50,17 +50,15 @@ export const useImgurUpload = () => {
 
     try {
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append('image', file);
 
-      const response = await axios.post<ImgurResponse>("https://api.imgur.com/3/image", formData, {
+      const response = await axios.post<ImgurResponse>('https://api.imgur.com/3/image', formData, {
         headers: {
           Authorization: `Client-ID ${process.env.NEXT_PUBLIC_IMGUR_CLIENT_ID}`,
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
         onUploadProgress: (progressEvent) => {
-          const progress = progressEvent.total
-            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            : 0;
+          const progress = progressEvent.total ? Math.round((progressEvent.loaded * 100) / progressEvent.total) : 0;
           setUploadState((prev) => ({
             ...prev,
             uploadProgress: progress,
@@ -78,7 +76,7 @@ export const useImgurUpload = () => {
       if (axios.isAxiosError(error)) {
         setUploadState({
           isUploading: false,
-          error: error.response?.data?.error || "Failed to upload",
+          error: error.response?.data?.error || 'Failed to upload',
           uploadProgress: 0,
           image: null,
         });
