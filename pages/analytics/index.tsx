@@ -227,8 +227,7 @@ export default function AnalyticsPage() {
           className="mr-12 lg:mx-0"
         >
           <CarouselContent className="">
-            {" "}
-            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+            <CarouselItem className="md:basis-1/2 lg:basis-1/2">
               {analyticsData?.follows && (
                 <NewFollowersCard
                   followerCount={selectedProfile?.follower_count}
@@ -238,7 +237,7 @@ export default function AnalyticsPage() {
                 />
               )}
             </CarouselItem>
-            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+            <CarouselItem className="md:basis-1/2 lg:basis-1/2">
               {analyticsData?.reactions && (
                 <ReactionsCard
                   data={analyticsData.reactions}
@@ -247,7 +246,7 @@ export default function AnalyticsPage() {
                 />
               )}
             </CarouselItem>
-            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+            {/* <CarouselItem className="md:basis-1/2 lg:basis-1/3">
               {analyticsData?.casts && (
                 <CastsCard
                   data={analyticsData.casts}
@@ -255,7 +254,7 @@ export default function AnalyticsPage() {
                   interval={interval}
                 />
               )}
-            </CarouselItem>
+            </CarouselItem> */}
           </CarouselContent>
           <CarouselNext className="lg:hidden" />
         </Carousel>
