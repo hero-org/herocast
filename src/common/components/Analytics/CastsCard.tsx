@@ -10,6 +10,7 @@ import AnalyticsGraph from "./AnalyticsGraph";
 import { CombinedActivityData } from "@/common/types/types";
 import { Interval } from "@/common/helpers/search";
 import { formatLargeNumber } from "@/common/helpers/text";
+import { subDays } from "date-fns";
 
 type StatsWithGraphCard = {
   interval: Interval;
@@ -22,6 +23,30 @@ const CastsCard = ({ interval, data, isLoading }: StatsWithGraphCard) => {
   const value =
     (overview && overview[interval === Interval.d7 ? "d7" : "d30"]) || 0;
 
+  // make sure that between startDate and now there are no missing days
+  // if there are, fill them with 0
+  const missingDays = aggregated
+    .map((item) => new Date(item.timestamp))
+    .reduce(
+      (acc, curr, i, arr) =>
+        i === arr.length - 1
+          ? acc
+          : acc +
+            Math.abs(
+              (curr.getTime() - arr[i + 1].getTime()) / (1000 * 60 * 60 * 24)
+            ) -
+            1,
+      0
+    );
+
+  if (missingDays) {
+    for (let i = 0; i < missingDays; i++) {
+      aggregated.push({
+        timestamp: subDays(new Date(), i + 1).toISOString(),
+        count: 0,
+      });
+    }
+  }
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-row items-stretch space-y-0 border-b border-foreground/20 p-0">

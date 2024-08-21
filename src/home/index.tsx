@@ -18,7 +18,6 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
 import RightSidebar from "@/common/components/Sidebar/RightSidebar";
-import ChannelsRightSidebar from "@/common/components/Sidebar/ChannelsRightSidebar";
 import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import { ThemeToggle } from "@/common/components/ThemeToggle";
 import { Toaster } from "@/components/ui/sonner";

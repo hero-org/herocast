@@ -20,15 +20,17 @@ import {
 } from "@/components/ui/card";
 import { openWindow } from "@/common/helpers/navigation";
 import Link from "next/link";
-function Logomark(props: React.ComponentPropsWithoutRef<"svg">) {
+import Image from "next/image";
+import herocastLogo from "../../public/images/logo.png";
+
+function Logo(props: React.ComponentProps<"img">) {
   return (
-    <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M20 40C8.954 40 0 31.046 0 20S8.954 0 20 0s20 8.954 20 20-8.954 20-20 20ZM4 20c0 7.264 5.163 13.321 12.02 14.704C17.642 35.03 19 33.657 19 32V8c0-1.657-1.357-3.031-2.98-2.704C9.162 6.68 4 12.736 4 20Z"
-      />
-    </svg>
+    <Image
+      src={herocastLogo}
+      aria-hidden="true"
+      alt="herocast logo"
+      {...props}
+    />
   );
 }
 
@@ -36,56 +38,86 @@ const plans = [
   {
     name: "Open source",
     featured: false,
-    price: { Monthly: "€0", Biannually: "€0" },
-    description: "Perfect for starters. Enjoy growth with no costs.",
+    price: { Monthly: "$0", Annually: "$0" },
+    description: "Just curious? Enjoy herocast at no costs.",
     button: {
       Monthly: {
         label: "Get started for free",
         href: "https://app.herocast.xyz/login",
       },
-      Biannually: {
+      Annually: {
         label: "Get started for free",
         href: "https://app.herocast.xyz/login",
       },
     },
     features: [
-      "Custom feeds ",
-      "Custom notifications",
+      "1 Keyword Feed",
       "Schedule up to 3 casts",
-      "Monitoring of 1 search term",
+      "1 Keyword Alert",
+      "Analytics (7 days)",
+      "Onchain user insights",
       "Connect up to 2 accounts",
     ],
     unavilableFeatures: [
       "Shared accounts",
-      "Analytics",
       "Bespoke insights",
       "KOL identification",
     ],
     logomarkClassName: "fill-gray-300",
   },
   {
-    name: "Pro",
-    featured: true,
-    price: { Monthly: "€50", Biannually: "€30" },
-    description: "Ideal for those looking to accelerate their growth.",
+    name: "Creator",
+    featured: false,
+    price: { Monthly: "$15", Annually: "$10" },
+    description: "Perfect for creators to create and engage more.",
     button: {
       Monthly: {
         label: "Subscribe",
         href: "https://buy.stripe.com/4gw03YeoO3Pz93i146",
       },
-      Biannually: {
+      Annually: {
         label: "Subscribe",
         href: "https://buy.stripe.com/fZeg2WeoObi193i288",
       },
     },
     features: [
-      "Custom feeds ",
-      "Custom notifications",
-      "Schedule up to 10 casts",
-      "Monitoring of 10 search term",
+      "2 Keyword Feeds",
+      "Schedule up to 15 casts",
+      "2 Keyword Alert",
+      "Analytics (1 month)",
+      "Onchain user insights",
+      "Connect up to 2 accounts",
+    ],
+    unavilableFeatures: [
+      "Shared accounts",
+      "Bespoke insights",
+      "KOL identification",
+    ],
+    logomarkClassName: "fill-gray-300",
+  },
+  {
+    name: "Brand",
+    featured: true,
+    price: { Monthly: "$50", Annually: "$35" },
+    description: "Ideal to grow and manage a brand.",
+    button: {
+      Monthly: {
+        label: "Subscribe",
+        href: "",
+      },
+      Annually: {
+        label: "Subscribe",
+        href: "",
+      },
+    },
+    features: [
+      "10 Keyword Feeds",
+      "Schedule unlimited casts",
+      "10 Keyword Alert",
+      "Analytics (3 months)",
+      "Onchain user insights",
       "Connect up to 5 accounts",
       "Shared accounts",
-      "Analytics",
     ],
     unavilableFeatures: ["Bespoke insights", "KOL identification"],
     logomarkClassName: "fill-white",
@@ -93,26 +125,26 @@ const plans = [
   {
     name: "Agency",
     featured: false,
-    price: { Monthly: "Talk to us", Biannually: "Talk to us" },
+    price: { Monthly: "Talk to us", Annually: "Talk to us" },
     description: "Best for maximizing growth with all features.",
     button: {
       Monthly: {
         label: "Reach out",
         href: "https://calendly.com/bijanfarsijani/25mincoffee",
       },
-      Biannually: {
+      Annually: {
         label: "Reach out",
         href: "https://calendly.com/bijanfarsijani/25mincoffee",
       },
     },
     features: [
-      "Custom feeds ",
-      "Custom notifications",
+      "15+ Keyword Feeds",
       "Schedule unlimited casts",
-      "Monitoring of unlimited search term",
-      "Connect unlimited accounts",
+      "15+ Keyword Alert",
+      "Analytics all-time history",
+      "Onchain user insights",
+      "Connect 5+ accounts",
       "Shared accounts",
-      "Analytics",
       "Bespoke insights",
       "KOL identification",
     ],
@@ -125,16 +157,16 @@ type PlanProps = {
   name: string;
   price: {
     Monthly: string;
-    Biannually: string;
+    Annually: string;
   };
   description: string;
   button: {
     Monthly: { label: string; href: string };
-    Biannually: { label: string; href: string };
+    Annually: { label: string; href: string };
   };
   features: Array<string>;
   unavilableFeatures: Array<string>;
-  activePeriod: "Monthly" | "Biannually";
+  activePeriod: "Monthly" | "Annually";
   logomarkClassName?: string;
   featured?: boolean;
 };
@@ -150,8 +182,8 @@ function Plan({
   logomarkClassName,
   featured = false,
 }: PlanProps) {
-  const isPayingUser = isPaidUser();
-  const isPaidPlan = price.Monthly !== "€0";
+  const isPayingUser = false; // isPaidUser();
+  const isPaidPlan = price.Monthly !== "$0";
 
   const renderPlanButton = () => (
     <Link
@@ -181,12 +213,12 @@ function Plan({
       >
         <h3
           className={cn(
-            "flex items-center text-sm font-semibold",
+            "flex items-center text-lg font-semibold",
             featured ? "text-white" : "text-gray-800"
           )}
         >
-          <Logomark className={cn("h-6 w-6 flex-none", logomarkClassName)} />
-          <span className="ml-4">{name}</span>
+          <Logo className={cn("h-6 w-6 rounded-lg flex-none", logomarkClassName)} />
+          <span className="ml-2">{name}</span>
         </h3>
         <p
           className={cn(
@@ -194,15 +226,15 @@ function Plan({
             featured ? "text-white" : "text-gray-800"
           )}
         >
-          {price.Monthly === price.Biannually ? (
+          {price.Monthly === price.Annually ? (
             price.Monthly
           ) : (
             <>
               <span
-                aria-hidden={activePeriod === "Biannually"}
+                aria-hidden={activePeriod === "Annually"}
                 className={cn(
                   "transition duration-300",
-                  activePeriod === "Biannually" &&
+                  activePeriod === "Annually" &&
                     "pointer-events-none translate-x-6 select-none opacity-0"
                 )}
               >
@@ -216,7 +248,7 @@ function Plan({
                     "pointer-events-none -translate-x-6 select-none opacity-0"
                 )}
               >
-                {price.Biannually}
+                {price.Annually}
               </span>
             </>
           )}
@@ -266,8 +298,8 @@ function Plan({
 }
 
 export function Pricing() {
-  const [activePeriod, setActivePeriod] = useState<"Monthly" | "Biannually">(
-    "Biannually"
+  const [activePeriod, setActivePeriod] = useState<"Monthly" | "Annually">(
+    "Annually"
   );
 
   return (
@@ -280,7 +312,7 @@ export function Pricing() {
               onChange={setActivePeriod}
               className="grid grid-cols-2"
             >
-              {["Monthly", "Biannually"].map((period) => (
+              {["Monthly", "Annually"].map((period) => (
                 <Radio
                   key={period}
                   value={period}
@@ -304,12 +336,12 @@ export function Pricing() {
                   : "[clip-path:inset(0_0_0_calc(50%-1px))]"
               )}
             >
-              {["Monthly", "Biannually"].map((period) => (
+              {["Monthly", "Annually"].map((period) => (
                 <div
                   key={period}
                   className={cn(
                     "py-2 text-center text-sm font-semibold text-white",
-                    period === "Biannually" && "-ml-px"
+                    period === "Annually" && "-ml-px"
                   )}
                 >
                   {period}
@@ -318,7 +350,7 @@ export function Pricing() {
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-4 grid max-w-2xl grid-cols-1 items-start gap-x-8 gap-y-10 sm:mt-8 lg:max-w-none lg:grid-cols-3">
+        <div className="mx-auto mt-4 grid max-w-full grid-cols-1 items-start gap-x-4 gap-y-10 sm:mt-8 md:grid-cols-2 g:max-w-none lg:grid-cols-4">
           {plans.map((plan) => (
             <Plan key={plan.name} {...plan} activePeriod={activePeriod} />
           ))}
@@ -332,7 +364,7 @@ export default function UpgradePage() {
   const router = useRouter();
   const { addUnsafeCustomerForUser } = useUserStore();
   const hasPaidViaStripe = router.query.success === "true";
-  const isPayingUser = isPaidUser();
+  const isPayingUser = false; //isPaidUser();
 
   useEffect(() => {
     if (hasPaidViaStripe && !isPayingUser) {

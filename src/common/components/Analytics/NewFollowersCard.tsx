@@ -11,6 +11,7 @@ import { CombinedActivityData } from "@/common/types/types";
 import { Interval } from "@/common/helpers/search";
 import { formatLargeNumber } from "@/common/helpers/text";
 import { subDays } from "date-fns";
+import { fillMissingDaysBetweenDates } from "@/common/helpers/analytics";
 
 type StatsWithGraphCard = {
   followerCount: number | undefined;
@@ -33,10 +34,13 @@ const NewFollowersCard = ({
     }
 
     const startDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
-    const filtered = aggregated.filter(
+    let filtered = aggregated.filter(
       (item) => new Date(item.timestamp) >= startDate
     );
 
+    // make sure that between startDate and now there are no missing days
+    // if there are, fill them with 0
+    filtered = fillMissingDaysBetweenDates(filtered, startDate, new Date());
     const calculateCount = (
       arr: typeof aggregated,
       i: number,
@@ -59,6 +63,7 @@ const NewFollowersCard = ({
     }, [] as CombinedActivityData["aggregated"]);
   }, [aggregated, interval]);
   const value = overview[interval === Interval.d7 ? "d7" : "d30"] || 0;
+
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-row items-stretch space-y-0 border-b border-foreground/20 p-0">
