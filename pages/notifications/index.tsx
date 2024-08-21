@@ -224,7 +224,7 @@ const Notifications = () => {
   );
 
   const getActionDescriptionForRow = (notification: Notification): string => {
-    const cast = notification.cast;  
+    const cast = notification.cast;
     switch (notification.type) {
       case NotificationTypeEnum.Reply:
         return cast ? `@${cast.author.username} replied` : "Someone replied";

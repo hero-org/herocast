@@ -92,7 +92,7 @@ const store = (set: StoreSet) => ({
       state.lists = state.lists.filter((list) => list.id !== listId);
     });
   },
-  setSelectedListId: (id: UUID |null) => {
+  setSelectedListId: (id: UUID | null) => {
     set((state) => {
       state.selectedListId = id;
     });
