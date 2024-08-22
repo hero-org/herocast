@@ -138,6 +138,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {
           name: 'Feeds',
           router: '/feeds',
+          additionalPaths: ['/conversation/[...slug]', '/feeds/[...slug]'],
           icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
           getTitle: getFeedTitle,
           getHeaderActions: () => {
@@ -183,7 +184,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             return actions;
           },
           shortcut: 'Shift + F',
-          additionalPaths: ['/conversation/[...slug]'],
         },
         {
           name: 'Post',
@@ -262,6 +262,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
     switch (pathname) {
       case '/feeds':
+      case '/feeds/[...slug]':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case '/post':
         return RIGHT_SIDEBAR_ENUM.PUBLISHED_CASTS;
@@ -299,7 +300,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     return navigationGroups
       .map((group) => group.items)
       .flat()
-      .find((item) => item.router === pathname);
+      .find((item) => item.router === pathname || item.additionalPaths?.includes(pathname));
   };
 
   const navItem = getNavItem(pathname);
