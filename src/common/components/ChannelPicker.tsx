@@ -1,27 +1,16 @@
-import * as React from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { take } from "lodash";
-import { useEffect } from "react";
-import uniqBy from "lodash.uniqby";
-import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { PersonIcon } from "@radix-ui/react-icons";
-import { formatLargeNumber } from "../helpers/text";
-import Fuse from "fuse.js";
-import map from "lodash.map";
-import orderBy from "lodash.orderby";
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { take } from 'lodash';
+import { useEffect } from 'react';
+import uniqBy from 'lodash.uniqby';
+import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { PersonIcon } from '@radix-ui/react-icons';
+import { formatLargeNumber } from '../helpers/text';
+import Fuse from 'fuse.js';
+import map from 'lodash.map';
+import orderBy from 'lodash.orderby';
 
 type Props = {
   getChannels: (query: string) => Promise<Channel[]>;
@@ -34,16 +23,14 @@ type Props = {
 
 export function ChannelPicker(props: Props) {
   const { getChannels, getAllChannels, onSelect } = props;
-  const [query, setQuery] = React.useState("");
+  const [query, setQuery] = React.useState('');
   const [open, setOpen] = React.useState(false);
   const [isPending, setIsPending] = React.useState(false);
 
-  const [channels, setChannels] = React.useState<Channel[]>(
-    props.initialChannels ?? []
-  );
+  const [channels, setChannels] = React.useState<Channel[]>(props.initialChannels ?? []);
 
   const setChannelResults = (newChannels: Channel[]) => {
-    setChannels(uniqBy(newChannels, "parent_url"));
+    setChannels(uniqBy(newChannels, 'parent_url'));
   };
 
   useEffect(() => {
@@ -81,7 +68,7 @@ export function ChannelPicker(props: Props) {
   );
 
   const fuse = new Fuse(channels, {
-    keys: ["name", "url"],
+    keys: ['name', 'url'],
   });
   const filteredChannels = React.useMemo(() => {
     if (channels.length === 0) return [];
@@ -89,10 +76,7 @@ export function ChannelPicker(props: Props) {
       return take(channels, 7);
     }
 
-    return take(
-      orderBy(map(fuse.search(query), "item"), "follower_count", "desc"),
-      7
-    );
+    return take(orderBy(map(fuse.search(query), 'item'), 'follower_count', 'desc'), 7);
   }, [query, channels, fuse]);
 
   return (
@@ -107,7 +91,7 @@ export function ChannelPicker(props: Props) {
           type="button"
         >
           <img
-            src={props.value.image_url ?? ""}
+            src={props.value.image_url ?? ''}
             alt={props.value.name}
             width={24}
             height={24}
@@ -119,41 +103,32 @@ export function ChannelPicker(props: Props) {
       <PopoverContent className="w-[400px] p-0" align="start">
         <Command>
           <CommandList>
-            <CommandInput
-              placeholder="Search Channels"
-              value={query}
-              onValueChange={(e) => setQuery(e)}
-            />
-            <CommandEmpty>
-              {isPending ? "Searching..." : "No channels found."}
-            </CommandEmpty>
+            <CommandInput placeholder="Search Channels" value={query} onValueChange={(e) => setQuery(e)} />
+            <CommandEmpty>{isPending ? 'Searching...' : 'No channels found.'}</CommandEmpty>
             <CommandGroup className="max-h-[300px] overflow-y-auto">
-              {(channels.length === 0 ? [props.value] : filteredChannels).map(
-                (channel) => (
-                  <CommandItem
-                    key={channel.parent_url || "home"}
-                    value={channel.name || "home"}
-                    className="cursor-pointer"
-                    onSelect={() => handleSelect(channel)}
-                  >
-                    <img
-                      src={channel.image_url ?? ""}
-                      alt={channel.name}
-                      width={24}
-                      height={24}
-                      className="mr-2 rounded-lg"
-                    />
-                    {channel.name}
-                    {channel.follower_count && (
-                      <span className="ml-1 border-l border-foreground/10 text-foreground/60">
-                        {" "}
-                        <PersonIcon className="ml-1 mb-1 h-3 w-3 inline" />{" "}
-                        {formatLargeNumber(channel.follower_count)}
-                      </span>
-                    )}
-                  </CommandItem>
-                )
-              )}
+              {(channels.length === 0 ? [props.value] : filteredChannels).map((channel) => (
+                <CommandItem
+                  key={channel.parent_url || 'home'}
+                  value={channel.name || 'home'}
+                  className="cursor-pointer"
+                  onSelect={() => handleSelect(channel)}
+                >
+                  <img
+                    src={channel.image_url ?? ''}
+                    alt={channel.name}
+                    width={24}
+                    height={24}
+                    className="mr-2 rounded-lg"
+                  />
+                  {channel.name}
+                  {channel.follower_count && (
+                    <span className="ml-1 border-l border-foreground/10 text-foreground/60">
+                      {' '}
+                      <PersonIcon className="ml-1 mb-1 h-3 w-3 inline" /> {formatLargeNumber(channel.follower_count)}
+                    </span>
+                  )}
+                </CommandItem>
+              ))}
             </CommandGroup>
           </CommandList>
         </Command>

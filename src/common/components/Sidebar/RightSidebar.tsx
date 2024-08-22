@@ -1,15 +1,15 @@
-import React from "react";
-import { useAccountStore } from "@/stores/useAccountStore";
-import EmptyStateWithAction from "@/common/components/EmptyStateWithAction";
-import isEmpty from "lodash.isempty";
-import ChannelsOverview from "./ChannelsOverview";
-import { useRouter } from "next/router";
-import { useDataStore } from "@/stores/useDataStore";
-import ProfileInfo from "./ProfileInfo";
-import SearchesOverview from "./SearchesOverview";
-import ListsOverview from "./ListsOverview";
-import ManageListsOverview from "./ManageListsOverview";
-import { Separator } from "@/components/ui/separator";
+import React from 'react';
+import { useAccountStore } from '@/stores/useAccountStore';
+import EmptyStateWithAction from '@/common/components/EmptyStateWithAction';
+import isEmpty from 'lodash.isempty';
+import ChannelsOverview from './ChannelsOverview';
+import { useRouter } from 'next/router';
+import { useDataStore } from '@/stores/useDataStore';
+import ProfileInfo from './ProfileInfo';
+import SearchesOverview from './SearchesOverview';
+import ListsOverview from './ListsOverview';
+import ManageListsOverview from './ManageListsOverview';
+import { Separator } from '@/components/ui/separator';
 
 type RightSidebarProps = {
   showFeeds?: boolean;
@@ -19,13 +19,7 @@ type RightSidebarProps = {
   showLists?: boolean;
 };
 
-const RightSidebar = ({
-  showFeeds,
-  showSearches,
-  showLists,
-  showManageLists,
-  showAuthorInfo,
-}: RightSidebarProps) => {
+const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, showAuthorInfo }: RightSidebarProps) => {
   const router = useRouter();
 
   const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
@@ -39,7 +33,7 @@ const RightSidebar = ({
       <EmptyStateWithAction
         title="Connect Farcaster accounts"
         description="Get started with herocast"
-        onClick={() => router.push("/accounts")}
+        onClick={() => router.push('/accounts')}
         submitText="Connect account"
       />
     </div>
@@ -50,23 +44,14 @@ const RightSidebar = ({
 
     return (
       <div className="pt-16 mx-4">
-        <ProfileInfo
-          fid={selectedCast.author.fid}
-          viewerFid={Number(selectedAccount.platformAccountId)}
-          showFullInfo
-        />
+        <ProfileInfo fid={selectedCast.author.fid} viewerFid={Number(selectedAccount.platformAccountId)} showFullInfo />
       </div>
     );
   };
 
-  const renderWithSeparator = (
-    component: JSX.Element,
-    showSeparator?: boolean
-  ) => (
+  const renderWithSeparator = (component: JSX.Element, showSeparator?: boolean) => (
     <>
-      {showSeparator !== undefined && showSeparator && (
-        <Separator className="my-2" />
-      )}
+      {showSeparator !== undefined && showSeparator && <Separator className="my-2" />}
       {component}
     </>
   );
@@ -74,9 +59,9 @@ const RightSidebar = ({
   return (
     <aside
       style={{
-        msOverflowStyle: "none",
-        scrollbarWidth: "none",
-        WebkitScrollbar: "none",
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        WebkitScrollbar: 'none',
       }}
       className="h-screen sticky top-0 bg-muted/40 w-full md:border-l md:border-foreground/5 overflow-y-auto"
     >
@@ -85,8 +70,7 @@ const RightSidebar = ({
         {isHydrated && !hasAccounts && renderEmptyState()}
         {showFeeds && <ChannelsOverview />}
         {showLists && renderWithSeparator(<ListsOverview />)}
-        {showManageLists &&
-          renderWithSeparator(<ManageListsOverview />, showFeeds || showLists)}
+        {showManageLists && renderWithSeparator(<ManageListsOverview />, showFeeds || showLists)}
         {showSearches && <SearchesOverview />}
       </div>
     </aside>

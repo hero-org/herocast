@@ -4,7 +4,7 @@ const MentionToken = createTokenClass('mention', {
   isLink: true,
   toHref() {
     return '/' + this.toString().slice(1);
-  }
+  },
 });
 
 export default function mentionPlugin({ scanner, parser }) {
@@ -43,7 +43,6 @@ export default function mentionPlugin({ scanner, parser }) {
   MentionDot.ta(domain, Mention);
   MentionDot.tt(HYPHEN, Mention);
   MentionDot.tt(UNDERSCORE, Mention);
-
 }
 export function cashtagPlugin({ scanner, parser }) {
   const { DOLLAR, UNDERSCORE } = scanner.tokens;

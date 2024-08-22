@@ -1,56 +1,44 @@
-import React, { RefObject, useEffect } from "react";
-import { useDraftStore } from "@/stores/useDraftStore";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { DraftStatus, DraftType } from "../../constants/farcaster";
-import { useHotkeys } from "react-hotkeys-hook";
-import { useEditor, EditorContent } from "@mod-protocol/react-editor";
-import { EmbedsEditor } from "@mod-protocol/react-ui-shadcn/dist/lib/embeds";
+import React, { RefObject, useEffect } from 'react';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { DraftStatus, DraftType } from '../../constants/farcaster';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { useEditor, EditorContent } from '@mod-protocol/react-editor';
+import { EmbedsEditor } from '@mod-protocol/react-ui-shadcn/dist/lib/embeds';
 
-import {
-  ModManifest,
-  fetchUrlMetadata,
-  handleAddEmbed,
-  handleOpenFile,
-  handleSetInput,
-} from "@mod-protocol/core";
-import { getFarcasterMentions } from "@mod-protocol/farcaster";
-import { createRenderMentionsSuggestionConfig } from "@mod-protocol/react-ui-shadcn/dist/lib/mentions";
-import { Button } from "@/components/ui/button";
-import { take } from "lodash";
-import { ChannelPicker } from "../ChannelPicker";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CreationMod } from "@mod-protocol/react";
-import { creationMods } from "@mod-protocol/mod-registry";
-import { renderers } from "@mod-protocol/react-ui-shadcn/dist/renderers";
-import map from "lodash.map";
-import { renderEmbedForUrl } from "../Embeds";
-import { PhotoIcon } from "@heroicons/react/20/solid";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import { Channel } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { ChannelList } from "../ChannelList";
-import isEmpty from "lodash.isempty";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { FarcasterEmbed } from "@mod-protocol/farcaster";
-import { DateTimePicker } from "@/components/ui/datetime-picker";
-import { toast } from "sonner";
-import { usePostHog } from "posthog-js/react";
-import { useTextLength } from "../../helpers/editor";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { isPaidUser } from "@/stores/useUserStore";
-import { MentionList } from "../MentionsList";
-import { useImgurUpload } from "@/common/hooks/useImgurUpload";
-import { getPlanLimitsForUser } from "@/config/planLimits";
+import { ModManifest, fetchUrlMetadata, handleAddEmbed, handleOpenFile, handleSetInput } from '@mod-protocol/core';
+import { getFarcasterMentions } from '@mod-protocol/farcaster';
+import { createRenderMentionsSuggestionConfig } from '@mod-protocol/react-ui-shadcn/dist/lib/mentions';
+import { Button } from '@/components/ui/button';
+import { take } from 'lodash';
+import { ChannelPicker } from '../ChannelPicker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CreationMod } from '@mod-protocol/react';
+import { creationMods } from '@mod-protocol/mod-registry';
+import { renderers } from '@mod-protocol/react-ui-shadcn/dist/renderers';
+import map from 'lodash.map';
+import { renderEmbedForUrl } from '../Embeds';
+import { PhotoIcon } from '@heroicons/react/20/solid';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { ChannelList } from '../ChannelList';
+import isEmpty from 'lodash.isempty';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
+import { toast } from 'sonner';
+import { usePostHog } from 'posthog-js/react';
+import { useTextLength } from '../../helpers/editor';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { isPaidUser } from '@/stores/useUserStore';
+import { MentionList } from '../MentionsList';
+import { useImgurUpload } from '@/common/hooks/useImgurUpload';
+import { getPlanLimitsForUser } from '@/config/planLimits';
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
-const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-);
+const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const getChannels = async (query: string): Promise<Channel[]> => {
   let channels: Channel[] = [];
@@ -72,7 +60,7 @@ const getUrlMetadata = fetchUrlMetadata(API_URL);
 
 const onError = (err) => {
   console.error(err);
-  if (process.env.NEXT_PUBLIC_VERCEL_ENV === "development") {
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'development') {
     window.alert(err.message);
   }
 };
@@ -96,16 +84,13 @@ export default function NewPostEntry({
   hideSchedule,
 }: NewPostEntryProps) {
   const posthog = usePostHog();
-  const { addScheduledDraft, updatePostDraft, publishPostDraft } =
-    useDraftStore();
+  const { addScheduledDraft, updatePostDraft, publishPostDraft } = useDraftStore();
   const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
 
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
-  const account = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]
-  );
+  const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const { allChannels } = useAccountStore();
   const isReply = draft?.parentCastId !== undefined;
 
@@ -127,7 +112,7 @@ export default function NewPostEntry({
     if (!scheduleDateTime) return true;
 
     if (date < new Date()) {
-      toast.info("Select a schedule time in the future");
+      toast.info('Select a schedule time in the future');
       return false;
     }
     return true;
@@ -141,7 +126,7 @@ export default function NewPostEntry({
     }
 
     if (scheduleDateTime) {
-      posthog.capture("user_schedule_cast");
+      posthog.capture('user_schedule_cast');
       await updatePostDraft(draftIdx, {
         ...draft,
         status: DraftStatus.publishing,
@@ -150,44 +135,39 @@ export default function NewPostEntry({
         draftIdx,
         scheduledFor: scheduleDateTime,
         onSuccess: () => {
-          console.log("onSuccess after addScheduledDraft");
+          console.log('onSuccess after addScheduledDraft');
           setScheduleDateTime(undefined);
           onPost?.();
         },
       });
     } else {
-      posthog.capture("user_post_cast");
+      posthog.capture('user_post_cast');
       await publishPostDraft(draftIdx, account, onPost);
     }
     return true;
   };
 
-  const ref = useHotkeys(
-    "meta+enter",
-    onSubmitPost,
-    [onSubmitPost, draft, account],
-    {
-      enableOnFormTags: true,
-    }
-  );
+  const ref = useHotkeys('meta+enter', onSubmitPost, [onSubmitPost, draft, account], {
+    enableOnFormTags: true,
+  });
 
   const { uploadImage, isUploading, error, image } = useImgurUpload();
 
   useEffect(() => {
     if (isUploading) {
-      toast.loading("Uploading image...", {
-        id: "image-upload",
+      toast.loading('Uploading image...', {
+        id: 'image-upload',
       });
     } else if (image) {
-      toast.success("Image uploaded", {
-        id: "image-upload",
+      toast.success('Image uploaded', {
+        id: 'image-upload',
       });
 
-      if (!embeds.find((embed) => "url" in embed && embed.url === image.link)) {
+      if (!embeds.find((embed) => 'url' in embed && embed.url === image.link)) {
         setEmbeds([
           ...embeds,
           {
-            status: "loaded",
+            status: 'loaded',
             url: image.link,
             metadata: {
               image: {
@@ -200,29 +180,19 @@ export default function NewPostEntry({
         ]);
       }
     } else if (error) {
-      console.error("failed uploading to imgur", error);
+      console.error('failed uploading to imgur', error);
       toast.error(error, {
-        id: "image-upload",
+        id: 'image-upload',
       });
     }
   }, [isUploading, error, image]);
 
   const isPublishing = draft?.status === DraftStatus.publishing;
-  const {
-    editor,
-    getText,
-    addEmbed,
-    getEmbeds,
-    setEmbeds,
-    setChannel,
-    getChannel,
-    handleSubmit,
-    setText,
-  } = useEditor({
+  const { editor, getText, addEmbed, getEmbeds, setEmbeds, setChannel, getChannel, handleSubmit, setText } = useEditor({
     fetchUrlMetadata: getUrlMetadata,
     onError,
     onSubmit: onSubmitPost,
-    linkClassName: "text-blue-500",
+    linkClassName: 'text-blue-500',
     renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
       getResults: getChannels,
       RenderList: ChannelList,
@@ -246,20 +216,16 @@ export default function NewPostEntry({
       },
 
       parseOptions: {
-        preserveWhitespace: "full",
+        preserveWhitespace: 'full',
       },
     },
   });
 
   useEffect(() => {
     if (!text && draft?.text && isEmpty(draft.mentionsToFids)) {
-      editor?.commands.setContent(
-        `<p>${draft.text.replace(/\n/g, "<br>")}</p>`,
-        true,
-        {
-          preserveWhitespace: "full",
-        }
-      );
+      editor?.commands.setContent(`<p>${draft.text.replace(/\n/g, '<br>')}</p>`, true, {
+        preserveWhitespace: 'full',
+      });
     }
 
     if (draft?.embeds) {
@@ -299,11 +265,11 @@ export default function NewPostEntry({
           id: rawChannel.name,
           url: rawChannel.url,
           name: rawChannel.name,
-          object: "channel",
+          object: 'channel',
           // @ts-expect-error - mod protocol channel type mismatch
           image_url: rawChannel.icon_url,
           parent_url: rawChannel.url,
-          description: "",
+          description: '',
           created_at: 0,
           // @ts-expect-error - mod protocol channel type mismatch
           lead: {},
@@ -313,24 +279,15 @@ export default function NewPostEntry({
   }, [draft?.parentUrl]);
 
   const getButtonText = () => {
-    if (isPublishing)
-      return scheduleDateTime ? "Scheduling..." : "Publishing...";
+    if (isPublishing) return scheduleDateTime ? 'Scheduling...' : 'Publishing...';
 
-    return `${scheduleDateTime ? "Schedule" : "Cast"}${account ? ` as ${account.name}` : ""}`;
+    return `${scheduleDateTime ? 'Schedule' : 'Cast'}${account ? ` as ${account.name}` : ''}`;
   };
 
   const scheduledCastCount =
-    useDraftStore((state) =>
-      state.drafts.filter((draft) => draft.status === DraftStatus.scheduled)
-    )?.length || 0;
-  const openSourcePlanLimits = getPlanLimitsForUser("openSource");
-  const hasReachedFreePlanLimit =
-    !isPaidUser() &&
-    scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
-  const isButtonDisabled =
-    isPublishing ||
-    !textLengthIsValid ||
-    (scheduleDateTime && hasReachedFreePlanLimit);
+    useDraftStore((state) => state.drafts.filter((draft) => draft.status === DraftStatus.scheduled))?.length || 0;
+  const hasReachedFreePlanLimit = !isPaidUser() && scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
+  const isButtonDisabled = isPublishing || !textLengthIsValid || (scheduleDateTime && hasReachedFreePlanLimit);
 
   if (!draft) return null;
 
@@ -344,22 +301,12 @@ export default function NewPostEntry({
       <form onSubmit={handleSubmit} className="w-full">
         {isPublishing ? (
           <div className="w-full h-full min-h-[150px]">
-            <Skeleton className="px-2 py-1 w-full h-full min-h-[150px] text-foreground/80">
-              {draft.text}
-            </Skeleton>
+            <Skeleton className="px-2 py-1 w-full h-full min-h-[150px] text-foreground/80">{draft.text}</Skeleton>
           </div>
         ) : (
           <div className="p-2 border-slate-200 rounded-lg border">
-            <EditorContent
-              editor={editor}
-              autoFocus
-              className="w-full h-full min-h-[150px] text-foreground/80"
-            />
-            <EmbedsEditor
-              embeds={[]}
-              setEmbeds={setEmbeds}
-              RichEmbed={() => <div />}
-            />
+            <EditorContent editor={editor} autoFocus className="w-full h-full min-h-[150px] text-foreground/80" />
+            <EmbedsEditor embeds={[]} setEmbeds={setEmbeds} RichEmbed={() => <div />} />
           </div>
         )}
 
@@ -413,20 +360,10 @@ export default function NewPostEntry({
               </div>
             </PopoverContent>
           </Popover>
-          {textLengthWarning && (
-            <div className={cn("my-2 ml-2 text-sm", textLengthTailwind)}>
-              {textLengthWarning}
-            </div>
-          )}
+          {textLengthWarning && <div className={cn('my-2 ml-2 text-sm', textLengthTailwind)}>{textLengthWarning}</div>}
           <div className="grow"></div>
           {onRemove && (
-            <Button
-              className="h-9"
-              variant="outline"
-              type="button"
-              onClick={onRemove}
-              disabled={isPublishing}
-            >
+            <Button className="h-9" variant="outline" type="button" onClick={onRemove} disabled={isPublishing}>
               Remove
             </Button>
           )}
@@ -468,9 +405,7 @@ export default function NewPostEntry({
               {renderEmbedForUrl({
                 ...embed,
                 onRemove: () => {
-                  const newEmbeds = draft.embeds.filter(
-                    (e) => e.url !== embed.url
-                  );
+                  const newEmbeds = draft.embeds.filter((e) => e.url !== embed.url);
                   updatePostDraft(draftIdx, { ...draft, embeds: newEmbeds });
                   window.location.reload();
                 },
@@ -483,10 +418,7 @@ export default function NewPostEntry({
   );
 }
 
-function extractImageAndUpload(args: {
-  data: DataTransfer | null;
-  uploadImage: (file: File) => void;
-}): boolean {
+function extractImageAndUpload(args: { data: DataTransfer | null; uploadImage: (file: File) => void }): boolean {
   const { data, uploadImage } = args;
 
   if (!data) {
@@ -495,7 +427,7 @@ function extractImageAndUpload(args: {
 
   const items = Array.from(data.items);
   for (const item of items) {
-    if (item.type.indexOf("image") === 0) {
+    if (item.type.indexOf('image') === 0) {
       const file = item.getAsFile();
       if (file) {
         uploadImage(file);

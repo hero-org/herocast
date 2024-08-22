@@ -1,24 +1,24 @@
-import React, { useState } from "react";
-import { useAccountStore } from "../../src/stores/useAccountStore";
-import isEmpty from "lodash.isempty";
-import { ChannelType } from "../../src/common/constants/channels";
-import findIndex from "lodash.findindex";
-import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
-import SortableList, { SortableItem } from "react-easy-sort";
-import { take } from "lodash";
-import Fuse from "fuse.js";
-import map from "lodash.map";
-import orderBy from "lodash.orderby";
-import { PersonIcon } from "@radix-ui/react-icons";
-import { formatLargeNumber } from "@/common/helpers/text";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/router";
-import filter from "lodash.filter";
-import { cn } from "@/lib/utils";
+import React, { useState } from 'react';
+import { useAccountStore } from '../../src/stores/useAccountStore';
+import isEmpty from 'lodash.isempty';
+import { ChannelType } from '../../src/common/constants/channels';
+import findIndex from 'lodash.findindex';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import SortableList, { SortableItem } from 'react-easy-sort';
+import { take } from 'lodash';
+import Fuse from 'fuse.js';
+import map from 'lodash.map';
+import orderBy from 'lodash.orderby';
+import { PersonIcon } from '@radix-ui/react-icons';
+import { formatLargeNumber } from '@/common/helpers/text';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/router';
+import filter from 'lodash.filter';
+import { cn } from '@/lib/utils';
 
 export default function Channels() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const {
     setSelectedChannelUrl,
     addPinnedChannel,
@@ -29,22 +29,16 @@ export default function Channels() {
     updatedPinnedChannelIndices,
   } = useAccountStore();
 
-  const channels = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]?.channels || []
-  );
+  const channels = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels || []);
 
   const fuse = new Fuse(allChannels, {
-    keys: ["name", "url"],
+    keys: ['name', 'url'],
   });
 
   const searchResults = take(
     searchTerm
-      ? map(fuse.search(searchTerm), "item")
-      : orderBy(
-          filter(allChannels, "data.followerCount"),
-          "data.followerCount",
-          "desc"
-        ),
+      ? map(fuse.search(searchTerm), 'item')
+      : orderBy(filter(allChannels, 'data.followerCount'), 'data.followerCount', 'desc'),
     50
   );
 
@@ -57,20 +51,15 @@ export default function Channels() {
   };
 
   const renderChannelCard = (channel: ChannelType, idx?: number) => {
-    const index = findIndex(channels, ["url", channel.url]);
+    const index = findIndex(channels, ['url', channel.url]);
     const enabled = index !== -1;
 
     return (
-      <div
-        className={cn(
-          enabled ? "cursor-move" : "",
-          "flex flex-row w-full max-w-lg"
-        )}
-      >
+      <div className={cn(enabled ? 'cursor-move' : '', 'flex flex-row w-full max-w-lg')}>
         {enabled && idx !== undefined && (
           <div
             className={cn(
-              "text-background bg-green-600/80 border-foreground/60 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-lg text-lg font-medium"
+              'text-background bg-green-600/80 border-foreground/60 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-lg text-lg font-medium'
             )}
           >
             {idx + 1}
@@ -78,10 +67,8 @@ export default function Channels() {
         )}
         <div
           className={cn(
-            enabled && idx !== undefined
-              ? "rounded-r-lg border-b border-r border-t"
-              : "rounded-lg border",
-            "flex flex-1 items-center justify-between truncate border-foreground/60 bg-muted-background p-2 pr-4"
+            enabled && idx !== undefined ? 'rounded-r-lg border-b border-r border-t' : 'rounded-lg border',
+            'flex flex-1 items-center justify-between truncate border-foreground/60 bg-muted-background p-2 pr-4'
           )}
         >
           {channel.icon_url ? (
@@ -98,9 +85,8 @@ export default function Channels() {
               {channel.name}
               {channel.data?.followerCount && (
                 <span className="ml-1 border-l border-foreground/10 text-foreground/60">
-                  {" "}
-                  <PersonIcon className="mb-1 h-3 w-3 inline" />{" "}
-                  {formatLargeNumber(channel.data.followerCount)}
+                  {' '}
+                  <PersonIcon className="mb-1 h-3 w-3 inline" /> {formatLargeNumber(channel.data.followerCount)}
                 </span>
               )}
             </p>
@@ -112,7 +98,7 @@ export default function Channels() {
             className="mr-2"
             onClick={() => {
               setSelectedChannelUrl(channel.url);
-              router.push("/feeds");
+              router.push('/feeds');
             }}
           >
             View
@@ -120,11 +106,9 @@ export default function Channels() {
           <Button
             variant="default"
             size="sm"
-            onClick={() =>
-              enabled ? removePinnedChannel(channel) : addPinnedChannel(channel)
-            }
+            onClick={() => (enabled ? removePinnedChannel(channel) : addPinnedChannel(channel))}
           >
-            {enabled ? "Remove" : "Pin"}
+            {enabled ? 'Remove' : 'Pin'}
           </Button>
         </div>
       </div>
@@ -142,9 +126,7 @@ export default function Channels() {
       <div>
         <div className="border-b border-gray-500 sm:flex sm:items-center sm:justify-between">
           <div className="flex flex-col">
-            <h2 className="text-lg font-medium text-foreground/80 leading-6">
-              Pinned channels
-            </h2>
+            <h2 className="text-lg font-medium text-foreground/80 leading-6">Pinned channels</h2>
             <h3 className="text-sm font-medium text-foreground/80">
               Pinned channels appear in your feeds. Drag to reorder.
             </h3>
@@ -158,9 +140,7 @@ export default function Channels() {
             >
               {channels.map((channel, idx) => (
                 <SortableItem key={`channel-pinned-${channel.id}`}>
-                  <div className="col-span-1 flex rounded-md shadow-sm">
-                    {renderChannelCard(channel, idx)}
-                  </div>
+                  <div className="col-span-1 flex rounded-md shadow-sm">{renderChannelCard(channel, idx)}</div>
                 </SortableItem>
               ))}
             </SortableList>
@@ -175,12 +155,8 @@ export default function Channels() {
       <div className="mt-8 min-h-full">
         <div className="border-b border-gray-500 sm:flex sm:items-center sm:justify-between">
           <div className="flex flex-col">
-            <h2 className="text-lg font-medium text-foreground/80 leading-6">
-              All channels
-            </h2>
-            <h3 className="text-sm font-medium text-foreground/80">
-              Search and pin new channels
-            </h3>
+            <h2 className="text-lg font-medium text-foreground/80 leading-6">All channels</h2>
+            <h3 className="text-sm font-medium text-foreground/80">Search and pin new channels</h3>
           </div>
         </div>
         <div className="my-4">
@@ -193,10 +169,7 @@ export default function Channels() {
           <div className="flex rounded-md shadow-sm max-w-md">
             <div className="relative flex-grow focus-within:z-10">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <MagnifyingGlassIcon
-                  className="h-5 w-5 text-foreground/70"
-                  aria-hidden="true"
-                />
+                <MagnifyingGlassIcon className="h-5 w-5 text-foreground/70" aria-hidden="true" />
               </div>
               <input
                 onChange={handleSearchChange}
@@ -219,15 +192,9 @@ export default function Channels() {
             </div>
           </div>
         </div>
-        <ul
-          role="list"
-          className="mt-3 mb-48 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6"
-        >
+        <ul role="list" className="mt-3 mb-48 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
           {searchResults.map((channel) => (
-            <li
-              key={`all-channels-${channel.id}`}
-              className="col-span-1 flex rounded-md shadow-sm"
-            >
+            <li key={`all-channels-${channel.id}`} className="col-span-1 flex rounded-md shadow-sm">
               {renderChannelCard(channel)}
             </li>
           ))}

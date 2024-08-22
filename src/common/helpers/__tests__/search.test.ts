@@ -33,24 +33,32 @@ describe('getTextMatchCondition', () => {
   test('should handle complex query with multiple quoted phrases and operators', () => {
     const query = '"happy days" AND "sunny skies" -rainy';
     const result = getTextMatchCondition(query);
-    expect(result).toBe(`${TEXT_COLUMN} ~* '\\mhappy days\\M' AND ${TEXT_COLUMN} ~* '\\msunny skies\\M' AND tsv @@ websearch_to_tsquery('english', '-rainy')`);
+    expect(result).toBe(
+      `${TEXT_COLUMN} ~* '\\mhappy days\\M' AND ${TEXT_COLUMN} ~* '\\msunny skies\\M' AND tsv @@ websearch_to_tsquery('english', '-rainy')`
+    );
   });
 
   test('should handle complex query with OR operator', () => {
     const result = getTextMatchCondition('"happy days" OR sunshine');
-    expect(result).toBe(`(${TEXT_COLUMN} ~* '\\mhappy days\\M') OR (tsv @@ websearch_to_tsquery('english', 'sunshine'))`);
+    expect(result).toBe(
+      `(${TEXT_COLUMN} ~* '\\mhappy days\\M') OR (tsv @@ websearch_to_tsquery('english', 'sunshine'))`
+    );
   });
 
   test('should handle complex query with mixed elements', () => {
     const query = 'complex -query with "mixed elements"';
     const result = getTextMatchCondition(query);
-    expect(result).toBe(`tsv @@ websearch_to_tsquery('english', 'complex') AND tsv @@ websearch_to_tsquery('english', '-query') AND tsv @@ websearch_to_tsquery('english', 'with') AND ${TEXT_COLUMN} ~* '\\mmixed elements\\M'`);
+    expect(result).toBe(
+      `tsv @@ websearch_to_tsquery('english', 'complex') AND tsv @@ websearch_to_tsquery('english', '-query') AND tsv @@ websearch_to_tsquery('english', 'with') AND ${TEXT_COLUMN} ~* '\\mmixed elements\\M'`
+    );
   });
 
   test('should handle word followed by negated word without boolean operator', () => {
     const query = 'apple -banana';
     const result = getTextMatchCondition(query);
-    expect(result).toBe(`tsv @@ websearch_to_tsquery('english', 'apple') AND tsv @@ websearch_to_tsquery('english', '-banana')`);
+    expect(result).toBe(
+      `tsv @@ websearch_to_tsquery('english', 'apple') AND tsv @@ websearch_to_tsquery('english', '-banana')`
+    );
   });
 
   test('should handle two phrases with OR operator and no quotation marks', () => {
@@ -62,6 +70,8 @@ describe('getTextMatchCondition', () => {
   test('should handle three phrases with OR operator and no quotation marks', () => {
     const query = 'happy days OR sunny skies OR rainy nights';
     const result = getTextMatchCondition(query);
-    expect(result).toBe(`(${TEXT_COLUMN} ~* '\\mhappy days\\M') OR (${TEXT_COLUMN} ~* '\\msunny skies\\M') OR (${TEXT_COLUMN} ~* '\\mrainy nights\\M')`);
+    expect(result).toBe(
+      `(${TEXT_COLUMN} ~* '\\mhappy days\\M') OR (${TEXT_COLUMN} ~* '\\msunny skies\\M') OR (${TEXT_COLUMN} ~* '\\mrainy nights\\M')`
+    );
   });
 });

@@ -19,11 +19,7 @@
       "active": true,
       "targets": "all",
       "identifier": "xyz.herocast.app",
-      "icon": [
-        "icons/icon.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
+      "icon": ["icons/icon.png", "icons/icon.icns", "icons/icon.ico"],
       "resources": [],
       "externalBin": [],
       "copyright": "",
@@ -48,9 +44,7 @@
     },
     "updater": {
       "active": true,
-      "endpoints": [
-        "https://d32vffgl135n53.cloudfront.net/{{target}}/{{arch}}/{{current_version}}"
-      ],
+      "endpoints": ["https://d32vffgl135n53.cloudfront.net/{{target}}/{{arch}}/{{current_version}}"],
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDIzNUU1RTRBNDAzNzZFRDcKUldUWGJqZEFTbDVlSTNkWWt0ZUlCM0NmMEV3QTNZM2x0OFVZVjlZdEtOZlpGREpjU2NlSGJRaUcK"
     },
@@ -61,9 +55,7 @@
       "http": {
         "all": true,
         "request": true,
-        "scope": [
-          "https://*"
-        ]
+        "scope": ["https://*"]
       }
     },
     "windows": [

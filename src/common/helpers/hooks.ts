@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState, useCallback, useEffect, useRef } from "react";
+import { useLayoutEffect, useState, useCallback, useEffect, useRef } from 'react';
 import debounce from 'lodash/debounce';
 
 /**
@@ -15,11 +15,13 @@ export function useIsMounted(): () => boolean {
       mountedRef.current = false;
     };
   }, []);
-  return useCallback(function isMounted() {
-    return mountedRef.current;
-  }, [mountedRef]);
+  return useCallback(
+    function isMounted() {
+      return mountedRef.current;
+    },
+    [mountedRef]
+  );
 }
-
 
 export const useIsMobile = (): boolean => {
   const [isMobile, setIsMobile] = useState(false);

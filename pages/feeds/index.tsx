@@ -1,49 +1,30 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  AccountObjectType,
-  CUSTOM_CHANNELS,
-  hydrateAccounts,
-  useAccountStore,
-} from "@/stores/useAccountStore";
-import { useHotkeys } from "react-hotkeys-hook";
-import get from "lodash.get";
-import { CastRow } from "@/common/components/CastRow";
-import isEmpty from "lodash.isempty";
-import { CastThreadView } from "@/common/components/CastThreadView";
-import { SelectableListWithHotkeys } from "@/common/components/SelectableListWithHotkeys";
-import { Key } from "ts-key-enum";
-import EmbedsModal from "@/common/components/EmbedsModal";
-import { useInView } from "react-intersection-observer";
-import { Button } from "@/components/ui/button";
-import { FilterType, NeynarAPIClient } from "@neynar/nodejs-sdk";
-import {
-  CastWithInteractions,
-  FeedType,
-} from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { Loading } from "@/common/components/Loading";
-import uniqBy from "lodash.uniqby";
-import { useDataStore } from "@/stores/useDataStore";
-import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
+import React, { useEffect, useState, useCallback } from 'react';
+import { AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
+import { useHotkeys } from 'react-hotkeys-hook';
+import get from 'lodash.get';
+import { CastRow } from '@/common/components/CastRow';
+import isEmpty from 'lodash.isempty';
+import { CastThreadView } from '@/common/components/CastThreadView';
+import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import { Key } from 'ts-key-enum';
+import EmbedsModal from '@/common/components/EmbedsModal';
+import { useInView } from 'react-intersection-observer';
+import { Button } from '@/components/ui/button';
+import { FilterType, NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { CastWithInteractions, FeedType } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { Loading } from '@/common/components/Loading';
+import uniqBy from 'lodash.uniqby';
+import { useDataStore } from '@/stores/useDataStore';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useDraftStore } from "@/stores/useDraftStore";
-import CreateAccountPage from "pages/welcome/new";
-import { AccountStatusType } from "@/common/constants/accounts";
-import { createClient } from "@/common/helpers/supabase/component";
-import includes from "lodash.includes";
-import { useListStore } from "@/stores/useListStore";
-import {
-  getCastsFromSearch,
-  Interval,
-  SearchFilters,
-} from "@/common/helpers/search";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDraftStore } from '@/stores/useDraftStore';
+import CreateAccountPage from 'pages/welcome/new';
+import { AccountStatusType } from '@/common/constants/accounts';
+import { createClient } from '@/common/helpers/supabase/component';
+import includes from 'lodash.includes';
+import { useListStore } from '@/stores/useListStore';
+import { getCastsFromSearch, Interval, SearchFilters } from '@/common/helpers/search';
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -58,7 +39,7 @@ type FeedKeyToFeed = {
 const EMPTY_FEED: Feed = {
   casts: [],
   isLoading: false,
-  nextCursor: "",
+  nextCursor: '',
 };
 
 const getFeedKey = ({
@@ -77,40 +58,32 @@ const getFeedKey = ({
   } else if (account) {
     return account.platformAccountId!;
   }
-  throw new Error("No feed key found");
+  throw new Error('No feed key found');
 };
 
 const DEFAULT_FEED_PAGE_SIZE = 15;
-const neynarClient = new NeynarAPIClient(
-  process.env.NEXT_PUBLIC_NEYNAR_API_KEY!
-);
+const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const supabaseClient = createClient();
 
 export default function Feeds() {
   const [feeds, setFeeds] = useState<FeedKeyToFeed>({});
-  const [loadingMessage, setLoadingMessage] = useState("Loading feed");
+  const [loadingMessage, setLoadingMessage] = useState('Loading feed');
   const [isRefreshingPage, setIsRefreshingPage] = useState(false);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
 
   const { lists, selectedListId, setSelectedListId } = useListStore();
-  const {
-    isNewCastModalOpen,
-    setCastModalView,
-    openNewCastModal,
-    closeNewCastModal,
-    setCastModalDraftId,
-  } = useNavigationStore();
+  const { isNewCastModalOpen, setCastModalView, openNewCastModal, closeNewCastModal, setCastModalDraftId } =
+    useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
 
   const { ref: buttonRef, inView } = useInView({
     threshold: 0,
     delay: 100,
   });
-  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated } =
-    useAccountStore();
+  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated } = useAccountStore();
 
   const { selectedCast, updateSelectedCast } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
@@ -134,15 +107,15 @@ export default function Feeds() {
   };
 
   const setIsLoadingFeed = (feedKey: string, isLoading: boolean) => {
-    updateFeed(feedKey, "isLoading", isLoading);
+    updateFeed(feedKey, 'isLoading', isLoading);
   };
 
   const setCastsForFeed = (feedKey: string, casts: CastWithInteractions[]) => {
-    updateFeed(feedKey, "casts", casts);
+    updateFeed(feedKey, 'casts', casts);
   };
 
   const setNextFeedCursor = (cursor: string) => {
-    updateFeed(feedKey, "nextCursor", cursor);
+    updateFeed(feedKey, 'nextCursor', cursor);
   };
 
   const feedKey = getFeedKey({ selectedChannelUrl, account, selectedListId });
@@ -163,23 +136,18 @@ export default function Feeds() {
   }, [feedKey]);
 
   useEffect(() => {
-    const shouldUpdateLastReadTimestamp = !includes(
-      [CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING],
-      feedKey
-    );
+    const shouldUpdateLastReadTimestamp = !includes([CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING], feedKey);
     if (account && account.channels.length && shouldUpdateLastReadTimestamp) {
-      const channelId = account.channels.find(
-        (channel) => channel.url === selectedChannelUrl
-      )?.id;
+      const channelId = account.channels.find((channel) => channel.url === selectedChannelUrl)?.id;
       if (!channelId) return;
 
       supabaseClient
-        .from("accounts_to_channel")
+        .from('accounts_to_channel')
         .update({
           last_read: new Date().toISOString(),
         })
-        .eq("account_id", account.id)
-        .eq("channel_id", channelId);
+        .eq('account_id', account.id)
+        .eq('channel_id', channelId);
     }
   }, [account, selectedChannelUrl]);
 
@@ -215,13 +183,7 @@ export default function Feeds() {
         openNewCastModal();
       },
     });
-  }, [
-    selectedCast,
-    setCastModalView,
-    addNewPostDraft,
-    setCastModalDraftId,
-    openNewCastModal,
-  ]);
+  }, [selectedCast, setCastModalView, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
 
   const onQuote = useCallback(() => {
     if (!selectedCast) return;
@@ -242,17 +204,10 @@ export default function Feeds() {
         openNewCastModal();
       },
     });
-  }, [
-    selectedCast,
-    setCastModalView,
-    updateSelectedCast,
-    addNewPostDraft,
-    setCastModalDraftId,
-    openNewCastModal,
-  ]);
+  }, [selectedCast, setCastModalView, updateSelectedCast, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
 
   useHotkeys(
-    [Key.Escape, "§"],
+    [Key.Escape, '§'],
     () => {
       setShowCastThreadView(false);
     },
@@ -264,35 +219,29 @@ export default function Feeds() {
     }
   );
 
-  useHotkeys("r", onReply, [openNewCastModal, selectedCast], {
+  useHotkeys('r', onReply, [openNewCastModal, selectedCast], {
     enabled: !isNewCastModalOpen,
     enableOnFormTags: false,
     preventDefault: true,
   });
 
-  useHotkeys("q", onQuote, [openNewCastModal, selectedCast], {
+  useHotkeys('q', onQuote, [openNewCastModal, selectedCast], {
     enabled: !isNewCastModalOpen,
     enableOnFormTags: false,
     preventDefault: true,
   });
 
   const getFeedType = (parentUrl: string | undefined) =>
-    parentUrl === CUSTOM_CHANNELS.FOLLOWING
-      ? FeedType.Following
-      : FeedType.Filter;
+    parentUrl === CUSTOM_CHANNELS.FOLLOWING ? FeedType.Following : FeedType.Filter;
 
   const getFilterType = (parentUrl: string | undefined) => {
     if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) return undefined;
-    if (parentUrl === CUSTOM_CHANNELS.TRENDING)
-      return FilterType.GlobalTrending;
+    if (parentUrl === CUSTOM_CHANNELS.TRENDING) return FilterType.GlobalTrending;
     return FilterType.ParentUrl;
   };
 
   const getParentUrl = (parentUrl: string | undefined) =>
-    parentUrl === CUSTOM_CHANNELS.FOLLOWING ||
-    parentUrl === CUSTOM_CHANNELS.TRENDING
-      ? undefined
-      : parentUrl;
+    parentUrl === CUSTOM_CHANNELS.FOLLOWING || parentUrl === CUSTOM_CHANNELS.TRENDING ? undefined : parentUrl;
 
   const getFeed = async ({
     fid,
@@ -320,7 +269,7 @@ export default function Feeds() {
       if (selectedListId) {
         const selectedList = lists.find((list) => list.id === selectedListId);
         if (!selectedList) {
-          throw new Error("Selected list not found");
+          throw new Error('Selected list not found');
         }
         const { term } = selectedList.contents as { term: string };
         let { filters } = selectedList.contents as { filters: SearchFilters };
@@ -341,10 +290,7 @@ export default function Feeds() {
           offset: Number(cursor) || 0,
         });
       } else if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
-        newFeed = await neynarClient.fetchUserFollowingFeed(
-          Number(fid),
-          feedOptions
-        );
+        newFeed = await neynarClient.fetchUserFollowingFeed(Number(fid), feedOptions);
       } else if (parentUrl === CUSTOM_CHANNELS.TRENDING) {
         newFeed = await neynarClient.fetchTrendingFeed({
           ...feedOptions,
@@ -364,20 +310,14 @@ export default function Feeds() {
           fid: number;
         };
 
-        newFeed = await neynarClient.fetchFeed(
-          getFeedType(parentUrl),
-          feedOptions
-        );
+        newFeed = await neynarClient.fetchFeed(getFeedType(parentUrl), feedOptions);
         if (!newFeed?.casts || newFeed.casts.length === 0) {
-          setLoadingMessage("Taking longer than expected, trying again...");
-          newFeed = await neynarClient.fetchFeed(
-            getFeedType(parentUrl),
-            feedOptions
-          );
+          setLoadingMessage('Taking longer than expected, trying again...');
+          newFeed = await neynarClient.fetchFeed(getFeedType(parentUrl), feedOptions);
         }
       }
 
-      const castsInFeed = uniqBy([...casts, ...newFeed.casts], "hash");
+      const castsInFeed = uniqBy([...casts, ...newFeed.casts], 'hash');
       setCastsForFeed(feedKey, castsInFeed);
       if (newFeed?.next?.cursor) {
         setNextFeedCursor(newFeed.next.cursor);
@@ -385,9 +325,9 @@ export default function Feeds() {
         setNextFeedCursor(castsInFeed.length.toString());
       }
     } catch (e) {
-      console.error("Error fetching feed", e);
+      console.error('Error fetching feed', e);
     } finally {
-      setLoadingMessage("Loading feed");
+      setLoadingMessage('Loading feed');
       setIsLoadingFeed(feedKey, false);
     }
   };
@@ -406,17 +346,13 @@ export default function Feeds() {
   }, [selectedChannelUrl, selectedListId]);
 
   const renderRow = (item: any, idx: number) => (
-    <li
-      key={item?.hash}
-      className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full"
-    >
+    <li key={item?.hash} className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
       <CastRow
         cast={item}
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
         showChannel={
-          selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING ||
-          selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
+          selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
         }
       />
     </li>
@@ -424,11 +360,11 @@ export default function Feeds() {
 
   const getButtonText = (): string => {
     if (isLoadingFeed) {
-      return "Loading...";
+      return 'Loading...';
     } else if (casts.length === 0) {
-      return "Load feed";
+      return 'Load feed';
     } else {
-      return "Load more";
+      return 'Load more';
     }
   };
 
@@ -472,21 +408,14 @@ export default function Feeds() {
   );
 
   const renderEmbedsModal = () => {
-    return (
-      <EmbedsModal
-        open={showEmbedsModal}
-        setOpen={() => setShowEmbedsModal(false)}
-        cast={selectedCast!}
-      />
-    );
+    return <EmbedsModal open={showEmbedsModal} setOpen={() => setShowEmbedsModal(false)} cast={selectedCast!} />;
   };
 
   const renderWelcomeMessage = () => {
     if (
       isHydrated &&
       !isLoadingFeed &&
-      accounts.filter((acc) => acc.status === AccountStatusType.active)
-        .length === 0
+      accounts.filter((acc) => acc.status === AccountStatusType.active).length === 0
     ) {
       return <CreateAccountPage />;
     }
@@ -497,9 +426,7 @@ export default function Feeds() {
         <Card className="max-w-sm col-span-1 m-4">
           <CardHeader>
             <CardTitle>Feed is empty</CardTitle>
-            <CardDescription>
-              Seems like there is nothing to see here.
-            </CardDescription>
+            <CardDescription>Seems like there is nothing to see here.</CardDescription>
           </CardHeader>
           <CardFooter>
             <Button

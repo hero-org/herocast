@@ -1,19 +1,15 @@
-import React, { useState } from "react";
-import { useListStore } from "@/stores/useListStore";
-import sortBy from "lodash.sortby";
-import { List } from "@/common/types/database.types";
+import React, { useState } from 'react';
+import { useListStore } from '@/stores/useListStore';
+import sortBy from 'lodash.sortby';
+import { List } from '@/common/types/database.types';
 
-import { Button } from "@/components/ui/button";
-import { UUID } from "crypto";
-import { useAccountStore } from "@/stores/useAccountStore";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import { Button } from '@/components/ui/button';
+import { UUID } from 'crypto';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 
 const ListsOverview = () => {
   const { selectedListId, setSelectedListId } = useListStore();
@@ -29,12 +25,10 @@ const ListsOverview = () => {
     setSelectedChannelUrl(null);
   };
 
-  const renderFeedHeader = (title: string, button?) => {
+  const renderFeedHeader = (title: string | JSX.Element, button?) => {
     return (
       <div className="flex items-center px-4 py-1 sm:px-4">
-        <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary">
-          {title}
-        </h3>
+        <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary">{title}</h3>
         {button}
       </div>
     );
@@ -48,10 +42,8 @@ const ListsOverview = () => {
         <div
           onClick={() => updateSelectedList(list.id)}
           className={cn(
-            isSelected
-              ? "text-foreground font-semibold"
-              : "text-foreground/80 hover:text-foreground/80",
-            "flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer"
+            isSelected ? 'text-foreground font-semibold' : 'text-foreground/80 hover:text-foreground/80',
+            'flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
           )}
         >
           <span className="flex-nowrap truncate">{list.name}</span>
@@ -65,15 +57,11 @@ const ListsOverview = () => {
       <ul role="list" className="px-4 py-1 sm:px-4">
         <Collapsible open={isShowAllLists} onOpenChange={setIsShowAllLists}>
           {lists.slice(0, 5).map(renderList)}
-          <CollapsibleContent className="">
-            {lists.slice(5).map(renderList)}
-          </CollapsibleContent>
+          <CollapsibleContent className="">{lists.slice(5).map(renderList)}</CollapsibleContent>
           {lists.length > 5 && (
             <CollapsibleTrigger asChild>
               <Button variant="outline" size="sm" className="h-6 px-1">
-                <span className="">
-                  Show {isShowAllLists ? "less" : "more"}
-                </span>
+                <span className="">Show {isShowAllLists ? 'less' : 'more'}</span>
               </Button>
             </CollapsibleTrigger>
           )}
@@ -96,10 +84,7 @@ const ListsOverview = () => {
     <div className="">
       {renderFeedHeader(
         <span className="flex">
-          <MagnifyingGlassIcon
-            className="mt-1 mr-1 h-5 w-5"
-            aria-hidden="true"
-          />
+          <MagnifyingGlassIcon className="mt-1 mr-1 h-5 w-5" aria-hidden="true" />
           Searches
         </span>,
         <Link href="/search">

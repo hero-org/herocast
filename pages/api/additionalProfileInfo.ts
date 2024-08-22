@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getAirstackSocialInfoForFid } from '@/common/helpers/airstack';
 import { getIcebreakerSocialInfoForFid } from '@/common/helpers/icebreaker';
 
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
@@ -16,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const [airstackSocialInfo, icebreakerSocialInfo] = await Promise.all([
       getAirstackSocialInfoForFid(fid),
-      getIcebreakerSocialInfoForFid(fid)
+      getIcebreakerSocialInfoForFid(fid),
     ]);
     res.status(200).json({ airstackSocialInfo, icebreakerSocialInfo });
   } catch (error) {

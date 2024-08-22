@@ -1,11 +1,6 @@
-import React, { Fragment, useEffect, useState } from "react";
-import { Dialog, Transition } from "@headlessui/react";
-import {
-  ArrowUpCircleIcon,
-  Cog6ToothIcon,
-  PencilSquareIcon,
-  UserIcon,
-} from "@heroicons/react/20/solid";
+import React, { Fragment, useEffect, useState } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { ArrowUpCircleIcon, Cog6ToothIcon, PencilSquareIcon, UserIcon } from '@heroicons/react/20/solid';
 import {
   Bars3Icon,
   UserPlusIcon,
@@ -13,34 +8,28 @@ import {
   MagnifyingGlassIcon,
   NewspaperIcon,
   RectangleGroupIcon,
-} from "@heroicons/react/24/solid";
-import { useRouter } from "next/router";
-import Image from "next/image";
-import { RIGHT_SIDEBAR_ENUM } from "../common/constants/navigation";
-import RightSidebar from "@/common/components/Sidebar/RightSidebar";
-import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
-import { ThemeToggle } from "@/common/components/ThemeToggle";
-import { Toaster } from "@/components/ui/sonner";
-import AccountSwitcher from "@/common/components/Sidebar/AccountSwitcher";
-import { cn } from "@/lib/utils";
-import { Loading } from "@/common/components/Loading";
-import useInitializeStores from "@/common/hooks/useInitializeStores";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AccountPlatformType } from "@/common/constants/accounts";
-import NewCastModal from "@/common/components/NewCastModal";
-import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import { useDraftStore } from "@/stores/useDraftStore";
-import Link from "next/link";
-import { ChartBarIcon } from "@heroicons/react/20/solid";
-import PublishedCastsRightSidebar from "@/common/components/Sidebar/PublishedCastsRightSidebar";
-import { useListStore } from "@/stores/useListStore";
+} from '@heroicons/react/24/solid';
+import { useRouter } from 'next/router';
+import Image from 'next/image';
+import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
+import RightSidebar from '@/common/components/Sidebar/RightSidebar';
+import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
+import { ThemeToggle } from '@/common/components/ThemeToggle';
+import { Toaster } from '@/components/ui/sonner';
+import AccountSwitcher from '@/common/components/Sidebar/AccountSwitcher';
+import { cn } from '@/lib/utils';
+import { Loading } from '@/common/components/Loading';
+import useInitializeStores from '@/common/hooks/useInitializeStores';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AccountPlatformType } from '@/common/constants/accounts';
+import NewCastModal from '@/common/components/NewCastModal';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import Link from 'next/link';
+import { ChartBarIcon } from '@heroicons/react/20/solid';
+import PublishedCastsRightSidebar from '@/common/components/Sidebar/PublishedCastsRightSidebar';
+import { useListStore } from '@/stores/useListStore';
 
 type NavigationGroupType = {
   name: string;
@@ -70,13 +59,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const { asPath, pathname } = router;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const {
-    allChannels,
-    selectedChannelUrl,
-    isHydrated,
-    addPinnedChannel,
-    removePinnedChannel,
-  } = useAccountStore();
+  const { allChannels, selectedChannelUrl, isHydrated, addPinnedChannel, removePinnedChannel } = useAccountStore();
   const {
     castModalDraftId,
     isNewCastModalOpen,
@@ -85,29 +68,23 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     setCastModalView,
     setCastModalDraftId,
   } = useNavigationStore();
-  const selectedList = useListStore((state) =>
-    state.lists.find((l) => l.id === state.selectedListId)
-  );
+  const selectedList = useListStore((state) => state.lists.find((l) => l.id === state.selectedListId));
   const { addNewPostDraft } = useDraftStore();
-  const channels = useAccountStore(
-    (state) => state.accounts[state.selectedAccountIdx]?.channels || []
-  );
+  const channels = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels || []);
   const pageRequiresHydrate =
-    asPath !== "/login" &&
-    !asPath.startsWith("/profile") &&
-    !asPath.startsWith("/conversation") &&
-    !asPath.startsWith("/analytics");
+    asPath !== '/login' &&
+    !asPath.startsWith('/profile') &&
+    !asPath.startsWith('/conversation') &&
+    !asPath.startsWith('/analytics');
 
   const isReadOnlyUser = useAccountStore(
     (state) =>
-      state.accounts.length === 1 &&
-      state.accounts[0].platform ===
-        AccountPlatformType.farcaster_local_readonly
+      state.accounts.length === 1 && state.accounts[0].platform === AccountPlatformType.farcaster_local_readonly
   );
 
   const loadingMessages = [
-    "Preparing your Farcaster experience",
-    "Loading herocast",
+    'Preparing your Farcaster experience',
+    'Loading herocast',
     "You haven't been here for a while, welcome back!",
   ];
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
@@ -115,9 +92,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!isHydrated) {
       const interval = setInterval(() => {
-        setCurrentMessageIndex(
-          (prevIndex) => (prevIndex + 1) % loadingMessages.length
-        );
+        setCurrentMessageIndex((prevIndex) => (prevIndex + 1) % loadingMessages.length);
       }, 3000); // Change message every 3 seconds
 
       return () => clearInterval(interval);
@@ -129,15 +104,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       return selectedList.name;
     }
     if (selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING.toString()) {
-      return "Following Feed";
+      return 'Following Feed';
     }
     if (selectedChannelUrl === CUSTOM_CHANNELS.TRENDING.toString()) {
-      return "Trending Feed";
+      return 'Trending Feed';
     }
 
-    const selectedChannelIdx = allChannels?.findIndex(
-      (channel) => channel.url === selectedChannelUrl
-    );
+    const selectedChannelIdx = allChannels?.findIndex((channel) => channel.url === selectedChannelUrl);
     if (selectedChannelIdx !== -1) {
       const channel = allChannels[selectedChannelIdx];
       return (
@@ -148,39 +121,34 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               alt={`${channel.name} icon`}
               width={20}
               height={20}
-              className={cn("mr-1 bg-gray-100 border flex-none rounded-full")}
+              className={cn('mr-1 bg-gray-100 border flex-none rounded-full')}
             />
           )}
           <span className="max-w-xs flex truncate">{channel.name} channel</span>
         </div>
       );
     }
-    return "Feed";
+    return 'Feed';
   };
 
   const navigationGroups: NavigationGroupType[] = [
     {
-      name: "main",
+      name: 'main',
       items: [
         {
-          name: "Feeds",
-          router: "/feeds",
-          icon: (
-            <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-          ),
+          name: 'Feeds',
+          router: '/feeds',
+          icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
           getTitle: getFeedTitle,
           getHeaderActions: () => {
-            const isChannelPinned =
-              channels.findIndex(
-                (channel) => channel.url === selectedChannelUrl
-              ) !== -1;
+            const isChannelPinned = channels.findIndex((channel) => channel.url === selectedChannelUrl) !== -1;
             const isChannelFeed =
               selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
-              selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING && 
+              selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING &&
               !selectedList;
             const actions = [
               {
-                name: "Cast",
+                name: 'Cast',
                 onClick: () => {
                   let parentUrl;
                   if (isChannelFeed) {
@@ -199,11 +167,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             ];
             if (isChannelFeed) {
               actions.push({
-                name: isChannelPinned ? "Unpin" : "Pin",
+                name: isChannelPinned ? 'Unpin' : 'Pin',
                 onClick: () => {
-                  const channel = channels.find(
-                    (c) => c.url === selectedChannelUrl
-                  );
+                  const channel = channels.find((c) => c.url === selectedChannelUrl);
                   if (!channel) return;
 
                   if (isChannelPinned) {
@@ -216,17 +182,17 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             }
             return actions;
           },
-          shortcut: "Shift + F",
-          additionalPaths: ["/conversation/[...slug]"],
+          shortcut: 'Shift + F',
+          additionalPaths: ['/conversation/[...slug]'],
         },
         {
-          name: "Post",
-          router: "/post",
+          name: 'Post',
+          router: '/post',
           getHeaderActions: () => [
             {
               name: (
                 <>
-                  {" "}
+                  {' '}
                   <PencilSquareIcon className="w-5 h-5 mr-2" />
                   New draft
                 </>
@@ -234,83 +200,60 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               onClick: () => addNewPostDraft({ force: true }),
             },
           ],
-          icon: (
-            <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-          ),
+          icon: <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
         },
         {
-          name: "Search",
-          router: "/search",
-          icon: (
-            <MagnifyingGlassIcon
-              className="h-6 w-6 shrink-0"
-              aria-hidden="true"
-            />
-          ),
-          shortcut: "/",
+          name: 'Search',
+          router: '/search',
+          icon: <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: '/',
         },
         {
-          name: "Notifications",
-          router: "/notifications",
+          name: 'Notifications',
+          router: '/notifications',
           icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-          shortcut: "Shift + N",
+          shortcut: 'Shift + N',
         },
         {
-          name: "Analytics",
-          router: "/analytics",
-          icon: (
-            <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-          ),
-          shortcut: "Shift + A",
+          name: 'Analytics',
+          router: '/analytics',
+          icon: <ChartBarIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: 'Shift + A',
         },
         {
-          name: "Profile",
-          router: "/profile",
+          name: 'Profile',
+          router: '/profile',
           icon: <UserIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-          additionalPaths: ["/profile", "/profile/[slug]"],
+          additionalPaths: ['/profile', '/profile/[slug]'],
         },
       ],
     },
     {
-      name: "settings",
+      name: 'settings',
       items: [
         {
-          name: "Upgrade",
-          router: "/upgrade",
-          icon: (
-            <ArrowUpCircleIcon
-              className="h-6 w-6 shrink-0"
-              aria-hidden="true"
-            />
-          ),
+          name: 'Upgrade',
+          router: '/upgrade',
+          icon: <ArrowUpCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
         },
         {
-          name: "Channels",
-          router: "/channels",
-          icon: (
-            <RectangleGroupIcon
-              className="h-6 w-6 shrink-0"
-              aria-hidden="true"
-            />
-          ),
-          shortcut: "Shift + C",
+          name: 'Channels',
+          router: '/channels',
+          icon: <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: 'Shift + C',
         },
         {
-          name: "Accounts",
-          router: "/accounts",
-          icon: (
-            <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-          ),
-          shortcut: "CMD + Shift + A",
-          additionalPaths: ["/farcaster-signup", "/hats"],
+          name: 'Accounts',
+          router: '/accounts',
+          icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: 'CMD + Shift + A',
+          additionalPaths: ['/farcaster-signup', '/hats'],
         },
         {
-          name: "Settings",
-          router: "/settings",
-          icon: (
-            <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />
-          ),
-          shortcut: "Shift + ,",
+          name: 'Settings',
+          router: '/settings',
+          icon: <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: 'Shift + ,',
         },
       ],
     },
@@ -318,18 +261,18 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
     switch (pathname) {
-      case "/feeds":
+      case '/feeds':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
-      case "/post":
+      case '/post':
         return RIGHT_SIDEBAR_ENUM.PUBLISHED_CASTS;
-      case "/channels":
+      case '/channels':
         return RIGHT_SIDEBAR_ENUM.NONE;
-      case "/notifications":
+      case '/notifications':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
-      case "/search":
+      case '/search':
         return RIGHT_SIDEBAR_ENUM.SEARCH;
-      case "/profile/[slug]":
-      case "/conversation/[...slug]":
+      case '/profile/[slug]':
+      case '/conversation/[...slug]':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
@@ -340,10 +283,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     if (navItem) {
       return navItem.getTitle ? navItem.getTitle() : navItem.name;
     } else {
-      if (pathname === "/profile/[slug]") {
-        return "Profile";
-      } else if (pathname === "/conversation/[...slug]") {
-        return "Conversation";
+      if (pathname === '/profile/[slug]') {
+        return 'Profile';
+      } else if (pathname === '/conversation/[...slug]') {
+        return 'Conversation';
       }
     }
   };
@@ -384,10 +327,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     <Card>
       <CardHeader className="p-2 pt-0 md:p-4">
         <CardTitle>Create your herocast account</CardTitle>
-        <CardDescription>
-          Connect your email to unlock all features and start casting with
-          herocast.
-        </CardDescription>
+        <CardDescription>Connect your email to unlock all features and start casting with herocast.</CardDescription>
       </CardHeader>
       <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
         <Link href="/login?signupOnly=true" passHref>
@@ -399,7 +339,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     </Card>
   );
 
-  if (pathname === "/login") {
+  if (pathname === '/login') {
     return children;
   }
 
@@ -408,20 +348,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       <NewCastModal
         draftId={castModalDraftId}
         open={isNewCastModalOpen}
-        setOpen={(isOpen) =>
-          isOpen ? openNewCastModal() : closeNewCastModal()
-        }
+        setOpen={(isOpen) => (isOpen ? openNewCastModal() : closeNewCastModal())}
       />
     );
 
   return (
     <div className="h-full bg-background">
       <Transition.Root show={sidebarOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-5 lg:hidden"
-          onClose={() => setSidebarOpen(false)}
-        >
+        <Dialog as="div" className="relative z-5 lg:hidden" onClose={() => setSidebarOpen(false)}>
           <Transition.Child
             as={Fragment}
             enter="transition-opacity ease-linear duration-10"
@@ -452,29 +386,20 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                       const navigation = group.items;
                       return (
                         <div key={`nav-group-mobile-${group.name}`}>
-                          <ul
-                            role="list"
-                            className="flex flex-1 flex-col gap-y-7"
-                          >
+                          <ul role="list" className="flex flex-1 flex-col gap-y-7">
                             <li>
                               <ul role="list" className="-mx-2 space-y-1">
                                 {navigation.map(
                                   (item) =>
                                     !item.hide && (
                                       <li key={item.name}>
-                                        <Link
-                                          href={item.router}
-                                          onClick={() => setSidebarOpen(false)}
-                                        >
+                                        <Link href={item.router} onClick={() => setSidebarOpen(false)}>
                                           <p
                                             className={cn(
-                                              item.router === pathname ||
-                                                item.additionalPaths?.includes(
-                                                  pathname
-                                                )
-                                                ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                                : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                              "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                              item.router === pathname || item.additionalPaths?.includes(pathname)
+                                                ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                                              'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
                                             )}
                                           >
                                             {item.icon}
@@ -508,13 +433,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           <div className="hidden lg:flex lg:grow lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:full lg:overflow-y-auto lg:bg-background border-r border-muted">
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
-              <Link
-                href="/feeds"
-                className="flex h-16 shrink-0 items-center hover:cursor-pointer"
-              >
-                <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
-                  herocast
-                </h2>
+              <Link href="/feeds" className="flex h-16 shrink-0 items-center hover:cursor-pointer">
+                <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">herocast</h2>
               </Link>
               <div className="flex flex-col justify-between">
                 <nav className="mt-0 divide-y divide-muted-foreground/20">
@@ -534,13 +454,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                                   <Link href={item.router}>
                                     <div
                                       className={cn(
-                                        item.router === pathname ||
-                                          item.additionalPaths?.includes(
-                                            pathname
-                                          )
-                                          ? "text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground"
-                                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                                        "group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer"
+                                        item.router === pathname || item.additionalPaths?.includes(pathname)
+                                          ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
+                                          : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                                        'group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer'
                                       )}
                                     >
                                       {item.icon}
@@ -564,13 +481,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
           <div className="grid grid-cols-[1fr] md:grid-cols-[1fr_12rem] lg:grid-cols-[1fr_16rem] relative">
-            <div
-              className={
-                sidebarType === RIGHT_SIDEBAR_ENUM.NONE
-                  ? "md:col-span-2 w-full"
-                  : ""
-              }
-            >
+            <div className={sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? 'md:col-span-2 w-full' : ''}>
               {/* Sticky header */}
               {(title || headerActions) && (
                 <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
@@ -582,18 +493,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     <span className="sr-only">Open sidebar</span>
                     <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                   </button>
-                  <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">
-                    {title}
-                  </h1>
+                  <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">{title}</h1>
                   <div className="flex-grow" />
                   <div className="flex gap-x-2">
                     {headerActions.map((action) => (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        key={`header-action-${action.name}`}
-                        onClick={action.onClick}
-                      >
+                      <Button size="sm" variant="outline" key={`header-action-${action.name}`} onClick={action.onClick}>
                         {action.name}
                       </Button>
                     ))}
@@ -602,10 +506,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               )}
               <div className="w-full">
                 {pageRequiresHydrate && !isHydrated ? (
-                  <Loading
-                    className="ml-8"
-                    loadingMessage={loadingMessages[currentMessageIndex]}
-                  />
+                  <Loading className="ml-8" loadingMessage={loadingMessages[currentMessageIndex]} />
                 ) : (
                   <div className="w-full">{children}</div>
                 )}

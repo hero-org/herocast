@@ -1,21 +1,21 @@
-import React, { useEffect, useRef } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
+import React, { useEffect, useRef } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 import { useInView } from 'react-intersection-observer';
-import isEmpty from "lodash.isempty";
+import isEmpty from 'lodash.isempty';
 
 type SelectableListWithHotkeysProps = {
-  data: any[],
-  renderRow: (item: any, idx: number) => React.ReactNode,
-  selectedIdx: number,
-  setSelectedIdx: (idx: number) => void,
-  onSelect?: (idx: number) => void,
-  disableScroll?: boolean,
-  onExpand?: (idx: number) => void,
-  isActive?: boolean,
-  onDown?: () => void,
-  onUp?: () => void,
-}
+  data: any[];
+  renderRow: (item: any, idx: number) => React.ReactNode;
+  selectedIdx: number;
+  setSelectedIdx: (idx: number) => void;
+  onSelect?: (idx: number) => void;
+  disableScroll?: boolean;
+  onExpand?: (idx: number) => void;
+  isActive?: boolean;
+  onDown?: () => void;
+  onUp?: () => void;
+};
 
 export const SelectableListWithHotkeys = ({
   data,
@@ -27,7 +27,7 @@ export const SelectableListWithHotkeys = ({
   disableScroll,
   onDown,
   onUp,
-  isActive = true
+  isActive = true,
 }: SelectableListWithHotkeysProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
@@ -38,59 +38,82 @@ export const SelectableListWithHotkeys = ({
   // scroll to selected cast when selectedCastIdx changes
   useEffect(() => {
     if (!disableScroll && scollToRef.current) {
-      (scollToRef.current as HTMLElement).scrollIntoView({ behavior: 'auto', block: 'start' });
+      (scollToRef.current as HTMLElement).scrollIntoView({
+        behavior: 'auto',
+        block: 'start',
+      });
     }
   }, [selectedIdx]);
 
-
-  useHotkeys(['o', Key.Enter], () => {
-    onSelect?.(selectedIdx);
-  }, [selectedIdx], {
-    enabled: isActive
-  })
-
-  useHotkeys('shift+o', () => {
-    onExpand && onExpand(selectedIdx);
-  }, [selectedIdx], {
-    enabled: onExpand !== undefined && isActive
-  })
-
-  useHotkeys(['j', Key.ArrowDown], () => {
-    onDown?.();
-    
-    if (selectedIdx < data.length - 1) {
-      setSelectedIdx(selectedIdx + 1);
+  useHotkeys(
+    ['o', Key.Enter],
+    () => {
+      onSelect?.(selectedIdx);
+    },
+    [selectedIdx],
+    {
+      enabled: isActive,
     }
-  }, [data, selectedIdx, setSelectedIdx], {
-    enabled: isActive && !isEmpty(data)
-  })
+  );
 
-  useHotkeys(['k', Key.ArrowUp], () => {
-    onUp?.();
-
-    if (selectedIdx === 0) {
-      return;
+  useHotkeys(
+    'shift+o',
+    () => {
+      onExpand && onExpand(selectedIdx);
+    },
+    [selectedIdx],
+    {
+      enabled: onExpand !== undefined && isActive,
     }
+  );
 
-    setSelectedIdx(selectedIdx - 1);
-  }, [data, selectedIdx, setSelectedIdx], {
-    enabled: isActive && !isEmpty(data)
-  })
+  useHotkeys(
+    ['j', Key.ArrowDown],
+    () => {
+      onDown?.();
+
+      if (selectedIdx < data.length - 1) {
+        setSelectedIdx(selectedIdx + 1);
+      }
+    },
+    [data, selectedIdx, setSelectedIdx],
+    {
+      enabled: isActive && !isEmpty(data),
+    }
+  );
+
+  useHotkeys(
+    ['k', Key.ArrowUp],
+    () => {
+      onUp?.();
+
+      if (selectedIdx === 0) {
+        return;
+      }
+
+      setSelectedIdx(selectedIdx - 1);
+    },
+    [data, selectedIdx, setSelectedIdx],
+    {
+      enabled: isActive && !isEmpty(data),
+    }
+  );
 
   if (isEmpty(data)) return null;
 
-  return <ul role="list" className="">
-    {data.map((item: any, idx: number) =>
-      {
+  return (
+    <ul role="list" className="">
+      {data.map((item: any, idx: number) => {
         return item ? (
           <div
             key={`row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`}
-            ref={(selectedIdx === idx + 1) ? scollToRef : null}>
+            ref={selectedIdx === idx + 1 ? scollToRef : null}
+          >
             {renderRow(item, idx)}
           </div>
         ) : null;
-      }
-    )}
-    <li ref={ref} className="" />
-  </ul>
-}
+      })}
+      <li ref={ref} className="" />
+    </ul>
+  );
+};

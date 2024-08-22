@@ -1,16 +1,9 @@
-import React, { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { openWindow } from "../helpers/navigation";
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { openWindow } from '../helpers/navigation';
 
 type ShowLinkCardProps = {
   title: string;
@@ -19,12 +12,7 @@ type ShowLinkCardProps = {
   buttonLabel: string;
 };
 
-const ShowLinkCard = ({
-  title,
-  description,
-  link,
-  buttonLabel,
-}: ShowLinkCardProps) => (
+const ShowLinkCard = ({ title, description, link, buttonLabel }: ShowLinkCardProps) => (
   <Card>
     <CardHeader className="pb-3">
       <CardTitle>{title}</CardTitle>
@@ -36,16 +24,12 @@ const ShowLinkCard = ({
           Link
         </Label>
         <Input id="link" value={link} readOnly className="mr-2" />
-        <Button
-          variant="secondary"
-          className="shrink-0"
-          onClick={() => openWindow(link)}
-        >
+        <Button variant="secondary" className="shrink-0" onClick={() => openWindow(link)}>
           {buttonLabel}
         </Button>
       </div>
     </CardContent>
-  </Card>   
+  </Card>
 );
 
 export default ShowLinkCard;

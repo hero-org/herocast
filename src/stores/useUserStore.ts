@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
 import { create as mutativeCreate, Draft } from 'mutative';
 import { Customer, InsertCustomer } from "@/common/types/database.types";
 import { createClient } from "@/common/helpers/supabase/component";
@@ -8,7 +8,7 @@ import { toastErrorUpgradeAccount } from "@/common/helpers/toast";
 
 
 interface UserStoreProps {
-  customer: Customer | undefined,
+  customer: Customer | undefined;
 }
 
 interface UserStoreActions {
@@ -18,8 +18,7 @@ interface UserStoreActions {
 
 export interface UserStore extends UserStoreProps, UserStoreActions { }
 
-export const mutative = (config) =>
-  (set, get) => config((fn) => set(mutativeCreate(fn)), get);
+export const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
 
 type StoreSet = (fn: (draft: Draft<UserStore>) => void) => void;
 

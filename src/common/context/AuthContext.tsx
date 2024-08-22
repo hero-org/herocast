@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { createClient } from "../helpers/supabase/component";
-import { User } from "@supabase/supabase-js";
-import { useRouter } from "next/router";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createClient } from '../helpers/supabase/component';
+import { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/router';
 
 interface AuthContextType {
   user: User | null;
@@ -22,11 +22,9 @@ export const AuthProvider = ({ children }) => {
       setDidLoad(true);
     });
 
-    const { data: authListener } = supabaseClient.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-      }
-    );
+    const { data: authListener } = supabaseClient.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
 
     return () => {
       authListener.subscription.unsubscribe();
@@ -38,25 +36,23 @@ export const AuthProvider = ({ children }) => {
 
     const isLoggedOut = !user;
     const shouldForward =
-      asPath !== "/login" &&
-      !asPath.startsWith("/profile") &&
-      !asPath.startsWith("/conversation") && 
-      !asPath.startsWith("/analytics");
+      asPath !== '/login' &&
+      !asPath.startsWith('/profile') &&
+      !asPath.startsWith('/conversation') &&
+      !asPath.startsWith('/analytics');
 
     if (isLoggedOut && shouldForward) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [user, asPath, didLoad]);
 
-  return (
-    <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === null) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

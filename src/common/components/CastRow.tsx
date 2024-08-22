@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { castTextStyle } from "@/common/helpers/css";
-import { CastReactionType } from "@/common/constants/farcaster";
-import { ChannelType } from "@/common/constants/channels";
-import { useAccountStore } from "@/stores/useAccountStore";
+import React, { useState } from 'react';
+import { castTextStyle } from '@/common/helpers/css';
+import { CastReactionType } from '@/common/constants/farcaster';
+import { ChannelType } from '@/common/constants/channels';
+import { useAccountStore } from '@/stores/useAccountStore';
 import {
   ArrowPathRoundedSquareIcon,
   ArrowTopRightOnSquareIcon,
@@ -11,45 +11,38 @@ import {
   ChatBubbleLeftRightIcon,
   TrashIcon,
   DocumentDuplicateIcon,
-} from "@heroicons/react/24/outline";
-import { HeartIcon as HeartFilledIcon } from "@heroicons/react/24/solid";
-import {
-  publishReaction,
-  removeCast,
-  removeReaction,
-} from "../helpers/farcaster";
-import includes from "lodash.includes";
-import map from "lodash.map";
-import { useHotkeys } from "react-hotkeys-hook";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import HotkeyTooltipWrapper from "./HotkeyTooltipWrapper";
-import get from "lodash.get";
-import Linkify from "linkify-react";
-import { ErrorBoundary } from "@sentry/react";
-import { renderEmbedForUrl } from "./Embeds";
-import ProfileHoverCard from "./ProfileHoverCard";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { registerPlugin } from "linkifyjs";
-import CashtagHoverCard from "./CashtagHoverCard";
-import mentionPlugin, {
-  cashtagPlugin,
-  channelPlugin,
-} from "../helpers/linkify";
-import { AccountPlatformType } from "../constants/accounts";
+} from '@heroicons/react/24/outline';
+import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
+import { publishReaction, removeCast, removeReaction } from '../helpers/farcaster';
+import includes from 'lodash.includes';
+import map from 'lodash.map';
+import { useHotkeys } from 'react-hotkeys-hook';
+import * as Tooltip from '@radix-ui/react-tooltip';
+import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
+import get from 'lodash.get';
+import Linkify from 'linkify-react';
+import { ErrorBoundary } from '@sentry/react';
+import { renderEmbedForUrl } from './Embeds';
+import ProfileHoverCard from './ProfileHoverCard';
+import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { registerPlugin } from 'linkifyjs';
+import CashtagHoverCard from './CashtagHoverCard';
+import mentionPlugin, { cashtagPlugin, channelPlugin } from '../helpers/linkify';
+import { AccountPlatformType } from '../constants/accounts';
 import {
   toastCopiedToClipboard,
   toastInfoReadOnlyMode,
   toastSuccessCastDeleted,
   toastUnableToDeleteCast,
-} from "../helpers/toast";
-import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import { useDataStore } from "@/stores/useDataStore";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { useDraftStore } from "@/stores/useDraftStore";
-import ChannelHoverCard from "./ChannelHoverCard";
-import { formatDistanceToNowStrict } from "date-fns";
+} from '../helpers/toast';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { useDraftStore } from '@/stores/useDraftStore';
+import ChannelHoverCard from './ChannelHoverCard';
+import { formatDistanceToNowStrict } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,8 +50,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { EllipsisHorizontalIcon } from "@heroicons/react/20/solid";
+} from '@/components/ui/dropdown-menu';
+import { EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
 import {
   Dialog,
   DialogContent,
@@ -68,13 +61,13 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
-import { addToClipboard } from "../helpers/clipboard";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/dialog';
+import { addToClipboard } from '../helpers/clipboard';
+import { Badge } from '@/components/ui/badge';
 
-registerPlugin("mention", mentionPlugin);
-registerPlugin("cashtag", cashtagPlugin);
-registerPlugin("channel", channelPlugin);
+registerPlugin('mention', mentionPlugin);
+registerPlugin('cashtag', cashtagPlugin);
+registerPlugin('channel', channelPlugin);
 
 export type CastToReplyType = {
   hash: string;
@@ -128,7 +121,7 @@ const renderLink = ({ attributes, content }) => {
       className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
       onClick={(event) => {
         event.stopPropagation();
-        window.open(href, "_blank");
+        window.open(href, '_blank');
       }}
       rel="noopener noreferrer"
     >
@@ -159,7 +152,7 @@ const renderCashtag = ({ attributes, content }) => {
   }
 
   const tokenSymbol = content.slice(1);
-  if (tokenSymbol === "usd") return null;
+  if (tokenSymbol === 'usd') return null;
 
   const { userFid } = attributes;
 
@@ -171,10 +164,7 @@ const renderCashtag = ({ attributes, content }) => {
       }}
       rel="noopener noreferrer"
     >
-      <CashtagHoverCard
-        tokenSymbol={tokenSymbol.toUpperCase()}
-        userFid={userFid}
-      >
+      <CashtagHoverCard tokenSymbol={tokenSymbol.toUpperCase()} userFid={userFid}>
         {content}
       </CashtagHoverCard>
     </span>
@@ -213,8 +203,7 @@ export const CastRow = ({
     setSelectedChannelUrl,
   } = useAccountStore();
 
-  const { setCastModalDraftId, setCastModalView, openNewCastModal } =
-    useNavigationStore();
+  const { setCastModalDraftId, setCastModalView, openNewCastModal } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const { updateSelectedCast } = useDataStore();
 
@@ -224,8 +213,7 @@ export const CastRow = ({
   const selectedAccount = accounts[selectedAccountIdx];
   const userFid = Number(selectedAccount?.platformAccountId);
   const authorFid = cast?.author.fid;
-  const canSendReaction =
-    selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
+  const canSendReaction = selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
 
   const onReply = () => {
     setCastModalView(CastModalView.Reply);
@@ -263,13 +251,11 @@ export const CastRow = ({
 
   const getCastReactionsObj = () => {
     const repliesCount = cast.replies?.count || 0;
-    const recastsCount =
-      cast.reactions?.recasts_count || cast.recasts?.count || 0;
-    const likesCount =
-      cast.reactions?.likes_count || cast.reactions?.count || 0;
+    const recastsCount = cast.reactions?.recasts_count || cast.recasts?.count || 0;
+    const likesCount = cast.reactions?.likes_count || cast.reactions?.count || 0;
 
-    const likeFids = map(cast.reactions?.likes, "fid") || [];
-    const recastFids = map(cast.reactions?.recasts, "fid") || [];
+    const likeFids = map(cast.reactions?.likes, 'fid') || [];
+    const recastFids = map(cast.reactions?.recasts, 'fid') || [];
     return {
       [CastReactionType.replies]: { count: repliesCount },
       [CastReactionType.recasts]: {
@@ -286,13 +272,10 @@ export const CastRow = ({
   const reactions = getCastReactionsObj();
 
   useHotkeys(
-    "l",
+    'l',
     () => {
       if (isSelected) {
-        onClickReaction(
-          CastReactionType.likes,
-          reactions[CastReactionType.likes].isActive
-        );
+        onClickReaction(CastReactionType.likes, reactions[CastReactionType.likes].isActive);
       }
     },
     { enabled: isSelected },
@@ -300,34 +283,21 @@ export const CastRow = ({
   );
 
   useHotkeys(
-    "shift+r",
+    'shift+r',
     () => {
       if (isSelected) {
-        onClickReaction(
-          CastReactionType.recasts,
-          reactions[CastReactionType.recasts].isActive
-        );
+        onClickReaction(CastReactionType.recasts, reactions[CastReactionType.recasts].isActive);
       }
     },
     { enabled: isSelected },
     [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions?.recasts]
   );
 
-  const getChannelForParentUrl = (
-    parentUrl: string | null
-  ): ChannelType | undefined =>
-    parentUrl
-      ? channels.find((channel) => channel.url === parentUrl)
-      : undefined;
+  const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined =>
+    parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined;
 
-  const getIconForCastReactionType = (
-    reactionType: CastReactionType,
-    isActive?: boolean
-  ): JSX.Element | undefined => {
-    const className = cn(
-      isActive ? "text-foreground/70" : "",
-      "mt-0.5 w-4 h-4 mr-1"
-    );
+  const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
+    const className = cn(isActive ? 'text-foreground/70' : '', 'mt-0.5 w-4 h-4 mr-1');
 
     switch (reactionType) {
       case CastReactionType.likes:
@@ -337,22 +307,13 @@ export const CastRow = ({
           <HeartIcon className={className} aria-hidden="true" />
         );
       case CastReactionType.recasts:
-        return (
-          <ArrowPathRoundedSquareIcon
-            className={className}
-            aria-hidden="true"
-          />
-        );
+        return <ArrowPathRoundedSquareIcon className={className} aria-hidden="true" />;
       case CastReactionType.quote:
-        return (
-          <ChatBubbleLeftRightIcon className={className} aria-hidden="true" />
-        );
+        return <ChatBubbleLeftRightIcon className={className} aria-hidden="true" />;
       case CastReactionType.replies:
         return <ChatBubbleLeftIcon className={className} aria-hidden="true" />;
       case CastReactionType.links:
-        return (
-          <ArrowTopRightOnSquareIcon className={className} aria-hidden="true" />
-        );
+        return <ArrowTopRightOnSquareIcon className={className} aria-hidden="true" />;
       default:
         return undefined;
     }
@@ -386,8 +347,7 @@ export const CastRow = ({
         return;
       }
 
-      const reactionBodyType: "like" | "recast" =
-        key === CastReactionType.likes ? "like" : "recast";
+      const reactionBodyType: 'like' | 'recast' = key === CastReactionType.likes ? 'like' : 'recast';
       const reaction = {
         type: reactionBodyType,
         target: { fid: Number(authorFid), hash: cast.hash },
@@ -410,12 +370,7 @@ export const CastRow = ({
     }
   };
 
-  const renderReaction = (
-    key: CastReactionType,
-    isActive: boolean,
-    count?: number | string,
-    icon?: JSX.Element
-  ) => {
+  const renderReaction = (key: CastReactionType, isActive: boolean, count?: number | string, icon?: JSX.Element) => {
     return (
       <div
         key={`cast-${cast.hash}-${key}`}
@@ -433,57 +388,34 @@ export const CastRow = ({
 
   const renderCastReactions = (cast: CastWithInteractions) => {
     const linksCount = cast?.embeds ? cast.embeds.length : 0;
-    const isOnchainLink =
-      linksCount > 0 && "url" in cast.embeds[0]
-        ? cast.embeds[0].url.startsWith("chain:")
-        : false;
+    const isOnchainLink = linksCount > 0 && 'url' in cast.embeds[0] ? cast.embeds[0].url.startsWith('chain:') : false;
 
     return (
       <div className="-ml-1.5 flex space-x-3">
         {Object.entries(reactions).map(([key, reactionInfo]) => {
-          const isActive = get(reactionInfo, "isActive", false);
-          const icon = getIconForCastReactionType(
-            key as CastReactionType,
-            isActive
-          );
-          const reaction = renderReaction(
-            key as CastReactionType,
-            isActive,
-            reactionInfo.count,
-            icon
-          );
+          const isActive = get(reactionInfo, 'isActive', false);
+          const icon = getIconForCastReactionType(key as CastReactionType, isActive);
+          const reaction = renderReaction(key as CastReactionType, isActive, reactionInfo.count, icon);
 
-          if (key === "likes" && isSelected) {
+          if (key === 'likes' && isSelected) {
             return (
-              <Tooltip.Provider
-                key={`cast-${cast.hash}-${key}-${reaction}`}
-                delayDuration={50}
-                skipDelayDuration={0}
-              >
+              <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="L" side="bottom">
                   {reaction}
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
             );
-          } else if (key === "recasts" && isSelected) {
+          } else if (key === 'recasts' && isSelected) {
             return (
-              <Tooltip.Provider
-                key={`cast-${cast.hash}-${key}-${reaction}`}
-                delayDuration={50}
-                skipDelayDuration={0}
-              >
+              <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="Shift + R" side="bottom">
                   {reaction}
                 </HotkeyTooltipWrapper>
               </Tooltip.Provider>
             );
-          } else if (key === "replies" && isSelected) {
+          } else if (key === 'replies' && isSelected) {
             return (
-              <Tooltip.Provider
-                key={`cast-${cast.hash}-${key}-${reaction}`}
-                delayDuration={50}
-                skipDelayDuration={0}
-              >
+              <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="R" side="bottom">
                   {reaction}
                 </HotkeyTooltipWrapper>
@@ -494,15 +426,11 @@ export const CastRow = ({
           }
         })}
         {linksCount && !isOnchainLink ? (
-          <Tooltip.Provider
-            key={`cast-${cast.hash}-link`}
-            delayDuration={50}
-            skipDelayDuration={0}
-          >
+          <Tooltip.Provider key={`cast-${cast.hash}-link`} delayDuration={50} skipDelayDuration={0}>
             <HotkeyTooltipWrapper hotkey="O" side="bottom">
               <a
                 tabIndex={-1}
-                href={"url" in cast.embeds[0] ? cast.embeds[0].url : "#"}
+                href={'url' in cast.embeds[0] ? cast.embeds[0].url : '#'}
                 target="_blank"
                 rel="noreferrer"
                 className="cursor-pointer"
@@ -517,11 +445,7 @@ export const CastRow = ({
             </HotkeyTooltipWrapper>
           </Tooltip.Provider>
         ) : null}
-        <Tooltip.Provider
-          key={`cast-${cast.hash}-quote`}
-          delayDuration={50}
-          skipDelayDuration={0}
-        >
+        <Tooltip.Provider key={`cast-${cast.hash}-quote`} delayDuration={50} skipDelayDuration={0}>
           <HotkeyTooltipWrapper hotkey="Q" side="bottom">
             {renderReaction(
               CastReactionType.quote,
@@ -536,7 +460,7 @@ export const CastRow = ({
   };
 
   const getText = () =>
-    "text" in cast && cast.text ? (
+    'text' in cast && cast.text ? (
       <ErrorBoundary>
         <Linkify
           as="span"
@@ -545,13 +469,13 @@ export const CastRow = ({
             attributes: { userFid, setSelectedChannelByName },
           }}
         >
-          {cast.text}{" "}
+          {cast.text}{' '}
         </Linkify>
       </ErrorBoundary>
     ) : null;
 
   const renderEmbeds = () => {
-    if (!("embeds" in cast) || !cast.embeds.length) {
+    if (!('embeds' in cast) || !cast.embeds.length) {
       return null;
     }
 
@@ -559,18 +483,14 @@ export const CastRow = ({
     return (
       <div
         className={cn(
-          cast.embeds?.length > 1 &&
-            !embedsContainsCastEmbed &&
-            "grid lg:grid-cols-2 gap-4",
-          "max-w-lg self-start"
+          cast.embeds?.length > 1 && !embedsContainsCastEmbed && 'grid lg:grid-cols-2 gap-4',
+          'max-w-lg self-start'
         )}
         onClick={(e) => e.preventDefault()}
       >
         <ErrorBoundary>
           {map(cast.embeds, (embed) => (
-            <div
-              key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}
-            >
+            <div key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}>
               {renderEmbedForUrl({ ...embed, hideReactions })}
             </div>
           ))}
@@ -581,7 +501,7 @@ export const CastRow = ({
 
   const renderRecastBadge = () => {
     const shouldShowBadge =
-      "inclusion_context" in cast &&
+      'inclusion_context' in cast &&
       cast.inclusion_context?.is_following_recaster &&
       !cast.inclusion_context?.is_following_author;
 
@@ -593,10 +513,7 @@ export const CastRow = ({
     );
   };
 
-  const channel =
-    showChannel && "parent_url" in cast
-      ? getChannelForParentUrl(cast.parent_url)
-      : null;
+  const channel = showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null;
   const timeAgoStr = formatDistanceToNowStrict(new Date(cast.timestamp), {
     addSuffix: false,
   });
@@ -617,17 +534,15 @@ export const CastRow = ({
   const renderAdminActions = () => {
     const actions = [
       {
-        key: "delete",
+        key: 'delete',
         isDialog: true,
-        label: "Delete",
+        label: 'Delete',
         icon: <TrashIcon className="h-4 w-4 mr-1" />,
         content: (
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Are you sure?</DialogTitle>
-              <DialogDescription>
-                Do you want to permanently delete this cast?
-              </DialogDescription>
+              <DialogDescription>Do you want to permanently delete this cast?</DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <DialogClose>
@@ -640,13 +555,11 @@ export const CastRow = ({
                       return;
                     }
 
-                    removeCast(
-                      cast.hash,
-                      Number(selectedAccount.platformAccountId),
-                      selectedAccount.privateKey!
-                    ).then(() => {
-                      toastSuccessCastDeleted(cast?.text);
-                    });
+                    removeCast(cast.hash, Number(selectedAccount.platformAccountId), selectedAccount.privateKey!).then(
+                      () => {
+                        toastSuccessCastDeleted(cast?.text);
+                      }
+                    );
                   }}
                 >
                   Confirm
@@ -657,8 +570,8 @@ export const CastRow = ({
         ),
       },
       {
-        key: "copy-cast-link",
-        label: "Copy cast link",
+        key: 'copy-cast-link',
+        label: 'Copy cast link',
         icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
         onClick: () => {
           const url = `${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`;
@@ -667,8 +580,8 @@ export const CastRow = ({
         },
       },
       {
-        key: "copy-cast-hash",
-        label: "Copy cast hash",
+        key: 'copy-cast-hash',
+        label: 'Copy cast hash',
         icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
         onClick: () => {
           addToClipboard(cast.hash);
@@ -679,11 +592,7 @@ export const CastRow = ({
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild className="ml-1">
-          <Button
-            size="icon"
-            variant="outline"
-            className="rounded-full h-6 w-6"
-          >
+          <Button size="icon" variant="outline" className="rounded-full h-6 w-6">
             <EllipsisHorizontalIcon className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
@@ -695,10 +604,7 @@ export const CastRow = ({
               if (isDialog) {
                 return (
                   <DialogTrigger key={`dialog-trigger-${key}`} asChild>
-                    <DropdownMenuItem
-                      key={key}
-                      onSelect={(e) => e.preventDefault()}
-                    >
+                    <DropdownMenuItem key={key} onSelect={(e) => e.preventDefault()}>
                       {icon}
                       {label}
                     </DropdownMenuItem>
@@ -728,17 +634,13 @@ export const CastRow = ({
           onSelect && onSelect();
         }}
         className={cn(
-          "p-3",
-          isSelected && isEmbed ? "bg-muted" : "cursor-pointer",
-          isSelected
-            ? "border-l-1 border-foreground/10"
-            : "border-l-1 border-transparent",
-          "lg:ml-0 grow rounded-r-sm"
+          'p-3',
+          isSelected && isEmbed ? 'bg-muted' : 'cursor-pointer',
+          isSelected ? 'border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
+          'lg:ml-0 grow rounded-r-sm'
         )}
       >
-        {isThreadView && (
-          <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />
-        )}
+        {isThreadView && <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />}
         <div className="flex items-top gap-x-4">
           {!isEmbed && !hideAuthor && (
             <Link href={`/profile/${cast.author.username}`} prefetch={false}>
@@ -752,15 +654,9 @@ export const CastRow = ({
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 {hideAuthor ? (
-                  <span className="text-sm leading-5 text-foreground/50">
-                    @{cast.author.username}
-                  </span>
+                  <span className="text-sm leading-5 text-foreground/50">@{cast.author.username}</span>
                 ) : (
-                  <MemoizedProfileHoverCard
-                    fid={cast.author.fid}
-                    viewerFid={userFid}
-                    username={cast.author.username}
-                  >
+                  <MemoizedProfileHoverCard fid={cast.author.fid} viewerFid={userFid} username={cast.author.username}>
                     <span className="items-center flex font-semibold text-foreground truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                       {isEmbed && (
                         <img
@@ -784,20 +680,12 @@ export const CastRow = ({
                     </span>
                   </MemoizedProfileHoverCard>
                 )}
-                <div className="hidden lg:ml-2 lg:block">
-                  {renderChannelButton()}
-                </div>
+                <div className="hidden lg:ml-2 lg:block">{renderChannelButton()}</div>
                 {renderRecastBadge()}
               </div>
               <div className="flex flex-row">
-                <div className="block mr-2 lg:hidden">
-                  {renderChannelButton()}
-                </div>
-                {timeAgoStr && (
-                  <span className="text-sm leading-5 text-foreground/50">
-                    {timeAgoStr}
-                  </span>
-                )}
+                <div className="block mr-2 lg:hidden">{renderChannelButton()}</div>
+                {timeAgoStr && <span className="text-sm leading-5 text-foreground/50">{timeAgoStr}</span>}
                 <Link
                   href={`${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`}
                   className="text-sm leading-5 text-foreground/50"
@@ -811,9 +699,7 @@ export const CastRow = ({
             </div>
             {showParentDetails && cast?.parent_hash && (
               <div className="flex flex-row items-center">
-                <span className="text-sm text-foreground/50">
-                  {cast.parent_hash && "Replying"}
-                </span>
+                <span className="text-sm text-foreground/50">{cast.parent_hash && 'Replying'}</span>
               </div>
             )}
             <div
@@ -823,8 +709,7 @@ export const CastRow = ({
             >
               {getText()}
             </div>
-            {!hideReactions &&
-              renderCastReactions(cast as CastWithInteractions)}
+            {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
             {!isEmbed && renderEmbeds()}
           </div>
         </div>

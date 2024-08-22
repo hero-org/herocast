@@ -1,14 +1,14 @@
-import React, { useEffect, useMemo } from "react";
-import Modal from "@/common/components/Modal";
-import NewPostEntry from "./Editor/NewCastEditor";
-import { useDraftStore } from "@/stores/useDraftStore";
-import { CastRow } from "./CastRow";
-import { useHotkeys } from "react-hotkeys-hook";
-import { AccountSelector } from "./AccountSelector";
-import { AccountStatusType } from "../constants/accounts";
-import { CastModalView, useNavigationStore } from "@/stores/useNavigationStore";
-import { useDataStore } from "@/stores/useDataStore";
-import { UUID } from "crypto";
+import React, { useEffect, useMemo } from 'react';
+import Modal from '@/common/components/Modal';
+import NewPostEntry from './Editor/NewCastEditor';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { CastRow } from './CastRow';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { AccountSelector } from './AccountSelector';
+import { AccountStatusType } from '../constants/accounts';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { UUID } from 'crypto';
 
 type NewCastModalProps = {
   draftId: UUID;
@@ -16,18 +16,11 @@ type NewCastModalProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const NewCastModal: React.FC<NewCastModalProps> = ({
-  draftId,
-  open,
-  setOpen,
-}) => {
+const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) => {
   const { castModalView } = useNavigationStore();
   const { selectedCast } = useDataStore();
   const { drafts, removePostDraftById } = useDraftStore();
-  const draftIdx = useMemo(
-    () => drafts.findIndex((draft) => draft.id === draftId),
-    [draftId, drafts]
-  );
+  const draftIdx = useMemo(() => drafts.findIndex((draft) => draft.id === draftId), [draftId, drafts]);
   const draft = draftIdx !== undefined ? drafts[draftIdx] : undefined;
 
   useEffect(() => {
@@ -35,14 +28,14 @@ const NewCastModal: React.FC<NewCastModalProps> = ({
       removePostDraftById(draftId);
     }
   }, [open, draftId]);
-  useHotkeys("esc", () => setOpen(false), [open], {
+  useHotkeys('esc', () => setOpen(false), [open], {
     enableOnFormTags: true,
     enableOnContentEditable: true,
     enabled: open,
   });
 
   const getTitle = () => {
-    let action = "New post";
+    let action = 'New post';
     const username = `@${selectedCast?.author.username}`;
     if (castModalView === CastModalView.Reply) {
       action = `Reply to ${username}`;
@@ -54,9 +47,7 @@ const NewCastModal: React.FC<NewCastModalProps> = ({
         {action} as
         <AccountSelector
           className="ml-2 w-1/2"
-          accountFilter={(account) =>
-            account.status === AccountStatusType.active
-          }
+          accountFilter={(account) => account.status === AccountStatusType.active}
         />
       </span>
     );

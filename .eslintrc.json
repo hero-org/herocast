@@ -14,24 +14,17 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": [
-    "@typescript-eslint",
-    "react"
-  ],
+  "plugins": ["@typescript-eslint", "react"],
   "rules": {
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "react/prop-types": "off"
+    "react/prop-types": "off",
+    "@next/next/no-img-element": "off"
   },
   "settings": {
     "react": {
       "version": "detect"
     }
   },
-  "ignorePatterns": [
-    "node_modules/",
-    "dist/",
-    "src/assets",
-    "supabase/functions/**/*.ts"
-  ]
+  "ignorePatterns": ["node_modules/", "dist/", "src/assets", "supabase/functions/**/*.ts"]
 }

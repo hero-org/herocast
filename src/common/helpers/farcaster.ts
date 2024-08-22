@@ -1,18 +1,36 @@
-import axios from "axios";
-import { CastAddBody, Embed, ID_REGISTRY_ADDRESS, KEY_GATEWAY_ADDRESS, Message, NobleEd25519Signer, SIGNED_KEY_REQUEST_TYPE, SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS, SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN, UserDataType, ViemLocalEip712Signer, hexStringToBytes, idRegistryABI, keyGatewayABI, makeCastAdd, makeUserDataAdd, signedKeyRequestValidatorABI } from "@farcaster/hub-web";
+import axios from 'axios';
+import {
+  CastAddBody,
+  Embed,
+  ID_REGISTRY_ADDRESS,
+  KEY_GATEWAY_ADDRESS,
+  Message,
+  NobleEd25519Signer,
+  SIGNED_KEY_REQUEST_TYPE,
+  SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
+  SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
+  UserDataType,
+  ViemLocalEip712Signer,
+  hexStringToBytes,
+  idRegistryABI,
+  keyGatewayABI,
+  makeCastAdd,
+  makeUserDataAdd,
+  signedKeyRequestValidatorABI,
+} from '@farcaster/hub-web';
 import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
-import { Address, encodeAbiParameters, toBytes, toHex } from "viem";
-import { publicClient, publicClientTestnet } from "./rainbowkit";
-import { mnemonicToAccount } from "viem/accounts";
-import { isDev, optimismChainId } from "./env";
+import { Address, encodeAbiParameters, toBytes, toHex } from 'viem';
+import { publicClient, publicClientTestnet } from './rainbowkit';
+import { mnemonicToAccount } from 'viem/accounts';
+import { isDev, optimismChainId } from './env';
 
 export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 
 const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
-    'api_key': process.env.NEXT_PUBLIC_NEYNAR_API_KEY
-  }
+    api_key: process.env.NEXT_PUBLIC_NEYNAR_API_KEY,
+  },
 });
 
 type PublishReactionParams = {
@@ -20,9 +38,11 @@ type PublishReactionParams = {
   privateKey: string;
   reaction: {
     type: 'like' | 'recast';
-    target: CastId | {
-      url: string;
-    };
+    target:
+      | CastId
+      | {
+          url: string;
+        };
   };
 };
 
@@ -31,55 +51,54 @@ type RemoveReactionParams = {
   privateKey: string;
   reaction: {
     type: 'like' | 'recast';
-    target: CastId | {
-      url: string;
-    };
+    target:
+      | CastId
+      | {
+          url: string;
+        };
   };
-}
+};
 
 const getDataOptions = (fid: number) => ({
   fid: fid,
   network: 1,
-}
-);
+});
 
 export const removeReaction = async ({ authorFid, privateKey, reaction }: RemoveReactionParams) => {
   const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance
+    axiosInstance,
   });
 
-  await writeClient.removeReaction(
-    reaction,
-    authorFid,
-    privateKey
-  );
+  await writeClient.removeReaction(reaction, authorFid, privateKey);
 };
 
 export const publishReaction = async ({ authorFid, privateKey, reaction }: PublishReactionParams) => {
   const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance
+    axiosInstance,
   });
 
-  await writeClient.submitReaction(
-    reaction,
-    authorFid,
-    privateKey
-  );
+  await writeClient.submitReaction(reaction, authorFid, privateKey);
 };
 
 export const followUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {
-  const client = new HubRestAPIClient({ axiosInstance, hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
+  const client = new HubRestAPIClient({
+    axiosInstance,
+    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
+  });
   const followResponse = await client.followUser(targetFid, fid, signerPrivateKey);
   console.log(`follow hash: ${followResponse?.hash}`);
-}
+};
 
 export const unfollowUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {
-  const client = new HubRestAPIClient({ axiosInstance, hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL });
+  const client = new HubRestAPIClient({
+    axiosInstance,
+    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
+  });
   const unfollowResponse = await client.unfollowUser(targetFid, fid, signerPrivateKey);
   console.log(`unfollow hash: ${unfollowResponse?.hash}`);
-}
+};
 
 type SubmitCastParams = {
   text: string;
@@ -90,7 +109,7 @@ type SubmitCastParams = {
   parentUrl?: string;
   fid: number;
   signerPrivateKey: string;
-}
+};
 
 export const submitCast = async ({
   text,
@@ -104,12 +123,12 @@ export const submitCast = async ({
 }: SubmitCastParams) => {
   const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance
+    axiosInstance,
   });
 
   // const publishCastResponse = await writeClient.submitCast(
-  //   { text, embeds, mentions, mentionsPositions, parentCastId }, 
-  //   fid, 
+  //   { text, embeds, mentions, mentionsPositions, parentCastId },
+  //   fid,
   //   signerPrivateKey
   // );
 
@@ -128,21 +147,20 @@ export const submitCast = async ({
   if (parentCastId !== undefined) {
     const parentHashBytes = hexStringToBytes(parentCastId.hash);
     const parentFid = parentCastId.fid;
-    parentHashBytes.match(bytes => {
-      castAdd.parentCastId = {
-        fid: parentFid,
-        hash: bytes,
-      };
-    }, (err) => {
-      console.log('submitCast parentCastId error', err);
-      throw err;
-    });
+    parentHashBytes.match(
+      (bytes) => {
+        castAdd.parentCastId = {
+          fid: parentFid,
+          hash: bytes,
+        };
+      },
+      (err) => {
+        console.log('submitCast parentCastId error', err);
+        throw err;
+      }
+    );
   }
-  const msg = await makeCastAdd(
-    castAdd,
-    dataOptions,
-    new NobleEd25519Signer(toBytes(signerPrivateKey))
-  );
+  const msg = await makeCastAdd(castAdd, dataOptions, new NobleEd25519Signer(toBytes(signerPrivateKey)));
   if (msg.isErr()) {
     throw msg.error;
   }
@@ -159,12 +177,12 @@ export const submitCast = async ({
 export const removeCast = async (castHash: string, fid: number, signerPrivateKey: string) => {
   const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance
+    axiosInstance,
   });
 
   const response = await writeClient.removeCast(castHash, fid, signerPrivateKey);
   console.log(`remove cast hash: ${response?.hash}`);
-}
+};
 
 export const getDeadline = (): bigint => {
   const now = Math.floor(Date.now() / 1000);
@@ -174,17 +192,16 @@ export const getDeadline = (): bigint => {
 
 export const getTimestamp = (): number => {
   return Math.floor(Date.now() / 1000);
-}
+};
 
 export const readNoncesFromKeyGateway = async (account: `0x${string}`) => {
   return await publicClient.readContract({
     abi: keyGatewayABI,
     address: KEY_GATEWAY_ADDRESS,
-    functionName: "nonces",
+    functionName: 'nonces',
     args: [account],
   });
 };
-
 
 export async function isValidSignedKeyRequest(
   fid: bigint,
@@ -194,13 +211,17 @@ export async function isValidSignedKeyRequest(
   const res = await publicClient.readContract({
     address: SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
     abi: signedKeyRequestValidatorABI,
-    functionName: "validate",
+    functionName: 'validate',
     args: [fid, key, signedKeyRequest],
   });
   return res;
 }
 
-export const getSignedKeyRequestMetadataFromAppAccount = async (chainId: number, signerPublicKey: `0x${string}`, deadline: bigint | number) => {
+export const getSignedKeyRequestMetadataFromAppAccount = async (
+  chainId: number,
+  signerPublicKey: `0x${string}`,
+  deadline: bigint | number
+) => {
   const appAccount = mnemonicToAccount(process.env.NEXT_PUBLIC_APP_MNENOMIC!);
   const fid = BigInt(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -212,7 +233,7 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (chainId: number,
     types: {
       SignedKeyRequest: SIGNED_KEY_REQUEST_TYPE,
     },
-    primaryType: "SignedKeyRequest",
+    primaryType: 'SignedKeyRequest',
     message: {
       requestFid: fid,
       key: signerPublicKey,
@@ -225,23 +246,23 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (chainId: number,
       {
         components: [
           {
-            name: "requestFid",
-            type: "uint256",
+            name: 'requestFid',
+            type: 'uint256',
           },
           {
-            name: "requestSigner",
-            type: "address",
+            name: 'requestSigner',
+            type: 'address',
           },
           {
-            name: "signature",
-            type: "bytes",
+            name: 'signature',
+            type: 'bytes',
           },
           {
-            name: "deadline",
-            type: "uint256",
+            name: 'deadline',
+            type: 'uint256',
           },
         ],
-        type: "tuple",
+        type: 'tuple',
       },
     ],
     [
@@ -253,7 +274,7 @@ export const getSignedKeyRequestMetadataFromAppAccount = async (chainId: number,
       },
     ]
   );
-}
+};
 
 const IdContract = {
   abi: idRegistryABI,
@@ -266,11 +287,11 @@ export const getFidForAddress = async (address: `0x${string}`): Promise<bigint |
 
   const client = isDev() ? publicClientTestnet : publicClient;
 
-  return (await client.readContract({
+  return await client.readContract({
     ...IdContract,
     functionName: 'idOf',
     args: [address],
-  }));
+  });
 };
 
 const FARCASTER_FNAME_ENDPOINT = 'https://fnames.farcaster.xyz/transfers';
@@ -314,7 +335,15 @@ type UpdateUsernameParams = {
   fromFid?: string;
 };
 
-export const updateUsernameOffchain = async ({ fid, fromFid, toFid, username, timestamp, owner, signature }: UpdateUsernameParams) => {
+export const updateUsernameOffchain = async ({
+  fid,
+  fromFid,
+  toFid,
+  username,
+  timestamp,
+  owner,
+  signature,
+}: UpdateUsernameParams) => {
   console.log('updateUsername', username, fid, fromFid, toFid);
   if (!fromFid && !toFid) {
     throw new Error('fromFid or toFid must be provided');
@@ -328,7 +357,9 @@ export const updateUsernameOffchain = async ({ fid, fromFid, toFid, username, ti
   //   "timestamp": 1641234567,  // Current timestamp in seconds
   //   "signature": "0x..."  // EIP-712 signature signed by the custody address of the fid
   // }
-  console.log(`making request to ${FARCASTER_FNAME_ENDPOINT} with username: ${username}, fid: ${fid}, owner: ${owner}, signature: ${signature}`)
+  console.log(
+    `making request to ${FARCASTER_FNAME_ENDPOINT} with username: ${username}, fid: ${fid}, owner: ${owner}, signature: ${signature}`
+  );
   try {
     const payload = {
       name: username,
@@ -348,10 +379,9 @@ export const updateUsernameOffchain = async ({ fid, fromFid, toFid, username, ti
     return res.data;
   } catch (e: any) {
     console.error('updateUsername error', e);
-    if (e.response.data.code === "THROTTLED")
-      throw new Error("You can only change your username every 28 days.");
+    if (e.response.data.code === 'THROTTLED') throw new Error('You can only change your username every 28 days.');
     else
-      throw new Error("Failed to register current username: " + e.response.data?.error + " " + e.response.data?.code);
+      throw new Error('Failed to register current username: ' + e.response.data?.error + ' ' + e.response.data?.code);
   }
 };
 
@@ -367,7 +397,7 @@ export const setUserDataInProtocol = async (privateKey: string, fid: number, typ
   const messageBytes = Buffer.from(Message.encode(msg.value).finish());
   const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance
+    axiosInstance,
   });
   const response = await writeClient.apis.submitMessage.submitMessage({
     body: messageBytes,
@@ -375,18 +405,17 @@ export const setUserDataInProtocol = async (privateKey: string, fid: number, typ
   return response.data;
 };
 
-
 const EIP_712_USERNAME_PROOF = [
-  { name: "name", type: "string" },
-  { name: "timestamp", type: "uint256" },
-  { name: "owner", type: "address" },
+  { name: 'name', type: 'string' },
+  { name: 'timestamp', type: 'uint256' },
+  { name: 'owner', type: 'address' },
 ];
 
 const EIP_712_USERNAME_DOMAIN = {
-  name: "Farcaster name verification",
-  version: "1",
+  name: 'Farcaster name verification',
+  version: '1',
   chainId: 1,
-  verifyingContract: "0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1" as Address,
+  verifyingContract: '0xe3Be01D99bAa8dB9905b33a3cA391238234B79D1' as Address,
 };
 
 const USERNAME_PROOF_EIP_712_TYPES = {
@@ -394,24 +423,25 @@ const USERNAME_PROOF_EIP_712_TYPES = {
   types: { UserNameProof: EIP_712_USERNAME_PROOF },
 };
 
-
-export const getSignatureForUsernameProof = async (client, address, message: {
-  name: string;
-  owner: string;
-  timestamp: bigint;
-}): Promise<`0x${string}` | undefined> => {
+export const getSignatureForUsernameProof = async (
+  client,
+  address,
+  message: {
+    name: string;
+    owner: string;
+    timestamp: bigint;
+  }
+): Promise<`0x${string}` | undefined> => {
   if (!address || !client) return;
 
   const signature = await client.signTypedData({
     ...USERNAME_PROOF_EIP_712_TYPES,
     account: address,
-    primaryType: "UserNameProof",
+    primaryType: 'UserNameProof',
     message: message,
   });
-  console.log("getSignatureForUsernameProof:", signature);
+  console.log('getSignatureForUsernameProof:', signature);
   return signature;
 };
 
-export const updateBio = async () => {
-
-}
+export const updateBio = async () => {};
