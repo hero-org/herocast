@@ -191,7 +191,7 @@ function Plan({
   logomarkClassName,
   featured = false,
 }: PlanProps) {
-  const isPayingUser = false; // isPaidUser();
+  const isPayingUser = isPaidUser();
   const isPaidPlan = price.Monthly !== "$0";
 
   const renderStripeButton = () => (
@@ -396,7 +396,7 @@ export function Pricing() {
 export default function UpgradePage() {
   const router = useRouter();
   const { addUnsafeCustomerForUser } = useUserStore();
-  const isPayingUser = false; //isPaidUser();
+  const isPayingUser = isPaidUser();
 
   useEffect(() => {
     const onAddCustomer = async (product: string) => {
