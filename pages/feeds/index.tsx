@@ -98,8 +98,6 @@ export default function FeedsComponent() {
     };
   }, []);
 
-  // Router push effects removed to prevent loops
-
   const updateFeed = (feedKey: string, key: keyof Feed, value: any) => {
     setFeeds((prev) => ({
       ...prev,

@@ -6,7 +6,6 @@ import FeedsComponent from '.';
 import { UUID } from 'crypto';
 
 export default function FeedsPage() {
-  console.log('FeedsPage');
   const router = useRouter();
   const { slug } = router.query;
   const { allChannels, selectedChannelUrl, setSelectedChannelUrl, setSelectedChannelByName } = useAccountStore();
