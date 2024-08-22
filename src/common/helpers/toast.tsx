@@ -47,3 +47,11 @@ export const toastCopiedToClipboard = (text: string) => {
 export const toastUnableToDeleteCast = () => {
   toast.error('Unable to delete cast', { duration: 5000 });
 };
+
+export const toastErrorUpgradeAccount = (reason?: string) => {
+  toast.error('Error upgrading account', {
+    description: reason,
+    closeButton: true,
+    duration: Infinity,
+  });
+};

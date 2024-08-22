@@ -9,6 +9,7 @@ import ProfileInfo from './ProfileInfo';
 import SearchesOverview from './SearchesOverview';
 import ListsOverview from './ListsOverview';
 import ManageListsOverview from './ManageListsOverview';
+import { Separator } from '@/components/ui/separator';
 
 type RightSidebarProps = {
   showFeeds?: boolean;
@@ -48,6 +49,13 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
     );
   };
 
+  const renderWithSeparator = (component: JSX.Element, showSeparator?: boolean) => (
+    <>
+      {showSeparator !== undefined && showSeparator && <Separator className="my-2" />}
+      {component}
+    </>
+  );
+
   return (
     <aside
       style={{
@@ -55,14 +63,14 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
         scrollbarWidth: 'none',
         WebkitScrollbar: 'none',
       }}
-      className="h-screen sticky top-0 bg-muted/40  w-full md:border-l md:border-foreground/5 overflow-y-auto"
+      className="h-screen sticky top-0 bg-muted/40 w-full md:border-l md:border-foreground/5 overflow-y-auto"
     >
       <div>
         {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}
         {showFeeds && <ChannelsOverview />}
-        {showLists && <ListsOverview />}
-        {showManageLists && <ManageListsOverview />}
+        {showLists && renderWithSeparator(<ListsOverview />)}
+        {showManageLists && renderWithSeparator(<ManageListsOverview />, showFeeds || showLists)}
         {showSearches && <SearchesOverview />}
       </div>
     </aside>

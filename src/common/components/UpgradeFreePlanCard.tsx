@@ -1,20 +1,19 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { Progress } from '@/components/ui/progress';
-import { openSourceLimits, openSourcePlanLimits } from '@/config/customerLimitation';
 import Link from 'next/link';
 import { useListStore } from '@/stores/useListStore';
 import { useDraftStore } from '../../stores/useDraftStore';
 import { DraftStatus } from '../constants/farcaster';
 import { Button } from '@/components/ui/button';
 import { isPaidUser } from '@/stores/useUserStore';
+import { getPlanLimitsForUser, PlanLimitsKeys } from '@/config/planLimits';
 
 type UpgradeFreePlanCardProps = {
-  limit: openSourceLimits;
+  limitKey: PlanLimitsKeys;
 };
 
-const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
+const UpgradeFreePlanCard = ({ limitKey }: UpgradeFreePlanCardProps) => {
   const { lists } = useListStore();
   const { accounts } = useAccountStore();
   const { drafts } = useDraftStore();
@@ -22,7 +21,7 @@ const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
   if (isPaidUser()) return null;
 
   const getValueForLimit = () => {
-    switch (limit) {
+    switch (limitKey) {
       case 'maxSavedSearches':
         return lists.length;
       case 'maxAccounts':
@@ -31,11 +30,12 @@ const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
         return drafts.filter((draft) => draft.status === DraftStatus.scheduled).length;
     }
   };
+  const openSourcePlanLimits = getPlanLimitsForUser('openSource');
   const value = getValueForLimit();
-  const hasReachedFreePlanLimit = value >= openSourcePlanLimits[limit];
+  const hasReachedFreePlanLimit = value >= openSourcePlanLimits[limitKey];
 
   const getTitle = () => {
-    switch (limit) {
+    switch (limitKey) {
       case 'maxSavedSearches':
         return `You have ${value} saved searches`;
       case 'maxAccounts':
@@ -46,27 +46,25 @@ const UpgradeFreePlanCard = ({ limit }: UpgradeFreePlanCardProps) => {
   };
 
   const getContent = () => {
-    switch (limit) {
+    switch (limitKey) {
       case 'maxSavedSearches':
-        return 'Upgrade to get more saved searches.';
+        return 'Upgrade to get more keyword feeds, alerts and scheduled casts.';
       case 'maxAccounts':
-        return 'Upgrade to get more accounts.';
+        return 'Upgrade to connect more accounts, scheduled casts and keyword alerts.';
       case 'maxScheduledCasts':
-        return 'Upgrade to get more scheduled casts.';
+        return 'Upgrade to get more scheduled casts, keyword feeds and alerts.';
     }
   };
 
   return (
-    <Card className="bg-muted m-2 flex flex-col text-center items-center justify-center h-full">
-      <CardTitle className="bg-muted-foreground/20 h-10 pt-2 rounded-t-xl w-full items-center text-sm">
-        {getTitle()}
-      </CardTitle>
-      <CardContent className="flex flex-col items-center gap-2 mt-4">
-        <span className="text-muted-foreground">{getContent()}</span>
-      </CardContent>
+    <Card className="bg-muted m-2 flex flex-col items-center justify-center h-full">
+      <CardHeader>
+        <CardTitle>{getTitle()}</CardTitle>
+        <CardDescription>{getContent()}</CardDescription>
+      </CardHeader>
       <CardFooter>
-        <Link href="/upgrade" prefetch={false}>
-          <Button className="w-44" size="sm" variant={hasReachedFreePlanLimit ? 'default' : 'outline'}>
+        <Link href="/upgrade">
+          <Button className="w-44" variant={hasReachedFreePlanLimit ? 'default' : 'outline'}>
             Upgrade
           </Button>
         </Link>

@@ -95,7 +95,7 @@ const PublishedCastsRightSidebar = () => {
       }}
       className="h-screen sticky top-0 bg-muted/40  w-full md:border-l md:border-foreground/5 overflow-y-auto"
     >
-      <div className="">
+      <div>
         <SidebarHeader title="Recent casts" />
         <ul role="list" className="mb-36">
           {castsForSidebar.map((cast) => (

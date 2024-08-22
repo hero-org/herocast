@@ -4,6 +4,9 @@ import AnalyticsGraph from './AnalyticsGraph';
 import { CombinedActivityData } from '@/common/types/types';
 import { Interval } from '@/common/helpers/search';
 import { formatLargeNumber } from '@/common/helpers/text';
+import { startOfDay, subDays } from 'date-fns';
+import { fillMissingDaysBetweenDates } from '@/common/helpers/analytics';
+import { UTCDate } from '@date-fns/utc';
 
 type StatsWithGraphCard = {
   interval: Interval;
@@ -14,7 +17,7 @@ type StatsWithGraphCard = {
 const CastsCard = ({ interval, data, isLoading }: StatsWithGraphCard) => {
   const { overview, aggregated = [] } = data;
   const value = (overview && overview[interval === Interval.d7 ? 'd7' : 'd30']) || 0;
-
+  const startDate = subDays(startOfDay(new UTCDate()), interval === Interval.d7 ? 7 : 30);
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-row items-stretch space-y-0 border-b border-foreground/20 p-0">
@@ -32,7 +35,11 @@ const CastsCard = ({ interval, data, isLoading }: StatsWithGraphCard) => {
       <CardContent>
         {value > 0 && (
           <div className="pt-6 w-full h-full sm:max-h-52 lg:max-h-70">
-            <AnalyticsGraph interval={interval} analyticsKey="casts" aggregated={aggregated} isLoading={isLoading} />
+            <AnalyticsGraph
+              analyticsKey="casts"
+              data={fillMissingDaysBetweenDates(aggregated, startDate, new Date())}
+              isLoading={isLoading}
+            />
           </div>
         )}
       </CardContent>

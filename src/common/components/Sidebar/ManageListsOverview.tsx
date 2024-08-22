@@ -128,15 +128,15 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
 
   const renderLists = () => (
     <div className="flex flex-col">
-      <UpgradeFreePlanCard limit="maxSavedSearches" />
-      <ul role="list" className="mt-2 mb-12">
+      <ul role="list" className="my-2">
         {sortBy(lists, (s) => s.idx).map(renderList)}
       </ul>
+      <UpgradeFreePlanCard limitKey="maxSavedSearches" />
     </div>
   );
 
   return (
-    <div className="">
+    <div>
       {!hideHeader && (
         <SidebarHeader
           title={
