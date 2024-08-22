@@ -70,6 +70,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { addToClipboard } from "../helpers/clipboard";
+import { Badge } from "@/components/ui/badge";
 
 registerPlugin("mention", mentionPlugin);
 registerPlugin("cashtag", cashtagPlugin);
@@ -570,7 +571,7 @@ export const CastRow = ({
             <div
               key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}
             >
-              {renderEmbedForUrl({...embed, hideReactions})}
+              {renderEmbedForUrl({ ...embed, hideReactions })}
             </div>
           ))}
         </ErrorBoundary>
@@ -605,13 +606,12 @@ export const CastRow = ({
   const renderChannelButton = () =>
     showChannel &&
     channel && (
-      <Button
-        variant="outline"
+      <Badge
+        className="truncate items-top bg-blue-400/10  hover:bg-blue-400/20 text-blue-400 hover:text-blue-600  border-blue-400/5 shadow-none"
         onClick={() => setSelectedChannelUrl(channel.url)}
-        className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10  hover:bg-blue-400/20 px-1.5 py-0.5 text-xs font-medium text-blue-400 hover:text-blue-600 ring-1 ring-inset ring-blue-400/30 border-none"
       >
         {channel.name}
-      </Button>
+      </Badge>
     );
 
   const renderAdminActions = () => {

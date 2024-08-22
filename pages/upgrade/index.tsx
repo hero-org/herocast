@@ -81,7 +81,7 @@ const plans = [
       },
       Hypersub: {
         label: "Upgrade on Hypersub",
-        href: "https://www.hypersub.xyz/s/herocast-hyper-club-dbbiuv3cj",
+        href: "https://www.hypersub.xyz/s/herocast-creator-uqc1n4kn9fy8",
       },
     },
     features: [
@@ -115,7 +115,7 @@ const plans = [
       },
       Hypersub: {
         label: "Upgrade on Hypersub",
-        href: "https://www.hypersub.xyz/s/herocast-hyper-club-dbbiuv3cj",
+        href: "https://www.hypersub.xyz/s/herocast-brand-13u1gwop7v9c0",
       },
     },
     features: [
@@ -405,14 +405,13 @@ export default function UpgradePage() {
         stripe_customer_id: `manual_entry`,
         product,
       });
-    }
+    };
 
     const hasPaidViaStripe = router.query.success === "true";
     if (hasPaidViaStripe && !isPayingUser) {
       const product = router.query.product as string;
-      onAddCustomer(product)
+      onAddCustomer(product);
     }
-
   }, [router.query, isPayingUser]);
 
   const renderUpgradeContent = () => (
@@ -428,18 +427,19 @@ export default function UpgradePage() {
       </div>
       {!isPayingUser && (
         <div className="flex mx-auto">
-          <Button
-            type="button"
-            size="lg"
-            className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
-            onClick={() =>
-              openWindow(
-                "https://www.hypersub.xyz/s/herocast-hyper-club-dbbiuv3cjwn4"
-              )
-            }
+          <Link
+            href="https://www.hypersub.xyz/s/herocast-creator-uqc1n4kn9fy8"
+            prefetch={false}
+            className="w-full mx-auto"
           >
-            Upgrade on Hypersub <span className="ml-2">→</span>
-          </Button>
+            <Button
+              type="button"
+              size="lg"
+              className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+            >
+              Upgrade on Hypersub <span className="ml-2">→</span>
+            </Button>
+          </Link>
         </div>
       )}
       <Pricing />

@@ -1,4 +1,10 @@
-export const planLimits = {
+export type PlanType = 'openSource' | 'creator' | 'pro';
+export type PlanLimitsKeys = 'maxSavedSearches' | 'maxAccounts' | 'maxScheduledCasts';
+export type PlanLimitsType = {
+    [key in PlanLimitsKeys]: number;
+}
+
+const planLimits: Record<PlanType, PlanLimitsType> = {
     openSource: {
         maxSavedSearches: 1,
         maxAccounts: 2,
@@ -16,10 +22,8 @@ export const planLimits = {
     },
 }
 
-export const openSourcePlanLimits = {
-    maxSavedSearches: 1,
-    maxAccounts: 2,
-    maxScheduledCasts: 3,
+
+export const getPlanLimitsForUser = (plan: PlanType): PlanLimitsType => {
+    return planLimits[plan];
 }
 
-export type openSourceLimits = 'maxSavedSearches' | 'maxAccounts' | 'maxScheduledCasts';

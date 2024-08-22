@@ -3,7 +3,7 @@ import { ChannelType } from "@/common/constants/channels";
 import { CUSTOM_CHANNELS, useAccountStore } from "@/stores/useAccountStore";
 import { SidebarHeader } from "./SidebarHeader";
 import { cn } from "@/lib/utils";
-import { ArrowTrendingUpIcon, HomeIcon } from "@heroicons/react/20/solid";
+import { ArrowTrendingUpIcon, HomeIcon, RectangleGroupIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -12,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useListStore } from "@/stores/useListStore";
+import { Separator } from "@/components/ui/separator";
 
 const ChannelsOverview = () => {
   const { selectedChannelUrl, setSelectedChannelUrl, resetSelectedChannel } =
@@ -140,26 +141,33 @@ const ChannelsOverview = () => {
   return (
     <div className="mb-4">
       <SidebarHeader title="Feeds" />
-      <ul role="list" className="mt-2 mb-4">
+      <ul role="list" className="mb-4">
         {renderCustomChannel({
           name: "Follow Feed",
           url: CUSTOM_CHANNELS.FOLLOWING,
           icon: (
-            <HomeIcon className="border-gray-400 hover:border-gray-300 mr-1 mt-0.5 bg-gray-100 border h-5 w-5 p-0.5 flex-none rounded-full" />
+            <HomeIcon className="border-gray-400 hover:border-gray-300 mr-1 mt-0.5 bg-foreground/10 border h-5 w-5 p-0.5 flex-none rounded-full" />
           ),
         })}
         {renderCustomChannel({
           name: "Trending Feed",
           url: CUSTOM_CHANNELS.TRENDING,
           icon: (
-            <ArrowTrendingUpIcon className="border-gray-400 hover:border-gray-300 mr-1 mt-0.5 bg-gray-100 border h-5 w-5 p-0.5 flex-none rounded-full" />
+            <ArrowTrendingUpIcon className="border-gray-400 hover:border-gray-300 mr-1 mt-0.5 bg-foreground/10 border h-5 w-5 p-0.5 flex-none rounded-full" />
           ),
         })}
       </ul>
+      <Separator className="my-2" />
       {renderFeedHeader(
-        "Channels",
+        <span className="flex">
+          <RectangleGroupIcon
+            className="mt-1 mr-1 h-5 w-5"
+            aria-hidden="true"
+          />
+          Channels
+        </span>,
         <Link href="/channels">
-          <Button size="sm" variant="outline" className="h-6 px-2">
+          <Button variant="outline" className="h-6 px-2">
             Pin channels
           </Button>
         </Link>

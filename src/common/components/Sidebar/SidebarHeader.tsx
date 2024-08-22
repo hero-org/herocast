@@ -10,7 +10,7 @@ export const SidebarHeader = ({
   onClick?: () => void;
 }) => {
   return (
-    <div className="bg-muted/50 flex items-center justify-between border-l border-muted/10 px-4 py-3 sm:px-4 sm:py-3">
+    <div className="flex items-center justify-between border-l border-muted/10 px-4 py-3 sm:px-4 sm:py-3">
       <h3 className="text-md font-semibold leading-7 tracking-tight text-primary">{title}</h3>
       {actionTitle && (
         <div

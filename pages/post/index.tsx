@@ -27,11 +27,7 @@ import {
 import { ChannelType } from "@/common/constants/channels";
 import { UUID } from "crypto";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Progress } from "@/components/ui/progress";
-import { openSourcePlanLimits } from "@/config/customerLimitation";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import Link from "next/link";
-import UpgradeFreePlanCard from "../../src/common/components/UpgradeFreePlanCard";
+import UpgradeFreePlanCard from "@/common/components/UpgradeFreePlanCard";
 
 enum DraftListTab {
   writing = "writing",
@@ -425,7 +421,7 @@ export default function NewPost() {
   };
 
   const renderFreePlanCard = () => {
-    return <UpgradeFreePlanCard limit="maxScheduledCasts" />;
+    return <UpgradeFreePlanCard limitKey="maxScheduledCasts" />;
   };
 
   return (
@@ -440,8 +436,7 @@ export default function NewPost() {
           >
             {renderTabsSelector()}
             <TabsContent value={DraftListTab.writing}>
-              {scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts &&
-                renderFreePlanCard()}
+              {renderFreePlanCard()}
               {renderDraftList()}
             </TabsContent>
             <TabsContent value={DraftListTab.scheduled}>

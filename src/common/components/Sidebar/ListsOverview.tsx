@@ -1,35 +1,11 @@
 import React, { useState } from "react";
-import { SidebarHeader } from "./SidebarHeader";
 import { useListStore } from "@/stores/useListStore";
 import sortBy from "lodash.sortby";
 import { List } from "@/common/types/database.types";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { Button } from "@/components/ui/button";
-import {
-  EllipsisVerticalIcon,
-  MagnifyingGlassIcon,
-  Cog6ToothIcon,
-  BellIcon,
-  EnvelopeIcon,
-} from "@heroicons/react/24/outline";
-import { useNavigationStore } from "@/stores/useNavigationStore";
 import { UUID } from "crypto";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { useAccountStore } from "@/stores/useAccountStore";
-import UpgradeFreePlanCard from "../UpgradeFreePlanCard";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
@@ -37,12 +13,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { PlusIcon } from "@heroicons/react/24/solid";
-
-type ListsOverviewProps = {
-  hideHeader?: boolean;
-  collapsible?: boolean;
-};
+import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 
 const ListsOverview = () => {
   const { selectedListId, setSelectedListId } = useListStore();
@@ -124,9 +95,15 @@ const ListsOverview = () => {
   return (
     <div className="">
       {renderFeedHeader(
-        "Searches",
+        <span className="flex">
+          <MagnifyingGlassIcon
+            className="mt-1 mr-1 h-5 w-5"
+            aria-hidden="true"
+          />
+          Searches
+        </span>,
         <Link href="/search">
-          <Button size="sm" variant="outline" className="h-6 px-2">
+          <Button variant="outline" className="h-6 px-2">
             Add search
           </Button>
         </Link>
