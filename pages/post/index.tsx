@@ -20,6 +20,7 @@ import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date'
 import { ChannelType } from '@/common/constants/channels';
 import { UUID } from 'crypto';
 import { usePathname, useSearchParams } from 'next/navigation';
+import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 
 enum DraftListTab {
   writing = 'writing',
