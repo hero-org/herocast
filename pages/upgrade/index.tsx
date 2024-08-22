@@ -69,7 +69,7 @@ const plans = [
     name: "Creator",
     featured: false,
     price: { Monthly: "$15", Annually: "$10" },
-    description: "Perfect for creators to create and engage more.",
+    description: "Perfect to create and engage more.",
     button: {
       Monthly: {
         label: "Subscribe",
