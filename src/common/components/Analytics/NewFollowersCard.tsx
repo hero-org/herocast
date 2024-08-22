@@ -7,14 +7,14 @@ import { formatLargeNumber } from '@/common/helpers/text';
 import { subDays } from 'date-fns';
 import { fillMissingDaysBetweenDates } from '@/common/helpers/analytics';
 
-type StatsWithGraphCard = {
+type NewFollowersCardProps = {
   followerCount: number | undefined;
   interval: Interval;
   data: CombinedActivityData;
   isLoading: boolean;
 };
 
-const NewFollowersCard = ({ followerCount, interval, data, isLoading }: StatsWithGraphCard) => {
+const NewFollowersCard = ({ followerCount, interval, data, isLoading }: NewFollowersCardProps) => {
   const { overview, aggregated = [] } = data;
 
   const cumulativeAggregated = useMemo(() => {
@@ -23,7 +23,8 @@ const NewFollowersCard = ({ followerCount, interval, data, isLoading }: StatsWit
     }
 
     const startDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
-    const filtered = aggregated.filter((item) => new Date(item.timestamp) >= startDate);
+    let filtered = aggregated.filter((item) => new Date(item.timestamp) >= startDate);
+    filtered = fillMissingDaysBetweenDates(filtered, startDate, new Date());
 
     const calculateCount = (arr: typeof aggregated, i: number, baseCount: number) => {
       const count = arr.slice(i + 1).reduce((sum, item) => sum + item.count, 0);
@@ -45,7 +46,9 @@ const NewFollowersCard = ({ followerCount, interval, data, isLoading }: StatsWit
       [] as CombinedActivityData['aggregated']
     );
   }, [aggregated, interval]);
+
   const value = overview[interval === Interval.d7 ? 'd7' : 'd30'] || 0;
+
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-row items-stretch space-y-0 border-b border-foreground/20 p-0">

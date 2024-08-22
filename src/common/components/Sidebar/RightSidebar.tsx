@@ -65,7 +65,7 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
       }}
       className="h-screen sticky top-0 bg-muted/40 w-full md:border-l md:border-foreground/5 overflow-y-auto"
     >
-      <div className="">
+      <div>
         {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}
         {showFeeds && <ChannelsOverview />}

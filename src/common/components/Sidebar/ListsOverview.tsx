@@ -81,7 +81,7 @@ const ListsOverview = () => {
   const hasLists = lists.length > 0;
 
   return (
-    <div className="">
+    <div>
       {renderFeedHeader(
         <span className="flex">
           <MagnifyingGlassIcon className="mt-1 mr-1 h-5 w-5" aria-hidden="true" />

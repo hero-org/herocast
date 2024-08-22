@@ -20,10 +20,11 @@ import { Interval } from '@/common/helpers/search';
 import { IntervalFilter } from '@/common/components/IntervalFilter';
 import DynamicChartCard from '@/common/components/Analytics/DynamicChartCard';
 import { addDays, formatDistanceToNow, isBefore } from 'date-fns';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext } from '@/components/ui/carousel';
 import CastsCard from '@/common/components/Analytics/CastsCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TopFollowers from '@/common/components/Analytics/TopFollowers';
+import { UTCDate } from '@date-fns/utc';
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 const intervals = [Interval.d7, Interval.d30];
@@ -32,17 +33,14 @@ function timeUntilNextUTCHour(hour: number): string {
   const now = new Date();
 
   // Create a Date object for <hour> UTC today
-  let next4amUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0));
+  let next4amUTC = new UTCDate(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0);
 
   // If the current time is already past <hour> UTC, move to the next day
   if (isBefore(next4amUTC, now)) {
     next4amUTC = addDays(next4amUTC, 1);
   }
 
-  // Calculate the time until next <hour> UTC
-  const timeRemaining = formatDistanceToNow(next4amUTC, { addSuffix: true });
-
-  return timeRemaining;
+  return formatDistanceToNow(next4amUTC, { addSuffix: true });
 }
 
 export default function AnalyticsPage() {

@@ -30,7 +30,6 @@ import { toast } from 'sonner';
 import { usePostHog } from 'posthog-js/react';
 import { useTextLength } from '../../helpers/editor';
 import { cn } from '@/lib/utils';
-import { openSourcePlanLimits } from '@/config/customerLimitation';
 import Link from 'next/link';
 import { isPaidUser } from '@/stores/useUserStore';
 import { MentionList } from '../MentionsList';
@@ -380,7 +379,7 @@ export default function NewPostEntry({
           )}
         </div>
         <div className="flex flex-row pt-2 justify-between">
-          <div className="">
+          <div>
             {scheduleDateTime && hasReachedFreePlanLimit && (
               <Link href="/upgrade" prefetch={false}>
                 <Button variant="link" className="text-left px-0">

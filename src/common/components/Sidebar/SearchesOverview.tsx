@@ -31,7 +31,7 @@ const SearchesOverview = () => {
   };
 
   return (
-    <div className="">
+    <div>
       <SidebarHeader title="Search History" />
       <ul role="list" className="mt-2 mb-12">
         {take(

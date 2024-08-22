@@ -136,7 +136,7 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
   );
 
   return (
-    <div className="">
+    <div>
       {!hideHeader && (
         <SidebarHeader
           title={

@@ -17,8 +17,8 @@ const ReactionsCard = ({ interval, data, isLoading }: ReactionsCardProps) => {
   const { overview, aggregated = [] } = data;
 
   const value = (overview && overview[interval === Interval.d7 ? 'd7' : 'd30']) || 0;
-
   const startDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
+
   return (
     <Card className="h-fit">
       <CardHeader className="flex flex-row items-stretch space-y-0 border-b border-foreground/20 p-0">
