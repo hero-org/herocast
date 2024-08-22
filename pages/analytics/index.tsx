@@ -31,19 +31,20 @@ const intervals = [Interval.d7, Interval.d30];
 function timeUntilNextUTCHour(hour: number): string {
   const now = new Date();
 
-  // Create a Date object for 4:00 AM UTC today
+  // Create a Date object for <hour> UTC today
   let next4amUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0));
 
-  // If the current time is already past 4:00 AM UTC, move to the next day
+  // If the current time is already past <hour> UTC, move to the next day
   if (isBefore(next4amUTC, now)) {
     next4amUTC = addDays(next4amUTC, 1);
   }
 
-  // Calculate the time until next 4:00 AM UTC
+  // Calculate the time until next <hour> UTC
   const timeRemaining = formatDistanceToNow(next4amUTC, { addSuffix: true });
 
   return timeRemaining;
 }
+
 export default function AnalyticsPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -196,7 +197,7 @@ export default function AnalyticsPage() {
           className="mr-12 lg:mx-0"
         >
           <CarouselContent className="">
-            <CarouselItem className="md:basis-1/2 lg:basis-1/2">
+            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
               {analyticsData?.follows && (
                 <NewFollowersCard
                   followerCount={selectedProfile?.follower_count}
@@ -206,20 +207,16 @@ export default function AnalyticsPage() {
                 />
               )}
             </CarouselItem>
-            <CarouselItem className="md:basis-1/2 lg:basis-1/2">
+            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
               {analyticsData?.reactions && (
                 <ReactionsCard data={analyticsData.reactions} isLoading={isLoading} interval={interval} />
               )}
             </CarouselItem>
-            {/* <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+            <CarouselItem className="md:basis-1/2 lg:basis-1/3">
               {analyticsData?.casts && (
-                <CastsCard
-                  data={analyticsData.casts}
-                  isLoading={isLoading}
-                  interval={interval}
-                />
+                <CastsCard data={analyticsData.casts} isLoading={isLoading} interval={interval} />
               )}
-            </CarouselItem> */}
+            </CarouselItem>
           </CarouselContent>
           <CarouselNext className="lg:hidden" />
         </Carousel>

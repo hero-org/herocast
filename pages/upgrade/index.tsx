@@ -8,7 +8,6 @@ import { isPaidUser, useUserStore } from '../../src/stores/useUserStore';
 import { useRouter } from 'next/router';
 import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon } from '@heroicons/react/20/solid';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { openWindow } from '@/common/helpers/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import herocastLogo from '../../public/images/logo.png';
@@ -22,7 +21,7 @@ const plans = [
     name: 'Open source',
     featured: false,
     price: { Monthly: '$0', Annually: '$0' },
-    description: 'Just curious? Enjoy herocast at no costs.',
+    description: 'Just curious? Enjoy herocast at no cost.',
     button: {
       Monthly: {
         label: 'Get started for free',
@@ -35,7 +34,7 @@ const plans = [
     },
     features: [
       '1 Keyword Feed',
-      '3 scheduled casts',
+      '3 Scheduled Casts',
       '1 Keyword Alert',
       'Analytics (7 days)',
       'Onchain user insights',
@@ -65,7 +64,7 @@ const plans = [
     },
     features: [
       '2 Keyword Feeds',
-      '15 scheduled casts',
+      '15 Scheduled Casts',
       '2 Keyword Alerts',
       'Analytics (1 month)',
       'Onchain user insights',
@@ -95,7 +94,7 @@ const plans = [
     },
     features: [
       '10 Keyword Feeds',
-      'Unlimited scheduled casts',
+      'Unlimited Scheduled Casts',
       '10 Keyword Alerts',
       'Analytics (3 months)',
       'Onchain user insights',
@@ -122,7 +121,7 @@ const plans = [
     },
     features: [
       '15+ Keyword Feeds',
-      'Unlimited scheduled casts',
+      'Unlimited Scheduled Casts',
       '15+ Keyword Alerts',
       'Analytics (all-time)',
       'Onchain user insights',
