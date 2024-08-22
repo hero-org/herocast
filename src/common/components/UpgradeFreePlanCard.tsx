@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAccountStore } from '@/stores/useAccountStore';
 import Link from 'next/link';
 import { useListStore } from '@/stores/useListStore';
@@ -27,9 +27,6 @@ const UpgradeFreePlanCard = ({ limitKey }: UpgradeFreePlanCardProps) => {
       case 'maxAccounts':
         return accounts.length;
       case 'maxScheduledCasts':
-        return drafts.filter((draft) => draft.status === DraftStatus.scheduled).length;
-      case 'maxScheduledCasts':
-        console.log('drafts', drafts);
         return drafts.filter((draft) => draft.status === DraftStatus.scheduled).length;
     }
   };

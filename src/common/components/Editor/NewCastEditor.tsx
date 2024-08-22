@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { usePostHog } from 'posthog-js/react';
 import { useTextLength } from '../../helpers/editor';
 import { cn } from '@/lib/utils';
+import { openSourcePlanLimits } from '@/config/customerLimitation';
 import Link from 'next/link';
 import { isPaidUser } from '@/stores/useUserStore';
 import { MentionList } from '../MentionsList';
@@ -286,6 +287,7 @@ export default function NewPostEntry({
 
   const scheduledCastCount =
     useDraftStore((state) => state.drafts.filter((draft) => draft.status === DraftStatus.scheduled))?.length || 0;
+  const openSourcePlanLimits = getPlanLimitsForUser('openSource');
   const hasReachedFreePlanLimit = !isPaidUser() && scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
   const isButtonDisabled = isPublishing || !textLengthIsValid || (scheduleDateTime && hasReachedFreePlanLimit);
 

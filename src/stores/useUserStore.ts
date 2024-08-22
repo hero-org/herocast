@@ -1,11 +1,10 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { create as mutativeCreate, Draft } from 'mutative';
-import { Customer, InsertCustomer } from "@/common/types/database.types";
-import { createClient } from "@/common/helpers/supabase/component";
-import { addUnsafeCustomerForUser, getCustomersForUser } from "@/common/helpers/supabase";
-import { toastErrorUpgradeAccount } from "@/common/helpers/toast";
-
+import { Customer, InsertCustomer } from '@/common/types/database.types';
+import { createClient } from '@/common/helpers/supabase/component';
+import { addUnsafeCustomerForUser, getCustomersForUser } from '@/common/helpers/supabase';
+import { toastErrorUpgradeAccount } from '@/common/helpers/toast';
 
 interface UserStoreProps {
   customer: Customer | undefined;
@@ -16,7 +15,7 @@ interface UserStoreActions {
   addUnsafeCustomerForUser: (customer: Omit<InsertCustomer, 'user_id'>) => void;
 }
 
-export interface UserStore extends UserStoreProps, UserStoreActions { }
+export interface UserStore extends UserStoreProps, UserStoreActions {}
 
 export const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
 
@@ -28,22 +27,20 @@ const store = (set: StoreSet) => ({
   customer: undefined,
   addUnsafeCustomerForUser: async (customer: Omit<InsertCustomer, 'user_id'>) => {
     if (!customer?.product) {
-      toastErrorUpgradeAccount("No product specified");
+      toastErrorUpgradeAccount('No product specified');
       return;
     }
 
-    addUnsafeCustomerForUser(supabaseClient, customer).then(
-      (didAddCustomer) => {
-        if (!didAddCustomer) {
-          toastErrorUpgradeAccount("Failed to store upgrade data");
-          return;
-        }
-
-        set((state) => {
-          state.customer = customer as Customer;
-        });
+    addUnsafeCustomerForUser(supabaseClient, customer).then((didAddCustomer) => {
+      if (!didAddCustomer) {
+        toastErrorUpgradeAccount('Failed to store upgrade data');
+        return;
       }
-    )
+
+      set((state) => {
+        state.customer = customer as Customer;
+      });
+    });
   },
   hydrate: async () => {
     getCustomersForUser(supabaseClient).then((customer) => {

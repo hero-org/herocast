@@ -30,7 +30,7 @@ interface ListStoreActions {
   setSelectedListId: (id?: UUID) => void;
 }
 
-export interface ListStore extends ListStoreProps, ListStoreActions { }
+export interface ListStore extends ListStoreProps, ListStoreActions {}
 
 export const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
 

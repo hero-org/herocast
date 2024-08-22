@@ -49,7 +49,7 @@ export const toastUnableToDeleteCast = () => {
 };
 
 export const toastErrorUpgradeAccount = (reason?: string) => {
-  toast.error("Error upgrading account", {
+  toast.error('Error upgrading account', {
     description: reason,
     closeButton: true,
     duration: Infinity,

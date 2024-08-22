@@ -1,7 +1,7 @@
 import NewPostEntry from '@/common/components/Editor/NewCastEditor';
 import { useDraftStore } from '@/stores/useDraftStore';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { ClockIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
 import { Button } from '@/components/ui/button';
 import { CastRow } from '@/common/components/CastRow';
@@ -20,34 +20,6 @@ import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date'
 import { ChannelType } from '@/common/constants/channels';
 import { UUID } from 'crypto';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Progress } from '@/components/ui/progress';
-import { openSourcePlanLimits } from '@/config/customerLimitation';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import Link from 'next/link';
-import UpgradeFreePlanCard from '../../src/common/components/UpgradeFreePlanCard';
-import NewPostEntry from '@/common/components/Editor/NewCastEditor';
-import { useDraftStore } from '@/stores/useDraftStore';
-import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { ClockIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { PencilSquareIcon } from '@heroicons/react/20/solid';
-import { Button } from '@/components/ui/button';
-import { CastRow } from '@/common/components/CastRow';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { formatDistanceToNow } from 'date-fns';
-import { DraftStatus, DraftType } from '@/common/constants/farcaster';
-import map from 'lodash.map';
-import { renderEmbedForUrl } from '@/common/components/Embeds';
-import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date';
-import { ChannelType } from '@/common/constants/channels';
-import { UUID } from 'crypto';
-import { usePathname, useSearchParams } from 'next/navigation';
-import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 
 enum DraftListTab {
   writing = 'writing',
