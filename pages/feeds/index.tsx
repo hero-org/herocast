@@ -169,6 +169,12 @@ export default function Feeds() {
     }
   }, [selectedCastIdx, selectedChannelUrl, casts, updateSelectedCast]);
 
+  useEffect(() => {
+    if (account && inView && nextCursor) {
+      getFeed({ fid: account.platformAccountId!, parentUrl: selectedChannelUrl, selectedListId, cursor: nextCursor });
+    }
+  }, [inView, nextCursor, account, selectedChannelUrl, selectedListId]);
+
   const onReply = useCallback(() => {
     if (!selectedCast) return;
 
