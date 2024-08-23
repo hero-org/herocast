@@ -5,7 +5,7 @@ import isEmpty from 'lodash.isempty';
 import ChannelsOverview from './ChannelsOverview';
 import { useRouter } from 'next/router';
 import { useDataStore } from '@/stores/useDataStore';
-import ProfileInfo from './ProfileInfo';
+import ProfileInfo from '../ProfileInfo';
 import SearchesOverview from './SearchesOverview';
 import ListsOverview from './ListsOverview';
 import ManageListsOverview from './ManageListsOverview';
@@ -42,10 +42,21 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
   const renderAuthorInfo = () => {
     if (!showAuthorInfo || !selectedCast) return null;
 
+    if (selectedAccount?.platformAccountId === selectedCast.author.fid.toString()) {
+      return null;
+    }
+
     return (
-      <div className="pt-16 mx-4">
-        <ProfileInfo fid={selectedCast.author.fid} viewerFid={Number(selectedAccount.platformAccountId)} showFullInfo />
-      </div>
+      <>
+        <div className="pt-16 mx-4">
+          <ProfileInfo
+            fid={selectedCast.author.fid}
+            viewerFid={Number(selectedAccount.platformAccountId)}
+            showFullInfo
+          />
+        </div>
+        <Separator className="my-2" />
+      </>
     );
   };
 

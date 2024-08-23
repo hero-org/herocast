@@ -17,7 +17,7 @@ import uniqBy from 'lodash.uniqby';
 import { useDataStore } from '@/stores/useDataStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDraftStore } from '@/stores/useDraftStore';
 import CreateAccountPage from 'pages/welcome/new';
 import { AccountStatusType } from '@/common/constants/accounts';
@@ -168,6 +168,12 @@ export default function Feeds() {
       updateSelectedCast(casts[selectedCastIdx]);
     }
   }, [selectedCastIdx, selectedChannelUrl, casts, updateSelectedCast]);
+
+  useEffect(() => {
+    if (account && inView && nextCursor) {
+      getFeed({ fid: account.platformAccountId!, parentUrl: selectedChannelUrl, selectedListId, cursor: nextCursor });
+    }
+  }, [inView, nextCursor, account, selectedChannelUrl, selectedListId]);
 
   const onReply = useCallback(() => {
     if (!selectedCast) return;

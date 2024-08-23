@@ -10,7 +10,7 @@ import { useDataStore } from '@/stores/useDataStore';
 import { fetchAndAddUserProfile, getProfile, shouldUpdateProfile } from '@/common/helpers/profileUtils';
 import { useRouter } from 'next/router';
 import { Loading } from '@/common/components/Loading';
-import ProfileInfo from '@/common/components/Sidebar/ProfileInfo';
+import ProfileInfo from '@/common/components/ProfileInfo';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -145,7 +145,7 @@ const ProfilePage = () => {
   const renderProfile = () => (
     <div>
       <div className="m-8 mb-0">
-        <ProfileInfo fid={profile.fid} viewerFid={viewerFid} showFullInfo />
+        <ProfileInfo fid={profile.fid} viewerFid={viewerFid} showFullInfo wideFormat />
       </div>
       {renderFeed()}
     </div>
