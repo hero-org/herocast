@@ -3,12 +3,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loading } from './Loading';
 import { formatLargeNumber } from '../helpers/text';
 import FollowButton from './FollowButton';
+import Linkify from 'linkify-react';
+import Link from 'next/link';
+import { url } from 'inspector';
 
 type ProfileInfoContentProps = {
   profile: any;
   showFollowButton?: boolean;
   isHoverCard?: boolean;
   hideBio?: boolean;
+  wideFormat?: boolean;
 };
 
 const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
@@ -16,8 +20,11 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
   showFollowButton = true,
   isHoverCard = false,
   hideBio = false,
+  wideFormat = false,
 }) => {
   if (!profile) return <Loading />;
+
+  const renderFollowButton = () => showFollowButton && profile.username && <FollowButton username={profile.username} />;
 
   return (
     <div className="space-y-2">
@@ -39,15 +46,37 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
             </h3>
           </div>
         </div>
+        {wideFormat && renderFollowButton()}
       </div>
-      {showFollowButton && profile.username && <FollowButton username={profile.username} />}
-      {!hideBio && profile.profile?.bio?.text && (
-        <p className={`flex pt-2 text-sm break-words ${isHoverCard ? '' : 'pr-4 overflow-x-hidden'}`}>
-          {profile.profile?.bio?.text}
-        </p>
-      )}
-      <div className="flex flex-col pt-2 text-sm text-muted-foreground">
-        <div className="flex flex-col lg:flex-row lg:space-x-2">
+      {!wideFormat && renderFollowButton()}
+      <div className="flex flex-col text-sm">
+        {!hideBio && profile.profile?.bio?.text && (
+          <p className={`flex pt-2 text-sm break-words ${isHoverCard ? '' : 'pr-4 overflow-x-hidden'}`}>
+            <Linkify
+              as="p"
+              options={{
+                validate: {
+                  url: (value): boolean => {
+                    return !value.startsWith('$');
+                  },
+                },
+                render: {
+                  url: ({ attributes, content }) => {
+                    const { href, ...props } = attributes;
+                    return (
+                      <Link href={href} className="underline" prefetch={false} {...props}>
+                        {content}
+                      </Link>
+                    );
+                  },
+                },
+              }}
+            >
+              {profile.profile?.bio?.text}
+            </Linkify>
+          </p>
+        )}
+        <div className="flex flex-col pt-2 lg:flex-row lg:space-x-2">
           <p>
             <span className="font-semibold text-foreground">
               {formatLargeNumber(profile.follower_count || 0)}&nbsp;

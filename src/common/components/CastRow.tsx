@@ -625,8 +625,8 @@ export const CastRow = ({
     );
   };
 
-  return (
-    <div className="flex min-w-full w-full max-w-lg">
+  const renderCastContent = () => (
+    <div className="flex w-full max-w-xl">
       <div
         onClick={(event) => {
           event.stopPropagation();
@@ -716,4 +716,14 @@ export const CastRow = ({
       </div>
     </div>
   );
+
+  if (isEmbed) {
+    return (
+      <Link href={`/conversation/${cast.hash}`} prefetch={false}>
+        {renderCastContent()}
+      </Link>
+    );
+  }
+
+  return renderCastContent();
 };

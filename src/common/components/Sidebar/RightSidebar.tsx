@@ -5,7 +5,7 @@ import isEmpty from 'lodash.isempty';
 import ChannelsOverview from './ChannelsOverview';
 import { useRouter } from 'next/router';
 import { useDataStore } from '@/stores/useDataStore';
-import ProfileInfo from './ProfileInfo';
+import ProfileInfo from '../ProfileInfo';
 import SearchesOverview from './SearchesOverview';
 import ListsOverview from './ListsOverview';
 import ManageListsOverview from './ManageListsOverview';

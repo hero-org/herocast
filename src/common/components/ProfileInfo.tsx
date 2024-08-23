@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
-import { fetchAndAddUserProfile, shouldUpdateProfile } from '../../helpers/profileUtils';
+import { fetchAndAddUserProfile, shouldUpdateProfile } from '../helpers/profileUtils';
 import { useDataStore } from '@/stores/useDataStore';
 import get from 'lodash.get';
 import Link from 'next/link';
-import ProfileInfoContent from '../ProfileInfoContent';
+import ProfileInfoContent from './ProfileInfoContent';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { take } from 'lodash';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const priorityChannels = ['email', 'linkedin', 'telegram', 'twitter', 'github'];
 
@@ -17,12 +18,14 @@ const ProfileInfo = ({
   showFollowButton,
   showFullInfo,
   hideBio = false,
+  wideFormat = false,
 }: {
   fid: number;
   viewerFid: number;
   showFollowButton?: boolean;
   showFullInfo?: boolean;
   hideBio?: boolean;
+  wideFormat?: boolean;
 }) => {
   const profile = useDataStore((state) => get(state.fidToData, fid));
 
@@ -122,16 +125,21 @@ const ProfileInfo = ({
   };
 
   return (
-    <div className="space-y-2 mb-4 min-h-48 w-full">
+    <div className={cn('space-y-2 mb-4 min-h-40 w-full grid', wideFormat && 'md:grid-cols-2')}>
       <Link
         href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
         prefetch={false}
         className="cursor-pointer block"
       >
-        <ProfileInfoContent profile={profile} showFollowButton={showFollowButton} hideBio={hideBio} />
+        <ProfileInfoContent
+          profile={profile}
+          showFollowButton={showFollowButton}
+          hideBio={hideBio}
+          wideFormat={wideFormat}
+        />
       </Link>
       {shouldRenderFullInfo && (
-        <div>
+        <div className="content-end">
           {renderDateJoined()}
           {renderSocialCapitalScore()}
           {renderIcebreakerChannels()}

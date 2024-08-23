@@ -26,12 +26,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useIsMobile, useIsMounted } from '@/common/helpers/hooks';
+import { useIsMobile } from '@/common/helpers/hooks';
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CastRow } from '@/common/components/CastRow';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
-import ProfileInfo from '@/common/components/Sidebar/ProfileInfo';
+import ProfileInfo from '@/common/components/ProfileInfo';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
 
