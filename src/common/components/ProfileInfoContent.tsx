@@ -8,12 +8,14 @@ type ProfileInfoContentProps = {
   profile: any;
   showFollowButton?: boolean;
   isHoverCard?: boolean;
+  hideBio?: boolean;
 };
 
 const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
   profile,
   showFollowButton = true,
   isHoverCard = false,
+  hideBio = false,
 }) => {
   if (!profile) return <Loading />;
 
@@ -30,11 +32,18 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
       </div>
       <div>
         <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1">{profile.display_name}</h2>
-        <h3 className="text-sm font-regular">@{profile.username}</h3>
+        <h3 className="flex text-sm font-regular">
+          @{profile.username}
+          {profile?.power_badge && (
+            <img src="/images/ActiveBadge.webp" className="ml-1 mt-0.5 h-[14px] w-[14px]" alt="Power badge" />
+          )}
+        </h3>
       </div>
-      <p className={`flex pt-2 text-sm break-words ${isHoverCard ? '' : 'pr-4 overflow-x-hidden'}`}>
-        {profile.profile?.bio?.text}
-      </p>
+      {!hideBio && (
+        <p className={`flex pt-2 text-sm break-words ${isHoverCard ? '' : 'pr-4 overflow-x-hidden'}`}>
+          {profile.profile?.bio?.text}
+        </p>
+      )}
       <div className="flex flex-col pt-2 text-sm text-muted-foreground">
         <p>
           <span className="font-semibold text-foreground">{formatLargeNumber(profile.follower_count || 0)}&nbsp;</span>

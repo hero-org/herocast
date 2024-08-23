@@ -42,6 +42,10 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
   const renderAuthorInfo = () => {
     if (!showAuthorInfo || !selectedCast) return null;
 
+    if (selectedAccount?.platformAccountId === selectedCast.author.fid.toString()) {
+      return null;
+    }
+
     return (
       <div className="pt-16 mx-4">
         <ProfileInfo fid={selectedCast.author.fid} viewerFid={Number(selectedAccount.platformAccountId)} showFullInfo />

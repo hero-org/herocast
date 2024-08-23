@@ -16,11 +16,13 @@ const ProfileInfo = ({
   viewerFid,
   showFollowButton,
   showFullInfo,
+  hideBio,
 }: {
   fid: number;
   viewerFid: number;
   showFollowButton?: boolean;
   showFullInfo?: boolean;
+  hideBio?: boolean;
 }) => {
   const profile = useDataStore((state) => get(state.fidToData, fid));
 
@@ -120,18 +122,13 @@ const ProfileInfo = ({
   };
 
   return (
-    <div className="space-y-2 mb-4 min-h-72 w-full">
+    <div className="space-y-2 mb-4 min-h-48 w-full">
       <Link
         href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
         prefetch={false}
         className="cursor-pointer block"
       >
-        <ProfileInfoContent profile={profile} showFollowButton={showFollowButton} />
-        {profile?.power_badge && (
-          <div className="text-sm font-normal text-muted-foreground flex flex-row mt-2">
-            <img src="/images/ActiveBadge.webp" className="h-[15px] w-[15px]" alt="Power badge" />
-          </div>
-        )}
+        <ProfileInfoContent profile={profile} showFollowButton={showFollowButton} hideBio={hideBio} />
       </Link>
       {shouldRenderFullInfo && (
         <div>

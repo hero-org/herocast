@@ -672,7 +672,7 @@ export const CastRow = ({
                         {cast.author.power_badge && (
                           <img
                             src="/images/ActiveBadge.webp"
-                            className="ml-2 mt-0.5 h-[17px] w-[17px]"
+                            className="ml-1 mt-0.5 h-[14px] w-[14px]"
                             alt="power badge"
                           />
                         )}
@@ -709,8 +709,8 @@ export const CastRow = ({
             >
               {getText()}
             </div>
-            {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
             {!isEmbed && renderEmbeds()}
+            {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
           </div>
         </div>
       </div>
