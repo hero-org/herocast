@@ -16,7 +16,7 @@ const ProfileInfo = ({
   viewerFid,
   showFollowButton,
   showFullInfo,
-  hideBio,
+  hideBio = false,
 }: {
   fid: number;
   viewerFid: number;

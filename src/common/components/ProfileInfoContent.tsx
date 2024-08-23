@@ -39,7 +39,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
           )}
         </h3>
       </div>
-      {!hideBio && (
+      {!hideBio && profile.profile?.bio?.text && (
         <p className={`flex pt-2 text-sm break-words ${isHoverCard ? '' : 'pr-4 overflow-x-hidden'}`}>
           {profile.profile?.bio?.text}
         </p>

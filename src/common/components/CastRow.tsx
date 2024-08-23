@@ -626,18 +626,17 @@ export const CastRow = ({
   };
 
   return (
-    <div className="flex min-w-full w-full max-w-2xl">
+    <div className="flex min-w-full w-full max-w-lg">
       <div
         onClick={(event) => {
-          if (event.target !== event.currentTarget) return;
           event.stopPropagation();
           onSelect && onSelect();
         }}
         className={cn(
           'p-3',
           isSelected && isEmbed ? 'bg-muted' : 'cursor-pointer',
-          isSelected ? 'border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
-          'lg:ml-0 grow rounded-r-sm'
+          isSelected ? 'bg-muted border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
+          'lg:ml-0 grow rounded-r-sm hover:bg-muted/50'
         )}
       >
         {isThreadView && <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />}
