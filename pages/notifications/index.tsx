@@ -262,8 +262,7 @@ const Notifications = () => {
           'flex gap-x-4 px-5 py-4 border-b border-muted'
         )}
       >
-        <img className="mt-1.5 rounded-lg h-10 w-10 flex-none bg-background" src={author?.pfp_url} alt="" />
-
+        <img className="mt-1.5 rounded-full h-10 w-10 flex-none bg-background" src={author?.pfp_url} alt="" />
         <div className="flex-auto">
           <div className="flex items-center justify-between gap-x-4">
             <p className="text-sm leading-6 text-foreground">{actionDescription}</p>

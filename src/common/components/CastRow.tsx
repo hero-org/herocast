@@ -633,7 +633,7 @@ export const CastRow = ({
           onSelect && onSelect();
         }}
         className={cn(
-          'p-3',
+          isEmbed ? 'p-2 pb-0' : 'p-3',
           isSelected && isEmbed ? 'bg-muted' : 'cursor-pointer',
           isSelected ? 'bg-muted border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
           'lg:ml-0 grow rounded-r-sm hover:bg-muted/50'
@@ -642,7 +642,7 @@ export const CastRow = ({
         {isThreadView && <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />}
         <div className="flex items-top gap-x-4">
           {!isEmbed && !hideAuthor && (
-            <Link href={`/profile/${cast.author.username}`} prefetch={false}>
+            <Link href={`/profile/${cast.author.username}`} prefetch={false} className="shrink-0">
               <img
                 className="relative h-10 w-10 flex-none bg-background rounded-full"
                 src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}

@@ -47,9 +47,16 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
     }
 
     return (
-      <div className="pt-16 mx-4">
-        <ProfileInfo fid={selectedCast.author.fid} viewerFid={Number(selectedAccount.platformAccountId)} showFullInfo />
-      </div>
+      <>
+        <div className="pt-16 mx-4">
+          <ProfileInfo
+            fid={selectedCast.author.fid}
+            viewerFid={Number(selectedAccount.platformAccountId)}
+            showFullInfo
+          />
+        </div>
+        <Separator className="my-2" />
+      </>
     );
   };
 
