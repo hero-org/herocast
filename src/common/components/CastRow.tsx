@@ -633,7 +633,8 @@ export const CastRow = ({
           onSelect && onSelect();
         }}
         className={cn(
-          isEmbed ? 'p-2 pb-0' : 'p-3',
+          isEmbed ? 'p-2' : 'p-3',
+          isEmbed && !hideReactions && 'pb-0',
           isSelected && isEmbed ? 'bg-muted' : 'cursor-pointer',
           isSelected ? 'bg-muted border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
           'lg:ml-0 grow rounded-r-sm hover:bg-muted/50'

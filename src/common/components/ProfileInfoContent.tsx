@@ -41,19 +41,26 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
         </div>
       </div>
       {showFollowButton && profile.username && <FollowButton username={profile.username} />}
-
       {!hideBio && profile.profile?.bio?.text && (
         <p className={`flex pt-2 text-sm break-words ${isHoverCard ? '' : 'pr-4 overflow-x-hidden'}`}>
           {profile.profile?.bio?.text}
         </p>
       )}
       <div className="flex flex-col pt-2 text-sm text-muted-foreground">
-        <p className="space-x-2">
-          <span className="font-semibold text-foreground">{formatLargeNumber(profile.follower_count || 0)}&nbsp;</span>
-          followers
-          <span className="font-semibold text-foreground">{formatLargeNumber(profile.following_count || 0)}&nbsp;</span>
-          following
-        </p>
+        <div className="flex flex-col lg:flex-row lg:space-x-2">
+          <p>
+            <span className="font-semibold text-foreground">
+              {formatLargeNumber(profile.follower_count || 0)}&nbsp;
+            </span>
+            followers
+          </p>
+          <p>
+            <span className="font-semibold text-foreground">
+              {formatLargeNumber(profile.following_count || 0)}&nbsp;
+            </span>
+            following
+          </p>
+        </div>
         {!isHoverCard && profile.fid && (
           <p>
             <span className="font-semibold text-foreground">{profile.fid}&nbsp;</span>
