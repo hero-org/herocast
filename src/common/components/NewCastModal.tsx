@@ -63,7 +63,7 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
           >
             {selectedCast && castModalView === CastModalView.Reply && (
               <div className="mb-4 rounded-lg border border-foreground/10">
-                <CastRow cast={selectedCast} isEmbed />
+                <CastRow cast={selectedCast} isEmbed hideReactions />
               </div>
             )}
             <div className="flex">

@@ -9,26 +9,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 type AnalyticsGraphProps = {
   analyticsKey: string;
-  aggregated: { timestamp: string; count: number }[];
+  data: { timestamp: string; count: number }[];
   isLoading: boolean;
-  interval?: Interval;
 };
 
-const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregated, isLoading = false, interval }) => {
-  const data = useMemo(() => {
-    if (!aggregated) return [];
+const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, data, isLoading = false }) => {
+  const chartData = useMemo(() => {
+    if (!data) return [];
 
-    let filteredData = aggregated;
-    if (interval) {
-      const cutoffDate = subDays(new Date(), interval === Interval.d7 ? 7 : 30);
-      filteredData = aggregated.filter((item) => new Date(item.timestamp) >= cutoffDate);
-    }
-
-    return filteredData.map((item) => ({
+    return data.map((item) => ({
       date: item.timestamp,
       [analyticsKey]: item.count,
     }));
-  }, [aggregated, interval]);
+  }, [data]);
 
   if (data.length === 0) {
     if (isLoading) {
@@ -50,9 +43,9 @@ const AnalyticsGraph: React.FC<AnalyticsGraphProps> = ({ analyticsKey, aggregate
   };
 
   return (
-    <ChartContainer config={chartConfig} className="-ml-8 w-full min-w-full h-full">
+    <ChartContainer config={chartConfig} className="-ml-8 w-full min-w-full h-full sm:max-h-52 lg:max-h-70">
       {/* <ResponsiveContainer width="100%" height="100%"> */}
-      <AreaChart accessibilityLayer data={data}>
+      <AreaChart accessibilityLayer data={chartData}>
         <defs>
           <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
             <stop offset="25%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />

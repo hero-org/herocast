@@ -24,6 +24,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAccountStore } from '@/stores/useAccountStore';
 import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
 import { cn } from '@/lib/utils';
+import { getPlanLimitsForUser } from '@/config/planLimits';
 
 type ListsOverviewProps = {
   hideHeader?: boolean;
@@ -126,17 +127,21 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
     </Card>
   );
 
-  const renderLists = () => (
-    <div className="flex flex-col">
-      <UpgradeFreePlanCard limit="maxSavedSearches" />
-      <ul role="list" className="mt-2 mb-12">
-        {sortBy(lists, (s) => s.idx).map(renderList)}
-      </ul>
-    </div>
-  );
+  const renderLists = () => {
+    const savedSearchesLimit = getPlanLimitsForUser('openSource').maxSavedSearches;
+
+    return (
+      <div className="flex flex-col">
+        {lists.length >= savedSearchesLimit && <UpgradeFreePlanCard limitKey="maxSavedSearches" />}
+        <ul role="list" className="my-2">
+          {sortBy(lists, (s) => s.idx).map(renderList)}
+        </ul>
+      </div>
+    );
+  };
 
   return (
-    <div className="">
+    <div>
       {!hideHeader && (
         <SidebarHeader
           title={

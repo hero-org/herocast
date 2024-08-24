@@ -1,7 +1,7 @@
 import NewPostEntry from '@/common/components/Editor/NewCastEditor';
 import { useDraftStore } from '@/stores/useDraftStore';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { ClockIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
 import { Button } from '@/components/ui/button';
 import { CastRow } from '@/common/components/CastRow';
@@ -20,11 +20,8 @@ import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date'
 import { ChannelType } from '@/common/constants/channels';
 import { UUID } from 'crypto';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Progress } from '@/components/ui/progress';
-import { openSourcePlanLimits } from '@/config/customerLimitation';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import Link from 'next/link';
-import UpgradeFreePlanCard from '../../src/common/components/UpgradeFreePlanCard';
+import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
+import { getPlanLimitsForUser } from '@/config/planLimits';
 
 enum DraftListTab {
   writing = 'writing',
@@ -354,7 +351,10 @@ export default function NewPost() {
   };
 
   const renderFreePlanCard = () => {
-    return <UpgradeFreePlanCard limit="maxScheduledCasts" />;
+    const scheduledCastLimit = getPlanLimitsForUser('openSource').maxScheduledCasts;
+    if (scheduledCastsCount < scheduledCastLimit) return null;
+
+    return <UpgradeFreePlanCard limitKey="maxScheduledCasts" />;
   };
 
   return (
@@ -369,7 +369,7 @@ export default function NewPost() {
           >
             {renderTabsSelector()}
             <TabsContent value={DraftListTab.writing}>
-              {scheduledCastsCount >= openSourcePlanLimits.maxScheduledCasts && renderFreePlanCard()}
+              {renderFreePlanCard()}
               {renderDraftList()}
             </TabsContent>
             <TabsContent value={DraftListTab.scheduled}>

@@ -17,7 +17,7 @@ import uniqBy from 'lodash.uniqby';
 import { useDataStore } from '@/stores/useDataStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDraftStore } from '@/stores/useDraftStore';
 import CreateAccountPage from 'pages/welcome/new';
 import { AccountStatusType } from '@/common/constants/accounts';
@@ -74,7 +74,7 @@ export default function Feeds() {
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
 
-  const { lists, selectedListId } = useListStore();
+  const { lists, selectedListId, setSelectedListId } = useListStore();
   const { isNewCastModalOpen, setCastModalView, openNewCastModal, closeNewCastModal, setCastModalDraftId } =
     useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
@@ -92,6 +92,7 @@ export default function Feeds() {
     // if navigating away, reset the selected cast
     return () => {
       updateSelectedCast();
+      setSelectedListId();
     };
   }, []);
 
@@ -136,7 +137,7 @@ export default function Feeds() {
 
   useEffect(() => {
     const shouldUpdateLastReadTimestamp = !includes([CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING], feedKey);
-    if (account && account.channels.length && shouldUpdateLastReadTimestamp) {
+    if (shouldUpdateLastReadTimestamp && selectedChannelUrl && account && account?.channels?.length > 0) {
       const channelId = account.channels.find((channel) => channel.url === selectedChannelUrl)?.id;
       if (!channelId) return;
 
@@ -167,6 +168,12 @@ export default function Feeds() {
       updateSelectedCast(casts[selectedCastIdx]);
     }
   }, [selectedCastIdx, selectedChannelUrl, casts, updateSelectedCast]);
+
+  useEffect(() => {
+    if (account && inView && nextCursor) {
+      getFeed({ fid: account.platformAccountId!, parentUrl: selectedChannelUrl, selectedListId, cursor: nextCursor });
+    }
+  }, [inView, nextCursor, account, selectedChannelUrl, selectedListId]);
 
   const onReply = useCallback(() => {
     if (!selectedCast) return;

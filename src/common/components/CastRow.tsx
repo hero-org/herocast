@@ -63,6 +63,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { addToClipboard } from '../helpers/clipboard';
+import { Badge } from '@/components/ui/badge';
 
 registerPlugin('mention', mentionPlugin);
 registerPlugin('cashtag', cashtagPlugin);
@@ -522,13 +523,12 @@ export const CastRow = ({
   const renderChannelButton = () =>
     showChannel &&
     channel && (
-      <Button
-        variant="outline"
+      <Badge
+        className="truncate items-top bg-blue-400/10  hover:bg-blue-400/20 text-blue-400 hover:text-blue-600  border-blue-400/5 shadow-none"
         onClick={() => setSelectedChannelUrl(channel.url)}
-        className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10  hover:bg-blue-400/20 px-1.5 py-0.5 text-xs font-medium text-blue-400 hover:text-blue-600 ring-1 ring-inset ring-blue-400/30 border-none"
       >
         {channel.name}
-      </Button>
+      </Badge>
     );
 
   const renderAdminActions = () => {
@@ -625,25 +625,25 @@ export const CastRow = ({
     );
   };
 
-  return (
-    <div className="flex min-w-full w-full max-w-2xl">
+  const renderCastContent = () => (
+    <div className="flex w-full max-w-xl">
       <div
         onClick={(event) => {
-          if (event.target !== event.currentTarget) return;
           event.stopPropagation();
           onSelect && onSelect();
         }}
         className={cn(
-          'p-3',
+          isEmbed ? 'p-2' : 'p-3',
+          isEmbed && !hideReactions && 'pb-0',
           isSelected && isEmbed ? 'bg-muted' : 'cursor-pointer',
-          isSelected ? 'border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
-          'lg:ml-0 grow rounded-r-sm'
+          isSelected ? 'bg-muted border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
+          'lg:ml-0 grow rounded-r-sm hover:bg-muted/50'
         )}
       >
         {isThreadView && <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />}
         <div className="flex items-top gap-x-4">
           {!isEmbed && !hideAuthor && (
-            <Link href={`/profile/${cast.author.username}`} prefetch={false}>
+            <Link href={`/profile/${cast.author.username}`} prefetch={false} className="shrink-0">
               <img
                 className="relative h-10 w-10 flex-none bg-background rounded-full"
                 src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
@@ -672,7 +672,7 @@ export const CastRow = ({
                         {cast.author.power_badge && (
                           <img
                             src="/images/ActiveBadge.webp"
-                            className="ml-2 mt-0.5 h-[17px] w-[17px]"
+                            className="ml-1 mt-0.5 h-[14px] w-[14px]"
                             alt="power badge"
                           />
                         )}
@@ -709,11 +709,21 @@ export const CastRow = ({
             >
               {getText()}
             </div>
-            {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
             {!isEmbed && renderEmbeds()}
+            {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
           </div>
         </div>
       </div>
     </div>
   );
+
+  if (isEmbed) {
+    return (
+      <Link href={`/conversation/${cast.hash}`} prefetch={false}>
+        {renderCastContent()}
+      </Link>
+    );
+  }
+
+  return renderCastContent();
 };

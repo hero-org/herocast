@@ -26,12 +26,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useIsMobile, useIsMounted } from '@/common/helpers/hooks';
+import { useIsMobile } from '@/common/helpers/hooks';
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CastRow } from '@/common/components/CastRow';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
-import ProfileInfo from '@/common/components/Sidebar/ProfileInfo';
+import ProfileInfo from '@/common/components/ProfileInfo';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
 
@@ -94,7 +94,6 @@ const Notifications = () => {
   const [showReactionsLimit, setShowReactionsLimit] = useState<number>(DEFAULT_SHOW_REACTIONS_LIMIT);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
-  console.log('notifications', notifications);
 
   useEffect(() => {
     // if navigating away, reset the selected cast
@@ -263,8 +262,7 @@ const Notifications = () => {
           'flex gap-x-4 px-5 py-4 border-b border-muted'
         )}
       >
-        <img className="mt-1.5 rounded-lg h-10 w-10 flex-none bg-background" src={author?.pfp_url} alt="" />
-
+        <img className="mt-1.5 rounded-full h-10 w-10 flex-none bg-background" src={author?.pfp_url} alt="" />
         <div className="flex-auto">
           <div className="flex items-center justify-between gap-x-4">
             <p className="text-sm leading-6 text-foreground">{actionDescription}</p>
@@ -339,8 +337,8 @@ const Notifications = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 items-center">
         {reactionFids &&
           reactionFids.map((fid) => (
-            <div key={fid} className="flex self-start h-full gap-2 p-2 border border-muted/50">
-              <ProfileInfo fid={fid} viewerFid={Number(viewerFid)} showFollowButton />
+            <div key={fid} className="flex self-start h-full gap-2 p-2">
+              <ProfileInfo fid={fid} viewerFid={Number(viewerFid)} showFollowButton hideBio />
             </div>
           ))}
         {reactions.length > showReactionsLimit && renderShowMoreReactionsButton()}
@@ -357,6 +355,28 @@ const Notifications = () => {
 
     if (!notification) return null;
     const notificationType = notification.type;
+
+    const renderContentHeader = () => {
+      let title = '';
+      switch (notificationType) {
+        case NotificationTypeEnum.Likes:
+          title = 'Liked by';
+          break;
+        case NotificationTypeEnum.Follows:
+          title = 'Followed you';
+          break;
+        case NotificationTypeEnum.Recasts:
+          title = 'Recasted by';
+          break;
+      }
+      return (
+        title && (
+          <div className="flex items-center justify-between p-4">
+            <h2 className="text-lg font-bold text-foreground">{title}</h2>
+          </div>
+        )
+      );
+    };
 
     return (
       <div
@@ -375,11 +395,12 @@ const Notifications = () => {
           <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
             {selectedCast && <CastRow cast={selectedCast} showChannel />}
           </div>
+          {renderContentHeader()}
           {(notificationType === NotificationTypeEnum.Likes || notificationType === NotificationTypeEnum.Recasts) && (
-            <div className="m-4 max-w-full">{renderProfilesFromReactions(notification.reactions)}</div>
+            <div className="mx-4 max-w-full">{renderProfilesFromReactions(notification.reactions)}</div>
           )}
           {notificationType === NotificationTypeEnum.Follows && (
-            <div className="m-4 max-w-full">{renderProfilesFromReactions(notification.follows)}</div>
+            <div className="mx-4 max-w-full">{renderProfilesFromReactions(notification.follows)}</div>
           )}
         </div>
       </div>

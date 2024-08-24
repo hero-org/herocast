@@ -30,11 +30,11 @@ import { toast } from 'sonner';
 import { usePostHog } from 'posthog-js/react';
 import { useTextLength } from '../../helpers/editor';
 import { cn } from '@/lib/utils';
-import { openSourcePlanLimits } from '@/config/customerLimitation';
 import Link from 'next/link';
 import { isPaidUser } from '@/stores/useUserStore';
 import { MentionList } from '../MentionsList';
 import { useImgurUpload } from '@/common/hooks/useImgurUpload';
+import { getPlanLimitsForUser } from '@/config/planLimits';
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -286,6 +286,7 @@ export default function NewPostEntry({
 
   const scheduledCastCount =
     useDraftStore((state) => state.drafts.filter((draft) => draft.status === DraftStatus.scheduled))?.length || 0;
+  const openSourcePlanLimits = getPlanLimitsForUser('openSource');
   const hasReachedFreePlanLimit = !isPaidUser() && scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
   const isButtonDisabled = isPublishing || !textLengthIsValid || (scheduleDateTime && hasReachedFreePlanLimit);
 
@@ -380,14 +381,11 @@ export default function NewPostEntry({
         <div className="flex flex-row pt-2 justify-between">
           <div>
             {scheduleDateTime && hasReachedFreePlanLimit && (
-              <span className="text-sm text-muted-foreground">
-                Reached the limit of scheduled casts for the free plan.
-                <Link href="/upgrade" prefetch={false}>
-                  <Button size="sm" className="ml-2 font-bold">
-                    Upgrade
-                  </Button>
-                </Link>
-              </span>
+              <Link href="/upgrade" prefetch={false}>
+                <Button variant="link" className="text-left px-0">
+                  You reached the limit of scheduled casts. Upgrade ↗
+                </Button>
+              </Link>
             )}
           </div>
           <Button

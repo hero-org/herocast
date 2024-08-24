@@ -2,3 +2,5 @@
 .github
 .yarn
 node_modules
+src-tauri
+public

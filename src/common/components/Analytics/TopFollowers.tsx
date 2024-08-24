@@ -62,7 +62,7 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
         {profiles.map((profile) => (
           <div key={`top-follower-${profile.fid}`} className="flex items-center">
             <Link href={`/profile/${profile?.username}`} prefetch={false} className="w-full text-left">
-              <ProfileInfoContent profile={profile} isHoverCard={true} />
+              <ProfileInfoContent profile={profile} hideBio />
             </Link>
           </div>
         ))}
