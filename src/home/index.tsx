@@ -481,7 +481,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
           <div className="grid grid-cols-[1fr] md:grid-cols-[1fr_12rem] lg:grid-cols-[1fr_16rem] relative">
-            <div className={sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? 'md:col-span-2 w-full' : ''}>
+            <div
+              className={
+                sidebarType === RIGHT_SIDEBAR_ENUM.NONE
+                  ? 'md:col-span-2 w-full overflow-x-auto'
+                  : 'w-full overflow-x-auto'
+              }
+            >
               {/* Sticky header */}
               {(title || headerActions) && (
                 <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
