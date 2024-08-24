@@ -61,6 +61,16 @@
     --chart-dynamic-1: 213deg, 93.9%, 67.8%;
     --chart-dynamic-2: 183deg, 93.9%, 67.8%;
   }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
 
 /*  
