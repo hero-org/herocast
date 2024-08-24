@@ -96,6 +96,13 @@ export default function NewPost() {
   };
 
   useEffect(() => {
+    // if the modal is opened, and the screen is resized to XL (>=1280px), close the modal. This will prevent the modal from automatically opening when the screen back to <1280px
+    if (!isBelowXLScreen && isDraftsModalOpen) {
+      closeDraftsModal();
+    }
+  }, [isBelowXLScreen, isDraftsModalOpen]);
+
+  useEffect(() => {
     if (searchParams.has('text')) {
       const text = searchParams.getAll('text').join('. ');
 
