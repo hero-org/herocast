@@ -1,6 +1,10 @@
 import { makeGraphqlRequest } from './graphql';
 
-export type GiveAttestation = {
+// Constants for improved readability and maintainability
+const ONCHAIN_COORDINAPE_ADDRESS = '0x7e823AE179592525301ceb33b3eC479f8c66ecB9';
+const GRAPHQL_ENDPOINT = 'https://base.easscan.org/graphql';
+
+export type CoordinapeAttestation = {
   from: string;
   amount: number;
   platform: string;
@@ -10,22 +14,6 @@ export type GiveAttestation = {
   tag: string;
   note: string;
   weight: number;
-};
-
-const getValue = (data, name: string) => data.find((d: any) => d.name === name)?.value?.value;
-const parseRawDataIntoAttestation = (rawData: string): GiveAttestation => {
-  const data = JSON.parse(rawData);
-  return {
-    from: getValue(data, 'from'),
-    amount: getValue(data, 'amount'),
-    platform: getValue(data, 'platform'),
-    url: getValue(data, 'url'),
-    context: getValue(data, 'context'),
-    skill: getValue(data, 'skill'),
-    tag: getValue(data, 'tag'),
-    note: getValue(data, 'note'),
-    weight: getValue(data, 'weight'),
-  };
 };
 
 type RawAttestationData = {
@@ -39,9 +27,23 @@ type RawAttestationData = {
   }[];
 };
 
+const getValueFromData = (data: any[], name: string): any => 
+  data.find((d: any) => d.name === name)?.value?.value;
 
-// Give Coordinape Attestation run via onchain.coordinape.eth -> it resolves to:
-const ONCHAIN_COORDINAPE_ADDRESS = '0x7e823AE179592525301ceb33b3eC479f8c66ecB9';
+const parseRawDataIntoAttestation = (rawData: string): CoordinapeAttestation => {
+  const data = JSON.parse(rawData);
+  return {
+    from: getValueFromData(data, 'from'),
+    amount: getValueFromData(data, 'amount'),
+    platform: getValueFromData(data, 'platform'),
+    url: getValueFromData(data, 'url'),
+    context: getValueFromData(data, 'context'),
+    skill: getValueFromData(data, 'skill'),
+    tag: getValueFromData(data, 'tag'),
+    note: getValueFromData(data, 'note'),
+    weight: getValueFromData(data, 'weight'),
+  };
+};
 
 const getAttestationsQuery = `
 query GetAttestations($addresses: [String!]) {
@@ -60,36 +62,34 @@ query GetAttestations($addresses: [String!]) {
    }
  `;
 
+const fetchAttestations = async (addresses: string[]): Promise<RawAttestationData> => {
+  const variables = { addresses };
+  return makeGraphqlRequest<RawAttestationData>(
+    GRAPHQL_ENDPOINT,
+    getAttestationsQuery,
+    variables
+  );
+};
 
-export async function getCoordinapeInfoForAddresses(addresses: string): Promise<GiveAttestation[]> {
-  if (!addresses || !addresses.length) {
+export async function getCoordinapeInfoForAddresses(addressesString: string): Promise<CoordinapeAttestation[]> {
+  if (!addressesString || !addressesString.length) {
     return [];
   }
 
-  const variables = {
-    addresses: addresses.split(','),
-  };
+  const addresses = addressesString.split(',');
 
   try {
-    const response = await makeGraphqlRequest<RawAttestationData>(
-      'https://base.easscan.org/graphql',
-      getAttestationsQuery,
-      variables
-    );
-    if (response && response.attestations) {
-      if (!response.attestations.length) {
-        return [];
-      }
-
-      const attestations = response.attestations.map((attestation) => (
-        parseRawDataIntoAttestation(attestation.decodedDataJson)
-      ));
-      return attestations;
-    } else {
+    const response = await fetchAttestations(addresses);
+    
+    if (!response?.attestations?.length) {
       return [];
     }
+
+    return response.attestations.map(attestation => 
+      parseRawDataIntoAttestation(attestation.decodedDataJson)
+    );
   } catch (error) {
-    console.error('Error fetching GIVE attestations:', error);
+    console.error('Error fetching Coordinape attestations:', error);
     return [];
   }
 }
