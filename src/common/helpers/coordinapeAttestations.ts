@@ -26,8 +26,7 @@ type RawAttestationData = {
   }[];
 };
 
-const getValueFromData = (data: any[], name: string): any =>
-  data.find((d: any) => d.name === name)?.value?.value;
+const getValueFromData = (data: any[], name: string): any => data.find((d: any) => d.name === name)?.value?.value;
 
 const parseRawDataIntoAttestation = (rawData: string): CoordinapeAttestation => {
   const data = JSON.parse(rawData);
@@ -63,11 +62,7 @@ const getAttestationsQuery = `
 
 const fetchAttestations = async (addresses: string[]): Promise<RawAttestationData> => {
   const variables = { addresses };
-  return makeGraphqlRequest<RawAttestationData>(
-    GRAPHQL_ENDPOINT,
-    getAttestationsQuery,
-    variables
-  );
+  return makeGraphqlRequest<RawAttestationData>(GRAPHQL_ENDPOINT, getAttestationsQuery, variables);
 };
 
 export async function getCoordinapeInfoForAddresses(addressesString: string): Promise<CoordinapeAttestation[]> {
@@ -84,14 +79,14 @@ export async function getCoordinapeInfoForAddresses(addressesString: string): Pr
       return [];
     }
 
-    const attestations = response.attestations.map(attestation =>
+    const attestations = response.attestations.map((attestation) =>
       parseRawDataIntoAttestation(attestation.decodedDataJson)
     );
 
-    const filteredAttestations = attestations.filter(attestation => attestation.skill);
+    const filteredAttestations = attestations.filter((attestation) => attestation.skill);
 
     const groupedAttestations = filteredAttestations.reduce((acc, attestation) => {
-      const existing = acc.find(a => a.skill === attestation.skill);
+      const existing = acc.find((a) => a.skill === attestation.skill);
       if (existing) {
         existing.amount += attestation.amount * attestation.weight;
       } else {

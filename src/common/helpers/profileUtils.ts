@@ -26,7 +26,7 @@ export const fetchAndAddUserProfile = async ({
         const userProfileInfos = await response.json();
         const enrichedUser = {
           ...user,
-          ...userProfileInfos
+          ...userProfileInfos,
         };
         addUserProfile({ user: enrichedUser });
       } else {

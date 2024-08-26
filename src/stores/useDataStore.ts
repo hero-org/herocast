@@ -113,7 +113,7 @@ interface DataStoreActions {
   addAnalytics: (fid: number, analytics: AnalyticsData) => void;
 }
 
-export interface DataStore extends DataStoreProps, DataStoreActions { }
+export interface DataStore extends DataStoreProps, DataStoreActions {}
 
 export const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
 
