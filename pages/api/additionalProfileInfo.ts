@@ -14,12 +14,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const [airstackSocialInfo, icebreakerSocialInfo] = await Promise.all([
+    const [airstackSocialInfo, icebreakerSocialInfo, coordinapeAttestations] = await Promise.all([
       getAirstackSocialInfoForFid(fid),
       getIcebreakerSocialInfoForFid(fid),
-      // getCoordinapeInfoForAddresses(addresses as string[]),
+      addresses ? getCoordinapeInfoForAddresses(addresses.toString()) : {},
     ]);
-    res.status(200).json({ airstackSocialInfo, icebreakerSocialInfo });
+    res.status(200).json({ airstackSocialInfo, icebreakerSocialInfo, coordinapeAttestations });
   } catch (error) {
     console.error('Error fetching additional profile info:', error);
     res.status(500).json({ message: 'Internal Server Error' });

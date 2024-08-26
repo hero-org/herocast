@@ -206,9 +206,6 @@ export const CastRow = ({
     setSelectedChannelUrl,
   } = useAccountStore();
 
-  if (isSelected) {
-    console.log('cast', cast);
-  }
   const { setCastModalDraftId, setCastModalView, openNewCastModal } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const { updateSelectedCast } = useDataStore();

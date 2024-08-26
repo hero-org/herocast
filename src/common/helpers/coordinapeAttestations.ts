@@ -1,6 +1,5 @@
 import { makeGraphqlRequest } from './graphql';
 
-// Constants for improved readability and maintainability
 const ONCHAIN_COORDINAPE_ADDRESS = '0x7e823AE179592525301ceb33b3eC479f8c66ecB9';
 const GRAPHQL_ENDPOINT = 'https://base.easscan.org/graphql';
 
@@ -27,7 +26,7 @@ type RawAttestationData = {
   }[];
 };
 
-const getValueFromData = (data: any[], name: string): any => 
+const getValueFromData = (data: any[], name: string): any =>
   data.find((d: any) => d.name === name)?.value?.value;
 
 const parseRawDataIntoAttestation = (rawData: string): CoordinapeAttestation => {
@@ -46,20 +45,20 @@ const parseRawDataIntoAttestation = (rawData: string): CoordinapeAttestation => 
 };
 
 const getAttestationsQuery = `
-query GetAttestations($addresses: [String!]) {
-   attestations(where: {
-     attester: { equals: "${ONCHAIN_COORDINAPE_ADDRESS}" },
-     recipient: { in: $addresses, mode: insensitive },
-     revoked: { equals: false }
-   }) {
-     id
-     attester
-     recipient
-     revoked
-     timeCreated
-     decodedDataJson
-     }
-   }
+  query GetAttestations($addresses: [String!]) {
+    attestations(where: {
+      attester: { equals: "${ONCHAIN_COORDINAPE_ADDRESS}" },
+      recipient: { in: $addresses, mode: insensitive },
+      revoked: { equals: false }
+    }) {
+      id
+      attester
+      recipient
+      revoked
+      timeCreated
+      decodedDataJson
+      }
+    }
  `;
 
 const fetchAttestations = async (addresses: string[]): Promise<RawAttestationData> => {
@@ -80,14 +79,27 @@ export async function getCoordinapeInfoForAddresses(addressesString: string): Pr
 
   try {
     const response = await fetchAttestations(addresses);
-    
+
     if (!response?.attestations?.length) {
       return [];
     }
 
-    return response.attestations.map(attestation => 
+    const attestations = response.attestations.map(attestation =>
       parseRawDataIntoAttestation(attestation.decodedDataJson)
     );
+
+    const filteredAttestations = attestations.filter(attestation => attestation.skill);
+
+    const groupedAttestations = filteredAttestations.reduce((acc, attestation) => {
+      const existing = acc.find(a => a.skill === attestation.skill);
+      if (existing) {
+        existing.amount += attestation.amount * attestation.weight;
+      } else {
+        acc.push(attestation);
+      }
+      return acc;
+    }, [] as CoordinapeAttestation[]);
+    return groupedAttestations.sort((a, b) => b.amount - a.amount);
   } catch (error) {
     console.error('Error fetching Coordinape attestations:', error);
     return [];

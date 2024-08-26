@@ -128,8 +128,6 @@ const DynamicChartCard = ({ interval, analyticsData }: DynamicChartCardProps) =>
     [values]
   );
 
-  console.log('chartConfig', chartConfig);
-
   const data = useMemo(() => {
     if (!analyticsData) return [];
 

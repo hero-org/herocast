@@ -83,12 +83,12 @@ const ProfileInfo = ({
 
     return (
       <div className="mt-2">
-        <span className="text-sm text-foreground mb-2">Credentials</span>
-        <div className="flex flex-wrap gap-1">
+        <span className="text-sm text-foreground">Icebreaker Credentials</span>
+        <div className="mt-2 flex flex-wrap gap-1">
           {take(profile.icebreakerSocialInfo.credentials, 5).map((credential) => (
             <span
               key={`${fid}-${credential.name}`}
-              className="rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center"
+              className="h-6 rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center"
             >
               {credential.name}
             </span>
@@ -124,8 +124,39 @@ const ProfileInfo = ({
     );
   };
 
+  const renderCoordinapeAttestations = () => {
+    if (!profile?.coordinapeAttestations?.length) return null;
+
+    return (
+      <div className="mt-2" key={`coordinape-attestations-${fid}`}>
+        <span className="text-sm text-foreground">Coordinape Attestations</span>
+        <div className="mt-2 flex flex-wrap gap-1">
+          {profile.coordinapeAttestations.map((attestation) => (
+            <span
+              key={`${fid}-${attestation}`}
+              className={cn(
+                'h-6 rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center',
+                attestation.amount > 1 && 'pr-0 rounded-r-lg'
+              )}
+            >
+              {attestation.skill}
+              {attestation.amount > 1 && (
+                <Badge
+                  variant="secondary"
+                  className="h-6 shadow-none border-t border-foreground/20  hover:bg-secondary rounded-l-none ml-1 -mr-0.5 text-xs"
+                >
+                  {attestation.amount}
+                </Badge>
+              )}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className={cn('space-y-2 min-h-40 w-full grid', wideFormat && 'md:grid-cols-2')}>
+    <div className={cn('space-y-2 min-h-40 w-full grid gap-4', wideFormat && 'md:grid-cols-2')}>
       <Link
         href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
         prefetch={false}
@@ -144,6 +175,7 @@ const ProfileInfo = ({
           {renderSocialCapitalScore()}
           {renderIcebreakerChannels()}
           {renderIcebreakerCredentials()}
+          {renderCoordinapeAttestations()}
         </div>
       )}
     </div>
