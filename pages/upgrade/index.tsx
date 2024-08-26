@@ -64,7 +64,7 @@ const plans = [
     },
     features: [
       '2 Keyword Feeds',
-      '15 Scheduled Casts',
+      'Unlimited Scheduled Casts',
       '2 Keyword Alerts',
       'Analytics (1 month)',
       'Onchain user insights',

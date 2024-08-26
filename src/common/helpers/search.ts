@@ -1,13 +1,7 @@
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { getProfileFetchIfNeeded } from './profileUtils';
 import { CastsResponseResult } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-
-export enum Interval {
-  d1 = '1 day',
-  d7 = '7 days',
-  d14 = '14 days',
-  d30 = '30 days',
-}
+import { Interval } from '../types/types';
 
 export type RawSearchResult = {
   hash: string;

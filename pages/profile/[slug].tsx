@@ -106,6 +106,7 @@ const ProfilePage = () => {
         isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
         showAdminActions={selectedAccount?.status === 'active' && profile?.fid === viewerFid}
+        recastedByFid={item.author.fid !== profile?.fid && profile?.fid}
       />
     </li>
   );

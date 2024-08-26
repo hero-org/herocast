@@ -24,7 +24,8 @@ import { AccountStatusType } from '@/common/constants/accounts';
 import { createClient } from '@/common/helpers/supabase/component';
 import includes from 'lodash.includes';
 import { useListStore } from '@/stores/useListStore';
-import { getCastsFromSearch, Interval, SearchFilters } from '@/common/helpers/search';
+import { getCastsFromSearch, SearchFilters } from '@/common/helpers/search';
+import { Interval } from '@/common/types/types';
 
 type Feed = {
   casts: CastWithInteractions[];

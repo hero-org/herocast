@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import React from 'react';
 import AnalyticsGraph from './AnalyticsGraph';
 import { CombinedActivityData } from '@/common/types/types';
-import { Interval } from '@/common/helpers/search';
+import { Interval } from '@/common/types/types';
 import { formatLargeNumber } from '@/common/helpers/text';
 import { startOfDay, subDays } from 'date-fns';
 import { fillMissingDaysBetweenDates } from '@/common/helpers/analytics';

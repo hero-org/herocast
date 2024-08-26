@@ -21,7 +21,7 @@ import { ChannelType } from '@/common/constants/channels';
 import { UUID } from 'crypto';
 import { usePathname, useSearchParams } from 'next/navigation';
 import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
-import { getPlanLimitsForUser } from '@/config/planLimits';
+import { getPlanLimitsForPlan } from '@/config/planLimits';
 
 enum DraftListTab {
   writing = 'writing',
@@ -351,7 +351,7 @@ export default function NewPost() {
   };
 
   const renderFreePlanCard = () => {
-    const scheduledCastLimit = getPlanLimitsForUser('openSource').maxScheduledCasts;
+    const scheduledCastLimit = getPlanLimitsForPlan('openSource').maxScheduledCasts;
     if (scheduledCastsCount < scheduledCastLimit) return null;
 
     return <UpgradeFreePlanCard limitKey="maxScheduledCasts" />;
