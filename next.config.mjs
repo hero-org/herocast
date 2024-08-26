@@ -49,15 +49,15 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/api/additionalProfileInfo',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=3600',
-          },
-        ],
-      },
+      // {
+      //   source: '/api/additionalProfileInfo',
+      //   headers: [
+      //     {
+      //       key: 'Cache-Control',
+      //       value: 'public, max-age=43200, s-maxage=43200, stale-while-revalidate=43200',
+      //     },
+      //   ],
+      // },
     ];
   },
 };

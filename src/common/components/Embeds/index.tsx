@@ -47,6 +47,7 @@ const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
     return null;
   }
 };
+
 export const renderEmbedForUrl = ({ url, cast_id, castId, onRemove, hideReactions }: CastEmbedType) => {
   if (castId || cast_id) {
     return <CastEmbed castId={castId || cast_id} hideReactions={hideReactions} />;
@@ -59,7 +60,7 @@ export const renderEmbedForUrl = ({ url, cast_id, castId, onRemove, hideReaction
   return (
     <div className="flex flex-col ">
       {embed}
-      {onRemove && (
+      {false && onRemove && (
         <Button onClick={onRemove} size="sm" className="mx-auto h-7 gap-1">
           <MinusCircleIcon className="h-3.5 w-3.5" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Remove</span>

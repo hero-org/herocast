@@ -33,7 +33,7 @@ export const WarpcastImage = ({ url }: { url: string }) => {
   };
 
   return (
-    <>
+    <div>
       <img
         className="max-h-48 md:max-h-72 object-left rounded-md"
         style={{ display: 'none' }}
@@ -49,6 +49,6 @@ export const WarpcastImage = ({ url }: { url: string }) => {
         onLoad={(e) => onImageLoad(e)}
       />
       {isLoading && renderLoadingPlaceholder()}
-    </>
+    </div>
   );
 };

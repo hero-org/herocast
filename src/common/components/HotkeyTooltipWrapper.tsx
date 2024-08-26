@@ -13,7 +13,7 @@ const HotkeyTooltipWrapper = ({ hotkey, side, children }: HotkeyTooltipWrapperPr
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipTrigger>{children}</TooltipTrigger>
       <TooltipContent
         align={'center'}
         className="bg-background border border-muted text-foreground/80"

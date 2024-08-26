@@ -24,7 +24,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAccountStore } from '@/stores/useAccountStore';
 import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
 import { cn } from '@/lib/utils';
-import { getPlanLimitsForUser } from '@/config/planLimits';
+import { getPlanLimitsForPlan } from '@/config/planLimits';
 
 type ListsOverviewProps = {
   hideHeader?: boolean;
@@ -128,7 +128,7 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
   );
 
   const renderLists = () => {
-    const savedSearchesLimit = getPlanLimitsForUser('openSource').maxSavedSearches;
+    const savedSearchesLimit = getPlanLimitsForPlan('openSource').maxSavedSearches;
 
     return (
       <div className="flex flex-col">

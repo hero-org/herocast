@@ -125,7 +125,7 @@ const ProfileInfo = ({
   };
 
   return (
-    <div className={cn('space-y-2 mb-4 min-h-40 w-full grid', wideFormat && 'md:grid-cols-2')}>
+    <div className={cn('space-y-2 min-h-40 w-full grid', wideFormat && 'md:grid-cols-2')}>
       <Link
         href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
         prefetch={false}
@@ -139,7 +139,7 @@ const ProfileInfo = ({
         />
       </Link>
       {shouldRenderFullInfo && (
-        <div className="content-end">
+        <div className="mt-4 content-end">
           {renderDateJoined()}
           {renderSocialCapitalScore()}
           {renderIcebreakerChannels()}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AnalyticsGraph from './AnalyticsGraph';
-import { Interval } from '@/common/helpers/search';
+import { Interval } from '@/common/types/types';
 import { CombinedActivityData } from '@/common/types/types';
 import { formatLargeNumber } from '@/common/helpers/text';
 import { subDays } from 'date-fns';

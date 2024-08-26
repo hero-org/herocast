@@ -6,7 +6,6 @@ import { fetchAndAddUserProfile, shouldUpdateProfile } from '../helpers/profileU
 import { getProfile } from '../helpers/profileUtils';
 import ProfileInfoContent from './ProfileInfoContent';
 import Link from 'next/link';
-import { useMemo } from 'react';
 
 type ProfileHoverCardProps = {
   fid?: number;
@@ -38,7 +37,7 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
   return (
     <HoverCard openDelay={200}>
       <HoverCardTrigger ref={ref} className={`${className} text-left`}>
-        <Link href={`/profile/${profile?.username || username}`} prefetch={false}>
+        <Link href={`/profile/${profile?.username || username}`} prefetch={false} className="flex shrink-0">
           {children}
         </Link>
       </HoverCardTrigger>

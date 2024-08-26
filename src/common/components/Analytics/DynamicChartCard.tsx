@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnalyticsData } from '@/common/types/types';
+import { AnalyticsData, Interval } from '@/common/types/types';
 import { format, subDays } from 'date-fns';
-import { Interval } from '@/common/helpers/search';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
@@ -15,10 +14,17 @@ import { roundToNextDigit } from '@/common/helpers/math';
 type DynamicChartCardProps = {
   interval: Interval;
   analyticsData: AnalyticsData;
-  isLoading: boolean;
 };
 
-function DataPickerDropdown({ values, defaultValue, updateValue }) {
+function DataPickerDropdown({
+  values,
+  defaultValue,
+  updateValue,
+}: {
+  values: string[];
+  defaultValue: string;
+  updateValue: (value: string) => void;
+}) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState<Interval | undefined>(defaultValue);
 
@@ -72,7 +78,7 @@ const normalizeTimestampToDate = (timestamp: string) => {
   return new Date(timestamp).toISOString().split('T')[0];
 };
 
-const getAggregatedDataForKey = (analyticsData: AnalyticsData, dataKey: string, startDate: Date) => {
+const getAggregatedDataForKey = (analyticsData: AnalyticsData, dataKey: keyof AnalyticsData, startDate: Date) => {
   const activityData = analyticsData[dataKey];
   if (!activityData || !activityData?.aggregated) return [];
 
@@ -83,7 +89,7 @@ const getAggregatedDataForKey = (analyticsData: AnalyticsData, dataKey: string, 
   return res.filter((item) => new Date(item.date) >= startDate);
 };
 
-const mergeData = (data1, data2, startDate: Date, dataKeys: string[]) => {
+const mergeData = (data1: any[], data2: any[], startDate: Date, dataKeys: string[]) => {
   const dataMap = new Map();
   data1.forEach((item) => {
     dataMap.set(item.date, { ...dataMap.get(item.date), ...item });
@@ -111,13 +117,18 @@ const mergeData = (data1, data2, startDate: Date, dataKeys: string[]) => {
   return result;
 };
 
-const DynamicChartCard = ({ interval, analyticsData, isLoading }: DynamicChartCardProps) => {
+const DynamicChartCard = ({ interval, analyticsData }: DynamicChartCardProps) => {
   const [dataKey1, setDataKey1] = React.useState(values[0]);
   const [dataKey2, setDataKey2] = React.useState(values[1]);
   const chartConfig = React.useMemo(
-    () => Object.fromEntries(values.map((value) => [value, { label: value }])),
+    () =>
+      Object.fromEntries(
+        values.map((value, idx) => [value, { label: value, color: `hsl(var(--chart-dynamic-${idx + 1}))` }])
+      ),
     [values]
   );
+
+  console.log('chartConfig', chartConfig);
 
   const data = useMemo(() => {
     if (!analyticsData) return [];
@@ -178,13 +189,20 @@ const DynamicChartCard = ({ interval, analyticsData, isLoading }: DynamicChartCa
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      labelFormatter={(value) => {
-                        return new Date(value).toLocaleDateString('en-US', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        });
-                      }}
+                      labelFormatter={(value) => format(value, 'PP')}
+                      formatter={(value, name, item, index) => (
+                        <>
+                          <div
+                            className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[--color-bg]"
+                            style={
+                              {
+                                '--color-bg': `var(--color-${name})`,
+                              } as React.CSSProperties
+                            }
+                          />
+                          {chartConfig[name as keyof typeof chartConfig]?.label || name}
+                        </>
+                      )}
                     />
                   }
                   cursor={false}
