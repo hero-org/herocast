@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 import { useHotkeys } from 'react-hotkeys-hook';
 import get from 'lodash.get';
+import { useRouter } from 'next/router';
 import { CastRow } from '@/common/components/CastRow';
 import isEmpty from 'lodash.isempty';
 import { CastThreadView } from '@/common/components/CastThreadView';
@@ -63,11 +64,11 @@ const getFeedKey = ({
 };
 
 const DEFAULT_FEED_PAGE_SIZE = 15;
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
+const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 const supabaseClient = createClient();
 
-export default function Feeds() {
+export default function FeedsComponent() {
   const [feeds, setFeeds] = useState<FeedKeyToFeed>({});
   const [loadingMessage, setLoadingMessage] = useState('Loading feed');
   const [isRefreshingPage, setIsRefreshingPage] = useState(false);
@@ -84,10 +85,11 @@ export default function Feeds() {
     threshold: 0,
     delay: 100,
   });
-  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated } = useAccountStore();
 
+  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated, allChannels } = useAccountStore();
   const { selectedCast, updateSelectedCast } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
+  const router = useRouter();
 
   useEffect(() => {
     // if navigating away, reset the selected cast
@@ -352,8 +354,8 @@ export default function Feeds() {
     setSelectedCastIdx(-1);
   }, [selectedChannelUrl, selectedListId]);
 
-  const renderRow = (item: any, idx: number) => (
-    <li key={item?.hash} className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
+  const renderRow = (item: CastWithInteractions, idx: number) => (
+    <li key={item.hash} className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
       <CastRow
         cast={item}
         isSelected={selectedCastIdx === idx}
@@ -398,7 +400,7 @@ export default function Feeds() {
       data={casts}
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
-      renderRow={(item: any, idx: number) => renderRow(item, idx)}
+      renderRow={(item: CastWithInteractions, idx: number) => renderRow(item, idx)}
       onExpand={onOpenLinkInCast}
       onSelect={onSelectCast}
       isActive={!(showCastThreadView || isNewCastModalOpen || showEmbedsModal)}

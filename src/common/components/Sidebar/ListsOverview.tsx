@@ -89,7 +89,7 @@ const ListsOverview = () => {
         </span>,
         <Link href="/search">
           <Button variant="outline" className="h-6 px-2">
-            Add search
+            Add<span className="hidden ml-1 lg:block">search</span>
           </Button>
         </Link>
       )}

@@ -20,8 +20,8 @@ const ChannelsOverview = () => {
   if (!channels) channels = [];
 
   const onUpdateChannel = (url: string) => {
-    setSelectedChannelUrl(url);
     setSelectedListId(undefined);
+    setSelectedChannelUrl(url);
   };
 
   const renderCustomChannel = ({ name, url, icon }: { name: string; url: string; icon?: React.ReactNode }) => {
@@ -139,7 +139,7 @@ const ChannelsOverview = () => {
         </span>,
         <Link href="/channels">
           <Button variant="outline" className="h-6 px-2">
-            Pin channels
+            Pin<span className="hidden ml-1 lg:block">channels</span>
           </Button>
         </Link>
       )}
