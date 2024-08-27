@@ -17,6 +17,7 @@ type TopFollowersProps = {
 const TopFollowers = ({ fid }: TopFollowersProps) => {
   const [topFollowerFids, setTopFollowerFids] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const dataStore = useDataStore.getState();
 
   const viewerFid = Number(
     useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId) || APP_FID
@@ -30,7 +31,7 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
         const fids = await neynarClient
           .fetchRelevantFollowers(fid, viewerFid)
           .then((response) => response.all_relevant_followers_dehydrated.map((follower) => follower.user?.fid));
-        console.log('fids', fids);
+
         setTopFollowerFids(fids.filter((fid) => fid !== undefined).slice(0, TOP_FOLLOWERS_LIMIT));
         fids.forEach((fid) =>
           getProfileFetchIfNeeded({
@@ -50,10 +51,9 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
   }, [fid]);
 
   const profiles = useMemo(() => {
-    const dataStore = useDataStore.getState();
-    const followers = topFollowerFids.map((fid) => getProfile(dataStore, undefined, fid));
+    const followers = topFollowerFids.map((fid) => getProfile(dataStore, undefined, fid.toString()));
     return followers.filter((follower) => follower !== undefined);
-  }, [topFollowerFids]);
+  }, [dataStore, topFollowerFids]);
 
   return (
     <Card className="h-fit py-8 px-4">

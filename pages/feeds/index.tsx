@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 import { useHotkeys } from 'react-hotkeys-hook';
 import get from 'lodash.get';
+import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
 import { CastRow } from '@/common/components/CastRow';
 import isEmpty from 'lodash.isempty';
 import { CastThreadView } from '@/common/components/CastThreadView';
@@ -26,6 +27,8 @@ import includes from 'lodash.includes';
 import { useListStore } from '@/stores/useListStore';
 import { getCastsFromSearch, SearchFilters } from '@/common/helpers/search';
 import { Interval } from '@/common/types/types';
+import sortBy from 'lodash.sortby';
+import { orderBy } from 'lodash';
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -74,6 +77,8 @@ export default function Feeds() {
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
+  const lastUpdateTimeRef = useRef(Date.now());
+  const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { lists, selectedListId, setSelectedListId } = useListStore();
   const { isNewCastModalOpen, setCastModalView, openNewCastModal, closeNewCastModal, setCastModalDraftId } =
@@ -250,6 +255,14 @@ export default function Feeds() {
   const getParentUrl = (parentUrl: string | undefined) =>
     parentUrl === CUSTOM_CHANNELS.FOLLOWING || parentUrl === CUSTOM_CHANNELS.TRENDING ? undefined : parentUrl;
 
+  const refreshFeed = useCallback(() => {
+    if (account?.platformAccountId && !showCastThreadView) {
+      const fid = account.platformAccountId!;
+      getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
+      lastUpdateTimeRef.current = Date.now();
+    }
+  }, [account, selectedChannelUrl, showCastThreadView, selectedListId]);
+
   const getFeed = async ({
     fid,
     parentUrl,
@@ -324,7 +337,8 @@ export default function Feeds() {
         }
       }
 
-      const castsInFeed = uniqBy([...casts, ...newFeed.casts], 'hash');
+      const allCasts = cursor ? uniqBy([...casts, ...newFeed.casts], 'hash') : newFeed.casts;
+      const castsInFeed = orderBy(allCasts, (cast) => new Date(cast.timestamp), 'desc');
       setCastsForFeed(feedKey, castsInFeed);
       if (newFeed?.next?.cursor) {
         setNextFeedCursor(newFeed.next.cursor);
@@ -343,8 +357,34 @@ export default function Feeds() {
     if (account?.platformAccountId && !showCastThreadView) {
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
+      lastUpdateTimeRef.current = Date.now();
     }
   }, [account, selectedChannelUrl, showCastThreadView, selectedListId]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        const timeSinceLastUpdate = Date.now() - lastUpdateTimeRef.current;
+        if (timeSinceLastUpdate >= ONE_MINUTE_IN_MS) {
+          refreshFeed();
+        } else {
+          if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
+          visibilityTimerRef.current = setTimeout(refreshFeed, ONE_MINUTE_IN_MS - timeSinceLastUpdate);
+        }
+      } else {
+        if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    visibilityTimerRef.current = setTimeout(refreshFeed, ONE_MINUTE_IN_MS);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
+    };
+  }, [refreshFeed]);
 
   useEffect(() => {
     closeNewCastModal();
