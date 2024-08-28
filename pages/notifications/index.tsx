@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import { castTextStyle } from '@/common/helpers/css';
 import { useAccountStore } from '../../src/stores/useAccountStore';
@@ -94,6 +94,14 @@ const Notifications = () => {
   const [showReactionsLimit, setShowReactionsLimit] = useState<number>(DEFAULT_SHOW_REACTIONS_LIMIT);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
+  const lastUpdateTimeRef = useRef<number>(Date.now());
+
+  const changeTab = (tab: NotificationTab) => {
+    setActiveTab(tab);
+    setSelectedNotificationIdx(0);
+    setParentCastHash(undefined);
+    setParentCast(undefined);
+  };
 
   useEffect(() => {
     // if navigating away, reset the selected cast
@@ -102,9 +110,9 @@ const Notifications = () => {
     };
   }, []);
 
-  const loadData = async ({ reset }: { reset?: boolean }) => {
+  const fetchNotifications = async ({ reset }: { reset?: boolean }) => {
     if (!viewerFid) return;
-    console.log('Notifications Page -> loadData | loadMoreCursor', loadMoreCursor);
+    console.log('Notifications Page -> fetchNotifications. reset', reset);
     setIsLoading(true);
     if (reset) {
       setNotifications([]);
@@ -126,17 +134,33 @@ const Notifications = () => {
       setLoadMoreCursor(resp.next.cursor);
     }
     setIsLoading(false);
+    lastUpdateTimeRef.current = Date.now();
   };
 
   useEffect(() => {
     if (!viewerFid) return;
 
     setLoadMoreCursor(undefined);
-    loadData({ reset: true });
+    fetchNotifications({ reset: true });
 
     closeNewCastModal();
     setIsLeftColumnSelected(true);
     setSelectedNotificationIdx(0);
+  }, [viewerFid]);
+
+  useEffect(() => {
+    const checkAndUpdateNotifications = () => {
+      const currentTime = Date.now();
+      if (currentTime - lastUpdateTimeRef.current > 5 * 60 * 1000) {
+        // 5 minutes
+        fetchNotifications({ reset: true });
+        lastUpdateTimeRef.current = currentTime;
+      }
+    };
+
+    const intervalId = setInterval(checkAndUpdateNotifications, 60 * 1000); // Check every minute
+
+    return () => clearInterval(intervalId);
   }, [viewerFid]);
 
   useEffect(() => {
@@ -191,12 +215,12 @@ const Notifications = () => {
     }
   );
 
-  useHotkeys('shift+1', () => setActiveTab(NotificationTab.all), [], {});
-  useHotkeys('shift+2', () => setActiveTab(NotificationTab.replies), [], {});
-  useHotkeys('shift+3', () => setActiveTab(NotificationTab.mentions), [], {});
-  useHotkeys('shift+4', () => setActiveTab(NotificationTab.likes), [], {});
-  useHotkeys('shift+5', () => setActiveTab(NotificationTab.recasts), [], {});
-  useHotkeys('shift+6', () => setActiveTab(NotificationTab.follows), [], {});
+  useHotkeys('shift+1', () => changeTab(NotificationTab.all), [], {});
+  useHotkeys('shift+2', () => changeTab(NotificationTab.replies), [], {});
+  useHotkeys('shift+3', () => changeTab(NotificationTab.mentions), [], {});
+  useHotkeys('shift+4', () => changeTab(NotificationTab.likes), [], {});
+  useHotkeys('shift+5', () => changeTab(NotificationTab.recasts), [], {});
+  useHotkeys('shift+6', () => changeTab(NotificationTab.follows), [], {});
 
   useHotkeys(
     ['l', 'o', Key.Enter, Key.ArrowRight],
@@ -285,7 +309,7 @@ const Notifications = () => {
 
   const renderLoadNotificationsButton = () => (
     <div className="flex justify-center my-8">
-      <Button variant="outline" size="lg" disabled={isLoading} onClick={() => loadData({ reset: false })}>
+      <Button variant="outline" size="lg" disabled={isLoading} onClick={() => fetchNotifications({ reset: false })}>
         {isLoading ? <Loading /> : `Load ${notifications.length === 0 ? '' : 'more'}`}
       </Button>
     </div>
@@ -389,7 +413,8 @@ const Notifications = () => {
         <div className="min-h-full h-full">
           {(notificationType === NotificationTypeEnum.Reply || notificationType === NotificationTypeEnum.Mention) && (
             <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
-              {parentCast ? <CastRow cast={parentCast} showChannel /> : <SkeletonCastRow />}
+              {parentCast && <CastRow cast={parentCast} showChannel />}
+              {!parentCast && parentCastHash && <SkeletonCastRow />}
             </div>
           )}
           <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
@@ -456,7 +481,7 @@ const Notifications = () => {
           <Tabs
             defaultValue={NotificationTab.all}
             value={activeTab}
-            onValueChange={(value: string) => setActiveTab(value as NotificationTab)}
+            onValueChange={(value: string) => changeTab(value as NotificationTab)}
           >
             <div className="w-full md:max-w-xl md:mx-4">
               <TabsList className="grid grid-cols-3 md:grid-cols-6">

@@ -18,12 +18,8 @@ import { map, uniq, debounce } from 'lodash';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
 import { Switch } from '@/components/ui/switch';
 import { IntervalFilter } from '@/common/components/IntervalFilter';
-import {
-  getFromFidFromSearchTerm,
-  getMentionFidFromSearchTerm,
-  Interval,
-  SearchResponse,
-} from '@/common/helpers/search';
+import { getFromFidFromSearchTerm, getMentionFidFromSearchTerm, SearchResponse } from '@/common/helpers/search';
+import { Interval } from '@/common/types/types';
 import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/solid';
 import { cn } from '@/lib/utils';
 import { usePostHog } from 'posthog-js/react';

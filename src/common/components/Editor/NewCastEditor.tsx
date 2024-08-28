@@ -34,7 +34,7 @@ import Link from 'next/link';
 import { isPaidUser } from '@/stores/useUserStore';
 import { MentionList } from '../MentionsList';
 import { useImgurUpload } from '@/common/hooks/useImgurUpload';
-import { getPlanLimitsForUser } from '@/config/planLimits';
+import { getPlanLimitsForPlan } from '@/config/planLimits';
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -286,7 +286,7 @@ export default function NewPostEntry({
 
   const scheduledCastCount =
     useDraftStore((state) => state.drafts.filter((draft) => draft.status === DraftStatus.scheduled))?.length || 0;
-  const openSourcePlanLimits = getPlanLimitsForUser('openSource');
+  const openSourcePlanLimits = getPlanLimitsForPlan('openSource');
   const hasReachedFreePlanLimit = !isPaidUser() && scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
   const isButtonDisabled = isPublishing || !textLengthIsValid || (scheduleDateTime && hasReachedFreePlanLimit);
 

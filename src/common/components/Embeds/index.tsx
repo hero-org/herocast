@@ -47,6 +47,7 @@ const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
     return null;
   }
 };
+
 export const renderEmbedForUrl = ({ url, cast_id, castId, onRemove, hideReactions }: CastEmbedType) => {
   if (castId || cast_id) {
     return <CastEmbed castId={castId || cast_id} hideReactions={hideReactions} />;

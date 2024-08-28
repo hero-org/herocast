@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { ChartBarIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
 import ClickToCopyText from '@/common/components/ClickToCopyText';
-import { Interval } from '@/common/helpers/search';
+import { Interval } from '@/common/types/types';
 import { IntervalFilter } from '@/common/components/IntervalFilter';
 import DynamicChartCard from '@/common/components/Analytics/DynamicChartCard';
 import { addDays, formatDistanceToNow, isBefore } from 'date-fns';
@@ -25,9 +25,14 @@ import CastsCard from '@/common/components/Analytics/CastsCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TopFollowers from '@/common/components/Analytics/TopFollowers';
 import { UTCDate } from '@date-fns/utc';
+import { getPlanLimitsForPlan } from '@/config/planLimits';
+import { isPaidUser } from '@/stores/useUserStore';
+import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
+import { ArrowRightIcon } from '@heroicons/react/24/solid';
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
-const intervals = [Interval.d7, Interval.d30];
+const intervals = [Interval.d7, Interval.d30, Interval.d90];
+const LANDING_PAGE_DEFAULT_FID = '3';
 
 function timeUntilNextUTCHour(hour: number): string {
   const now = new Date();
@@ -54,6 +59,14 @@ export default function AnalyticsPage() {
   const [fidToAnalytics, setAnalyticsData] = useState<FidToAnalyticsData>({});
   const selectedAccountInApp = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const { accounts } = useAccountStore();
+  const isCustomer = isPaidUser();
+
+  const disabledIntervals = useMemo(() => {
+    if (isCustomer) return [];
+
+    const enabeldIntervals = getPlanLimitsForPlan('openSource').analyticsEnabledInterval;
+    return intervals.filter((i) => !enabeldIntervals.includes(i));
+  }, [isCustomer]);
 
   const defaultProfiles = useMemo(() => {
     return accounts.filter((account) => account.status === 'active').map((a) => a.user) as User[];
@@ -115,22 +128,33 @@ export default function AnalyticsPage() {
     }
   }, [fid, user]);
 
+  const fetchAndAddUserProfile = async ({ username, fid }: { username?: string; fid: string }) => {
+    getUserDataForFidOrUsername({
+      username,
+      fid,
+      viewerFid: process.env.NEXT_PUBLIC_APP_FID!,
+    }).then((users) => {
+      if (users.length) {
+        setSelectedProfile(users[0]);
+      }
+      setIsLoading(false);
+    });
+  };
+
   useEffect(() => {
     const fidFromQuery = query.fid as string;
     const usernameFromQuery = query.username as string;
     if (fidFromQuery || usernameFromQuery) {
-      getUserDataForFidOrUsername({
+      fetchAndAddUserProfile({
         username: usernameFromQuery,
         fid: fidFromQuery,
-        viewerFid: process.env.NEXT_PUBLIC_APP_FID!,
-      }).then((users) => {
-        if (users.length) {
-          setSelectedProfile(users[0]);
-        }
-        setIsLoading(false);
       });
     } else if (selectedAccountInApp && selectedAccountInApp?.user) {
       setSelectedProfile(selectedAccountInApp.user);
+    } else {
+      fetchAndAddUserProfile({
+        fid: LANDING_PAGE_DEFAULT_FID,
+      });
     }
   }, [query, selectedAccountInApp]);
 
@@ -147,8 +171,8 @@ export default function AnalyticsPage() {
         />
         {!isLoading && !user && (
           <Link href="/login">
-            <Button variant="default" size="sm">
-              Login to see more insights <ChartBarIcon className="h-4 w-4 ml-2" />
+            <Button variant="default">
+              See your own Farcaster analytics <ArrowRightIcon className="h-4 w-4 ml-2" />
             </Button>
           </Link>
         )}
@@ -161,7 +185,12 @@ export default function AnalyticsPage() {
             size="sm"
             text={`https://app.herocast.xyz/analytics?fid=${fid}`}
           />
-          <IntervalFilter intervals={intervals} defaultInterval={Interval.d7} updateInterval={setInterval} />
+          <IntervalFilter
+            intervals={intervals}
+            defaultInterval={Interval.d7}
+            updateInterval={setInterval}
+            disabledIntervals={disabledIntervals}
+          />
         </div>
         {analyticsData?.updatedAt && (
           <div className="text-sm text-foreground/70">Next update {timeUntilNextUTCHour(4)}</div>
@@ -192,7 +221,7 @@ export default function AnalyticsPage() {
             align: 'start',
             loop: true,
           }}
-          className="mr-12 lg:mx-0"
+          className="mr-12"
         >
           <CarouselContent className="">
             <CarouselItem className="md:basis-1/2 lg:basis-1/3">
@@ -210,13 +239,18 @@ export default function AnalyticsPage() {
                 <ReactionsCard data={analyticsData.reactions} isLoading={isLoading} interval={interval} />
               )}
             </CarouselItem>
+            {!isCustomer && (
+              <CarouselItem className="md:basis-1/2 lg:basis-1/3 -mt-2 mb-2 mx-auto text-center">
+                <UpgradeFreePlanCard limitKey="analyticsEnabledInterval" />
+              </CarouselItem>
+            )}
             <CarouselItem className="md:basis-1/2 lg:basis-1/3">
               {analyticsData?.casts && (
                 <CastsCard data={analyticsData.casts} isLoading={isLoading} interval={interval} />
               )}
             </CarouselItem>
           </CarouselContent>
-          <CarouselNext className="lg:hidden" />
+          <CarouselNext />
         </Carousel>
         <div className="mt-8">
           <DynamicChartCard analyticsData={analyticsData} isLoading={isLoading} interval={interval} />
