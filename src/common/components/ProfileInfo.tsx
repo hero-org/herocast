@@ -129,7 +129,7 @@ const ProfileInfo = ({
 
     return (
       <div className="mt-2" key={`coordinape-attestations-${fid}`}>
-        <span className="text-sm text-foreground">Coordinape Attestations</span>
+        <span className="text-sm text-foreground">Coordinape GIVE Attestations</span>
         <div className="mt-2 flex flex-wrap gap-1">
           {take(profile.coordinapeAttestations, 15).map((attestation) => (
             <span
