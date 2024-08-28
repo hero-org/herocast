@@ -30,7 +30,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
     <div className="space-y-2">
       <div className="flex flex-row justify-between">
         <div className="flex space-x-2">
-          <Avatar>
+          <Avatar className="sm:h-8 sm:w-8 md:h-10 md:w-10">
             <AvatarImage
               src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${profile.pfp_url}`}
             />
@@ -78,7 +78,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
             </Linkify>
           </p>
         )}
-        <div className="flex flex-col pt-2 lg:flex-row lg:space-x-2 text-xs sm:text-sm">
+        <div className="flex flex-col pt-2 sm:flex-row sm:space-x-2 lg:flex-col lg:space-x-0 text-xs sm:text-sm">
           <p>
             <span className="font-semibold text-foreground">
               {formatLargeNumber(profile.follower_count || 0)}&nbsp;
