@@ -110,9 +110,9 @@ const Notifications = () => {
     };
   }, []);
 
-  const loadData = async ({ reset }: { reset?: boolean }) => {
+  const fetchNotifications = async ({ reset }: { reset?: boolean }) => {
     if (!viewerFid) return;
-    console.log('Notifications Page -> loadData | loadMoreCursor', loadMoreCursor);
+    console.log('Notifications Page -> fetchNotifications. reset', reset);
     setIsLoading(true);
     if (reset) {
       setNotifications([]);
@@ -141,7 +141,7 @@ const Notifications = () => {
     if (!viewerFid) return;
 
     setLoadMoreCursor(undefined);
-    loadData({ reset: true });
+    fetchNotifications({ reset: true });
 
     closeNewCastModal();
     setIsLeftColumnSelected(true);
@@ -151,8 +151,9 @@ const Notifications = () => {
   useEffect(() => {
     const checkAndUpdateNotifications = () => {
       const currentTime = Date.now();
-      if (currentTime - lastUpdateTimeRef.current > 5 * 60 * 1000) { // 5 minutes
-        loadData({ reset: true });
+      if (currentTime - lastUpdateTimeRef.current > 5 * 60 * 1000) {
+        // 5 minutes
+        fetchNotifications({ reset: true });
         lastUpdateTimeRef.current = currentTime;
       }
     };
@@ -308,7 +309,7 @@ const Notifications = () => {
 
   const renderLoadNotificationsButton = () => (
     <div className="flex justify-center my-8">
-      <Button variant="outline" size="lg" disabled={isLoading} onClick={() => loadData({ reset: false })}>
+      <Button variant="outline" size="lg" disabled={isLoading} onClick={() => fetchNotifications({ reset: false })}>
         {isLoading ? <Loading /> : `Load ${notifications.length === 0 ? '' : 'more'}`}
       </Button>
     </div>
