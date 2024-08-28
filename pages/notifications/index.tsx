@@ -95,6 +95,13 @@ const Notifications = () => {
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
 
+  const changeTab = (tab: NotificationTab) => {
+    setActiveTab(tab);
+    setSelectedNotificationIdx(0);
+    setParentCastHash(undefined);
+    setParentCast(undefined);
+  };
+
   useEffect(() => {
     // if navigating away, reset the selected cast
     return () => {
@@ -191,12 +198,12 @@ const Notifications = () => {
     }
   );
 
-  useHotkeys('shift+1', () => setActiveTab(NotificationTab.all), [], {});
-  useHotkeys('shift+2', () => setActiveTab(NotificationTab.replies), [], {});
-  useHotkeys('shift+3', () => setActiveTab(NotificationTab.mentions), [], {});
-  useHotkeys('shift+4', () => setActiveTab(NotificationTab.likes), [], {});
-  useHotkeys('shift+5', () => setActiveTab(NotificationTab.recasts), [], {});
-  useHotkeys('shift+6', () => setActiveTab(NotificationTab.follows), [], {});
+  useHotkeys('shift+1', () => changeTab(NotificationTab.all), [], {});
+  useHotkeys('shift+2', () => changeTab(NotificationTab.replies), [], {});
+  useHotkeys('shift+3', () => changeTab(NotificationTab.mentions), [], {});
+  useHotkeys('shift+4', () => changeTab(NotificationTab.likes), [], {});
+  useHotkeys('shift+5', () => changeTab(NotificationTab.recasts), [], {});
+  useHotkeys('shift+6', () => changeTab(NotificationTab.follows), [], {});
 
   useHotkeys(
     ['l', 'o', Key.Enter, Key.ArrowRight],
@@ -389,7 +396,8 @@ const Notifications = () => {
         <div className="min-h-full h-full">
           {(notificationType === NotificationTypeEnum.Reply || notificationType === NotificationTypeEnum.Mention) && (
             <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
-              {parentCast ? <CastRow cast={parentCast} showChannel /> : <SkeletonCastRow />}
+              {parentCast && <CastRow cast={parentCast} showChannel />}
+              {!parentCast && parentCastHash && <SkeletonCastRow />}
             </div>
           )}
           <div className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
@@ -456,7 +464,7 @@ const Notifications = () => {
           <Tabs
             defaultValue={NotificationTab.all}
             value={activeTab}
-            onValueChange={(value: string) => setActiveTab(value as NotificationTab)}
+            onValueChange={(value: string) => changeTab(value as NotificationTab)}
           >
             <div className="w-full md:max-w-xl md:mx-4">
               <TabsList className="grid grid-cols-3 md:grid-cols-6">
