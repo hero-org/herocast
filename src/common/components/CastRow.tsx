@@ -17,7 +17,6 @@ import { publishReaction, removeCast, removeReaction } from '../helpers/farcaste
 import includes from 'lodash.includes';
 import map from 'lodash.map';
 import { useHotkeys } from 'react-hotkeys-hook';
-import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import get from 'lodash.get';
 import Linkify from 'linkify-react';
@@ -42,7 +41,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useDraftStore } from '@/stores/useDraftStore';
 import ChannelHoverCard from './ChannelHoverCard';
-import { formatDistanceToNowStrict } from 'date-fns';
+import { format, formatDistanceToNowStrict, lightFormat } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +50,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
+import { ArrowPathIcon, EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
 import {
   Dialog,
   DialogContent,
@@ -64,6 +63,8 @@ import {
 } from '@/components/ui/dialog';
 import { addToClipboard } from '../helpers/clipboard';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { getProfile } from '../helpers/profileUtils';
 
 registerPlugin('mention', mentionPlugin);
 registerPlugin('cashtag', cashtagPlugin);
@@ -95,6 +96,7 @@ interface CastRowProps {
   showParentDetails?: boolean;
   hideAuthor?: boolean;
   showAdminActions?: boolean;
+  recastedByFid?: number;
 }
 
 const renderMention = ({ attributes, content }) => {
@@ -194,6 +196,7 @@ export const CastRow = ({
   showParentDetails = false,
   hideAuthor = false,
   showAdminActions = false,
+  recastedByFid,
 }: CastRowProps) => {
   const {
     accounts,
@@ -399,34 +402,34 @@ export const CastRow = ({
 
           if (key === 'likes' && isSelected) {
             return (
-              <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+              <TooltipProvider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="L" side="bottom">
                   {reaction}
                 </HotkeyTooltipWrapper>
-              </Tooltip.Provider>
+              </TooltipProvider>
             );
           } else if (key === 'recasts' && isSelected) {
             return (
-              <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+              <TooltipProvider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="Shift + R" side="bottom">
                   {reaction}
                 </HotkeyTooltipWrapper>
-              </Tooltip.Provider>
+              </TooltipProvider>
             );
           } else if (key === 'replies' && isSelected) {
             return (
-              <Tooltip.Provider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
+              <TooltipProvider key={`cast-${cast.hash}-${key}-${reaction}`} delayDuration={50} skipDelayDuration={0}>
                 <HotkeyTooltipWrapper hotkey="R" side="bottom">
                   {reaction}
                 </HotkeyTooltipWrapper>
-              </Tooltip.Provider>
+              </TooltipProvider>
             );
           } else {
             return reaction;
           }
         })}
         {linksCount && !isOnchainLink ? (
-          <Tooltip.Provider key={`cast-${cast.hash}-link`} delayDuration={50} skipDelayDuration={0}>
+          <TooltipProvider key={`cast-${cast.hash}-link`} delayDuration={50} skipDelayDuration={0}>
             <HotkeyTooltipWrapper hotkey="O" side="bottom">
               <a
                 tabIndex={-1}
@@ -443,9 +446,9 @@ export const CastRow = ({
                 )}
               </a>
             </HotkeyTooltipWrapper>
-          </Tooltip.Provider>
+          </TooltipProvider>
         ) : null}
-        <Tooltip.Provider key={`cast-${cast.hash}-quote`} delayDuration={50} skipDelayDuration={0}>
+        <TooltipProvider key={`cast-${cast.hash}-quote`} delayDuration={50} skipDelayDuration={0}>
           <HotkeyTooltipWrapper hotkey="Q" side="bottom">
             {renderReaction(
               CastReactionType.quote,
@@ -454,7 +457,7 @@ export const CastRow = ({
               getIconForCastReactionType(CastReactionType.quote)
             )}
           </HotkeyTooltipWrapper>
-        </Tooltip.Provider>
+        </TooltipProvider>
       </div>
     );
   };
@@ -484,7 +487,7 @@ export const CastRow = ({
       <div
         className={cn(
           cast.embeds?.length > 1 && !embedsContainsCastEmbed && 'grid lg:grid-cols-2 gap-4',
-          'max-w-lg self-start'
+          'max-w-lg self-start space-y-2'
         )}
         onClick={(e) => e.preventDefault()}
       >
@@ -505,18 +508,33 @@ export const CastRow = ({
       cast.inclusion_context?.is_following_recaster &&
       !cast.inclusion_context?.is_following_author;
 
-    if (!shouldShowBadge) return null;
-    return (
-      <span className="h-5 ml-2 inline-flex truncate items-top rounded-sm bg-gray-400/10 px-1.5 py-0.5 text-xs font-medium text-gray-400 ring-1 ring-inset ring-gray-400/30">
-        <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+    if (!recastedByFid && !shouldShowBadge) return null;
+
+    let recaster;
+    if (recastedByFid) {
+      recaster = getProfile(useDataStore.getState(), undefined, recastedByFid.toString());
+    } else {
+      recaster = cast.reactions?.recasts?.find((recast) => recast?.viewer_context?.following === true);
+    }
+    const badge = (
+      <span className={cn('ml-9', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/40 hover:underline')}>
+        <ArrowPathIcon className="h-4 w-4 mt-0.5 mr-1" />
+        {recaster && `Recasted by ${recaster.fname || recaster.username}`}
       </span>
     );
+
+    if (recaster) {
+      return (
+        <Link href={`/profile/${recaster.fname}`} prefetch={false}>
+          {badge}
+        </Link>
+      );
+    }
+
+    return badge;
   };
 
   const channel = showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null;
-  const timeAgoStr = formatDistanceToNowStrict(new Date(cast.timestamp), {
-    addSuffix: false,
-  });
   const pfpUrl = cast.author.pfp_url || cast.author?.pfp?.url;
   const displayName = cast.author.display_name || cast.author.displayName;
 
@@ -625,13 +643,34 @@ export const CastRow = ({
     );
   };
 
+  const renderCastTime = () => {
+    if (!cast.timestamp) return null;
+
+    const timeAgoStr = formatDistanceToNowStrict(new Date(cast.timestamp), {
+      addSuffix: false,
+    });
+
+    return (
+      <TooltipProvider delayDuration={100}>
+        <Tooltip>
+          <TooltipTrigger>
+            <span className="text-sm leading-5 text-foreground/50 hover:underline">{timeAgoStr}</span>
+          </TooltipTrigger>
+          <TooltipContent
+            align={'center'}
+            className="bg-popover border border-muted text-foreground/80 text-sm px-2 py-1"
+            side="bottom"
+          >
+            {format(cast.timestamp, 'PPP HH:mm')}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   const renderCastContent = () => (
-    <div className="flex w-full max-w-xl">
+    <div className="flex flex-col w-full max-w-2xl">
       <div
-        onClick={(event) => {
-          event.stopPropagation();
-          onSelect && onSelect();
-        }}
         className={cn(
           isEmbed ? 'p-2' : 'p-3',
           isEmbed && !hideReactions && 'pb-0',
@@ -640,17 +679,25 @@ export const CastRow = ({
           'lg:ml-0 grow rounded-r-sm hover:bg-muted/50'
         )}
       >
+        {renderRecastBadge()}
         {isThreadView && <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />}
-        <div className="flex items-top gap-x-4">
+        <div
+          className={cn('flex items-top gap-x-4')}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onSelect && onSelect();
+          }}
+        >
           {!isEmbed && !hideAuthor && (
-            <Link href={`/profile/${cast.author.username}`} prefetch={false} className="shrink-0">
+            <Link href={`/profile/${cast.author.username}`} prefetch={false} className="flex shrink-0">
               <img
                 className="relative h-10 w-10 flex-none bg-background rounded-full"
                 src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
               />
             </Link>
           )}
-          <div className="flex flex-col w-full">
+          <div className="flex flex-col w-full space-y-1">
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 {hideAuthor ? (
@@ -681,11 +728,10 @@ export const CastRow = ({
                   </MemoizedProfileHoverCard>
                 )}
                 <div className="hidden lg:ml-2 lg:block">{renderChannelButton()}</div>
-                {renderRecastBadge()}
               </div>
               <div className="flex flex-row">
                 <div className="block mr-2 lg:hidden">{renderChannelButton()}</div>
-                {timeAgoStr && <span className="text-sm leading-5 text-foreground/50">{timeAgoStr}</span>}
+                {renderCastTime()}
                 <Link
                   href={`${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`}
                   className="text-sm leading-5 text-foreground/50"

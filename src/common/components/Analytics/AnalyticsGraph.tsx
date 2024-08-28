@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { format, subDays } from 'date-fns';
-import { Interval } from '@/common/helpers/search';
+import { Interval } from '@/common/types/types';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';

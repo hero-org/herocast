@@ -7,15 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import { Interval } from '../helpers/search';
+import { Interval } from '../types/types';
 
 type IntervalFilterProps = {
   intervals: Interval[];
   defaultInterval?: Interval;
   updateInterval?: (value: Interval) => void;
+  disabledIntervals?: Interval[];
 };
 
-export function IntervalFilter({ intervals, defaultInterval, updateInterval }: IntervalFilterProps) {
+export function IntervalFilter({ intervals, defaultInterval, updateInterval, disabledIntervals }: IntervalFilterProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState<Interval | undefined>(defaultInterval);
 
@@ -49,6 +50,7 @@ export function IntervalFilter({ intervals, defaultInterval, updateInterval }: I
                 <CommandItem
                   key={interval}
                   value={interval.toString()}
+                  disabled={disabledIntervals?.includes(interval)}
                   onSelect={(value) => handleSelect(value as unknown as Interval)}
                 >
                   <CheckIcon className={cn('mr-2 h-4 w-4', value === interval ? 'opacity-100' : 'opacity-0')} />

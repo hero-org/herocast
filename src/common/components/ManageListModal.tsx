@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { IntervalFilter } from './IntervalFilter';
-import { Interval } from '../helpers/search';
+import { Interval } from '../types/types';
 import { Switch } from '@/components/ui/switch';
 import { toastSuccessSavedSearchUpdate } from '../helpers/toast';
 import { BellIcon } from '@heroicons/react/24/outline';

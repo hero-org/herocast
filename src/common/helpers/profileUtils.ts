@@ -19,13 +19,14 @@ export const fetchAndAddUserProfile = async ({
   const { addUserProfile } = useDataStore.getState();
   if (users.length) {
     for (const user of users) {
-      const response = await fetch(`/api/additionalProfileInfo?fid=${user.fid}`);
+      const response = await fetch(
+        `/api/additionalProfileInfo?fid=${user.fid}&addresses=${user.verified_addresses.eth_addresses}`
+      );
       if (response.ok) {
         const userProfileInfos = await response.json();
         const enrichedUser = {
           ...user,
-          airstackSocialInfo: userProfileInfos.airstackSocialInfo,
-          icebreakerSocialInfo: userProfileInfos.icebreakerSocialInfo,
+          ...userProfileInfos,
         };
         addUserProfile({ user: enrichedUser });
       } else {

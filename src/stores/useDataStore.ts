@@ -7,6 +7,7 @@ import { CastWithInteractions, User } from '@neynar/nodejs-sdk/build/neynar-api/
 import { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
 import { AirstackSocialInfo } from '@/common/helpers/airstack';
 import { AnalyticsData } from '@/common/types/types';
+import { CoordinapeAttestation } from '@/common/helpers/coordinapeAttestations';
 
 export const PROFILE_UPDATE_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
@@ -89,6 +90,7 @@ type addTokenDataProps = {
 type AdditionalUserInfo = {
   airstackSocialInfo: AirstackSocialInfo;
   icebreakerSocialInfo: IcebreakerSocialInfo;
+  coordinapeAttestations: CoordinapeAttestation[];
 };
 
 type addUserProfileProps = {

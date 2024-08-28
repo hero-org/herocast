@@ -34,3 +34,11 @@ export type AnalyticsData = {
 };
 
 export type AnalyticsKey = 'follows' | 'casts' | 'reactions';
+
+export enum Interval {
+  d1 = '1 day',
+  d7 = '7 days',
+  d14 = '14 days',
+  d30 = '30 days',
+  d90 = '90 days',
+}
