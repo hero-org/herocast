@@ -27,7 +27,6 @@ import includes from 'lodash.includes';
 import { useListStore } from '@/stores/useListStore';
 import { getCastsFromSearch, SearchFilters } from '@/common/helpers/search';
 import { Interval } from '@/common/types/types';
-import sortBy from 'lodash.sortby';
 import { orderBy } from 'lodash';
 
 type Feed = {

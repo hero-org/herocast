@@ -21,7 +21,7 @@ const UpgradeFreePlanCard = ({ limitKey, size = 'sm' }: UpgradeFreePlanCardProps
   const { accounts } = useAccountStore();
   const { drafts } = useDraftStore();
 
-  // if (isPaidUser()) return null;
+  if (isPaidUser()) return null;
 
   const getValueForLimit = () => {
     switch (limitKey) {
