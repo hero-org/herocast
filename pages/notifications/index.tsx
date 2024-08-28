@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import { castTextStyle } from '@/common/helpers/css';
 import { useAccountStore } from '../../src/stores/useAccountStore';
@@ -94,6 +94,7 @@ const Notifications = () => {
   const [showReactionsLimit, setShowReactionsLimit] = useState<number>(DEFAULT_SHOW_REACTIONS_LIMIT);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
+  const lastUpdateTimeRef = useRef<number>(Date.now());
 
   const changeTab = (tab: NotificationTab) => {
     setActiveTab(tab);
@@ -133,6 +134,7 @@ const Notifications = () => {
       setLoadMoreCursor(resp.next.cursor);
     }
     setIsLoading(false);
+    lastUpdateTimeRef.current = Date.now();
   };
 
   useEffect(() => {
@@ -144,6 +146,20 @@ const Notifications = () => {
     closeNewCastModal();
     setIsLeftColumnSelected(true);
     setSelectedNotificationIdx(0);
+  }, [viewerFid]);
+
+  useEffect(() => {
+    const checkAndUpdateNotifications = () => {
+      const currentTime = Date.now();
+      if (currentTime - lastUpdateTimeRef.current > 5 * 60 * 1000) { // 5 minutes
+        loadData({ reset: true });
+        lastUpdateTimeRef.current = currentTime;
+      }
+    };
+
+    const intervalId = setInterval(checkAndUpdateNotifications, 60 * 1000); // Check every minute
+
+    return () => clearInterval(intervalId);
   }, [viewerFid]);
 
   useEffect(() => {
