@@ -75,7 +75,7 @@ export default function NewPost() {
   const pathname = usePathname();
   const savedPathname = useRef(pathname);
 
-  // New State for Posts and Threads
+
   const [posts, setPosts] = useDraftStore([{ id: 1, content: '', threads: [] }]);
   const { allPosts, setAllPosts } = useDraftStore([]);
 
@@ -112,7 +112,7 @@ export default function NewPost() {
   }, [pathname, searchParams]);
 
   useEffect(() => {
-    // when drafts change, we want to make sure that selectedDraftId is always a valid draft id
+   
     if (!draftsForTab.find((draft) => draft.id === selectedDraftId) && draftsForTab.length > 0) {
       setSelectedDraftId(draftsForTab[0]?.id);
     }
@@ -133,7 +133,7 @@ export default function NewPost() {
     }
   }, [drafts]);
 
-  // Function to handle content change in the main post
+
   const handleContentChange = (event, postId) => {
     const newPosts = posts.map((post) => {
       if (post.id === postId) {
@@ -144,19 +144,19 @@ export default function NewPost() {
     setPosts(newPosts);
   };
 
-  // Function to add a new thread to a post
-  const addThread = (postId) => {
+   // Function to add a new thread to a post
+  const addThread = (postId: number) => {
     const newPosts = posts.map((post) => {
       if (post.id === postId) {
-        return { ...post, threads: [...post.threads, ''] };
+        return { ...post, threads: [...post.threads, ''] }; // Add new thread to the original post
       }
       return post;
     });
     setPosts(newPosts);
   };
 
-  // Function to handle content change in a thread
-  const handleThreadContentChange = (event, postId, index) => {
+   // Function to handle content change in a thread
+  const handleThreadContentChange = (event: React.ChangeEvent<HTMLTextAreaElement>, postId: number, index: number) => {
     const newPosts = posts.map((post) => {
       if (post.id === postId) {
         const newThreads = [...post.threads];
@@ -168,10 +168,10 @@ export default function NewPost() {
     setPosts(newPosts);
   };
 
-  // Function to handle post submission
+
   const handlePostSubmit = () => {
     setAllPosts([...allPosts, ...posts]);
-    setPosts([{ id: posts.length + 1, content: '', threads: [] }]); // Reset posts
+    setPosts([{ id: posts.length + 1, content: '', threads: [] }]);
   };
 
   const onRemove = (draft) => {
@@ -250,23 +250,28 @@ export default function NewPost() {
       {/* Posts and Threads Management */}
       <div>
         {posts.map((post) => (
-          <div key={post.id} style={{ marginBottom: "20px" }}>
+          <div key={post.id}>
             <textarea
-              placeholder="Enter your content"
               value={post.content}
-              onChange={(e) => handleContentChange(e, post.id)}
+              onChange={(event) => handleContentChange(event, post.id)}
+              placeholder="Write a new post..."
+              className="w-full border border-gray-300 rounded p-2"
             />
-            <button onClick={() => addThread(post.id)}>
-              <img src={newThread} alt="New Thread" width="25" height="25" />
+            <div>
+              {post.threads.map((thread, index) => (
+                <textarea
+                  key={index}
+                  value={thread}
+                  onChange={(event) => handleThreadContentChange(event, post.id, index)}
+                  placeholder="Write a thread..."
+                  className="w-full border border-gray-300 rounded p-2 mt-2"
+                />
+              ))}
+            </div>
+            <button onClick={() => addThread(post.id)} className="mt-2 p-2 bg-blue-500 text-white rounded">
+              <img src={newThread} alt="Add Thread" className="inline w-4 h-4 mr-1" />
+              Add Thread
             </button>
-            {post.threads.map((thread, index) => (
-              <textarea
-                key={index}
-                placeholder="Enter your thread content"
-                value={thread}
-                onChange={(e) => handleThreadContentChange(e, post.id, index)}
-              />
-            ))}
           </div>
         ))}
         <button onClick={handlePostSubmit}>Submit</button>
