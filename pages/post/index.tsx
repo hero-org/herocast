@@ -76,8 +76,8 @@ export default function NewPost() {
   const savedPathname = useRef(pathname);
 
   // New State for Posts and Threads
-  const [posts, setPosts] = useState([{ id: 1, content: '', threads: [] }]);
-  const [allPosts, setAllPosts] = useState([]);
+  const [posts, setPosts] = useDraftStore([{ id: 1, content: '', threads: [] }]);
+  const { allPosts, setAllPosts } = useDraftStore([]);
 
   const draftsForTab = useMemo(
     () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
