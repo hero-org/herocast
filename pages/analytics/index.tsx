@@ -280,7 +280,7 @@ export default function AnalyticsPage() {
             <div className="my-4">
               <h2 className="text-2xl font-bold">Unfollows</h2>
             </div>
-            <RecentUnfollows fid={fid} unfollowFids={analyticsData.unfollows} />
+            {analyticsData.unfollows && <RecentUnfollows fid={fid} unfollowFids={analyticsData.unfollows} />}
           </TabsContent>
         </Tabs>
       </>
