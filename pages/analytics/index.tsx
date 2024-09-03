@@ -29,6 +29,7 @@ import { getPlanLimitsForPlan } from '@/config/planLimits';
 import { isPaidUser } from '@/stores/useUserStore';
 import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 import { ArrowRightIcon } from '@heroicons/react/24/solid';
+import RecentUnfollows from '@/common/components/Analytics/RecentUnfollows';
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 const intervals = [Interval.d7, Interval.d30, Interval.d90];
@@ -279,7 +280,7 @@ export default function AnalyticsPage() {
             <div className="my-4">
               <h2 className="text-2xl font-bold">Unfollows</h2>
             </div>
-            <div>Coming soon...</div>
+            <RecentUnfollows fid={fid} unfollowFids={analyticsData.unfollows} />
           </TabsContent>
         </Tabs>
       </>

@@ -1,4 +1,5 @@
 import { sql } from 'kysely';
+import { NumberToBytesErrorType } from 'viem';
 
 export function buildAnalyticsQuery(
   tableName: string,
@@ -73,6 +74,24 @@ export function getTopCasts(fid: number, limit: number = 30) {
             GROUP BY target_cast_hash) r ON c.hash = r.target_cast_hash
         ORDER BY 
             COALESCE(like_count::int, 0) DESC
+        LIMIT ${limit};
+    `;
+}
+
+export function getRecentUnfollows(fid: number, limit: number = 50) {
+  console.log('ayooo gang gang from sql query');
+  return sql`
+        SELECT 
+          target_fid, 
+          deleted_at 
+        FROM 
+          follows 
+        WHERE 
+          fid = ${fid}
+          AND deleted_at IS NOT NULL
+          AND deleted_at >= NOW() - INTERVAL '90 days'
+        ORDER BY 
+          deleted_at DESC
         LIMIT ${limit};
     `;
 }

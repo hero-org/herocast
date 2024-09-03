@@ -31,6 +31,7 @@ export type AnalyticsData = {
   reactions: CombinedActivityData;
   casts: CombinedActivityData;
   topCasts: CastData[];
+  unfollows: number[];
 };
 
 export type AnalyticsKey = 'follows' | 'casts' | 'reactions';
