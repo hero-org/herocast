@@ -125,7 +125,6 @@ Deno.serve(async (req) => {
       const topCasts = (await topCastsQuery.execute(db))?.rows;
 
       const unfollowsQuery = getRecentUnfollows(fid);
-      console.log(unfollowsQuery);
       const unfollows = (await unfollowsQuery.execute(db))?.rows;
 
       const res = {
@@ -133,7 +132,7 @@ Deno.serve(async (req) => {
         reactions: formatResponseSection(reactions),
         casts: formatResponseSection(casts),
         topCasts: topCasts,
-        unfollows: formatResponseSection(unfollows),
+        unfollows: unfollows,
       };
 
       const { error: upsertError } = await supabaseClient.from('analytics').upsert(
