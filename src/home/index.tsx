@@ -101,14 +101,21 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   }, [isHydrated]);
 
   useEffect(() => {
-    const handleStorageChange = () => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) {
+        setHasFinishedOnboarding(event.newValue === 'true');
+      }
+    };
+
+    const checkOnboardingStatus = () => {
       if (typeof window !== 'undefined' && localStorage) {
         setHasFinishedOnboarding(localStorage.getItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) === 'true');
       }
     };
 
-    if (typeof window !== 'undefined' && localStorage) {
-      setHasFinishedOnboarding(localStorage.getItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) === 'true');
+    checkOnboardingStatus();
+
+    if (typeof window !== 'undefined') {
       window.addEventListener('storage', handleStorageChange);
     }
 
