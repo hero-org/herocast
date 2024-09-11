@@ -82,7 +82,7 @@ const WelcomeSuccessPage = () => {
 
   useEffect(() => {
     if (hasScheduledCasts) {
-      setTaskStatus(prev => ({ ...prev, [OnboardingStep.schedule_cast]: true }));
+      setTaskStatus((prev) => ({ ...prev, [OnboardingStep.schedule_cast]: true }));
     }
   }, [hasScheduledCasts]);
 
@@ -110,7 +110,7 @@ const WelcomeSuccessPage = () => {
                   size="sm"
                   className="h-6 px-2 ml-2"
                   onClick={() => {
-                    setTaskStatus(prev => ({ ...prev, [step.key]: true }));
+                    setTaskStatus((prev) => ({ ...prev, [step.key]: true }));
                     setStep(onboardingSteps[idx + 1]?.key);
                   }}
                 >
@@ -143,34 +143,34 @@ const WelcomeSuccessPage = () => {
                 />
                 <div className="gap-x-4 mt-2 flex">
                   <Link href="/search">
-                    <Button 
-                      size="lg" 
-                      type="button" 
+                    <Button
+                      size="lg"
+                      type="button"
                       variant="default"
-                      onClick={() => setTaskStatus(prev => ({ ...prev, [OnboardingStep.setup_keyword_alert]: true }))}
+                      onClick={() => setTaskStatus((prev) => ({ ...prev, [OnboardingStep.setup_keyword_alert]: true }))}
                     >
                       <MagnifyingGlassIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Setup keyword alerts
                     </Button>
                   </Link>
                   <Link href="/channels">
-                    <Button 
-                      size="lg" 
-                      type="button" 
+                    <Button
+                      size="lg"
+                      type="button"
                       variant="outline"
-                      onClick={() => setTaskStatus(prev => ({ ...prev, [OnboardingStep.pin_channels]: true }))}
+                      onClick={() => setTaskStatus((prev) => ({ ...prev, [OnboardingStep.pin_channels]: true }))}
                     >
                       <RectangleGroupIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Pin channels
                     </Button>
                   </Link>
-                  <Button 
+                  <Button
                     onClick={() => {
                       onStartCasting();
-                      setTaskStatus(prev => ({ ...prev, [OnboardingStep.schedule_cast]: true }));
-                    }} 
-                    type="button" 
-                    variant="outline" 
+                      setTaskStatus((prev) => ({ ...prev, [OnboardingStep.schedule_cast]: true }));
+                    }}
+                    type="button"
+                    variant="outline"
                     size="lg"
                   >
                     <PencilSquareIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
