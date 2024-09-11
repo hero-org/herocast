@@ -85,7 +85,7 @@ const ConnectAccountPage = () => {
   return (
     <div className="mx-auto flex flex-col justify-center items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
-        <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast</h2>
+        <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast ✨</h2>
         <p className="text-lg text-muted-foreground">Build, engage and grow on Farcaster. Faster.</p>
         <div className="lg:max-w-lg mx-auto">
           <div className="grid grid-cols-1 gap-4">

@@ -30,6 +30,7 @@ import Link from 'next/link';
 import { ChartBarIcon } from '@heroicons/react/20/solid';
 import PublishedCastsRightSidebar from '@/common/components/Sidebar/PublishedCastsRightSidebar';
 import { useListStore } from '@/stores/useListStore';
+import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
 
 type NavigationGroupType = {
   name: string;
@@ -81,7 +82,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     (state) =>
       state.accounts.length === 1 && state.accounts[0].platform === AccountPlatformType.farcaster_local_readonly
   );
-
+  const [hasFinishedOnboarding, setHasFinishedOnboarding] = useState(false);
   const loadingMessages = [
     'Preparing your Farcaster experience',
     'Loading herocast',
@@ -98,6 +99,32 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       return () => clearInterval(interval);
     }
   }, [isHydrated]);
+
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) {
+        setHasFinishedOnboarding(event.newValue === 'true');
+      }
+    };
+
+    const checkOnboardingStatus = () => {
+      if (typeof window !== 'undefined' && localStorage) {
+        setHasFinishedOnboarding(localStorage.getItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) === 'true');
+      }
+    };
+
+    checkOnboardingStatus();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorageChange);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handleStorageChange);
+      }
+    };
+  }, []);
 
   const getFeedTitle = () => {
     if (selectedList) {
@@ -339,6 +366,22 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     </Card>
   );
 
+  const renderFinishOnboardingCard = () => (
+    <Card>
+      <CardHeader className="p-2 pt-0 md:p-4">
+        <CardTitle>Finish your herocast setup</CardTitle>
+        <CardDescription>Complete the onboarding to enjoy the full herocast experience. </CardDescription>
+      </CardHeader>
+      <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
+        <Link href="/welcome/success" passHref>
+          <Button size="sm" className="w-full">
+            Let&apos;s go
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+
   if (pathname === '/login') {
     return children;
   }
@@ -474,6 +517,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </nav>
               </div>
               {isReadOnlyUser && renderUpgradeCard()}
+              {!isReadOnlyUser && !hasFinishedOnboarding && renderFinishOnboardingCard()}
               <div className="mt-auto flex flex-row lg:space-x-2 py-4">
                 <AccountSwitcher />
                 <ThemeToggle />
