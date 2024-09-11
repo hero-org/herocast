@@ -158,7 +158,7 @@ const WelcomeSuccessPage = () => {
 
   const renderGloPromoCard = () => {
     return (
-      <Card className="min-w-max bg-background text-foreground">
+      <Card className="bg-background text-foreground">
         <CardHeader className="pb-0">
           <CardTitle className="text-lg font-semibold">
             <img
@@ -170,9 +170,9 @@ const WelcomeSuccessPage = () => {
         </CardHeader>
         <CardContent className="p-6">
           <CardDescription className="text-lg text-card-foreground">
-            Create a saved search and schedule a cast with herocast to get 2 USDGLO. <br />
-            Glo Dollar is a fiat-backed stablecoin that funds public goods. This is a limited time offer until Dec 12,
-            2024 or until our budget is depleted.
+            Create a saved search and schedule a cast to get 2 USDGLO. <br />
+            Glo Dollar is a fiat-backed stablecoin that funds public goods. <br />
+            This is a limited time offer until Dec 12, 2024 or until our budget is depleted.
             <br />
             <br />
             <a
@@ -193,15 +193,13 @@ const WelcomeSuccessPage = () => {
     <div className="w-full flex flex-col mt-24 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
         <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast ✨</h2>
-        <div className="max-w-xl mx-auto">
-          <Card className="min-w-max bg-background text-foreground">
-            <CardContent className="p-4">
+        <div className="max-w-max mx-auto">
+          <Card className="bg-background text-foreground">
+            <CardContent className="max-w-2xl p-4">
               <div className="flex flex-col gap-y-4 text-left">
                 <div>
                   <span className="text-md font-semibold">
-                    {isCompleted
-                      ? 'Enjoy the full herocast experience'
-                      : 'Complete these tasks to get the full herocast experience'}
+                    {isCompleted ? 'Enjoy herocast' : 'Complete these tasks to get the most out of herocast'}
                   </span>
                 </div>
                 <div className="space-y-4 py-4 block">{renderOnboardingSteps()}</div>
@@ -209,26 +207,25 @@ const WelcomeSuccessPage = () => {
                   value={progressPercent}
                   indicatorClassName="bg-gradient-to-r from-green-400 to-green-600 animate-pulse"
                 />
-                <div className="gap-x-4 mt-2 flex">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-2">
                   <Link href="/search">
-                    <Button size="lg" type="button" variant="default">
+                    <Button size="lg" type="button" variant="default" className="min-w-full px-2">
                       <MagnifyingGlassIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Create keyword alerts
                     </Button>
                   </Link>
                   <Link href="/channels">
-                    <Button size="lg" type="button" variant="outline">
+                    <Button size="lg" type="button" variant="outline" className="min-w-full px-2">
                       <RectangleGroupIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Pin channels
                     </Button>
                   </Link>
                   <Button
-                    onClick={() => {
-                      onStartCasting();
-                    }}
+                    onClick={() => onStartCasting()}
                     type="button"
                     variant="outline"
                     size="lg"
+                    className="min-w-full px-2"
                   >
                     <PencilSquareIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                     Schedule casts
