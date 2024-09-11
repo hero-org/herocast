@@ -30,6 +30,7 @@ import Link from 'next/link';
 import { ChartBarIcon } from '@heroicons/react/20/solid';
 import PublishedCastsRightSidebar from '@/common/components/Sidebar/PublishedCastsRightSidebar';
 import { useListStore } from '@/stores/useListStore';
+import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
 
 type NavigationGroupType = {
   name: string;
@@ -81,7 +82,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     (state) =>
       state.accounts.length === 1 && state.accounts[0].platform === AccountPlatformType.farcaster_local_readonly
   );
-
+  const hasFinishedOnboarding = localStorage && localStorage.getItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) === 'true';
   const loadingMessages = [
     'Preparing your Farcaster experience',
     'Loading herocast',
@@ -474,6 +475,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </nav>
               </div>
               {isReadOnlyUser && renderUpgradeCard()}
+              {!isReadOnlyUser && !hasFinishedOnboarding && renderFinishOnboardingCard()}
               <div className="mt-auto flex flex-row lg:space-x-2 py-4">
                 <AccountSwitcher />
                 <ThemeToggle />
