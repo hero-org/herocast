@@ -79,13 +79,12 @@ export function getTopCasts(fid: number, limit: number = 30) {
 }
 
 export function getRecentUnfollows(fid: number, limit: number = 50) {
-  console.log('ayooo gang gang from sql query');
   return sql`
         SELECT 
           target_fid, 
           deleted_at 
         FROM 
-          follows 
+          links 
         WHERE 
           fid = ${fid}
           AND deleted_at IS NOT NULL
