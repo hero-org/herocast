@@ -24,7 +24,7 @@ import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/local
 enum OnboardingStep {
   login_to_herocast = 'login_to_herocast',
   connect_farcaster_account = 'connect_farcaster_account',
-  setup_keyword_alert = 'setup_keyword_alert',
+  create_keyword_alert = 'create_keyword_alert',
   pin_channels = 'pin_channels',
   schedule_cast = 'schedule_cast',
   done = 'done',
@@ -44,8 +44,8 @@ const onboardingSteps = [
     title: 'Connect Farcaster account',
   },
   {
-    key: OnboardingStep.setup_keyword_alert,
-    title: 'Setup keyword alerts and daily email',
+    key: OnboardingStep.create_keyword_alert,
+    title: 'Create keyword alerts and daily email',
   },
   {
     key: OnboardingStep.pin_channels,
@@ -65,11 +65,11 @@ const onboardingSteps = [
 const WelcomeSuccessPage = () => {
   const router = useRouter();
   const { drafts, addNewPostDraft } = useDraftStore();
-  const [step, setStep] = useState<OnboardingStep>(OnboardingStep.setup_keyword_alert);
+  const [step, setStep] = useState<OnboardingStep>(OnboardingStep.create_keyword_alert);
   const [taskStatus, setTaskStatus] = useState<OnboardingTaskStatus>({
     [OnboardingStep.login_to_herocast]: true,
     [OnboardingStep.connect_farcaster_account]: true,
-    [OnboardingStep.setup_keyword_alert]: false,
+    [OnboardingStep.create_keyword_alert]: false,
     [OnboardingStep.pin_channels]: false,
     [OnboardingStep.schedule_cast]: false,
   });
@@ -99,7 +99,7 @@ const WelcomeSuccessPage = () => {
 
   useEffect(() => {
     if (hasSavedSearches) {
-      setTaskStatus((prev) => ({ ...prev, [OnboardingStep.setup_keyword_alert]: true }));
+      setTaskStatus((prev) => ({ ...prev, [OnboardingStep.create_keyword_alert]: true }));
     }
   }, [hasSavedSearches]);
 
@@ -170,8 +170,10 @@ const WelcomeSuccessPage = () => {
         </CardHeader>
         <CardContent className="p-6">
           <CardDescription className="text-lg text-card-foreground">
-            Setup a saved search and schedule a cast with herocast to get 2 USDGLO. <br />
-            Glo Dollar is a fiat-backed stablecoin that funds public goods.
+            Create a saved search and schedule a cast with herocast to get 2 USDGLO. <br />
+            Glo Dollar is a fiat-backed stablecoin that funds public goods. This is a limited time offer until Dec 12,
+            2024 or until our budget is depleted.
+            <br />
             <br />
             <a
               href="https://www.glodollar.org/articles/how-glo-dollar-works"
@@ -211,7 +213,7 @@ const WelcomeSuccessPage = () => {
                   <Link href="/search">
                     <Button size="lg" type="button" variant="default">
                       <MagnifyingGlassIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
-                      Setup keyword alerts
+                      Create keyword alerts
                     </Button>
                   </Link>
                   <Link href="/channels">
