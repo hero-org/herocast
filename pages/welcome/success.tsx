@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CheckCircleIcon,
   MagnifyingGlassIcon,
@@ -25,6 +25,10 @@ enum OnboardingStep {
   pin_channels = 'pin_channels',
   schedule_cast = 'schedule_cast',
   done = 'done',
+}
+
+interface OnboardingTaskStatus {
+  [key: string]: boolean;
 }
 
 const onboardingSteps = [
@@ -59,16 +63,31 @@ const WelcomeSuccessPage = () => {
   const router = useRouter();
   const { drafts, addNewPostDraft } = useDraftStore();
   const [step, setStep] = useState<OnboardingStep>(OnboardingStep.setup_keyword_alert);
+  const [taskStatus, setTaskStatus] = useState<OnboardingTaskStatus>({
+    [OnboardingStep.login_to_herocast]: true,
+    [OnboardingStep.connect_farcaster_account]: true,
+    [OnboardingStep.setup_keyword_alert]: false,
+    [OnboardingStep.pin_channels]: false,
+    [OnboardingStep.schedule_cast]: false,
+  });
 
   const onStartCasting = () => {
     addNewPostDraft(JoinedHerocastPostDraft);
     router.push('/post');
   };
+
   const hasScheduledCasts =
     drafts.filter((draft) => draft.status === DraftStatus.scheduled || draft.status === DraftStatus.published).length >
     0;
+
+  useEffect(() => {
+    if (hasScheduledCasts) {
+      setTaskStatus(prev => ({ ...prev, [OnboardingStep.schedule_cast]: true }));
+    }
+  }, [hasScheduledCasts]);
+
   const currentStepIdx = findIndex(onboardingSteps, (item) => item.key === step);
-  const progressPercent = (currentStepIdx / (onboardingSteps.length - 1)) * 100;
+  const progressPercent = (Object.values(taskStatus).filter(Boolean).length / (onboardingSteps.length - 1)) * 100;
 
   const renderOnboardingSteps = () => {
     return onboardingSteps
@@ -78,19 +97,22 @@ const WelcomeSuccessPage = () => {
           <div key={step.key} className="flex items-center justify-between">
             <div className="flex items-center align-middle">
               <div className="flex-shrink-0 mr-2">
-                {idx < currentStepIdx ? (
+                {taskStatus[step.key] ? (
                   <CheckCircleIcon className="h-6 w-6 text-green-600" aria-hidden="true" />
                 ) : (
                   <Checkbox checked={false} className="cursor-default ml-0.5 mt-1 h-5 w-5 rounded-lg" />
                 )}
               </div>
               {step.title}
-              {idx === currentStepIdx && (
+              {!taskStatus[step.key] && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="h-6 px-2 ml-2"
-                  onClick={() => setStep(onboardingSteps[idx + 1]?.key)}
+                  onClick={() => {
+                    setTaskStatus(prev => ({ ...prev, [step.key]: true }));
+                    setStep(onboardingSteps[idx + 1]?.key);
+                  }}
                 >
                   Skip
                 </Button>
@@ -121,18 +143,36 @@ const WelcomeSuccessPage = () => {
                 />
                 <div className="gap-x-4 mt-2 flex">
                   <Link href="/search">
-                    <Button size="lg" type="button" variant="default">
+                    <Button 
+                      size="lg" 
+                      type="button" 
+                      variant="default"
+                      onClick={() => setTaskStatus(prev => ({ ...prev, [OnboardingStep.setup_keyword_alert]: true }))}
+                    >
                       <MagnifyingGlassIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Setup keyword alerts
                     </Button>
                   </Link>
                   <Link href="/channels">
-                    <Button size="lg" type="button" variant="outline">
+                    <Button 
+                      size="lg" 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => setTaskStatus(prev => ({ ...prev, [OnboardingStep.pin_channels]: true }))}
+                    >
                       <RectangleGroupIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Pin channels
                     </Button>
                   </Link>
-                  <Button onClick={() => onStartCasting()} type="button" variant="outline" size="lg">
+                  <Button 
+                    onClick={() => {
+                      onStartCasting();
+                      setTaskStatus(prev => ({ ...prev, [OnboardingStep.schedule_cast]: true }));
+                    }} 
+                    type="button" 
+                    variant="outline" 
+                    size="lg"
+                  >
                     <PencilSquareIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                     Schedule casts
                   </Button>
