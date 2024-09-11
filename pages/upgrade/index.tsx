@@ -49,14 +49,14 @@ const plans = [
     price: { Monthly: '$15', Annually: '$10' },
     description: 'Perfect to create and engage more.',
     button: {
-      Monthly: {
-        label: 'Subscribe',
-        href: 'https://buy.stripe.com/14k182fsSgCl7Ze3cj',
-      },
-      Annually: {
-        label: 'Subscribe',
-        href: 'https://buy.stripe.com/5kA9Ey4OeadX93i6ow',
-      },
+      // Monthly: {
+      //   label: 'Subscribe',
+      //   href: 'https://buy.stripe.com/14k182fsSgCl7Ze3cj',
+      // },
+      // Annually: {
+      //   label: 'Subscribe',
+      //   href: 'https://buy.stripe.com/5kA9Ey4OeadX93i6ow',
+      // },
       Hypersub: {
         label: 'Upgrade on Hypersub',
         href: 'https://www.hypersub.xyz/s/herocast-creator-uqc1n4kn9fy8',
@@ -79,14 +79,14 @@ const plans = [
     price: { Monthly: '$50', Annually: '$35' },
     description: 'Ideal to grow and manage a brand.',
     button: {
-      Monthly: {
-        label: 'Subscribe',
-        href: 'https://buy.stripe.com/bIYdUO1C21HrgvK28e',
-      },
-      Annually: {
-        label: 'Subscribe',
-        href: 'https://buy.stripe.com/5kA6smgwW1Hr93i147',
-      },
+      // Monthly: {
+      //   label: 'Subscribe',
+      //   href: 'https://buy.stripe.com/bIYdUO1C21HrgvK28e',
+      // },
+      // Annually: {
+      //   label: 'Subscribe',
+      //   href: 'https://buy.stripe.com/5kA6smgwW1Hr93i147',
+      // },
       Hypersub: {
         label: 'Upgrade on Hypersub',
         href: 'https://www.hypersub.xyz/s/herocast-brand-13u1gwop7v9c0',
@@ -168,17 +168,18 @@ function Plan({
   const isPayingUser = isPaidUser();
   const isPaidPlan = price.Monthly !== '$0';
 
-  const renderStripeButton = () => (
-    <Link href={button[activePeriod].href} prefetch={false} className="w-full mx-auto">
-      <Button
-        className="w-full"
-        disabled={!isPayingUser && !isPaidPlan}
-        aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
-      >
-        {!isPayingUser && isPaidPlan ? button[activePeriod].label : 'Your plan'}
-      </Button>
-    </Link>
-  );
+  const renderStripeButton = () =>
+    button[activePeriod]?.href && (
+      <Link href={button[activePeriod].href} prefetch={false} className="w-full mx-auto">
+        <Button
+          className="w-full"
+          disabled={!isPayingUser && !isPaidPlan}
+          aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
+        >
+          {!isPayingUser && isPaidPlan ? button[activePeriod].label : 'Your plan'}
+        </Button>
+      </Link>
+    );
 
   const renderHypersubButton = () => {
     return (
@@ -374,7 +375,7 @@ export default function UpgradePage() {
     <div className="m-6 flex min-h-full flex-1 flex-col px-6 py-8 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <h2 className="text-center text-3xl font-bold leading-9 tracking-tight text-foreground">Congratulations!</h2>
-        <p className="mt-2 text-center text-lg text-muted-foreground">Your herocast Pro subscription is now active.</p>
+        <p className="mt-2 text-center text-lg text-muted-foreground">Your herocast subscription is now active.</p>
       </div>
       <div className="mt-4 lg:max-w-lg mx-auto">
         <Card className="min-w-max bg-background text-foreground">
