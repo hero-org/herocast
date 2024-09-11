@@ -101,9 +101,22 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   }, [isHydrated]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const handleStorageChange = () => {
+      if (typeof window !== 'undefined' && localStorage) {
+        setHasFinishedOnboarding(localStorage.getItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) === 'true');
+      }
+    };
+
+    if (typeof window !== 'undefined' && localStorage) {
       setHasFinishedOnboarding(localStorage.getItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) === 'true');
+      window.addEventListener('storage', handleStorageChange);
     }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handleStorageChange);
+      }
+    };
   }, []);
 
   const getFeedTitle = () => {
@@ -340,6 +353,22 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         <Link href="/login?signupOnly=true" passHref>
           <Button size="sm" className="w-full">
             Connect email
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+
+  const renderFinishOnboardingCard = () => (
+    <Card>
+      <CardHeader className="p-2 pt-0 md:p-4">
+        <CardTitle>Finish your herocast setup</CardTitle>
+        <CardDescription>Complete the onboarding to enjoy the full herocast experience. </CardDescription>
+      </CardHeader>
+      <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
+        <Link href="/welcome/success" passHref>
+          <Button size="sm" className="w-full">
+            Let&apos;s go
           </Button>
         </Link>
       </CardContent>
