@@ -487,7 +487,7 @@ export const CastRow = ({
       <div
         className={cn(
           cast.embeds?.length > 1 && !embedsContainsCastEmbed && 'grid lg:grid-cols-2 gap-4',
-          'max-w-lg self-start space-y-2'
+          'max-w-lg self-start'
         )}
         onClick={(e) => e.preventDefault()}
       >

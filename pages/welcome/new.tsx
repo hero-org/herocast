@@ -70,7 +70,7 @@ const CreateAccountPage = () => {
             <CardFooter>
               <Button className="w-full" variant="default" onClick={onCreateNewAccount}>
                 <UserPlusIcon className="mr-1.5 h-5 w-5" aria-hidden="true" />
-                {isLoading ? 'Creating account...' : 'Get Started'}
+                {isLoading ? 'Loading...' : 'Get Started'}
               </Button>
             </CardFooter>
           </Card>
