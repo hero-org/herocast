@@ -82,7 +82,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     (state) =>
       state.accounts.length === 1 && state.accounts[0].platform === AccountPlatformType.farcaster_local_readonly
   );
-  const hasFinishedOnboarding = localStorage && localStorage.getItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) === 'true';
+  const [hasFinishedOnboarding, setHasFinishedOnboarding] = useState(false);
   const loadingMessages = [
     'Preparing your Farcaster experience',
     'Loading herocast',
@@ -99,6 +99,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       return () => clearInterval(interval);
     }
   }, [isHydrated]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setHasFinishedOnboarding(localStorage.getItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY) === 'true');
+    }
+  }, []);
 
   const getFeedTitle = () => {
     if (selectedList) {
