@@ -101,20 +101,23 @@ const WelcomeSuccessPage = () => {
     if (hasSavedSearches) {
       setTaskStatus((prev) => ({ ...prev, [OnboardingStep.setup_keyword_alert]: true }));
     }
-  });
+  }, [hasSavedSearches]);
 
   const progressPercent = (Object.values(taskStatus).filter(Boolean).length / (onboardingSteps.length - 1)) * 100;
 
-  const checkOnboardingCompletion = useCallback(() => {
+  useEffect(() => {
     const isCompleted = Object.values(taskStatus).every(Boolean);
     if (isCompleted) {
       localStorage.setItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY, 'true');
+      // dispatch event to notify all open tabs (including the one setting it)
+      const event = new StorageEvent('storage', {
+        key: LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY,
+        oldValue: undefined,
+        newValue: 'true',
+      });
+      window.dispatchEvent(event);
     }
   }, [taskStatus]);
-
-  useEffect(() => {
-    checkOnboardingCompletion();
-  }, [taskStatus, checkOnboardingCompletion]);
 
   const renderOnboardingSteps = () => {
     return onboardingSteps
@@ -139,7 +142,6 @@ const WelcomeSuccessPage = () => {
                   onClick={() => {
                     setTaskStatus((prev) => {
                       const newStatus = { ...prev, [step.key]: true };
-                      checkOnboardingCompletion();
                       return newStatus;
                     });
                     setStep(onboardingSteps[idx + 1]?.key);
@@ -157,7 +159,7 @@ const WelcomeSuccessPage = () => {
   return (
     <div className="w-full flex flex-col mt-24 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
-        <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast</h2>
+        <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast ✨</h2>
         <div className="max-w-xl mx-auto">
           <Card className="min-w-max bg-background text-foreground">
             <CardContent className="p-4">
@@ -174,35 +176,13 @@ const WelcomeSuccessPage = () => {
                 />
                 <div className="gap-x-4 mt-2 flex">
                   <Link href="/search">
-                    <Button
-                      size="lg"
-                      type="button"
-                      variant="default"
-                      onClick={() => {
-                        setTaskStatus((prev) => {
-                          const newStatus = { ...prev, [OnboardingStep.setup_keyword_alert]: true };
-                          checkOnboardingCompletion();
-                          return newStatus;
-                        });
-                      }}
-                    >
+                    <Button size="lg" type="button" variant="default">
                       <MagnifyingGlassIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Setup keyword alerts
                     </Button>
                   </Link>
                   <Link href="/channels">
-                    <Button
-                      size="lg"
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setTaskStatus((prev) => {
-                          const newStatus = { ...prev, [OnboardingStep.pin_channels]: true };
-                          checkOnboardingCompletion();
-                          return newStatus;
-                        });
-                      }}
-                    >
+                    <Button size="lg" type="button" variant="outline">
                       <RectangleGroupIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Pin channels
                     </Button>
@@ -210,11 +190,6 @@ const WelcomeSuccessPage = () => {
                   <Button
                     onClick={() => {
                       onStartCasting();
-                      setTaskStatus((prev) => {
-                        const newStatus = { ...prev, [OnboardingStep.schedule_cast]: true };
-                        checkOnboardingCompletion();
-                        return newStatus;
-                      });
                     }}
                     type="button"
                     variant="outline"
