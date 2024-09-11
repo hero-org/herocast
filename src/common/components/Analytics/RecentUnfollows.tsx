@@ -28,25 +28,25 @@ const RecentUnfollows = ({ fid, unfollows }: RecentUnfollowsProps) => {
     const getData = async () => {
       setIsLoading(true);
       try {
-        setRecentUnfollows(
-          unfollows
-            .map((unfollow) => unfollow.target_fid) // Extract target_fid from each UnfollowData object
-            .filter((fid) => fid !== undefined) // Filter out undefined values
-            .slice(0, RECENT_UNFOLLOWERS_LIMIT) // Limit the array to RECENT_UNFOLLOWERS_LIMIT
-        );
-        unfollows.forEach((fid) =>
+        const validUnfollows = unfollows
+          .filter((unfollow) => unfollow.target_fid !== undefined)
+          .slice(0, RECENT_UNFOLLOWERS_LIMIT);
+
+        setRecentUnfollows(validUnfollows);
+
+        validUnfollows.forEach((unfollow) =>
           getProfileFetchIfNeeded({
-            fid: fid?.toString(),
+            fid: unfollow.target_fid.toString(),
             viewerFid: viewerFid.toString(),
           })
         );
       } catch (e) {
-        console.error(e);
+        console.error('Error fetching recent unfollows:', e);
       } finally {
         setIsLoading(false);
       }
     };
-    if (fid) {
+    if (fid && unfollows.length > 0) {
       getData();
     }
   }, [fid, unfollows]);
@@ -61,7 +61,7 @@ const RecentUnfollows = ({ fid, unfollows }: RecentUnfollowsProps) => {
       <CardContent className="items-start grid gap-8 grid-cols-2 grid-flow-row">
         {isLoading && <Loading />}
         {profiles.map((profile) => (
-          <div key={`top-follower-${profile.fid}`} className="flex items-center">
+          <div key={`recent-unfollower-${profile.fid}`} className="flex items-center">
             <Link href={`/profile/${profile?.username}`} prefetch={false} className="w-full text-left">
               <ProfileInfoContent profile={profile} hideBio />
             </Link>

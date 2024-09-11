@@ -83,7 +83,7 @@ export function getRecentUnfollows(fid: number, limit: number = 50) {
         SELECT 
           target_fid, 
           deleted_at 
-        FROM 
+        FROM
           links 
         WHERE 
           fid = ${fid}
