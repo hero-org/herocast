@@ -17,6 +17,8 @@ import findIndex from 'lodash.findindex';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DraftStatus } from '@/common/constants/farcaster';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useListStore } from '@/stores/useListStore';
 
 enum OnboardingStep {
   login_to_herocast = 'login_to_herocast',
@@ -76,9 +78,11 @@ const WelcomeSuccessPage = () => {
     router.push('/post');
   };
 
+  const hasPinnedChannels = useAccountStore((state) => state.accounts.some((account) => account.channels.length > 0));
   const hasScheduledCasts =
     drafts.filter((draft) => draft.status === DraftStatus.scheduled || draft.status === DraftStatus.published).length >
     0;
+  const hasSavedSearches = useListStore((state) => state.lists.length > 0);
 
   useEffect(() => {
     if (hasScheduledCasts) {
@@ -86,7 +90,18 @@ const WelcomeSuccessPage = () => {
     }
   }, [hasScheduledCasts]);
 
-  const currentStepIdx = findIndex(onboardingSteps, (item) => item.key === step);
+  useEffect(() => {
+    if (hasPinnedChannels) {
+      setTaskStatus((prev) => ({ ...prev, [OnboardingStep.pin_channels]: true }));
+    }
+  }, [hasPinnedChannels]);
+
+  useEffect(() => {
+    if (hasSavedSearches) {
+      setTaskStatus((prev) => ({ ...prev, [OnboardingStep.setup_keyword_alert]: true }));
+    }
+  });
+
   const progressPercent = (Object.values(taskStatus).filter(Boolean).length / (onboardingSteps.length - 1)) * 100;
 
   const renderOnboardingSteps = () => {
