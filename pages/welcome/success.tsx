@@ -104,9 +104,9 @@ const WelcomeSuccessPage = () => {
   }, [hasSavedSearches]);
 
   const progressPercent = (Object.values(taskStatus).filter(Boolean).length / (onboardingSteps.length - 1)) * 100;
+  const isCompleted = Object.values(taskStatus).every(Boolean);
 
   useEffect(() => {
-    const isCompleted = Object.values(taskStatus).every(Boolean);
     if (isCompleted) {
       localStorage.setItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY, 'true');
       // dispatch event to notify all open tabs (including the one setting it)
@@ -117,7 +117,7 @@ const WelcomeSuccessPage = () => {
       });
       window.dispatchEvent(event);
     }
-  }, [taskStatus]);
+  }, [isCompleted]);
 
   const renderOnboardingSteps = () => {
     return onboardingSteps
@@ -156,6 +156,37 @@ const WelcomeSuccessPage = () => {
       });
   };
 
+  const renderGloPromoCard = () => {
+    return (
+      <Card className="min-w-max bg-background text-foreground">
+        <CardHeader className="pb-0">
+          <CardTitle className="text-lg font-semibold">
+            <img
+              src="https://github.com/hero-org/.github/blob/main/assets/IMAGE%202024-06-13%2013:12:57.jpg?raw=true"
+              className="h-10 -ml-1"
+            />
+            Get 2 USDGLO
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <CardDescription className="text-lg text-card-foreground">
+            Setup a saved search and schedule a cast with herocast to get 2 USDGLO. <br />
+            Glo Dollar is a fiat-backed stablecoin that funds public goods.
+            <br />
+            <a
+              href="https://www.glodollar.org/articles/how-glo-dollar-works"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:underline"
+            >
+              Learn more →
+            </a>
+          </CardDescription>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="w-full flex flex-col mt-24 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
@@ -166,7 +197,9 @@ const WelcomeSuccessPage = () => {
               <div className="flex flex-col gap-y-4 text-left">
                 <div>
                   <span className="text-md font-semibold">
-                    Complete these tasks to get the full herocast experience
+                    {isCompleted
+                      ? 'Enjoy the full herocast experience'
+                      : 'Complete these tasks to get the full herocast experience'}
                   </span>
                 </div>
                 <div className="space-y-4 py-4 block">{renderOnboardingSteps()}</div>
@@ -199,6 +232,7 @@ const WelcomeSuccessPage = () => {
                     Schedule casts
                   </Button>
                 </div>
+                {renderGloPromoCard()}
               </div>
             </CardContent>
           </Card>
