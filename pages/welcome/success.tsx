@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DraftStatus } from '@/common/constants/farcaster';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
+import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
 
 enum OnboardingStep {
   login_to_herocast = 'login_to_herocast',
@@ -107,7 +108,7 @@ const WelcomeSuccessPage = () => {
   const checkOnboardingCompletion = useCallback(() => {
     const isCompleted = Object.values(taskStatus).every(Boolean);
     if (isCompleted) {
-      localStorage.setItem('onboardingCompleted', 'true');
+      localStorage.setItem(LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY, 'true');
     }
   }, [taskStatus]);
 
