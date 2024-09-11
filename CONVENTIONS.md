@@ -1,49 +1,51 @@
+# Coding Conventions
+
 ## Introduction
 
-This document contains the conventions that should be followed when writing code for the project.
-We don't want to be too strict, but we want to have a common ground to make the code more readable and maintainable.
-We don't claim that all the rules are perfect or 100% already followed, but this is the direction we want to go.
+This document outlines the coding conventions for our project. While we aim to maintain flexibility, these guidelines promote code readability, maintainability, and consistency across the project.
 
-inspired by: https://gist.github.com/wojteklu/73c6914cc446146b8b533c0988cf8d29
+Inspired by: [Wojtek Lukaszuk's Clean Code cheatsheet](https://gist.github.com/wojteklu/73c6914cc446146b8b533c0988cf8d29)
 
-## General
+## General Principles
 
-Keep it simple stupid. Simpler is always better. Reduce complexity as much as possible.
-Boy scout rule. Leave the campground cleaner than you found it.
-Always find root cause. Always look for the root cause of a problem.
+1. **Simplicity**: Keep it simple. Reduce complexity wherever possible.
+2. **Boy Scout Rule**: Always leave the code cleaner than you found it.
+3. **Root Cause Analysis**: Always seek to understand and address the root cause of a problem.
 
-## Understandability
+## Code Understandability
 
-Be consistent. If you do something a certain way, do all similar things in the same way.
-Use explanatory variables.
-Encapsulate boundary conditions. Boundary conditions are hard to keep track of. Put the processing for them in one place.
-Prefer dedicated value objects to primitive type.
-Avoid logical dependency. Don't write methods which works correctly depending on something else in the same class.
-Avoid negative conditionals.
+1. **Consistency**: Maintain consistent coding patterns throughout the project.
+2. **Descriptive Variables**: Use clear, self-explanatory variable names.
+3. **Boundary Conditions**: Encapsulate and clearly define boundary conditions.
+4. **Value Objects**: Prefer dedicated value objects over primitive types when appropriate.
+5. **Independence**: Avoid logical dependencies between methods within the same class.
+6. **Positive Conditionals**: Favor positive conditionals over negative ones for clarity.
 
-## Names rules
+## Naming Conventions
 
-Choose descriptive and unambiguous names.
-Make meaningful distinction.
-Use pronounceable names.
-Use searchable names.
-Replace magic numbers with named constants.
-Avoid encodings. Don't append prefixes or type information.
+1. **Clarity**: Choose descriptive and unambiguous names.
+2. **Distinction**: Ensure names are meaningfully distinct.
+3. **Pronunciation**: Use easily pronounceable names.
+4. **Searchability**: Opt for names that are easy to search for.
+5. **Constants**: Replace magic numbers with named constants.
+6. **No Encodings**: Avoid prefixes or type information in names.
 
-## Functions rules
+## Function Guidelines
 
-Small.
-Do one thing.
-Use descriptive names.
-Prefer fewer arguments.
-Have no side effects.
-Don't use flag arguments. Split method into several independent methods that can be called from the client without the flag.
+1. **Size**: Keep functions small and focused.
+2. **Single Responsibility**: Each function should do one thing well.
+3. **Naming**: Use descriptive names that explain the function's purpose.
+4. **Arguments**: Minimize the number of arguments.
+5. **Side Effects**: Avoid side effects in functions.
+6. **Flag Arguments**: Instead of using flag arguments, split into separate methods.
 
-## Code smells
+## Code Smells to Avoid
 
-Rigidity. The software is difficult to change. A small change causes a cascade of subsequent changes.
-Fragility. The software breaks in many places due to a single change.
-Immobility. You cannot reuse parts of the code in other projects because of involved risks and high effort.
-Needless Complexity.
-Needless Repetition.
-Opacity. The code is hard to understand.
+1. **Rigidity**: Code that's difficult to change.
+2. **Fragility**: Software that breaks in multiple places due to a single change.
+3. **Immobility**: Code that's hard to reuse in other projects.
+4. **Needless Complexity**: Overengineering simple solutions.
+5. **Needless Repetition**: Duplicated code or logic.
+6. **Opacity**: Code that's hard to understand or reason about.
+
+Remember, these conventions are guidelines to improve our codebase. They should be applied judiciously, always keeping in mind the context and specific needs of each part of the project.

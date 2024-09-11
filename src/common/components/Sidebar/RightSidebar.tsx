@@ -48,7 +48,7 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
 
     return (
       <>
-        <div className="pt-16 mx-4">
+        <div className="mt-16 mx-4">
           <ProfileInfo
             fid={selectedCast.author.fid}
             viewerFid={Number(selectedAccount.platformAccountId)}

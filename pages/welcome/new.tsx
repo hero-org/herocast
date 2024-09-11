@@ -58,7 +58,7 @@ const CreateAccountPage = () => {
   return (
     <div className="w-full flex flex-col mt-24 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
-        <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast</h2>
+        <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast ✨</h2>
         <p className="text-lg text-muted-foreground">Build, engage and grow on Farcaster. Faster.</p>
         <div className="lg:max-w-lg mx-auto">
           <Card>
@@ -70,7 +70,7 @@ const CreateAccountPage = () => {
             <CardFooter>
               <Button className="w-full" variant="default" onClick={onCreateNewAccount}>
                 <UserPlusIcon className="mr-1.5 h-5 w-5" aria-hidden="true" />
-                {isLoading ? 'Creating account...' : 'Get Started'}
+                {isLoading ? 'Loading...' : 'Get Started'}
               </Button>
             </CardFooter>
           </Card>

@@ -18,7 +18,7 @@ import { creationMods } from '@mod-protocol/mod-registry';
 import { renderers } from '@mod-protocol/react-ui-shadcn/dist/renderers';
 import map from 'lodash.map';
 import { renderEmbedForUrl } from '../Embeds';
-import { PhotoIcon } from '@heroicons/react/20/solid';
+import { CalendarDaysIcon, PhotoIcon } from '@heroicons/react/20/solid';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { ChannelList } from '../ChannelList';
@@ -91,6 +91,13 @@ export default function NewPostEntry({
 
   const hasEmbeds = draft?.embeds && !!draft.embeds.length;
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
+  const hasMultipleActiveAccounts =
+    useAccountStore(
+      (state) =>
+        state.accounts.filter((account) => {
+          return account.status === 'active';
+        }).length
+    ) > 1;
   const { allChannels } = useAccountStore();
   const isReply = draft?.parentCastId !== undefined;
 
@@ -281,7 +288,7 @@ export default function NewPostEntry({
   const getButtonText = () => {
     if (isPublishing) return scheduleDateTime ? 'Scheduling...' : 'Publishing...';
 
-    return `${scheduleDateTime ? 'Schedule' : 'Cast'}${account ? ` as ${account.name}` : ''}`;
+    return `${scheduleDateTime ? 'Schedule' : 'Cast'}${account && hasMultipleActiveAccounts ? ` as ${account.name}` : ''}`;
   };
 
   const scheduledCastCount =
@@ -362,21 +369,36 @@ export default function NewPostEntry({
             </PopoverContent>
           </Popover>
           {textLengthWarning && <div className={cn('my-2 ml-2 text-sm', textLengthTailwind)}>{textLengthWarning}</div>}
-          <div className="grow"></div>
           {onRemove && (
             <Button className="h-9" variant="outline" type="button" onClick={onRemove} disabled={isPublishing}>
               Remove
             </Button>
           )}
-          {!hideSchedule && (
-            <DateTimePicker
-              granularity="minute"
-              hourCycle={24}
-              jsDate={scheduleDateTime}
-              onJsDateChange={setScheduleDateTime}
-              showClearButton
-            />
-          )}
+          {!hideSchedule &&
+            (scheduleDateTime ? (
+              <DateTimePicker
+                granularity="minute"
+                hourCycle={24}
+                jsDate={scheduleDateTime}
+                onJsDateChange={setScheduleDateTime}
+                showClearButton
+              />
+            ) : (
+              <Button
+                className="h-9"
+                type="button"
+                variant="outline"
+                disabled={isPublishing}
+                onClick={() => {
+                  const date = new Date();
+                  date.setDate(date.getDate() + 1);
+                  setScheduleDateTime(date);
+                }}
+              >
+                <CalendarDaysIcon className="mr-1 w-5 h-5" />
+                Schedule
+              </Button>
+            ))}
         </div>
         <div className="flex flex-row pt-2 justify-between">
           <div>
