@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   CheckCircleIcon,
   MagnifyingGlassIcon,
@@ -104,6 +104,17 @@ const WelcomeSuccessPage = () => {
 
   const progressPercent = (Object.values(taskStatus).filter(Boolean).length / (onboardingSteps.length - 1)) * 100;
 
+  const checkOnboardingCompletion = useCallback(() => {
+    const isCompleted = Object.values(taskStatus).every(Boolean);
+    if (isCompleted) {
+      localStorage.setItem('onboardingCompleted', 'true');
+    }
+  }, [taskStatus]);
+
+  useEffect(() => {
+    checkOnboardingCompletion();
+  }, [taskStatus, checkOnboardingCompletion]);
+
   const renderOnboardingSteps = () => {
     return onboardingSteps
       .filter((step) => !step?.hide)
@@ -125,7 +136,11 @@ const WelcomeSuccessPage = () => {
                   size="sm"
                   className="h-6 px-2 ml-2"
                   onClick={() => {
-                    setTaskStatus((prev) => ({ ...prev, [step.key]: true }));
+                    setTaskStatus((prev) => {
+                      const newStatus = { ...prev, [step.key]: true };
+                      checkOnboardingCompletion();
+                      return newStatus;
+                    });
                     setStep(onboardingSteps[idx + 1]?.key);
                   }}
                 >
@@ -162,7 +177,13 @@ const WelcomeSuccessPage = () => {
                       size="lg"
                       type="button"
                       variant="default"
-                      onClick={() => setTaskStatus((prev) => ({ ...prev, [OnboardingStep.setup_keyword_alert]: true }))}
+                      onClick={() => {
+                        setTaskStatus((prev) => {
+                          const newStatus = { ...prev, [OnboardingStep.setup_keyword_alert]: true };
+                          checkOnboardingCompletion();
+                          return newStatus;
+                        });
+                      }}
                     >
                       <MagnifyingGlassIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Setup keyword alerts
@@ -173,7 +194,13 @@ const WelcomeSuccessPage = () => {
                       size="lg"
                       type="button"
                       variant="outline"
-                      onClick={() => setTaskStatus((prev) => ({ ...prev, [OnboardingStep.pin_channels]: true }))}
+                      onClick={() => {
+                        setTaskStatus((prev) => {
+                          const newStatus = { ...prev, [OnboardingStep.pin_channels]: true };
+                          checkOnboardingCompletion();
+                          return newStatus;
+                        });
+                      }}
                     >
                       <RectangleGroupIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Pin channels
@@ -182,7 +209,11 @@ const WelcomeSuccessPage = () => {
                   <Button
                     onClick={() => {
                       onStartCasting();
-                      setTaskStatus((prev) => ({ ...prev, [OnboardingStep.schedule_cast]: true }));
+                      setTaskStatus((prev) => {
+                        const newStatus = { ...prev, [OnboardingStep.schedule_cast]: true };
+                        checkOnboardingCompletion();
+                        return newStatus;
+                      });
                     }}
                     type="button"
                     variant="outline"
