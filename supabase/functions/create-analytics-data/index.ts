@@ -7,7 +7,12 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from '@supabase/supabase-js';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 import { Database } from '../_shared/db.ts';
-import { buildAnalyticsQuery, formatResponseSection, getTopCasts } from '../_shared/queryHelpers.ts';
+import {
+  buildAnalyticsQuery,
+  formatResponseSection,
+  getRecentUnfollows,
+  getTopCasts,
+} from '../_shared/queryHelpers.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { Kysely, PostgresAdapter, PostgresDialect, PostgresIntrospector, PostgresQueryCompiler, sql } from 'kysely';
 // import { Client } from "postgres";
@@ -119,11 +124,15 @@ Deno.serve(async (req) => {
       const topCastsQuery = getTopCasts(fid);
       const topCasts = (await topCastsQuery.execute(db))?.rows;
 
+      const unfollowsQuery = getRecentUnfollows(fid);
+      const unfollows = (await unfollowsQuery.execute(db))?.rows;
+
       const res = {
         follows: formatResponseSection(links),
         reactions: formatResponseSection(reactions),
         casts: formatResponseSection(casts),
         topCasts: topCasts,
+        unfollows: unfollows,
       };
 
       const { error: upsertError } = await supabaseClient.from('analytics').upsert(

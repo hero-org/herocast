@@ -18,6 +18,11 @@ export type CastData = {
   recast_count: string;
 };
 
+export type UnfollowData = {
+  target_fid: number;
+  deleted_at: string;
+};
+
 export type CombinedActivityData = {
   overview: OverviewAnalytics;
   aggregated: AggregatedAnalytics[];
@@ -31,6 +36,7 @@ export type AnalyticsData = {
   reactions: CombinedActivityData;
   casts: CombinedActivityData;
   topCasts: CastData[];
+  unfollows: UnfollowData[];
 };
 
 export type AnalyticsKey = 'follows' | 'casts' | 'reactions';
