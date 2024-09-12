@@ -2,6 +2,9 @@ import { AggregatedAnalytics } from '../types/types';
 import { UTCDate } from '@date-fns/utc';
 
 export const fillMissingDaysBetweenDates = (data: AggregatedAnalytics[], startDate: Date, endDate: Date) => {
+  if (!data || data.length === 0) {
+    return [];
+  }
   const filledData: AggregatedAnalytics[] = [];
   const currentDate = new UTCDate(startDate);
   const utcEndDate = new UTCDate(endDate);

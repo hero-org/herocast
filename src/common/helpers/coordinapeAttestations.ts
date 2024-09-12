@@ -67,7 +67,7 @@ const fetchAttestations = async (addresses: string[]): Promise<RawAttestationDat
 
 export async function getCoordinapeInfoForAddresses(addressesString: string): Promise<CoordinapeAttestation[]> {
   if (!addressesString || !addressesString.length) {
-    return [];
+    return {};
   }
 
   const addresses = addressesString.split(',');

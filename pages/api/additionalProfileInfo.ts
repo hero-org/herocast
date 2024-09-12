@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const [airstackSocialInfo, icebreakerSocialInfo, coordinapeAttestations] = await Promise.all([
       getAirstackSocialInfoForFid(fid),
       getIcebreakerSocialInfoForFid(fid),
-      addresses ? getCoordinapeInfoForAddresses(addresses.toString()) : {},
+      addresses ? getCoordinapeInfoForAddresses(addresses.toString()) : [],
     ]);
     res.status(200).json({ airstackSocialInfo, icebreakerSocialInfo, coordinapeAttestations });
   } catch (error) {

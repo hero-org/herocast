@@ -10,16 +10,15 @@ import { UnfollowData } from '@/common/types/types';
 
 const RECENT_UNFOLLOWERS_LIMIT = 12;
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+
 type RecentUnfollowsProps = {
   fid: number;
   unfollows: UnfollowData[];
 };
 
 const RecentUnfollows = ({ fid, unfollows }: RecentUnfollowsProps) => {
-  const [recentUnfollows, setRecentUnfollows] = useState<UnfollowData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const dataStore = useDataStore.getState();
-
   const viewerFid = Number(
     useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId) || APP_FID
   );
@@ -28,13 +27,11 @@ const RecentUnfollows = ({ fid, unfollows }: RecentUnfollowsProps) => {
     const getData = async () => {
       setIsLoading(true);
       try {
-        const validUnfollows = unfollows
+        const recentUnfollows = unfollows
           .filter((unfollow) => unfollow.target_fid !== undefined)
           .slice(0, RECENT_UNFOLLOWERS_LIMIT);
 
-        setRecentUnfollows(validUnfollows);
-
-        validUnfollows.forEach((unfollow) =>
+        recentUnfollows.forEach((unfollow) =>
           getProfileFetchIfNeeded({
             fid: unfollow.target_fid.toString(),
             viewerFid: viewerFid.toString(),
@@ -51,10 +48,10 @@ const RecentUnfollows = ({ fid, unfollows }: RecentUnfollowsProps) => {
     }
   }, [fid, unfollows]);
 
-  const profiles = useMemo(() => {
-    const unfollowsProfiles = recentUnfollows.map((fid) => getProfile(dataStore, undefined, fid.toString()));
-    return unfollowsProfiles.filter((unfollowProfile) => unfollowProfile !== undefined);
-  }, [dataStore, recentUnfollows]);
+  const profiles = useMemo(
+    () => unfollows.map((unfollow) => getProfile(dataStore, undefined, unfollow.target_fid.toString())).filter(Boolean),
+    [dataStore, unfollows]
+  );
 
   return (
     <Card className="h-fit py-8 px-4">

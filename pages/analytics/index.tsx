@@ -261,7 +261,7 @@ export default function AnalyticsPage() {
             <TabsList>
               <TabsTrigger value="default">Top Casts</TabsTrigger>
               <TabsTrigger value="followers">Top Followers (beta)</TabsTrigger>
-              <TabsTrigger value="unfollows">Unfollows (soon)</TabsTrigger>
+              <TabsTrigger value="unfollows">Recent Unfollows</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="default" className="max-w-2xl">
@@ -278,7 +278,7 @@ export default function AnalyticsPage() {
           </TabsContent>
           <TabsContent value="unfollows" className="max-w-2xl">
             <div className="my-4">
-              <h2 className="text-2xl font-bold">Unfollows</h2>
+              <h2 className="text-2xl font-bold">Recent Unfollows</h2>
             </div>
             {analyticsData.unfollows && <RecentUnfollows fid={fid} unfollows={analyticsData.unfollows} />}
           </TabsContent>

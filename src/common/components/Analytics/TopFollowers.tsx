@@ -10,6 +10,7 @@ import { Loading } from '../Loading';
 
 const TOP_FOLLOWERS_LIMIT = 12;
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+
 type TopFollowersProps = {
   fid: number;
 };
@@ -32,8 +33,9 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
           .fetchRelevantFollowers(fid, viewerFid)
           .then((response) => response.all_relevant_followers_dehydrated.map((follower) => follower.user?.fid));
 
-        setTopFollowerFids(fids.filter((fid) => fid !== undefined).slice(0, TOP_FOLLOWERS_LIMIT));
-        fids.forEach((fid) =>
+        const topFids = fids.filter((fid) => fid !== undefined).slice(0, TOP_FOLLOWERS_LIMIT);
+        setTopFollowerFids(topFids);
+        topFids.forEach((fid) =>
           getProfileFetchIfNeeded({
             fid: fid?.toString(),
             viewerFid: viewerFid.toString(),
@@ -50,10 +52,10 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
     }
   }, [fid]);
 
-  const profiles = useMemo(() => {
-    const followers = topFollowerFids.map((fid) => getProfile(dataStore, undefined, fid.toString()));
-    return followers.filter((follower) => follower !== undefined);
-  }, [dataStore, topFollowerFids]);
+  const profiles = useMemo(
+    () => topFollowerFids.map((fid) => getProfile(dataStore, undefined, fid.toString())).filter(Boolean),
+    [dataStore, topFollowerFids]
+  );
 
   return (
     <Card className="h-fit py-8 px-4">
