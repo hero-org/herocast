@@ -90,7 +90,7 @@ const Notifications = () => {
   const [parentCast, setParentCast] = useState<CastWithInteractions>();
   const { selectedCast, updateSelectedCast } = useDataStore();
   const [loadMoreCursor, setLoadMoreCursor] = useState<string>();
-  const [activeTab, setActiveTab] = useState<NotificationTab>(NotificationTab.all);
+  const [activeTab, setActiveTab] = useState<NotificationTab>(NotificationTab.replies);
   const [showReactionsLimit, setShowReactionsLimit] = useState<number>(DEFAULT_SHOW_REACTIONS_LIMIT);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
   const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
