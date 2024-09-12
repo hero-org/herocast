@@ -1,19 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  CheckCircleIcon,
-  MagnifyingGlassIcon,
-  NewspaperIcon,
-  PencilSquareIcon,
-  PlusCircleIcon,
-  RectangleGroupIcon,
-} from '@heroicons/react/20/solid';
+import React, { useState, useEffect } from 'react';
+import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/router';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { JoinedHerocastPostDraft } from '@/common/constants/postDrafts';
 import Link from 'next/link';
-import findIndex from 'lodash.findindex';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DraftStatus } from '@/common/constants/farcaster';
@@ -79,7 +71,8 @@ const WelcomeSuccessPage = () => {
     router.push('/post');
   };
 
-  const hasPinnedChannels = useAccountStore((state) => state.accounts.some((account) => account.channels.length > 0));
+  const accounts = useAccountStore((state) => state.accounts);
+  const hasPinnedChannels = accounts && accounts.some((account) => account?.channels.length > 0);
   const hasScheduledCasts =
     drafts.filter((draft) => draft.status === DraftStatus.scheduled || draft.status === DraftStatus.published).length >
     0;
