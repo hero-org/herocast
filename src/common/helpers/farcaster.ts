@@ -39,10 +39,10 @@ type PublishReactionParams = {
   reaction: {
     type: 'like' | 'recast';
     target:
-    | CastId
-    | {
-      url: string;
-    };
+      | CastId
+      | {
+          url: string;
+        };
   };
 };
 
@@ -52,10 +52,10 @@ type RemoveReactionParams = {
   reaction: {
     type: 'like' | 'recast';
     target:
-    | CastId
-    | {
-      url: string;
-    };
+      | CastId
+      | {
+          url: string;
+        };
   };
 };
 
@@ -444,4 +444,4 @@ export const getSignatureForUsernameProof = async (
   return signature;
 };
 
-export const updateBio = async () => { };
+export const updateBio = async () => {};
