@@ -13011,10 +13011,10 @@ react-native-webview@^11.26.0:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
 
-react-qr-code@^2.0.11:
-  version "2.0.14"
-  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.14.tgz#bdba0bb358731fc6de43f8581273444912ac3da1"
-  integrity sha512-xvAUqmXzFzf7X6aQAAKb6T02YYk9grBBFeqpp1MiVhUAKG3Rg9+hFiOKRYg4+rWc2MiXNxkri0ulAJgS12xh7Q==
+react-qr-code@^2.0.15:
+  version "2.0.15"
+  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.15.tgz#fbfc12952c504bcd64275647e9d1ea63251742ce"
+  integrity sha512-MkZcjEXqVKqXEIMVE0mbcGgDpkfSdd8zhuzXEl9QzYeNcw8Hq2oVIzDLWuZN2PQBwM5PWjc2S31K8Q1UbcFMfw==
   dependencies:
     prop-types "^15.8.1"
     qr.js "0.0.0"
