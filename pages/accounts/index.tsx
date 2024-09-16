@@ -319,7 +319,7 @@ export default function Accounts() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">Create a shared Farcaster account</CardTitle>
-                <CardDescription className="text-lg">
+                <CardDescription className="text-md leading-tight">
                   Follow these steps to create a shared Farcaster account. Shared accounts are powered by Hats Protocol
                   🧢.
                 </CardDescription>

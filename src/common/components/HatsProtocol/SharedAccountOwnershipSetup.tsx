@@ -72,26 +72,12 @@ export const SharedAccountOwnershipSetup = ({
           setDelegatorContractAddress={setDelegatorContractAddress}
         />
       </div>
-      <div className="mt-4 lg:w-1/2 lg:mt-0">
-        <div className="mx-0 max-w-2xl">
-          <h3 className="text-lg font-semibold tracking-tight text-foreground">How to get your Hats IDs</h3>
-          <p className="mt-2 text-md leading-8 text-foreground/70">
-            Go to the{' '}
-            <a href="https://app.hatsprotocol.xyz" className="underline" target="_blank" rel="noreferrer">
-              Hats app
-            </a>{' '}
-            and click on the tree you want to use. In the top right corner, you will see the tree ID and the Hats ID.
-            You will need to use the Hats ID for the admin role and for the caster role.
-          </p>
-        </div>
-        <WarpcastImage url="https://i.imgur.com/pgl0n75.gif" />
-      </div>
     </div>
   );
 
   const renderGoBack = () =>
     state !== OwnershipSetupSteps.unknown && (
-      <Button className="mt-8" variant="default" onClick={() => setState(OwnershipSetupSteps.unknown)}>
+      <Button className="mt-8" variant="outline" onClick={() => setState(OwnershipSetupSteps.unknown)}>
         Go back
       </Button>
     );

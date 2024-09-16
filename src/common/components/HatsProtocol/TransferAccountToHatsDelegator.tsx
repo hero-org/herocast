@@ -17,6 +17,8 @@ import SwitchWalletButton from '../SwitchWalletButton';
 import { Label } from '@/components/ui/label';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { optimism } from 'viem/chains';
+import includes from 'lodash.includes';
+import ClickToCopyText from '../ClickToCopyText';
 
 const readNonces = async (account: `0x${string}`) => {
   if (!account) return BigInt(0);
@@ -31,7 +33,7 @@ const readNonces = async (account: `0x${string}`) => {
 
 enum TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS {
   'CONNECT_WALLET',
-  'EXECUTE_PREPARE_TO_RECEIVE',
+  'PENDING_USER_SET_WARPCAST_RECOVERY_ADDRESS',
   'PENDING_PREPARE_TO_RECEIVE_CONFIRMATION',
   'GENERATE_SIGNATURE',
   'PENDING_SIGNATURE_CONFIRMATION',
@@ -56,9 +58,9 @@ const TransferAccountToHatsDelegatorSteps: TransferAccountToHatsDelegatorStepTyp
     idx: 0,
   },
   {
-    state: TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE,
-    title: 'Prepare to receive',
-    description: 'Prepare your Hats Protocol Delegator contract instance to receive the Farcaster account',
+    state: TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_USER_SET_WARPCAST_RECOVERY_ADDRESS,
+    title: 'Set your recovery address in Warpcast',
+    description: '',
     idx: 1,
   },
   {
@@ -122,6 +124,7 @@ const TransferAccountToHatsDelegator = ({
   const [deadline, setDeadline] = useState<bigint>(BigInt(0));
   const [nonce, setNonce] = useState<bigint>(BigInt(0));
   const [onchainTransactionHash, setOnchainTransactionHash] = useState<`0x${string}`>('0x');
+  const [isRecoveryAddressSet, setIsRecoveryAddressSet] = useState(false);
 
   const { signTypedDataAsync } = useSignTypedData();
   const fid = BigInt(user.fid);
@@ -141,6 +144,19 @@ const TransferAccountToHatsDelegator = ({
   const transactionResult = useWaitForTransactionReceipt({
     hash: onchainTransactionHash,
   });
+
+  const {
+    data: recoveryAddress,
+    error: recoveryAddressError,
+    status: recoveryAddressStatus,
+  } = useReadContract({
+    abi: idRegistryABI,
+    address: ID_REGISTRY_ADDRESS,
+    functionName: 'recoveryOf',
+    args: [fid],
+  });
+
+  console.log('recoveryAddress', recoveryAddress, recoveryAddressError, recoveryAddressStatus);
 
   const {
     data: isFidReceivable,
@@ -303,8 +319,8 @@ const TransferAccountToHatsDelegator = ({
     switch (step.state) {
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONNECT_WALLET:
         return 'Connect wallet';
-      case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE:
-        return 'Prepare for transfer';
+      case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_USER_SET_WARPCAST_RECOVERY_ADDRESS:
+        return isRecoveryAddressSet ? 'Next step' : 'Waiting...';
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE:
         return `Generate signature`;
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_PREPARE_TO_RECEIVE_CONFIRMATION:
@@ -332,8 +348,7 @@ const TransferAccountToHatsDelegator = ({
 
   const onClick = () => {
     switch (step.state) {
-      case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE:
-        onExecutePrepareToReceive();
+      case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_USER_SET_WARPCAST_RECOVERY_ADDRESS:
         break;
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE:
         if (!address) return;
@@ -353,7 +368,7 @@ const TransferAccountToHatsDelegator = ({
         break;
       case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR:
         setErrorMessage('');
-        setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE);
+        setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_USER_SET_WARPCAST_RECOVERY_ADDRESS);
         break;
       default:
         break;
@@ -362,30 +377,19 @@ const TransferAccountToHatsDelegator = ({
 
   const getCardContent = () => {
     switch (step.state) {
-      case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_PREPARE_TO_RECEIVE:
+      case TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_USER_SET_WARPCAST_RECOVERY_ADDRESS:
         return (
           <>
             <div className="flex flex-col">
-              <span>
-                Prepare delegator contract{' '}
-                <a
-                  className="underline"
-                  href={`https://optimistic.etherscan.io/address/${toAddress}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {toAddress}
-                </a>{' '}
-                to receive your Farcaster account.
+              Got to Warpcast and set the recovery address to your wallet address.
+              <br />
+              <br />
+              <span className="flex flex-col text-center">
+                {address}
+                <ClickToCopyText className="w-20" text={address!} size="sm" />
               </span>
-              <Button
-                className="mt-8 w-1/2"
-                variant="outline"
-                onClick={() => setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.GENERATE_SIGNATURE)}
-              >
-                Skip
-              </Button>
-              <Label className="mt-2">Skip if you already prepared the contract.</Label>
+              <br />
+              <p>recovery address is {recoveryAddress}</p>
             </div>
           </>
         );
@@ -450,7 +454,13 @@ const TransferAccountToHatsDelegator = ({
             )}
         </div>
       )}
-      {step.state !== TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONFIRMED && <SwitchWalletButton className="w-1/2" />}
+      {!includes(
+        [
+          TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_USER_SET_WARPCAST_RECOVERY_ADDRESS,
+          TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONFIRMED,
+        ],
+        step.state
+      ) && <SwitchWalletButton className="w-1/2" />}
       <Button
         className="w-1/2"
         variant="default"
@@ -458,6 +468,8 @@ const TransferAccountToHatsDelegator = ({
           !toAddress ||
           !address ||
           !fid ||
+          (step.state === TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_USER_SET_WARPCAST_RECOVERY_ADDRESS &&
+            !isRecoveryAddressSet) ||
           (step.state === TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.EXECUTE_ONCHAIN &&
             !connectedAddressOwnsFarcasterAccount) ||
           step.state === TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_SIGNATURE_CONFIRMATION ||
