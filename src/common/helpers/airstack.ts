@@ -5,6 +5,7 @@ init(process.env.NEXT_PUBLIC_AIRSTACK_API_KEY!);
 export type AirstackSocialInfo = {
   socialCapitalRank: number;
   userCreatedAt: number;
+  moxieEarnings: number;
 };
 
 export async function getAirstackSocialInfoForFid(fid: string): Promise<AirstackSocialInfo | null> {
@@ -27,6 +28,13 @@ export async function getAirstackSocialInfoForFid(fid: string): Promise<Airstack
             userCreatedAtBlockTimestamp
           }
         }
+        FarcasterMoxieEarningStats(
+          input: {timeframe: LIFETIME, blockchain: ALL, filter: {entityType: {_eq: USER}, entityId: {_eq: "${fid}"}}}
+        ) {
+          FarcasterMoxieEarningStat {
+            allEarningsAmount
+          }
+        }
       }`;
   try {
     const { data, error } = await fetchQuery(query);
@@ -35,13 +43,15 @@ export async function getAirstackSocialInfoForFid(fid: string): Promise<Airstack
       return null;
     }
     const socialInfo = data?.Socials?.Social?.[0];
-    if (!socialInfo) {
+    const moxieEarnings = data?.FarcasterMoxieEarningStats?.FarcasterMoxieEarningStat?.[0]?.allEarningsAmount;
+    if (!socialInfo && !moxieEarnings) {
       return null;
     }
 
     return {
       socialCapitalRank: socialInfo.socialCapital.socialCapitalRank,
       userCreatedAt: socialInfo.userCreatedAtBlockTimestamp,
+      moxieEarnings,
     };
   } catch (error) {
     console.error('Error fetching Airstack data:', error);
