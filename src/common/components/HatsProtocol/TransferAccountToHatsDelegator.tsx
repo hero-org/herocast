@@ -179,6 +179,14 @@ const TransferAccountToHatsDelegator = ({
     }
   }, [isFidReceivable, status, step]);
 
+  // when the recovery address is set to the address that the user is connected with,
+  // we can move to the next step
+  useEffect(() => {
+    if (recoveryAddress && address && recoveryAddress === address) {
+      setIsRecoveryAddressSet(true);
+    }
+  }, [recoveryAddress, address]);
+
   const setStepToKey = (key: TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS) => {
     const newStep = TransferAccountToHatsDelegatorSteps.find((step) => step.state === key);
     if (newStep) setStep(newStep);
@@ -216,25 +224,6 @@ const TransferAccountToHatsDelegator = ({
       setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.CONFIRMED);
     }
   }, [onchainTransactionHash, transactionResult]);
-
-  const onExecutePrepareToReceive = async () => {
-    try {
-      const tx = await writeContract(config, {
-        abi: HatsFarcasterDelegatorAbi,
-        address: toAddress,
-        functionName: 'prepareToReceive',
-        args: [fid],
-      });
-
-      const result = await waitForTransactionReceipt(config, { hash: tx });
-      setStep(TransferAccountToHatsDelegatorSteps[2]);
-      setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.PENDING_PREPARE_TO_RECEIVE_CONFIRMATION);
-    } catch (e) {
-      console.error('onExecutePrepareToReceive error', e);
-      setErrorMessage(e?.message || e);
-      setStepToKey(TRANSFER_ACCOUNT_TO_HATS_DELEGATOR_STEPS.ERROR);
-    }
-  };
 
   const getTransferTypeData = () => ({
     domain: ID_REGISTRY_EIP_712_DOMAIN,
@@ -381,10 +370,10 @@ const TransferAccountToHatsDelegator = ({
         return (
           <>
             <div className="flex flex-col">
-              Got to Warpcast and set the recovery address to your wallet address.
+              Got to Warpcast and set the recovery address to your connected wallet address.
               <br />
               <br />
-              <span className="flex flex-col text-center">
+              <span className="flex flex-col">
                 {address}
                 <ClickToCopyText className="w-20" text={address!} size="sm" />
               </span>
