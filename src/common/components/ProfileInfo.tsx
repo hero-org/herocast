@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { take } from 'lodash';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { formatLargeNumber } from '../helpers/text';
 
 const priorityChannels = ['email', 'linkedin', 'telegram', 'twitter', 'github'];
 
@@ -46,6 +47,7 @@ const ProfileInfo = ({
       </p>
     );
   };
+
   const renderSocialCapitalScore = () =>
     profile?.airstackSocialInfo?.socialCapitalRank && (
       <TooltipProvider>
@@ -73,6 +75,32 @@ const ProfileInfo = ({
             </a>
           </TooltipContent>
         </Tooltip>
+        {profile?.airstackSocialInfo?.moxieEarnings && (
+          <>
+            <br />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">
+                    {formatLargeNumber(profile?.airstackSocialInfo?.moxieEarnings)}
+                  </span>{' '}
+                  Moxie earned
+                </span>
+              </TooltipTrigger>
+              <TooltipContent
+                className="w-44 p-3 bg-background border border-muted text-foreground/80"
+                side="bottom"
+                sideOffset={5}
+              >
+                Moxie is a community-owned and community-governed Farcaster protocol. Its mission is to grow the
+                Farcaster GDP. Learn more at{' '}
+                <a target="_blank" rel="noreferrer" className="underline cursor-pointer" href="https://moxie.xyz">
+                  moxie.xyz
+                </a>
+              </TooltipContent>
+            </Tooltip>
+          </>
+        )}
       </TooltipProvider>
     );
 
@@ -133,7 +161,7 @@ const ProfileInfo = ({
         <div className="mt-2 flex flex-wrap gap-1">
           {take(profile.coordinapeAttestations, 15).map((attestation) => (
             <span
-              key={`${fid}-${attestation}`}
+              key={`${fid}-${attestation.platform}-${attestation.skill}`}
               className={cn(
                 'h-6 rounded-lg px-1 border border-foreground/20 text-xs text-muted-foreground flex items-center',
                 attestation.amount > 1 && 'pr-0 rounded-r-lg'
