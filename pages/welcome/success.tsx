@@ -163,7 +163,8 @@ const WelcomeSuccessPage = () => {
         </CardHeader>
         <CardContent className="p-6">
           <CardDescription className="text-lg text-card-foreground">
-            Set up a herocast account and schedule 2 casts to get 2 USDGLO.
+            Set up a herocast account and schedule a cast to get 2 USDGLO. <br />
+            If you already have an account, schedule two casts.
             <br />
             Glo Dollar is a fiat-backed stablecoin that funds public goods. <br />
             This is a limited time offer until Dec 17, 2024 or until our budget is depleted.
