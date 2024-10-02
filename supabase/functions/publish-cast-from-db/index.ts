@@ -40,7 +40,7 @@ async function submitMessage({
 }): Promise<string> {
   castAddBody = convertCastAddBodyFromDbToHub(castAddBody);
   const writeClient = new HubRestAPIClient({
-    hubUrl: 'https://hub.farcaster.standardcrypto.vc:2281',
+    hubUrl: 'https://hub.pinata.cloud',
   });
   const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
   console.log(`new cast hash: ${publishCastResponse.hash}`);
