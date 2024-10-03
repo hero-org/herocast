@@ -906,10 +906,10 @@
   dependencies:
     hls.js "^1.2.7"
 
-"@hatsprotocol/modules-sdk@^0.15.2":
-  version "0.15.2"
-  resolved "https://registry.yarnpkg.com/@hatsprotocol/modules-sdk/-/modules-sdk-0.15.2.tgz#b9bb9e94c5ef9688e82f3c9ff444a2ee231b715b"
-  integrity sha512-PxABbhKM2ZlTfa2R0Z9CjMz3gzFE3/yxr6hLD3AgVrjQQcnuX3QSAKu3dRxvJhcLbXq5n5bhRTZWYLM1Qe7BZQ==
+"@hatsprotocol/modules-sdk@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@hatsprotocol/modules-sdk/-/modules-sdk-1.4.0.tgz#6e519e29158e8c017ee68902080b96d016ced23a"
+  integrity sha512-j9taBBNSTJWGuJq/vmURHJFyvG8jb3xq0xAbs22fZV/aQlkNB/7uHJ7ZT1Q0ZWGy0fjYOxw1ATWZhY1MnIt6gA==
   dependencies:
     axios "^1.5.0"
     zod "^3.21.4"
