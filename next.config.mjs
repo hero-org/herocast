@@ -1,7 +1,21 @@
-import { withSentryConfig } from '@sentry/nextjs';
 /** @type {import('next').NextConfig} */
+import { withSentryConfig } from '@sentry/nextjs';
+import path from 'path';  // Ensure you import path
+import { fileURLToPath } from 'url';
+
+// Get the directory path of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const nextConfig = {
-  swcMinify: false,
+
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@faker-js/faker': path.resolve(__dirname, 'node_modules/@faker-js/faker'),
+      '@farcaster/core': path.resolve(__dirname, 'node_modules/@farcaster/core'),
+    };
+    return config;
+  },
   // output: 'export', // Outputs a Single-Page Application (SPA).
   // distDir: './dist', // Changes the build output directory to `./dist/`.
   transpilePackages: ['react-tweet'], // https://react-tweet.vercel.app/next,
