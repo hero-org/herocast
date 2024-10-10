@@ -22,6 +22,8 @@ import { UUID } from 'crypto';
 import { usePathname, useSearchParams } from 'next/navigation';
 import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
+import Modal from '@/common/components/Modal';
+import { useMediaQuery } from '@/common/hooks/useMediaQuery';
 
 enum DraftListTab {
   writing = 'writing',
@@ -74,6 +76,11 @@ export default function NewPost() {
   const pathname = usePathname();
   const savedPathname = useRef(pathname);
 
+  // 1280px is the default starting breakpoint for  tailwindcss' XL screen. This should be updated if the breakpoint values is updated in tailwind.config.js
+  const isBelowXLScreen = useMediaQuery('(max-width: 1280px)');
+
+  const { isDraftsModalOpen, openDraftsModal, closeDraftsModal } = useDraftStore();
+
   const draftsForTab = useMemo(
     () => getDraftsForTab(drafts, activeTab, selectedAccount?.id),
     [drafts, activeTab, selectedAccount?.id]
@@ -87,6 +94,13 @@ export default function NewPost() {
   const resetSelectedDraftId = () => {
     setSelectedDraftId(draftsForTab[0]?.id);
   };
+
+  useEffect(() => {
+    // if the modal is opened, and the screen is resized to XL (>=1280px), close the modal. This will prevent the modal from automatically opening when the screen back to <1280px
+    if (!isBelowXLScreen && isDraftsModalOpen) {
+      closeDraftsModal();
+    }
+  }, [isBelowXLScreen, isDraftsModalOpen]);
 
   useEffect(() => {
     if (searchParams.has('text')) {
@@ -214,6 +228,9 @@ export default function NewPost() {
         )}
         onClick={() => {
           setSelectedDraftId(draft.id);
+          if (isDraftsModalOpen) {
+            closeDraftsModal();
+          }
         }}
       >
         <div
@@ -357,32 +374,96 @@ export default function NewPost() {
     return <UpgradeFreePlanCard limitKey="maxScheduledCasts" />;
   };
 
-  return (
-    <div className="grid grid-cols-[300px_1fr] h-screen w-full">
-      <div className="overflow-y-auto p-4">
-        <div className="space-y-4">
-          <Tabs
-            defaultValue="drafts"
-            className="w-full"
-            value={activeTab}
-            onValueChange={(value) => setActiveTab(value as DraftListTab)}
-          >
-            {renderTabsSelector()}
-            <TabsContent value={DraftListTab.writing}>
-              {renderFreePlanCard()}
-              {renderDraftList()}
-            </TabsContent>
-            <TabsContent value={DraftListTab.scheduled}>
-              {renderFreePlanCard()}
-              {renderScheduledList()}
-            </TabsContent>
-            <TabsContent value={DraftListTab.published}>{renderScheduledList()}</TabsContent>
-          </Tabs>
+  // The drafts modal to be rendered on screens below XL
+  const renderDraftsModal = () => {
+    return (
+      <Modal
+        title="Drafts"
+        open={isDraftsModalOpen}
+        setOpen={(isOpen) => (isOpen ? openDraftsModal() : closeDraftsModal())}
+        focusMode={false}
+      >
+        <div className="mt-2 overflow-auto">
+          {isDraftsModalOpen && (
+            <div className="flex flex-col max-w-full">
+              <div className="space-y-4">
+                <Tabs
+                  defaultValue="drafts"
+                  className="w-full"
+                  value={activeTab}
+                  onValueChange={(value) => setActiveTab(value as DraftListTab)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center py-2 w-full">
+                      <TabsList className="flex w-full">
+                        {DraftListTabs.map((tab) => (
+                          <TabsTrigger key={tab.key} value={tab.key} className="text-zinc-600 dark:text-zinc-200">
+                            {tab.label}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </div>
+                  </div>
+                  <TabsContent value={DraftListTab.writing} className="max-h-[350px] overflow-y-auto no-scrollbar">
+                    {renderFreePlanCard()}
+                    {renderDraftList()}
+                  </TabsContent>
+                  <TabsContent value={DraftListTab.scheduled}>
+                    {renderFreePlanCard()}
+                    {renderScheduledList()}
+                  </TabsContent>
+                  <TabsContent value={DraftListTab.published}>{renderScheduledList()}</TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </Modal>
+    );
+  };
+
+  return (
+    //two colums on XL screen and above, one column on screens below xl, because at this breakpoints, the dratft components becomes a modal
+    <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] h-screen w-full">
+      {/* Only render this on the side on xl screens */}
+      {!isBelowXLScreen && (
+        <div className="w-full overflow-y-auto p-4">
+          <div className="space-y-4">
+            <Tabs
+              defaultValue="drafts"
+              className="w-full"
+              value={activeTab}
+              onValueChange={(value) => setActiveTab(value as DraftListTab)}
+            >
+              {renderTabsSelector()}
+              <TabsContent value={DraftListTab.writing}>
+                {renderFreePlanCard()}
+                {renderDraftList()}
+              </TabsContent>
+              <TabsContent value={DraftListTab.scheduled}>
+                {renderFreePlanCard()}
+                {renderScheduledList()}
+              </TabsContent>
+              <TabsContent value={DraftListTab.published}>{renderScheduledList()}</TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4">{renderContent()}</div>
+        {/* This triggers the drafts modal. Should only be rendered on screens below XL */}
+        {isBelowXLScreen && (
+          <div className="p-4 pb-0 block xl:hidden">
+            <Button variant="outline" className="ml-auto inline-flex items-center gap-2" onClick={openDraftsModal}>
+              <PencilSquareIcon className="w-5 h-5" />
+              <span>Drafts</span>
+            </Button>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto px-4 py-0">{renderContent()}</div>
       </div>
+      {/* The drafts modal should only be rendered on screens below XL */}
+      {isBelowXLScreen && renderDraftsModal()}
     </div>
   );
 }

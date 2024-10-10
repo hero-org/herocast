@@ -264,19 +264,19 @@ export default function AnalyticsPage() {
               <TabsTrigger value="unfollows">Recent Unfollows</TabsTrigger>
             </TabsList>
           </div>
-          <TabsContent value="default" className="max-w-2xl">
+          <TabsContent value="default" className="max-w-full">
             <div className="my-4">
               <h2 className="text-2xl font-bold">Top casts</h2>
             </div>
             {analyticsData.topCasts && <CastReactionsTable rawCasts={analyticsData.topCasts} />}
           </TabsContent>
-          <TabsContent value="followers" className="max-w-2xl">
+          <TabsContent value="followers" className="max-w-full">
             <div className="my-4">
               <h2 className="text-2xl font-bold">Top followers</h2>
             </div>
             <TopFollowers fid={fid} />
           </TabsContent>
-          <TabsContent value="unfollows" className="max-w-2xl">
+          <TabsContent value="unfollows" className="max-w-full">
             <div className="my-4">
               <h2 className="text-2xl font-bold">Recent Unfollows</h2>
             </div>

@@ -160,9 +160,9 @@ const DynamicChartCard = ({ interval, analyticsData }: DynamicChartCardProps) =>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <div className="pt-6 w-full max-h-full">
-          <ChartContainer config={chartConfig} className="-ml-8 w-full min-w-full h-full max-h-52">
+          <ChartContainer config={chartConfig} className="w-full min-w-full h-full max-h-52">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart accessibilityLayer data={data}>
                 <defs>

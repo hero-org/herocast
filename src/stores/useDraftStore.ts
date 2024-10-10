@@ -144,6 +144,7 @@ type addScheduledDraftProps = {
 interface NewPostStoreProps {
   drafts: DraftType[];
   isHydrated: boolean;
+  isDraftsModalOpen: boolean;
 }
 
 interface DraftStoreActions {
@@ -158,6 +159,8 @@ interface DraftStoreActions {
   removeEmptyDrafts: () => void;
   publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost?: () => void) => Promise<string | null>;
   hydrate: () => void;
+  openDraftsModal: () => void;
+  closeDraftsModal: () => void;
 }
 
 export interface DraftStore extends NewPostStoreProps, DraftStoreActions {}
@@ -171,6 +174,7 @@ const supabaseClient = createClient();
 const store = (set: StoreSet) => ({
   drafts: [],
   isHydrated: false,
+  isDraftsModalOpen: false,
   addNewPostDraft: ({ text, parentUrl, parentCastId, embeds, onSuccess, force }: addNewPostDraftProps) => {
     set((state) => {
       const pendingDrafts = state.drafts.filter((draft) => draft.status === DraftStatus.writing);
@@ -381,6 +385,16 @@ const store = (set: StoreSet) => ({
         state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
         state.isHydrated = true;
       });
+  },
+  openDraftsModal: () => {
+    set((state) => {
+      state.isDraftsModalOpen = true;
+    });
+  },
+  closeDraftsModal: () => {
+    set((state) => {
+      state.isDraftsModalOpen = false;
+    });
   },
 });
 export const useDraftStore = create<DraftStore>()(

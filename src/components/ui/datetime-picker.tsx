@@ -215,7 +215,7 @@ function DateField(props: AriaDatePickerProps<DateValue>) {
       {...fieldProps}
       ref={ref}
       className={cn(
-        'inline-flex h-8 flex-1 items-center rounded-l-md border-input bg-transparent px-2 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'inline-flex h-8 flex-1 items-center rounded-l-md border-input bg-transparent px-1 sm:px-2 py-2 text-xs sm:text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         props.isDisabled && 'cursor-not-allowed opacity-50'
       )}
     >
@@ -245,7 +245,7 @@ function TimeField(props: AriaTimeFieldProps<TimeValue>) {
       {...fieldProps}
       ref={ref}
       className={cn(
-        'inline-flex h-10 w-full flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'inline-flex h-10 w-full flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-xs sm:text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         props.isDisabled && 'cursor-not-allowed opacity-50'
       )}
     >
@@ -348,7 +348,7 @@ const DateTimePicker = React.forwardRef<
       ref={divRef}
       className={cn(
         groupProps.className,
-        'w-full max-w-48 flex items-center h-9 rounded-lg px-0 border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2'
+        'w-full max-w-40 sm:max-w-48 flex items-center h-9 rounded-lg px-0 border ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2'
       )}
     >
       <Popover open={props.isOpen} onOpenChange={props.onOpenChange}>
@@ -356,13 +356,13 @@ const DateTimePicker = React.forwardRef<
           <Button
             {...buttonProps}
             variant="ghost"
-            className="h-full px-2"
+            className="h-full px-0 sm:px-2"
             disabled={props.isDisabled}
             onClick={() => {
               state.setOpen(true);
             }}
           >
-            <CalendarIcon className="h-5 w-5" />
+            <CalendarIcon className="w-4 h-4 sm:h-5 sm:w-5" />
           </Button>
         </PopoverTrigger>
         <PopoverContent ref={contentRef} className="w-full">

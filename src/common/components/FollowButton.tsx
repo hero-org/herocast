@@ -59,7 +59,7 @@ const FollowButton = ({ username }: FollowButtonProps) => {
   return (
     <Button
       variant={isFollowing ? 'secondary' : 'default'}
-      className="group"
+      className="group text-xs sm:text-sm"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
