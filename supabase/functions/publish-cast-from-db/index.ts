@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
+import axios from 'npm:axios';
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
@@ -39,8 +40,12 @@ async function submitMessage({
   castAddBody: any;
 }): Promise<string> {
   castAddBody = convertCastAddBodyFromDbToHub(castAddBody);
+  const axiosInstance = axios.create({
+    headers: { 'api_key': Deno.env.get('NEYNAR_API_KEY') }
+  })
   const writeClient = new HubRestAPIClient({
-    hubUrl: 'https://hub.pinata.cloud',
+    hubUrl: 'https://hub-api.neynar.com',
+    axiosInstance
   });
   const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
   console.log(`new cast hash: ${publishCastResponse.hash}`);
