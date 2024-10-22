@@ -4,6 +4,7 @@ import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { CastData } from '@/common/types/types';
 import orderBy from 'lodash.orderby';
+import clsx from 'clsx';
 
 interface CastReactionsTableProps {
   rawCasts: CastData[];
@@ -29,7 +30,30 @@ const CastReactionsTable = ({ rawCasts }: CastReactionsTableProps) => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full">
+      {/* From the smallest screen to 767px wide */}
+      <div className="w-full block md:hidden">
+        {casts.map((cast) => (
+          <div key={cast.hash} className="flex flex-col gap-2 border-t border-gray-200 hover:bg-foreground/10 p-4 mb-4">
+            <CastRow showChannel hideAuthor hideReactions cast={cast} />
+            <div className="flex items-start justify-start gap-8 px-3 text text-sm mt-2">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground">Likes</span>
+                <span>{cast.reactions.likes_count}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-muted-foreground">Recasts</span>
+                <span>{cast.reactions.recasts_count}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-muted-foreground">Type</span>
+                <span>{cast.parent_hash ? 'Reply' : 'Original'}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* From the 768px width to screen to the largest of screens */}
+      <table className="w-full hidden md:block">
         <thead>
           <tr className="bg-card text-card-foreground uppercase text-sm leading-normal">
             <th className="py-3 px-6 text-left">Cast</th>

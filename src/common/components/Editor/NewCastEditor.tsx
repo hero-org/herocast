@@ -318,7 +318,7 @@ export default function NewPostEntry({
           </div>
         )}
 
-        <div className="flex flex-row pt-2 gap-1">
+        <div className="flex flex-row pt-2 gap-1 overflow-x-auto no-scrollbar">
           {!isReply && !hideChannel && (
             <div className="text-foreground/80">
               <ChannelPicker
@@ -333,14 +333,14 @@ export default function NewPostEntry({
             </div>
           )}
           <Button
-            className="h-9"
+            className="h-9 p-2"
             type="button"
             variant="outline"
             disabled={isPublishing}
             onClick={() => setCurrentMod(creationMods[0])}
           >
-            <PhotoIcon className="mr-1 w-5 h-5" />
-            Add
+            <PhotoIcon className="w-5 h-5" />
+            <span className="sr-only md:not-sr-only md:pl-2">Add image</span>
           </Button>
           <Popover
             open={!!currentMod}
