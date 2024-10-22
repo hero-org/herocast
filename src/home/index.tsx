@@ -162,56 +162,56 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     {
       name: 'main',
       items: [
-        {
-          name: 'Feeds',
-          router: '/feeds',
-          icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-          getTitle: getFeedTitle,
-          getHeaderActions: () => {
-            const isChannelPinned = channels.findIndex((channel) => channel.url === selectedChannelUrl) !== -1;
-            const isChannelFeed =
-              selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
-              selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING &&
-              !selectedList;
-            const actions = [
-              {
-                name: 'Cast',
-                onClick: () => {
-                  let parentUrl;
-                  if (isChannelFeed) {
-                    parentUrl = selectedChannelUrl;
-                  }
-                  setCastModalView(CastModalView.New);
-                  addNewPostDraft({
-                    parentUrl,
-                    onSuccess(draftId) {
-                      setCastModalDraftId(draftId);
-                      openNewCastModal();
-                    },
-                  });
-                },
-              },
-            ];
-            if (isChannelFeed) {
-              actions.push({
-                name: isChannelPinned ? 'Unpin' : 'Pin',
-                onClick: () => {
-                  const channel = channels.find((c) => c.url === selectedChannelUrl);
-                  if (!channel) return;
+        // {
+        //   name: 'Feeds',
+        //   router: '/feeds',
+        //   icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+        //   getTitle: getFeedTitle,
+        //   getHeaderActions: () => {
+        //     const isChannelPinned = channels.findIndex((channel) => channel.url === selectedChannelUrl) !== -1;
+        //     const isChannelFeed =
+        //       selectedChannelUrl !== CUSTOM_CHANNELS.FOLLOWING &&
+        //       selectedChannelUrl !== CUSTOM_CHANNELS.TRENDING &&
+        //       !selectedList;
+        //     const actions = [
+        //       {
+        //         name: 'Cast',
+        //         onClick: () => {
+        //           let parentUrl;
+        //           if (isChannelFeed) {
+        //             parentUrl = selectedChannelUrl;
+        //           }
+        //           setCastModalView(CastModalView.New);
+        //           addNewPostDraft({
+        //             parentUrl,
+        //             onSuccess(draftId) {
+        //               setCastModalDraftId(draftId);
+        //               openNewCastModal();
+        //             },
+        //           });
+        //         },
+        //       },
+        //     ];
+        //     if (isChannelFeed) {
+        //       actions.push({
+        //         name: isChannelPinned ? 'Unpin' : 'Pin',
+        //         onClick: () => {
+        //           const channel = channels.find((c) => c.url === selectedChannelUrl);
+        //           if (!channel) return;
 
-                  if (isChannelPinned) {
-                    removePinnedChannel(channel);
-                  } else {
-                    addPinnedChannel(channel);
-                  }
-                },
-              });
-            }
-            return actions;
-          },
-          shortcut: 'Shift + F',
-          additionalPaths: ['/conversation/[...slug]'],
-        },
+        //           if (isChannelPinned) {
+        //             removePinnedChannel(channel);
+        //           } else {
+        //             addPinnedChannel(channel);
+        //           }
+        //         },
+        //       });
+        //     }
+        //     return actions;
+        //   },
+        //   shortcut: 'Shift + F',
+        //   additionalPaths: ['/conversation/[...slug]'],
+        // },
         {
           name: 'Post',
           router: '/post',
@@ -229,18 +229,18 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           ],
           icon: <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
         },
-        {
-          name: 'Search',
-          router: '/search',
-          icon: <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-          shortcut: '/',
-        },
-        {
-          name: 'Notifications',
-          router: '/notifications',
-          icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-          shortcut: 'Shift + N',
-        },
+        // {
+        //   name: 'Search',
+        //   router: '/search',
+        //   icon: <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+        //   shortcut: '/',
+        // },
+        // {
+        //   name: 'Notifications',
+        //   router: '/notifications',
+        //   icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+        //   shortcut: 'Shift + N',
+        // },
         {
           name: 'Analytics',
           router: '/analytics',
@@ -263,12 +263,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           router: '/upgrade',
           icon: <ArrowUpCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
         },
-        {
-          name: 'Channels',
-          router: '/channels',
-          icon: <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-          shortcut: 'Shift + C',
-        },
+        // {
+        //   name: 'Channels',
+        //   router: '/channels',
+        //   icon: <RectangleGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+        //   shortcut: 'Shift + C',
+        // },
         {
           name: 'Accounts',
           router: '/accounts',

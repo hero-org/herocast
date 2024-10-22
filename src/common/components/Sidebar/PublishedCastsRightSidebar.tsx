@@ -43,7 +43,6 @@ const PublishedCastsRightSidebar = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    console.log('getProfileFetchIfNeeded()');
     const fetchProfile = async () => {
       const res = await getProfileFetchIfNeeded({
         fid: selectedAccountFid,
@@ -86,6 +85,7 @@ const PublishedCastsRightSidebar = () => {
 
   const castsForSidebar = orderBy(uniqBy(filteredCasts, 'hash'), 'timestamp', 'desc');
 
+  console.log('casts in sidebar', castsForSidebar);
   return (
     <aside
       style={{

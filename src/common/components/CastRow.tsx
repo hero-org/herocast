@@ -65,6 +65,7 @@ import { addToClipboard } from '../helpers/clipboard';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getProfile } from '../helpers/profileUtils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 registerPlugin('mention', mentionPlugin);
 registerPlugin('cashtag', cashtagPlugin);
@@ -517,7 +518,9 @@ export const CastRow = ({
       recaster = cast.reactions?.recasts?.find((recast) => recast?.viewer_context?.following === true);
     }
     const badge = (
-      <span className={cn('ml-9', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/40 hover:underline')}>
+      <span
+        className={cn('ml-10', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/40 hover:underline')}
+      >
         <ArrowPathIcon className="h-4 w-4 mt-0.5 mr-1" />
         {recaster && `Recasted by ${recaster.fname || recaster.username}`}
       </span>
@@ -535,7 +538,8 @@ export const CastRow = ({
   };
 
   const channel = showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null;
-  const pfpUrl = cast.author.pfp_url || cast.author?.pfp?.url;
+  const pfpUrl = cast.author.pfp_url || cast.author?.pfp?.url || cast.author?.avatar_url;
+  const username = cast.author.username || cast.author.fname;
   const displayName = cast.author.display_name || cast.author.displayName;
 
   const renderChannelButton = () =>
@@ -690,31 +694,29 @@ export const CastRow = ({
           }}
         >
           {!isEmbed && !hideAuthor && (
-            <Link href={`/profile/${cast.author.username}`} prefetch={false} className="flex shrink-0">
-              <img
-                className="relative h-10 w-10 flex-none bg-background rounded-full"
-                src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
-              />
+            <Link href={`/profile/${username}`} prefetch={false} className="flex shrink-0">
+              <Avatar className="relative h-10 w-10 mr-1">
+                <AvatarImage src={pfpUrl} />
+                <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>
+              </Avatar>
             </Link>
           )}
           <div className="flex flex-col w-full space-y-1">
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 {hideAuthor ? (
-                  <span className="text-sm leading-5 text-foreground/50">@{cast.author.username}</span>
+                  <span className="text-sm leading-5 text-foreground/50">@{username}</span>
                 ) : (
-                  <MemoizedProfileHoverCard fid={cast.author.fid} viewerFid={userFid} username={cast.author.username}>
+                  <MemoizedProfileHoverCard fid={cast.author.fid} viewerFid={userFid} username={username}>
                     <span className="items-center flex font-semibold text-foreground truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                       {isEmbed && (
-                        <img
-                          className="relative h-4 w-4 mr-1 flex-none bg-background rounded-full"
-                          src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`}
-                        />
+                        <Avatar className="relative h-4 w-4 mr-1">
+                          <AvatarImage src={pfpUrl} />
+                          <AvatarFallback>{cast.author.username?.slice(0, 2)}</AvatarFallback>
+                        </Avatar>
                       )}
                       {displayName}
-                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">
-                        @{cast.author.username}
-                      </span>
+                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">@{username}</span>
                       <span>
                         {cast.author.power_badge && (
                           <img

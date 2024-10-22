@@ -31,9 +31,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
       <div className="flex flex-row justify-between">
         <div className="flex space-x-2">
           <Avatar>
-            <AvatarImage
-              src={`https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${profile.pfp_url}`}
-            />
+            <AvatarImage src={profile.pfp_url} />
             <AvatarFallback>{profile.username?.slice(0, 2)}</AvatarFallback>
           </Avatar>
           <div>
