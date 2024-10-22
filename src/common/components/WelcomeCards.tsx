@@ -39,17 +39,6 @@ const WelcomeCards = () => {
           },
           isReadOnly
             ? {
-                title: 'Browse trending feed',
-                description: 'No need to signup if you just want to checkout herocast',
-                buttonText: 'Trending Feed →',
-                onClick: () => {
-                  setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
-                  router.push('/feeds');
-                },
-              }
-            : undefined,
-          isReadOnly
-            ? {
                 title: 'Follow the herocast team on Paragraph',
                 description: 'Get updates on herocast and Farcaster in the newsletter',
                 content: (

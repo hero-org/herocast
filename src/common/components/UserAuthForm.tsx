@@ -134,7 +134,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     if (data?.user) {
       setUserMessage('Success! Logging you in...');
       posthog.identify(data?.user?.id, { email });
-      router.push('/feeds');
+      router.push('/post');
       setIsLoading(false);
     } else {
       setUserMessage('Something went wrong. Please try again.');
@@ -163,7 +163,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
 
     posthog.identify(data?.user?.id, { email });
-    router.push('/feeds');
+    router.push('/post');
   };
 
   const loginWithGoogle = async () => {
@@ -183,7 +183,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       case ViewState.RESET:
         return submitNewPassword;
       case ViewState.LOGGED_IN:
-        return () => router.push('/feeds');
+        return () => router.push('/post');
       default:
         return () => {};
     }
@@ -252,7 +252,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     posthog.identify(data?.user?.id, { isLocalOnly: true });
     setUserMessage('Setup done. Welcome to the herocast experience!');
-    router.push('/feeds');
+    router.push('/post');
     setIsLoading(false);
   };
 

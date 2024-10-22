@@ -106,7 +106,7 @@ export default function Welcome() {
           variant="default"
           onClick={() => {
             setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
-            router.push('/feeds');
+            router.push('/post');
           }}
         >
           Start exploring

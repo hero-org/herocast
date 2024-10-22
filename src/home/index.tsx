@@ -476,7 +476,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           <div className="hidden lg:flex lg:grow lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:full lg:overflow-y-auto lg:bg-background border-r border-muted">
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
-              <Link href="/feeds" className="flex h-16 shrink-0 items-center hover:cursor-pointer">
+              <Link href="/post" className="flex h-16 shrink-0 items-center hover:cursor-pointer">
                 <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">herocast</h2>
               </Link>
               <div className="flex flex-col justify-between">
