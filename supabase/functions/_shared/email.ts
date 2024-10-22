@@ -60,7 +60,7 @@ const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
         'div',
         { className: 'flex items-center mb-2' },
         React.createElement(Img, {
-          src: `https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/${pfpUrl}`,
+          src: pfpUrl,
           width: '16',
           height: '16',
           className: 'rounded-full mr-1',

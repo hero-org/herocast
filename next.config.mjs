@@ -1,13 +1,12 @@
 /** @type {import('next').NextConfig} */
 import { withSentryConfig } from '@sentry/nextjs';
-import path from 'path';  // Ensure you import path
+import path from 'path'; // Ensure you import path
 import { fileURLToPath } from 'url';
 
 // Get the directory path of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const nextConfig = {
-
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,

@@ -15,13 +15,14 @@ const defaultProfiles: User[] = [
     },
     display_name: 'hellno the optimist',
     pfp_url:
-      'https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_png,w_144/https://i.imgur.com/u5kUjiN.png',
+      'https://wrpcd.net/cdn-cgi/image/anim=false,fit=contain,f=auto,w=288/https%3A%2F%2Fi.imgur.com%2FqoHFjQD.gif',
   },
   {
     username: 'herocast',
     fid: 18665,
     display_name: 'herocast',
-    pfp_url: 'https://i.imgur.com/Ai9jiC3.jpg',
+    pfp_url:
+      'https://wrpcd.net/cdn-cgi/imagedelivery/BXluQx4ige9GuW0Ia56BHw/6958dc09-d654-4192-35f6-3e5816246700/anim=false,fit=contain,f=auto,w=336',
     profile: {
       bio: {
         text: 'you are using herocast right now 👋🏻',
