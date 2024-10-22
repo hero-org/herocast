@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@airstack/node": "^0.0.7",
-    "@date-fns/utc": "^1.2.0",
+    "@date-fns/utc": "^2.1.0",
     "@emotion/react": "11",
     "@emotion/styled": "11",
     "@farcaster/auth-kit": "^0.3.1",

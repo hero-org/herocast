@@ -30,13 +30,15 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
     <div className="space-y-2">
       <div className="flex flex-row justify-between">
         <div className="flex space-x-2">
-          <Avatar>
+          <Avatar className="sm:h-8 sm:w-8 md:h-10 md:w-10">
             <AvatarImage src={profile.pfp_url} />
             <AvatarFallback>{profile.username?.slice(0, 2)}</AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1">{profile.display_name}</h2>
-            <h3 className="flex text-sm font-regular">
+            <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1 text-xs sm:text-sm">
+              {profile.display_name}
+            </h2>
+            <h3 className="flex text-xs sm:text-sm font-regular">
               @{profile.username}
               {profile?.power_badge && (
                 <img src="/images/ActiveBadge.webp" className="ml-1 mt-0.5 h-[14px] w-[14px]" alt="Power badge" />
@@ -74,7 +76,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
             </Linkify>
           </p>
         )}
-        <div className="flex flex-col pt-2 lg:flex-row lg:space-x-2">
+        <div className="flex flex-col pt-2 sm:flex-row sm:space-x-2 lg:flex-col lg:space-x-0 text-xs sm:text-sm">
           <p>
             <span className="font-semibold text-foreground">
               {formatLargeNumber(profile.follower_count || 0)}&nbsp;

@@ -59,7 +59,7 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
 
   return (
     <Card className="h-fit py-8 px-4">
-      <CardContent className="items-start grid gap-8 grid-cols-2 grid-flow-row">
+      <CardContent className="items-start grid gap-8 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid-flow-row">
         {isLoading && <Loading />}
         {profiles.map((profile) => (
           <div key={`top-follower-${profile.fid}`} className="flex items-center">
