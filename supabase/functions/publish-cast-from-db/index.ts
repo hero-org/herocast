@@ -41,11 +41,11 @@ async function submitMessage({
 }): Promise<string> {
   castAddBody = convertCastAddBodyFromDbToHub(castAddBody);
   const axiosInstance = axios.create({
-    headers: { 'api_key': Deno.env.get('NEYNAR_API_KEY') }
-  })
+    headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
+  });
   const writeClient = new HubRestAPIClient({
     hubUrl: 'https://hub-api.neynar.com',
-    axiosInstance
+    axiosInstance,
   });
   const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
   console.log(`new cast hash: ${publishCastResponse.hash}`);
