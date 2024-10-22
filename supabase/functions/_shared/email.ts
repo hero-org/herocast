@@ -70,20 +70,20 @@ const CastRow: React.FC<CastRowProps> = ({ cast, searchTerm }) => {
       ),
       React.createElement(Text, { className: 'text-sm mb-2' }, cast.text),
       cast.embeds &&
-      cast.embeds.length > 0 &&
-      React.createElement(
-        'div',
-        { className: 'mb-2' },
-        cast.embeds.map((embed, index) =>
-          React.createElement(Img, {
-            key: index,
-            src: embed.url,
-            width: '100%',
-            height: 'auto',
-            className: 'rounded-lg',
-          })
-        )
-      ),
+        cast.embeds.length > 0 &&
+        React.createElement(
+          'div',
+          { className: 'mb-2' },
+          cast.embeds.map((embed, index) =>
+            React.createElement(Img, {
+              key: index,
+              src: embed.url,
+              width: '100%',
+              height: 'auto',
+              className: 'rounded-lg',
+            })
+          )
+        ),
       React.createElement(
         'div',
         { className: 'flex justify-between text-xs text-[#6b7280]' },
@@ -128,10 +128,10 @@ const Email: React.FC<EmailProps> = ({ listsWithCasts }) => {
         React.createElement(Text, { className: 'text-2xl font-semibold mb-4 text-[#18181b]' }, listName),
         casts.length > 0
           ? [
-            ...truncatedCasts.map((cast) => React.createElement(CastRow, { key: cast.hash, cast, searchTerm })),
-            isCastsTruncated &&
-            React.createElement(Text, { className: 'text-sm italic text-gray-500 mt-2' }, `and more casts...`),
-          ]
+              ...truncatedCasts.map((cast) => React.createElement(CastRow, { key: cast.hash, cast, searchTerm })),
+              isCastsTruncated &&
+                React.createElement(Text, { className: 'text-sm italic text-gray-500 mt-2' }, `and more casts...`),
+            ]
           : React.createElement(Text, { className: 'text-sm italic text-gray-500' }, 'No new casts in this list today.')
       );
     } catch (error) {
@@ -161,11 +161,11 @@ const Email: React.FC<EmailProps> = ({ listsWithCasts }) => {
           ),
           truncatedLists.map(({ listName, searchTerm, casts }) => renderListWithCasts(listName, searchTerm, casts)),
           isListsTruncated &&
-          React.createElement(
-            Text,
-            { className: 'text-md italic text-gray-600 mt-4' },
-            `You have ${listsWithCasts.length - MAX_LISTS_PER_EMAIL} more lists in herocast...`
-          )
+            React.createElement(
+              Text,
+              { className: 'text-md italic text-gray-600 mt-4' },
+              `You have ${listsWithCasts.length - MAX_LISTS_PER_EMAIL} more lists in herocast...`
+            )
         )
       )
     )
