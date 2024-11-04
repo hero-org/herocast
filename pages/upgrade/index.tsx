@@ -33,14 +33,14 @@ const plans = [
       },
     },
     features: [
-      '1 Keyword Feed',
+      // '1 Keyword Feed',
       '3 Scheduled Casts',
-      '1 Keyword Alert',
+      // '1 Keyword Alert',
       'Analytics (7 days)',
-      'Onchain user insights',
+      // 'Onchain user insights',
       '2 connected accounts',
     ],
-    unavilableFeatures: ['Shared accounts', 'Bespoke insights', 'KOL identification'],
+    unavilableFeatures: ['Shared accounts'],
     logomarkClassName: 'fill-gray-300',
   },
   {
@@ -63,14 +63,14 @@ const plans = [
       },
     },
     features: [
-      '2 Keyword Feeds',
+      // '2 Keyword Feeds',
       'Unlimited Scheduled Casts',
-      '2 Keyword Alerts',
+      // '2 Keyword Alerts',
       'Analytics (1 month)',
-      'Onchain user insights',
+      // 'Onchain user insights',
       '2 connected accounts',
     ],
-    unavilableFeatures: ['Shared accounts', 'Bespoke insights', 'KOL identification'],
+    unavilableFeatures: ['Shared accounts'],
     logomarkClassName: 'fill-gray-300',
   },
   {
@@ -93,45 +93,15 @@ const plans = [
       },
     },
     features: [
-      '10 Keyword Feeds',
+      // '10 Keyword Feeds',
       'Unlimited Scheduled Casts',
-      '10 Keyword Alerts',
+      // '10 Keyword Alerts',
       'Analytics (3 months)',
-      'Onchain user insights',
+      // 'Onchain user insights',
       '5 connected accounts',
       'Shared accounts',
     ],
-    unavilableFeatures: ['Bespoke insights', 'KOL identification'],
     logomarkClassName: 'fill-white',
-  },
-  {
-    name: 'Agency',
-    featured: false,
-    price: { Monthly: 'Talk to us', Annually: 'Talk to us' },
-    description: 'Best for maximizing growth with all features.',
-    button: {
-      Monthly: {
-        label: 'Reach out',
-        href: 'https://calendly.com/bijanfarsijani/25mincoffee',
-      },
-      Annually: {
-        label: 'Reach out',
-        href: 'https://calendly.com/bijanfarsijani/25mincoffee',
-      },
-    },
-    features: [
-      '15+ Keyword Feeds',
-      'Unlimited Scheduled Casts',
-      '15+ Keyword Alerts',
-      'Analytics (all-time)',
-      'Onchain user insights',
-      '5+ connected accounts',
-      'Shared accounts',
-      'Bespoke insights',
-      'KOL identification',
-    ],
-    unavilableFeatures: [],
-    logomarkClassName: 'fill-gray-500',
   },
 ];
 
@@ -309,7 +279,7 @@ export function Pricing() {
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-4 grid max-w-full grid-cols-1 items-start gap-x-4 gap-y-10 sm:mt-8 md:grid-cols-2 g:max-w-none lg:grid-cols-4">
+        <div className="mx-auto mt-4 grid max-w-full grid-cols-1 items-start gap-x-4 gap-y-10 sm:mt-8 md:grid-cols-3 g:max-w-none lg:grid-cols-3">
           {plans.map((plan) => (
             <Plan key={plan.name} {...plan} activePeriod={activePeriod} />
           ))}
