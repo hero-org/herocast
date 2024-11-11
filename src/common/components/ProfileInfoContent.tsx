@@ -5,7 +5,8 @@ import { formatLargeNumber } from '../helpers/text';
 import FollowButton from './FollowButton';
 import Linkify from 'linkify-react';
 import Link from 'next/link';
-import { url } from 'inspector';
+import { useDataStore } from '@/stores/useDataStore';
+import get from 'lodash.get';
 
 type ProfileInfoContentProps = {
   profile: any;
@@ -22,9 +23,20 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
   hideBio = false,
   wideFormat = false,
 }) => {
+  const currentUserFid = useDataStore((state) => {
+    const username = window?.localStorage.getItem('active_account');
+    if (!username) return null;
+    return get(state.usernameToFid, username);
+  });
+
   if (!profile) return <Loading />;
 
-  const renderFollowButton = () => showFollowButton && profile.username && <FollowButton username={profile.username} />;
+  const isOwnProfile = currentUserFid && profile.fid === currentUserFid;
+
+  const renderFollowButton = () => {
+    if (!showFollowButton || !profile.username || isOwnProfile) return null;
+    return <FollowButton username={profile.username} />;
+  };
 
   return (
     <div className="space-y-2">
