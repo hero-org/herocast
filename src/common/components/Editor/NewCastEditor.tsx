@@ -35,6 +35,7 @@ import { isPaidUser } from '@/stores/useUserStore';
 import { MentionList } from '../MentionsList';
 import { useImgurUpload } from '@/common/hooks/useImgurUpload';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
+import Emoji, { gitHubEmojis } from '@tiptap-pro/extension-emoji';
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -209,6 +210,12 @@ export default function NewPostEntry({
       RenderList: MentionList,
     }),
     editorOptions: {
+      extensions: [
+        Emoji.configure({
+          emojis: gitHubEmojis,
+          enableEmoticons: true,
+        }),
+      ],
       editorProps: {
         handlePaste: (view, event) =>
           extractImageAndUpload({
