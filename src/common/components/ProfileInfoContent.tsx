@@ -6,6 +6,7 @@ import FollowButton from './FollowButton';
 import Linkify from 'linkify-react';
 import Link from 'next/link';
 import { useDataStore } from '@/stores/useDataStore';
+import { useAccountStore } from '@/stores/useAccountStore';
 import get from 'lodash.get';
 
 type ProfileInfoContentProps = {
@@ -23,11 +24,9 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
   hideBio = false,
   wideFormat = false,
 }) => {
-  const currentUserFid = useDataStore((state) => {
-    const username = window?.localStorage.getItem('active_account');
-    if (!username) return null;
-    return get(state.usernameToFid, username);
-  });
+  const currentUserFid = useAccountStore((state) =>
+    state.accounts[state.selectedAccountIdx]?.platformAccountId
+  );
 
   if (!profile) return <Loading />;
 
