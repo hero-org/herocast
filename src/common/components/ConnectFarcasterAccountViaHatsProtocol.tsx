@@ -402,7 +402,7 @@ const ConnectFarcasterAccountViaHatsProtocol = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Connect to a shared account</CardTitle>
-          <CardDescription className="text-lg">{state.description}</CardDescription>
+          <CardDescription className="text-md leading-tight">{state.description}</CardDescription>
         </CardHeader>
         <CardContent className="w-full max-w-lg">
           {getCardContent()}

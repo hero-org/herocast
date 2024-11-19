@@ -71,9 +71,9 @@ export async function createInitialTree(
     ],
   });
 
-  if (res.status === 'success') {
+  if (res?.status === 'success') {
     return { casterHat: casterHatId, adminHat: casterAdminHatId };
   } else {
-    throw new Error('Tree creation failed');
+    throw new Error(`Tree creation failed`);
   }
 }
