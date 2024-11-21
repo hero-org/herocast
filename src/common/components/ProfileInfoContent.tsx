@@ -24,13 +24,11 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
   hideBio = false,
   wideFormat = false,
 }) => {
-  const currentUserFid = useAccountStore((state) =>
-    state.accounts[state.selectedAccountIdx]?.platformAccountId
-  );
+  const currentUserFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
 
   if (!profile) return <Loading />;
 
-  const isOwnProfile = currentUserFid && profile.fid === currentUserFid;
+  const isOwnProfile = currentUserFid && profile.fid.toString() === currentUserFid;
 
   const renderFollowButton = () => {
     if (!showFollowButton || !profile.username || isOwnProfile) return null;
