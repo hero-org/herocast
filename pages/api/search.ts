@@ -11,7 +11,7 @@ const NEYNAR_API_URL = 'https://api.neynar.com/v2/farcaster/cast/search';
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { term, limit = 10, offset = 0, priorityMode = false, hideReplies, mentionFid } = req.query;
+  const { term, limit = 10, offset = 0, priorityMode = false, } = req.query;
 
   // Validate the search term
   if (typeof term !== 'string' || term.length < 3) {
@@ -30,10 +30,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('Sending request to Neynar API...');
     console.log('Request URL:', apiUrl);
-
-    // Log unsupported filters for debugging
-    if (hideReplies) console.log('Filter "hideReplies" is not supported by Neynar.');
-    if (mentionFid) console.log('Filter "mentionFid" is not supported by Neynar.');
 
     // Send GET request to Neynar API
     const response = await axios.get(apiUrl, {
