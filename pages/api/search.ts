@@ -11,7 +11,7 @@ const NEYNAR_API_URL = 'https://api.neynar.com/v2/farcaster/cast/search';
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { term, limit = 10, offset = 0, priorityMode = false, } = req.query;
+  const { term, limit = 10, offset = 0, priorityMode = false } = req.query;
 
   // Validate the search term
   if (typeof term !== 'string' || term.length < 3) {
