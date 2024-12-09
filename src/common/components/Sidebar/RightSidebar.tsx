@@ -42,7 +42,10 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
   const renderAuthorInfo = () => {
     if (!showAuthorInfo || !selectedCast) return null;
 
-    if (selectedAccount?.platformAccountId === selectedCast.author.fid.toString()) {
+    if (
+      !selectedAccount?.platformAccountId ||
+      selectedAccount?.platformAccountId === selectedCast.author.fid.toString()
+    ) {
       return null;
     }
 
