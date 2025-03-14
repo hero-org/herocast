@@ -261,19 +261,19 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     switch (view) {
       case ViewState.FORGOT:
-        buttonText = 'Reset Password';
+        buttonText = 'reset password';
         break;
       case ViewState.LOGIN:
-        buttonText = 'Continue';
+        buttonText = 'continue';
         break;
       case ViewState.SIGNUP:
-        buttonText = 'Sign Up';
+        buttonText = 'sign up';
         break;
       case ViewState.RESET:
-        buttonText = 'Set New Password';
+        buttonText = 'set password';
         break;
       case ViewState.LOGGED_IN:
-        buttonText = 'Continue';
+        buttonText = 'continue';
         break;
     }
 
@@ -296,14 +296,14 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       case ViewState.LOGIN:
         return (
           <div className="mt-2 text-center text-sm hover:cursor-pointer" onClick={() => setView(ViewState.SIGNUP)}>
-            No herocast account? <span className="underline">Sign up</span>
+            no herocast account? <span className="underline">sign up</span>
           </div>
         );
       case ViewState.FORGOT:
       case ViewState.SIGNUP:
         return (
           <div className="mt-2 text-center text-sm hover:cursor-pointer" onClick={() => setView(ViewState.LOGIN)}>
-            Already have your herocast account? <span className="underline">Log in</span>
+            already have your herocast account? <span className="underline">log in</span>
           </div>
         );
     }
@@ -325,29 +325,29 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const renderViewHelpText = () => {
     switch (view) {
       case ViewState.FORGOT:
-        return 'Forgot your password? Enter your email below to reset it';
+        return 'forgot your password? Enter your email below to reset it';
       case ViewState.RESET:
-        return 'Enter your new password';
+        return 'enter your new password';
       case ViewState.SIGNUP:
-        return 'Create your herocast account';
+        return 'create your herocast account';
       case ViewState.LOGGED_IN:
-        return `You are logged in as ${user?.email}`;
+        return `you are logged in as ${user?.email}`;
       default:
-        return 'Login to your herocast account';
+        return 'login to herocast';
     }
   };
 
   const renderGoogleLoginButton = () => (
     <Button type="button" size="lg" variant="outline" className="py-4" onClick={() => loginWithGoogle()}>
       <img src="/images/google_logo.png" alt="google logo" width="24" height="24" className="" />
-      Login with Google
+      login with Google
     </Button>
   );
 
   return (
     <div className="grid gap-6">
       <Form {...form}>
-        <span className="text-2xl font-semibold tracking-tight">{renderViewHelpText()}</span>
+        <span className="text-3xl font-semibold tracking-tight">{renderViewHelpText()}</span>
 
         <form>
           <div className="flex">
@@ -362,7 +362,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>email</FormLabel>
                       <FormControl>
                         <Input
                           variantSize="lg"
@@ -382,7 +382,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel>password</FormLabel>
                         <FormControl>
                           <Input
                             variantSize="lg"
@@ -409,7 +409,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                 disabled={isLoading}
                 onClick={() => setView(ViewState.FORGOT)}
               >
-                Forgot Password?
+                forgot password?
               </Button>
             )}
             {view === ViewState.LOGGED_IN && (

@@ -34,8 +34,8 @@ export default function Login() {
 
   return (
     <div className="w-full min-h-screen">
-      <div className="container mx-auto w-full h-screen lg:grid lg:grid-cols-2">
-        <div className="flex items-center justify-center py-12">
+      <div className="w-full h-screen lg:grid lg:grid-cols-2 lg:justify-between">
+        <div className="flex lg:align-top items-start mt-20 justify-center py-12">
           <AuthKitProvider config={authKitConfig}>
             <Card className="mx-auto min-w-96 max-w-96">
               <CardContent className="mt-6">
@@ -51,14 +51,14 @@ export default function Login() {
             </Card>
           </AuthKitProvider>
         </div>
-        <div className="hidden bg-foreground/90 dark:bg-muted/40 lg:flex h-full items-center">
+        <div className="hidden bg-foreground/90 dark:bg-muted/40 w-full lg:ml-auto lg:flex h-full place-self-end">
           <img
-            src="/images/hero.png"
+            src="/images/hero_new.png"
             alt="herocast-app-screenshot"
-            width="1920"
-            height="1080"
+            width="805"
+            height="848"
             style={{ objectPosition: 'left' }}
-            className="w-full object-cover dark:brightness-[0.8]"
+            className="h-full w-full object-cover dark:brightness-[0.8]"
           />
         </div>
       </div>
