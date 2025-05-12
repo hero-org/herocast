@@ -164,6 +164,7 @@ export const submitCast = async ({
   if (msg.isErr()) {
     throw msg.error;
   }
+  console.log('msg', msg);
   const messageBytes = Buffer.from(Message.encode(msg.value).finish());
 
   const response = await writeClient.apis.submitMessage.submitMessage({

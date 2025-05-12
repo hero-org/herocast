@@ -41,5 +41,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  unstable_allowDynamic: ['/node_modules/@protobufjs/inquire/index.js'],
+  unstable_allowDynamic: ['/node_modules/@protobufjs/inquire/index.js', '@frames.js/render/dist/next/index.js'],
 };

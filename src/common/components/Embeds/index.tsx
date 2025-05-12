@@ -41,8 +41,6 @@ const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
     return <NounsBuildEmbed url={url} />;
   } else if (url.includes('paragraph.xyz') || url.includes('pgrph.xyz')) {
     return <ParagraphXyzEmbed url={url} />;
-  } else if (!isImageUrl(url)) {
-    return <FrameEmbed url={url} />;
   } else {
     return null;
   }

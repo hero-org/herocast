@@ -44,7 +44,7 @@ async function submitMessage({
     headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
   });
   const writeClient = new HubRestAPIClient({
-    hubUrl: 'https://hub-api.neynar.com',
+    hubUrl: 'https://snapchain-api.neynar.com',
     axiosInstance,
   });
   const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
