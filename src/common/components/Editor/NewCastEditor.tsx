@@ -8,7 +8,8 @@ import { EmbedsEditor } from '@mod-protocol/react-ui-shadcn/dist/lib/embeds';
 
 import { ModManifest, fetchUrlMetadata, handleAddEmbed, handleOpenFile, handleSetInput } from '@mod-protocol/core';
 import { getFarcasterMentions } from '@mod-protocol/farcaster';
-import { createRenderMentionsSuggestionConfig } from '@mod-protocol/react-ui-shadcn/dist/lib/mentions';
+// import { createRenderMentionsSuggestionConfig } from '@mod-protocol/react-ui-shadcn/dist/lib/mentions';
+import { createFixedMentionsSuggestionConfig as createRenderMentionsSuggestionConfig } from '@/lib/mentions/fixedMentions';
 import { Button } from '@/components/ui/button';
 import { take } from 'lodash';
 import { ChannelPicker } from '../ChannelPicker';
@@ -98,7 +99,7 @@ export default function NewPostEntry({
           return account.status === 'active';
         }).length
     ) > 1;
-  const { allChannels } = useAccountStore();
+  const { isHydrated, allChannels } = useAccountStore();
   const isReply = draft?.parentCastId !== undefined;
 
   useEffect(() => {
@@ -126,6 +127,8 @@ export default function NewPostEntry({
   };
 
   const onSubmitPost = async (): Promise<boolean> => {
+    if (!isHydrated) return false;
+
     if (!draft?.text && !draft?.embeds?.length) return false;
 
     if (!validateScheduledDateTime(scheduleDateTime)) {
@@ -154,7 +157,7 @@ export default function NewPostEntry({
     return true;
   };
 
-  const ref = useHotkeys('meta+enter', onSubmitPost, [onSubmitPost, draft, account], {
+  const ref = useHotkeys('meta+enter', onSubmitPost, [onSubmitPost, draft, account, isHydrated], {
     enableOnFormTags: true,
   });
 

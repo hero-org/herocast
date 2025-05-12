@@ -15,6 +15,9 @@ type SelectableListWithHotkeysProps = {
   isActive?: boolean;
   onDown?: () => void;
   onUp?: () => void;
+  // New optional props for pinned navigation
+  pinnedNavigation?: boolean;
+  containerHeight?: string;
 };
 
 export const SelectableListWithHotkeys = ({
@@ -28,22 +31,26 @@ export const SelectableListWithHotkeys = ({
   onDown,
   onUp,
   isActive = true,
+  // Default to false for backward compatibility
+  pinnedNavigation = false,
+  containerHeight = '80vh',
 }: SelectableListWithHotkeysProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 100,
   });
 
-  const scollToRef = useRef();
+  const scrollToRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   // scroll to selected cast when selectedCastIdx changes
   useEffect(() => {
-    if (!disableScroll && scollToRef.current) {
-      (scollToRef.current as HTMLElement).scrollIntoView({
+    if (!disableScroll && scrollToRef.current) {
+      scrollToRef.current.scrollIntoView({
         behavior: 'auto',
         block: 'start',
       });
     }
-  }, [selectedIdx]);
+  }, [selectedIdx, pinnedNavigation]);
 
   useHotkeys(
     ['o', Key.Enter],
@@ -101,13 +108,14 @@ export const SelectableListWithHotkeys = ({
 
   if (isEmpty(data)) return null;
 
-  return (
+  // Create the list content
+  const content = (
     <ul role="list" className="">
       {data.map((item: any, idx: number) => {
         return item ? (
           <div
             key={`row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`}
-            ref={selectedIdx === idx + 1 ? scollToRef : null}
+            ref={selectedIdx === idx ? scrollToRef : null}
           >
             {renderRow(item, idx)}
           </div>
@@ -116,4 +124,15 @@ export const SelectableListWithHotkeys = ({
       <li ref={ref} className="" />
     </ul>
   );
+
+  // Return either a scrollable container or the direct list based on pinnedNavigation setting
+  return pinnedNavigation ? (
+    <div 
+      ref={containerRef} 
+      className="overflow-y-auto" 
+      style={{ height: containerHeight }}
+    >
+      {content}
+    </div>
+  ) : content;
 };

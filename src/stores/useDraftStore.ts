@@ -301,6 +301,7 @@ const store = (set: StoreSet) => ({
         });
         const castBody = await prepareCastBody(draft);
         console.log('castBody', castBody);
+        console.log('account', account);
         const hash = await submitCast({
           ...castBody,
           signerPrivateKey: account.privateKey!,
@@ -318,7 +319,7 @@ const store = (set: StoreSet) => ({
 
         if (onPost) onPost();
       } catch (error) {
-        console.error('caught error in newPostStore', error);
+        console.error('caught error in useDraftStore', error);
         toastErrorCastPublish(error instanceof Error ? error.message : String(error));
       }
     });

@@ -136,7 +136,7 @@ export const submitCast = async ({
   // https://github.com/standard-crypto/farcaster-js/blob/be57dedec70ebadbb55118d3a64143457102adb4/packages/farcaster-js-hub-rest/src/hubRestApiClient.ts#L173
 
   const dataOptions = getDataOptions(fid);
-  const castAdd: CastAddBody = {
+  let castAdd: CastAddBody = {
     text,
     embeds: embeds ?? [],
     embedsDeprecated: [],
@@ -160,10 +160,14 @@ export const submitCast = async ({
       }
     );
   }
+  castAdd = {
+    text: 'hihi test',
+  };
   const msg = await makeCastAdd(castAdd, dataOptions, new NobleEd25519Signer(toBytes(signerPrivateKey)));
   if (msg.isErr()) {
     throw msg.error;
   }
+  console.log('msg', msg);
   const messageBytes = Buffer.from(Message.encode(msg.value).finish());
 
   const response = await writeClient.apis.submitMessage.submitMessage({
