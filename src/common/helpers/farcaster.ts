@@ -160,9 +160,6 @@ export const submitCast = async ({
       }
     );
   }
-  castAdd = {
-    text: 'hihi test',
-  };
   const msg = await makeCastAdd(castAdd, dataOptions, new NobleEd25519Signer(toBytes(signerPrivateKey)));
   if (msg.isErr()) {
     throw msg.error;

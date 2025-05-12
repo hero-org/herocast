@@ -127,12 +127,10 @@ export const SelectableListWithHotkeys = ({
 
   // Return either a scrollable container or the direct list based on pinnedNavigation setting
   return pinnedNavigation ? (
-    <div 
-      ref={containerRef} 
-      className="overflow-y-auto" 
-      style={{ height: containerHeight }}
-    >
+    <div ref={containerRef} className="overflow-y-auto" style={{ height: containerHeight }}>
       {content}
     </div>
-  ) : content;
+  ) : (
+    content
+  );
 };
