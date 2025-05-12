@@ -136,7 +136,7 @@ export const submitCast = async ({
   // https://github.com/standard-crypto/farcaster-js/blob/be57dedec70ebadbb55118d3a64143457102adb4/packages/farcaster-js-hub-rest/src/hubRestApiClient.ts#L173
 
   const dataOptions = getDataOptions(fid);
-  let castAdd: CastAddBody = {
+  const castAdd: CastAddBody = {
     text,
     embeds: embeds ?? [],
     embedsDeprecated: [],
