@@ -298,6 +298,37 @@ export default function NewPost() {
       </>
     );
   };
+  
+  const renderScheduledList = () => {
+    if (draftsForTab.length === 0) {
+      return (
+        <EmptyStateWithAction
+          title={activeTab === DraftListTab.scheduled ? "No scheduled drafts" : "No published drafts"}
+          description={
+            activeTab === DraftListTab.scheduled
+              ? "Schedule your drafts to be published at a specific time."
+              : "Your published drafts will appear here."
+          }
+          submitText="New draft"
+          onClick={handleNewDraft}
+          hideButton={activeTab === DraftListTab.published}
+        />
+      );
+    }
+
+    return renderScrollableList(
+      <DraftList
+        drafts={draftsForTab}
+        selectedIdx={selectedDraftIndex}
+        setSelectedIdx={setSelectedDraftIndex}
+        setSelectedDraftId={setSelectedDraftId}
+        onRemove={onRemove}
+        isActive={true}
+        getChannelForParentUrl={getChannelForParentUrl}
+        allChannels={allChannels}
+      />
+    );
+  };
   const renderFreePlanCard = () => {
     const scheduledCastLimit = getPlanLimitsForPlan('openSource').maxScheduledCasts;
     if (scheduledCastsCount < scheduledCastLimit) return null;
