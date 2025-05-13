@@ -16,13 +16,7 @@ type DraftListItemProps = {
   channel?: ChannelType;
 };
 
-const DraftListItem: React.FC<DraftListItemProps> = ({ 
-  draft, 
-  isSelected, 
-  onSelect, 
-  onRemove,
-  channel
-}) => {
+const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSelect, onRemove, channel }) => {
   return (
     <div
       className={cn(
@@ -56,8 +50,8 @@ const DraftListItem: React.FC<DraftListItemProps> = ({
           {draft.status === DraftStatus.scheduled
             ? `Scheduled for ${getUserLocaleDateFromIsoString(draft.scheduledFor)}`
             : draft.status === DraftStatus.published
-            ? `Published ${formatDistanceToNow(new Date(draft.publishedAt), { addSuffix: true })}`
-            : `Last edited ${formatDistanceToNow(new Date(draft.updatedAt || draft.createdAt), { addSuffix: true })}`}
+              ? `Published ${formatDistanceToNow(new Date(draft.publishedAt), { addSuffix: true })}`
+              : `Last edited ${formatDistanceToNow(new Date(draft.updatedAt || draft.createdAt), { addSuffix: true })}`}
         </span>
       </div>
       {channel && (

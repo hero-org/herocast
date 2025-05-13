@@ -39,7 +39,7 @@ const DraftList: React.FC<DraftListProps> = ({
           channels: allChannels,
           parentUrl: draft.parentUrl,
         });
-        
+
         return (
           <DraftListItem
             key={draft.id}

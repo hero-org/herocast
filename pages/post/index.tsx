@@ -182,7 +182,11 @@ export default function NewPost() {
   };
 
   const renderNewDraftButton = () => (
-    <Button variant="outline" className="flex items-center gap-2 hover:bg-muted/80 transition-colors" onClick={handleNewDraft}>
+    <Button
+      variant="outline"
+      className="flex items-center gap-2 hover:bg-muted/80 transition-colors"
+      onClick={handleNewDraft}
+    >
       <PencilSquareIcon className="w-5 h-5" />
       <span>New draft</span>
     </Button>
@@ -281,7 +285,10 @@ export default function NewPost() {
   );
 
   const renderScrollableList = (children: React.ReactElement) => (
-    <ScrollArea className="flex-1 overflow-y-auto" style={{ maxHeight: isBelowXLScreen ? '350px' : 'calc(100vh - 200px)' }}>
+    <ScrollArea
+      className="flex-1 overflow-y-auto"
+      style={{ maxHeight: isBelowXLScreen ? '350px' : 'calc(100vh - 200px)' }}
+    >
       <div className="flex flex-col gap-2 pt-0 pb-4">{children}</div>
     </ScrollArea>
   );
@@ -307,16 +314,16 @@ export default function NewPost() {
       </>
     );
   };
-  
+
   const renderScheduledList = () => {
     if (draftsForTab.length === 0) {
       return (
         <EmptyStateWithAction
-          title={activeTab === DraftListTab.scheduled ? "No scheduled drafts" : "No published drafts"}
+          title={activeTab === DraftListTab.scheduled ? 'No scheduled drafts' : 'No published drafts'}
           description={
             activeTab === DraftListTab.scheduled
-              ? "Schedule your drafts to be published at a specific time."
-              : "Your published drafts will appear here."
+              ? 'Schedule your drafts to be published at a specific time.'
+              : 'Your published drafts will appear here.'
           }
           submitText="New draft"
           onClick={handleNewDraft}
