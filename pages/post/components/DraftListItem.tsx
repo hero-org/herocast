@@ -26,7 +26,7 @@ const DraftListItem: React.FC<DraftListItemProps> = ({
   return (
     <div
       className={cn(
-        'flex flex-col gap-1 p-2 rounded-md cursor-pointer border',
+        'flex flex-col gap-1 p-3 rounded-md cursor-pointer border transition-colors',
         isSelected ? 'bg-muted border-primary' : 'hover:bg-muted/50 border-transparent'
       )}
       onClick={() => onSelect(draft.id)}

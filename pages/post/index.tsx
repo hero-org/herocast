@@ -127,10 +127,9 @@ export default function NewPost() {
       if (text) {
         addNewPostDraft({ text });
       }
-    } else if (drafts.length === 0) {
-      addNewPostDraft({});
     }
-  }, [searchParams, drafts.length, addNewPostDraft]);
+    // Removed automatic draft creation when drafts.length === 0
+  }, [searchParams, addNewPostDraft]);
 
   useEffect(() => {
     if (savedPathname.current !== pathname && drafts.length > 0) {
@@ -183,16 +182,26 @@ export default function NewPost() {
   };
 
   const renderNewDraftButton = () => (
-    <Button variant="outline" className="flex items-center gap-2" onClick={handleNewDraft}>
+    <Button variant="outline" className="flex items-center gap-2 hover:bg-muted/80 transition-colors" onClick={handleNewDraft}>
       <PencilSquareIcon className="w-5 h-5" />
       <span>New draft</span>
     </Button>
   );
 
   const renderEmptyMainContent = () => (
-    <div className="pt-2 pb-6 w-full min-h-[150px]">
-      <div className="content-center px-2 py-1 rounded-lg w-full h-full min-h-[150px] border border-muted-foreground/20">
-        {renderNewDraftButton()}
+    <div className="flex flex-col items-center justify-center pt-2 pb-6 w-full h-full min-h-[400px]">
+      <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-lg w-full max-w-[500px] border border-muted">
+        <div className="flex flex-col items-center text-center gap-2">
+          <PencilSquareIcon className="w-12 h-12 text-muted-foreground/50" />
+          <h2 className="text-xl font-semibold">Create a new draft</h2>
+          <p className="text-muted-foreground max-w-[350px]">
+            Start writing your thoughts, schedule posts for later, or reply to conversations.
+          </p>
+        </div>
+        <Button className="mt-2" onClick={handleNewDraft}>
+          <PencilSquareIcon className="w-5 h-5 mr-2" />
+          New draft
+        </Button>
       </div>
     </div>
   );
@@ -386,10 +395,11 @@ export default function NewPost() {
 
   return (
     //two colums on XL screen and above, one column on screens below xl, because at this breakpoints, the dratft components becomes a modal
-    <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] h-screen w-full">
+    <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] h-screen w-full">
       {/* Only render this on the side on xl screens */}
       {!isBelowXLScreen && (
-        <div className="w-full overflow-y-auto p-4">
+        <div className="w-full overflow-y-auto p-4 border-r">
+          <h2 className="text-xl font-semibold mb-4">Drafts</h2>
           <div className="space-y-4">
             <Tabs
               defaultValue="drafts"
@@ -422,7 +432,7 @@ export default function NewPost() {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto px-4 py-0">{renderContent()}</div>
+        <div className="flex-1 overflow-y-auto px-4 py-0 flex flex-col">{renderContent()}</div>
       </div>
       {/* The drafts modal should only be rendered on screens below XL */}
       {isBelowXLScreen && renderDraftsModal()}
