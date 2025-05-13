@@ -2,7 +2,7 @@ import NewPostEntry from '@/common/components/Editor/NewCastEditor';
 import { useDraftStore } from '@/stores/useDraftStore';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { ClockIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import { PencilSquareIcon } from '@heroicons/react/20/solid';
+import { CheckIcon, PencilSquareIcon } from '@heroicons/react/20/solid';
 import { Button } from '@/components/ui/button';
 import { CastRow } from '@/common/components/CastRow';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
@@ -20,6 +20,7 @@ import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date'
 import { ChannelType } from '@/common/constants/channels';
 import { UUID } from 'crypto';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import EmptyStateWithAction from '@/common/components/EmptyStateWithAction';
 import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
@@ -90,9 +91,35 @@ export default function NewPost() {
     () => getDraftsForTab(drafts, DraftListTab.scheduled).length,
     [drafts, selectedAccount?.id]
   );
-  const [selectedDraftId, setSelectedDraftId] = useState(draftsForTab[0]?.id);
-
+  const [selectedDraftId, setSelectedDraftId] = useState<string | undefined>(draftsForTab[0]?.id);
+  const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
   const resetSelectedDraftId = () => {
+    // Keep selectedIndex in sync with selectedDraftId
+    useEffect(() => {
+      if (draftsForTab.length > 0 && selectedDraftId) {
+        const index = draftsForTab.findIndex((draft) => draft.id === selectedDraftId);
+        if (index !== -1) {
+          setSelectedDraftIndex(index);
+        } else if (draftsForTab.length > 0) {
+          // If selected draft is not in current tab, reset to first item
+          setSelectedDraftIndex(0);
+          setSelectedDraftId(draftsForTab[0]?.id);
+        }
+      }
+    }, [draftsForTab, selectedDraftId, activeTab]);
+    // Keep selectedIndex in sync with selectedDraftId
+    useEffect(() => {
+      if (draftsForTab.length > 0 && selectedDraftId) {
+        const index = draftsForTab.findIndex((draft) => draft.id === selectedDraftId);
+        if (index !== -1) {
+          setSelectedDraftIndex(index);
+        } else if (draftsForTab.length > 0) {
+          // If selected draft is not in current tab, reset to first item
+          setSelectedDraftIndex(0);
+          setSelectedDraftId(draftsForTab[0]?.id);
+        }
+      }
+    }, [draftsForTab, selectedDraftId, activeTab]);
     setSelectedDraftId(draftsForTab[0]?.id);
   };
 
@@ -101,7 +128,7 @@ export default function NewPost() {
     if (!isBelowXLScreen && isDraftsModalOpen) {
       closeDraftsModal();
     }
-  }, [isBelowXLScreen, isDraftsModalOpen]);
+  }, [isBelowXLScreen, isDraftsModalOpen, closeDraftsModal]);
 
   useEffect(() => {
     if (searchParams.has('text')) {
@@ -113,46 +140,74 @@ export default function NewPost() {
     } else if (drafts.length === 0) {
       addNewPostDraft({});
     }
-  }, [searchParams]);
+  }, [searchParams, drafts.length, addNewPostDraft]);
 
   useEffect(() => {
     if (savedPathname.current !== pathname && drafts.length > 0) {
       removeEmptyDrafts();
     }
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, drafts.length, removeEmptyDrafts]);
 
   useEffect(() => {
     // when drafts change, we want to make sure that selectedDraftId is always a valid draft id
     if (!draftsForTab.find((draft) => draft.id === selectedDraftId) && draftsForTab.length > 0) {
       setSelectedDraftId(draftsForTab[0]?.id);
     }
-  }, [draftsForTab]);
+  }, [draftsForTab, selectedDraftId]);
 
   useEffect(() => {
-    const parentCastIds = drafts.map((draft) => draft?.parentCastId?.hash).filter(Boolean) as unknown as string[];
+    const parentCastIds = drafts.map((draft) => draft?.parentCastId?.hash).filter(Boolean) as string[];
 
     const fetchParentCasts = async () => {
       const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
         viewerFid: Number(selectedAccount?.platformAccountId),
       });
-      setParentCasts(res?.result?.casts);
+      setParentCasts(res?.result?.casts || []);
     };
-    if (parentCastIds.length) {
+    if (parentCastIds.length > 0) {
       fetchParentCasts();
     }
-  }, [drafts]);
+  }, [drafts, selectedAccount?.platformAccountId]);
+
+  const renderContent = () => {
+    const draft = draftsForTab.find((draft) => draft.id === selectedDraftId);
+    switch (activeTab) {
+      case DraftListTab.writing:
+        return renderWritingDraft(draft);
+      case DraftListTab.scheduled:
+      case DraftListTab.published:
+        return renderScheduledDraft(draft);
+      default:
+        return null;
+    }
+  };
 
   const handleNewDraft = () => {
     addNewPostDraft({});
     setActiveTab(DraftListTab.writing);
   };
-  const onRemove = (draft) => {
+
+  const onRemove = (draft: DraftType) => {
     removePostDraftById(draft.id);
   };
 
+  const renderNewDraftButton = () => (
+    <Button variant="outline" className="flex items-center gap-2" onClick={handleNewDraft}>
+      <PencilSquareIcon className="w-5 h-5" />
+      <span>New draft</span>
+    </Button>
+  );
 
-  const renderWritingDraft = (draft) => {
+  const renderEmptyMainContent = () => (
+    <div className="pt-2 pb-6 w-full min-h-[150px]">
+      <div className="content-center px-2 py-1 rounded-lg w-full h-full min-h-[150px] border border-muted-foreground/20">
+        {renderNewDraftButton()}
+      </div>
+    </div>
+  );
+
+  const renderWritingDraft = (draft?: DraftType) => {
     if (!draft) return renderEmptyMainContent();
 
     const parentCast = parentCasts.find((cast) => cast.hash === draft.parentCastId?.hash);
@@ -168,7 +223,7 @@ export default function NewPost() {
     );
   };
 
-  const renderScheduledDraft = (draft) => {
+  const renderScheduledDraft = (draft?: DraftType) => {
     if (!draft) return renderEmptyMainContent();
 
     const channel = getChannelForParentUrl({
@@ -203,86 +258,11 @@ export default function NewPost() {
         </div>
         {hasEmbeds && (
           <div className="mt-8 rounded-md bg-muted p-2 w-full break-all">
-            {map(draft.embeds, (embed) => (
+            {map(draft.embeds, (embed: any) => (
               <div key={`cast-embed-${embed.url || embed.hash}`}>{renderEmbedForUrl(embed)}</div>
             ))}
           </div>
         )}
-      </div>
-    );
-  };
-
-  const renderDraftListPreview = (draft) => {
-    const channel = getChannelForParentUrl({
-      channels: allChannels,
-      parentUrl: draft.parentUrl,
-    });
-    return (
-      <div
-        key={draft?.id || draft?.createdAt}
-        className={cn(
-          'flex flex-col max-w-full items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent cursor-pointer',
-          draft.id === selectedDraftId && 'bg-muted'
-        )}
-        onClick={() => {
-          setSelectedDraftId(draft.id);
-          if (isDraftsModalOpen) {
-            closeDraftsModal();
-          }
-        }}
-      >
-        <div
-          className={cn(
-            'line-clamp-2 text-xs break-all',
-            draft.id === selectedDraftId ? 'text-foreground' : 'text-muted-foreground'
-          )}
-        >
-          {draft.text ? draft.text.substring(0, 300) : 'New cast'}
-        </div>
-        <div className="flex w-full flex-col gap-1">
-          <div className="flex items-center gap-2">
-            {draft?.embeds?.length ? (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{localize(draft.embeds.length, ' embed')}</Badge>
-              </div>
-            ) : null}
-            {channel && (
-              <span className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
-                {channel.name}
-              </span>
-            )}
-            <div
-              className={cn(
-                'ml-auto text-xs',
-                draft.id === selectedDraftId ? 'text-foreground' : 'text-muted-foreground'
-              )}
-            >
-              {draft.status === DraftStatus.writing &&
-                draft.createdAt &&
-                formatDistanceToNow(new Date(draft.createdAt), {
-                  addSuffix: true,
-                })}
-            </div>
-            <Button
-              className="py-0.5 px-1 hover:bg-muted-foreground/20"
-              size="sm"
-              variant="outline"
-              onClick={() => onRemove(draft)}
-            >
-              <TrashIcon className="w-4 h-4" />
-            </Button>
-          </div>
-          <div className="text-xs font-medium">
-            {draft.scheduledFor && (
-              <div className="flex items-center gap-2">
-                <ClockIcon className="w-4 h-4" />
-                <span className="text-xs text-muted-foreground">
-                  Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor, 'short', 'short')}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     );
   };
@@ -302,59 +282,32 @@ export default function NewPost() {
   );
 
   const renderScrollableList = (children: React.ReactElement) => (
-    <ScrollArea className="flex-1">
-      <div className="flex flex-col gap-2 pt-0">{children}</div>
+    <ScrollArea className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+      <div className="flex flex-col gap-2 pt-0 pb-4">{children}</div>
     </ScrollArea>
   );
 
-  const renderNewDraftButton = () => (
-    <Button
-      size="sm"
-      variant="outline"
-      className="flex items-center gap-2 mx-auto"
-      onClick={() => {
-        setActiveTab(DraftListTab.writing);
-        addNewPostDraft({});
-      }}
-    >
-      <PencilSquareIcon className="w-5 h-5" />
-      <span>New draft</span>
-    </Button>
-  );
-
   const renderDraftList = () => {
-    return renderScrollableList(
-      <>
-        <div className="flex flex-col gap-2 p-2 pt-0">{draftsForTab.map(renderDraftListPreview)}</div>
-        <div className="mt-4">{renderNewDraftButton()}</div>
-      </>
-    );
-  };
-
-  const renderScheduledList = () => {
-    return renderScrollableList(
-      <>
-        {draftsForTab.length === 0 && (
-          <Button
-            variant="outline"
-            className="flex items-center gap-2"
-            onClick={() => {
-              addNewPostDraft({});
-              setActiveTab(DraftListTab.writing);
-            }}
-          >
-            <PencilSquareIcon className="w-5 h-5" />
-            <span>New draft</span>
-          </Button>
-        )}
-        <div className="flex flex-col gap-2 p-2 pt-0">{draftsForTab.map(renderDraftListPreview)}</div>
-      </>
-    );
-  };
-
+    if (draftsForTab.length === 0) {
+      return renderScrollableList(<div className="flex justify-center py-4">{renderNewDraftButton()}</div>);
     }
-  };
 
+    return renderScrollableList(
+      <>
+        <SelectableListWithHotkeys
+          data={draftsForTab}
+          selectedIdx={selectedDraftIndex}
+          setSelectedIdx={(idx) => {
+            setSelectedDraftIndex(idx);
+            setSelectedDraftId(draftsForTab[idx]?.id);
+          }}
+          renderRow={(draft, idx) => renderDraftListPreview(draft, idx === selectedDraftIndex)}
+          isActive={activeTab === DraftListTab.writing}
+        />
+        <div className="mt-4 flex justify-center">{renderNewDraftButton()}</div>
+      </>
+    );
+  };
   const renderFreePlanCard = () => {
     const scheduledCastLimit = getPlanLimitsForPlan('openSource').maxScheduledCasts;
     if (scheduledCastsCount < scheduledCastLimit) return null;
@@ -441,7 +394,7 @@ export default function NewPost() {
         {/* This triggers the drafts modal. Should only be rendered on screens below XL */}
         {isBelowXLScreen && (
           <div className="p-4 pb-0 block xl:hidden">
-            <Button variant="outline" className="ml-auto inline-flex items-center gap-2" onClick={openDraftsModal}>
+            <Button className="ml-auto inline-flex items-center gap-2" onClick={openDraftsModal}>
               <PencilSquareIcon className="w-5 h-5" />
               <span>Drafts</span>
             </Button>
