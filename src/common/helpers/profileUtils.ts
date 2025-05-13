@@ -45,7 +45,7 @@ export const getProfileFetchIfNeeded = async ({
 }: {
   username?: string;
   viewerFid: string;
-  fid?: string;
+  fid?: string | number;
 }) => {
   if (!username && !fid) {
     return;

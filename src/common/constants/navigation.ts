@@ -5,12 +5,3 @@ export const enum RIGHT_SIDEBAR_ENUM {
   NONE = 'none',
   SEARCH = 'search',
 }
-
-export const enum MAIN_NAVIGATION_ENUM {
-  LOGIN = 'login',
-  ACCOUNTS = 'accounts',
-  FEEDS = 'feeds',
-  SEARCH = 'search',
-  NEW_POST = 'post',
-  SETTINGS = 'settings',
-}

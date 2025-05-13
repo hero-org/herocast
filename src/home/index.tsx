@@ -7,7 +7,7 @@ import {
   BellIcon,
   MagnifyingGlassIcon,
   NewspaperIcon,
-  RectangleGroupIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/solid';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
@@ -228,6 +228,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             },
           ],
           icon: <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+        },
+        {
+          name: 'Lists',
+          router: '/list',
+          icon: <UserGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: 'Shift + L',
         },
         {
           name: 'Search',

@@ -24,10 +24,11 @@ import CreateAccountPage from 'pages/welcome/new';
 import { AccountStatusType } from '@/common/constants/accounts';
 import { createClient } from '@/common/helpers/supabase/component';
 import includes from 'lodash.includes';
-import { useListStore } from '@/stores/useListStore';
+import { useListStore, isFidList } from '@/stores/useListStore';
 import { getCastsFromSearch, SearchFilters } from '@/common/helpers/search';
 import { Interval } from '@/common/types/types';
 import { orderBy } from 'lodash';
+import { FidListContent, isFidListContent } from '@/common/types/list.types';
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -290,24 +291,43 @@ export default function Feeds() {
         if (!selectedList) {
           throw new Error('Selected list not found');
         }
-        const { term } = selectedList.contents as { term: string };
-        let { filters } = selectedList.contents as { filters: SearchFilters };
-        if (!filters) {
-          filters = {
-            onlyPowerBadge: false,
-            hideReplies: true,
-          };
-        }
-        filters.interval = cursor ? Interval.d14 : Interval.d7;
-        filters.hideReplies = true;
 
-        newFeed = await getCastsFromSearch({
-          term,
-          filters,
-          viewerFid: fid,
-          limit: DEFAULT_FEED_PAGE_SIZE,
-          offset: Number(cursor) || 0,
-        });
+        // Handle FID lists differently from search lists
+        if (selectedList.type === 'fids') {
+          // Use our custom API endpoint for FID lists
+          const response = await fetch(
+            `/api/lists?listId=${selectedListId}&viewerFid=${fid}&limit=${DEFAULT_FEED_PAGE_SIZE}${cursor ? `&cursor=${cursor}` : ''}`
+          );
+          if (!response.ok) {
+            throw new Error('Failed to fetch feed from list');
+          }
+
+          const data = await response.json();
+          newFeed = {
+            casts: data.casts,
+            next: data.next ? { cursor: data.next } : undefined,
+          };
+        } else {
+          // Handle search lists as before
+          const { term } = selectedList.contents as { term: string };
+          let { filters } = selectedList.contents as { filters: SearchFilters };
+          if (!filters) {
+            filters = {
+              onlyPowerBadge: false,
+              hideReplies: true,
+            };
+          }
+          filters.interval = cursor ? Interval.d14 : Interval.d7;
+          filters.hideReplies = true;
+
+          newFeed = await getCastsFromSearch({
+            term,
+            filters,
+            viewerFid: fid,
+            limit: DEFAULT_FEED_PAGE_SIZE,
+            offset: Number(cursor) || 0,
+          });
+        }
       } else if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
         newFeed = await neynarClient.fetchUserFollowingFeed(Number(fid), feedOptions);
       } else if (parentUrl === CUSTOM_CHANNELS.TRENDING) {
@@ -465,6 +485,25 @@ export default function Feeds() {
     ) {
       return <CreateAccountPage />;
     }
+
+    // Get list details if we're viewing a list
+    const getListDetails = () => {
+      if (!selectedListId) return null;
+
+      const selectedList = lists.find((list) => list.id === selectedListId);
+      if (!selectedList) return null;
+
+      if (selectedList.type === 'fids') {
+        const fidListContent = selectedList.contents as FidListContent;
+        return `FID List: ${selectedList.name} (${fidListContent.fids?.length || 0} accounts)`;
+      } else {
+        const { term } = selectedList.contents as { term: string };
+        return `Search: "${term}"`;
+      }
+    };
+
+    const listDetails = getListDetails();
+
     return (
       casts.length === 0 &&
       isHydrated &&
@@ -472,11 +511,13 @@ export default function Feeds() {
         <Card className="max-w-sm col-span-1 m-4">
           <CardHeader>
             <CardTitle>Feed is empty</CardTitle>
-            <CardDescription>Seems like there is nothing to see here.</CardDescription>
+            <CardDescription>
+              {listDetails ? `No results found for ${listDetails}` : 'Seems like there is nothing to see here.'}
+            </CardDescription>
           </CardHeader>
-          <CardFooter>
+          <CardFooter className="flex gap-2">
             <Button
-              className="w-1/2"
+              className="flex-1"
               disabled={isRefreshingPage}
               onClick={async () => {
                 setIsRefreshingPage(true);
@@ -490,6 +531,17 @@ export default function Feeds() {
               }}
             >
               Refresh
+            </Button>
+            <Button
+              className="flex-1"
+              variant="outline"
+              onClick={() => {
+                // Navigate to trending feed
+                useAccountStore.setState({ selectedChannelUrl: CUSTOM_CHANNELS.TRENDING });
+                setSelectedListId(undefined);
+              }}
+            >
+              Go to Trending
             </Button>
           </CardFooter>
         </Card>
