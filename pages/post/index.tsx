@@ -425,10 +425,13 @@ export default function NewPost() {
         {/* This triggers the drafts modal. Should only be rendered on screens below XL */}
         {isBelowXLScreen && (
           <div className="p-4 pb-0 block xl:hidden">
-            <Button className="ml-auto inline-flex items-center gap-2" onClick={openDraftsModal}>
-              <PencilSquareIcon className="w-5 h-5" />
-              <span>Drafts</span>
-            </Button>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Posts</h2>
+              <Button className="inline-flex items-center gap-2" onClick={openDraftsModal}>
+                <PencilSquareIcon className="w-5 h-5" />
+                <span>Drafts</span>
+              </Button>
+            </div>
           </div>
         )}
 
