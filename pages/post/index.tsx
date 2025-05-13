@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
 import DraftListItem from './components/DraftListItem';
+import DraftList from './components/DraftList';
 import { Button } from '@/components/ui/button';
 import { CastRow } from '@/common/components/CastRow';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
@@ -283,31 +284,15 @@ export default function NewPost() {
 
     return renderScrollableList(
       <>
-        <SelectableListWithHotkeys
-          data={draftsForTab}
+        <DraftList
+          drafts={draftsForTab}
           selectedIdx={selectedDraftIndex}
-          setSelectedIdx={(idx) => {
-            setSelectedDraftIndex(idx);
-            setSelectedDraftId(draftsForTab[idx]?.id);
-          }}
-          renderRow={(draft, idx) => {
-            const channel = getChannelForParentUrl({
-              channels: allChannels,
-              parentUrl: draft.parentUrl,
-            });
-            
-            return (
-              <DraftListItem
-                key={draft.id}
-                draft={draft}
-                isSelected={idx === selectedDraftIndex}
-                onSelect={setSelectedDraftId}
-                onRemove={onRemove}
-                channel={channel}
-              />
-            );
-          }}
+          setSelectedIdx={setSelectedDraftIndex}
+          setSelectedDraftId={setSelectedDraftId}
+          onRemove={onRemove}
           isActive={activeTab === DraftListTab.writing}
+          getChannelForParentUrl={getChannelForParentUrl}
+          allChannels={allChannels}
         />
         <div className="mt-4 flex justify-center">{renderNewDraftButton()}</div>
       </>
@@ -350,11 +335,11 @@ export default function NewPost() {
                       </TabsList>
                     </div>
                   </div>
-                  <TabsContent value={DraftListTab.writing}>
+                  <TabsContent value={DraftListTab.writing} className="overflow-hidden">
                     {renderFreePlanCard()}
                     {renderDraftList()}
                   </TabsContent>
-                  <TabsContent value={DraftListTab.scheduled}>
+                  <TabsContent value={DraftListTab.scheduled} className="overflow-hidden">
                     {renderFreePlanCard()}
                     {renderScheduledList()}
                   </TabsContent>
