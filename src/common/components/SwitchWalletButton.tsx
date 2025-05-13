@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit';
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { cn } from '@/lib/utils';
 
 type SwitchWalletButtonProps = {
@@ -10,7 +10,6 @@ type SwitchWalletButtonProps = {
 };
 
 const SwitchWalletButton = ({ className }: SwitchWalletButtonProps) => {
-  const { disconnect } = useDisconnect();
   const { openConnectModal } = useConnectModal();
   const { openAccountModal } = useAccountModal();
 
@@ -23,12 +22,6 @@ const SwitchWalletButton = ({ className }: SwitchWalletButtonProps) => {
 
   return (
     <div className={cn('flex flex-col', className)}>
-      {isClient && isConnected && (
-        <Button variant="outline" className="border-red-700" onClick={() => disconnect()}>
-          Disconnect
-        </Button>
-      )}
-
       <Button
         type="button"
         variant="outline"
