@@ -82,10 +82,10 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
       <div>
         {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}
-        {showFeeds && <ChannelsOverview />}
         {showLists && renderWithSeparator(<ListsOverview />)}
         {showManageLists && renderWithSeparator(<ManageListsOverview />, showFeeds || showLists)}
         {showSearches && <SearchesOverview />}
+        {showFeeds && <ChannelsOverview />}
       </div>
     </aside>
   );
