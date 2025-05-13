@@ -243,7 +243,7 @@ export default function ListPage() {
     if (fidLists.length === 0) {
       return (
         <div className="text-center p-4">
-          <p className="text-muted-foreground mb-4">You don't have any lists yet.</p>
+          <p className="text-muted-foreground mb-4">You don&apos;t have any lists yet.</p>
           <Button onClick={() => setIsCreatingList(true)}>Create your first list</Button>
         </div>
       );
