@@ -1,8 +1,9 @@
 import NewPostEntry from '@/common/components/Editor/NewCastEditor';
 import { useDraftStore } from '@/stores/useDraftStore';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { ClockIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import { CheckIcon, PencilSquareIcon } from '@heroicons/react/20/solid';
+import { ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon } from '@heroicons/react/20/solid';
+import DraftListItem from './components/DraftListItem';
 import { Button } from '@/components/ui/button';
 import { CastRow } from '@/common/components/CastRow';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
@@ -94,34 +95,22 @@ export default function NewPost() {
   const [selectedDraftId, setSelectedDraftId] = useState<string | undefined>(draftsForTab[0]?.id);
   const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
   const resetSelectedDraftId = () => {
-    // Keep selectedIndex in sync with selectedDraftId
-    useEffect(() => {
-      if (draftsForTab.length > 0 && selectedDraftId) {
-        const index = draftsForTab.findIndex((draft) => draft.id === selectedDraftId);
-        if (index !== -1) {
-          setSelectedDraftIndex(index);
-        } else if (draftsForTab.length > 0) {
-          // If selected draft is not in current tab, reset to first item
-          setSelectedDraftIndex(0);
-          setSelectedDraftId(draftsForTab[0]?.id);
-        }
-      }
-    }, [draftsForTab, selectedDraftId, activeTab]);
-    // Keep selectedIndex in sync with selectedDraftId
-    useEffect(() => {
-      if (draftsForTab.length > 0 && selectedDraftId) {
-        const index = draftsForTab.findIndex((draft) => draft.id === selectedDraftId);
-        if (index !== -1) {
-          setSelectedDraftIndex(index);
-        } else if (draftsForTab.length > 0) {
-          // If selected draft is not in current tab, reset to first item
-          setSelectedDraftIndex(0);
-          setSelectedDraftId(draftsForTab[0]?.id);
-        }
-      }
-    }, [draftsForTab, selectedDraftId, activeTab]);
     setSelectedDraftId(draftsForTab[0]?.id);
   };
+
+  // Keep selectedIndex in sync with selectedDraftId
+  useEffect(() => {
+    if (draftsForTab.length > 0 && selectedDraftId) {
+      const index = draftsForTab.findIndex((draft) => draft.id === selectedDraftId);
+      if (index !== -1) {
+        setSelectedDraftIndex(index);
+      } else if (draftsForTab.length > 0) {
+        // If selected draft is not in current tab, reset to first item
+        setSelectedDraftIndex(0);
+        setSelectedDraftId(draftsForTab[0]?.id);
+      }
+    }
+  }, [draftsForTab, selectedDraftId, activeTab]);
 
   useEffect(() => {
     // if the modal is opened, and the screen is resized to XL (>=1280px), close the modal. This will prevent the modal from automatically opening when the screen back to <1280px
@@ -282,7 +271,7 @@ export default function NewPost() {
   );
 
   const renderScrollableList = (children: React.ReactElement) => (
-    <ScrollArea className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+    <ScrollArea className="flex-1 overflow-y-auto" style={{ maxHeight: isBelowXLScreen ? '350px' : 'calc(100vh - 200px)' }}>
       <div className="flex flex-col gap-2 pt-0 pb-4">{children}</div>
     </ScrollArea>
   );
@@ -301,7 +290,23 @@ export default function NewPost() {
             setSelectedDraftIndex(idx);
             setSelectedDraftId(draftsForTab[idx]?.id);
           }}
-          renderRow={(draft, idx) => renderDraftListPreview(draft, idx === selectedDraftIndex)}
+          renderRow={(draft, idx) => {
+            const channel = getChannelForParentUrl({
+              channels: allChannels,
+              parentUrl: draft.parentUrl,
+            });
+            
+            return (
+              <DraftListItem
+                key={draft.id}
+                draft={draft}
+                isSelected={idx === selectedDraftIndex}
+                onSelect={setSelectedDraftId}
+                onRemove={onRemove}
+                channel={channel}
+              />
+            );
+          }}
           isActive={activeTab === DraftListTab.writing}
         />
         <div className="mt-4 flex justify-center">{renderNewDraftButton()}</div>
@@ -345,7 +350,7 @@ export default function NewPost() {
                       </TabsList>
                     </div>
                   </div>
-                  <TabsContent value={DraftListTab.writing} className="max-h-[350px] overflow-y-auto no-scrollbar">
+                  <TabsContent value={DraftListTab.writing}>
                     {renderFreePlanCard()}
                     {renderDraftList()}
                   </TabsContent>
