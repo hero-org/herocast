@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getAirstackSocialInfoForFid } from '@/common/helpers/airstack';
 import { getIcebreakerSocialInfoForFid } from '@/common/helpers/icebreaker';
 import { getCoordinapeInfoForAddresses } from '@/common/helpers/coordinapeAttestations';
 
@@ -15,7 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const [airstackSocialInfo, icebreakerSocialInfo, coordinapeAttestations] = await Promise.all([
-      getAirstackSocialInfoForFid(fid),
       getIcebreakerSocialInfoForFid(fid),
       addresses ? getCoordinapeInfoForAddresses(addresses.toString()) : [],
     ]);

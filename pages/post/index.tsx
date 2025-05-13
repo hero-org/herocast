@@ -1,7 +1,7 @@
 import NewPostEntry from '@/common/components/Editor/NewCastEditor';
 import { useDraftStore } from '@/stores/useDraftStore';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { ClockIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
 import { Button } from '@/components/ui/button';
 import { CastRow } from '@/common/components/CastRow';
@@ -20,6 +20,7 @@ import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date'
 import { ChannelType } from '@/common/constants/channels';
 import { UUID } from 'crypto';
 import { usePathname, useSearchParams } from 'next/navigation';
+import EmptyStateWithAction from '@/common/components/EmptyStateWithAction';
 import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
 import Modal from '@/common/components/Modal';
@@ -142,17 +143,14 @@ export default function NewPost() {
     }
   }, [drafts]);
 
+  const handleNewDraft = () => {
+    addNewPostDraft({});
+    setActiveTab(DraftListTab.writing);
+  };
   const onRemove = (draft) => {
     removePostDraftById(draft.id);
   };
 
-  const renderEmptyMainContent = () => (
-    <div className="pt-2 pb-6 w-full min-h-[150px]">
-      <div className="content-center px-2 py-1 rounded-lg w-full h-full min-h-[150px] border border-muted-foreground/20">
-        {renderNewDraftButton()}
-      </div>
-    </div>
-  );
 
   const renderWritingDraft = (draft) => {
     if (!draft) return renderEmptyMainContent();
@@ -354,16 +352,6 @@ export default function NewPost() {
     );
   };
 
-  const renderContent = () => {
-    const draft = draftsForTab.find((draft) => draft.id === selectedDraftId);
-    switch (activeTab) {
-      case DraftListTab.writing:
-        return renderWritingDraft(draft);
-      case DraftListTab.scheduled:
-      case DraftListTab.published:
-        return renderScheduledDraft(draft);
-      default:
-        return null;
     }
   };
 

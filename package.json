@@ -37,7 +37,6 @@
     "semi": true
   },
   "dependencies": {
-    "@airstack/node": "^0.0.7",
     "@date-fns/utc": "^2.1.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
