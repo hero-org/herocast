@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/20/solid';
 import { ChevronRight } from 'lucide-react';
+import SidebarCollapsibleHeader from './SidebarCollapsibleHeader';
+import CollapsibleList from './CollapsibleList';
 
 const ListsOverview = () => {
   const { selectedListId, setSelectedListId, getSearchLists, getFidLists } = useListStore();
@@ -41,19 +43,12 @@ const ListsOverview = () => {
   ) => {
     if (isCollapsible) {
       return (
-        <div
-          className="flex items-center px-2 py-1 sm:pr-4 cursor-pointer group/label hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md"
-          onClick={onToggle}
-        >
-          <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary flex items-center">
-            {title}
-          </h3>
-          {button}
-          <ChevronRight
-            className="ml-auto transition-transform"
-            style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
-          />
-        </div>
+        <SidebarCollapsibleHeader
+          title={title}
+          button={button}
+          isOpen={isOpen}
+          onToggle={onToggle}
+        />
       );
     }
 
@@ -86,17 +81,12 @@ const ListsOverview = () => {
   const renderSearchLists = () => (
     <div className="flex flex-col">
       <ul role="list" className="px-4 py-1 sm:px-4">
-        <Collapsible open={isShowAllSearchLists} onOpenChange={setIsShowAllSearchLists}>
-          {searchLists.slice(0, 5).map(renderList)}
-          <CollapsibleContent className="">{searchLists.slice(5).map(renderList)}</CollapsibleContent>
-          {searchLists.length > 5 && (
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" size="sm" className="h-6 px-1">
-                <span className="">Show {isShowAllSearchLists ? 'less' : 'more'}</span>
-              </Button>
-            </CollapsibleTrigger>
-          )}
-        </Collapsible>
+        <CollapsibleList
+          items={searchLists}
+          renderItem={(item) => <li key={`list-${item.id}`}>{renderList(item)}</li>}
+          isShowAll={isShowAllSearchLists}
+          setIsShowAll={setIsShowAllSearchLists}
+        />
       </ul>
     </div>
   );
@@ -104,17 +94,12 @@ const ListsOverview = () => {
   const renderFidLists = () => (
     <div className="flex flex-col">
       <ul role="list" className="px-4 py-1 sm:px-4">
-        <Collapsible open={isShowAllFidLists} onOpenChange={setIsShowAllFidLists}>
-          {fidLists.slice(0, 5).map(renderList)}
-          <CollapsibleContent className="">{fidLists.slice(5).map(renderList)}</CollapsibleContent>
-          {fidLists.length > 5 && (
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" size="sm" className="h-6 px-1">
-                <span className="">Show {isShowAllFidLists ? 'less' : 'more'}</span>
-              </Button>
-            </CollapsibleTrigger>
-          )}
-        </Collapsible>
+        <CollapsibleList
+          items={fidLists}
+          renderItem={(item) => <li key={`list-${item.id}`}>{renderList(item)}</li>}
+          isShowAll={isShowAllFidLists}
+          setIsShowAll={setIsShowAllFidLists}
+        />
       </ul>
     </div>
   );

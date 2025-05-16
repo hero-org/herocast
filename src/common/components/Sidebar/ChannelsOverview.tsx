@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useListStore } from '@/stores/useListStore';
 import { Separator } from '@/components/ui/separator';
+import SidebarCollapsibleHeader from './SidebarCollapsibleHeader';
+import CollapsibleList from './CollapsibleList';
 
 const ChannelsOverview = () => {
   const { selectedChannelUrl, setSelectedChannelUrl, resetSelectedChannel } = useAccountStore();
@@ -81,23 +83,14 @@ const ChannelsOverview = () => {
   const renderChannelList = () => (
     <div className="flex flex-col">
       <ul role="list" className="px-4 py-1 sm:px-4">
-        <Collapsible open={isShowAllChannels} onOpenChange={setIsShowAllChannels}>
-          {channels.slice(0, 5).map((channel: ChannelType) => (
+        <CollapsibleList
+          items={channels}
+          renderItem={(channel: ChannelType) => (
             <li key={channel.name}>{renderChannel(channel)}</li>
-          ))}
-          <CollapsibleContent className="">
-            {channels.slice(5).map((channel: ChannelType) => (
-              <li key={channel.name}>{renderChannel(channel)}</li>
-            ))}
-          </CollapsibleContent>
-          {channels.length > 5 && (
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" size="sm" className="h-6 px-1">
-                <span className="">Show {isShowAllChannels ? 'less' : 'more'}</span>
-              </Button>
-            </CollapsibleTrigger>
           )}
-        </Collapsible>
+          isShowAll={isShowAllChannels}
+          setIsShowAll={setIsShowAllChannels}
+        />
       </ul>
     </div>
   );
