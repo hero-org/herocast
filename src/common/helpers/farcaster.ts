@@ -446,3 +446,261 @@ export const getSignatureForUsernameProof = async (
 };
 
 export const updateBio = async () => {};
+
+// Utility function to convert hex string to Uint8Array
+export function stringHashToUint(hash: string): Uint8Array {
+  return new Uint8Array(Buffer.from(hash.slice(2), 'hex'));
+}
+
+// Types needed for structured cast
+type StructuredCastUnit = StructuredCastText | StructuredCastMention | StructuredCastURL;
+
+type StructuredCastText = {
+  type: 'text';
+  serializedContent: string;
+};
+
+type StructuredCastMention = {
+  type: 'mention';
+  serializedContent: string;
+};
+
+type StructuredCastURL = {
+  type: 'url' | 'videourl';
+  serializedContent: string;
+};
+
+// Define Farcaster embed types
+export type FarcasterEmbed = FarcasterUrlEmbed | FarcasterCastIdEmbed;
+
+export interface FarcasterUrlEmbed {
+  url: string;
+}
+
+export interface FarcasterCastIdEmbed {
+  castId: {
+    fid: number;
+    hash: Uint8Array | string;
+  };
+}
+
+export const isFarcasterUrlEmbed = (embed: FarcasterEmbed): embed is FarcasterUrlEmbed => {
+  return 'url' in embed;
+};
+
+export const isFarcasterCastIdEmbed = (embed: FarcasterEmbed): embed is FarcasterCastIdEmbed => {
+  return 'castId' in embed;
+};
+
+// Maximum number of embeds allowed in a Farcaster cast
+export const FARCASTER_MAX_EMBEDS = 2;
+
+// Local implementation of getMentionFidsByUsernames using Neynar API directly
+export const getMentionFidsByUsernames = () => {
+  return async (usernames: string[]): Promise<Array<{ username: string; fid: number } | null>> => {
+    try {
+      const results = await Promise.all(
+        usernames.map(async (username) => {
+          try {
+            const response = await axios.get(
+              `https://api.neynar.com/v2/farcaster/user/by_username?username=${encodeURIComponent(username)}`,
+              {
+                headers: {
+                  'x-api-key': process.env.NEXT_PUBLIC_NEYNAR_API_KEY,
+                },
+              }
+            );
+
+            // Transform Neynar response to expected format
+            if (response.data && response.data.user) {
+              return {
+                username: response.data.user.username,
+                fid: response.data.user.fid,
+              };
+            }
+            return null;
+          } catch (e) {
+            console.error(`Failed to fetch data for username ${username}`, e);
+            return null;
+          }
+        })
+      );
+      return results;
+    } catch (error) {
+      console.error('Failed to fetch user data for mentions', error);
+      return [];
+    }
+  };
+};
+
+// Convert plain text to structured format with mentions
+export function convertCastPlainTextToStructured({ text }: { text: string }): StructuredCastUnit[] {
+  const result: StructuredCastUnit[] = [];
+
+  // Simple regex to match @mentions
+  const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+  // URL regex pattern
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  let lastIndex = 0;
+  let match;
+
+  // Function to process the text and extract mentions and URLs
+  const processText = (regex: RegExp, type: 'mention' | 'url') => {
+    regex.lastIndex = 0; // Reset regex state
+    const matches: { index: number; content: string; type: 'mention' | 'url' }[] = [];
+
+    while ((match = regex.exec(text)) !== null) {
+      matches.push({
+        index: match.index,
+        content: match[0],
+        type,
+      });
+    }
+
+    return matches;
+  };
+
+  // Get all mentions and URLs
+  const mentions = processText(mentionRegex, 'mention');
+  const urls = processText(urlRegex, 'url');
+
+  // Combine and sort by index
+  const allMatches = [...mentions, ...urls].sort((a, b) => a.index - b.index);
+
+  // Process matches in order
+  for (const match of allMatches) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      result.push({
+        type: 'text',
+        serializedContent: text.substring(lastIndex, match.index),
+      });
+    }
+
+    // Add the match
+    result.push({
+      type: match.type,
+      serializedContent: match.content,
+    });
+
+    lastIndex = match.index + match.content.length;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    result.push({
+      type: 'text',
+      serializedContent: text.substring(lastIndex),
+    });
+  }
+
+  return result;
+}
+
+// Format plaintext to hub cast message
+export async function formatPlaintextToHubCastMessage({
+  text,
+  embeds,
+  parentCastFid,
+  parentCastHash,
+  parentUrl,
+  getMentionFidsByUsernames,
+}: {
+  text: string;
+  embeds: Embed[];
+  getMentionFidsByUsernames: (usernames: string[]) => Promise<Array<{ username: string; fid: number } | null>>;
+  parentUrl?: string;
+  parentCastFid?: number;
+  parentCastHash?: string;
+}): Promise<CastAddBody | false> {
+  // Check against maximum allowed embeds
+  if (embeds.length > FARCASTER_MAX_EMBEDS) {
+    return false;
+  }
+
+  // Structure the cast text
+  const structuredCast = convertCastPlainTextToStructured({
+    text,
+  });
+
+  // Extract mentions
+  const mentionCandidates = structuredCast.filter((x) => x.type === 'mention');
+
+  let formattedText = '';
+  const mentions: number[] = [];
+  let remainingMentions: Array<{ fid: number; username: string }> = [];
+  const mentionsPositions: number[] = [];
+
+  if (mentionCandidates.length) {
+    const fetchedMentionFids = await getMentionFidsByUsernames(
+      mentionCandidates.map((x) => x.serializedContent.replace('@', ''))
+    );
+
+    const validMentions = mentionCandidates
+      .map((mentionCandidate, index) => {
+        const matchedUser = fetchedMentionFids[index];
+        return {
+          fid: matchedUser?.fid,
+          username: mentionCandidate.serializedContent,
+        };
+      })
+      // Only include mentions we can find FIDs for
+      .filter((x): x is { fid: number; username: string } => !!x.fid)
+      // Farcaster allows max 5 mentions
+      .slice(0, 5);
+
+    remainingMentions = validMentions;
+  }
+
+  // Process the structured cast to build the final text with mentions
+  structuredCast.forEach((unit) => {
+    if (
+      unit.type === 'mention' &&
+      remainingMentions.length &&
+      remainingMentions[0].username === unit.serializedContent
+    ) {
+      const encodedText = new TextEncoder().encode(formattedText);
+      // Track position by bytes, not characters
+      mentionsPositions.push(encodedText.length);
+      mentions.push(remainingMentions[0].fid);
+      remainingMentions = remainingMentions.slice(1);
+    } else {
+      formattedText = formattedText + unit.serializedContent;
+    }
+  });
+
+  // Process parent cast if provided
+  const targetHashBytes = parentCastHash ? stringHashToUint(parentCastHash) : false;
+
+  // Build the final cast body
+  const castBody = {
+    text: formattedText,
+    mentions: mentions,
+    embedsDeprecated: [],
+    mentionsPositions: mentionsPositions,
+    ...(parentCastFid && targetHashBytes
+      ? {
+          parentCastId: {
+            fid: parentCastFid,
+            hash: targetHashBytes,
+          },
+        }
+      : parentUrl
+        ? {
+            parentUrl: parentUrl,
+          }
+        : {}),
+    embeds: embeds.map((embed) => {
+      if (isFarcasterCastIdEmbed(embed) && embed.castId) {
+        return { castId: embed.castId };
+      }
+      if (isFarcasterUrlEmbed(embed) && embed.url) {
+        return { url: embed.url };
+      }
+      return embed;
+    }),
+  };
+
+  return castBody;
+}

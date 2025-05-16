@@ -26,7 +26,7 @@ const ChannelsOverview = () => {
 
   const renderCustomChannel = ({ name, url, icon }: { name: string; url: string; icon?: React.ReactNode }) => {
     return (
-      <li key={`custom-channel-${name}`} className="px-2 sm:px-3 lg:px-4">
+      <li key={`custom-channel-${name}`} className="px-2 lg:pr-4">
         <div
           onClick={() => onUpdateChannel(url)}
           className={cn(
@@ -45,7 +45,7 @@ const ChannelsOverview = () => {
 
   const renderFeedHeader = (title: string | JSX.Element, button?) => {
     return (
-      <div className="flex items-center px-4 py-1 sm:px-4">
+      <div className="flex items-center px-2 py-1 sm:px-2">
         <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary">{title}</h3>
         {button}
       </div>
@@ -114,7 +114,6 @@ const ChannelsOverview = () => {
 
   return (
     <div className="mb-4">
-      <SidebarHeader title="Feeds" />
       <ul role="list" className="mb-4">
         {renderCustomChannel({
           name: 'Follow Feed',
@@ -136,13 +135,13 @@ const ChannelsOverview = () => {
         <span className="flex">
           <RectangleGroupIcon className="mt-1 mr-1 h-5 w-5" aria-hidden="true" />
           Channels
-        </span>,
-        <Link href="/channels">
-          <Button variant="outline" className="h-6 px-2">
-            Pin<span className="hidden ml-1 lg:block">channels</span>
-          </Button>
-        </Link>
+        </span>
       )}
+      <Link href="/channels">
+        <Button variant="outline" className="h-6 px-2">
+          Pin<span className="hidden ml-1 lg:block">channels</span>
+        </Button>
+      </Link>
       {hasChannels ? renderChannelList() : renderAddFirstChannelsButton()}
     </div>
   );

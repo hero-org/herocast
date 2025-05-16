@@ -20,14 +20,14 @@ importers:
         specifier: ^7.6.0
         version: 7.6.0
       '@farcaster/auth-kit':
-        specifier: ^0.3.1
-        version: 0.3.1(@types/react@19.0.10)(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(utf-8-validate@5.0.10)(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))
+        specifier: ^0.7.0
+        version: 0.7.0(@types/react@19.0.10)(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@farcaster/core':
-        specifier: ^0.15.6
-        version: 0.15.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
+        specifier: ^0.16.4
+        version: 0.16.4(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@farcaster/hub-web':
-        specifier: ^0.8.12
-        version: 0.8.12(bufferutil@4.0.9)(google-protobuf@3.21.4)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
+        specifier: ^0.9.7
+        version: 0.9.7(bufferutil@4.0.9)(google-protobuf@3.21.4)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@gumlet/react-hls-player':
         specifier: ^1.0.1
         version: 1.0.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -1013,16 +1013,13 @@ packages:
       { integrity: sha512-XK6BTq1NDMo9Xqw/YkYyGjSsg44fbNwYRx7QK2CuoQgyy+f1rrTDHoExVM5PsyXCtfl2vs2vVJ0MN0yN6LppRw== }
     engines: { node: '>=14.0.0', npm: '>=6.0.0' }
 
-  '@farcaster/auth-client@0.1.1':
+  '@farcaster/auth-client@0.5.0':
     resolution:
-      { integrity: sha512-6ZYsDKzvagsRiNLiJZfrx1P7tRKOHKSZtF9uM3Ihb+AMX0hTxrp5Y3tkSKxufPu9Sgxfc5FyzGUYw21lkqFFCA== }
-    peerDependencies:
-      ethers: 5.x || 6.x
-      viem: 1.x || 2.x
+      { integrity: sha512-94dyd8vcY/aLnQH28osSx+eLj0W4vuR7A9cn5693NtX8Wttvu3Vpo5s5MkKXDu8bh+eqimmsqUeTGJfEOocVGQ== }
 
-  '@farcaster/auth-kit@0.3.1':
+  '@farcaster/auth-kit@0.7.0':
     resolution:
-      { integrity: sha512-BlT5rgyIFy6/Lle4nrDOUrvz0GaHdQduStuEWc5KuU6Dub/NsKrliEJVDo1MzfJGh3DLOq1nz+7L2A00VU+UnQ== }
+      { integrity: sha512-Xk2fQWQqYd2bj+czFkl+P6t/3jM98l2Bd5COkhJj4AZZcfdWcotReLY+7SzvnvbPfifWq0Ts+AT8PUjyjb1dqA== }
     peerDependencies:
       react: '>= 17'
       react-dom: '>= 17'
@@ -1031,13 +1028,13 @@ packages:
     resolution:
       { integrity: sha512-VHnvt78fITnztYwRrrLAI0MTxgUelGw8ieync4yLxDx/BA2wSr9gNNeLxnQupLXD6qf8k7JsxqLJrFAuVDzt5A== }
 
-  '@farcaster/core@0.15.6':
+  '@farcaster/core@0.16.4':
     resolution:
-      { integrity: sha512-Vxq2JhqdZYEMjH4PIwPXQkalY46S4Mol2oCSHUafXenDx6WSoQJqF/4an4KyxGQbmA7Cf8+hl6zuNzkkHXEUyQ== }
+      { integrity: sha512-2yDc5kUdlODjhjjjeZXIM0HCPmNnxY1cw70LVrws1ad33WfKipfK88t54NVQ9aBukDXcoG2aWZJNXoNNsheF5w== }
 
-  '@farcaster/hub-web@0.8.12':
+  '@farcaster/hub-web@0.9.7':
     resolution:
-      { integrity: sha512-GXqujDKOS4/5/YHgibIvKSS73c/6ZB+coTuyTTfpseUMmX0bVAh4TA9zV2ZTzWAw8Sm7cVTWGnyVX6rSv83vgA== }
+      { integrity: sha512-SkONhwpKVo3S6Ulp8LrlQNovBQUhe2lHWJ09KQH9MUbRMG5XbDCisFWLSYWXgDgE7k22pKV9IUunkfHoTWsd+g== }
 
   '@floating-ui/core@1.6.9':
     resolution:
@@ -3714,29 +3711,9 @@ packages:
     resolution:
       { integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA== }
 
-  '@spruceid/siwe-parser@2.1.2':
-    resolution:
-      { integrity: sha512-d/r3S1LwJyMaRAKQ0awmo9whfXeE88Qt00vRj91q5uv5ATtWIQEGJ67Yr5eSZw5zp1/fZCXZYuEckt8lSkereQ== }
-
   '@sqltools/formatter@1.2.5':
     resolution:
       { integrity: sha512-Uy0+khmZqUrUGm5dmMqVlnvufZRSK0FbYzVgp0UMstm+F5+W2/jnEEQyc9vo1ZR/E5ZI/B1WjjoTqBqwJL6Krw== }
-
-  '@stablelib/binary@1.0.1':
-    resolution:
-      { integrity: sha512-ClJWvmL6UBM/wjkvv/7m5VP3GMr9t0osr4yVgLZsLCOz4hGN9gIAFEqnJ0TsSMAN+n840nf2cHZnA5/KFqHC7Q== }
-
-  '@stablelib/int@1.0.1':
-    resolution:
-      { integrity: sha512-byr69X/sDtDiIjIV6m4roLVWnNNlRGzsvxw+agj8CIEazqWGOQp2dTYgQhtyVXV9wpO6WyXRQUzLV/JRNumT2w== }
-
-  '@stablelib/random@1.0.2':
-    resolution:
-      { integrity: sha512-rIsE83Xpb7clHPVRlBj8qNe5L8ISQOzjghYQm/dZ7VaM2KHYwMW5adjQjrzTZCchFnNCNhkwtnOBa9HTMJCI8w== }
-
-  '@stablelib/wipe@1.0.1':
-    resolution:
-      { integrity: sha512-WfqfX/eXGiAd3RJe4VU2snh/ZPwtSjLG4ynQ/vYzvghTh7dHFcI1wl+nrkWG6lGhukOxOsUHfv8dUXr58D0ayg== }
 
   '@standard-crypto/farcaster-js-hub-rest@1.5.0':
     resolution:
@@ -5060,10 +5037,6 @@ packages:
     resolution:
       { integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw== }
     engines: { node: '>= 8' }
-
-  apg-js@4.4.0:
-    resolution:
-      { integrity: sha512-fefmXFknJmtgtNEXfPwZKYkMFX4Fyeyz+fNF6JWp87biGOPslJbCBVU158zvKRZfHBKnJDy8CMM40oLFGkXT8Q== }
 
   app-module-path@2.2.0:
     resolution:
@@ -6426,9 +6399,9 @@ packages:
     resolution:
       { integrity: sha512-r/W8lkHSiTLxUxW8Rf3u4HGB0xQweG2RyETjywylKZSzLWoWAijRz8WCuOtJ6wah+avllXBqZuk29HCCvhEIRg== }
 
-  ethers@6.13.5:
+  ethers@6.14.1:
     resolution:
-      { integrity: sha512-+knKNieu5EKRThQJWwqaJ10a6HE9sSehGeqWN65//wE7j47ZpFhKAnHB/JJFibwwg61I/koxaPsXbXpD/skNOQ== }
+      { integrity: sha512-JnFiPFi3sK2Z6y7jZ3qrafDMwiXmU+6cNZ0M+kPq+mTy9skqEzwqAdFW3nb/em2xjlIVXX6Lz8ID6i3LmS4+fQ== }
     engines: { node: '>=14.0.0' }
 
   eventemitter2@6.4.9:
@@ -9433,12 +9406,6 @@ packages:
     resolution:
       { integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg== }
 
-  siwe@2.3.2:
-    resolution:
-      { integrity: sha512-aSf+6+Latyttbj5nMu6GF3doMfv2UYj83hhwZgUF20ky6fTS83uVhkQABdIVnEuS8y1bBdk7p6ltb9SmlhTTlA== }
-    peerDependencies:
-      ethers: ^5.6.8 || ^6.0.8
-
   slash@3.0.0:
     resolution:
       { integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q== }
@@ -10232,10 +10199,6 @@ packages:
     resolution:
       { integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA== }
     engines: { node: '>=10.12.0' }
-
-  valid-url@1.0.9:
-    resolution:
-      { integrity: sha512-QQDsV8OnSf5Uc30CKSwG9lnhMPe6exHtTXLRYX8uMwKENy640pU+2BgBL0LRbDh/eYRahNCS7aewCx0wf3NYVA== }
 
   valtio@1.13.2:
     resolution:
@@ -11074,18 +11037,21 @@ snapshots:
 
   '@faker-js/faker@7.6.0': {}
 
-  '@farcaster/auth-client@0.1.1(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))':
+  '@farcaster/auth-client@0.5.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
-      ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       neverthrow: 6.2.2
-      siwe: 2.3.2(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       viem: 2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
 
-  '@farcaster/auth-kit@0.3.1(@types/react@19.0.10)(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(utf-8-validate@5.0.10)(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))':
+  '@farcaster/auth-kit@0.7.0(@types/react@19.0.10)(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
-      '@farcaster/auth-client': 0.1.1(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))
+      '@farcaster/auth-client': 0.5.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@vanilla-extract/css': 1.17.1(babel-plugin-macros@3.1.0)
-      ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ethers: 6.14.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       qrcode: 1.5.4
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -11094,8 +11060,9 @@ snapshots:
       - '@types/react'
       - babel-plugin-macros
       - bufferutil
+      - typescript
       - utf-8-validate
-      - viem
+      - zod
 
   '@farcaster/core@0.14.20(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
@@ -11110,11 +11077,11 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@farcaster/core@0.15.6(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
+  '@farcaster/core@0.16.4(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
       '@faker-js/faker': 7.6.0
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
+      '@noble/curves': 1.9.0
+      '@noble/hashes': 1.8.0
       bs58: 5.0.0
       neverthrow: 6.2.2
       viem: 2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
@@ -11124,9 +11091,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@farcaster/hub-web@0.8.12(bufferutil@4.0.9)(google-protobuf@3.21.4)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
+  '@farcaster/hub-web@0.9.7(bufferutil@4.0.9)(google-protobuf@3.21.4)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
-      '@farcaster/core': 0.14.20(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
+      '@farcaster/core': 0.16.4(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@improbable-eng/grpc-web': 0.15.0(google-protobuf@3.21.4)
       rxjs: 7.8.2
     transitivePeerDependencies:
@@ -14553,27 +14520,7 @@ snapshots:
 
   '@socket.io/component-emitter@3.1.2': {}
 
-  '@spruceid/siwe-parser@2.1.2':
-    dependencies:
-      '@noble/hashes': 1.8.0
-      apg-js: 4.4.0
-      uri-js: 4.4.1
-      valid-url: 1.0.9
-
   '@sqltools/formatter@1.2.5': {}
-
-  '@stablelib/binary@1.0.1':
-    dependencies:
-      '@stablelib/int': 1.0.1
-
-  '@stablelib/int@1.0.1': {}
-
-  '@stablelib/random@1.0.2':
-    dependencies:
-      '@stablelib/binary': 1.0.1
-      '@stablelib/wipe': 1.0.1
-
-  '@stablelib/wipe@1.0.1': {}
 
   '@standard-crypto/farcaster-js-hub-rest@1.5.0(axios@1.8.3)(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
@@ -16428,8 +16375,6 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
-  apg-js@4.4.0: {}
-
   app-module-path@2.2.0: {}
 
   app-root-path@3.1.0: {}
@@ -17692,7 +17637,7 @@ snapshots:
       '@scure/bip32': 1.4.0
       '@scure/bip39': 1.3.0
 
-  ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+  ethers@6.14.1(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
       '@adraffy/ens-normalize': 1.10.1
       '@noble/curves': 1.2.0
@@ -20519,14 +20464,6 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  siwe@2.3.2(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
-    dependencies:
-      '@spruceid/siwe-parser': 2.1.2
-      '@stablelib/random': 1.0.2
-      ethers: 6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      uri-js: 4.4.1
-      valid-url: 1.0.9
-
   slash@3.0.0: {}
 
   smart-buffer@4.2.0: {}
@@ -21159,8 +21096,6 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.25
       '@types/istanbul-lib-coverage': 2.0.6
       convert-source-map: 2.0.0
-
-  valid-url@1.0.9: {}
 
   valtio@1.13.2(@types/react@19.0.10)(react@18.2.0):
     dependencies:

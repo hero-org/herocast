@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/20/solid';
+import { ChevronRight } from 'lucide-react';
 
 const ListsOverview = () => {
   const { selectedListId, setSelectedListId, getSearchLists, getFidLists } = useListStore();
@@ -23,15 +24,41 @@ const ListsOverview = () => {
   const { setSelectedChannelUrl } = useAccountStore();
   const [isShowAllSearchLists, setIsShowAllSearchLists] = useState(false);
   const [isShowAllFidLists, setIsShowAllFidLists] = useState(false);
+  const [isSearchesOpen, setIsSearchesOpen] = useState(true);
+  const [isListsOpen, setIsListsOpen] = useState(true);
 
   const updateSelectedList = (id: UUID) => {
     setSelectedListId(id);
     setSelectedChannelUrl(null);
   };
 
-  const renderFeedHeader = (title: string | JSX.Element, button?) => {
+  const renderFeedHeader = (
+    title: string | JSX.Element,
+    button?,
+    isCollapsible = false,
+    isOpen = false,
+    onToggle = () => {}
+  ) => {
+    if (isCollapsible) {
+      return (
+        <div
+          className="flex items-center px-2 py-1 sm:pr-4 cursor-pointer group/label hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md"
+          onClick={onToggle}
+        >
+          <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary flex items-center">
+            {title}
+          </h3>
+          {button}
+          <ChevronRight
+            className="ml-auto transition-transform"
+            style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+          />
+        </div>
+      );
+    }
+
     return (
-      <div className="flex items-center px-4 py-1 sm:px-4">
+      <div className="flex items-center px-2 py-1 sm:pr-4">
         <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary">{title}</h3>
         {button}
       </div>
@@ -118,13 +145,16 @@ const ListsOverview = () => {
           <MagnifyingGlassIcon className="mt-1 mr-1 h-5 w-5" aria-hidden="true" />
           Searches
         </span>,
-        <Link href="/search">
+        <Link href="/search" onClick={(e) => e.stopPropagation()}>
           <Button variant="outline" className="h-6 px-2">
             Add<span className="hidden ml-1 lg:block">search</span>
           </Button>
-        </Link>
+        </Link>,
+        true,
+        isSearchesOpen,
+        () => setIsSearchesOpen(!isSearchesOpen)
       )}
-      {hasSearchLists ? renderSearchLists() : renderAddFirstSearchButton()}
+      {isSearchesOpen && (hasSearchLists ? renderSearchLists() : renderAddFirstSearchButton())}
 
       <div className="mt-6">
         {renderFeedHeader(
@@ -132,13 +162,16 @@ const ListsOverview = () => {
             <UserGroupIcon className="mt-1 mr-1 h-5 w-5" aria-hidden="true" />
             Lists
           </span>,
-          <Link href="/list">
+          <Link href="/list" onClick={(e) => e.stopPropagation()}>
             <Button variant="outline" className="h-6 px-2">
               Add<span className="hidden ml-1 lg:block">list</span>
             </Button>
-          </Link>
+          </Link>,
+          true,
+          isListsOpen,
+          () => setIsListsOpen(!isListsOpen)
         )}
-        {hasFidLists ? renderFidLists() : renderAddFirstListButton()}
+        {isListsOpen && (hasFidLists ? renderFidLists() : renderAddFirstListButton())}
       </div>
     </div>
   );

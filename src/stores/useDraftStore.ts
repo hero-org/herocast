@@ -8,8 +8,7 @@ import { CommandType } from '@/common/constants/commands';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { AccountObjectType, useAccountStore } from './useAccountStore';
 import { DraftStatus, DraftType, ParentCastIdType } from '@/common/constants/farcaster';
-import { getMentionFidsByUsernames, formatPlaintextToHubCastMessage } from '@mod-protocol/farcaster';
-import { submitCast } from '@/common/helpers/farcaster';
+import { formatPlaintextToHubCastMessage, getMentionFidsByUsernames, submitCast } from '@/common/helpers/farcaster';
 import { toBytes, toHex } from 'viem';
 import { CastAddBody, CastId, Embed } from '@farcaster/hub-web';
 import { AccountPlatformType } from '@/common/constants/accounts';
@@ -124,7 +123,7 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
   };
 };
 
-const getMentionFids = getMentionFidsByUsernames(process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!);
+const getMentionFids = getMentionFidsByUsernames();
 
 type addNewPostDraftProps = {
   text?: string;

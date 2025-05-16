@@ -12,7 +12,8 @@ import {
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
-import RightSidebar from '@/common/components/Sidebar/RightSidebar';
+import ShadcnRightSidebar from '@/common/components/Sidebar/ShadcnRightSidebar';
+import RightSidebarTrigger from '@/common/components/Sidebar/RightSidebarTrigger';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
 import { ThemeToggle } from '@/common/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
@@ -31,6 +32,7 @@ import { ChartBarIcon } from '@heroicons/react/20/solid';
 import PublishedCastsRightSidebar from '@/common/components/Sidebar/PublishedCastsRightSidebar';
 import { useListStore } from '@/stores/useListStore';
 import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 type NavigationGroupType = {
   name: string;
@@ -343,13 +345,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const renderRightSidebar = () => {
     switch (sidebarType) {
       case RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR:
-        return <RightSidebar showFeeds showLists showAuthorInfo />;
+        return <ShadcnRightSidebar showFeeds showLists showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.CAST_INFO:
-        return <RightSidebar showAuthorInfo />;
+        return <ShadcnRightSidebar showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.PUBLISHED_CASTS:
         return <PublishedCastsRightSidebar />;
       case RIGHT_SIDEBAR_ENUM.SEARCH:
-        return <RightSidebar showManageLists showSearches showAuthorInfo />;
+        return <ShadcnRightSidebar showManageLists showSearches showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.NONE:
       default:
         return null;
@@ -403,177 +405,187 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="h-full bg-background">
-      <Transition.Root show={sidebarOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-5 lg:hidden" onClose={() => setSidebarOpen(false)}>
-          <Transition.Child
-            as={Fragment}
-            enter="transition-opacity ease-linear duration-10"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity ease-linear duration-10"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-background/80" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 flex">
+      <SidebarProvider>
+        <Transition.Root show={sidebarOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-5 lg:hidden" onClose={() => setSidebarOpen(false)}>
             <Transition.Child
               as={Fragment}
-              enter="transition ease-in-out duration-10 transform"
-              enterFrom="-translate-x-full"
-              enterTo="translate-x-0"
-              leave="transition ease-in-out duration-10 transform"
-              leaveFrom="translate-x-0"
-              leaveTo="-translate-x-full"
+              enter="transition-opacity ease-linear duration-10"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity ease-linear duration-10"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
-              <Dialog.Panel className="relative mr-2 flex w-full max-w-64 flex-1">
-                {/* Sidebar component, swap this element with another sidebar if you like */}
-                <div className="mt-16 z-100 flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
-                  <nav className="flex flex-1 flex-col divide-y divide-muted-foreground/20">
+              <div className="fixed inset-0 bg-background/80" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 flex">
+              <Transition.Child
+                as={Fragment}
+                enter="transition ease-in-out duration-10 transform"
+                enterFrom="-translate-x-full"
+                enterTo="translate-x-0"
+                leave="transition ease-in-out duration-10 transform"
+                leaveFrom="translate-x-0"
+                leaveTo="-translate-x-full"
+              >
+                <Dialog.Panel className="relative mr-2 flex w-full max-w-64 flex-1">
+                  {/* Sidebar component, swap this element with another sidebar if you like */}
+                  <div className="mt-16 z-100 flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
+                    <nav className="flex flex-1 flex-col divide-y divide-muted-foreground/20">
+                      {navigationGroups.map((group) => {
+                        const navigation = group.items;
+                        return (
+                          <div key={`nav-group-mobile-${group.name}`}>
+                            <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                              <li>
+                                <ul role="list" className="-mx-2 space-y-1">
+                                  {navigation.map(
+                                    (item) =>
+                                      !item.hide && (
+                                        <li key={item.name}>
+                                          <Link href={item.router} onClick={() => setSidebarOpen(false)}>
+                                            <p
+                                              className={cn(
+                                                item.router === pathname || item.additionalPaths?.includes(pathname)
+                                                  ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
+                                                  : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                                                'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
+                                              )}
+                                            >
+                                              {item.icon}
+                                              {item.name}
+                                            </p>
+                                          </Link>
+                                        </li>
+                                      )
+                                  )}
+                                </ul>
+                              </li>
+                            </ul>
+                          </div>
+                        );
+                      })}
+                      <div className="w-full flex flex-row py-4">
+                        <AccountSwitcher />
+                        <ThemeToggle />
+                      </div>
+                    </nav>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </Dialog>
+        </Transition.Root>
+        <div className="container mx-auto">
+          <div className="grid grid-cols-[1fr] lg:grid-cols-[13rem_1fr]">
+            {/* Static sidebar for desktop */}
+            {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
+            <div className="hidden lg:flex lg:grow lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:full lg:overflow-y-auto lg:bg-background border-r border-muted">
+              {/* Sidebar component, swap this element with another sidebar if you like */}
+              <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
+                <Link href="/post" className="flex h-16 shrink-0 items-center hover:cursor-pointer">
+                  <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+                    herocast
+                  </h2>
+                </Link>
+                <div className="flex flex-col justify-between">
+                  <nav className="mt-0 divide-y divide-muted-foreground/20">
                     {navigationGroups.map((group) => {
                       const navigation = group.items;
                       return (
-                        <div key={`nav-group-mobile-${group.name}`}>
-                          <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                            <li>
-                              <ul role="list" className="-mx-2 space-y-1">
-                                {navigation.map(
-                                  (item) =>
-                                    !item.hide && (
-                                      <li key={item.name}>
-                                        <Link href={item.router} onClick={() => setSidebarOpen(false)}>
-                                          <p
-                                            className={cn(
-                                              item.router === pathname || item.additionalPaths?.includes(pathname)
-                                                ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-                                              'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
-                                            )}
-                                          >
-                                            {item.icon}
-                                            {item.name}
-                                          </p>
-                                        </Link>
-                                      </li>
-                                    )
-                                )}
-                              </ul>
-                            </li>
-                          </ul>
+                        <div key={`nav-group-${group.name}`}>
+                          {navigation.map(
+                            (item) =>
+                              !item.hide && (
+                                <ul
+                                  key={`nav-item-${item.name}`}
+                                  role="list"
+                                  className="flex flex-col items-left space-y-1"
+                                >
+                                  <li key={item.name}>
+                                    <Link href={item.router}>
+                                      <div
+                                        className={cn(
+                                          item.router === pathname || item.additionalPaths?.includes(pathname)
+                                            ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                                          'group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer'
+                                        )}
+                                      >
+                                        {item.icon}
+                                        <span className="">{item.name}</span>
+                                      </div>
+                                    </Link>
+                                  </li>
+                                </ul>
+                              )
+                          )}
                         </div>
                       );
                     })}
-                    <div className="w-full flex flex-row py-4">
-                      <AccountSwitcher />
-                      <ThemeToggle />
-                    </div>
                   </nav>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </Dialog>
-      </Transition.Root>
-      <div className="container mx-auto">
-        <div className="grid grid-cols-[1fr] lg:grid-cols-[13rem_1fr]">
-          {/* Static sidebar for desktop */}
-          {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-          <div className="hidden lg:flex lg:grow lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:full lg:overflow-y-auto lg:bg-background border-r border-muted">
-            {/* Sidebar component, swap this element with another sidebar if you like */}
-            <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
-              <Link href="/post" className="flex h-16 shrink-0 items-center hover:cursor-pointer">
-                <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">herocast</h2>
-              </Link>
-              <div className="flex flex-col justify-between">
-                <nav className="mt-0 divide-y divide-muted-foreground/20">
-                  {navigationGroups.map((group) => {
-                    const navigation = group.items;
-                    return (
-                      <div key={`nav-group-${group.name}`}>
-                        {navigation.map(
-                          (item) =>
-                            !item.hide && (
-                              <ul
-                                key={`nav-item-${item.name}`}
-                                role="list"
-                                className="flex flex-col items-left space-y-1"
-                              >
-                                <li key={item.name}>
-                                  <Link href={item.router}>
-                                    <div
-                                      className={cn(
-                                        item.router === pathname || item.additionalPaths?.includes(pathname)
-                                          ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
-                                          : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-                                        'group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer'
-                                      )}
-                                    >
-                                      {item.icon}
-                                      <span className="">{item.name}</span>
-                                    </div>
-                                  </Link>
-                                </li>
-                              </ul>
-                            )
-                        )}
-                      </div>
-                    );
-                  })}
-                </nav>
-              </div>
-              {isReadOnlyUser && renderUpgradeCard()}
-              {!isReadOnlyUser && !hasFinishedOnboarding && renderFinishOnboardingCard()}
-              <div className="mt-auto flex flex-row lg:space-x-2 py-4">
-                <AccountSwitcher />
-                <ThemeToggle />
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-[1fr] md:grid-cols-[1fr_12rem] lg:grid-cols-[1fr_16rem] relative">
-            <div
-              className={
-                sidebarType === RIGHT_SIDEBAR_ENUM.NONE
-                  ? 'md:col-span-2 w-full overflow-x-auto'
-                  : 'w-full overflow-x-auto'
-              }
-            >
-              {/* Sticky header */}
-              {(title || headerActions) && (
-                <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
-                  <button
-                    type="button"
-                    className="-m-2.5 p-2.5 text-foreground lg:hidden"
-                    onClick={() => setSidebarOpen((prev) => !prev)}
-                  >
-                    <span className="sr-only">Open sidebar</span>
-                    <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                  <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">{title}</h1>
-                  <div className="flex-grow" />
-                  <div className="flex gap-x-2">
-                    {headerActions.map((action) => (
-                      <Button size="sm" variant="outline" key={`header-action-${action.name}`} onClick={action.onClick}>
-                        {action.name}
-                      </Button>
-                    ))}
-                  </div>
+                {isReadOnlyUser && renderUpgradeCard()}
+                {!isReadOnlyUser && !hasFinishedOnboarding && renderFinishOnboardingCard()}
+                <div className="mt-auto flex flex-row lg:space-x-2 py-4">
+                  <AccountSwitcher />
+                  <ThemeToggle />
                 </div>
-              )}
-              <div className="w-full">
-                {pageRequiresHydrate && !isHydrated ? (
-                  <Loading className="ml-8" loadingMessage={loadingMessages[currentMessageIndex]} />
-                ) : (
-                  <div className="w-full">{children}</div>
-                )}
               </div>
             </div>
-            {renderRightSidebar()}
+            <div className="grid grid-cols-[1fr] lg:grid-cols-[1fr_16rem] relative">
+              <div
+                className={
+                  sidebarType === RIGHT_SIDEBAR_ENUM.NONE
+                    ? 'lg:col-span-2 w-full overflow-x-auto'
+                    : 'w-full overflow-x-auto border-r border-muted lg:border-r-0'
+                }
+              >
+                {/* Sticky header */}
+                {(title || headerActions) && (
+                  <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
+                    <button
+                      type="button"
+                      className="-m-2.5 p-2.5 text-foreground lg:hidden"
+                      onClick={() => setSidebarOpen((prev) => !prev)}
+                    >
+                      <span className="sr-only">Open sidebar</span>
+                      <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">{title}</h1>
+                    <div className="flex-grow" />
+                    <div className="flex gap-x-2">
+                      {headerActions.map((action) => (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          key={`header-action-${action.name}`}
+                          onClick={action.onClick}
+                        >
+                          {action.name}
+                        </Button>
+                      ))}
+                      {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && <RightSidebarTrigger />}
+                    </div>
+                  </div>
+                )}
+                <div className="w-full">
+                  {pageRequiresHydrate && !isHydrated ? (
+                    <Loading className="ml-8" loadingMessage={loadingMessages[currentMessageIndex]} />
+                  ) : (
+                    <div className="w-full">{children}</div>
+                  )}
+                </div>
+              </div>
+              {renderRightSidebar()}
+            </div>
+            {renderNewCastModal()}
           </div>
-          {renderNewCastModal()}
-          <Toaster theme="system" position="bottom-right" />
         </div>
-      </div>
+      </SidebarProvider>
+      <Toaster theme="system" position="bottom-right" />
     </div>
   );
 };
