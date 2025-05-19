@@ -925,13 +925,23 @@
   dependencies:
     hls.js "^1.2.7"
 
-"@hatsprotocol/modules-sdk@^0.15.2":
-  version "0.15.2"
-  resolved "https://registry.yarnpkg.com/@hatsprotocol/modules-sdk/-/modules-sdk-0.15.2.tgz#b9bb9e94c5ef9688e82f3c9ff444a2ee231b715b"
-  integrity sha512-PxABbhKM2ZlTfa2R0Z9CjMz3gzFE3/yxr6hLD3AgVrjQQcnuX3QSAKu3dRxvJhcLbXq5n5bhRTZWYLM1Qe7BZQ==
+"@hatsprotocol/modules-sdk@^1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@hatsprotocol/modules-sdk/-/modules-sdk-1.5.1.tgz#78edfebe68af89e94dcad5c98a48361e8960ab71"
+  integrity sha512-kcaKTyIHfMityH7OgscXdtveNzdFXQPpNMzNVxkltPVr1i+yQQ1WAWMD4hgrJcV6iY8c8iTfZl2/h9cwYCSr6Q==
   dependencies:
+    "@hatsprotocol/sdk-v1-core" "^0.12.4"
     axios "^1.5.0"
     zod "^3.21.4"
+
+"@hatsprotocol/sdk-v1-core@^0.12.4":
+  version "0.12.4"
+  resolved "https://registry.yarnpkg.com/@hatsprotocol/sdk-v1-core/-/sdk-v1-core-0.12.4.tgz#1efac8a8be7128e5cdf8536cf4f4a3d5cb4e3f25"
+  integrity sha512-tDun0JjLzNJn7TTopTWVD+p4OtHCrSqMwPCoUML0wJr23QO6vO5/dz/piyVAu/6wJ9j9sgqlrsof+IFaNvEvTA==
+  dependencies:
+    "@hatsprotocol/sdk-v1-subgraph" "1.1.0"
+    graphql "^16.6.0"
+    graphql-request "^6.1.0"
 
 "@hatsprotocol/sdk-v1-core@^0.9.0":
   version "0.9.0"
@@ -946,6 +956,15 @@
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@hatsprotocol/sdk-v1-subgraph/-/sdk-v1-subgraph-1.0.0.tgz#efb483bfb265f1b94d0d22faf2a32738412ee302"
   integrity sha512-86c5oC18KCcaNCBBw+eemA09zmEyuh3xr4SflrOUDXuCdEQZ08M9WqgEe7tZNw2QURTGArwPVaCQ2j7bkMjdow==
+  dependencies:
+    graphql "^16.6.0"
+    graphql-request "^6.1.0"
+    zod "^3.22.4"
+
+"@hatsprotocol/sdk-v1-subgraph@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@hatsprotocol/sdk-v1-subgraph/-/sdk-v1-subgraph-1.1.0.tgz#6a713f287582afd7733fc0afcd8dba15b83336ca"
+  integrity sha512-cxf+9cfs1gBmNhgDTUqQvN8g8GyED/vYb1YlbLI8VIEhRiD89bDKEh+JkJinc5yd8jOE9sPH/OmRlo4QYdbkrQ==
   dependencies:
     graphql "^16.6.0"
     graphql-request "^6.1.0"
@@ -7369,16 +7388,7 @@ axios@1.8.4:
     form-data "^4.0.0"
     proxy-from-env "^1.1.0"
 
-axios@^1.5.0:
-  version "1.7.7"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.7.tgz#2f554296f9892a72ac8d8e4c5b79c14a91d0a47f"
-  integrity sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==
-  dependencies:
-    follow-redirects "^1.15.6"
-    form-data "^4.0.0"
-    proxy-from-env "^1.1.0"
-
-axios@^1.6.2, axios@^1.8.3:
+axios@^1.5.0, axios@^1.6.2, axios@^1.8.3:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.9.0.tgz#25534e3b72b54540077d33046f77e3b8d7081901"
   integrity sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==
@@ -16115,12 +16125,7 @@ zod@3.22.4:
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.4.tgz#f31c3a9386f61b1f228af56faa9255e845cf3fff"
   integrity sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==
 
-zod@^3.21.4, zod@^3.22.4:
-  version "3.23.8"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
-  integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
-
-zod@^3.24.2:
+zod@^3.21.4, zod@^3.22.4, zod@^3.24.2:
   version "3.24.4"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.4.tgz#e2e2cca5faaa012d76e527d0d36622e0a90c315f"
   integrity sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==
