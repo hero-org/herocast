@@ -7,13 +7,20 @@ import sortBy from 'lodash.sortby';
 import { isDev } from '@/common/helpers/env';
 import { cn } from '@/lib/utils';
 
-const SearchesOverview = () => {
+type SearchesOverviewProps = {
+  onItemClick?: () => void;
+};
+
+const SearchesOverview = ({ onItemClick }: SearchesOverviewProps) => {
   const { searches } = useListStore();
 
   const renderSearch = (search: Search) => {
     return (
       <li key={`search-${search.startedAt}`} className="px-2 sm:px-3 lg:px-4">
-        <div className={cn('flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6')}>
+        <div 
+          className={cn('flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer')}
+          onClick={() => onItemClick && onItemClick()}
+        >
           <span className="flex-nowrap truncate">{search.term}</span>
         </div>
         {isDev() && (

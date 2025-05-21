@@ -10,6 +10,7 @@ import SearchesOverview from './SearchesOverview';
 import ListsOverview from './ListsOverview';
 import ManageListsOverview from './ManageListsOverview';
 import { Separator } from '@/components/ui/separator';
+import { useSidebar } from '@/components/ui/sidebar';
 
 type RightSidebarProps = {
   showFeeds?: boolean;
@@ -21,10 +22,18 @@ type RightSidebarProps = {
 
 const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, showAuthorInfo }: RightSidebarProps) => {
   const router = useRouter();
+  const { setOpenMobile, isMobile } = useSidebar();
 
   const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
   const { selectedCast } = useDataStore();
   const selectedAccount = accounts[selectedAccountIdx];
+  
+  // Close sidebar on mobile when an item is clicked
+  const handleItemClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   const hasAccounts = !isEmpty(accounts);
 
@@ -82,10 +91,10 @@ const RightSidebar = ({ showFeeds, showSearches, showLists, showManageLists, sho
       <div>
         {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}
-        {showLists && renderWithSeparator(<ListsOverview />)}
-        {showManageLists && renderWithSeparator(<ManageListsOverview />, showFeeds || showLists)}
-        {showSearches && <SearchesOverview />}
-        {showFeeds && <ChannelsOverview />}
+        {showLists && renderWithSeparator(<ListsOverview onItemClick={handleItemClick} />)}
+        {showManageLists && renderWithSeparator(<ManageListsOverview onItemClick={handleItemClick} />, showFeeds || showLists)}
+        {showSearches && <SearchesOverview onItemClick={handleItemClick} />}
+        {showFeeds && <ChannelsOverview onItemClick={handleItemClick} />}
       </div>
     </aside>
   );

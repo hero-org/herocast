@@ -29,9 +29,10 @@ import { getPlanLimitsForPlan } from '@/config/planLimits';
 type ListsOverviewProps = {
   hideHeader?: boolean;
   collapsible?: boolean;
+  onItemClick?: () => void;
 };
 
-const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) => {
+const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOverviewProps) => {
   const { searches, selectedListId, setSelectedListId, addList, lists } = useListStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccountId = accounts[selectedAccountIdx]?.id;
@@ -41,10 +42,12 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
   const onOpenManageListModal = (id: UUID) => {
     updateSelectedList(id);
     setIsManageListModalOpen(true);
+    if (onItemClick) onItemClick();
   };
 
   const updateSelectedList = (id: UUID) => {
     setSelectedListId(id);
+    if (onItemClick) onItemClick();
   };
 
   const onClickSaveLastSearch = () => {
@@ -59,6 +62,7 @@ const ManageListsOverview = ({ collapsible, hideHeader }: ListsOverviewProps) =>
         idx: 0,
         type: 'search',
       });
+      if (onItemClick) onItemClick();
     }
   };
 

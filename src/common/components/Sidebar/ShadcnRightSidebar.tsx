@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDataStore } from '@/stores/useDataStore';
+import { useSidebar } from '@/components/ui/sidebar';
 import isEmpty from 'lodash.isempty';
 import {
   Sidebar,
@@ -15,14 +16,12 @@ import {
   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronRight } from 'lucide-react';
 import EmptyStateWithAction from '@/common/components/EmptyStateWithAction';
 import ProfileInfo from '../ProfileInfo';
 import ChannelsOverview from './ChannelsOverview';
 import SearchesOverview from './SearchesOverview';
 import ListsOverview from './ListsOverview';
 import ManageListsOverview from './ManageListsOverview';
-import { Separator } from '@/components/ui/separator';
 import SidebarCollapsibleHeader from './SidebarCollapsibleHeader';
 
 type ShadcnRightSidebarProps = {
@@ -40,6 +39,14 @@ const ShadcnRightSidebar = ({
   showManageLists,
   showAuthorInfo,
 }: ShadcnRightSidebarProps) => {
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  // Close sidebar on mobile when an item is clicked
+  const handleItemClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
   const [isManageListsOpen, setIsManageListsOpen] = useState(true);
   const [isSearchesOpen, setIsSearchesOpen] = useState(true);
   const [isChannelsOpen, setIsChannelsOpen] = useState(true);
@@ -92,8 +99,21 @@ const ShadcnRightSidebar = ({
     <Sidebar
       side="right"
       collapsible="offcanvas"
-      className="border-l border-sidebar-border hidden lg:flex [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]"
+      className="border-l border-sidebar-border hidden lg:flex"
     >
+      <style jsx global>{`
+        [data-sidebar="sidebar"]::-webkit-scrollbar,
+        [data-sidebar="content"]::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+        }
+        
+        [data-sidebar="sidebar"],
+        [data-sidebar="content"] {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
+      `}</style>
       <SidebarContent>
         {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}
@@ -101,7 +121,7 @@ const ShadcnRightSidebar = ({
         {showLists && (
           <SidebarGroup className="py-0">
             <SidebarGroupContent>
-              <ListsOverview />
+              <ListsOverview onItemClick={handleItemClick} />
             </SidebarGroupContent>
           </SidebarGroup>
         )}
@@ -120,7 +140,7 @@ const ShadcnRightSidebar = ({
                 </div>
                 <CollapsibleContent>
                   <SidebarGroupContent>
-                    <ManageListsOverview />
+                    <ManageListsOverview onItemClick={handleItemClick} />
                   </SidebarGroupContent>
                 </CollapsibleContent>
               </Collapsible>
@@ -142,7 +162,7 @@ const ShadcnRightSidebar = ({
                 </div>
                 <CollapsibleContent>
                   <SidebarGroupContent>
-                    <SearchesOverview />
+                    <SearchesOverview onItemClick={handleItemClick} />
                   </SidebarGroupContent>
                 </CollapsibleContent>
               </Collapsible>
@@ -164,7 +184,7 @@ const ShadcnRightSidebar = ({
                 </div>
                 <CollapsibleContent>
                   <SidebarGroupContent>
-                    <ChannelsOverview />
+                    <ChannelsOverview onItemClick={handleItemClick} />
                   </SidebarGroupContent>
                 </CollapsibleContent>
               </Collapsible>

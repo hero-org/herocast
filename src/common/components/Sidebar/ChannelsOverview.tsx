@@ -12,7 +12,11 @@ import { Separator } from '@/components/ui/separator';
 import SidebarCollapsibleHeader from './SidebarCollapsibleHeader';
 import CollapsibleList from './CollapsibleList';
 
-const ChannelsOverview = () => {
+type ChannelsOverviewProps = {
+  onItemClick?: () => void;
+};
+
+const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
   const { selectedChannelUrl, setSelectedChannelUrl, resetSelectedChannel } = useAccountStore();
 
   const { setSelectedListId } = useListStore();
@@ -24,6 +28,7 @@ const ChannelsOverview = () => {
   const onUpdateChannel = (url: string) => {
     setSelectedChannelUrl(url);
     setSelectedListId(undefined);
+    if (onItemClick) onItemClick();
   };
 
   const renderCustomChannel = ({ name, url, icon }: { name: string; url: string; icon?: React.ReactNode }) => {

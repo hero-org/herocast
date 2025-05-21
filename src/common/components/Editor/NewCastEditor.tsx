@@ -135,6 +135,9 @@ export default function NewPostEntry({
       return false;
     }
 
+    // Close the modal immediately by calling onPost
+    onPost?.();
+
     if (scheduleDateTime) {
       posthog.capture('user_schedule_cast');
       await updatePostDraft(draftIdx, {
@@ -147,12 +150,11 @@ export default function NewPostEntry({
         onSuccess: () => {
           console.log('onSuccess after addScheduledDraft');
           setScheduleDateTime(undefined);
-          onPost?.();
         },
       });
     } else {
       posthog.capture('user_post_cast');
-      await publishPostDraft(draftIdx, account, onPost);
+      await publishPostDraft(draftIdx, account);
     }
     return true;
   };
