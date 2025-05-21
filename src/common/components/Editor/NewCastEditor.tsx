@@ -343,7 +343,7 @@ export default function NewPostEntry({
             onClick={() => setCurrentMod(creationMods[0])}
           >
             <PhotoIcon className="w-5 h-5" />
-            <span className="sr-only md:not-sr-only md:pl-2">Add image</span>
+            <span className="sr-only md:not-sr-only md:pl-2">Image</span>
           </Button>
           <Popover
             open={!!currentMod}
@@ -399,12 +399,7 @@ export default function NewPostEntry({
                 onJsDateChange={setScheduleDateTime}
                 showClearButton={false}
               >
-                <Button
-                  className="h-9"
-                  type="button"
-                  variant="outline"
-                  disabled={isPublishing}
-                >
+                <Button className="h-9" type="button" variant="outline" disabled={isPublishing}>
                   <CalendarDaysIcon className="mr-1 w-5 h-5" />
                   Schedule
                 </Button>
