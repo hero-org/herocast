@@ -10,6 +10,7 @@ import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { cn } from '@/lib/utils';
 import { useDataStore } from '@/stores/useDataStore';
 import SkeletonCastRow from './SkeletonCastRow';
+import { useRouter } from 'next/router';
 
 type CastThreadViewProps = {
   hash?: string;
@@ -25,6 +26,7 @@ export const CastThreadView = ({ hash, cast, onBack, isActive }: CastThreadViewP
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const { updateSelectedCast } = useDataStore();
+  const router = useRouter();
 
   useEffect(() => {
     if (!cast || casts.length === 0) return;
@@ -80,6 +82,11 @@ export const CastThreadView = ({ hash, cast, onBack, isActive }: CastThreadViewP
     loadData();
   }, [cast?.hash, hash]);
 
+  const handleCastClick = (cast: CastWithInteractions) => {
+    // Navigate to the conversation page for this cast
+    router.push(`/conversation/${cast.hash}`);
+  };
+
   const renderRow = (cast: CastWithInteractions, idx: number) => {
     const isRowSelected = selectedCastIdx === idx;
 
@@ -101,7 +108,14 @@ export const CastThreadView = ({ hash, cast, onBack, isActive }: CastThreadViewP
                   )}
                 />
               )}
-              <CastRow cast={cast} showChannel isSelected={selectedCastIdx === idx} isThreadView={idx > 0} />
+              <CastRow 
+                cast={cast} 
+                showChannel 
+                isSelected={selectedCastIdx === idx} 
+                isThreadView={idx > 0} 
+                onSelect={() => setSelectedCastIdx(idx)}
+                onCastClick={() => handleCastClick(cast)}
+              />
             </div>
           </div>
         </div>

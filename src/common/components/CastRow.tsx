@@ -98,6 +98,7 @@ interface CastRowProps {
   hideAuthor?: boolean;
   showAdminActions?: boolean;
   recastedByFid?: number;
+  onCastClick?: () => void;
 }
 
 const renderMention = ({ attributes, content }) => {
@@ -198,6 +199,7 @@ export const CastRow = ({
   hideAuthor = false,
   showAdminActions = false,
   recastedByFid,
+  onCastClick,
 }: CastRowProps) => {
   const {
     accounts,
@@ -690,7 +692,11 @@ export const CastRow = ({
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            onSelect && onSelect();
+            if (onCastClick) {
+              onCastClick();
+            } else {
+              onSelect && onSelect();
+            }
           }}
         >
           {!isEmbed && !hideAuthor && (
@@ -751,7 +757,14 @@ export const CastRow = ({
               </div>
             )}
             <div
-              onClick={() => onSelect && onSelect()}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onCastClick) {
+                  onCastClick();
+                } else {
+                  onSelect && onSelect();
+                }
+              }}
               className="mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
               style={castTextStyle}
             >
