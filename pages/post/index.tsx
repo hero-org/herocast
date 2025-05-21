@@ -59,9 +59,11 @@ const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAcc
         .filter(
           (draft) => (!activeAccountId || draft.accountId === activeAccountId) && draft.status === DraftStatus.scheduled
         )
-        .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime());
+        .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()); // Soonest first
     case DraftListTab.published:
-      return drafts.filter((draft) => draft.status === DraftStatus.published && draft.accountId === activeAccountId);
+      return drafts
+        .filter((draft) => draft.status === DraftStatus.published && draft.accountId === activeAccountId)
+        .sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime()); // Most recent first
     default:
       return drafts;
   }
