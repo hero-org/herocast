@@ -60,8 +60,8 @@ importers:
         specifier: ^2.2.3
         version: 2.2.3
       '@paywithglide/glide-js':
-        specifier: ^0.8.0
-        version: 0.8.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
+        specifier: ^0.12.34
+        version: 0.12.34(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
       '@radix-ui/colors':
         specifier: ^3.0.0
         version: 3.0.0
@@ -1753,8 +1753,13 @@ packages:
     resolution: {integrity: sha512-IHnV6A+zxU7XwmKFinmYjUcwlyK9+xkG3/s9KcQhI9BjQKycrJ1JRO+FbNYPwZiPKW3je/DR0k7w8/gLa5eaxQ==}
     deprecated: 'The package is now available as "qr": npm install qr'
 
-  '@paywithglide/glide-js@0.8.0':
-    resolution: {integrity: sha512-Bw5zAt+NKv4iMqXSnaWhaDU+MmcD9OlYvBkwW4K9sQx/DCFqD6H0gyb/pfDGURbpFCH2rQckXIhU9jJcFkCOVw==}
+  '@paywithglide/glide-js@0.12.34':
+    resolution: {integrity: sha512-zeq39zQu4SnpuhEEBx02UdM/bOp0uJQIYjwQ3mB4ryjTG3nty1qirOyTF0aHjgtayvHd6T3S/lDHx7zrnp59Wg==}
+    peerDependencies:
+      '@solana/web3.js': ^1.98.0
+    peerDependenciesMeta:
+      '@solana/web3.js':
+        optional: true
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -10504,7 +10509,7 @@ snapshots:
 
   '@paulmillr/qr@0.2.1': {}
 
-  '@paywithglide/glide-js@0.8.0(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
+  '@paywithglide/glide-js@0.12.34(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)':
     dependencies:
       viem: 2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
     transitivePeerDependencies:
