@@ -15,7 +15,11 @@ import { ChevronRight } from 'lucide-react';
 import SidebarCollapsibleHeader from './SidebarCollapsibleHeader';
 import CollapsibleList from './CollapsibleList';
 
-const ListsOverview = () => {
+type ListsOverviewProps = {
+  onItemClick?: () => void;
+};
+
+const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
   const { selectedListId, setSelectedListId, getSearchLists, getFidLists } = useListStore();
   const allLists = sortBy(
     useListStore((state) => state.lists),
@@ -32,6 +36,7 @@ const ListsOverview = () => {
   const updateSelectedList = (id: UUID) => {
     setSelectedListId(id);
     setSelectedChannelUrl(null);
+    if (onItemClick) onItemClick();
   };
 
   const renderFeedHeader = (
@@ -42,14 +47,7 @@ const ListsOverview = () => {
     onToggle = () => {}
   ) => {
     if (isCollapsible) {
-      return (
-        <SidebarCollapsibleHeader
-          title={title}
-          button={button}
-          isOpen={isOpen}
-          onToggle={onToggle}
-        />
-      );
+      return <SidebarCollapsibleHeader title={title} button={button} isOpen={isOpen} onToggle={onToggle} />;
     }
 
     return (

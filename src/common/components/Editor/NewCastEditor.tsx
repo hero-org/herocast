@@ -135,6 +135,9 @@ export default function NewPostEntry({
       return false;
     }
 
+    // Close the modal immediately by calling onPost
+    onPost?.();
+
     if (scheduleDateTime) {
       posthog.capture('user_schedule_cast');
       await updatePostDraft(draftIdx, {
@@ -147,12 +150,11 @@ export default function NewPostEntry({
         onSuccess: () => {
           console.log('onSuccess after addScheduledDraft');
           setScheduleDateTime(undefined);
-          onPost?.();
         },
       });
     } else {
       posthog.capture('user_post_cast');
-      await publishPostDraft(draftIdx, account, onPost);
+      await publishPostDraft(draftIdx, account);
     }
     return true;
   };
@@ -321,7 +323,7 @@ export default function NewPostEntry({
           </div>
         )}
 
-        <div className="flex flex-row pt-2 gap-1 overflow-x-auto no-scrollbar">
+        <div className="flex flex-row py-2 gap-1 overflow-x-auto no-scrollbar">
           {!isReply && !hideChannel && (
             <div className="text-foreground/80">
               <ChannelPicker
@@ -343,7 +345,7 @@ export default function NewPostEntry({
             onClick={() => setCurrentMod(creationMods[0])}
           >
             <PhotoIcon className="w-5 h-5" />
-            <span className="sr-only md:not-sr-only md:pl-2">Add image</span>
+            <span className="sr-only md:not-sr-only md:pl-2">Image</span>
           </Button>
           <Popover
             open={!!currentMod}
@@ -393,9 +395,9 @@ export default function NewPostEntry({
                 variant="outline"
                 disabled={isPublishing}
                 onClick={() => {
-                  const date = new Date();
-                  date.setDate(date.getDate() + 1);
-                  setScheduleDateTime(date);
+                  const futureDate = new Date();
+                  futureDate.setHours(futureDate.getHours() + 1);
+                  setScheduleDateTime(futureDate);
                 }}
               >
                 <CalendarDaysIcon className="mr-1 w-5 h-5" />

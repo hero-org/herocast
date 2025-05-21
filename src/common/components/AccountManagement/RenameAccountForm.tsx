@@ -112,9 +112,6 @@ const RenameAccountForm = ({
           return false;
         }
       });
-    } else if (account.platform === AccountPlatformType.farcaster_hats_protocol) {
-      // need to validate with the delegator contract address if wallet is a valid signer
-      return true;
     }
   };
 

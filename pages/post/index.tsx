@@ -59,9 +59,11 @@ const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAcc
         .filter(
           (draft) => (!activeAccountId || draft.accountId === activeAccountId) && draft.status === DraftStatus.scheduled
         )
-        .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime());
+        .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()); // Soonest first
     case DraftListTab.published:
-      return drafts.filter((draft) => draft.status === DraftStatus.published && draft.accountId === activeAccountId);
+      return drafts
+        .filter((draft) => draft.status === DraftStatus.published && draft.accountId === activeAccountId)
+        .sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime()); // Most recent first
     default:
       return drafts;
   }
@@ -80,8 +82,8 @@ export default function NewPost() {
   const pathname = usePathname();
   const savedPathname = useRef(pathname);
 
-  // 1280px is the default starting breakpoint for  tailwindcss' XL screen. This should be updated if the breakpoint values is updated in tailwind.config.js
-  const isBelowXLScreen = useMediaQuery('(max-width: 1280px)');
+  // 1024px is the default starting breakpoint for  tailwindcss' XL screen. This should be updated if the breakpoint values is updated in tailwind.config.js
+  const isBelowLgScreen = useMediaQuery('(max-width: 1024px)');
 
   const { isDraftsModalOpen, openDraftsModal, closeDraftsModal } = useDraftStore();
 
@@ -115,10 +117,10 @@ export default function NewPost() {
 
   useEffect(() => {
     // if the modal is opened, and the screen is resized to XL (>=1280px), close the modal. This will prevent the modal from automatically opening when the screen back to <1280px
-    if (!isBelowXLScreen && isDraftsModalOpen) {
+    if (!isBelowLgScreen && isDraftsModalOpen) {
       closeDraftsModal();
     }
-  }, [isBelowXLScreen, isDraftsModalOpen, closeDraftsModal]);
+  }, [isBelowLgScreen, isDraftsModalOpen, closeDraftsModal]);
 
   useEffect(() => {
     if (searchParams.has('text')) {
@@ -194,12 +196,15 @@ export default function NewPost() {
 
   const renderEmptyMainContent = () => (
     <div className="flex flex-col items-center justify-center pt-2 pb-6 w-full h-full min-h-[400px]">
-      <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-lg w-full max-w-[500px] border border-muted">
+      <div
+        onClick={() => handleNewDraft()}
+        className="cursor-pointer flex flex-col items-center justify-center gap-4 p-8 rounded-lg w-full max-w-[500px] border border-muted"
+      >
         <div className="flex flex-col items-center text-center gap-2">
           <PencilSquareIcon className="w-12 h-12 text-muted-foreground/50" />
-          <h2 className="text-xl font-semibold">Create a new draft</h2>
+          <h2 className="text-xl font-semibold">New draft</h2>
           <p className="text-muted-foreground max-w-[350px]">
-            Start writing your thoughts, schedule posts for later, or reply to conversations.
+            Start writing your thoughts or schedule posts for later.
           </p>
         </div>
         <Button className="mt-2" onClick={handleNewDraft}>
@@ -287,7 +292,7 @@ export default function NewPost() {
   const renderScrollableList = (children: React.ReactElement) => (
     <ScrollArea
       className="flex-1 overflow-y-auto"
-      style={{ maxHeight: isBelowXLScreen ? '350px' : 'calc(100vh - 200px)' }}
+      style={{ maxHeight: isBelowLgScreen ? '350px' : 'calc(100vh - 200px)' }}
     >
       <div className="flex flex-col gap-2 pt-0 pb-4">{children}</div>
     </ScrollArea>
@@ -327,7 +332,7 @@ export default function NewPost() {
           }
           submitText="New draft"
           onClick={handleNewDraft}
-          hideButton={activeTab === DraftListTab.published}
+          hideButton
         />
       );
     }
@@ -404,9 +409,8 @@ export default function NewPost() {
     //two colums on XL screen and above, one column on screens below xl, because at this breakpoints, the dratft components becomes a modal
     <div className="grid grid-cols-1 xl:grid-cols-[320px_1fr] h-screen w-full">
       {/* Only render this on the side on xl screens */}
-      {!isBelowXLScreen && (
+      {!isBelowLgScreen && (
         <div className="w-full overflow-y-auto p-4 border-r">
-          <h2 className="text-xl font-semibold mb-4">Drafts</h2>
           <div className="space-y-4">
             <Tabs
               defaultValue="drafts"
@@ -430,10 +434,9 @@ export default function NewPost() {
       )}
       <div className="flex flex-col">
         {/* This triggers the drafts modal. Should only be rendered on screens below XL */}
-        {isBelowXLScreen && (
+        {isBelowLgScreen && (
           <div className="p-4 pb-0 block xl:hidden">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Posts</h2>
               <Button className="inline-flex items-center gap-2" onClick={openDraftsModal}>
                 <PencilSquareIcon className="w-5 h-5" />
                 <span>Drafts</span>
@@ -445,7 +448,7 @@ export default function NewPost() {
         <div className="flex-1 overflow-y-auto px-4 py-0 flex flex-col">{renderContent()}</div>
       </div>
       {/* The drafts modal should only be rendered on screens below XL */}
-      {isBelowXLScreen && renderDraftsModal()}
+      {isBelowLgScreen && renderDraftsModal()}
     </div>
   );
 }

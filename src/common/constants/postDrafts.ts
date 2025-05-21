@@ -42,12 +42,6 @@ export const LaunchCasterScoutDraft: DraftType = {
   mentionsToFids: { launch: '2864', herocast: '18665' },
 };
 
-export const JoinedHerocastViaHatsProtocolDraft: DraftType = {
-  text: 'I just joined @herocast via @hatsprotocol',
-  status: DraftStatus.writing,
-  mentionsToFids: { herocast: '18665', hatsprotocol: '18484' },
-};
-
 export const JoinedHerocastPostDraft: DraftType = {
   text: 'I just joined @herocast! ',
   status: DraftStatus.writing,

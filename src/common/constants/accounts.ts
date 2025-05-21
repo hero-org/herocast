@@ -7,7 +7,6 @@ export enum AccountStatusType {
 
 export enum AccountPlatformType {
   farcaster = 'farcaster',
-  farcaster_hats_protocol = 'farcaster-hats-protocol',
   farcaster_local_readonly = 'farcaster-local-readonly',
 }
 

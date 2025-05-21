@@ -16,9 +16,7 @@ const SidebarCollapsibleHeader = ({ title, button, isOpen, onToggle }: SidebarCo
       className="flex items-center px-2 py-1 sm:pr-4 cursor-pointer group/label hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md"
       onClick={onToggle}
     >
-      <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary flex items-center">
-        {title}
-      </h3>
+      <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary flex items-center">{title}</h3>
       {button}
       <ChevronRight
         className="ml-auto transition-transform"

@@ -31,12 +31,6 @@ importers:
       '@gumlet/react-hls-player':
         specifier: ^1.0.1
         version: 1.0.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@hatsprotocol/modules-sdk':
-        specifier: ^0.15.2
-        version: 0.15.2(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))
-      '@hatsprotocol/sdk-v1-core':
-        specifier: ^0.9.0
-        version: 0.9.0(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))
       '@headlessui/react':
         specifier: ^2.2.0
         version: 2.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -1082,34 +1076,12 @@ packages:
     resolution:
       { integrity: sha512-4rB4g+3hESy1bHSBG3tDFaMY2CH67iT7yne1e+0CLTsGLDcmoEWWpJjjpWVaYgYfYuohIRuo0E+N536gd2ZHZA== }
 
-  '@graphql-typed-document-node/core@3.2.0':
-    resolution:
-      { integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ== }
-    peerDependencies:
-      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
-
   '@gumlet/react-hls-player@1.0.1':
     resolution:
       { integrity: sha512-3dT/d7xhc8lEqNeuMnIJcu9f723JncuW19ilX9w55fV//2HgpEsr7RzWB8Fix/+TnPQF5AzVK/4l63saE5E9Pw== }
     peerDependencies:
       react: ^16.13.1
       react-dom: ^16.13.1
-
-  '@hatsprotocol/modules-sdk@0.15.2':
-    resolution:
-      { integrity: sha512-PxABbhKM2ZlTfa2R0Z9CjMz3gzFE3/yxr6hLD3AgVrjQQcnuX3QSAKu3dRxvJhcLbXq5n5bhRTZWYLM1Qe7BZQ== }
-    peerDependencies:
-      viem: ^1.11.0
-
-  '@hatsprotocol/sdk-v1-core@0.9.0':
-    resolution:
-      { integrity: sha512-xbEBhpYPfCNVXyVitx7JWsmV0fFvOte28/jfm3V/duBzjEvmlqZD+z86HnVfNK5KlLuDToEyI5dFLaqnxOMIxQ== }
-    peerDependencies:
-      viem: ^2.0.0
-
-  '@hatsprotocol/sdk-v1-subgraph@1.0.0':
-    resolution:
-      { integrity: sha512-86c5oC18KCcaNCBBw+eemA09zmEyuh3xr4SflrOUDXuCdEQZ08M9WqgEe7tZNw2QURTGArwPVaCQ2j7bkMjdow== }
 
   '@headlessui/react@2.2.0':
     resolution:
@@ -6793,17 +6765,6 @@ packages:
     resolution:
       { integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag== }
 
-  graphql-request@6.1.0:
-    resolution:
-      { integrity: sha512-p+XPfS4q7aIpKVcgmnZKhMNqhltk20hfXtkaIkTfjjmiKMJ5xrt5c743cL03y/K7y1rg3WrIC49xGiEQ4mxdNw== }
-    peerDependencies:
-      graphql: 14 - 16
-
-  graphql@16.10.0:
-    resolution:
-      { integrity: sha512-AjqGKbDGUFRKIRCP9tCKiIGHyriz2oHEbPIbEtcSLSs4YjReZOIPQQWek4+6hjw62H9QShXHyaGivGiYVLeYFQ== }
-    engines: { node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0 }
-
   h3@1.15.3:
     resolution:
       { integrity: sha512-z6GknHqyX0h9aQaTx22VZDf6QyZn+0Nh+Ym8O/u0SGSkyF5cuTJYKlc8MkzW3Nzf9LE1ivcpmYC3FUGpywhuUQ== }
@@ -11154,40 +11115,11 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@graphql-typed-document-node/core@3.2.0(graphql@16.10.0)':
-    dependencies:
-      graphql: 16.10.0
-
   '@gumlet/react-hls-player@1.0.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       hls.js: 1.5.20
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-
-  '@hatsprotocol/modules-sdk@0.15.2(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))':
-    dependencies:
-      axios: 1.8.3
-      viem: 2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
-      zod: 3.24.2
-    transitivePeerDependencies:
-      - debug
-
-  '@hatsprotocol/sdk-v1-core@0.9.0(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))':
-    dependencies:
-      '@hatsprotocol/sdk-v1-subgraph': 1.0.0
-      graphql: 16.10.0
-      graphql-request: 6.1.0(graphql@16.10.0)
-      viem: 2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
-    transitivePeerDependencies:
-      - encoding
-
-  '@hatsprotocol/sdk-v1-subgraph@1.0.0':
-    dependencies:
-      graphql: 16.10.0
-      graphql-request: 6.1.0(graphql@16.10.0)
-      zod: 3.24.2
-    transitivePeerDependencies:
-      - encoding
 
   '@headlessui/react@2.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
@@ -17996,16 +17928,6 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   graphemer@1.4.0: {}
-
-  graphql-request@6.1.0(graphql@16.10.0):
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.10.0)
-      cross-fetch: 3.2.0
-      graphql: 16.10.0
-    transitivePeerDependencies:
-      - encoding
-
-  graphql@16.10.0: {}
 
   h3@1.15.3:
     dependencies:
