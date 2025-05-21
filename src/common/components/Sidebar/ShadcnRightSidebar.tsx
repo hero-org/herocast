@@ -96,24 +96,7 @@ const ShadcnRightSidebar = ({
   };
 
   return (
-    <Sidebar
-      side="right"
-      collapsible="offcanvas"
-      className="border-l border-sidebar-border hidden lg:flex"
-    >
-      <style jsx global>{`
-        [data-sidebar="sidebar"]::-webkit-scrollbar,
-        [data-sidebar="content"]::-webkit-scrollbar {
-          display: none !important;
-          width: 0 !important;
-        }
-        
-        [data-sidebar="sidebar"],
-        [data-sidebar="content"] {
-          -ms-overflow-style: none !important;
-          scrollbar-width: none !important;
-        }
-      `}</style>
+    <Sidebar side="right" collapsible="offcanvas" className="border-l border-sidebar-border hidden lg:flex">
       <SidebarContent>
         {isHydrated && renderAuthorInfo()}
         {isHydrated && !hasAccounts && renderEmptyState()}

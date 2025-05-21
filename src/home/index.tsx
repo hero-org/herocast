@@ -194,9 +194,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 },
               },
             ];
-            if (isChannelFeed) {
+            if (isChannelFeed && !isChannelPinned) {
               actions.push({
-                name: isChannelPinned ? 'Unpin' : 'Pin',
+                name: 'Pin',
                 onClick: () => {
                   const channel = channels.find((c) => c.url === selectedChannelUrl);
                   if (!channel) return;
@@ -299,7 +299,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case '/feeds':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
       case '/post':
-        return RIGHT_SIDEBAR_ENUM.PUBLISHED_CASTS;
+        return RIGHT_SIDEBAR_ENUM.NONE;
       case '/channels':
         return RIGHT_SIDEBAR_ENUM.NONE;
       case '/notifications':
@@ -554,7 +554,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                       <span className="sr-only">Open sidebar</span>
                       <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                     </button>
-                    <h1 className="ml-4 text-xl font-bold leading-7 text-foreground">{title}</h1>
+                    <h1 className="md:ml-2 text-xl font-bold leading-7 text-foreground">{title}</h1>
                     <div className="flex-grow" />
                     <div className="flex gap-x-2">
                       {headerActions.map((action) => (

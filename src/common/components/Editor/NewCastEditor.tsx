@@ -323,7 +323,7 @@ export default function NewPostEntry({
           </div>
         )}
 
-        <div className="flex flex-row pt-2 gap-1 overflow-x-auto no-scrollbar">
+        <div className="flex flex-row py-2 gap-1 overflow-x-auto no-scrollbar">
           {!isReply && !hideChannel && (
             <div className="text-foreground/80">
               <ChannelPicker
