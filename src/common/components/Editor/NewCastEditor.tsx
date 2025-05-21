@@ -393,7 +393,9 @@ export default function NewPostEntry({
                 variant="outline"
                 disabled={isPublishing}
                 onClick={() => {
-                  setScheduleDateTime(new Date());
+                  const futureDate = new Date();
+                  futureDate.setHours(futureDate.getHours() + 1);
+                  setScheduleDateTime(futureDate);
                 }}
               >
                 <CalendarDaysIcon className="mr-1 w-5 h-5" />
