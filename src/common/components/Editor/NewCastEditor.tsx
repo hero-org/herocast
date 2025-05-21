@@ -387,20 +387,28 @@ export default function NewPostEntry({
                 showClearButton
               />
             ) : (
-              <Button
-                className="h-9"
-                type="button"
-                variant="outline"
-                disabled={isPublishing}
-                onClick={() => {
-                  const date = new Date();
-                  date.setDate(date.getDate() + 1);
-                  setScheduleDateTime(date);
+              <DateTimePicker
+                granularity="minute"
+                hourCycle={24}
+                onOpenChange={(isOpen) => {
+                  if (isOpen && !scheduleDateTime) {
+                    setScheduleDateTime(new Date());
+                  }
                 }}
+                jsDate={null}
+                onJsDateChange={setScheduleDateTime}
+                showClearButton={false}
               >
-                <CalendarDaysIcon className="mr-1 w-5 h-5" />
-                Schedule
-              </Button>
+                <Button
+                  className="h-9"
+                  type="button"
+                  variant="outline"
+                  disabled={isPublishing}
+                >
+                  <CalendarDaysIcon className="mr-1 w-5 h-5" />
+                  Schedule
+                </Button>
+              </DateTimePicker>
             ))}
         </div>
         <div className="flex flex-row pt-2 justify-between">

@@ -278,8 +278,9 @@ const DateTimePicker = React.forwardRef<
     jsDate?: Date | null;
     onJsDateChange?: (date: Date | null) => void;
     showClearButton?: boolean;
+    children?: React.ReactNode;
   }
->(({ jsDate, onJsDateChange, showClearButton = true, ...props }, ref) => {
+>(({ jsDate, onJsDateChange, showClearButton = true, children, ...props }, ref) => {
   const divRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -353,17 +354,27 @@ const DateTimePicker = React.forwardRef<
     >
       <Popover open={props.isOpen} onOpenChange={props.onOpenChange}>
         <PopoverTrigger asChild>
-          <Button
-            {...buttonProps}
-            variant="ghost"
-            className="h-full px-0 sm:px-2"
-            disabled={props.isDisabled}
-            onClick={() => {
-              state.setOpen(true);
-            }}
-          >
-            <CalendarIcon className="w-4 h-4 sm:h-5 sm:w-5" />
-          </Button>
+          {children ? (
+            React.cloneElement(children as React.ReactElement, {
+              ...buttonProps,
+              onClick: () => {
+                state.setOpen(true);
+              },
+              disabled: props.isDisabled,
+            })
+          ) : (
+            <Button
+              {...buttonProps}
+              variant="ghost"
+              className="h-full px-0 sm:px-2"
+              disabled={props.isDisabled}
+              onClick={() => {
+                state.setOpen(true);
+              }}
+            >
+              <CalendarIcon className="w-4 h-4 sm:h-5 sm:w-5" />
+            </Button>
+          )}
         </PopoverTrigger>
         <PopoverContent ref={contentRef} className="w-full">
           <div {...dialogProps} className="space-y-3">
