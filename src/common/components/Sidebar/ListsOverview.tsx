@@ -42,14 +42,7 @@ const ListsOverview = () => {
     onToggle = () => {}
   ) => {
     if (isCollapsible) {
-      return (
-        <SidebarCollapsibleHeader
-          title={title}
-          button={button}
-          isOpen={isOpen}
-          onToggle={onToggle}
-        />
-      );
+      return <SidebarCollapsibleHeader title={title} button={button} isOpen={isOpen} onToggle={onToggle} />;
     }
 
     return (

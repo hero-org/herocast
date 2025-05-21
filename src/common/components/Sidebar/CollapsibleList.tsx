@@ -11,19 +11,19 @@ type CollapsibleListProps<T> = {
   className?: string;
 };
 
-function CollapsibleList<T>({ 
-  items, 
-  renderItem, 
+function CollapsibleList<T>({
+  items,
+  renderItem,
   initialVisibleCount = 5,
   isShowAll: externalIsShowAll,
   setIsShowAll: externalSetIsShowAll,
-  className = ""
+  className = '',
 }: CollapsibleListProps<T>) {
   const [internalIsShowAll, setInternalIsShowAll] = useState(false);
-  
+
   const isShowAll = externalIsShowAll !== undefined ? externalIsShowAll : internalIsShowAll;
   const setIsShowAll = externalSetIsShowAll || setInternalIsShowAll;
-  
+
   return (
     <div className={className}>
       <Collapsible open={isShowAll} onOpenChange={setIsShowAll}>

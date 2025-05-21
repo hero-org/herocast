@@ -85,9 +85,7 @@ const ChannelsOverview = () => {
       <ul role="list" className="px-4 py-1 sm:px-4">
         <CollapsibleList
           items={channels}
-          renderItem={(channel: ChannelType) => (
-            <li key={channel.name}>{renderChannel(channel)}</li>
-          )}
+          renderItem={(channel: ChannelType) => <li key={channel.name}>{renderChannel(channel)}</li>}
           isShowAll={isShowAllChannels}
           setIsShowAll={setIsShowAllChannels}
         />
