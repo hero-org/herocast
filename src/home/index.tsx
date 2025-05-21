@@ -282,7 +282,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           router: '/accounts',
           icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: 'CMD + Shift + A',
-          additionalPaths: ['/farcaster-signup', '/hats'],
+          additionalPaths: ['/farcaster-signup'],
         },
         {
           name: 'Settings',

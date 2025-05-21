@@ -26,8 +26,6 @@ const AccountsOverview = () => {
 
   const renderAccountPlatformIndicator = (platform: AccountPlatformType) => {
     switch (platform) {
-      case AccountPlatformType.farcaster_hats_protocol:
-        return <p className="truncate text-md text-foreground grayscale group-hover:grayscale-0">🧢</p>;
       case AccountPlatformType.farcaster_local_readonly:
         return (
           <p className="truncate text-md text-foreground grayscale group-hover:grayscale-0">

@@ -12,7 +12,6 @@ import { AccountPlatformType, AccountStatusType } from '@/common/constants/accou
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { QrCode } from '@/common/components/QrCode';
-import ConnectFarcasterAccountViaHatsProtocol from '@/common/components/ConnectFarcasterAccountViaHatsProtocol';
 import { useAccount } from 'wagmi';
 import {
   WarpcastLoginStatus,
@@ -279,7 +278,6 @@ export default function Accounts() {
                   {item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
                 </h3>
                 <p className="truncate text-sm text-foreground/80">{item.status}</p>
-                {item.platform === AccountPlatformType.farcaster_hats_protocol && <p className="text-sm">🧢</p>}
               </div>
             </li>
           ))}
@@ -295,7 +293,6 @@ export default function Accounts() {
           <TabsList>
             <TabsTrigger value="default">Add accounts</TabsTrigger>
             <TabsTrigger value="create">Create accounts</TabsTrigger>
-            <TabsTrigger value="shared">Shared accounts</TabsTrigger>
             <TabsTrigger value="manage">Manage</TabsTrigger>
             <TabsTrigger value="help">Help</TabsTrigger>
           </TabsList>
@@ -312,26 +309,6 @@ export default function Accounts() {
         </TabsContent>
         <TabsContent value="create">
           <div className="flex flex-col max-w-md lg:max-w-lg gap-5">{renderCreateNewOnchainAccountCard()}</div>
-        </TabsContent>
-        <TabsContent value="shared">
-          <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
-            <ConnectFarcasterAccountViaHatsProtocol />
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Create a shared Farcaster account</CardTitle>
-                <CardDescription className="text-lg">
-                  Follow these steps to create a shared Farcaster account. Shared accounts are powered by Hats Protocol
-                  🧢.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="w-full max-w-lg"></CardContent>
-              <CardFooter className="flex flex-col">
-                <Button className="w-full" variant="default" onClick={() => router.push('/hats')}>
-                  Go to setup →
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
         </TabsContent>
         <TabsContent value="manage" className="max-w-[600px]">
           <div className="flex justify-between pb-2 border-b border-gray-200">
@@ -351,7 +328,6 @@ export default function Accounts() {
                   {item.platformAccountId && item.status !== 'active' && (
                     <p className="truncate text-sm text-foreground/80">{item.status}</p>
                   )}
-                  {item.platform === AccountPlatformType.farcaster_hats_protocol && <p className="text-sm">🧢</p>}
                   {item.platformAccountId && item.status === 'active' && (
                     <p className="font-mono truncate text-sm text-foreground/80">fid: {item.platformAccountId}</p>
                   )}

@@ -1,4 +1,4 @@
-![herocast_logo_wide](https://github.com/hero-org/.github/blob/main/assets/herocast-logo.png?raw=true)  
+![herocast_logo_wide](https://github.com/hero-org/.github/blob/main/assets/herocast-logo.png?raw=true)
 <br />
 [![build](https://github.com/hellno/herocast/actions/workflows/build.yaml/badge.svg)](https://github.com/hellno/herocast/actions/workflows/build.yaml)
 
@@ -13,9 +13,6 @@ a protocol for decentralized social apps: https://www.farcaster.xyz
 ## Partners
 
 <p>
-  <a href="https://www.hatsprotocol.xyz/">
-    <img alt="hats protocol logo" src="https://raw.githubusercontent.com/hero-org/.github/main/assets/hats_protocol.avif" width="auto" height="50"/>
-  </a>
   <a href="https://paywithglide.xyz">
     <img alt="glide logo" src="https://github.com/hero-org/.github/blob/main/assets/glide.png?raw=true" width="auto" height="50" />
   </a>
