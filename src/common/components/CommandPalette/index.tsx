@@ -84,7 +84,7 @@ export default function CommandPalette() {
           },
           {
             ...(command.options || {}),
-            splitKey: '-',
+            delimiter: '-',
             enabled: command.enabled,
             preventDefault: true,
           },
