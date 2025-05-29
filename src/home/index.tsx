@@ -306,7 +306,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return RIGHT_SIDEBAR_ENUM.NONE;
       case '/channels':
         return RIGHT_SIDEBAR_ENUM.NONE;
-      case '/notifications':
+      case '/inbox':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       case '/search':
         return RIGHT_SIDEBAR_ENUM.SEARCH;

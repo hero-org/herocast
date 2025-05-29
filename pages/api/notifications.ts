@@ -29,11 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // Constructing the Neynar API URL with query parameters
     let apiUrl = `${NEYNAR_API_URL}?fid=${fid}&priority_mode=${priorityMode}&limit=${limit}`;
-    
+
     if (cursor) {
       apiUrl += `&cursor=${encodeURIComponent(cursor as string)}`;
     }
-    
+
     if (type) {
       apiUrl += `&type=${encodeURIComponent(type as string)}`;
     }
@@ -54,10 +54,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { notifications = [], next } = response.data || {};
     clearTimeout(timeout); // Clear the timeout if the request completes successfully
 
-    res.status(200).json({ 
+    res.status(200).json({
       notifications,
       next,
-      cursor: next?.cursor 
+      cursor: next?.cursor,
     });
   } catch (error) {
     clearTimeout(timeout); // Clear the timeout in case of error

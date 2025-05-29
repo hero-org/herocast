@@ -29,7 +29,7 @@ const getCachedData = (key: string) => {
 
 const setCachedData = (key: string, data: any) => {
   castCache.set(key, { data, timestamp: Date.now() });
-  
+
   // Clean up old cache entries periodically (keep cache size reasonable)
   if (castCache.size > 1000) {
     const now = Date.now();
@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Check cache first
   const cacheKey = getCacheKey(casts, viewerFid as string);
   const cachedResult = getCachedData(cacheKey);
-  
+
   if (cachedResult) {
     console.log(`Cache hit for cast: ${casts.substring(0, 10)}...`);
     return res.status(200).json(cachedResult);
@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // Constructing the Neynar API URL with query parameters
     let apiUrl = `${NEYNAR_API_URL}?casts=${encodeURIComponent(casts)}`;
-    
+
     if (viewerFid) {
       apiUrl += `&viewer_fid=${encodeURIComponent(viewerFid as string)}`;
     }
@@ -87,13 +87,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Parse and return the results
     const { result } = response.data || {};
-    const responseData = { 
-      result: result || { casts: [] }
+    const responseData = {
+      result: result || { casts: [] },
     };
 
     // Cache the result
     setCachedData(cacheKey, responseData);
-    
+
     clearTimeout(timeout); // Clear the timeout if the request completes successfully
 
     res.status(200).json(responseData);

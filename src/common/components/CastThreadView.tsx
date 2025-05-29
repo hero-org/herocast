@@ -108,11 +108,11 @@ export const CastThreadView = ({ hash, cast, onBack, isActive }: CastThreadViewP
                   )}
                 />
               )}
-              <CastRow 
-                cast={cast} 
-                showChannel 
-                isSelected={selectedCastIdx === idx} 
-                isThreadView={idx > 0} 
+              <CastRow
+                cast={cast}
+                showChannel
+                isSelected={selectedCastIdx === idx}
+                isThreadView={idx > 0}
                 onSelect={() => setSelectedCastIdx(idx)}
                 onCastClick={() => handleCastClick(cast)}
               />

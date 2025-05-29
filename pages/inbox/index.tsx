@@ -85,7 +85,7 @@ const CompactFollowerProfile = ({ user, viewerFid }: { user: any; viewerFid: str
   );
 };
 
-const Notifications = () => {
+const Inbox = () => {
   const router = useRouter();
   const { isNewCastModalOpen, setCastModalView, openNewCastModal, setCastModalDraftId } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
@@ -94,7 +94,7 @@ const Notifications = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [lastAutoLoadTime, setLastAutoLoadTime] = useState<number>(0);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const listContainerRef = useRef<HTMLDivElement>(null);
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
   const { updateSelectedCast } = useDataStore();
   const [loadMoreCursor, setLoadMoreCursor] = useState<string>();
@@ -113,7 +113,7 @@ const Notifications = () => {
       } else {
         setIsLoadingMore(true);
       }
-      
+
       try {
         const params = new URLSearchParams({
           fid: viewerFid,
@@ -222,35 +222,37 @@ const Notifications = () => {
   // Initial load and account changes - dual requests for maximum data
   useEffect(() => {
     if (!viewerFid) return;
-    
+
     // Reset state immediately
     setSelectedNotificationIdx(0);
     setParentCast(null);
     setNotifications([]);
-    
+
     // Strategy: Load initial batch immediately, then load more in background
     console.log('🚀 Loading notifications with dual strategy...');
-    
+
     const loadNotificationsStrategy = async () => {
       try {
         // First request: Get initial batch quickly (smaller, faster)
         const initialBatch = await fetchNotifications(true, true, 15);
         console.log(`📦 Initial batch loaded: ${initialBatch?.length || 0} notifications`);
-        
+
         // Small delay to let UI settle with first batch
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
         // Second request: Load more notifications for power users who blast through them
         if (initialBatch && initialBatch.length > 0) {
-          const moreBatch = await fetchNotifications(false, true, 50);
+          const moreBatch = await fetchNotifications(false, true, 25);
           console.log(`📦 Extended batch loaded: ${moreBatch?.length || 0} additional notifications`);
-          console.log(`🚀 Total available for browsing: ${(initialBatch?.length || 0) + (moreBatch?.length || 0)} notifications`);
+          console.log(
+            `🚀 Total available for browsing: ${(initialBatch?.length || 0) + (moreBatch?.length || 0)} notifications`
+          );
         }
       } catch (error) {
         console.error('❌ Error in dual loading strategy:', error);
       }
     };
-    
+
     loadNotificationsStrategy();
   }, [viewerFid]);
 
@@ -445,51 +447,66 @@ const Notifications = () => {
   }, [loadMoreCursor, isLoadingMore, fetchNotifications]);
 
   // Auto-load when scrolling near bottom with safeguards
-  const handleScroll = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !loadMoreCursor || isLoadingMore || isLoading) return;
+  const handleScroll = useCallback(
+    (event: Event) => {
+      const container = event.target as HTMLElement;
+      if (!container || !loadMoreCursor || isLoadingMore || isLoading) return;
 
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-    
-    // Trigger when 90% scrolled and prevent rapid requests
-    const now = Date.now();
-    const timeSinceLastLoad = now - lastAutoLoadTime;
-    
-    if (scrollPercentage > 0.9 && timeSinceLastLoad > 2000) { // 2 second throttle
-      console.log(`🔄 Auto-loading more notifications (${scrollPercentage.toFixed(2)} scrolled)`);
-      setLastAutoLoadTime(now);
-      fetchNotifications(false, true, 25);
-    }
-  }, [loadMoreCursor, isLoadingMore, isLoading, lastAutoLoadTime, fetchNotifications]);
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
 
-  // Scroll event listener
+      // Trigger when 85% scrolled (earlier trigger) and prevent rapid requests
+      const now = Date.now();
+      const timeSinceLastLoad = now - lastAutoLoadTime;
+
+      if (scrollPercentage > 0.85 && timeSinceLastLoad > 1500) {
+        // 1.5 second throttle, 85% trigger
+        console.log(`🔄 Auto-loading more notifications (${(scrollPercentage * 100).toFixed(1)}% scrolled)`);
+        setLastAutoLoadTime(now);
+        fetchNotifications(false, true, 25);
+      }
+    },
+    [loadMoreCursor, isLoadingMore, isLoading, lastAutoLoadTime, fetchNotifications]
+  );
+
+  // Attach scroll listener to the actual scrollable element inside SelectableListWithHotkeys
   useEffect(() => {
-    const container = scrollContainerRef.current;
+    const container = listContainerRef.current;
     if (!container) return;
 
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+    // Find the scrollable element (it's usually the first child with overflow-y-auto)
+    const scrollableElement = container.querySelector('[style*="overflow-y: auto"], .overflow-y-auto');
+    if (!scrollableElement) {
+      console.warn('Could not find scrollable element for auto-load');
+      return;
+    }
+
+    console.log('📜 Attached scroll listener to:', scrollableElement.className);
+    scrollableElement.addEventListener('scroll', handleScroll, { passive: true });
+    return () => scrollableElement.removeEventListener('scroll', handleScroll);
+  }, [handleScroll, notifications.length]); // Re-attach when notifications change
 
   // Smart auto-load for sparse tabs (handles edge case of few notifications)
   useEffect(() => {
     // If we have very few notifications (1-3) but there's more data available, auto-load
     const filteredNotifications = filterNotificationsByActiveTab(allNotifications, activeTab);
-    const shouldAutoLoad = 
-      filteredNotifications.length > 0 && 
-      filteredNotifications.length <= 3 && 
-      loadMoreCursor && 
-      !isLoadingMore && 
+    const shouldAutoLoad =
+      filteredNotifications.length > 0 &&
+      filteredNotifications.length <= 3 &&
+      loadMoreCursor &&
+      !isLoadingMore &&
       !isLoading;
-    
+
     if (shouldAutoLoad) {
       const now = Date.now();
       const timeSinceLastLoad = now - lastAutoLoadTime;
-      
+
       // Only auto-load if we haven't done it recently (prevent infinite loops)
-      if (timeSinceLastLoad > 5000) { // 5 second throttle for sparse auto-loading
-        console.log(`📈 Sparse tab auto-load: ${activeTab} has only ${filteredNotifications.length} notifications, loading more...`);
+      if (timeSinceLastLoad > 5000) {
+        // 5 second throttle for sparse auto-loading
+        console.log(
+          `📈 Sparse tab auto-load: ${activeTab} has only ${filteredNotifications.length} notifications, loading more...`
+        );
         setLastAutoLoadTime(now);
         fetchNotifications(false, true, 25);
       }
@@ -891,86 +908,59 @@ const Notifications = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Notifications list */}
         <div className="w-1/2 flex flex-col">
-          <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
+          <div className="flex-1" ref={listContainerRef}>
             {isEmpty(notifications) && !isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-foreground/60">No notifications found.</p>
               </div>
             ) : (
-              <SelectableListWithHotkeys
-                data={notifications}
-                selectedIdx={selectedNotificationIdx}
-                setSelectedIdx={(idx) => {
-                  // Don't update selection while loading to prevent jitter
-                  if (!isLoading) {
-                    setSelectedNotificationIdx(idx);
-                  }
-                }}
-                renderRow={renderNotificationRow}
-                onSelect={onSelect}
-                isActive={!isNewCastModalOpen && !isLoading}
-                pinnedNavigation={true}
-                containerHeight="100%"
-              />
+              <div className="h-full">
+                <SelectableListWithHotkeys
+                  data={notifications}
+                  selectedIdx={selectedNotificationIdx}
+                  setSelectedIdx={(idx) => {
+                    // Don't update selection while loading to prevent jitter
+                    if (!isLoading) {
+                      setSelectedNotificationIdx(idx);
+                    }
+                  }}
+                  renderRow={renderNotificationRow}
+                  onSelect={onSelect}
+                  isActive={!isNewCastModalOpen && !isLoading}
+                  pinnedNavigation={true}
+                  containerHeight="calc(100vh - 200px)"
+                />
+              </div>
             )}
           </div>
 
-          {/* Load more button - always show if cursor exists */}
-          {loadMoreCursor && (
-            <div className="border-t border-muted p-4">
-              <Button
-                variant="outline"
-                onClick={() => fetchNotifications(false, true, 25)} // Load 25 more notifications
-                disabled={isLoadingMore}
-                className="w-full"
-              >
-                {isLoadingMore ? <Loading /> : 'Load More'}
-              </Button>
-              <p className="text-xs text-foreground/50 text-center mt-2">
-                Tip: Scroll to bottom to auto-load more
-              </p>
-            </div>
-          )}
+          <div className="border-t border-muted p-3 bg-background/95">
+            {isLoadingMore ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-2">
+                <Loading />
+                <span className="text-sm text-foreground/70">Loading more notifications...</span>
+              </div>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => fetchNotifications(false, true, 25)}
+                  disabled={!loadMoreCursor || isLoadingMore}
+                  className="w-full mb-2"
+                >
+                  Load More
+                </Button>
+                <p className="text-xs text-foreground/50 text-center">{notifications.length} notifications shown</p>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Selected notification detail */}
         {renderSelectedNotificationDetail()}
       </div>
-
-      {/* Keyboard shortcuts help */}
-      <div className="border-t border-muted px-4 py-2 text-xs text-foreground/50">
-        <div className="flex flex-wrap gap-4">
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">j/k</kbd> Navigate
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">o/enter</kbd> Open
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">r</kbd> Reply
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">q</kbd> Quote
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">Tab</kbd> Next tab
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">Shift+Tab</kbd> Prev tab
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">1-6</kbd> Jump to tab
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">Shift+R</kbd> Refresh
-          </span>
-          <span>
-            <kbd className="px-1 py-0.5 bg-muted rounded">Shift+L</kbd> Load more
-          </span>
-        </div>
-      </div>
     </div>
   );
 };
 
-export default Notifications;
+export default Inbox;
