@@ -33,6 +33,7 @@ import PublishedCastsRightSidebar from '@/common/components/Sidebar/PublishedCas
 import { useListStore } from '@/stores/useListStore';
 import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { Inbox } from 'lucide-react';
 
 type NavigationGroupType = {
   name: string;
@@ -48,6 +49,7 @@ type NavigationItemType = {
   shortcut?: string;
   additionalPaths?: string[];
   hide?: boolean;
+  hideTitlebar?: boolean;
 };
 
 type HeaderAction = {
@@ -165,6 +167,13 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       name: 'main',
       items: [
         {
+          name: 'Inbox',
+          router: '/inbox',
+          icon: <Inbox className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: 'Shift + N',
+          hideTitlebar: true,
+        },
+        {
           name: 'Feeds',
           router: '/feeds',
           icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
@@ -243,12 +252,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           icon: <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: '/',
         },
-        // {
-        //   name: 'Notifications',
-        //   router: '/notifications',
-        //   icon: <BellIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
-        //   shortcut: 'Shift + N',
-        // },
+
         // {
         //   name: 'Analytics',
         //   router: '/analytics',
@@ -302,7 +306,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return RIGHT_SIDEBAR_ENUM.NONE;
       case '/channels':
         return RIGHT_SIDEBAR_ENUM.NONE;
-      case '/notifications':
+      case '/inbox':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       case '/search':
         return RIGHT_SIDEBAR_ENUM.SEARCH;
@@ -339,6 +343,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
 
   const navItem = getNavItem(pathname);
   const title = getTitle(navItem);
+  const hideTitlebar = navItem?.hideTitlebar || false;
   const headerActions = getHeaderActions(navItem);
   const sidebarType = getSidebarForPathname(pathname);
 
@@ -544,7 +549,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 }
               >
                 {/* Sticky header */}
-                {(title || headerActions) && (
+                {!hideTitlebar && (title || headerActions) && (
                   <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
                     <button
                       type="button"
