@@ -24,7 +24,6 @@ const parentCastCache = new Map<string, { cast: CastWithInteractions; timestamp:
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 enum NotificationTab {
-  all = 'all',
   mentions = 'mentions',
   replies = 'replies',
   likes = 'likes',
@@ -44,17 +43,27 @@ const notificationTabToType = (tab: NotificationTab) => {
       return NotificationTypeEnum.Reply;
     case NotificationTab.recasts:
       return NotificationTypeEnum.Recasts;
-    case NotificationTab.all:
     default:
       return undefined;
   }
 };
 
-const filterNotificationsByActiveTab = (notifications: Notification[], selectedTab: NotificationTab) => {
-  const notificationType = notificationTabToType(selectedTab);
-  if (!notificationType) return notifications;
-
-  return notifications.filter((notification) => notification.type === notificationType);
+// Map notification tab to API type string
+const notificationTabToApiType = (tab: NotificationTab): string | undefined => {
+  switch (tab) {
+    case NotificationTab.mentions:
+      return 'mentions';
+    case NotificationTab.likes:
+      return 'likes';
+    case NotificationTab.follows:
+      return 'follows';
+    case NotificationTab.replies:
+      return 'replies';
+    case NotificationTab.recasts:
+      return 'recasts';
+    default:
+      return undefined;
+  }
 };
 
 // Compact follower profile component for follow notifications
@@ -90,29 +99,48 @@ const Inbox = () => {
   const { isNewCastModalOpen, setCastModalView, openNewCastModal, setCastModalDraftId } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
-  const [allNotifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-  const [lastAutoLoadTime, setLastAutoLoadTime] = useState<number>(0);
-  const listContainerRef = useRef<HTMLDivElement>(null);
+  const [notificationsByType, setNotificationsByType] = useState<Record<NotificationTab, Notification[]>>({
+    [NotificationTab.replies]: [],
+    [NotificationTab.mentions]: [],
+    [NotificationTab.likes]: [],
+    [NotificationTab.recasts]: [],
+    [NotificationTab.follows]: [],
+  });
+  const cursorsByType = useRef<Record<NotificationTab, string | undefined>>({
+    [NotificationTab.replies]: undefined,
+    [NotificationTab.mentions]: undefined,
+    [NotificationTab.likes]: undefined,
+    [NotificationTab.recasts]: undefined,
+    [NotificationTab.follows]: undefined,
+  });
+  const [loadingByType, setLoadingByType] = useState<Record<NotificationTab, boolean>>({
+    [NotificationTab.replies]: false,
+    [NotificationTab.mentions]: false,
+    [NotificationTab.likes]: false,
+    [NotificationTab.recasts]: false,
+    [NotificationTab.follows]: false,
+  });
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
   const { updateSelectedCast } = useDataStore();
-  const [loadMoreCursor, setLoadMoreCursor] = useState<string>();
   const [activeTab, setActiveTab] = useState<NotificationTab>(NotificationTab.replies);
   const [parentCast, setParentCast] = useState<CastWithInteractions | null>(null);
   const [isLoadingParent, setIsLoadingParent] = useState<boolean>(false);
+  const [lastAutoLoadTime, setLastAutoLoadTime] = useState<number>(0);
+  const listContainerRef = useRef<HTMLDivElement>(null);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
-  const notifications = filterNotificationsByActiveTab(allNotifications, activeTab);
+
+  // Get current notifications for active tab
+  const notifications = notificationsByType[activeTab];
+
+  const isLoading = loadingByType[activeTab] || false;
+  const loadMoreCursor = cursorsByType.current[activeTab];
 
   const fetchNotifications = useCallback(
-    async (reset = false, priorityMode = true, limit = 25) => {
+    async (tab: NotificationTab, reset = false, priorityMode = true, limit = 25) => {
       if (!viewerFid) return;
 
-      if (reset) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
-      }
+      // Set loading state for this specific tab
+      setLoadingByType((prev) => ({ ...prev, [tab]: true }));
 
       try {
         const params = new URLSearchParams({
@@ -121,44 +149,55 @@ const Inbox = () => {
           limit: limit.toString(),
         });
 
-        if (!reset && loadMoreCursor) {
-          params.append('cursor', loadMoreCursor);
+        // Add type parameter if not "all" tab
+        const apiType = notificationTabToApiType(tab);
+        if (apiType) {
+          params.append('type', apiType);
+        }
+
+        // Add cursor for pagination if not reset
+        if (!reset && cursorsByType.current[tab]) {
+          params.append('cursor', cursorsByType.current[tab]!);
         }
 
         const response = await fetch(`/api/notifications?${params}`);
         const data = await response.json();
 
         if (data.notifications) {
-          // Batch update to prevent rapid state changes
-          if (reset) {
-            setNotifications(data.notifications);
-            setLoadMoreCursor(data.cursor);
-          } else {
-            setNotifications((prev) => [...prev, ...data.notifications]);
-            setLoadMoreCursor(data.cursor);
-          }
+          // Update notifications for this specific tab
+          setNotificationsByType((prev) => ({
+            ...prev,
+            [tab]: reset ? data.notifications : [...prev[tab], ...data.notifications],
+          }));
+
+          // Update cursor for this tab
+          cursorsByType.current[tab] = data.cursor;
         }
 
         return data.notifications || [];
       } catch (error) {
-        console.error('Error fetching notifications:', error);
+        console.error(`Error fetching notifications for ${tab}:`, error);
         return [];
       } finally {
-        if (reset) {
-          setTimeout(() => setIsLoading(false), 100);
-        } else {
-          setIsLoadingMore(false);
-        }
+        setLoadingByType((prev) => ({ ...prev, [tab]: false }));
       }
     },
-    [viewerFid, loadMoreCursor]
+    [viewerFid]
   );
 
-  const changeTab = useCallback((tab: NotificationTab) => {
-    setActiveTab(tab);
-    setSelectedNotificationIdx(0);
-    setParentCast(null);
-  }, []);
+  const changeTab = useCallback(
+    async (tab: NotificationTab) => {
+      setActiveTab(tab);
+      setSelectedNotificationIdx(0);
+      setParentCast(null);
+
+      // If this tab has no notifications loaded yet, fetch them
+      if (notificationsByType[tab].length === 0 && !loadingByType[tab]) {
+        await fetchNotifications(tab, true, true, 25);
+      }
+    },
+    [notificationsByType, loadingByType, fetchNotifications]
+  );
 
   const fetchParentCast = useCallback(
     async (parentHash: string) => {
@@ -219,61 +258,51 @@ const Inbox = () => {
     [viewerFid]
   );
 
-  // Initial load and account changes - dual requests for maximum data
+  // Initial load and account changes
   useEffect(() => {
     if (!viewerFid) return;
 
     // Reset state immediately
     setSelectedNotificationIdx(0);
     setParentCast(null);
-    setNotifications([]);
-
-    // Strategy: Load initial batch immediately, then load more in background
-    console.log('🚀 Loading notifications with dual strategy...');
-
-    const loadNotificationsStrategy = async () => {
-      try {
-        // First request: Get initial batch quickly (smaller, faster)
-        const initialBatch = await fetchNotifications(true, true, 15);
-        console.log(`📦 Initial batch loaded: ${initialBatch?.length || 0} notifications`);
-
-        // Small delay to let UI settle with first batch
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Second request: Load more notifications for power users who blast through them
-        if (initialBatch && initialBatch.length > 0) {
-          const moreBatch = await fetchNotifications(false, true, 25);
-          console.log(`📦 Extended batch loaded: ${moreBatch?.length || 0} additional notifications`);
-          console.log(
-            `🚀 Total available for browsing: ${(initialBatch?.length || 0) + (moreBatch?.length || 0)} notifications`
-          );
-        }
-      } catch (error) {
-        console.error('❌ Error in dual loading strategy:', error);
-      }
+    setNotificationsByType({
+      [NotificationTab.replies]: [],
+      [NotificationTab.mentions]: [],
+      [NotificationTab.likes]: [],
+      [NotificationTab.recasts]: [],
+      [NotificationTab.follows]: [],
+    });
+    cursorsByType.current = {
+      [NotificationTab.replies]: undefined,
+      [NotificationTab.mentions]: undefined,
+      [NotificationTab.likes]: undefined,
+      [NotificationTab.recasts]: undefined,
+      [NotificationTab.follows]: undefined,
     };
 
-    loadNotificationsStrategy();
-  }, [viewerFid]);
+    // Load notifications for the active tab
+    console.log(`🚀 Loading notifications for ${activeTab} tab...`);
+    fetchNotifications(activeTab, true, true, 25);
+  }, [viewerFid, activeTab, fetchNotifications]);
 
-  // Auto-refresh every 2 minutes
+  // Auto-refresh every 2 minutes for active tab
   useEffect(() => {
     if (!viewerFid) return;
 
     const intervalId = setInterval(
       () => {
-        fetchNotifications(true, true, 20); // Smaller batch for auto-refresh
+        fetchNotifications(activeTab, true, true, 20); // Refresh active tab
       },
       2 * 60 * 1000
     );
 
     return () => clearInterval(intervalId);
-  }, [viewerFid, fetchNotifications]);
+  }, [viewerFid, activeTab, fetchNotifications]);
 
   // Update selected cast and fetch parent when notification selection changes
   useEffect(() => {
     // Don't process selection changes while loading to prevent jittery effect
-    if (isLoading || isEmpty(notifications) || selectedNotificationIdx < 0) {
+    if (loadingByType[activeTab] || isEmpty(notifications) || selectedNotificationIdx < 0) {
       return;
     }
 
@@ -307,11 +336,22 @@ const Inbox = () => {
       updateSelectedCast(undefined);
       setParentCast(null);
     }
-  }, [notifications, selectedNotificationIdx, parentCast?.hash, isLoading]); // Added isLoading dependency
+  }, [notifications, selectedNotificationIdx, parentCast?.hash, loadingByType, activeTab]);
 
   // Reset selection when tab changes
   useEffect(() => {
     setSelectedNotificationIdx(0);
+  }, [activeTab]);
+
+  // Scroll to top when tab changes
+  useEffect(() => {
+    if (listContainerRef.current) {
+      // Find the scrollable container created by SelectableListWithHotkeys
+      const scrollableElement = listContainerRef.current.querySelector('.overflow-y-auto');
+      if (scrollableElement) {
+        scrollableElement.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
   }, [activeTab]);
 
   // Cleanup effect to ensure hotkeys are properly removed on unmount
@@ -342,8 +382,8 @@ const Inbox = () => {
         updateSelectedCast(notification.cast);
         addNewPostDraft({
           parentCastId: {
-            hash: notification.cast.hash,
-            fid: notification.cast.author.fid.toString(),
+            hash: notification.cast.hash as any,
+            fid: notification.cast.author.fid as any,
           },
           onSuccess(draftId) {
             console.log('✅ Draft created successfully:', draftId);
@@ -387,8 +427,8 @@ const Inbox = () => {
           embeds: [
             {
               castId: {
-                hash: notification.cast.hash,
-                fid: notification.cast.author.fid.toString(),
+                hash: notification.cast.hash as any,
+                fid: notification.cast.author.fid as any,
               },
             },
           ],
@@ -420,8 +460,12 @@ const Inbox = () => {
       const notification = notifications[selectedNotificationIdx];
       if (notification) {
         // For follow notifications, navigate to the first follower's profile
-        if (notification.type === NotificationTypeEnum.Follows && notification.follows?.length > 0) {
-          const firstFollower = notification.follows[0].user;
+        if (
+          notification.type === NotificationTypeEnum.Follows &&
+          notification.follows &&
+          notification.follows.length > 0
+        ) {
+          const firstFollower = notification.follows[0]?.user;
           router.push(`/profile/${firstFollower.username}`);
         }
         // For other notifications with casts, navigate to the conversation
@@ -433,24 +477,26 @@ const Inbox = () => {
   }, [selectedNotificationIdx, notifications, router]);
 
   // Stable tab switching callbacks to prevent hotkey breaking
-  const switchToAll = useCallback(() => changeTab(NotificationTab.all), [changeTab]);
   const switchToReplies = useCallback(() => changeTab(NotificationTab.replies), [changeTab]);
   const switchToMentions = useCallback(() => changeTab(NotificationTab.mentions), [changeTab]);
   const switchToLikes = useCallback(() => changeTab(NotificationTab.likes), [changeTab]);
   const switchToRecasts = useCallback(() => changeTab(NotificationTab.recasts), [changeTab]);
   const switchToFollows = useCallback(() => changeTab(NotificationTab.follows), [changeTab]);
-  const refreshNotifications = useCallback(() => fetchNotifications(true, true, 30), [fetchNotifications]);
+  const refreshNotifications = useCallback(
+    () => fetchNotifications(activeTab, true, true, 30),
+    [fetchNotifications, activeTab]
+  );
   const loadMoreNotifications = useCallback(() => {
-    if (loadMoreCursor && !isLoadingMore) {
-      fetchNotifications(false, true, 25);
+    if (cursorsByType.current[activeTab] && !loadingByType[activeTab]) {
+      fetchNotifications(activeTab, false, true, 25);
     }
-  }, [loadMoreCursor, isLoadingMore, fetchNotifications]);
+  }, [activeTab, loadingByType, fetchNotifications]);
 
   // Auto-load when scrolling near bottom with safeguards
   const handleScroll = useCallback(
     (event: Event) => {
       const container = event.target as HTMLElement;
-      if (!container || !loadMoreCursor || isLoadingMore || isLoading) return;
+      if (!container || !cursorsByType.current[activeTab] || loadingByType[activeTab]) return;
 
       const { scrollTop, scrollHeight, clientHeight } = container;
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
@@ -463,10 +509,10 @@ const Inbox = () => {
         // 1.5 second throttle, 85% trigger
         console.log(`🔄 Auto-loading more notifications (${(scrollPercentage * 100).toFixed(1)}% scrolled)`);
         setLastAutoLoadTime(now);
-        fetchNotifications(false, true, 25);
+        fetchNotifications(activeTab, false, true, 25);
       }
     },
-    [loadMoreCursor, isLoadingMore, isLoading, lastAutoLoadTime, fetchNotifications]
+    [activeTab, loadingByType, lastAutoLoadTime, fetchNotifications]
   );
 
   // Attach scroll listener to the actual scrollable element inside SelectableListWithHotkeys
@@ -489,13 +535,11 @@ const Inbox = () => {
   // Smart auto-load for sparse tabs (handles edge case of few notifications)
   useEffect(() => {
     // If we have very few notifications (1-3) but there's more data available, auto-load
-    const filteredNotifications = filterNotificationsByActiveTab(allNotifications, activeTab);
     const shouldAutoLoad =
-      filteredNotifications.length > 0 &&
-      filteredNotifications.length <= 3 &&
-      loadMoreCursor &&
-      !isLoadingMore &&
-      !isLoading;
+      notifications.length > 0 &&
+      notifications.length <= 3 &&
+      cursorsByType.current[activeTab] &&
+      !loadingByType[activeTab];
 
     if (shouldAutoLoad) {
       const now = Date.now();
@@ -505,17 +549,16 @@ const Inbox = () => {
       if (timeSinceLastLoad > 5000) {
         // 5 second throttle for sparse auto-loading
         console.log(
-          `📈 Sparse tab auto-load: ${activeTab} has only ${filteredNotifications.length} notifications, loading more...`
+          `📈 Sparse tab auto-load: ${activeTab} has only ${notifications.length} notifications, loading more...`
         );
         setLastAutoLoadTime(now);
-        fetchNotifications(false, true, 25);
+        fetchNotifications(activeTab, false, true, 25);
       }
     }
-  }, [allNotifications, activeTab, loadMoreCursor, isLoadingMore, isLoading, lastAutoLoadTime, fetchNotifications]);
+  }, [notifications, activeTab, loadingByType, lastAutoLoadTime, fetchNotifications]);
 
   // Tab cycling functions
   const tabOrder = [
-    NotificationTab.all,
     NotificationTab.replies,
     NotificationTab.mentions,
     NotificationTab.likes,
@@ -579,17 +622,6 @@ const Inbox = () => {
   // Tab switching shortcuts with stable callbacks
   useHotkeys(
     '1',
-    switchToAll,
-    {
-      enabled: !isNewCastModalOpen,
-      enableOnFormTags: false,
-      enableOnContentEditable: false,
-    },
-    [switchToAll]
-  );
-
-  useHotkeys(
-    '2',
     switchToReplies,
     {
       enabled: !isNewCastModalOpen,
@@ -600,7 +632,7 @@ const Inbox = () => {
   );
 
   useHotkeys(
-    '3',
+    '2',
     switchToMentions,
     {
       enabled: !isNewCastModalOpen,
@@ -611,7 +643,7 @@ const Inbox = () => {
   );
 
   useHotkeys(
-    '4',
+    '3',
     switchToLikes,
     {
       enabled: !isNewCastModalOpen,
@@ -622,7 +654,7 @@ const Inbox = () => {
   );
 
   useHotkeys(
-    '5',
+    '4',
     switchToRecasts,
     {
       enabled: !isNewCastModalOpen,
@@ -633,7 +665,7 @@ const Inbox = () => {
   );
 
   useHotkeys(
-    '6',
+    '5',
     switchToFollows,
     {
       enabled: !isNewCastModalOpen,
@@ -660,11 +692,11 @@ const Inbox = () => {
     'shift+l',
     loadMoreNotifications,
     {
-      enabled: !isNewCastModalOpen && !!loadMoreCursor,
+      enabled: !isNewCastModalOpen && !!cursorsByType.current[activeTab],
       enableOnFormTags: false,
       enableOnContentEditable: false,
     },
-    [loadMoreNotifications, loadMoreCursor]
+    [loadMoreNotifications, activeTab]
   );
 
   // Tab cycling shortcuts
@@ -809,8 +841,8 @@ const Inbox = () => {
           </div>
           <div className="flex-1 overflow-y-auto p-4">
             <div className="space-y-3">
-              {notification.follows.map((follow) => (
-                <CompactFollowerProfile key={follow.user.fid} user={follow.user} viewerFid={viewerFid} />
+              {notification.follows?.map((follow) => (
+                <CompactFollowerProfile key={follow.user.fid} user={follow.user} viewerFid={viewerFid || ''} />
               ))}
             </div>
           </div>
@@ -850,7 +882,7 @@ const Inbox = () => {
           cast={notification.cast}
           showChannel
           isSelected={true}
-          onCastClick={() => router.push(`/conversation/${notification.cast.hash}`)}
+          onCastClick={() => router.push(`/conversation/${notification.cast?.hash}`)}
         />
       </div>
     );
@@ -871,10 +903,7 @@ const Inbox = () => {
         {/* Tabs with Refresh Button */}
         <Tabs value={activeTab} onValueChange={(value) => changeTab(value as NotificationTab)}>
           <div className="flex items-center justify-between">
-            <TabsList className="grid grid-cols-6 flex-1 mr-3">
-              <TabsTrigger value={NotificationTab.all} className="text-xs">
-                All
-              </TabsTrigger>
+            <TabsList className="grid grid-cols-5 flex-1 mr-3">
               <TabsTrigger value={NotificationTab.replies} className="text-xs">
                 Replies
               </TabsTrigger>
@@ -894,11 +923,11 @@ const Inbox = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => fetchNotifications(true)}
-              disabled={isLoading}
+              onClick={refreshNotifications}
+              disabled={loadingByType[activeTab]}
               className="flex-shrink-0"
             >
-              {isLoading ? <Loading /> : 'Refresh'}
+              {loadingByType[activeTab] ? <Loading /> : 'Refresh'}
             </Button>
           </div>
         </Tabs>
@@ -908,34 +937,32 @@ const Inbox = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Notifications list */}
         <div className="w-1/2 flex flex-col">
-          <div className="flex-1" ref={listContainerRef}>
-            {isEmpty(notifications) && !isLoading ? (
+          <div className="flex-1 overflow-hidden" ref={listContainerRef}>
+            {isEmpty(notifications) && !loadingByType[activeTab] ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-foreground/60">No notifications found.</p>
               </div>
             ) : (
-              <div className="h-full">
-                <SelectableListWithHotkeys
-                  data={notifications}
-                  selectedIdx={selectedNotificationIdx}
-                  setSelectedIdx={(idx) => {
-                    // Don't update selection while loading to prevent jitter
-                    if (!isLoading) {
-                      setSelectedNotificationIdx(idx);
-                    }
-                  }}
-                  renderRow={renderNotificationRow}
-                  onSelect={onSelect}
-                  isActive={!isNewCastModalOpen && !isLoading}
-                  pinnedNavigation={true}
-                  containerHeight="calc(100vh - 200px)"
-                />
-              </div>
+              <SelectableListWithHotkeys
+                data={notifications}
+                selectedIdx={selectedNotificationIdx}
+                setSelectedIdx={(idx) => {
+                  // Don't update selection while loading to prevent jitter
+                  if (!loadingByType[activeTab]) {
+                    setSelectedNotificationIdx(idx);
+                  }
+                }}
+                renderRow={renderNotificationRow}
+                onSelect={onSelect}
+                isActive={!isNewCastModalOpen && !loadingByType[activeTab]}
+                pinnedNavigation={true}
+                containerHeight="100%"
+              />
             )}
           </div>
 
           <div className="border-t border-muted p-3 bg-background/95">
-            {isLoadingMore ? (
+            {loadingByType[activeTab] && notifications.length > 0 ? (
               <div className="flex flex-col items-center justify-center gap-2 py-2">
                 <Loading />
                 <span className="text-sm text-foreground/70">Loading more notifications...</span>
@@ -944,8 +971,8 @@ const Inbox = () => {
               <>
                 <Button
                   variant="outline"
-                  onClick={() => fetchNotifications(false, true, 25)}
-                  disabled={!loadMoreCursor || isLoadingMore}
+                  onClick={loadMoreNotifications}
+                  disabled={!cursorsByType.current[activeTab] || loadingByType[activeTab]}
                   className="w-full mb-2"
                 >
                   Load More
