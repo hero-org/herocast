@@ -10,7 +10,6 @@ import {
   SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
   SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
   UserDataType,
-  ViemLocalEip712Signer,
   hexStringToBytes,
   idRegistryABI,
   keyGatewayABI,
@@ -18,11 +17,11 @@ import {
   makeUserDataAdd,
   signedKeyRequestValidatorABI,
 } from '@farcaster/hub-web';
-import { CastAdd, CastId, HubRestAPIClient, SubmitMessageApi } from '@standard-crypto/farcaster-js-hub-rest';
-import { Address, encodeAbiParameters, toBytes, toHex } from 'viem';
+import { CastAdd, CastId, HubRestAPIClient } from '@standard-crypto/farcaster-js-hub-rest';
+import { Address, encodeAbiParameters, toBytes } from 'viem';
 import { publicClient, publicClientTestnet } from './rainbowkit';
 import { mnemonicToAccount } from 'viem/accounts';
-import { isDev, optimismChainId } from './env';
+import { isDev } from './env';
 
 export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 

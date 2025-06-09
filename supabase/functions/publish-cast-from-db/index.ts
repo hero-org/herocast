@@ -31,120 +31,134 @@ function extractUrlsFromText(text: string): string[] {
   return urls;
 }
 
-function convertCastAddBodyFromDbToHub(draftData: any) {
-  console.log('Converting draft data to Hub format. Input:', JSON.stringify(draftData, null, 2));
+function validateAndCleanCastData(castData: any) {
+  // Ensure all required fields exist and are the correct type
+  const cleanedData = {
+    text: String(castData.text || ''),
+    mentions: Array.isArray(castData.mentions) ? castData.mentions.filter((m) => Number.isInteger(m)) : [],
+    mentionsPositions: Array.isArray(castData.mentionsPositions)
+      ? castData.mentionsPositions.filter((p) => Number.isInteger(p))
+      : [],
+    embeds: Array.isArray(castData.embeds) ? castData.embeds : [],
+    embedsDeprecated: [],
+  };
 
-  // Check if data is already in Hub format (has expected Hub fields)
-  const hasHubFormat =
-    draftData.hasOwnProperty('text') &&
-    draftData.hasOwnProperty('mentions') &&
-    draftData.hasOwnProperty('mentionsPositions') &&
-    !draftData.hasOwnProperty('rawText'); // rawText indicates presentation format
+  // Validate text length (Farcaster limit is 320 bytes)
+  const textBytes = new TextEncoder().encode(cleanedData.text);
+  if (textBytes.length > 320) {
+    throw new Error(`Text too long: ${textBytes.length} bytes (max 320)`);
+  }
 
-  if (hasHubFormat) {
-    console.log('Data appears to be in Hub format, applying minimal conversion...');
+  // Validate mentions and positions match
+  if (cleanedData.mentions.length !== cleanedData.mentionsPositions.length) {
+    console.warn('Mentions and mentionsPositions length mismatch, clearing both');
+    cleanedData.mentions = [];
+    cleanedData.mentionsPositions = [];
+  }
 
-    let processedEmbeds = (draftData.embeds || []).map((embed: any) => {
-      if (embed.castId) {
+  // Validate embeds format
+  cleanedData.embeds = cleanedData.embeds
+    .map((embed) => {
+      if (embed.url && typeof embed.url === 'string') {
+        return { url: embed.url };
+      }
+      if (embed.castId && embed.castId.fid && embed.castId.hash) {
         return {
           castId: {
-            fid: embed.castId.fid,
+            fid: Number(embed.castId.fid),
             hash:
-              typeof embed.castId.hash === 'string'
-                ? stringHashToUint(embed.castId.hash)
-                : Array.isArray(embed.castId.hash)
-                  ? new Uint8Array(embed.castId.hash)
-                  : new Uint8Array(embed.castId.hash.split(',').map((x: string) => parseInt(x))),
+              embed.castId.hash instanceof Uint8Array
+                ? embed.castId.hash
+                : typeof embed.castId.hash === 'string'
+                  ? stringHashToUint(embed.castId.hash)
+                  : Array.isArray(embed.castId.hash)
+                    ? new Uint8Array(embed.castId.hash)
+                    : new Uint8Array(),
           },
         };
       }
-      if (embed.url) {
-        return { url: embed.url };
-      }
-      return embed;
-    });
+      console.warn('Invalid embed format, skipping:', embed);
+      return null;
+    })
+    .filter(Boolean);
 
-    // Auto-detect URLs in text if no embeds exist but URLs are present
-    if (processedEmbeds.length === 0 && draftData.text) {
-      const detectedUrls = extractUrlsFromText(draftData.text);
-      console.log('Auto-detected URLs in text:', detectedUrls);
-      processedEmbeds = detectedUrls.map((url) => ({ url }));
-    }
-
-    return {
-      ...draftData,
-      embeds: processedEmbeds,
-      embedsDeprecated: draftData.embedsDeprecated || [],
-    };
+  // Limit embeds to max allowed
+  if (cleanedData.embeds.length > 2) {
+    console.warn('Too many embeds, truncating to 2');
+    cleanedData.embeds = cleanedData.embeds.slice(0, 2);
   }
 
-  console.log('Data appears to be in presentation format, converting to Hub format...');
+  return cleanedData;
+}
 
-  // Handle the case where draft data is in presentation format
-  const {
-    text,
-    rawText,
-    embeds = [],
-    mentions = [],
-    mentionsPositions = [],
-    parentCastFid,
-    parentCastHash,
-    parentUrl,
-  } = draftData;
+function convertCastAddBodyFromDbToHub(draftData: any) {
+  console.log('Converting draft data to Hub format. Input:', JSON.stringify(draftData, null, 2));
 
-  // Use rawText if available, otherwise fall back to text
-  const finalText = rawText || text || '';
-
-  // Process embeds
-  let processedEmbeds = embeds.map((embed: any) => {
-    if (embed.castId) {
-      return {
-        castId: {
-          fid: embed.castId.fid,
-          hash:
-            typeof embed.castId.hash === 'string'
-              ? stringHashToUint(embed.castId.hash)
-              : Array.isArray(embed.castId.hash)
-                ? new Uint8Array(embed.castId.hash)
-                : new Uint8Array(embed.castId.hash.split(',').map((x: string) => parseInt(x))),
-        },
-      };
-    }
-    if (embed.url) {
-      return { url: embed.url };
-    }
-    return embed;
-  });
+  // For the specific draft format provided, extract the text and detect URLs
+  const text = draftData.text || draftData.rawText || '';
+  const mentions = draftData.mentions || [];
+  const mentionsPositions = draftData.mentionsPositions || [];
+  let embeds = draftData.embeds || [];
 
   // Auto-detect URLs in text if no embeds exist but URLs are present
-  if (processedEmbeds.length === 0 && finalText) {
-    const detectedUrls = extractUrlsFromText(finalText);
+  if (embeds.length === 0 && text) {
+    const detectedUrls = extractUrlsFromText(text);
     console.log('Auto-detected URLs in text:', detectedUrls);
-    processedEmbeds = detectedUrls.map((url) => ({ url }));
+    embeds = detectedUrls.map((url) => ({ url }));
   }
 
-  // Process parent cast if provided
-  const parentCastId =
-    parentCastFid && parentCastHash
-      ? {
-          fid: parentCastFid,
-          hash: typeof parentCastHash === 'string' ? stringHashToUint(parentCastHash) : parentCastHash,
-        }
-      : undefined;
-
-  // Build the final cast body in Hub format
-  const hubCastBody = {
-    text: finalText,
-    mentions: mentions || [],
-    mentionsPositions: mentionsPositions || [],
-    embeds: processedEmbeds,
+  // Build the basic format
+  const basicCastBody = {
+    text: text,
+    mentions: mentions,
+    mentionsPositions: mentionsPositions,
+    embeds: embeds,
     embedsDeprecated: [],
-    ...(parentCastId ? { parentCastId } : {}),
-    ...(parentUrl ? { parentUrl } : {}),
   };
 
+  // Validate and clean the data
+  const hubCastBody = validateAndCleanCastData(basicCastBody);
+
   console.log('Converted to Hub format:', JSON.stringify(hubCastBody, null, 2));
+  console.log('Text byte length:', new TextEncoder().encode(hubCastBody.text).length);
+  console.log('Mentions count:', hubCastBody.mentions.length);
+  console.log('Embeds count:', hubCastBody.embeds.length);
+
   return hubCastBody;
+}
+
+async function submitMessageWithLogging({
+  fid,
+  signerPrivateKey,
+  castAddBody,
+}: {
+  fid: number;
+  signerPrivateKey: string;
+  castAddBody: any;
+}): Promise<string> {
+  console.log('=== DETAILED SUBMISSION ATTEMPT ===');
+  console.log('FID:', fid);
+  console.log('Signer key length:', signerPrivateKey?.length);
+  console.log('Cast body:', JSON.stringify(castAddBody, null, 2));
+
+  const axiosInstance = axios.create({
+    headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
+  });
+
+  const writeClient = new HubRestAPIClient({
+    hubUrl: 'https://snapchain-api.neynar.com',
+    axiosInstance,
+  });
+
+  // Log what we're about to send
+  console.log('About to call writeClient.submitCast with:');
+  console.log('- castAddBody:', JSON.stringify(castAddBody, null, 2));
+  console.log('- fid:', fid);
+  console.log('- signerPrivateKey present:', !!signerPrivateKey);
+
+  const response = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
+  console.log('SUCCESS! Cast hash:', response.hash);
+  return response.hash;
 }
 
 async function submitMessage({
@@ -161,6 +175,7 @@ async function submitMessage({
   castAddBody = convertCastAddBodyFromDbToHub(castAddBody);
   console.log('Converted castAddBody for Hub:', JSON.stringify(castAddBody, null, 2));
 
+  // Try HubRestAPIClient first
   const axiosInstance = axios.create({
     headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
   });
@@ -170,11 +185,12 @@ async function submitMessage({
   });
 
   try {
+    console.log('Attempting HubRestAPIClient.submitCast...');
     const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
-    console.log(`new cast hash: ${publishCastResponse.hash}`);
+    console.log(`new cast hash from HubRestAPIClient: ${publishCastResponse.hash}`);
     return publishCastResponse.hash;
   } catch (error) {
-    console.error('Full error object:', error);
+    console.error('HubRestAPIClient failed, error details:');
     console.error('Error name:', error.name);
     console.error('Error message:', error.message);
 
@@ -200,9 +216,55 @@ async function submitMessage({
       );
     }
 
+    // For Invalid message hash errors, let's try once more with extra logging
+    if (error.response?.data?.error_detail?.includes('Invalid message hash')) {
+      console.log('Got Invalid message hash error. Trying with detailed logging...');
+      try {
+        return await submitMessageWithLogging({ fid, signerPrivateKey, castAddBody });
+      } catch (retryError) {
+        console.error('=== RETRY ALSO FAILED ===');
+        console.error('Retry error:', retryError);
+        console.error('Original error will be thrown');
+        throw error; // Throw the original error
+      }
+    }
+
     throw error;
   }
 }
+
+const fixStuckDrafts = async (supabaseClient) => {
+  console.log('Checking for stuck drafts in publishing status...');
+
+  // Find drafts stuck in publishing status for more than 10 minutes
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+
+  const { data: stuckDrafts, error } = await supabaseClient
+    .from('draft')
+    .select('id, status, updated_at')
+    .eq('status', 'publishing')
+    .lt('updated_at', tenMinutesAgo);
+
+  if (error) {
+    console.error('Error finding stuck drafts:', error);
+    return;
+  }
+
+  if (stuckDrafts && stuckDrafts.length > 0) {
+    console.log(`Found ${stuckDrafts.length} stuck drafts, marking as failed...`);
+
+    for (const draft of stuckDrafts) {
+      try {
+        await supabaseClient.from('draft').update({ status: 'failed' }).eq('id', draft.id);
+        console.log(`Fixed stuck draft: ${draft.id}`);
+      } catch (updateError) {
+        console.error(`Failed to fix stuck draft ${draft.id}:`, updateError);
+      }
+    }
+  } else {
+    console.log('No stuck drafts found');
+  }
+};
 
 const publishDraft = async (supabaseClient, draftId) => {
   return Sentry.withScope(async (scope) => {
@@ -214,11 +276,18 @@ const publishDraft = async (supabaseClient, draftId) => {
       const errorMessage = getDraftError || `no draft returned for id ${draftId}`;
       console.error(errorMessage);
       Sentry.captureException(new Error(errorMessage));
+      // Ensure any stuck drafts are marked as failed
+      await supabaseClient.from('draft').update({ status: 'failed' }).eq('id', draftId);
       return;
     }
     const draft = drafts?.[0];
     if (draft.status !== 'scheduled') {
-      console.error(`draft ${draftId} is not scheduled`);
+      console.error(`draft ${draftId} is not scheduled, current status: ${draft.status}`);
+      // If it's stuck in publishing, mark as failed
+      if (draft.status === 'publishing') {
+        console.log(`Marking stuck publishing draft ${draftId} as failed`);
+        await supabaseClient.from('draft').update({ status: 'failed' }).eq('id', draftId);
+      }
       return;
     }
 
@@ -229,6 +298,7 @@ const publishDraft = async (supabaseClient, draftId) => {
 
     if (getAccountError || accounts?.length !== 1) {
       console.error(getAccountError || `no account returned for id ${draft.account_id}`);
+      await supabaseClient.from('draft').update({ status: 'failed' }).eq('id', draftId);
       return;
     }
 
@@ -240,12 +310,14 @@ const publishDraft = async (supabaseClient, draftId) => {
 
     if (updateDraftStatusError) {
       console.error(`Failed to update draft status to publishing for id ${draftId}: ${updateDraftStatusError}`);
+      await supabaseClient.from('draft').update({ status: 'failed' }).eq('id', draftId);
       return;
     }
 
+    let castBody, account;
     try {
-      const castBody = draft.data;
-      const account = accounts[0];
+      castBody = draft.data;
+      account = accounts[0];
 
       console.log('submit draft to protocol - draftId:', draftId);
       console.log('account fid:', Number(account.platform_account_id));
@@ -300,7 +372,37 @@ const publishDraft = async (supabaseClient, draftId) => {
 
       console.error(errorMessage);
       Sentry.captureException(e);
-      await supabaseClient.from('draft').update({ status: 'failed' }).select('id').eq('id', draftId);
+
+      // CRITICAL: Always ensure draft is marked as failed, with multiple attempts
+      try {
+        const { error: failUpdateError } = await supabaseClient
+          .from('draft')
+          .update({
+            status: 'failed',
+          })
+          .eq('id', draftId);
+        if (failUpdateError) {
+          console.error('CRITICAL: Failed to update draft status to failed:', failUpdateError);
+          // Try once more with a direct query
+          const { error: retryError } = await supabaseClient
+            .from('draft')
+            .update({
+              status: 'failed',
+            })
+            .eq('id', draftId);
+          if (retryError) {
+            console.error('CRITICAL: Second attempt also failed:', retryError);
+          } else {
+            console.log('Successfully marked draft as failed on retry');
+          }
+        } else {
+          console.log('Successfully marked draft as failed');
+        }
+      } catch (updateError) {
+        console.error('CRITICAL: Exception while updating draft to failed:', updateError);
+        // Last resort: log the draft ID for manual cleanup
+        console.error(`MANUAL CLEANUP NEEDED: Draft ${draftId} may be stuck in publishing status`);
+      }
     }
   });
 };
@@ -348,6 +450,9 @@ Deno.serve(async (req) => {
       }
 
       console.log(`Drafts to publish between: ${invocationTime} and ${next5Minutes}:`, drafts.length, error);
+
+      // First, fix any stuck drafts
+      await fixStuckDrafts(supabaseClient);
 
       for (const draft of drafts) {
         await publishDraft(supabaseClient, draft.id);
