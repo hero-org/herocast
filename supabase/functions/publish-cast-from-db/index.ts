@@ -127,20 +127,16 @@ function convertCastAddBodyFromDbToHub(draftData: any) {
   return hubCastBody;
 }
 
-async function submitPreEncodedMessage({
-  encodedMessageBytes
-}: {
-  encodedMessageBytes: number[];
-}): Promise<string> {
+async function submitPreEncodedMessage({ encodedMessageBytes }: { encodedMessageBytes: number[] }): Promise<string> {
   console.log('=== USING PRE-ENCODED MESSAGE BYTES ===');
   console.log('Message bytes length:', encodedMessageBytes.length);
-  
+
   const messageBytes = new Uint8Array(encodedMessageBytes);
-  
+
   const axiosInstance = axios.create({
     headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
   });
-  
+
   const writeClient = new HubRestAPIClient({
     hubUrl: 'https://snapchain-api.neynar.com',
     axiosInstance,
@@ -150,7 +146,7 @@ async function submitPreEncodedMessage({
   const response = await writeClient.apis.submitMessage.submitMessage({
     body: messageBytes,
   });
-  
+
   console.log('SUCCESS! Cast hash:', response.data.hash);
   return response.data.hash;
 }
@@ -167,7 +163,7 @@ async function submitWithAlternativeApproach({
   console.log('=== USING ALTERNATIVE APPROACH ===');
   console.log('FID:', fid);
   console.log('Cast body:', JSON.stringify(castAddBody, null, 2));
-  
+
   // Try multiple hub endpoints with different configurations
   const hubEndpoints = [
     'https://hub-api.neynar.com',
@@ -177,19 +173,19 @@ async function submitWithAlternativeApproach({
   ];
 
   let lastError;
-  
+
   for (const hubUrl of hubEndpoints) {
     try {
       console.log(`Trying hub endpoint: ${hubUrl}`);
-      
+
       const axiosInstance = axios.create({
-        headers: { 
-          'api_key': Deno.env.get('NEYNAR_API_KEY'),
-          'Content-Type': 'application/json'
+        headers: {
+          api_key: Deno.env.get('NEYNAR_API_KEY'),
+          'Content-Type': 'application/json',
         },
-        timeout: 15000
+        timeout: 15000,
       });
-      
+
       const writeClient = new HubRestAPIClient({
         hubUrl,
         axiosInstance,
@@ -200,7 +196,7 @@ async function submitWithAlternativeApproach({
       if (signerPrivateKey.startsWith('0x')) {
         cleanPrivateKey = signerPrivateKey.slice(2);
       }
-      
+
       // Ensure exactly 64 hex characters
       if (!/^[0-9a-fA-F]{64}$/.test(cleanPrivateKey)) {
         console.log(`Invalid key format for ${hubUrl}, skipping...`);
@@ -211,14 +207,13 @@ async function submitWithAlternativeApproach({
       const result = await writeClient.submitCast(castAddBody, fid, cleanPrivateKey);
       console.log(`SUCCESS with hub: ${hubUrl}, hash: ${result.hash}`);
       return result.hash;
-      
     } catch (error) {
       console.log(`Hub ${hubUrl} failed:`, error.response?.data?.error_detail || error.message);
       lastError = error;
       continue;
     }
   }
-  
+
   console.error('All hub endpoints failed. Last error:', lastError?.response?.data || lastError?.message);
   throw lastError;
 }
@@ -285,7 +280,10 @@ const publishDraft = async (supabaseClient, draftId) => {
   return Sentry.withScope(async (scope) => {
     scope.setTag('draftId', draftId);
 
-    const { data: drafts, error: getDraftError } = await supabaseClient.from('draft').select('*, encoded_message_bytes').eq('id', draftId);
+    const { data: drafts, error: getDraftError } = await supabaseClient
+      .from('draft')
+      .select('*, encoded_message_bytes')
+      .eq('id', draftId);
 
     if (getDraftError || drafts?.length !== 1) {
       const errorMessage = getDraftError || `no draft returned for id ${draftId}`;
@@ -336,17 +334,17 @@ const publishDraft = async (supabaseClient, draftId) => {
 
       console.log('submit draft to protocol - draftId:', draftId);
       console.log('account fid:', Number(account.platform_account_id));
-      
+
       // Check if we have pre-encoded message bytes
       if (draft.encoded_message_bytes && Array.isArray(draft.encoded_message_bytes)) {
         console.log('Found pre-encoded message bytes, using reliable submission...');
         await submitPreEncodedMessage({
-          encodedMessageBytes: draft.encoded_message_bytes
+          encodedMessageBytes: draft.encoded_message_bytes,
         });
       } else {
         console.log('No pre-encoded bytes found, using fallback approach...');
         console.log('draft data structure:', JSON.stringify(castBody, null, 2));
-        
+
         // Fallback to the current approach for existing drafts
         await submitMessage({
           fid: Number(account.platform_account_id),

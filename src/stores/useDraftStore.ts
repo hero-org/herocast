@@ -131,19 +131,21 @@ const preEncodeCastMessage = async (castBody: CastAddBody, account: AccountObjec
     console.log('preEncodeCastMessage: Starting with castBody:', JSON.stringify(castBody, null, 2));
     console.log('preEncodeCastMessage: Account platformAccountId:', account.platformAccountId);
     console.log('preEncodeCastMessage: Account has privateKey:', !!account.privateKey);
-    
+
     if (!castBody) {
       throw new Error('castBody is null or undefined');
     }
-    
+
     if (!castBody.text && !castBody.embeds?.length) {
       throw new Error('castBody has no text or embeds');
     }
-    
+
     if (!account || !account.platformAccountId || !account.privateKey) {
-      throw new Error(`Invalid account data: platformAccountId=${account.platformAccountId}, hasPrivateKey=${!!account.privateKey}`);
+      throw new Error(
+        `Invalid account data: platformAccountId=${account.platformAccountId}, hasPrivateKey=${!!account.privateKey}`
+      );
     }
-    
+
     const dataOptions = {
       fid: Number(account.platformAccountId),
       network: 1, // Farcaster mainnet
@@ -155,27 +157,27 @@ const preEncodeCastMessage = async (castBody: CastAddBody, account: AccountObjec
     if (cleanPrivateKey.startsWith('0x')) {
       cleanPrivateKey = cleanPrivateKey.slice(2);
     }
-    
+
     console.log('preEncodeCastMessage: privateKey length:', cleanPrivateKey.length);
     console.log('preEncodeCastMessage: privateKey format valid:', /^[0-9a-fA-F]{64}$/.test(cleanPrivateKey));
 
     const privateKeyBytes = toBytes(`0x${cleanPrivateKey}`);
     console.log('preEncodeCastMessage: privateKeyBytes length:', privateKeyBytes.length);
-    
+
     const signer = new NobleEd25519Signer(privateKeyBytes);
     console.log('preEncodeCastMessage: signer created successfully');
-    
+
     console.log('preEncodeCastMessage: calling makeCastAdd...');
     const msg = await makeCastAdd(castBody, dataOptions, signer);
     if (msg.isErr()) {
       console.error('preEncodeCastMessage: makeCastAdd failed:', msg.error);
       throw msg.error;
     }
-    
+
     console.log('preEncodeCastMessage: makeCastAdd succeeded, encoding message...');
     const messageBytes = Buffer.from(Message.encode(msg.value).finish());
     console.log('preEncodeCastMessage: encoded message bytes length:', messageBytes.length);
-    
+
     const result = Array.from(messageBytes);
     console.log('preEncodeCastMessage: converted to array, final length:', result.length);
     return result; // Convert to array for JSON storage
@@ -389,12 +391,12 @@ const store = (set: StoreSet) => ({
       try {
         const draft = state.drafts[draftIdx];
         console.log('addScheduledDraft: draft:', draft);
-        
+
         if (!draft) {
           console.error('Draft not found at index:', draftIdx);
           return;
         }
-        
+
         let castBody;
         try {
           castBody = await prepareCastBody(draft);
@@ -403,25 +405,25 @@ const store = (set: StoreSet) => ({
           console.error('Failed to prepare cast body:', error);
           return;
         }
-        
+
         if (!castBody) {
           console.error('prepareCastBody returned null/undefined');
           return;
         }
-        
+
         castBody = prepareCastBodyForDB(castBody);
         console.log('addScheduledDraft: castBody after prepareCastBodyForDB:', castBody);
-        
+
         const accountState = useAccountStore.getState();
         const account = accountState.accounts[accountState.selectedAccountIdx];
-        
+
         if (!account) {
           console.error('No account selected');
           return;
         }
-        
+
         let encodedMessageBytes = null;
-        
+
         try {
           // Pre-encode the message using the working client-side packages
           console.log('addScheduledDraft: Starting pre-encoding...');
@@ -429,9 +431,9 @@ const store = (set: StoreSet) => ({
           console.log('addScheduledDraft: account for pre-encoding:', {
             id: account.id,
             platformAccountId: account.platformAccountId,
-            hasPrivateKey: !!account.privateKey
+            hasPrivateKey: !!account.privateKey,
           });
-          
+
           encodedMessageBytes = await preEncodeCastMessage(castBody, account);
           console.log('addScheduledDraft: Successfully pre-encoded message, bytes length:', encodedMessageBytes.length);
           console.log('addScheduledDraft: First 10 bytes:', encodedMessageBytes.slice(0, 10));
@@ -441,7 +443,7 @@ const store = (set: StoreSet) => ({
           console.warn('addScheduledDraft: Error stack:', error.stack);
           // Continue without pre-encoded bytes - the Supabase function will handle it
         }
-        
+
         await supabaseClient
           .from('draft')
           .insert({
@@ -461,7 +463,7 @@ const store = (set: StoreSet) => ({
 
             const draftInDb = data[0];
             state.updatePostDraft(draftIdx, tranformDBDraftForLocalStore(draftInDb));
-            
+
             if (encodedMessageBytes) {
               console.log('addScheduledDraft: Draft scheduled with pre-encoded bytes');
               toastSuccessCastScheduled(`${draft.text} (pre-encoded for reliable publishing)`);
@@ -469,7 +471,7 @@ const store = (set: StoreSet) => ({
               console.log('addScheduledDraft: Draft scheduled without pre-encoded bytes');
               toastSuccessCastScheduled(`${draft.text} (will encode at publish time)`);
             }
-            
+
             onSuccess?.();
           });
       } catch (error) {
