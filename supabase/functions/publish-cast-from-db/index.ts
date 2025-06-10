@@ -127,7 +127,35 @@ function convertCastAddBodyFromDbToHub(draftData: any) {
   return hubCastBody;
 }
 
-async function submitMessageWithLogging({
+async function submitPreEncodedMessage({
+  encodedMessageBytes
+}: {
+  encodedMessageBytes: number[];
+}): Promise<string> {
+  console.log('=== USING PRE-ENCODED MESSAGE BYTES ===');
+  console.log('Message bytes length:', encodedMessageBytes.length);
+  
+  const messageBytes = new Uint8Array(encodedMessageBytes);
+  
+  const axiosInstance = axios.create({
+    headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
+  });
+  
+  const writeClient = new HubRestAPIClient({
+    hubUrl: 'https://snapchain-api.neynar.com',
+    axiosInstance,
+  });
+
+  console.log('Submitting pre-encoded message bytes...');
+  const response = await writeClient.apis.submitMessage.submitMessage({
+    body: messageBytes,
+  });
+  
+  console.log('SUCCESS! Cast hash:', response.data.hash);
+  return response.data.hash;
+}
+
+async function submitWithAlternativeApproach({
   fid,
   signerPrivateKey,
   castAddBody,
@@ -136,29 +164,63 @@ async function submitMessageWithLogging({
   signerPrivateKey: string;
   castAddBody: any;
 }): Promise<string> {
-  console.log('=== DETAILED SUBMISSION ATTEMPT ===');
+  console.log('=== USING ALTERNATIVE APPROACH ===');
   console.log('FID:', fid);
-  console.log('Signer key length:', signerPrivateKey?.length);
   console.log('Cast body:', JSON.stringify(castAddBody, null, 2));
+  
+  // Try multiple hub endpoints with different configurations
+  const hubEndpoints = [
+    'https://hub-api.neynar.com',
+    'https://snapchain-api.neynar.com',
+    'https://hubs.airstack.xyz',
+    'https://hub.pinata.cloud',
+  ];
 
-  const axiosInstance = axios.create({
-    headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
-  });
+  let lastError;
+  
+  for (const hubUrl of hubEndpoints) {
+    try {
+      console.log(`Trying hub endpoint: ${hubUrl}`);
+      
+      const axiosInstance = axios.create({
+        headers: { 
+          'api_key': Deno.env.get('NEYNAR_API_KEY'),
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      });
+      
+      const writeClient = new HubRestAPIClient({
+        hubUrl,
+        axiosInstance,
+      });
 
-  const writeClient = new HubRestAPIClient({
-    hubUrl: 'https://snapchain-api.neynar.com',
-    axiosInstance,
-  });
+      // Clean private key format
+      let cleanPrivateKey = signerPrivateKey;
+      if (signerPrivateKey.startsWith('0x')) {
+        cleanPrivateKey = signerPrivateKey.slice(2);
+      }
+      
+      // Ensure exactly 64 hex characters
+      if (!/^[0-9a-fA-F]{64}$/.test(cleanPrivateKey)) {
+        console.log(`Invalid key format for ${hubUrl}, skipping...`);
+        continue;
+      }
 
-  // Log what we're about to send
-  console.log('About to call writeClient.submitCast with:');
-  console.log('- castAddBody:', JSON.stringify(castAddBody, null, 2));
-  console.log('- fid:', fid);
-  console.log('- signerPrivateKey present:', !!signerPrivateKey);
-
-  const response = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
-  console.log('SUCCESS! Cast hash:', response.hash);
-  return response.hash;
+      console.log(`Attempting submitCast with ${hubUrl}...`);
+      const result = await writeClient.submitCast(castAddBody, fid, cleanPrivateKey);
+      console.log(`SUCCESS with hub: ${hubUrl}, hash: ${result.hash}`);
+      return result.hash;
+      
+    } catch (error) {
+      console.log(`Hub ${hubUrl} failed:`, error.response?.data?.error_detail || error.message);
+      lastError = error;
+      continue;
+    }
+  }
+  
+  console.error('All hub endpoints failed. Last error:', lastError?.response?.data || lastError?.message);
+  throw lastError;
 }
 
 async function submitMessage({
@@ -175,60 +237,13 @@ async function submitMessage({
   castAddBody = convertCastAddBodyFromDbToHub(castAddBody);
   console.log('Converted castAddBody for Hub:', JSON.stringify(castAddBody, null, 2));
 
-  // Try HubRestAPIClient first
-  const axiosInstance = axios.create({
-    headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
-  });
-  const writeClient = new HubRestAPIClient({
-    hubUrl: 'https://snapchain-api.neynar.com',
-    axiosInstance,
-  });
-
   try {
-    console.log('Attempting HubRestAPIClient.submitCast...');
-    const publishCastResponse = await writeClient.submitCast(castAddBody, fid, signerPrivateKey);
-    console.log(`new cast hash from HubRestAPIClient: ${publishCastResponse.hash}`);
-    return publishCastResponse.hash;
+    // Try alternative hub endpoints approach
+    console.log('Attempting alternative hub endpoints...');
+    return await submitWithAlternativeApproach({ fid, signerPrivateKey, castAddBody });
   } catch (error) {
-    console.error('HubRestAPIClient failed, error details:');
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-
-    if (error.response) {
-      console.error('HTTP Status:', error.response.status);
-      console.error('Response headers:', error.response.headers);
-      console.error('Response data:', JSON.stringify(error.response.data, null, 2));
-    }
-
-    if (error.request) {
-      console.error(
-        'Request config:',
-        JSON.stringify(
-          {
-            url: error.request.url,
-            method: error.request.method,
-            headers: error.request.headers,
-            data: error.request.data,
-          },
-          null,
-          2
-        )
-      );
-    }
-
-    // For Invalid message hash errors, let's try once more with extra logging
-    if (error.response?.data?.error_detail?.includes('Invalid message hash')) {
-      console.log('Got Invalid message hash error. Trying with detailed logging...');
-      try {
-        return await submitMessageWithLogging({ fid, signerPrivateKey, castAddBody });
-      } catch (retryError) {
-        console.error('=== RETRY ALSO FAILED ===');
-        console.error('Retry error:', retryError);
-        console.error('Original error will be thrown');
-        throw error; // Throw the original error
-      }
-    }
-
+    console.error('All alternative approaches failed');
+    console.error('Final error:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -270,7 +285,7 @@ const publishDraft = async (supabaseClient, draftId) => {
   return Sentry.withScope(async (scope) => {
     scope.setTag('draftId', draftId);
 
-    const { data: drafts, error: getDraftError } = await supabaseClient.from('draft').select('*').eq('id', draftId);
+    const { data: drafts, error: getDraftError } = await supabaseClient.from('draft').select('*, encoded_message_bytes').eq('id', draftId);
 
     if (getDraftError || drafts?.length !== 1) {
       const errorMessage = getDraftError || `no draft returned for id ${draftId}`;
@@ -321,13 +336,24 @@ const publishDraft = async (supabaseClient, draftId) => {
 
       console.log('submit draft to protocol - draftId:', draftId);
       console.log('account fid:', Number(account.platform_account_id));
-      console.log('draft data structure:', JSON.stringify(castBody, null, 2));
-
-      await submitMessage({
-        fid: Number(account.platform_account_id),
-        signerPrivateKey: account.decrypted_private_key,
-        castAddBody: castBody,
-      });
+      
+      // Check if we have pre-encoded message bytes
+      if (draft.encoded_message_bytes && Array.isArray(draft.encoded_message_bytes)) {
+        console.log('Found pre-encoded message bytes, using reliable submission...');
+        await submitPreEncodedMessage({
+          encodedMessageBytes: draft.encoded_message_bytes
+        });
+      } else {
+        console.log('No pre-encoded bytes found, using fallback approach...');
+        console.log('draft data structure:', JSON.stringify(castBody, null, 2));
+        
+        // Fallback to the current approach for existing drafts
+        await submitMessage({
+          fid: Number(account.platform_account_id),
+          signerPrivateKey: account.decrypted_private_key,
+          castAddBody: castBody,
+        });
+      }
 
       await supabaseClient
         .from('draft')
