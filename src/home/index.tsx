@@ -533,7 +533,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   </nav>
                 </div>
                 {isReadOnlyUser && renderUpgradeCard()}
-                {!isReadOnlyUser && !hasFinishedOnboarding && renderFinishOnboardingCard()}
+                {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
                 <div className="mt-auto flex flex-row lg:space-x-2 py-4">
                   <AccountSwitcher />
                   <ThemeToggle />
