@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState, Suspense } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import StepSequence from '@/common/components/Steps/StepSequence';
