@@ -74,8 +74,9 @@ const ShadcnRightSidebar = ({
     if (!showAuthorInfo || !hasAccounts) return null;
 
     // Show cast author if different from current user, otherwise show current user
-    const shouldShowAuthor = selectedCast && 
-      selectedAccount?.platformAccountId && 
+    const shouldShowAuthor =
+      selectedCast &&
+      selectedAccount?.platformAccountId &&
       selectedAccount?.platformAccountId !== selectedCast.author.fid.toString();
 
     const fid = shouldShowAuthor ? selectedCast.author.fid : Number(selectedAccount?.platformAccountId);
@@ -88,11 +89,7 @@ const ShadcnRightSidebar = ({
         <SidebarGroup className="bg-sidebar/30 border-b border-sidebar-border">
           <SidebarGroupContent className="px-4 py-3">
             <div className="min-h-[120px] flex flex-col justify-center">
-              <ProfileInfo
-                fid={fid}
-                viewerFid={viewerFid}
-                showFullInfo
-              />
+              <ProfileInfo fid={fid} viewerFid={viewerFid} showFullInfo />
             </div>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -101,11 +98,15 @@ const ShadcnRightSidebar = ({
   };
 
   return (
-    <Sidebar side="right" collapsible="offcanvas" className="border-l border-sidebar-border hidden lg:flex bg-sidebar/50">
+    <Sidebar
+      side="right"
+      collapsible="offcanvas"
+      className="border-l border-sidebar-border hidden lg:flex bg-sidebar/50"
+    >
       <SidebarContent className="flex flex-col h-full">
         {/* Fixed header - always rendered to prevent content jumping */}
         {isHydrated && renderUserHeader()}
-        
+
         {/* Empty state for no accounts */}
         {isHydrated && !hasAccounts && renderEmptyState()}
 

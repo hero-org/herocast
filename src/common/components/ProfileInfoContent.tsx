@@ -62,7 +62,9 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
       {!wideFormat && renderFollowButton()}
       <div className="space-y-2 text-sm">
         {!hideBio && profile.profile?.bio?.text && (
-          <div className={`text-sm break-words text-foreground/80 leading-relaxed ${isHoverCard ? '' : 'pr-2 overflow-x-hidden'}`}>
+          <div
+            className={`text-sm break-words text-foreground/80 leading-relaxed ${isHoverCard ? '' : 'pr-2 overflow-x-hidden'}`}
+          >
             <Linkify
               as="p"
               options={{
@@ -75,7 +77,12 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
                   url: ({ attributes, content }) => {
                     const { href, ...props } = attributes;
                     return (
-                      <Link href={href} className="text-primary underline hover:no-underline transition-all" prefetch={false} {...props}>
+                      <Link
+                        href={href}
+                        className="text-primary underline hover:no-underline transition-all"
+                        prefetch={false}
+                        {...props}
+                      >
                         {content}
                       </Link>
                     );
