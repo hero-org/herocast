@@ -40,6 +40,73 @@ import { usePerformanceTracker } from '@/common/hooks/usePerformanceTracker';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
+// Cache static commands that don't depend on user state  
+// eslint-disable-next-line prefer-const
+let cachedStaticCommands: CommandType[] | null = null;
+let cachedFarcasterBotCommands: CommandType[] | null = null;
+
+const createFarcasterBotCommand = (name: string, action: () => void, navigateTo?: string): CommandType => ({
+  name,
+  action,
+  navigateTo,
+  options: {
+    enableOnFormTags: false,
+  },
+});
+
+const getFarcasterBotCommands = (): CommandType[] => {
+  if (cachedFarcasterBotCommands) return cachedFarcasterBotCommands;
+
+  const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
+    const { selectedCast } = useDataStore.getState();
+    if (!selectedCast) return;
+    
+    const { addNewPostDraft } = useDraftStore.getState();
+    addNewPostDraft({
+      ...draft,
+      parentCastId: {
+        fid: selectedCast.author.fid.toString(),
+        hash: selectedCast.hash,
+      },
+    });
+
+    const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
+    setCastModalView(CastModalView.Reply);
+    openNewCastModal();
+  };
+
+  cachedFarcasterBotCommands = [
+    createFarcasterBotCommand(
+      'Feedback (send cast to @hellno)',
+      () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
+      '/post'
+    ),
+    createFarcasterBotCommand(
+      'Launch this cast on Launchcaster', 
+      () => addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft)
+    ),
+    createFarcasterBotCommand(
+      'Post new bounty',
+      () => useDraftStore.getState().addNewPostDraft(BountyCasterBotDraft),
+      '/post'
+    ),
+    createFarcasterBotCommand(
+      'Remind me about this',
+      () => addNewPostDraftWithSelectedCast(RemindMeBotDraft)
+    ),
+    createFarcasterBotCommand(
+      'Pay user via paybot',
+      () => addNewPostDraftWithSelectedCast(PayCasterBotPayDraft)
+    ),
+    createFarcasterBotCommand(
+      'Request payment via paybot',
+      () => addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft)
+    ),
+  ];
+
+  return cachedFarcasterBotCommands;
+};
+
 export default function CommandPalette() {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -48,6 +115,75 @@ export default function CommandPalette() {
   const { startTiming, endTiming } = usePerformanceTracker();
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
+  
+  // Cache frequently accessed store data in refs for performance
+  const accountStoreRef = useRef<any>(null);
+  const lastChannelsLengthRef = useRef(0);
+  const lastThemeRef = useRef<string>('');
+  
+  // Get theme and store data
+  const { theme, setTheme } = useTheme();
+  const { allChannels } = useAccountStore();
+  
+  // Memoize expensive command generation with granular dependencies
+  const themeCommands = useMemo(() => getThemeCommands(theme, setTheme), [theme, setTheme]);
+  const navigationCommands = useMemo(() => getNavigationCommands({ router }), [router.pathname]);
+  
+  // Cache profile commands since they rarely change
+  const profileCommands = useMemo(() => [
+    {
+      name: 'Your profile',
+      action: () => {
+        const state = useAccountStore.getState();
+        const selectedAccountName = state.accounts[state.selectedAccountIdx].user?.username;
+        router.push(`/profile/${selectedAccountName}`);
+      },
+      shortcut: 'cmd+shift+p',
+      options: {
+        enableOnFormTags: false,
+      },
+      icon: UserCircleIcon,
+    },
+    {
+      name: 'Your Analytics',
+      action: () => {
+        const state = useAccountStore.getState();
+        const fid = state.accounts[state.selectedAccountIdx]?.platformAccountId;
+        const route = fid ? `/analytics?fid=${fid}` : '/analytics';
+        router.push(route);
+      },
+      icon: ChartBarIcon,
+    },
+  ], [router]);
+
+  // Only regenerate channel commands when channels actually change
+  const channelCommands = useMemo(() => {
+    const currentChannelsLength = allChannels.length;
+    if (lastChannelsLengthRef.current === currentChannelsLength && accountStoreRef.current) {
+      return accountStoreRef.current.channelCommands || [];
+    }
+    
+    const commands = getChannelCommands(useAccountStore.getState());
+    lastChannelsLengthRef.current = currentChannelsLength;
+    if (!accountStoreRef.current) accountStoreRef.current = {};
+    accountStoreRef.current.channelCommands = commands;
+    
+    return commands;
+  }, [allChannels.length]);
+
+  // Get cached bot commands
+  const farcasterBotCommands = useMemo(() => getFarcasterBotCommands(), []);
+
+  // Optimized command assembly with minimal recreation
+  const allCommands = useMemo(() => [
+    ...channelCommands,
+    ...navigationCommands, 
+    ...newPostCommands,
+    ...accountCommands,
+    ...themeCommands,
+    ...profileCommands,
+    ...farcasterBotCommands,
+  ], [channelCommands, navigationCommands, themeCommands, profileCommands, farcasterBotCommands]);
 
   // Debounce search query for performance
   useEffect(() => {
@@ -65,8 +201,6 @@ export default function CommandPalette() {
       }
     };
   }, [query]);
-
-  const { allChannels, setSelectedChannelUrl, setSelectedChannelByName } = useAccountStore();
 
   useHotkeys(
     'meta+k',
@@ -148,130 +282,8 @@ export default function CommandPalette() {
     }
   }, [isCommandPaletteOpen]);
 
-  const { theme, setTheme } = useTheme();
-  const themeCommands = useCallback(() => getThemeCommands(theme, setTheme), [theme, setTheme])();
-  const navigationCommands = useCallback(() => getNavigationCommands({ router }), [router])();
-  const getProfileCommands = useCallback(() => {
-    return [
-      {
-        name: 'Your profile',
-        action: () => {
-          const state = useAccountStore.getState();
-          const selectedAccountName = state.accounts[state.selectedAccountIdx].user?.username;
-          router.push(`/profile/${selectedAccountName}`);
-        },
-        shortcut: 'cmd+shift+p',
-        options: {
-          enableOnFormTags: false,
-        },
-        icon: UserCircleIcon,
-      },
-      {
-        name: 'Your Analytics',
-        action: () => {
-          const state = useAccountStore.getState();
-          const fid = state.accounts[state.selectedAccountIdx]?.platformAccountId;
-          const route = fid ? `/analytics?fid=${fid}` : '/analytics';
-          router.push(route);
-        },
-        icon: ChartBarIcon,
-      },
-    ];
-  }, [router]);
-
-  const profileCommands = getProfileCommands();
-  const channelCommands = useCallback(
-    () => getChannelCommands(useAccountStore.getState()),
-    [useAccountStore.getState()]
-  )();
-
-  const getCommands = useCallback((): CommandType[] => {
-    let commands = [
-      ...channelCommands,
-      ...navigationCommands,
-      ...newPostCommands,
-      ...accountCommands,
-      ...themeCommands,
-      ...profileCommands,
-    ];
-
-    const nonHotkeyCommands: CommandType[] = [];
-
-    const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
-      const { selectedCast } = useDataStore.getState();
-      if (!selectedCast) {
-        return;
-      }
-      const { addNewPostDraft } = useDraftStore.getState();
-      addNewPostDraft({
-        ...draft,
-        parentCastId: {
-          fid: selectedCast.author.fid.toString(),
-          hash: selectedCast.hash,
-        },
-      });
-
-      const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
-      setCastModalView(CastModalView.Reply);
-      openNewCastModal();
-    };
-
-    const createFarcasterBotCommand = (name: string, action: () => void, navigateTo?: string) => {
-      return {
-        name,
-        action,
-        navigateTo,
-        options: {
-          enableOnFormTags: false,
-        },
-      };
-    };
-
-    const launchCastAction = () => {
-      addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft);
-    };
-
-    const payCasterPayAction = () => {
-      addNewPostDraftWithSelectedCast(PayCasterBotPayDraft);
-    };
-
-    const payCasterRequestAction = () => {
-      addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft);
-    };
-
-    const postNewBountyAction = () => {
-      const { addNewPostDraft } = useDraftStore.getState();
-      addNewPostDraft(BountyCasterBotDraft);
-    };
-
-    const remindMeAction = () => {
-      addNewPostDraftWithSelectedCast(RemindMeBotDraft);
-    };
-
-    const farcasterBotCommands: CommandType[] = [
-      createFarcasterBotCommand(
-        'Feedback (send cast to @hellno)',
-        () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
-        '/post'
-      ),
-      createFarcasterBotCommand('Launch this cast on Launchcaster', launchCastAction),
-      createFarcasterBotCommand('Post new bounty', postNewBountyAction, '/post'),
-      createFarcasterBotCommand('Remind me about this', remindMeAction),
-      createFarcasterBotCommand('Pay user via paybot', payCasterPayAction),
-      createFarcasterBotCommand('Request payment via paybot', payCasterRequestAction),
-    ];
-
-    commands = commands.concat(farcasterBotCommands);
-    commands = commands.concat(nonHotkeyCommands);
-    return commands;
-  }, [theme, setTheme, router, allChannels, setSelectedChannelUrl, setSelectedChannelByName]);
-
-  const commands = useMemo(() => getCommands(), [getCommands]);
-
-  // Memoize hotkey setup to prevent excessive re-registration
-  const memoizedCommands = useMemo(() => commands, [commands.length, theme, router.pathname, allChannels.length]);
-
-  setupHotkeysForCommands(memoizedCommands);
+  // Setup hotkeys for all commands with optimized memoization
+  setupHotkeysForCommands(allCommands);
 
   const onClick = useCallback(
     (command: CommandType) => {
@@ -317,15 +329,15 @@ export default function CommandPalette() {
 
   const getFilteredCommands = useCallback(() => {
     const timingId = startTiming('command-search-filter');
-    
-    let result = commands.filter((command: CommandType) => {
+
+    let result = allCommands.filter((command: CommandType) => {
       const namesToScore = [command.name, ...(command.aliases || [])];
       const scores = namesToScore.map((alias: string) => {
         return commandScore(alias, debouncedQuery);
       });
       return Math.max(...scores) > MIN_SCORE_THRESHOLD;
     });
-    
+
     endTiming(timingId, 20);
 
     if (isWarpcastUrl(debouncedQuery)) {
@@ -362,7 +374,7 @@ export default function CommandPalette() {
     }
 
     return result;
-  }, [commands, debouncedQuery, router, setSelectedChannelByName]);
+  }, [allCommands, debouncedQuery, router]);
 
   const filteredCommands = useMemo(() => getFilteredCommands(), [getFilteredCommands]);
 
