@@ -52,7 +52,7 @@ export default function CommandPalette() {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
-    
+
     debounceTimeoutRef.current = setTimeout(() => {
       setDebouncedQuery(query);
     }, 150);
@@ -329,10 +329,7 @@ export default function CommandPalette() {
     return result;
   }, [commands, debouncedQuery, router, setSelectedChannelByName]);
 
-  const filteredCommands = useMemo(
-    () => getFilteredCommands(),
-    [getFilteredCommands]
-  );
+  const filteredCommands = useMemo(() => getFilteredCommands(), [getFilteredCommands]);
 
   const renderIcon = useCallback((command: CommandType, active: boolean) => {
     if (command.iconUrl) {

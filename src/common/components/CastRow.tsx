@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { castTextStyle } from '@/common/helpers/css';
 import { CastReactionType } from '@/common/constants/farcaster';
 import { ChannelType } from '@/common/constants/channels';
@@ -187,7 +187,7 @@ const linkifyOptions = {
 
 const MemoizedProfileHoverCard = React.memo(ProfileHoverCard);
 
-export const CastRow = ({
+const CastRowComponent = ({
   cast,
   isSelected,
   showChannel,
@@ -255,7 +255,7 @@ export const CastRow = ({
     });
   };
 
-  const getCastReactionsObj = () => {
+  const reactions = useMemo(() => {
     const repliesCount = cast.replies?.count || 0;
     const recastsCount = cast.reactions?.recasts_count || cast.recasts?.count || 0;
     const likesCount = cast.reactions?.likes_count || cast.reactions?.count || 0;
@@ -273,9 +273,18 @@ export const CastRow = ({
         isActive: didLike || includes(likeFids, userFid),
       },
     };
-  };
-
-  const reactions = getCastReactionsObj();
+  }, [
+    cast.replies?.count,
+    cast.reactions?.recasts_count,
+    cast.reactions?.likes_count,
+    cast.reactions?.count,
+    cast.recasts?.count,
+    cast.reactions?.likes,
+    cast.reactions?.recasts,
+    didRecast,
+    didLike,
+    userFid,
+  ]);
 
   useHotkeys(
     'l',
@@ -299,8 +308,11 @@ export const CastRow = ({
     [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions?.recasts]
   );
 
-  const getChannelForParentUrl = (parentUrl: string | null): ChannelType | undefined =>
-    parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined;
+  const getChannelForParentUrl = useCallback(
+    (parentUrl: string | null): ChannelType | undefined =>
+      parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined,
+    [channels]
+  );
 
   const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
     const className = cn(isActive ? 'text-foreground/70' : '', 'mt-0.5 w-4 h-4 mr-1');
@@ -465,20 +477,23 @@ export const CastRow = ({
     );
   };
 
-  const getText = () =>
-    'text' in cast && cast.text ? (
-      <ErrorBoundary>
-        <Linkify
-          as="span"
-          options={{
-            ...linkifyOptions,
-            attributes: { userFid, setSelectedChannelByName },
-          }}
-        >
-          {cast.text}{' '}
-        </Linkify>
-      </ErrorBoundary>
-    ) : null;
+  const processedText = useMemo(
+    () =>
+      'text' in cast && cast.text ? (
+        <ErrorBoundary>
+          <Linkify
+            as="span"
+            options={{
+              ...linkifyOptions,
+              attributes: { userFid, setSelectedChannelByName },
+            }}
+          >
+            {cast.text}{' '}
+          </Linkify>
+        </ErrorBoundary>
+      ) : null,
+    [cast.text, userFid, setSelectedChannelByName]
+  );
 
   const renderEmbeds = () => {
     if (!('embeds' in cast) || !cast.embeds.length) {
@@ -539,10 +554,19 @@ export const CastRow = ({
     return badge;
   };
 
-  const channel = showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null;
-  const pfpUrl = cast.author.pfp_url || cast.author?.pfp?.url || cast.author?.avatar_url;
-  const username = cast.author.username || cast.author.fname;
-  const displayName = cast.author.display_name || cast.author.displayName;
+  const channel = useMemo(
+    () => (showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null),
+    [showChannel, cast, getChannelForParentUrl]
+  );
+
+  const authorInfo = useMemo(
+    () => ({
+      pfpUrl: cast.author.pfp_url || cast.author?.pfp?.url || cast.author?.avatar_url,
+      username: cast.author.username || cast.author.fname,
+      displayName: cast.author.display_name || cast.author.displayName,
+    }),
+    [cast.author]
+  );
 
   const renderChannelButton = () =>
     showChannel &&
@@ -649,25 +673,32 @@ export const CastRow = ({
     );
   };
 
-  const renderCastTime = () => {
+  const timeFormatting = useMemo(() => {
     if (!cast.timestamp) return null;
 
-    const timeAgoStr = formatDistanceToNowStrict(new Date(cast.timestamp), {
-      addSuffix: false,
-    });
+    return {
+      timeAgoStr: formatDistanceToNowStrict(new Date(cast.timestamp), {
+        addSuffix: false,
+      }),
+      fullTime: format(cast.timestamp, 'PPP HH:mm'),
+    };
+  }, [cast.timestamp]);
+
+  const renderCastTime = () => {
+    if (!timeFormatting) return null;
 
     return (
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger>
-            <span className="text-sm leading-5 text-foreground/50 hover:underline">{timeAgoStr}</span>
+            <span className="text-sm leading-5 text-foreground/50 hover:underline">{timeFormatting.timeAgoStr}</span>
           </TooltipTrigger>
           <TooltipContent
             align={'center'}
             className="bg-popover border border-muted text-foreground/80 text-sm px-2 py-1"
             side="bottom"
           >
-            {format(cast.timestamp, 'PPP HH:mm')}
+            {timeFormatting.fullTime}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -700,10 +731,10 @@ export const CastRow = ({
           }}
         >
           {!isEmbed && !hideAuthor && (
-            <Link href={`/profile/${username}`} prefetch={false} className="flex shrink-0">
+            <Link href={`/profile/${authorInfo.username}`} prefetch={false} className="flex shrink-0">
               <Avatar className="relative h-10 w-10 mr-1">
-                <AvatarImage src={pfpUrl} />
-                <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>
+                <AvatarImage src={authorInfo.pfpUrl} />
+                <AvatarFallback>{authorInfo.username?.slice(0, 2)}</AvatarFallback>
               </Avatar>
             </Link>
           )}
@@ -711,18 +742,18 @@ export const CastRow = ({
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 {hideAuthor ? (
-                  <span className="text-sm leading-5 text-foreground/50">@{username}</span>
+                  <span className="text-sm leading-5 text-foreground/50">@{authorInfo.username}</span>
                 ) : (
-                  <MemoizedProfileHoverCard fid={cast.author.fid} viewerFid={userFid} username={username}>
+                  <MemoizedProfileHoverCard fid={cast.author.fid} viewerFid={userFid} username={authorInfo.username}>
                     <span className="items-center flex font-semibold text-foreground truncate cursor-pointer w-full max-w-54 lg:max-w-full">
                       {isEmbed && (
                         <Avatar className="relative h-4 w-4 mr-1">
-                          <AvatarImage src={pfpUrl} />
+                          <AvatarImage src={authorInfo.pfpUrl} />
                           <AvatarFallback>{cast.author.username?.slice(0, 2)}</AvatarFallback>
                         </Avatar>
                       )}
-                      {displayName}
-                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">@{username}</span>
+                      {authorInfo.displayName}
+                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">@{authorInfo.username}</span>
                       <span>
                         {cast.author.power_badge && (
                           <img
@@ -768,7 +799,7 @@ export const CastRow = ({
               className="mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
               style={castTextStyle}
             >
-              {getText()}
+              {processedText}
             </div>
             {!isEmbed && renderEmbeds()}
             {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
@@ -788,3 +819,17 @@ export const CastRow = ({
 
   return renderCastContent();
 };
+
+export const CastRow = React.memo(CastRowComponent, (prevProps, nextProps) => {
+  // Custom comparison for better performance
+  return (
+    prevProps.cast.hash === nextProps.cast.hash &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.showChannel === nextProps.showChannel &&
+    prevProps.isEmbed === nextProps.isEmbed &&
+    prevProps.hideReactions === nextProps.hideReactions &&
+    prevProps.recastedByFid === nextProps.recastedByFid &&
+    // Only re-render if reactions have actually changed
+    JSON.stringify(prevProps.cast.reactions) === JSON.stringify(nextProps.cast.reactions)
+  );
+});
