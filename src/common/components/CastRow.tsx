@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { usePerformanceTracker } from '../hooks/usePerformanceTracker';
 import { castTextStyle } from '@/common/helpers/css';
 import { CastReactionType } from '@/common/constants/farcaster';
 import { ChannelType } from '@/common/constants/channels';
@@ -212,6 +213,7 @@ const CastRowComponent = ({
   const { setCastModalDraftId, setCastModalView, openNewCastModal } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const { updateSelectedCast } = useDataStore();
+  const { startTiming, endTiming } = usePerformanceTracker();
 
   const [didLike, setDidLike] = useState(false);
   const [didRecast, setDidRecast] = useState(false);
@@ -342,21 +344,33 @@ const CastRowComponent = ({
       return;
     }
 
+    // Start performance measurement
+    const timingId = startTiming(`click-${key}`);
+
+    // Immediate optimistic update for instant UI feedback
     if (key === CastReactionType.likes) {
       setDidLike(!isActive);
     } else if (key === CastReactionType.recasts) {
       setDidRecast(!isActive);
     }
 
+    // End timing for UI update (should be <100ms)
+    endTiming(timingId, 100);
+
     if (!canSendReaction) {
       toastInfoReadOnlyMode();
+      // Rollback optimistic update for read-only mode
+      if (key === CastReactionType.likes) {
+        setDidLike(isActive);
+      } else if (key === CastReactionType.recasts) {
+        setDidRecast(isActive);
+      }
       return;
     }
 
     try {
       if (key === CastReactionType.replies) {
         onReply();
-
         return;
       }
 
@@ -370,6 +384,7 @@ const CastRowComponent = ({
         type: reactionBodyType,
         target: { fid: Number(authorFid), hash: cast.hash },
       };
+      
       if (isActive) {
         await removeReaction({
           authorFid: userFid,
@@ -383,8 +398,17 @@ const CastRowComponent = ({
           reaction,
         });
       }
+      
+      // Success: No need to update state as the optimistic update was correct
     } catch (error) {
       console.error(`Error in onClickReaction: ${error}`);
+      
+      // Rollback optimistic update on error
+      if (key === CastReactionType.likes) {
+        setDidLike(isActive);
+      } else if (key === CastReactionType.recasts) {
+        setDidRecast(isActive);
+      }
     }
   };
 
@@ -753,7 +777,9 @@ const CastRowComponent = ({
                         </Avatar>
                       )}
                       {authorInfo.displayName}
-                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">@{authorInfo.username}</span>
+                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">
+                        @{authorInfo.username}
+                      </span>
                       <span>
                         {cast.author.power_badge && (
                           <img
