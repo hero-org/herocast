@@ -99,7 +99,10 @@ export default function NewPostEntry({
           return account.status === 'active';
         }).length
     ) > 1;
-  const { isHydrated, allChannels } = useAccountStore();
+  const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
+  
+  // Use pinned channels instead of all channels for better performance
+  const userChannels = accounts[selectedAccountIdx]?.channels || [];
   const isReply = draft?.parentCastId !== undefined;
 
   useEffect(() => {
@@ -271,7 +274,8 @@ export default function NewPostEntry({
   useEffect(() => {
     if (!draft) return;
     if (draft?.parentUrl) {
-      const rawChannel = allChannels.find((c) => c.url === draft.parentUrl);
+      // Try user's pinned channels first, fallback to channel lookup if needed
+      const rawChannel = userChannels.find((c) => c.url === draft.parentUrl);
       if (rawChannel) {
         setChannel({
           id: rawChannel.name,
@@ -288,7 +292,7 @@ export default function NewPostEntry({
         });
       }
     }
-  }, [draft?.parentUrl]);
+  }, [draft?.parentUrl, userChannels]);
 
   const getButtonText = () => {
     if (isPublishing) return scheduleDateTime ? 'Scheduling...' : 'Publishing...';

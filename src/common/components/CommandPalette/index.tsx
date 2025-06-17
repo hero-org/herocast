@@ -114,7 +114,10 @@ export default function CommandPalette() {
 
   // Get theme and store data
   const { theme, setTheme } = useTheme();
-  const { allChannels } = useAccountStore();
+  const { accounts, selectedAccountIdx } = useAccountStore();
+  
+  // Use only user's pinned channels instead of all channels for better performance
+  const userChannels = accounts[selectedAccountIdx]?.channels || [];
 
   // Memoize expensive command generation with granular dependencies
   const themeCommands = useMemo(() => getThemeCommands(theme, setTheme), [theme, setTheme]);
@@ -150,9 +153,9 @@ export default function CommandPalette() {
     [router]
   );
 
-  // Only regenerate channel commands when channels actually change
+  // Only regenerate channel commands when user's pinned channels change
   const channelCommands = useMemo(() => {
-    const currentChannelsLength = allChannels.length;
+    const currentChannelsLength = userChannels.length;
     if (lastChannelsLengthRef.current === currentChannelsLength && accountStoreRef.current) {
       return accountStoreRef.current.channelCommands || [];
     }
@@ -163,7 +166,7 @@ export default function CommandPalette() {
     accountStoreRef.current.channelCommands = commands;
 
     return commands;
-  }, [allChannels.length]);
+  }, [userChannels.length]);
 
   // Get cached bot commands
   const farcasterBotCommands = useMemo(() => getFarcasterBotCommands(), []);
@@ -297,17 +300,17 @@ export default function CommandPalette() {
       if (!command) {
         return;
       }
-      
+
       // Track command execution performance
       const timingId = startTiming('command-execution');
       console.log('⚡ Command Execution: Starting timer for:', command.name); // Debug log
-      
+
       if (command.navigateTo) {
         router.push(command.navigateTo);
       }
       command.action();
       closeCommandPallete();
-      
+
       // End timing after command executes
       setTimeout(() => {
         endTiming(timingId, 100); // Target: <100ms

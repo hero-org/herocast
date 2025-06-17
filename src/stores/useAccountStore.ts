@@ -438,7 +438,7 @@ const store = (set: StoreSet) => ({
 
     console.log('hydrating complete 🌊');
     const accounts = await hydrateAccountsComplete(state.accounts);
-    await hydrateChannels();
+    // Note: Removed hydrateChannels() - channels now loaded on-demand for better performance
 
     useAccountStore.setState({
       ...state,
@@ -520,12 +520,12 @@ export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Pr
 
   // Re-fetch full account data with channels
   const fullAccountData = await getAccountsForUser(supabaseClient);
-  
+
   // Add channels data
   const accountsWithChannels = accounts.map((account) => {
-    const fullAccount = fullAccountData.find(a => a.id === account.id);
+    const fullAccount = fullAccountData.find((a) => a.id === account.id);
     if (!fullAccount) return account;
-    
+
     const channels: AccountChannelType[] = sortBy(fullAccount.accounts_to_channel, 'index').map((accountToChannel) => ({
       idx: accountToChannel.index,
       lastRead: accountToChannel.last_read,
@@ -535,7 +535,7 @@ export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Pr
       icon_url: accountToChannel.channel.icon_url,
       source: accountToChannel.channel.source,
     }));
-    
+
     return { ...account, channels };
   });
 
@@ -543,7 +543,7 @@ export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Pr
   const fids = accountsWithChannels
     .filter((account) => account.platformAccountId)
     .map((account) => Number(account.platformAccountId));
-  
+
   if (fids.length) {
     const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
     try {
@@ -563,7 +563,7 @@ export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Pr
   const localOnlyAccounts = useAccountStore
     .getState()
     .accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);
-  
+
   console.log('done hydrating accounts complete 🌊');
   return [...accountsWithChannels, ...uniqBy(localOnlyAccounts, 'platformAccountId')];
 };

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { startTiming, endTiming } from '@/stores/usePerformanceStore';
+import { useChannelLookup } from '../hooks/useChannelLookup';
 import { castTextStyle } from '@/common/helpers/css';
 import { CastReactionType } from '@/common/constants/farcaster';
 import { ChannelType } from '@/common/constants/channels';
@@ -212,7 +213,6 @@ const CastRowComponent = ({
   const {
     accounts,
     selectedAccountIdx,
-    allChannels: channels,
     setSelectedChannelByName,
     setSelectedChannelUrl,
   } = useAccountStore();
@@ -316,10 +316,13 @@ const CastRowComponent = ({
     [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions?.recasts]
   );
 
+  // Use on-demand channel lookup instead of loading all channels
+  const parentUrl = 'parent_url' in cast ? cast.parent_url : null;
+  const { channel: parentChannel } = useChannelLookup(parentUrl);
+  
   const getChannelForParentUrl = useCallback(
-    (parentUrl: string | null): ChannelType | undefined =>
-      parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined,
-    [channels]
+    (url: string | null): ChannelType | undefined => url === parentUrl ? parentChannel : undefined,
+    [parentUrl, parentChannel]
   );
 
   const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
