@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, Suspense } from 'react';
 import Modal from '@/common/components/Modal';
-import NewPostEntry from './Editor/NewCastEditor';
+import { Loading } from './Loading';
+
+// Lazy load heavy editor component
+const NewPostEntry = React.lazy(() => import('./Editor/NewCastEditor'));
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastRow } from './CastRow';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -67,14 +70,16 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
               </div>
             )}
             <div className="flex">
-              <NewPostEntry
-                draft={draft}
-                draftIdx={draftIdx}
-                onPost={() => {
-                  setOpen(false);
-                }}
-                hideChannel={castModalView === CastModalView.Reply}
-              />
+              <Suspense fallback={<Loading loadingMessage="Loading editor..." />}>
+                <NewPostEntry
+                  draft={draft}
+                  draftIdx={draftIdx}
+                  onPost={() => {
+                    setOpen(false);
+                  }}
+                  hideChannel={castModalView === CastModalView.Reply}
+                />
+              </Suspense>
             </div>
           </div>
         )}

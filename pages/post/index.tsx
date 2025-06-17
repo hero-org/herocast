@@ -1,6 +1,9 @@
-import NewPostEntry from '@/common/components/Editor/NewCastEditor';
 import { useDraftStore } from '@/stores/useDraftStore';
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef, Suspense } from 'react';
+import { Loading } from '@/common/components/Loading';
+
+// Lazy load heavy editor component
+const NewPostEntry = React.lazy(() => import('@/common/components/Editor/NewCastEditor'));
 import { ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
 import DraftListItem from './components/DraftListItem';
@@ -222,11 +225,13 @@ export default function NewPost() {
     return (
       <div key={draft.id} className="pt-2 pb-6">
         {parentCast && <CastRow cast={parentCast} />}
-        <NewPostEntry
-          draft={draft}
-          draftIdx={drafts.findIndex((d) => d.id === draft.id)}
-          onPost={() => resetSelectedDraftId()}
-        />
+        <Suspense fallback={<Loading loadingMessage="Loading editor..." />}>
+          <NewPostEntry
+            draft={draft}
+            draftIdx={drafts.findIndex((d) => d.id === draft.id)}
+            onPost={() => resetSelectedDraftId()}
+          />
+        </Suspense>
       </div>
     );
   };

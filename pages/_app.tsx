@@ -1,7 +1,7 @@
 import '../src/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import type { AppProps } from 'next/app';
 import { ThemeProvider } from '../src/common/hooks/ThemeProvider';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
@@ -12,7 +12,9 @@ import { PostHogProvider } from 'posthog-js/react';
 import { loadPosthogAnalytics } from '../src/lib/analytics';
 import { useRouter } from 'next/router';
 import localFont from 'next/font/local';
-import CommandPalette from '../src/common/components/CommandPalette';
+
+// Lazy load command palette since it's only used when triggered
+const CommandPalette = React.lazy(() => import('../src/common/components/CommandPalette'));
 import Home from '../src/home';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -81,7 +83,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           <QueryClientProvider client={queryClient}>
             <RainbowKitProvider theme={rainbowKitTheme}>
               <AuthProvider>
-                <CommandPalette />
+                <Suspense fallback={null}>
+                  <CommandPalette />
+                </Suspense>
                 <PerfPanel />
                 <Home>
                   <Component {...pageProps} />
