@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, Suspense } from 'react';
 import Modal from '@/common/components/Modal';
 import { Loading } from './Loading';
+import dynamic from 'next/dynamic';
 
-// Lazy load heavy editor component
-const NewPostEntry = React.lazy(() => import('./Editor/NewCastEditor'));
+// Dynamic import with loading fallback
+const NewPostEntry = dynamic(() => import('./Editor/NewCastEditor'), {
+  loading: () => <Loading loadingMessage="Loading editor..." />,
+  ssr: false,
+});
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastRow } from './CastRow';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -70,16 +74,14 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
               </div>
             )}
             <div className="flex">
-              <Suspense fallback={<Loading loadingMessage="Loading editor..." />}>
-                <NewPostEntry
-                  draft={draft}
-                  draftIdx={draftIdx}
-                  onPost={() => {
-                    setOpen(false);
-                  }}
-                  hideChannel={castModalView === CastModalView.Reply}
-                />
-              </Suspense>
+              <NewPostEntry
+                draft={draft}
+                draftIdx={draftIdx}
+                onPost={() => {
+                  setOpen(false);
+                }}
+                hideChannel={castModalView === CastModalView.Reply}
+              />
             </div>
           </div>
         )}

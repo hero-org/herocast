@@ -13,8 +13,12 @@ import { loadPosthogAnalytics } from '../src/lib/analytics';
 import { useRouter } from 'next/router';
 import localFont from 'next/font/local';
 
-// Lazy load command palette since it's only used when triggered
-const CommandPalette = React.lazy(() => import('../src/common/components/CommandPalette'));
+// Dynamic import with safe hydration
+import dynamic from 'next/dynamic';
+
+const CommandPalette = dynamic(() => import('../src/common/components/CommandPalette'), {
+  ssr: false, // Disable SSR for this component to avoid hydration issues
+});
 import Home from '../src/home';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -83,9 +87,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           <QueryClientProvider client={queryClient}>
             <RainbowKitProvider theme={rainbowKitTheme}>
               <AuthProvider>
-                <Suspense fallback={null}>
-                  <CommandPalette />
-                </Suspense>
+                <CommandPalette />
                 <PerfPanel />
                 <Home>
                   <Component {...pageProps} />

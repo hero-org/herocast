@@ -4,9 +4,13 @@ import { Button } from '@/components/ui/button';
 import StepSequence from '@/common/components/Steps/StepSequence';
 import RegisterFarcasterUsernameForm from '@/common/components/RegisterFarcasterUsernameForm';
 import { Loading } from '@/common/components/Loading';
+import dynamic from 'next/dynamic';
 
-// Lazy load heavy components
-const CreateFarcasterAccount = React.lazy(() => import('@/common/components/CreateFarcasterAccount'));
+// Dynamic import with loading fallback
+const CreateFarcasterAccount = dynamic(() => import('@/common/components/CreateFarcasterAccount'), {
+  loading: () => <Loading loadingMessage="Loading account creation..." />,
+  ssr: false,
+});
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/router';
 import SwitchWalletButton from '@/common/components/SwitchWalletButton';
@@ -160,15 +164,13 @@ export default function Welcome() {
         return getStepContent(
           'Create your Farcaster account',
           "Let's get you onchain",
-          <Suspense fallback={<Loading loadingMessage="Loading account creation..." />}>
-            <CreateFarcasterAccount
-              isAddressValid={isAddressValid}
-              onSuccess={async () => {
-                await hydrateAccounts();
-                setStep(FarcasterSignupNav.register_username);
-              }}
-            />
-          </Suspense>
+          <CreateFarcasterAccount
+            isAddressValid={isAddressValid}
+            onSuccess={async () => {
+              await hydrateAccounts();
+              setStep(FarcasterSignupNav.register_username);
+            }}
+          />
         );
       case FarcasterSignupNav.register_username:
         return getStepContent(
