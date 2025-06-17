@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { usePerformanceTracker } from '../hooks/usePerformanceTracker';
+import { usePerformanceStore, startTiming, endTiming } from '@/stores/usePerformanceStore';
 
 export const PerfPanel: React.FC = () => {
-  const { metrics } = usePerformanceTracker();
+  const { metrics, clearMetrics } = usePerformanceStore();
   const [isVisible, setIsVisible] = useState(false);
+
+  // Test function to verify performance tracking works
+  const runTestMeasurement = () => {
+    const timingId = startTiming('test-measurement');
+    // Simulate some work
+    setTimeout(() => {
+      endTiming(timingId, 50); // Threshold: 50ms
+    }, Math.random() * 100 + 10);
+  };
 
   // Only show in development
   if (process.env.NODE_ENV !== 'development') return null;
@@ -65,6 +74,21 @@ export const PerfPanel: React.FC = () => {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="border-t border-gray-700 pt-2 mt-2 space-y-1">
+        <button
+          onClick={runTestMeasurement}
+          className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white"
+        >
+          Test Measurement
+        </button>
+        <button
+          onClick={clearMetrics}
+          className="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white ml-2"
+        >
+          Clear
+        </button>
       </div>
 
       <div className="text-xs text-gray-400 mt-2">Press Ctrl+Shift+P to toggle</div>

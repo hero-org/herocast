@@ -29,7 +29,7 @@ import { getCastsFromSearch, SearchFilters } from '@/common/helpers/search';
 import { Interval } from '@/common/types/types';
 import { orderBy } from 'lodash';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
-import { usePerformanceTracker } from '@/common/hooks/usePerformanceTracker';
+import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -80,7 +80,6 @@ export default function Feeds() {
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
   const lastUpdateTimeRef = useRef(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const { startTiming, endTiming } = usePerformanceTracker();
 
   const { lists, selectedListId, setSelectedListId } = useListStore();
   const { isNewCastModalOpen, setCastModalView, openNewCastModal, closeNewCastModal, setCastModalDraftId } =
@@ -416,11 +415,12 @@ export default function Feeds() {
   }, [selectedChannelUrl, selectedListId]);
 
   const renderRow = (item: any, idx: number) => (
-    <li key={item?.hash} className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
+    <li key={item?.hash} className="border-b border-foreground/20 relative w-full">
       <CastRow
         cast={item}
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
+        onEmbedClick={onOpenLinkInCast}
         showChannel={
           selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
         }
@@ -554,7 +554,7 @@ export default function Feeds() {
   };
 
   const renderContent = () => (
-    <main className="min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
+    <main className="w-full max-w-2xl mx-auto">
       {isLoadingFeed && isEmpty(casts) && (
         <div className="ml-4">
           <Loading loadingMessage={loadingMessage} />

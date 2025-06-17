@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { usePerformanceTracker } from '../hooks/usePerformanceTracker';
+import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 import { castTextStyle } from '@/common/helpers/css';
 import { CastReactionType } from '@/common/constants/farcaster';
 import { ChannelType } from '@/common/constants/channels';
@@ -207,6 +207,7 @@ const CastRowComponent = ({
   showAdminActions = false,
   recastedByFid,
   onCastClick,
+  onEmbedClick,
 }: CastRowProps) => {
   const {
     accounts,
@@ -219,7 +220,6 @@ const CastRowComponent = ({
   const { setCastModalDraftId, setCastModalView, openNewCastModal } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const { updateSelectedCast } = useDataStore();
-  const { startTiming, endTiming } = usePerformanceTracker();
 
   const [didLike, setDidLike] = useState(false);
   const [didRecast, setDidRecast] = useState(false);
@@ -530,23 +530,10 @@ const CastRowComponent = ({
       return null;
     }
 
-    const embedsContainsCastEmbed = cast.embeds.some((c) => c.cast_id);
     return (
-      <div
-        className={cn(
-          cast.embeds?.length > 1 && !embedsContainsCastEmbed && 'grid lg:grid-cols-2 gap-4',
-          'max-w-lg self-start'
-        )}
-        onClick={(e) => e.preventDefault()}
-      >
-        <ErrorBoundary>
-          {map(cast.embeds, (embed) => (
-            <div key={`${cast.hash}-embed-${embed?.cast_id?.hash || embed?.url}`}>
-              {renderEmbedForUrl({ ...embed, hideReactions })}
-            </div>
-          ))}
-        </ErrorBoundary>
-      </div>
+      <ErrorBoundary>
+        <EmbedCarousel embeds={cast.embeds} hideReactions={hideReactions} onEmbedClick={onEmbedClick} />
+      </ErrorBoundary>
     );
   };
 

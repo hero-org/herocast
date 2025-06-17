@@ -36,11 +36,11 @@ import { getProfile } from '@/common/helpers/profileUtils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
 import { cn } from '@/lib/utils';
-import { usePerformanceTracker } from '@/common/hooks/usePerformanceTracker';
+import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
-// Cache static commands that don't depend on user state  
+// Cache static commands that don't depend on user state
 // eslint-disable-next-line prefer-const
 let cachedStaticCommands: CommandType[] | null = null;
 let cachedFarcasterBotCommands: CommandType[] | null = null;
@@ -60,7 +60,7 @@ const getFarcasterBotCommands = (): CommandType[] => {
   const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
     const { selectedCast } = useDataStore.getState();
     if (!selectedCast) return;
-    
+
     const { addNewPostDraft } = useDraftStore.getState();
     addNewPostDraft({
       ...draft,
@@ -81,26 +81,18 @@ const getFarcasterBotCommands = (): CommandType[] => {
       () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
       '/post'
     ),
-    createFarcasterBotCommand(
-      'Launch this cast on Launchcaster', 
-      () => addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft)
+    createFarcasterBotCommand('Launch this cast on Launchcaster', () =>
+      addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft)
     ),
     createFarcasterBotCommand(
       'Post new bounty',
       () => useDraftStore.getState().addNewPostDraft(BountyCasterBotDraft),
       '/post'
     ),
-    createFarcasterBotCommand(
-      'Remind me about this',
-      () => addNewPostDraftWithSelectedCast(RemindMeBotDraft)
-    ),
-    createFarcasterBotCommand(
-      'Pay user via paybot',
-      () => addNewPostDraftWithSelectedCast(PayCasterBotPayDraft)
-    ),
-    createFarcasterBotCommand(
-      'Request payment via paybot',
-      () => addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft)
+    createFarcasterBotCommand('Remind me about this', () => addNewPostDraftWithSelectedCast(RemindMeBotDraft)),
+    createFarcasterBotCommand('Pay user via paybot', () => addNewPostDraftWithSelectedCast(PayCasterBotPayDraft)),
+    createFarcasterBotCommand('Request payment via paybot', () =>
+      addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft)
     ),
   ];
 
@@ -112,49 +104,51 @@ export default function CommandPalette() {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
-  const { startTiming, endTiming } = usePerformanceTracker();
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
-  
+
   // Cache frequently accessed store data in refs for performance
   const accountStoreRef = useRef<any>(null);
   const lastChannelsLengthRef = useRef(0);
   const lastThemeRef = useRef<string>('');
-  
+
   // Get theme and store data
   const { theme, setTheme } = useTheme();
   const { allChannels } = useAccountStore();
-  
+
   // Memoize expensive command generation with granular dependencies
   const themeCommands = useMemo(() => getThemeCommands(theme, setTheme), [theme, setTheme]);
   const navigationCommands = useMemo(() => getNavigationCommands({ router }), [router.pathname]);
-  
+
   // Cache profile commands since they rarely change
-  const profileCommands = useMemo(() => [
-    {
-      name: 'Your profile',
-      action: () => {
-        const state = useAccountStore.getState();
-        const selectedAccountName = state.accounts[state.selectedAccountIdx].user?.username;
-        router.push(`/profile/${selectedAccountName}`);
+  const profileCommands = useMemo(
+    () => [
+      {
+        name: 'Your profile',
+        action: () => {
+          const state = useAccountStore.getState();
+          const selectedAccountName = state.accounts[state.selectedAccountIdx].user?.username;
+          router.push(`/profile/${selectedAccountName}`);
+        },
+        shortcut: 'cmd+shift+p',
+        options: {
+          enableOnFormTags: false,
+        },
+        icon: UserCircleIcon,
       },
-      shortcut: 'cmd+shift+p',
-      options: {
-        enableOnFormTags: false,
+      {
+        name: 'Your Analytics',
+        action: () => {
+          const state = useAccountStore.getState();
+          const fid = state.accounts[state.selectedAccountIdx]?.platformAccountId;
+          const route = fid ? `/analytics?fid=${fid}` : '/analytics';
+          router.push(route);
+        },
+        icon: ChartBarIcon,
       },
-      icon: UserCircleIcon,
-    },
-    {
-      name: 'Your Analytics',
-      action: () => {
-        const state = useAccountStore.getState();
-        const fid = state.accounts[state.selectedAccountIdx]?.platformAccountId;
-        const route = fid ? `/analytics?fid=${fid}` : '/analytics';
-        router.push(route);
-      },
-      icon: ChartBarIcon,
-    },
-  ], [router]);
+    ],
+    [router]
+  );
 
   // Only regenerate channel commands when channels actually change
   const channelCommands = useMemo(() => {
@@ -162,12 +156,12 @@ export default function CommandPalette() {
     if (lastChannelsLengthRef.current === currentChannelsLength && accountStoreRef.current) {
       return accountStoreRef.current.channelCommands || [];
     }
-    
+
     const commands = getChannelCommands(useAccountStore.getState());
     lastChannelsLengthRef.current = currentChannelsLength;
     if (!accountStoreRef.current) accountStoreRef.current = {};
     accountStoreRef.current.channelCommands = commands;
-    
+
     return commands;
   }, [allChannels.length]);
 
@@ -175,15 +169,18 @@ export default function CommandPalette() {
   const farcasterBotCommands = useMemo(() => getFarcasterBotCommands(), []);
 
   // Optimized command assembly with minimal recreation
-  const allCommands = useMemo(() => [
-    ...channelCommands,
-    ...navigationCommands, 
-    ...newPostCommands,
-    ...accountCommands,
-    ...themeCommands,
-    ...profileCommands,
-    ...farcasterBotCommands,
-  ], [channelCommands, navigationCommands, themeCommands, profileCommands, farcasterBotCommands]);
+  const allCommands = useMemo(
+    () => [
+      ...channelCommands,
+      ...navigationCommands,
+      ...newPostCommands,
+      ...accountCommands,
+      ...themeCommands,
+      ...profileCommands,
+      ...farcasterBotCommands,
+    ],
+    [channelCommands, navigationCommands, themeCommands, profileCommands, farcasterBotCommands]
+  );
 
   // Debounce search query for performance
   useEffect(() => {
