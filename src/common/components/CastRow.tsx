@@ -23,6 +23,7 @@ import get from 'lodash.get';
 import Linkify from 'linkify-react';
 import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
+import EmbedCarousel from './Embeds/EmbedCarousel';
 import ProfileHoverCard from './ProfileHoverCard';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { registerPlugin } from 'linkifyjs';
@@ -68,9 +69,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { getProfile } from '../helpers/profileUtils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-registerPlugin('mention', mentionPlugin);
-registerPlugin('cashtag', cashtagPlugin);
-registerPlugin('channel', channelPlugin);
+// Register linkify plugins once globally to avoid hot reload warnings
+if (typeof window !== 'undefined' && !window.__linkify_plugins_registered) {
+  registerPlugin('mention', mentionPlugin);
+  registerPlugin('cashtag', cashtagPlugin);
+  registerPlugin('channel', channelPlugin);
+  window.__linkify_plugins_registered = true;
+}
 
 export type CastToReplyType = {
   hash: string;
@@ -100,6 +105,7 @@ interface CastRowProps {
   showAdminActions?: boolean;
   recastedByFid?: number;
   onCastClick?: () => void;
+  onEmbedClick?: () => void;
 }
 
 const renderMention = ({ attributes, content }) => {
