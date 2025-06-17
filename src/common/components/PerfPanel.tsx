@@ -45,8 +45,8 @@ export const PerfPanel: React.FC = () => {
                   metric.status === 'good'
                     ? 'text-green-400'
                     : metric.status === 'warning'
-                    ? 'text-yellow-400'
-                    : 'text-red-400'
+                      ? 'text-yellow-400'
+                      : 'text-red-400'
                 }`}
               >
                 {metric.duration.toFixed(1)}ms

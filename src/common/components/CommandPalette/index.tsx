@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, ComponentType, SVGProps, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, ComponentType, SVGProps, useEffect, useRef } from 'react';
 import { CommandType } from '@/common/constants/commands';
 import { accountCommands, getChannelCommands, useAccountStore } from '@/stores/useAccountStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
@@ -42,8 +42,27 @@ const MIN_SCORE_THRESHOLD = 0.0015;
 export default function CommandPalette() {
   const router = useRouter();
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
+
+  // Debounce search query for performance
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 150);
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [query]);
 
   const { allChannels, setSelectedChannelUrl, setSelectedChannelByName } = useAccountStore();
 
@@ -98,6 +117,7 @@ export default function CommandPalette() {
   useEffect(() => {
     if (!isCommandPaletteOpen) {
       setQuery('');
+      setDebouncedQuery('');
     }
   }, [isCommandPaletteOpen]);
 
@@ -264,54 +284,54 @@ export default function CommandPalette() {
     icon: MagnifyingGlassCircleIcon,
   });
 
-  const getFilteredCommands = () => {
+  const getFilteredCommands = useCallback(() => {
     let result = commands.filter((command: CommandType) => {
       const namesToScore = [command.name, ...(command.aliases || [])];
       const scores = namesToScore.map((alias: string) => {
-        return commandScore(alias, query);
+        return commandScore(alias, debouncedQuery);
       });
       return Math.max(...scores) > MIN_SCORE_THRESHOLD;
     });
 
-    if (isWarpcastUrl(query)) {
-      result = [getWarpcastCommandForUrl(query), ...result];
+    if (isWarpcastUrl(debouncedQuery)) {
+      result = [getWarpcastCommandForUrl(debouncedQuery), ...result];
     }
 
-    if (query.startsWith('0x')) {
+    if (debouncedQuery.startsWith('0x')) {
       result = [
         {
-          name: `Go to cast ${query}`,
+          name: `Go to cast ${debouncedQuery}`,
           action: () => {
-            router.push(`/conversation/${query}`);
+            router.push(`/conversation/${debouncedQuery}`);
           },
         },
         ...result,
       ];
     }
 
-    if (query.startsWith('@') || result.length === 0) {
-      const profile = getProfile(useDataStore.getState(), query.slice(1));
+    if (debouncedQuery.startsWith('@') || result.length === 0) {
+      const profile = getProfile(useDataStore.getState(), debouncedQuery.slice(1));
 
       result = [
         {
-          name: `Go to profile ${query}`,
+          name: `Go to profile ${debouncedQuery}`,
           action: () => {
-            router.push(`/profile/${query}`);
+            router.push(`/profile/${debouncedQuery}`);
           },
           iconUrl: profile?.pfp_url,
           icon: UserCircleIcon,
         },
-        getSearchCommand(query),
+        getSearchCommand(debouncedQuery),
         ...result,
       ];
     }
 
     return result;
-  };
+  }, [commands, debouncedQuery, router, setSelectedChannelByName]);
 
   const filteredCommands = useMemo(
     () => getFilteredCommands(),
-    [isCommandPaletteOpen, query, commands, router, setSelectedChannelByName]
+    [getFilteredCommands]
   );
 
   const renderIcon = useCallback((command: CommandType, active: boolean) => {
@@ -358,7 +378,7 @@ export default function CommandPalette() {
 
   const renderDefaultCommands = () => (
     <CommandGroup heading="Suggestions">
-      {[...profileCommands, getSearchCommand(query)].map(renderCommandItem)}
+      {[...profileCommands, getSearchCommand(debouncedQuery)].map(renderCommandItem)}
     </CommandGroup>
   );
 
@@ -372,7 +392,7 @@ export default function CommandPalette() {
         <CommandInput onValueChange={setQuery} autoFocus placeholder="Search Herocast..." />
         <CommandList className="">
           <CommandEmpty className="py-4 text-center text-sm text-muted-foreground">No command found.</CommandEmpty>
-          {query ? renderFilteredCommands() : renderDefaultCommands()}
+          {debouncedQuery ? renderFilteredCommands() : renderDefaultCommands()}
         </CommandList>
       </Command>
     </CommandDialog>

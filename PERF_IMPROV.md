@@ -3,12 +3,15 @@
 ## Tasks Requiring Human Intervention
 
 ### Database & Infrastructure Tasks
+
 1. **Add Database Indexes** (Impact: 🔥, Effort: Medium)
+
    - Add composite index: `CREATE INDEX idx_lists_user_created ON lists(user_id, created_at);`
    - Add channel index: `CREATE INDEX idx_channels_follower_count ON channels(follower_count) WHERE follower_count > 50;`
    - Run via Supabase dashboard SQL editor
 
 2. **Redis Caching Setup** (Impact: 🔥🔥, Effort: High)
+
    - Set up Redis instance (Upstash, Railway, or local)
    - Add Redis client configuration to environment variables
    - Test caching layer before deploying to production
@@ -19,6 +22,7 @@
    - Plan migration strategy for API calls
 
 ### Testing & Validation Tasks
+
 1. **Performance Testing** - Test each improvement against targets using the measurement harness
 2. **Bundle Analysis** - Run `npm run build` and analyze bundle sizes before/after optimizations
 3. **Load Testing** - Test app performance with multiple accounts and large datasets
