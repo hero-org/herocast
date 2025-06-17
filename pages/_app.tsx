@@ -16,6 +16,7 @@ import CommandPalette from '../src/common/components/CommandPalette';
 import Home from '../src/home';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { cn } from '@/lib/utils';
+import { PerfPanel } from '../src/common/components/PerfPanel';
 
 const satoshi = localFont({
   src: [
@@ -81,6 +82,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             <RainbowKitProvider theme={rainbowKitTheme}>
               <AuthProvider>
                 <CommandPalette />
+                <PerfPanel />
                 <Home>
                   <Component {...pageProps} />
                 </Home>
