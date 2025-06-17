@@ -199,19 +199,22 @@ export default function CommandPalette() {
     };
   }, [query]);
 
+  // Track Command Palette opening performance
+  const openTimingRef = useRef<string | null>(null);
+
   useHotkeys(
     'meta+k',
     () => {
-      const timingId = startTiming('command-palette-open');
+      // Start timing when hotkey is pressed
+      openTimingRef.current = startTiming('command-palette-open');
+      console.log('🔥 Command Palette: Starting timer'); // Debug log
       toggleCommandPalette();
-      // Give a small delay to account for render
-      setTimeout(() => endTiming(timingId, 50), 10);
     },
     {
       enableOnFormTags: true,
       preventDefault: true,
     },
-    [toggleCommandPalette, startTiming, endTiming]
+    [toggleCommandPalette]
   );
 
   const setupHotkeysForCommands = useCallback(
@@ -276,6 +279,13 @@ export default function CommandPalette() {
     if (!isCommandPaletteOpen) {
       setQuery('');
       setDebouncedQuery('');
+    } else {
+      // Modal just opened - complete the timing measurement
+      if (openTimingRef.current) {
+        console.log('🔥 Command Palette: Modal opened, ending timer'); // Debug log
+        endTiming(openTimingRef.current, 50); // Target: <50ms
+        openTimingRef.current = null;
+      }
     }
   }, [isCommandPaletteOpen]);
 
@@ -287,11 +297,22 @@ export default function CommandPalette() {
       if (!command) {
         return;
       }
+      
+      // Track command execution performance
+      const timingId = startTiming('command-execution');
+      console.log('⚡ Command Execution: Starting timer for:', command.name); // Debug log
+      
       if (command.navigateTo) {
         router.push(command.navigateTo);
       }
       command.action();
       closeCommandPallete();
+      
+      // End timing after command executes
+      setTimeout(() => {
+        endTiming(timingId, 100); // Target: <100ms
+        console.log('⚡ Command Execution: Completed'); // Debug log
+      }, 0);
     },
     [router, closeCommandPallete]
   );
@@ -325,7 +346,12 @@ export default function CommandPalette() {
   });
 
   const getFilteredCommands = useCallback(() => {
-    const timingId = startTiming('command-search-filter');
+    // Only track search filtering if we have a query
+    let timingId: string | null = null;
+    if (debouncedQuery) {
+      timingId = startTiming('command-search-filter');
+      console.log('🔍 Command Search: Starting filter timer for query:', debouncedQuery); // Debug log
+    }
 
     let result = allCommands.filter((command: CommandType) => {
       const namesToScore = [command.name, ...(command.aliases || [])];
@@ -335,7 +361,10 @@ export default function CommandPalette() {
       return Math.max(...scores) > MIN_SCORE_THRESHOLD;
     });
 
-    endTiming(timingId, 20);
+    if (timingId) {
+      endTiming(timingId, 20);
+      console.log('🔍 Command Search: Filter completed'); // Debug log
+    }
 
     if (isWarpcastUrl(debouncedQuery)) {
       result = [getWarpcastCommandForUrl(debouncedQuery), ...result];
