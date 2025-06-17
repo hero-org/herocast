@@ -384,7 +384,7 @@ const CastRowComponent = ({
         type: reactionBodyType,
         target: { fid: Number(authorFid), hash: cast.hash },
       };
-      
+
       if (isActive) {
         await removeReaction({
           authorFid: userFid,
@@ -398,11 +398,11 @@ const CastRowComponent = ({
           reaction,
         });
       }
-      
+
       // Success: No need to update state as the optimistic update was correct
     } catch (error) {
       console.error(`Error in onClickReaction: ${error}`);
-      
+
       // Rollback optimistic update on error
       if (key === CastReactionType.likes) {
         setDidLike(isActive);

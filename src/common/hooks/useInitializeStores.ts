@@ -1,4 +1,4 @@
-import { initializeStores } from '@/stores/initializeStores';
+import { initializeStores, initializeStoresProgressive } from '@/stores/initializeStores';
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,7 +20,9 @@ const useInitializeStores = () => {
         try {
           setStatus(InitStatus.pending);
           prevUserIdRef.current = user.id;
-          await initializeStores();
+          
+          // Use progressive hydration for better performance
+          await initializeStoresProgressive();
           setStatus(InitStatus.initialized);
         } catch (error) {
           console.error('Failed to initialize stores:', error);
