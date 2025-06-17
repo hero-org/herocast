@@ -29,6 +29,7 @@ import { getCastsFromSearch, SearchFilters } from '@/common/helpers/search';
 import { Interval } from '@/common/types/types';
 import { orderBy } from 'lodash';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
+import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -138,7 +139,11 @@ export default function Feeds() {
   }, []);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Scroll the main content container instead of window
+    const mainContainer = document.querySelector('.overflow-y-auto.no-scrollbar');
+    if (mainContainer) {
+      mainContainer.scrollTop = 0;
+    }
   }, [feedKey]);
 
   useEffect(() => {
@@ -160,10 +165,14 @@ export default function Feeds() {
   useEffect(() => {
     if (showCastThreadView) return;
 
-    if (selectedCastIdx === 0) {
-      window.scrollTo(0, 0);
-    } else if (selectedCastIdx === casts.length - 1) {
-      window.scrollTo(0, document.body.scrollHeight);
+    // Scroll the main content container instead of window
+    const mainContainer = document.querySelector('.overflow-y-auto.no-scrollbar');
+    if (mainContainer) {
+      if (selectedCastIdx === 0) {
+        mainContainer.scrollTop = 0;
+      } else if (selectedCastIdx === casts.length - 1) {
+        mainContainer.scrollTop = mainContainer.scrollHeight;
+      }
     }
   }, [selectedCastIdx, showCastThreadView, casts.length]);
 
@@ -278,6 +287,7 @@ export default function Feeds() {
       return;
     }
 
+    const timingId = startTiming(`feed-load-${cursor ? 'more' : 'initial'}`);
     setIsLoadingFeed(feedKey, true);
     try {
       let feedOptions = {
@@ -369,6 +379,7 @@ export default function Feeds() {
     } finally {
       setLoadingMessage('Loading feed');
       setIsLoadingFeed(feedKey, false);
+      endTiming(timingId, cursor ? 1000 : 2000); // Different thresholds for initial vs pagination
     }
   };
 
@@ -412,11 +423,12 @@ export default function Feeds() {
   }, [selectedChannelUrl, selectedListId]);
 
   const renderRow = (item: any, idx: number) => (
-    <li key={item?.hash} className="border-b border-foreground/20 relative flex items-center space-x-4 max-w-full">
+    <li key={item?.hash} className="border-b border-foreground/20 relative w-full">
       <CastRow
         cast={item}
         isSelected={selectedCastIdx === idx}
         onSelect={() => onSelectCast(idx)}
+        onEmbedClick={onOpenLinkInCast}
         showChannel={
           selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
         }
@@ -550,7 +562,7 @@ export default function Feeds() {
   };
 
   const renderContent = () => (
-    <main className="min-w-md md:min-w-[calc(100%-100px)] lg:min-w-[calc(100%-50px)]">
+    <main className="w-full max-w-2xl mx-auto">
       {isLoadingFeed && isEmpty(casts) && (
         <div className="ml-4">
           <Loading loadingMessage={loadingMessage} />

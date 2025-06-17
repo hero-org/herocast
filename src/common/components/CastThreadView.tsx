@@ -36,7 +36,11 @@ export const CastThreadView = ({ hash, cast, onBack, isActive }: CastThreadViewP
 
   useEffect(() => {
     if (selectedCastIdx === 0) {
-      window.scrollTo(0, 0);
+      // Scroll the main content container instead of window
+      const mainContainer = document.querySelector('.overflow-y-auto.no-scrollbar');
+      if (mainContainer) {
+        mainContainer.scrollTop = 0;
+      }
     }
   }, [selectedCastIdx]);
 

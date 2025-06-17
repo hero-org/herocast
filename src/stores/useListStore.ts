@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { create as mutativeCreate, Draft } from 'mutative';
 import { createClient } from '@/common/helpers/supabase/component';
 import { InsertList, List, UpdateList } from '@/common/types/database.types';
-import { FidListContent, SearchListContent, isSearchListContent, isFidListContent } from '@/common/types/list.types';
+import { FidListContent, isFidListContent } from '@/common/types/list.types';
 import { UUID } from 'crypto';
 
 export type Search = {

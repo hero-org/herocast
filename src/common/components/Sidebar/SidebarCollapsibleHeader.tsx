@@ -13,15 +13,17 @@ type SidebarCollapsibleHeaderProps = {
 const SidebarCollapsibleHeader = ({ title, button, isOpen, onToggle }: SidebarCollapsibleHeaderProps) => {
   return (
     <div
-      className="flex items-center px-2 py-1 sm:pr-4 cursor-pointer group/label hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md"
+      className="flex items-center justify-between cursor-pointer group/label hover:bg-sidebar/30 rounded-lg transition-colors duration-200"
       onClick={onToggle}
     >
-      <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary flex items-center">{title}</h3>
-      {button}
-      <ChevronRight
-        className="ml-auto transition-transform"
-        style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
-      />
+      <h3 className="text-sm font-semibold leading-6 text-foreground/90 flex items-center gap-x-2">{title}</h3>
+      <div className="flex items-center gap-x-2">
+        {button}
+        <ChevronRight
+          className="h-4 w-4 text-foreground/50 transition-transform duration-200 group-hover/label:text-foreground/70"
+          style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+        />
+      </div>
     </div>
   );
 };

@@ -91,6 +91,8 @@ interface AccountStoreProps {
 
 interface AccountStoreActions {
   hydrate: () => void;
+  hydrateMinimal: () => void;
+  hydrateComplete: () => void;
   addAccount: (props: AddAccountProps) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
@@ -416,6 +418,35 @@ const store = (set: StoreSet) => ({
 
     console.log('done hydrating 🌊 happy casting');
   },
+  hydrateMinimal: async () => {
+    if (useAccountStore.getState().isHydrated) return;
+
+    console.log('hydrating minimal 💧');
+    const accounts = await hydrateAccountsMinimal();
+
+    useAccountStore.setState({
+      ...useAccountStore.getState(),
+      accounts,
+      isHydrated: true, // Mark as hydrated for basic functionality
+    });
+
+    console.log('done hydrating minimal 💧 basic functionality ready');
+  },
+  hydrateComplete: async () => {
+    const state = useAccountStore.getState();
+    if (state.accounts.length === 0) return;
+
+    console.log('hydrating complete 🌊');
+    const accounts = await hydrateAccountsComplete(state.accounts);
+    // Note: Removed hydrateChannels() - channels now loaded on-demand for better performance
+
+    useAccountStore.setState({
+      ...state,
+      accounts,
+    });
+
+    console.log('done hydrating complete 🌊 full functionality ready');
+  },
 });
 
 const storage = new IndexedDBStorage('herocast-accounts-store');
@@ -457,62 +488,90 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
   return channelData || [];
 };
 
-export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
-  console.log('hydrating accounts 🌊');
+export const hydrateAccountsMinimal = async (): Promise<AccountObjectType[]> => {
+  console.log('hydrating accounts minimal 💧');
   const accountData = await getAccountsForUser(supabaseClient);
   let accounts: AccountObjectType[] = [];
   if (accountData.length === 0) {
     console.log('no accounts found');
   } else {
-    accounts = accountData.map((account) => {
-      const channels: AccountChannelType[] = sortBy(account.accounts_to_channel, 'index').map((accountToChannel) => ({
-        idx: accountToChannel.index,
-        lastRead: accountToChannel.last_read,
-        id: accountToChannel.channel_id,
-        name: accountToChannel.channel.name,
-        url: accountToChannel.channel.url,
-        icon_url: accountToChannel.channel.icon_url,
-        source: accountToChannel.channel.source,
-      }));
-      return {
-        id: account.id,
-        name: account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER,
-        status: account.status,
-        publicKey: account.public_key,
-        platform: account.platform,
-        platformAccountId: account.platform_account_id,
-        createdAt: account.created_at,
-        data: account.data,
-        privateKey: account.decrypted_private_key,
-        channels: channels,
-      };
-    });
-    const fids = accounts
-      .filter((account) => account.platformAccountId)
-      .map((account) => Number(account.platformAccountId));
-    if (fids.length) {
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-      try {
-        const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
-        accounts = accounts.map((account) => {
-          const user = users.find((user) => user.fid === Number(account.platformAccountId));
-          if (user) {
-            account.user = user;
-          }
-          return account;
-        });
-      } catch (e) {
-        console.log('error failed to fetch user metadata', e);
-      }
+    // Only include essential data for immediate functionality
+    accounts = accountData.map((account) => ({
+      id: account.id,
+      name: account.name || PENDING_ACCOUNT_NAME_PLACEHOLDER,
+      status: account.status,
+      publicKey: account.public_key,
+      platform: account.platform,
+      platformAccountId: account.platform_account_id,
+      createdAt: account.created_at,
+      data: account.data,
+      privateKey: account.decrypted_private_key,
+      channels: [], // Defer channel loading
+      user: undefined, // Defer user metadata
+    }));
+  }
+  console.log('done hydrating accounts minimal 💧');
+  return accounts;
+};
+
+export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Promise<AccountObjectType[]> => {
+  console.log('hydrating accounts complete 🌊');
+  if (accounts.length === 0) return accounts;
+
+  // Re-fetch full account data with channels
+  const fullAccountData = await getAccountsForUser(supabaseClient);
+
+  // Add channels data
+  const accountsWithChannels = accounts.map((account) => {
+    const fullAccount = fullAccountData.find((a) => a.id === account.id);
+    if (!fullAccount) return account;
+
+    const channels: AccountChannelType[] = sortBy(fullAccount.accounts_to_channel, 'index').map((accountToChannel) => ({
+      idx: accountToChannel.index,
+      lastRead: accountToChannel.last_read,
+      id: accountToChannel.channel_id,
+      name: accountToChannel.channel.name,
+      url: accountToChannel.channel.url,
+      icon_url: accountToChannel.channel.icon_url,
+      source: accountToChannel.channel.source,
+    }));
+
+    return { ...account, channels };
+  });
+
+  // Add user metadata from Neynar
+  const fids = accountsWithChannels
+    .filter((account) => account.platformAccountId)
+    .map((account) => Number(account.platformAccountId));
+
+  if (fids.length) {
+    const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+    try {
+      const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
+      return accountsWithChannels.map((account) => {
+        const user = users.find((user) => user.fid === Number(account.platformAccountId));
+        if (user) {
+          account.user = user;
+        }
+        return account;
+      });
+    } catch (e) {
+      console.log('error failed to fetch user metadata', e);
     }
-    return accounts;
   }
 
   const localOnlyAccounts = useAccountStore
     .getState()
     .accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);
-  console.log('done hydrating accounts 🌊');
-  return [...accounts, ...uniqBy(localOnlyAccounts, 'platformAccountId')];
+
+  console.log('done hydrating accounts complete 🌊');
+  return [...accountsWithChannels, ...uniqBy(localOnlyAccounts, 'platformAccountId')];
+};
+
+export const hydrateAccounts = async (): Promise<AccountObjectType[]> => {
+  // Keep original function for backward compatibility
+  const minimalAccounts = await hydrateAccountsMinimal();
+  return await hydrateAccountsComplete(minimalAccounts);
 };
 
 export const hydrateChannels = async () => {
