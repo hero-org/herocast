@@ -29,6 +29,7 @@ import { getCastsFromSearch, SearchFilters } from '@/common/helpers/search';
 import { Interval } from '@/common/types/types';
 import { orderBy } from 'lodash';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
+import { usePerformanceTracker } from '@/common/hooks/usePerformanceTracker';
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -79,6 +80,7 @@ export default function Feeds() {
   const [showEmbedsModal, setShowEmbedsModal] = useState(false);
   const lastUpdateTimeRef = useRef(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const { startTiming, endTiming } = usePerformanceTracker();
 
   const { lists, selectedListId, setSelectedListId } = useListStore();
   const { isNewCastModalOpen, setCastModalView, openNewCastModal, closeNewCastModal, setCastModalDraftId } =
@@ -278,6 +280,7 @@ export default function Feeds() {
       return;
     }
 
+    const timingId = startTiming(`feed-load-${cursor ? 'more' : 'initial'}`);
     setIsLoadingFeed(feedKey, true);
     try {
       let feedOptions = {
@@ -369,6 +372,7 @@ export default function Feeds() {
     } finally {
       setLoadingMessage('Loading feed');
       setIsLoadingFeed(feedKey, false);
+      endTiming(timingId, cursor ? 1000 : 2000); // Different thresholds for initial vs pagination
     }
   };
 

@@ -36,6 +36,7 @@ import { getProfile } from '@/common/helpers/profileUtils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
 import { cn } from '@/lib/utils';
+import { usePerformanceTracker } from '@/common/hooks/usePerformanceTracker';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -44,6 +45,7 @@ export default function CommandPalette() {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const { startTiming, endTiming } = usePerformanceTracker();
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
 
@@ -68,12 +70,17 @@ export default function CommandPalette() {
 
   useHotkeys(
     'meta+k',
-    toggleCommandPalette,
+    () => {
+      const timingId = startTiming('command-palette-open');
+      toggleCommandPalette();
+      // Give a small delay to account for render
+      setTimeout(() => endTiming(timingId, 50), 10);
+    },
     {
       enableOnFormTags: true,
       preventDefault: true,
     },
-    [toggleCommandPalette]
+    [toggleCommandPalette, startTiming, endTiming]
   );
 
   const setupHotkeysForCommands = useCallback(
@@ -124,8 +131,8 @@ export default function CommandPalette() {
           {
             delimiter: '-',
             preventDefault: true,
-            enableOnFormTags: commandsForShortcut.some(cmd => cmd.options?.enableOnFormTags),
-            enableOnContentEditable: commandsForShortcut.some(cmd => cmd.options?.enableOnContentEditable),
+            enableOnFormTags: commandsForShortcut.some((cmd) => cmd.options?.enableOnFormTags),
+            enableOnContentEditable: commandsForShortcut.some((cmd) => cmd.options?.enableOnContentEditable),
           },
           [commandsForShortcut, currentPage, router]
         );
@@ -260,15 +267,10 @@ export default function CommandPalette() {
   }, [theme, setTheme, router, allChannels, setSelectedChannelUrl, setSelectedChannelByName]);
 
   const commands = useMemo(() => getCommands(), [getCommands]);
-  
+
   // Memoize hotkey setup to prevent excessive re-registration
-  const memoizedCommands = useMemo(() => commands, [
-    commands.length,
-    theme,
-    router.pathname,
-    allChannels.length,
-  ]);
-  
+  const memoizedCommands = useMemo(() => commands, [commands.length, theme, router.pathname, allChannels.length]);
+
   setupHotkeysForCommands(memoizedCommands);
 
   const onClick = useCallback(
@@ -314,6 +316,8 @@ export default function CommandPalette() {
   });
 
   const getFilteredCommands = useCallback(() => {
+    const timingId = startTiming('command-search-filter');
+    
     let result = commands.filter((command: CommandType) => {
       const namesToScore = [command.name, ...(command.aliases || [])];
       const scores = namesToScore.map((alias: string) => {
@@ -321,6 +325,8 @@ export default function CommandPalette() {
       });
       return Math.max(...scores) > MIN_SCORE_THRESHOLD;
     });
+    
+    endTiming(timingId, 20);
 
     if (isWarpcastUrl(debouncedQuery)) {
       result = [getWarpcastCommandForUrl(debouncedQuery), ...result];
