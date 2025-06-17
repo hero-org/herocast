@@ -9,9 +9,12 @@ export const PerfPanel: React.FC = () => {
   const runTestMeasurement = () => {
     const timingId = startTiming('test-measurement');
     // Simulate some work
-    setTimeout(() => {
-      endTiming(timingId, 50); // Threshold: 50ms
-    }, Math.random() * 100 + 10);
+    setTimeout(
+      () => {
+        endTiming(timingId, 50); // Threshold: 50ms
+      },
+      Math.random() * 100 + 10
+    );
   };
 
   // Only show in development

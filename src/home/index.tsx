@@ -544,9 +544,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               <div
                 className={
                   sidebarType === RIGHT_SIDEBAR_ENUM.NONE
-                    ? 'lg:col-span-2 w-full overflow-x-auto'
-                    : 'w-full overflow-x-auto border-r border-muted lg:border-r-0'
+                    ? 'lg:col-span-2 w-full h-screen overflow-y-auto no-scrollbar'
+                    : 'w-full h-screen overflow-y-auto no-scrollbar border-r border-muted lg:border-r-0'
                 }
+                style={{ scrollBehavior: 'auto', contain: 'layout style' }}
               >
                 {/* Sticky header */}
                 {!hideTitlebar && (title || headerActions) && (

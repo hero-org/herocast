@@ -20,7 +20,7 @@ const useInitializeStores = () => {
         try {
           setStatus(InitStatus.pending);
           prevUserIdRef.current = user.id;
-          
+
           // Use progressive hydration for better performance
           await initializeStoresProgressive();
           setStatus(InitStatus.initialized);

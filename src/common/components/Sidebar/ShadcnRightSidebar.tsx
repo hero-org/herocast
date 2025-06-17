@@ -69,52 +69,60 @@ const ShadcnRightSidebar = ({
     </SidebarGroup>
   );
 
-  const renderAuthorInfo = () => {
-    if (!showAuthorInfo || !selectedCast) return null;
+  // Fixed header: Always show user info to prevent content jumping
+  const renderUserHeader = () => {
+    if (!showAuthorInfo || !hasAccounts) return null;
 
-    if (
-      !selectedAccount?.platformAccountId ||
-      selectedAccount?.platformAccountId === selectedCast.author.fid.toString()
-    ) {
-      return null;
-    }
+    // Show cast author if different from current user, otherwise show current user
+    const shouldShowAuthor = selectedCast && 
+      selectedAccount?.platformAccountId && 
+      selectedAccount?.platformAccountId !== selectedCast.author.fid.toString();
+
+    const fid = shouldShowAuthor ? selectedCast.author.fid : Number(selectedAccount?.platformAccountId);
+    const viewerFid = Number(selectedAccount?.platformAccountId);
+
+    if (!fid || !viewerFid) return null;
 
     return (
       <>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <ProfileInfo
-              fid={selectedCast.author.fid}
-              viewerFid={Number(selectedAccount.platformAccountId)}
-              showFullInfo
-            />
+        <SidebarGroup className="bg-sidebar/30 border-b border-sidebar-border">
+          <SidebarGroupContent className="px-4 py-3">
+            <div className="min-h-[120px] flex flex-col justify-center">
+              <ProfileInfo
+                fid={fid}
+                viewerFid={viewerFid}
+                showFullInfo
+              />
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarSeparator className="mx-0" />
       </>
     );
   };
 
   return (
-    <Sidebar side="right" collapsible="offcanvas" className="border-l border-sidebar-border hidden lg:flex">
-      <SidebarContent>
-        {isHydrated && renderAuthorInfo()}
+    <Sidebar side="right" collapsible="offcanvas" className="border-l border-sidebar-border hidden lg:flex bg-sidebar/50">
+      <SidebarContent className="flex flex-col h-full">
+        {/* Fixed header - always rendered to prevent content jumping */}
+        {isHydrated && renderUserHeader()}
+        
+        {/* Empty state for no accounts */}
         {isHydrated && !hasAccounts && renderEmptyState()}
 
-        {showLists && (
-          <SidebarGroup className="py-0">
-            <SidebarGroupContent>
-              <ListsOverview onItemClick={handleItemClick} />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto">
+          {showLists && (
+            <SidebarGroup className="px-0 py-3">
+              <SidebarGroupContent>
+                <ListsOverview onItemClick={handleItemClick} />
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
 
-        {showManageLists && (
-          <>
-            <SidebarSeparator className="mx-0" />
-            <SidebarGroup className="py-0">
+          {showManageLists && (
+            <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
               <Collapsible open={isManageListsOpen} onOpenChange={setIsManageListsOpen}>
-                <div className="px-2 py-1">
+                <div className="px-4 py-3 bg-sidebar/20">
                   <SidebarCollapsibleHeader
                     title="Manage Lists"
                     isOpen={isManageListsOpen}
@@ -122,21 +130,18 @@ const ShadcnRightSidebar = ({
                   />
                 </div>
                 <CollapsibleContent>
-                  <SidebarGroupContent>
+                  <SidebarGroupContent className="px-2">
                     <ManageListsOverview onItemClick={handleItemClick} />
                   </SidebarGroupContent>
                 </CollapsibleContent>
               </Collapsible>
             </SidebarGroup>
-          </>
-        )}
+          )}
 
-        {showSearches && (
-          <>
-            <SidebarSeparator className="mx-0" />
-            <SidebarGroup className="py-0">
+          {showSearches && (
+            <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
               <Collapsible open={isSearchesOpen} onOpenChange={setIsSearchesOpen}>
-                <div className="px-2 py-1">
+                <div className="px-4 py-3 bg-sidebar/20 hover:bg-sidebar/30 transition-colors">
                   <SidebarCollapsibleHeader
                     title="Searches"
                     isOpen={isSearchesOpen}
@@ -144,21 +149,18 @@ const ShadcnRightSidebar = ({
                   />
                 </div>
                 <CollapsibleContent>
-                  <SidebarGroupContent>
+                  <SidebarGroupContent className="px-2 pb-2">
                     <SearchesOverview onItemClick={handleItemClick} />
                   </SidebarGroupContent>
                 </CollapsibleContent>
               </Collapsible>
             </SidebarGroup>
-          </>
-        )}
+          )}
 
-        {showFeeds && (
-          <>
-            <SidebarSeparator className="mx-0" />
-            <SidebarGroup className="py-0">
+          {showFeeds && (
+            <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
               <Collapsible open={isChannelsOpen} onOpenChange={setIsChannelsOpen}>
-                <div className="px-2 py-1">
+                <div className="px-4 py-3 bg-sidebar/20 hover:bg-sidebar/30 transition-colors">
                   <SidebarCollapsibleHeader
                     title="Channels"
                     isOpen={isChannelsOpen}
@@ -166,14 +168,14 @@ const ShadcnRightSidebar = ({
                   />
                 </div>
                 <CollapsibleContent>
-                  <SidebarGroupContent>
+                  <SidebarGroupContent className="px-2 pb-2">
                     <ChannelsOverview onItemClick={handleItemClick} />
                   </SidebarGroupContent>
                 </CollapsibleContent>
               </Collapsible>
             </SidebarGroup>
-          </>
-        )}
+          )}
+        </div>
       </SidebarContent>
     </Sidebar>
   );

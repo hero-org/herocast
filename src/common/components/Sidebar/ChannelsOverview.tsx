@@ -32,19 +32,25 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
   };
 
   const renderCustomChannel = ({ name, url, icon }: { name: string; url: string; icon?: React.ReactNode }) => {
+    const isSelected = selectedChannelUrl === url;
     return (
-      <li key={`custom-channel-${name}`} className="px-2 lg:pr-4">
+      <li key={`custom-channel-${name}`} className="px-2 mx-2">
         <div
           onClick={() => onUpdateChannel(url)}
           className={cn(
-            selectedChannelUrl === url ? 'text-foreground font-semibold' : 'text-foreground/70 hover:text-foreground',
-            'flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
+            'flex items-center gap-x-3 rounded-lg px-4 py-2.5 text-sm font-medium cursor-pointer',
+            isSelected 
+              ? 'bg-primary text-primary-foreground shadow-sm' 
+              : 'text-foreground/70 hover:text-foreground hover:bg-sidebar/40'
           )}
         >
-          <span className="flex flex-nowrap truncate">
+          <span className="flex items-center gap-x-2 flex-nowrap truncate">
             {icon}
-            {name}
+            <span className="font-medium">{name}</span>
           </span>
+          {isSelected && (
+            <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />
+          )}
         </div>
       </li>
     );
@@ -52,56 +58,64 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
 
   const renderFeedHeader = (title: string | JSX.Element, button?) => {
     return (
-      <div className="flex items-center px-2 py-1 sm:px-2">
-        <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary">{title}</h3>
+      <div className="flex items-center justify-between px-4 py-2">
+        <h3 className="text-sm font-semibold leading-6 text-foreground/90 flex items-center gap-x-2">{title}</h3>
         {button}
       </div>
     );
   };
 
-  const renderChannel = (channel: ChannelType) => (
-    <div
-      onClick={() => onUpdateChannel(channel.url)}
-      className={cn(
-        selectedChannelUrl === channel.url
-          ? 'text-foreground font-semibold'
-          : 'text-foreground/70 hover:text-foreground',
-        'flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
-      )}
-    >
-      <div className="flex max-w-sm">
-        {channel.icon_url && (
-          <img
-            src={channel.icon_url}
-            alt=""
-            className={cn(
-              selectedChannelUrl === channel.url ? 'border-gray-100' : 'border-gray-400 hover:border-gray-300',
-              'mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full'
-            )}
-          />
+  const renderChannel = (channel: ChannelType) => {
+    const isSelected = selectedChannelUrl === channel.url;
+    return (
+      <div
+        onClick={() => onUpdateChannel(channel.url)}
+        className={cn(
+          'flex items-center gap-x-3 rounded-lg mx-2 px-4 py-2.5 text-sm cursor-pointer',
+          isSelected
+            ? 'bg-primary text-primary-foreground shadow-sm font-medium'
+            : 'text-foreground/70 hover:text-foreground hover:bg-sidebar/40'
         )}
-        <span className="flex-nowrap truncate">{channel.name}</span>
+      >
+        <div className="flex items-center gap-x-2 max-w-sm flex-1">
+          {channel.icon_url && (
+            <img
+              src={channel.icon_url}
+              alt=""
+              className={cn(
+                'h-5 w-5 flex-none rounded-full border transition-colors',
+                isSelected 
+                  ? 'border-primary-foreground/30 bg-primary-foreground/10' 
+                  : 'border-sidebar-border bg-sidebar/20'
+              )}
+            />
+          )}
+          <span className="flex-nowrap truncate font-medium">{channel.name}</span>
+        </div>
+        {isSelected && (
+          <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />
+        )}
+      </div>
+    );
+  };
+
+  const renderChannelList = () => (
+    <div className="flex flex-col space-y-1">
+      <div className="py-2">
+        <CollapsibleList
+          items={channels}
+          renderItem={(channel: ChannelType) => <div key={channel.name}>{renderChannel(channel)}</div>}
+          isShowAll={isShowAllChannels}
+          setIsShowAll={setIsShowAllChannels}
+        />
       </div>
     </div>
   );
 
-  const renderChannelList = () => (
-    <div className="flex flex-col">
-      <ul role="list" className="px-4 py-1 sm:px-4">
-        <CollapsibleList
-          items={channels}
-          renderItem={(channel: ChannelType) => <li key={channel.name}>{renderChannel(channel)}</li>}
-          isShowAll={isShowAllChannels}
-          setIsShowAll={setIsShowAllChannels}
-        />
-      </ul>
-    </div>
-  );
-
   const renderAddFirstChannelsButton = () => (
-    <Link href="/channels" className="px-4 py-3 sm:px-4 sm:py-3">
-      <Button size="sm" className="mt-2">
-        Pin your channels
+    <Link href="/channels" className="px-4 py-3">
+      <Button size="sm" variant="outline" className="w-full border-dashed">
+        Pin your first channel
       </Button>
     </Link>
   );
@@ -109,36 +123,45 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
   const hasChannels = channels.length > 0;
 
   return (
-    <div className="mb-4">
-      <ul role="list" className="mb-4">
-        {renderCustomChannel({
-          name: 'Follow Feed',
-          url: CUSTOM_CHANNELS.FOLLOWING,
-          icon: (
-            <HomeIcon className="border-gray-400 hover:border-gray-300 mr-1 mt-0.5 bg-foreground/10 border h-5 w-5 p-0.5 flex-none rounded-full" />
-          ),
-        })}
-        {renderCustomChannel({
-          name: 'Trending Feed',
-          url: CUSTOM_CHANNELS.TRENDING,
-          icon: (
-            <ArrowTrendingUpIcon className="border-gray-400 hover:border-gray-300 mr-1 mt-0.5 bg-foreground/10 border h-5 w-5 p-0.5 flex-none rounded-full" />
-          ),
-        })}
-      </ul>
-      <Separator className="my-2" />
-      {renderFeedHeader(
-        <span className="flex">
-          <RectangleGroupIcon className="mt-1 mr-1 h-5 w-5" aria-hidden="true" />
-          Channels
-        </span>
-      )}
-      <Link href="/channels">
-        <Button variant="outline" className="h-6 px-2">
-          Pin<span className="hidden ml-1 lg:block">channels</span>
-        </Button>
-      </Link>
-      {hasChannels ? renderChannelList() : renderAddFirstChannelsButton()}
+    <div className="space-y-3">
+      {/* Default Feeds */}
+      <div className="space-y-1">
+        <ul role="list" className="space-y-1">
+          {renderCustomChannel({
+            name: 'Follow Feed',
+            url: CUSTOM_CHANNELS.FOLLOWING,
+            icon: (
+              <HomeIcon className="h-4 w-4 flex-none" />
+            ),
+          })}
+          {renderCustomChannel({
+            name: 'Trending Feed',
+            url: CUSTOM_CHANNELS.TRENDING,
+            icon: (
+              <ArrowTrendingUpIcon className="h-4 w-4 flex-none" />
+            ),
+          })}
+        </ul>
+      </div>
+
+      {/* Channels Section */}
+      <div className="pt-2">
+        <div className="border-t border-sidebar-border/30" />
+        <div className="pt-3">
+          {renderFeedHeader(
+            <span className="flex items-center gap-x-2">
+              <RectangleGroupIcon className="h-4 w-4" aria-hidden="true" />
+              <span>Channels</span>
+            </span>, 
+            <Link href="/channels">
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs hover:bg-sidebar/40">
+                Pin
+              </Button>
+            </Link>
+          )}
+          {hasChannels ? renderChannelList() : renderAddFirstChannelsButton()}
+        </div>
+      </div>
     </div>
   );
 };

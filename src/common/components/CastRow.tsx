@@ -210,12 +210,7 @@ const CastRowComponent = ({
   onCastClick,
   onEmbedClick,
 }: CastRowProps) => {
-  const {
-    accounts,
-    selectedAccountIdx,
-    setSelectedChannelByName,
-    setSelectedChannelUrl,
-  } = useAccountStore();
+  const { accounts, selectedAccountIdx, setSelectedChannelByName, setSelectedChannelUrl } = useAccountStore();
 
   const { setCastModalDraftId, setCastModalView, openNewCastModal } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
@@ -319,9 +314,9 @@ const CastRowComponent = ({
   // Use on-demand channel lookup instead of loading all channels
   const parentUrl = 'parent_url' in cast ? cast.parent_url : null;
   const { channel: parentChannel } = useChannelLookup(parentUrl);
-  
+
   const getChannelForParentUrl = useCallback(
-    (url: string | null): ChannelType | undefined => url === parentUrl ? parentChannel : undefined,
+    (url: string | null): ChannelType | undefined => (url === parentUrl ? parentChannel : undefined),
     [parentUrl, parentChannel]
   );
 

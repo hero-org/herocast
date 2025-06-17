@@ -115,7 +115,7 @@ export default function CommandPalette() {
   // Get theme and store data
   const { theme, setTheme } = useTheme();
   const { accounts, selectedAccountIdx } = useAccountStore();
-  
+
   // Use only user's pinned channels instead of all channels for better performance
   const userChannels = accounts[selectedAccountIdx]?.channels || [];
 

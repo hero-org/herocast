@@ -36,21 +36,23 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-row justify-between">
-        <div className="flex space-x-2">
-          <Avatar className="sm:h-8 sm:w-8 md:h-10 md:w-10">
+    <div className="space-y-3">
+      <div className="flex flex-row justify-between items-start">
+        <div className="flex space-x-3">
+          <Avatar className="h-10 w-10 ring-2 ring-sidebar-border/20">
             <AvatarImage src={profile.pfp_url} />
-            <AvatarFallback>{profile.username?.slice(0, 2)}</AvatarFallback>
+            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+              {profile.username?.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
-          <div>
-            <h2 className="text-md font-semibold break-all overflow-x-hidden line-clamp-1 text-xs sm:text-sm">
+          <div className="flex-1 min-w-0">
+            <h2 className="font-semibold text-foreground break-all overflow-x-hidden line-clamp-1 text-sm">
               {profile.display_name}
             </h2>
-            <h3 className="flex text-xs sm:text-sm font-regular">
+            <h3 className="flex items-center text-sm text-foreground/70 font-medium">
               @{profile.username}
               {profile?.power_badge && (
-                <img src="/images/ActiveBadge.webp" className="ml-1 mt-0.5 h-[14px] w-[14px]" alt="Power badge" />
+                <img src="/images/ActiveBadge.webp" className="ml-1 h-[14px] w-[14px]" alt="Power badge" />
               )}
             </h3>
           </div>
@@ -58,9 +60,9 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
         {wideFormat && renderFollowButton()}
       </div>
       {!wideFormat && renderFollowButton()}
-      <div className="flex flex-col text-sm">
+      <div className="space-y-2 text-sm">
         {!hideBio && profile.profile?.bio?.text && (
-          <p className={`flex pt-2 text-sm break-words ${isHoverCard ? '' : 'pr-4 overflow-x-hidden'}`}>
+          <div className={`text-sm break-words text-foreground/80 leading-relaxed ${isHoverCard ? '' : 'pr-2 overflow-x-hidden'}`}>
             <Linkify
               as="p"
               options={{
@@ -73,7 +75,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
                   url: ({ attributes, content }) => {
                     const { href, ...props } = attributes;
                     return (
-                      <Link href={href} className="underline" prefetch={false} {...props}>
+                      <Link href={href} className="text-primary underline hover:no-underline transition-all" prefetch={false} {...props}>
                         {content}
                       </Link>
                     );
@@ -83,16 +85,16 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
             >
               {profile.profile?.bio?.text}
             </Linkify>
-          </p>
+          </div>
         )}
-        <div className="flex flex-col pt-2 sm:flex-row sm:space-x-2 lg:flex-col lg:space-x-0 text-xs sm:text-sm">
-          <p>
+        <div className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-4 lg:flex-col lg:space-x-0 lg:space-y-1 text-sm">
+          <p className="text-foreground/70">
             <span className="font-semibold text-foreground">
               {formatLargeNumber(profile.follower_count || 0)}&nbsp;
             </span>
             followers
           </p>
-          <p>
+          <p className="text-foreground/70">
             <span className="font-semibold text-foreground">
               {formatLargeNumber(profile.following_count || 0)}&nbsp;
             </span>
@@ -100,7 +102,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
           </p>
         </div>
         {!isHoverCard && profile.fid && (
-          <p>
+          <p className="text-foreground/70 text-xs">
             <span className="font-semibold text-foreground">{profile.fid}&nbsp;</span>
             fid
           </p>

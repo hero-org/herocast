@@ -28,14 +28,14 @@ export const initializeStoresProgressive = async () => {
     useAccountStore.getState().hydrateMinimal(),
     useDraftStore.getState().hydrate(), // Drafts are quick to load
   ]);
-  
+
   const phase1Duration = endTiming(phase1TimingId, 1000); // Target: <1s for critical path
   console.log('Phase 1 complete - UI can be interactive! ✨');
 
   // Phase 2: Background enhancement - full feature loading
   console.log('Phase 2: Loading complete data in background 🌊');
   const phase2TimingId = startTiming('store-init-phase2');
-  
+
   Promise.all([
     useAccountStore.getState().hydrateComplete(),
     useListStore.getState().hydrate(),
@@ -44,7 +44,7 @@ export const initializeStoresProgressive = async () => {
     .then(() => {
       const phase2Duration = endTiming(phase2TimingId, 3000); // Target: <3s for full load
       const totalDuration = endTiming(totalTimingId, 4000); // Target: <4s total
-      
+
       console.log('🎉 Phase 2 complete - Full functionality available!');
       console.log(
         `⚡ Performance: Phase 1: ${phase1Duration?.toFixed(1)}ms, Phase 2: ${phase2Duration?.toFixed(1)}ms, Total: ${totalDuration?.toFixed(1)}ms`

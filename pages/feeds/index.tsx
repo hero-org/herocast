@@ -139,7 +139,11 @@ export default function Feeds() {
   }, []);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Scroll the main content container instead of window
+    const mainContainer = document.querySelector('.overflow-y-auto.no-scrollbar');
+    if (mainContainer) {
+      mainContainer.scrollTop = 0;
+    }
   }, [feedKey]);
 
   useEffect(() => {
@@ -161,10 +165,14 @@ export default function Feeds() {
   useEffect(() => {
     if (showCastThreadView) return;
 
-    if (selectedCastIdx === 0) {
-      window.scrollTo(0, 0);
-    } else if (selectedCastIdx === casts.length - 1) {
-      window.scrollTo(0, document.body.scrollHeight);
+    // Scroll the main content container instead of window
+    const mainContainer = document.querySelector('.overflow-y-auto.no-scrollbar');
+    if (mainContainer) {
+      if (selectedCastIdx === 0) {
+        mainContainer.scrollTop = 0;
+      } else if (selectedCastIdx === casts.length - 1) {
+        mainContainer.scrollTop = mainContainer.scrollHeight;
+      }
     }
   }, [selectedCastIdx, showCastThreadView, casts.length]);
 

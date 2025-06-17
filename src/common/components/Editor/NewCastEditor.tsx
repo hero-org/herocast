@@ -100,7 +100,7 @@ export default function NewPostEntry({
         }).length
     ) > 1;
   const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
-  
+
   // Use pinned channels instead of all channels for better performance
   const userChannels = accounts[selectedAccountIdx]?.channels || [];
   const isReply = draft?.parentCastId !== undefined;
