@@ -80,6 +80,9 @@ export default function CommandPalette() {
     (commands: CommandType[]) => {
       const currentPage = router.pathname.split('/')[1];
 
+      // Group commands by shortcut to avoid duplicate registrations
+      const shortcutToCommands = new Map<string, CommandType[]>();
+
       commands.forEach((command) => {
         if (!command.shortcut && !command.shortcuts) {
           return;
@@ -89,25 +92,42 @@ export default function CommandPalette() {
           .map((s) => s?.replace('cmd', 'meta'))
           .filter((s): s is string => s !== undefined);
 
-        useHotkeys(
-          shortcuts,
-          () => {
-            if (command.page && currentPage !== command.page) {
-              return;
-            }
+        shortcuts.forEach((shortcut) => {
+          if (!shortcutToCommands.has(shortcut)) {
+            shortcutToCommands.set(shortcut, []);
+          }
+          shortcutToCommands.get(shortcut)!.push(command);
+        });
+      });
 
-            if (command.navigateTo) {
-              router.push(command.navigateTo);
-            }
-            command.action();
+      // Register each unique shortcut only once
+      shortcutToCommands.forEach((commandsForShortcut, shortcut) => {
+        useHotkeys(
+          shortcut,
+          () => {
+            // Execute all commands for this shortcut (usually just one)
+            commandsForShortcut.forEach((command) => {
+              if (command.page && currentPage !== command.page) {
+                return;
+              }
+
+              if (!command.enabled || (typeof command.enabled === 'function' && !command.enabled())) {
+                return;
+              }
+
+              if (command.navigateTo) {
+                router.push(command.navigateTo);
+              }
+              command.action();
+            });
           },
           {
-            ...(command.options || {}),
             delimiter: '-',
-            enabled: command.enabled,
             preventDefault: true,
+            enableOnFormTags: commandsForShortcut.some(cmd => cmd.options?.enableOnFormTags),
+            enableOnContentEditable: commandsForShortcut.some(cmd => cmd.options?.enableOnContentEditable),
           },
-          [command.action, command.navigateTo, currentPage, router]
+          [commandsForShortcut, currentPage, router]
         );
       });
     },
@@ -240,7 +260,16 @@ export default function CommandPalette() {
   }, [theme, setTheme, router, allChannels, setSelectedChannelUrl, setSelectedChannelByName]);
 
   const commands = useMemo(() => getCommands(), [getCommands]);
-  setupHotkeysForCommands(commands);
+  
+  // Memoize hotkey setup to prevent excessive re-registration
+  const memoizedCommands = useMemo(() => commands, [
+    commands.length,
+    theme,
+    router.pathname,
+    allChannels.length,
+  ]);
+  
+  setupHotkeysForCommands(memoizedCommands);
 
   const onClick = useCallback(
     (command: CommandType) => {
