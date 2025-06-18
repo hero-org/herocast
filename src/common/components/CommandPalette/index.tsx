@@ -110,54 +110,6 @@ export default function CommandPalette() {
 
   const { setSelectedChannelUrl, setSelectedChannelByName } = useAccountStore();
 
-  useHotkeys(
-    'meta+k',
-    toggleCommandPalette,
-    {
-      enableOnFormTags: true,
-      preventDefault: true,
-    },
-    [toggleCommandPalette]
-  );
-
-  const setupHotkeysForCommands = useCallback(
-    (commands: CommandType[]) => {
-      const currentPage = router.pathname.split('/')[1];
-
-      commands.forEach((command) => {
-        if (!command.shortcut && !command.shortcuts) {
-          return;
-        }
-
-        const shortcuts = (command.shortcuts || [command.shortcut])
-          .map((s) => s?.replace('cmd', 'meta'))
-          .filter((s): s is string => s !== undefined);
-
-        useHotkeys(
-          shortcuts,
-          () => {
-            if (command.page && currentPage !== command.page) {
-              return;
-            }
-
-            if (command.navigateTo) {
-              router.push(command.navigateTo);
-            }
-            command.action();
-          },
-          {
-            ...(command.options || {}),
-            delimiter: '-',
-            enabled: command.enabled,
-            preventDefault: true,
-          },
-          [command.action, command.navigateTo, currentPage, router]
-        );
-      });
-    },
-    [router]
-  );
-
   useEffect(() => {
     if (!isCommandPaletteOpen) {
       setQuery('');
@@ -255,13 +207,6 @@ export default function CommandPalette() {
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
-      const { addNewPostDraft } = useDraftStore.getState();
-      addNewPostDraft({
-        ...draft,
-        parentCastId: {
-          fid: selectedCast.author.fid,
-          hash: selectedCast.hash as any, // TODO: Fix type mismatch between string and Uint8Array
-        },
     };
   }, [query]);
 
@@ -355,39 +300,6 @@ export default function CommandPalette() {
     }
   }, [isCommandPaletteOpen]);
 
-    const payCasterRequestAction = () => {
-      addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft);
-    };
-
-    const postNewBountyAction = () => {
-      const { addNewPostDraft } = useDraftStore.getState();
-      addNewPostDraft(BountyCasterBotDraft);
-    };
-
-    const remindMeAction = () => {
-      addNewPostDraftWithSelectedCast(RemindMeBotDraft);
-    };
-
-    const farcasterBotCommands: CommandType[] = [
-      createFarcasterBotCommand(
-        'Feedback (send cast to @hellno)',
-        () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
-        '/post'
-      ),
-      createFarcasterBotCommand('Launch this cast on Launchcaster', launchCastAction),
-      createFarcasterBotCommand('Post new bounty', postNewBountyAction, '/post'),
-      createFarcasterBotCommand('Remind me about this', remindMeAction),
-      createFarcasterBotCommand('Pay user via paybot', payCasterPayAction),
-      createFarcasterBotCommand('Request payment via paybot', payCasterRequestAction),
-    ];
-
-    commands = commands.concat(farcasterBotCommands);
-    commands = commands.concat(nonHotkeyCommands);
-    return commands;
-  }, [theme, setTheme, router, setSelectedChannelUrl, setSelectedChannelByName]);
-
-  const commands = useMemo(() => getCommands(), [getCommands]);
-  setupHotkeysForCommands(commands);
   // Setup hotkeys for all commands with optimized memoization
   setupHotkeysForCommands(allCommands);
 

@@ -118,63 +118,62 @@ const ShadcnRightSidebar = ({
           </SidebarGroup>
         )}
 
-          {showManageLists && (
-            <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
-              <Collapsible open={isManageListsOpen} onOpenChange={setIsManageListsOpen}>
-                <div className="px-3 py-1.5">
-                  <SidebarCollapsibleHeader
-                    title="Manage Lists"
-                    isOpen={isManageListsOpen}
-                    onToggle={() => setIsManageListsOpen(!isManageListsOpen)}
-                  />
-                </div>
-                <CollapsibleContent>
-                  <SidebarGroupContent className="px-2">
-                    <ManageListsOverview onItemClick={handleItemClick} />
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </SidebarGroup>
-          )}
+        {showManageLists && (
+          <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
+            <Collapsible open={isManageListsOpen} onOpenChange={setIsManageListsOpen}>
+              <div className="px-3 py-1.5">
+                <SidebarCollapsibleHeader
+                  title="Manage Lists"
+                  isOpen={isManageListsOpen}
+                  onToggle={() => setIsManageListsOpen(!isManageListsOpen)}
+                />
+              </div>
+              <CollapsibleContent>
+                <SidebarGroupContent className="px-2">
+                  <ManageListsOverview onItemClick={handleItemClick} />
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        )}
 
-          {showSearches && (
-            <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
-              <Collapsible open={isSearchesOpen} onOpenChange={setIsSearchesOpen}>
-                <div className="px-3 py-1.5">
-                  <SidebarCollapsibleHeader
-                    title="Searches"
-                    isOpen={isSearchesOpen}
-                    onToggle={() => setIsSearchesOpen(!isSearchesOpen)}
-                  />
-                </div>
-                <CollapsibleContent>
-                  <SidebarGroupContent className="px-2 pb-2">
-                    <SearchesOverview onItemClick={handleItemClick} />
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </SidebarGroup>
-          )}
+        {showSearches && (
+          <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
+            <Collapsible open={isSearchesOpen} onOpenChange={setIsSearchesOpen}>
+              <div className="px-3 py-1.5">
+                <SidebarCollapsibleHeader
+                  title="Searches"
+                  isOpen={isSearchesOpen}
+                  onToggle={() => setIsSearchesOpen(!isSearchesOpen)}
+                />
+              </div>
+              <CollapsibleContent>
+                <SidebarGroupContent className="px-2 pb-2">
+                  <SearchesOverview onItemClick={handleItemClick} />
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        )}
 
-          {showFeeds && (
-            <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
-              <Collapsible open={isChannelsOpen} onOpenChange={setIsChannelsOpen}>
-                <div className="px-3 py-1.5">
-                  <SidebarCollapsibleHeader
-                    title="Channels"
-                    isOpen={isChannelsOpen}
-                    onToggle={() => setIsChannelsOpen(!isChannelsOpen)}
-                  />
-                </div>
-                <CollapsibleContent>
-                  <SidebarGroupContent className="px-2 pb-2">
-                    <ChannelsOverview onItemClick={handleItemClick} />
-                  </SidebarGroupContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </SidebarGroup>
-          )}
-        </div>
+        {showFeeds && (
+          <SidebarGroup className="px-0 py-0 border-t border-sidebar-border/50">
+            <Collapsible open={isChannelsOpen} onOpenChange={setIsChannelsOpen}>
+              <div className="px-3 py-1.5">
+                <SidebarCollapsibleHeader
+                  title="Channels"
+                  isOpen={isChannelsOpen}
+                  onToggle={() => setIsChannelsOpen(!isChannelsOpen)}
+                />
+              </div>
+              <CollapsibleContent>
+                <SidebarGroupContent className="px-2 pb-2">
+                  <ChannelsOverview onItemClick={handleItemClick} />
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
