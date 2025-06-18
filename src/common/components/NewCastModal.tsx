@@ -1,6 +1,13 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, Suspense } from 'react';
 import Modal from '@/common/components/Modal';
-import NewPostEntry from './Editor/NewCastEditor';
+import { Loading } from './Loading';
+import dynamic from 'next/dynamic';
+
+// Dynamic import with loading fallback
+const NewPostEntry = dynamic(() => import('./Editor/NewCastEditor'), {
+  loading: () => <Loading loadingMessage="Loading editor..." />,
+  ssr: false,
+});
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastRow } from './CastRow';
 import { useHotkeys } from 'react-hotkeys-hook';

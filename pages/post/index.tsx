@@ -1,6 +1,13 @@
-import NewPostEntry from '@/common/components/Editor/NewCastEditor';
 import { useDraftStore } from '@/stores/useDraftStore';
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef, Suspense } from 'react';
+import { Loading } from '@/common/components/Loading';
+import dynamic from 'next/dynamic';
+
+// Dynamic import with loading fallback
+const NewPostEntry = dynamic(() => import('@/common/components/Editor/NewCastEditor'), {
+  loading: () => <Loading loadingMessage="Loading editor..." />,
+  ssr: false,
+});
 import { ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
 import DraftListItem from './components/DraftListItem';

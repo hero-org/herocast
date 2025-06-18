@@ -91,21 +91,18 @@
   }
 }
 
-/*  
 @layer base {
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
-} */
-
-@layer base {
-  * {
-    @apply border-border;
+  html {
+    overflow: hidden;
+    height: 100%;
+    scroll-behavior: auto;
   }
   body {
     @apply bg-background text-foreground;
+    overflow: hidden;
+    height: 100%;
   }
 }

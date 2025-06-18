@@ -45,10 +45,50 @@ export const SelectableListWithHotkeys = ({
   // scroll to selected cast when selectedCastIdx changes
   useEffect(() => {
     if (!disableScroll && scrollToRef.current) {
-      scrollToRef.current.scrollIntoView({
-        behavior: 'auto',
-        block: 'start',
-      });
+      // Find the correct scrollable container
+      let container = null;
+
+      // First try to use the container ref if we're in pinned navigation mode
+      if (pinnedNavigation && containerRef.current) {
+        container = containerRef.current;
+      } else {
+        // Look for the main scrollable container with no-scrollbar class
+        container =
+          scrollToRef.current.closest('.overflow-y-auto.no-scrollbar') ||
+          scrollToRef.current.closest('[class*="overflow-y-auto"]') ||
+          document.querySelector('.overflow-y-auto.no-scrollbar');
+      }
+
+      if (container) {
+        // Get the element's position relative to the container
+        const elementRect = scrollToRef.current.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        // Calculate the scroll position needed to show the element
+        const elementTop = elementRect.top - containerRect.top;
+        const elementBottom = elementRect.bottom - containerRect.top;
+        const containerHeight = container.clientHeight;
+
+        // Check if element is outside the visible area
+        if (elementTop < 64) {
+          // Account for sticky header
+          // Scroll up to show the element
+          container.scrollTop += elementTop - 64;
+        } else if (elementBottom > containerHeight) {
+          // Scroll down to show the element
+          container.scrollTop += elementBottom - containerHeight + 20; // Add small margin
+        }
+      } else {
+        // Fallback to scrollIntoView but prevent document scrolling
+        try {
+          scrollToRef.current.scrollIntoView({
+            behavior: 'auto',
+            block: 'start',
+          });
+        } catch (e) {
+          // Ignore scrollIntoView errors if element is not in DOM
+        }
+      }
     }
   }, [selectedIdx, pinnedNavigation]);
 

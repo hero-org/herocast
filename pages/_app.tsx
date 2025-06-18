@@ -1,7 +1,7 @@
 import '../src/globals.css';
 import '@rainbow-me/rainbowkit/styles.css';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import type { AppProps } from 'next/app';
 import { ThemeProvider } from '../src/common/hooks/ThemeProvider';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
@@ -12,10 +12,17 @@ import { PostHogProvider } from 'posthog-js/react';
 import { loadPosthogAnalytics } from '../src/lib/analytics';
 import { useRouter } from 'next/router';
 import localFont from 'next/font/local';
-import CommandPalette from '../src/common/components/CommandPalette';
+
+// Dynamic import with safe hydration
+import dynamic from 'next/dynamic';
+
+const CommandPalette = dynamic(() => import('../src/common/components/CommandPalette'), {
+  ssr: false, // Disable SSR for this component to avoid hydration issues
+});
 import Home from '../src/home';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { cn } from '@/lib/utils';
+import { PerfPanel } from '../src/common/components/PerfPanel';
 
 const satoshi = localFont({
   src: [
@@ -81,6 +88,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             <RainbowKitProvider theme={rainbowKitTheme}>
               <AuthProvider>
                 <CommandPalette />
+                <PerfPanel />
                 <Home>
                   <Component {...pageProps} />
                 </Home>

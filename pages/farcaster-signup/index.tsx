@@ -3,7 +3,14 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import StepSequence from '@/common/components/Steps/StepSequence';
 import RegisterFarcasterUsernameForm from '@/common/components/RegisterFarcasterUsernameForm';
-import CreateFarcasterAccount from '@/common/components/CreateFarcasterAccount';
+import { Loading } from '@/common/components/Loading';
+import dynamic from 'next/dynamic';
+
+// Dynamic import with loading fallback
+const CreateFarcasterAccount = dynamic(() => import('@/common/components/CreateFarcasterAccount'), {
+  loading: () => <Loading loadingMessage="Loading account creation..." />,
+  ssr: false,
+});
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/router';
 import SwitchWalletButton from '@/common/components/SwitchWalletButton';

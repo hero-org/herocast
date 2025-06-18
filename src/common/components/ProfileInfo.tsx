@@ -184,21 +184,23 @@ const ProfileInfo = ({
   };
 
   return (
-    <div className={cn('space-y-2 min-h-40 w-full grid gap-4', wideFormat && 'md:grid-cols-2')}>
+    <div className={cn('w-full', wideFormat && 'md:grid md:grid-cols-2 md:gap-4')}>
       <Link
         href={`${process.env.NEXT_PUBLIC_URL}/profile/${profile?.username}`}
         prefetch={false}
-        className="cursor-pointer block"
+        className="cursor-pointer block group"
       >
-        <ProfileInfoContent
-          profile={profile}
-          showFollowButton={showFollowButton}
-          hideBio={hideBio}
-          wideFormat={wideFormat}
-        />
+        <div className="transition-all duration-200 group-hover:bg-sidebar/20 rounded-lg p-2 -m-2">
+          <ProfileInfoContent
+            profile={profile}
+            showFollowButton={showFollowButton}
+            hideBio={hideBio}
+            wideFormat={wideFormat}
+          />
+        </div>
       </Link>
       {shouldRenderFullInfo && (
-        <div className="mt-4 content-end">
+        <div className="mt-3 space-y-3">
           {renderDateJoined()}
           {renderSocialCapitalScore()}
           {renderIcebreakerChannels()}

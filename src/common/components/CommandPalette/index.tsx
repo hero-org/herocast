@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, ComponentType, SVGProps, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, ComponentType, SVGProps, useEffect, useRef } from 'react';
 import { CommandType } from '@/common/constants/commands';
 import { accountCommands, getChannelCommands, useAccountStore } from '@/stores/useAccountStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
@@ -37,12 +37,74 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
 import { cn } from '@/lib/utils';
 import { ChannelSearchCommand } from './ChannelSearchCommand';
+import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
+
+// Cache static commands that don't depend on user state
+// eslint-disable-next-line prefer-const
+let cachedStaticCommands: CommandType[] | null = null;
+let cachedFarcasterBotCommands: CommandType[] | null = null;
+
+const createFarcasterBotCommand = (name: string, action: () => void, navigateTo?: string): CommandType => ({
+  name,
+  action,
+  navigateTo,
+  options: {
+    enableOnFormTags: false,
+  },
+});
+
+const getFarcasterBotCommands = (): CommandType[] => {
+  if (cachedFarcasterBotCommands) return cachedFarcasterBotCommands;
+
+  const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
+    const { selectedCast } = useDataStore.getState();
+    if (!selectedCast) return;
+
+    const { addNewPostDraft } = useDraftStore.getState();
+    addNewPostDraft({
+      ...draft,
+      parentCastId: {
+        fid: selectedCast.author.fid.toString(),
+        hash: selectedCast.hash,
+      },
+    });
+
+    const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
+    setCastModalView(CastModalView.Reply);
+    openNewCastModal();
+  };
+
+  cachedFarcasterBotCommands = [
+    createFarcasterBotCommand(
+      'Feedback (send cast to @hellno)',
+      () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
+      '/post'
+    ),
+    createFarcasterBotCommand('Launch this cast on Launchcaster', () =>
+      addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft)
+    ),
+    createFarcasterBotCommand(
+      'Post new bounty',
+      () => useDraftStore.getState().addNewPostDraft(BountyCasterBotDraft),
+      '/post'
+    ),
+    createFarcasterBotCommand('Remind me about this', () => addNewPostDraftWithSelectedCast(RemindMeBotDraft)),
+    createFarcasterBotCommand('Pay user via paybot', () => addNewPostDraftWithSelectedCast(PayCasterBotPayDraft)),
+    createFarcasterBotCommand('Request payment via paybot', () =>
+      addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft)
+    ),
+  ];
+
+  return cachedFarcasterBotCommands;
+};
 
 export default function CommandPalette() {
   const router = useRouter();
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
 
@@ -101,12 +163,25 @@ export default function CommandPalette() {
       setQuery('');
     }
   }, [isCommandPaletteOpen]);
+  // Cache frequently accessed store data in refs for performance
+  const accountStoreRef = useRef<any>(null);
+  const lastChannelsLengthRef = useRef(0);
+  const lastThemeRef = useRef<string>('');
 
+  // Get theme and store data
   const { theme, setTheme } = useTheme();
-  const themeCommands = useCallback(() => getThemeCommands(theme, setTheme), [theme, setTheme])();
-  const navigationCommands = useCallback(() => getNavigationCommands({ router }), [router])();
-  const getProfileCommands = useCallback(() => {
-    return [
+  const { accounts, selectedAccountIdx } = useAccountStore();
+
+  // Use only user's pinned channels instead of all channels for better performance
+  const userChannels = accounts[selectedAccountIdx]?.channels || [];
+
+  // Memoize expensive command generation with granular dependencies
+  const themeCommands = useMemo(() => getThemeCommands(theme, setTheme), [theme, setTheme]);
+  const navigationCommands = useMemo(() => getNavigationCommands({ router }), [router.pathname]);
+
+  // Cache profile commands since they rarely change
+  const profileCommands = useMemo(
+    () => [
       {
         name: 'Your profile',
         action: () => {
@@ -130,31 +205,55 @@ export default function CommandPalette() {
         },
         icon: ChartBarIcon,
       },
-    ];
-  }, [router]);
+    ],
+    [router]
+  );
 
-  const profileCommands = getProfileCommands();
-  const channelCommands = useCallback(
-    () => getChannelCommands(useAccountStore.getState()),
-    [useAccountStore.getState()]
-  )();
+  // Only regenerate channel commands when user's pinned channels change
+  const channelCommands = useMemo(() => {
+    const currentChannelsLength = userChannels.length;
+    if (lastChannelsLengthRef.current === currentChannelsLength && accountStoreRef.current) {
+      return accountStoreRef.current.channelCommands || [];
+    }
 
-  const getCommands = useCallback((): CommandType[] => {
-    let commands = [
+    const commands = getChannelCommands(useAccountStore.getState());
+    lastChannelsLengthRef.current = currentChannelsLength;
+    if (!accountStoreRef.current) accountStoreRef.current = {};
+    accountStoreRef.current.channelCommands = commands;
+
+    return commands;
+  }, [userChannels.length]);
+
+  // Get cached bot commands
+  const farcasterBotCommands = useMemo(() => getFarcasterBotCommands(), []);
+
+  // Optimized command assembly with minimal recreation
+  const allCommands = useMemo(
+    () => [
       ...channelCommands,
       ...navigationCommands,
       ...newPostCommands,
       ...accountCommands,
       ...themeCommands,
       ...profileCommands,
-    ];
+      ...farcasterBotCommands,
+    ],
+    [channelCommands, navigationCommands, themeCommands, profileCommands, farcasterBotCommands]
+  );
 
-    const nonHotkeyCommands: CommandType[] = [];
+  // Debounce search query for performance
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
 
-    const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
-      const { selectedCast } = useDataStore.getState();
-      if (!selectedCast) {
-        return;
+    debounceTimeoutRef.current = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 150);
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
       }
       const { addNewPostDraft } = useDraftStore.getState();
       addNewPostDraft({
@@ -163,31 +262,98 @@ export default function CommandPalette() {
           fid: selectedCast.author.fid,
           hash: selectedCast.hash as any, // TODO: Fix type mismatch between string and Uint8Array
         },
+    };
+  }, [query]);
+
+  // Track Command Palette opening performance
+  const openTimingRef = useRef<string | null>(null);
+
+  useHotkeys(
+    'meta+k',
+    () => {
+      // Start timing when hotkey is pressed
+      openTimingRef.current = startTiming('command-palette-open');
+      console.log('🔥 Command Palette: Starting timer'); // Debug log
+      toggleCommandPalette();
+    },
+    {
+      enableOnFormTags: true,
+      preventDefault: true,
+    },
+    [toggleCommandPalette]
+  );
+
+  const setupHotkeysForCommands = useCallback(
+    (commands: CommandType[]) => {
+      const currentPage = router.pathname.split('/')[1];
+
+      // Group commands by shortcut to avoid duplicate registrations
+      const shortcutToCommands = new Map<string, CommandType[]>();
+
+      commands.forEach((command) => {
+        if (!command.shortcut && !command.shortcuts) {
+          return;
+        }
+
+        const shortcuts = (command.shortcuts || [command.shortcut])
+          .map((s) => s?.replace('cmd', 'meta'))
+          .filter((s): s is string => s !== undefined);
+
+        shortcuts.forEach((shortcut) => {
+          if (!shortcutToCommands.has(shortcut)) {
+            shortcutToCommands.set(shortcut, []);
+          }
+          shortcutToCommands.get(shortcut)!.push(command);
+        });
       });
 
-      const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
-      setCastModalView(CastModalView.Reply);
-      openNewCastModal();
-    };
+      // Register each unique shortcut only once
+      shortcutToCommands.forEach((commandsForShortcut, shortcut) => {
+        useHotkeys(
+          shortcut,
+          () => {
+            // Execute all commands for this shortcut (usually just one)
+            commandsForShortcut.forEach((command) => {
+              if (command.page && currentPage !== command.page) {
+                return;
+              }
 
-    const createFarcasterBotCommand = (name: string, action: () => void, navigateTo?: string) => {
-      return {
-        name,
-        action,
-        navigateTo,
-        options: {
-          enableOnFormTags: false,
-        },
-      };
-    };
+              if (!command.enabled || (typeof command.enabled === 'function' && !command.enabled())) {
+                return;
+              }
 
-    const launchCastAction = () => {
-      addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft);
-    };
+              if (command.navigateTo) {
+                router.push(command.navigateTo);
+              }
+              command.action();
+            });
+          },
+          {
+            delimiter: '-',
+            preventDefault: true,
+            enableOnFormTags: commandsForShortcut.some((cmd) => cmd.options?.enableOnFormTags),
+            enableOnContentEditable: commandsForShortcut.some((cmd) => cmd.options?.enableOnContentEditable),
+          },
+          [commandsForShortcut, currentPage, router]
+        );
+      });
+    },
+    [router]
+  );
 
-    const payCasterPayAction = () => {
-      addNewPostDraftWithSelectedCast(PayCasterBotPayDraft);
-    };
+  useEffect(() => {
+    if (!isCommandPaletteOpen) {
+      setQuery('');
+      setDebouncedQuery('');
+    } else {
+      // Modal just opened - complete the timing measurement
+      if (openTimingRef.current) {
+        console.log('🔥 Command Palette: Modal opened, ending timer'); // Debug log
+        endTiming(openTimingRef.current, 50); // Target: <50ms
+        openTimingRef.current = null;
+      }
+    }
+  }, [isCommandPaletteOpen]);
 
     const payCasterRequestAction = () => {
       addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft);
@@ -222,17 +388,30 @@ export default function CommandPalette() {
 
   const commands = useMemo(() => getCommands(), [getCommands]);
   setupHotkeysForCommands(commands);
+  // Setup hotkeys for all commands with optimized memoization
+  setupHotkeysForCommands(allCommands);
 
   const onClick = useCallback(
     (command: CommandType) => {
       if (!command) {
         return;
       }
+
+      // Track command execution performance
+      const timingId = startTiming('command-execution');
+      console.log('⚡ Command Execution: Starting timer for:', command.name); // Debug log
+
       if (command.navigateTo) {
         router.push(command.navigateTo);
       }
       command.action();
       closeCommandPallete();
+
+      // End timing after command executes
+      setTimeout(() => {
+        endTiming(timingId, 100); // Target: <100ms
+        console.log('⚡ Command Execution: Completed'); // Debug log
+      }, 0);
     },
     [router, closeCommandPallete]
   );
@@ -265,55 +444,64 @@ export default function CommandPalette() {
     icon: MagnifyingGlassCircleIcon,
   });
 
-  const getFilteredCommands = () => {
-    let result = commands.filter((command: CommandType) => {
+  const getFilteredCommands = useCallback(() => {
+    // Only track search filtering if we have a query
+    let timingId: string | null = null;
+    if (debouncedQuery) {
+      timingId = startTiming('command-search-filter');
+      console.log('🔍 Command Search: Starting filter timer for query:', debouncedQuery); // Debug log
+    }
+
+    let result = allCommands.filter((command: CommandType) => {
       const namesToScore = [command.name, ...(command.aliases || [])];
       const scores = namesToScore.map((alias: string) => {
-        return commandScore(alias, query);
+        return commandScore(alias, debouncedQuery);
       });
       return Math.max(...scores) > MIN_SCORE_THRESHOLD;
     });
 
-    if (isWarpcastUrl(query)) {
-      result = [getWarpcastCommandForUrl(query), ...result];
+    if (timingId) {
+      endTiming(timingId, 20);
+      console.log('🔍 Command Search: Filter completed'); // Debug log
     }
 
-    if (query.startsWith('0x')) {
+    if (isWarpcastUrl(debouncedQuery)) {
+      result = [getWarpcastCommandForUrl(debouncedQuery), ...result];
+    }
+
+    if (debouncedQuery.startsWith('0x')) {
       result = [
         {
-          name: `Go to cast ${query}`,
+          name: `Go to cast ${debouncedQuery}`,
           action: () => {
-            router.push(`/conversation/${query}`);
+            router.push(`/conversation/${debouncedQuery}`);
           },
         },
         ...result,
       ];
     }
 
-    if (query.startsWith('@') || result.length === 0) {
-      const profile = getProfile(useDataStore.getState(), query.slice(1));
+    if (debouncedQuery.startsWith('@') || result.length === 0) {
+      const profile = getProfile(useDataStore.getState(), debouncedQuery.slice(1));
 
       result = [
         {
-          name: `Go to profile ${query}`,
+          name: `Go to profile ${debouncedQuery}`,
           action: () => {
-            router.push(`/profile/${query}`);
+            router.push(`/profile/${debouncedQuery}`);
           },
           iconUrl: profile?.pfp_url,
           icon: UserCircleIcon,
         },
-        getSearchCommand(query),
+        getSearchCommand(debouncedQuery),
         ...result,
       ];
     }
 
     return result;
-  };
+  }, [allCommands, debouncedQuery, router]);
 
-  const filteredCommands = useMemo(
-    () => getFilteredCommands(),
-    [isCommandPaletteOpen, query, commands, router, setSelectedChannelByName]
-  );
+  const filteredCommands = useMemo(() => getFilteredCommands(), [getFilteredCommands]);
 
   const renderIcon = useCallback((command: CommandType, active: boolean) => {
     if (command.iconUrl) {
@@ -359,7 +547,7 @@ export default function CommandPalette() {
 
   const renderDefaultCommands = () => (
     <CommandGroup heading="Suggestions">
-      {[...profileCommands, getSearchCommand(query)].map(renderCommandItem)}
+      {[...profileCommands, getSearchCommand(debouncedQuery)].map(renderCommandItem)}
     </CommandGroup>
   );
 
@@ -380,7 +568,7 @@ export default function CommandPalette() {
         <CommandInput onValueChange={setQuery} autoFocus placeholder="Search Herocast..." />
         <CommandList className="">
           <CommandEmpty className="py-4 text-center text-sm text-muted-foreground">No command found.</CommandEmpty>
-          {query ? renderFilteredCommands() : renderDefaultCommands()}
+          {debouncedQuery ? renderFilteredCommands() : renderDefaultCommands()}
         </CommandList>
       </Command>
     </CommandDialog>
