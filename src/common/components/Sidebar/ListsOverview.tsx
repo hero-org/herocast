@@ -51,8 +51,8 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
     }
 
     return (
-      <div className="flex items-center px-2 py-1 sm:pr-4">
-        <h3 className="mr-2 text-md font-semibold leading-7 tracking-tight text-primary">{title}</h3>
+      <div className="flex items-center justify-between px-3 py-1.5">
+        <h3 className="text-sm font-semibold leading-6 text-foreground/90 flex items-center gap-x-2">{title}</h3>
         {button}
       </div>
     );
@@ -62,57 +62,58 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
     const isSelected = selectedListId === list.id;
 
     return (
-      <li key={`list-${list.id}`}>
+      <div key={`list-${list.id}`} className="px-1">
         <div
           onClick={() => updateSelectedList(list.id)}
           className={cn(
-            isSelected ? 'text-foreground font-semibold' : 'text-foreground/80 hover:text-foreground/80',
-            'flex align-center justify-between gap-x-3 rounded-md p-1 text-sm leading-6 cursor-pointer'
+            'flex items-center gap-x-3 rounded-lg px-3 py-1.5 text-sm cursor-pointer',
+            isSelected
+              ? 'bg-primary text-primary-foreground shadow-sm font-medium'
+              : 'text-foreground/70 hover:text-foreground hover:bg-sidebar/40'
           )}
         >
-          <span className="flex-nowrap truncate">{list.name}</span>
+          <span className="flex-1 truncate font-medium">{list.name}</span>
+          {isSelected && (
+            <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />
+          )}
         </div>
-      </li>
+      </div>
     );
   };
 
   const renderSearchLists = () => (
-    <div className="flex flex-col">
-      <ul role="list" className="px-4 py-1 sm:px-4">
-        <CollapsibleList
-          items={searchLists}
-          renderItem={(item) => <li key={`list-${item.id}`}>{renderList(item)}</li>}
-          isShowAll={isShowAllSearchLists}
-          setIsShowAll={setIsShowAllSearchLists}
-        />
-      </ul>
+    <div className="space-y-0.5 py-1">
+      <CollapsibleList
+        items={searchLists}
+        renderItem={(item) => renderList(item)}
+        isShowAll={isShowAllSearchLists}
+        setIsShowAll={setIsShowAllSearchLists}
+      />
     </div>
   );
 
   const renderFidLists = () => (
-    <div className="flex flex-col">
-      <ul role="list" className="px-4 py-1 sm:px-4">
-        <CollapsibleList
-          items={fidLists}
-          renderItem={(item) => <li key={`list-${item.id}`}>{renderList(item)}</li>}
-          isShowAll={isShowAllFidLists}
-          setIsShowAll={setIsShowAllFidLists}
-        />
-      </ul>
+    <div className="space-y-0.5 py-1">
+      <CollapsibleList
+        items={fidLists}
+        renderItem={(item) => renderList(item)}
+        isShowAll={isShowAllFidLists}
+        setIsShowAll={setIsShowAllFidLists}
+      />
     </div>
   );
 
   const renderAddFirstSearchButton = () => (
-    <Link href="/search" className="px-4 py-3 sm:px-4 sm:py-3">
-      <Button size="sm" className="mt-2">
+    <Link href="/search" className="px-3 py-2">
+      <Button size="sm" variant="outline" className="w-full border-dashed h-8">
         Add keyword search
       </Button>
     </Link>
   );
 
   const renderAddFirstListButton = () => (
-    <Link href="/list" className="px-4 py-3 sm:px-4 sm:py-3">
-      <Button size="sm" className="mt-2">
+    <Link href="/list" className="px-3 py-2">
+      <Button size="sm" variant="outline" className="w-full border-dashed h-8">
         Add user list
       </Button>
     </Link>
@@ -122,39 +123,44 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
   const hasFidLists = fidLists.length > 0;
 
   return (
-    <div>
-      {renderFeedHeader(
-        <span className="flex">
-          <MagnifyingGlassIcon className="mt-1 mr-1 h-5 w-5" aria-hidden="true" />
-          Searches
-        </span>,
-        <Link href="/search" onClick={(e) => e.stopPropagation()}>
-          <Button variant="outline" className="h-6 px-2">
-            Add<span className="hidden ml-1 lg:block">search</span>
-          </Button>
-        </Link>,
-        true,
-        isSearchesOpen,
-        () => setIsSearchesOpen(!isSearchesOpen)
-      )}
-      {isSearchesOpen && (hasSearchLists ? renderSearchLists() : renderAddFirstSearchButton())}
-
-      <div className="mt-6">
+    <div className="space-y-3">
+      <div>
         {renderFeedHeader(
-          <span className="flex">
-            <UserGroupIcon className="mt-1 mr-1 h-5 w-5" aria-hidden="true" />
-            Lists
+          <span className="flex items-center gap-x-2">
+            <MagnifyingGlassIcon className="h-4 w-4" aria-hidden="true" />
+            <span>Searches</span>
           </span>,
-          <Link href="/list" onClick={(e) => e.stopPropagation()}>
-            <Button variant="outline" className="h-6 px-2">
-              Add<span className="hidden ml-1 lg:block">list</span>
+          <Link href="/search" onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-sidebar/40">
+              Add
             </Button>
           </Link>,
           true,
-          isListsOpen,
-          () => setIsListsOpen(!isListsOpen)
+          isSearchesOpen,
+          () => setIsSearchesOpen(!isSearchesOpen)
         )}
-        {isListsOpen && (hasFidLists ? renderFidLists() : renderAddFirstListButton())}
+        {isSearchesOpen && (hasSearchLists ? renderSearchLists() : renderAddFirstSearchButton())}
+      </div>
+
+      <div className="pt-1">
+        <div className="border-t border-sidebar-border/30" />
+        <div className="pt-2">
+          {renderFeedHeader(
+            <span className="flex items-center gap-x-2">
+              <UserGroupIcon className="h-4 w-4" aria-hidden="true" />
+              <span>Lists</span>
+            </span>,
+            <Link href="/list" onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-sidebar/40">
+                Add
+              </Button>
+            </Link>,
+            true,
+            isListsOpen,
+            () => setIsListsOpen(!isListsOpen)
+          )}
+          {isListsOpen && (hasFidLists ? renderFidLists() : renderAddFirstListButton())}
+        </div>
       </div>
     </div>
   );

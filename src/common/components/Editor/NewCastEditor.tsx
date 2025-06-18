@@ -1,6 +1,7 @@
 import React, { RefObject, useEffect } from 'react';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { useAccountStore } from '@/stores/useAccountStore';
+import { useChannelLookup } from '@/common/hooks/useChannelLookup';
 import { DraftStatus, DraftType } from '../../constants/farcaster';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useEditor, EditorContent } from '@mod-protocol/react-editor';
@@ -99,7 +100,13 @@ export default function NewPostEntry({
           return account.status === 'active';
         }).length
     ) > 1;
-  const { isHydrated, allChannels } = useAccountStore();
+  const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
+  
+  // Use on-demand channel lookup for draft's parent URL
+  const { channel: draftChannel } = useChannelLookup(draft?.parentUrl);
+  
+  // Use pinned channels instead of all channels for better performance
+  const userChannels = accounts[selectedAccountIdx]?.channels || [];
   const isReply = draft?.parentCastId !== undefined;
 
   useEffect(() => {
@@ -131,7 +138,7 @@ export default function NewPostEntry({
 
     if (!draft?.text && !draft?.embeds?.length) return false;
 
-    if (!validateScheduledDateTime(scheduleDateTime)) {
+    if (scheduleDateTime && !validateScheduledDateTime(scheduleDateTime)) {
       return false;
     }
 
@@ -261,34 +268,56 @@ export default function NewPostEntry({
 
     const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
     updatePostDraft(draftIdx, {
-      ...draft,
+      id: draft.id,
+      status: draft.status,
+      createdAt: draft.createdAt,
+      accountId: draft.accountId,
       text,
       embeds: newEmbeds,
       parentUrl: channel?.parent_url || undefined,
+      parentCastId: draft.parentCastId,
+      mentionsToFids: draft.mentionsToFids,
+      timestamp: draft.timestamp,
+      hash: draft.hash,
     });
   }, [text, embeds, initialEmbeds, channel, isPublishing, editor]);
 
   useEffect(() => {
-    if (!draft) return;
-    if (draft?.parentUrl) {
-      const rawChannel = allChannels.find((c) => c.url === draft.parentUrl);
-      if (rawChannel) {
-        setChannel({
-          id: rawChannel.name,
-          url: rawChannel.url,
-          name: rawChannel.name,
-          object: 'channel',
-          // @ts-expect-error - mod protocol channel type mismatch
-          image_url: rawChannel.icon_url,
-          parent_url: rawChannel.url,
-          description: '',
-          created_at: 0,
-          // @ts-expect-error - mod protocol channel type mismatch
-          lead: {},
-        });
-      }
+    if (!draft || !draft.parentUrl) return;
+    
+    // First try user's pinned channels for performance
+    const pinnedChannel = userChannels.find((c) => c.url === draft.parentUrl);
+    if (pinnedChannel) {
+      setChannel({
+        id: pinnedChannel.name,
+        url: pinnedChannel.url,
+        name: pinnedChannel.name,
+        object: 'channel',
+        // @ts-expect-error - mod protocol channel type mismatch
+        image_url: pinnedChannel.icon_url,
+        parent_url: pinnedChannel.url,
+        description: '',
+        created_at: 0,
+        // @ts-expect-error - mod protocol channel type mismatch
+        lead: {},
+      });
+    } else if (draftChannel) {
+      // Use the on-demand loaded channel
+      setChannel({
+        id: draftChannel.name,
+        url: draftChannel.url,
+        name: draftChannel.name,
+        object: 'channel',
+        // @ts-expect-error - mod protocol channel type mismatch
+        image_url: draftChannel.icon_url,
+        parent_url: draftChannel.url,
+        description: '',
+        created_at: 0,
+        // @ts-expect-error - mod protocol channel type mismatch
+        lead: {},
+      });
     }
-  }, [draft?.parentUrl]);
+  }, [draft?.parentUrl, userChannels, draftChannel]);
 
   const getButtonText = () => {
     if (isPublishing) return scheduleDateTime ? 'Scheduling...' : 'Publishing...';
@@ -385,7 +414,7 @@ export default function NewPostEntry({
                 granularity="minute"
                 hourCycle={24}
                 jsDate={scheduleDateTime}
-                onJsDateChange={setScheduleDateTime}
+                onJsDateChange={(date) => setScheduleDateTime(date || undefined)}
                 showClearButton
               />
             ) : (
@@ -429,12 +458,28 @@ export default function NewPostEntry({
       {hasEmbeds && (
         <div className="mt-8 rounded-md bg-muted/50 p-2 w-full break-all">
           {map(draft.embeds, (embed) => (
-            <div key={`cast-embed-${embed?.url || embed?.hash}`}>
+            <div key={`cast-embed-${'url' in embed ? embed.url : 'hash' in embed ? embed.hash : 'unknown'}`}>
               {renderEmbedForUrl({
                 ...embed,
                 onRemove: () => {
-                  const newEmbeds = draft.embeds.filter((e) => e.url !== embed.url);
-                  updatePostDraft(draftIdx, { ...draft, embeds: newEmbeds });
+                  const newEmbeds = draft.embeds.filter((e) => {
+                    if ('url' in embed && 'url' in e) return e.url !== embed.url;
+                    if ('hash' in embed && 'hash' in e) return e.hash !== embed.hash;
+                    return e !== embed;
+                  });
+                  updatePostDraft(draftIdx, {
+                    id: draft.id,
+                    status: draft.status,
+                    createdAt: draft.createdAt,
+                    accountId: draft.accountId,
+                    text: draft.text,
+                    embeds: newEmbeds,
+                    parentUrl: draft.parentUrl,
+                    parentCastId: draft.parentCastId,
+                    mentionsToFids: draft.mentionsToFids,
+                    timestamp: draft.timestamp,
+                    hash: draft.hash,
+                  });
                   window.location.reload();
                 },
               })}

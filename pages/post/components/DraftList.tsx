@@ -2,8 +2,6 @@ import React from 'react';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import DraftListItem from './DraftListItem';
 import { DraftType } from '@/common/constants/farcaster';
-import { ChannelType } from '@/common/constants/channels';
-import { UUID } from 'crypto';
 
 type DraftListProps = {
   drafts: DraftType[];
@@ -12,8 +10,6 @@ type DraftListProps = {
   setSelectedDraftId: (id: string) => void;
   onRemove: (draft: DraftType) => void;
   isActive: boolean;
-  getChannelForParentUrl: (params: { channels: ChannelType[]; parentUrl: string | null }) => ChannelType | undefined;
-  allChannels: ChannelType[];
 };
 
 const DraftList: React.FC<DraftListProps> = ({
@@ -23,8 +19,6 @@ const DraftList: React.FC<DraftListProps> = ({
   setSelectedDraftId,
   onRemove,
   isActive,
-  getChannelForParentUrl,
-  allChannels,
 }) => {
   return (
     <SelectableListWithHotkeys
@@ -35,11 +29,6 @@ const DraftList: React.FC<DraftListProps> = ({
         setSelectedDraftId(drafts[idx]?.id);
       }}
       renderRow={(draft, idx) => {
-        const channel = getChannelForParentUrl({
-          channels: allChannels,
-          parentUrl: draft.parentUrl,
-        });
-
         return (
           <DraftListItem
             key={draft.id}
@@ -47,7 +36,6 @@ const DraftList: React.FC<DraftListProps> = ({
             isSelected={idx === selectedIdx}
             onSelect={setSelectedDraftId}
             onRemove={onRemove}
-            channel={channel}
           />
         );
       }}

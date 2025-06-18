@@ -36,6 +36,7 @@ import { getProfile } from '@/common/helpers/profileUtils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
 import { cn } from '@/lib/utils';
+import { ChannelSearchCommand } from './ChannelSearchCommand';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -45,7 +46,7 @@ export default function CommandPalette() {
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
 
-  const { allChannels, setSelectedChannelUrl, setSelectedChannelByName } = useAccountStore();
+  const { setSelectedChannelUrl, setSelectedChannelByName } = useAccountStore();
 
   useHotkeys(
     'meta+k',
@@ -159,8 +160,8 @@ export default function CommandPalette() {
       addNewPostDraft({
         ...draft,
         parentCastId: {
-          fid: selectedCast.author.fid.toString(),
-          hash: selectedCast.hash,
+          fid: selectedCast.author.fid,
+          hash: selectedCast.hash as any, // TODO: Fix type mismatch between string and Uint8Array
         },
       });
 
@@ -217,7 +218,7 @@ export default function CommandPalette() {
     commands = commands.concat(farcasterBotCommands);
     commands = commands.concat(nonHotkeyCommands);
     return commands;
-  }, [theme, setTheme, router, allChannels, setSelectedChannelUrl, setSelectedChannelByName]);
+  }, [theme, setTheme, router, setSelectedChannelUrl, setSelectedChannelByName]);
 
   const commands = useMemo(() => getCommands(), [getCommands]);
   setupHotkeysForCommands(commands);
@@ -363,7 +364,14 @@ export default function CommandPalette() {
   );
 
   const renderFilteredCommands = () => (
-    <CommandGroup heading="Commands">{filteredCommands.map(renderCommandItem)}</CommandGroup>
+    <>
+      <CommandGroup heading="Commands">{filteredCommands.map(renderCommandItem)}</CommandGroup>
+      {query && query.length >= 2 && (
+        <CommandGroup heading="Channels">
+          <ChannelSearchCommand query={query} />
+        </CommandGroup>
+      )}
+    </>
   );
 
   return (

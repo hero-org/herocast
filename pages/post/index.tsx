@@ -19,7 +19,7 @@ import { DraftStatus, DraftType } from '@/common/constants/farcaster';
 import map from 'lodash.map';
 import { renderEmbedForUrl } from '@/common/components/Embeds';
 import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date';
-import { ChannelType } from '@/common/constants/channels';
+import { ChannelDisplay } from '@/common/components/ChannelDisplay';
 import { UUID } from 'crypto';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
@@ -69,13 +69,10 @@ const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAcc
   }
 };
 
-const getChannelForParentUrl = ({ channels, parentUrl }: { channels: ChannelType[]; parentUrl: string | null }) =>
-  parentUrl ? channels.find((channel) => channel.url === parentUrl) : undefined;
-
 export default function NewPost() {
   const { drafts, addNewPostDraft, removePostDraftById, removeEmptyDrafts } = useDraftStore();
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
-  const { accounts, selectedAccountIdx, allChannels } = useAccountStore();
+  const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
   const [activeTab, setActiveTab] = useState<DraftListTab>(DraftListTab.writing);
   const searchParams = useSearchParams();
@@ -234,11 +231,6 @@ export default function NewPost() {
   const renderScheduledDraft = (draft?: DraftType) => {
     if (!draft) return renderEmptyMainContent();
 
-    const channel = getChannelForParentUrl({
-      channels: allChannels,
-      parentUrl: draft.parentUrl,
-    });
-
     const parentCast = parentCasts.find((cast) => cast.hash === draft.parentCastId?.hash);
     const hasEmbeds = draft?.embeds?.length > 0;
     return (
@@ -249,12 +241,14 @@ export default function NewPost() {
             Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}{' '}
             {draft.publishedAt && `· Published at ${getUserLocaleDateFromIsoString(draft.publishedAt)}`}
           </span>
-          {channel && (
-            <p>
+          {draft.parentUrl && (
+            <p className="flex items-center">
               &nbsp;in&nbsp;
-              <span className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30">
-                {channel.name}
-              </span>
+              <ChannelDisplay
+                parentUrl={draft.parentUrl}
+                variant="secondary"
+                className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30"
+              />
             </p>
           )}
         </div>
@@ -312,8 +306,6 @@ export default function NewPost() {
           setSelectedDraftId={setSelectedDraftId}
           onRemove={onRemove}
           isActive={activeTab === DraftListTab.writing}
-          getChannelForParentUrl={getChannelForParentUrl}
-          allChannels={allChannels}
         />
         <div className="mt-4 flex justify-center">{renderNewDraftButton()}</div>
       </>
@@ -345,8 +337,6 @@ export default function NewPost() {
         setSelectedDraftId={setSelectedDraftId}
         onRemove={onRemove}
         isActive={true}
-        getChannelForParentUrl={getChannelForParentUrl}
-        allChannels={allChannels}
       />
     );
   };

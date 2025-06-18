@@ -619,17 +619,6 @@ export const getChannelCommands = (state) => {
       page: 'feeds',
     },
     {
-      icon: BeakerIcon,
-      name: 'Switch to random channel',
-      aliases: ['random', 'lucky', 'discover'],
-      page: 'feeds',
-      action: () => {
-        if (isEmpty(state.allChannels)) return;
-        const randomIndex = randomNumberBetween(0, state.allChannels.length - 1);
-        state.setSelectedChannelUrl(state.allChannels[randomIndex].url);
-      },
-    },
-    {
       name: 'Switch to next channel',
       aliases: ['next', 'forward'],
       shortcuts: ['shift+j', 'shift+ArrowDown'],

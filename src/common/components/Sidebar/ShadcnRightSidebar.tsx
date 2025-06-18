@@ -102,7 +102,7 @@ const ShadcnRightSidebar = ({
         {isHydrated && !hasAccounts && renderEmptyState()}
 
         {showLists && (
-          <SidebarGroup className="py-0">
+          <SidebarGroup className="py-1">
             <SidebarGroupContent>
               <ListsOverview onItemClick={handleItemClick} />
             </SidebarGroupContent>
@@ -114,7 +114,7 @@ const ShadcnRightSidebar = ({
             <SidebarSeparator className="mx-0" />
             <SidebarGroup className="py-0">
               <Collapsible open={isManageListsOpen} onOpenChange={setIsManageListsOpen}>
-                <div className="px-2 py-1">
+                <div className="px-3 py-1.5">
                   <SidebarCollapsibleHeader
                     title="Manage Lists"
                     isOpen={isManageListsOpen}
@@ -136,7 +136,7 @@ const ShadcnRightSidebar = ({
             <SidebarSeparator className="mx-0" />
             <SidebarGroup className="py-0">
               <Collapsible open={isSearchesOpen} onOpenChange={setIsSearchesOpen}>
-                <div className="px-2 py-1">
+                <div className="px-3 py-1.5">
                   <SidebarCollapsibleHeader
                     title="Searches"
                     isOpen={isSearchesOpen}
@@ -158,7 +158,7 @@ const ShadcnRightSidebar = ({
             <SidebarSeparator className="mx-0" />
             <SidebarGroup className="py-0">
               <Collapsible open={isChannelsOpen} onOpenChange={setIsChannelsOpen}>
-                <div className="px-2 py-1">
+                <div className="px-3 py-1.5">
                   <SidebarCollapsibleHeader
                     title="Channels"
                     isOpen={isChannelsOpen}

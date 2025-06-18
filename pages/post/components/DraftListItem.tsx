@@ -1,22 +1,20 @@
 import React from 'react';
 import { ClockIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { DraftStatus, DraftType } from '@/common/constants/farcaster';
 import { getUserLocaleDateFromIsoString } from '@/common/helpers/date';
-import { ChannelType } from '@/common/constants/channels';
+import { ChannelDisplay } from '@/common/components/ChannelDisplay';
 
 type DraftListItemProps = {
   draft: DraftType;
   isSelected: boolean;
   onSelect: (draftId: string) => void;
   onRemove: (draft: DraftType) => void;
-  channel?: ChannelType;
 };
 
-const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSelect, onRemove, channel }) => {
+const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSelect, onRemove }) => {
   return (
     <div
       className={cn(
@@ -54,11 +52,7 @@ const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSele
               : `Last edited ${formatDistanceToNow(new Date(draft.updatedAt || draft.createdAt), { addSuffix: true })}`}
         </span>
       </div>
-      {channel && (
-        <Badge variant="outline" className="w-fit text-xs">
-          {channel.name}
-        </Badge>
-      )}
+      <ChannelDisplay parentUrl={draft.parentUrl} />
     </div>
   );
 };

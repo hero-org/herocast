@@ -40,7 +40,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useDraftStore } from '@/stores/useDraftStore';
-import ChannelHoverCard from './ChannelHoverCard';
 import { format, formatDistanceToNowStrict, lightFormat } from 'date-fns';
 import {
   DropdownMenu,
@@ -136,17 +135,22 @@ const renderLink = ({ attributes, content }) => {
 
 const renderChannel = ({ content }) => {
   return (
-    <ChannelHoverCard channelName={content}>
-      <span
-        className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
-        rel="noopener noreferrer"
-      >
-        {content}
-      </span>
-    </ChannelHoverCard>
+    <span
+      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+      onClick={(event) => {
+        event.stopPropagation();
+        // Navigate to channel when clicked
+        const { setSelectedChannelByName } = useAccountStore.getState();
+        const router = window.location;
+        setSelectedChannelByName(content.slice(1)); // Remove the / prefix
+        if (router.pathname !== '/feeds') {
+          window.location.href = '/feeds';
+        }
+      }}
+      rel="noopener noreferrer"
+    >
+      {content}
+    </span>
   );
 };
 
