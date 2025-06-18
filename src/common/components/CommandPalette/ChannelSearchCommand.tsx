@@ -75,11 +75,7 @@ export const ChannelSearchCommand: React.FC<ChannelSearchCommandProps> = ({ quer
           className="flex items-center py-1.5 rounded-lg"
         >
           {channel.image_url ? (
-            <img
-              src={channel.image_url}
-              alt=""
-              className="mr-2 h-5 w-5 flex-none rounded-full"
-            />
+            <img src={channel.image_url} alt="" className="mr-2 h-5 w-5 flex-none rounded-full" />
           ) : (
             <Skeleton className="mr-2 h-5 w-5 flex-none rounded-full" />
           )}

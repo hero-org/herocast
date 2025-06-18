@@ -8,10 +8,10 @@ interface ChannelDisplayProps {
   variant?: 'default' | 'outline' | 'secondary' | 'destructive';
 }
 
-export const ChannelDisplay: React.FC<ChannelDisplayProps> = ({ 
-  parentUrl, 
+export const ChannelDisplay: React.FC<ChannelDisplayProps> = ({
+  parentUrl,
   className = 'w-fit text-xs',
-  variant = 'outline'
+  variant = 'outline',
 }) => {
   const { channel, isLoading } = useChannelLookup(parentUrl || undefined);
 

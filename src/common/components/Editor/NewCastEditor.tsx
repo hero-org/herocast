@@ -101,10 +101,10 @@ export default function NewPostEntry({
         }).length
     ) > 1;
   const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
-  
+
   // Use on-demand channel lookup for draft's parent URL
   const { channel: draftChannel } = useChannelLookup(draft?.parentUrl);
-  
+
   // Use pinned channels instead of all channels for better performance
   const userChannels = accounts[selectedAccountIdx]?.channels || [];
   const isReply = draft?.parentCastId !== undefined;
@@ -284,7 +284,7 @@ export default function NewPostEntry({
 
   useEffect(() => {
     if (!draft || !draft.parentUrl) return;
-    
+
     // First try user's pinned channels for performance
     const pinnedChannel = userChannels.find((c) => c.url === draft.parentUrl);
     if (pinnedChannel) {

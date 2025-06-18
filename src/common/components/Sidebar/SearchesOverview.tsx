@@ -31,9 +31,7 @@ const SearchesOverview = ({ onItemClick }: SearchesOverviewProps) => {
           }}
         >
           <span className="flex-1 truncate font-medium">{search.term}</span>
-          {isSelected && (
-            <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />
-          )}
+          {isSelected && <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />}
         </div>
         {isDev() && (
           <div className="flex flex-row gap-x-2 px-3 mt-1">

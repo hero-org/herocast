@@ -39,8 +39,8 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
           onClick={() => onUpdateChannel(url)}
           className={cn(
             'flex items-center gap-x-3 rounded-lg px-3 py-1.5 text-sm font-medium cursor-pointer',
-            isSelected 
-              ? 'bg-primary text-primary-foreground shadow-sm' 
+            isSelected
+              ? 'bg-primary text-primary-foreground shadow-sm'
               : 'text-foreground/70 hover:text-foreground hover:bg-sidebar/40'
           )}
         >
@@ -48,9 +48,7 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
             {icon}
             <span className="font-medium">{name}</span>
           </span>
-          {isSelected && (
-            <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />
-          )}
+          {isSelected && <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />}
         </div>
       </li>
     );
@@ -84,17 +82,15 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
               alt=""
               className={cn(
                 'h-4 w-4 flex-none rounded-full border transition-colors',
-                isSelected 
-                  ? 'border-primary-foreground/30 bg-primary-foreground/10' 
+                isSelected
+                  ? 'border-primary-foreground/30 bg-primary-foreground/10'
                   : 'border-sidebar-border bg-sidebar/20'
               )}
             />
           )}
           <span className="flex-nowrap truncate font-medium">{channel.name}</span>
         </div>
-        {isSelected && (
-          <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />
-        )}
+        {isSelected && <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />}
       </div>
     );
   };
@@ -130,16 +126,12 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
           {renderCustomChannel({
             name: 'Follow Feed',
             url: CUSTOM_CHANNELS.FOLLOWING,
-            icon: (
-              <HomeIcon className="h-4 w-4 flex-none" />
-            ),
+            icon: <HomeIcon className="h-4 w-4 flex-none" />,
           })}
           {renderCustomChannel({
             name: 'Trending Feed',
             url: CUSTOM_CHANNELS.TRENDING,
-            icon: (
-              <ArrowTrendingUpIcon className="h-4 w-4 flex-none" />
-            ),
+            icon: <ArrowTrendingUpIcon className="h-4 w-4 flex-none" />,
           })}
         </ul>
       </div>
@@ -152,7 +144,7 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
             <span className="flex items-center gap-x-2">
               <RectangleGroupIcon className="h-4 w-4" aria-hidden="true" />
               <span>Channels</span>
-            </span>, 
+            </span>,
             <Link href="/channels">
               <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-sidebar/40">
                 Pin
