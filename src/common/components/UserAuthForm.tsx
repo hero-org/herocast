@@ -295,14 +295,20 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     switch (view) {
       case ViewState.LOGIN:
         return (
-          <div className="mt-2 text-center text-sm hover:cursor-pointer" onClick={() => setView(ViewState.SIGNUP)}>
+          <div
+            className="mt-2 text-center text-sm sm:text-base hover:cursor-pointer"
+            onClick={() => setView(ViewState.SIGNUP)}
+          >
             no herocast account? <span className="underline">sign up</span>
           </div>
         );
       case ViewState.FORGOT:
       case ViewState.SIGNUP:
         return (
-          <div className="mt-2 text-center text-sm hover:cursor-pointer" onClick={() => setView(ViewState.LOGIN)}>
+          <div
+            className="mt-2 text-center text-sm sm:text-base hover:cursor-pointer"
+            onClick={() => setView(ViewState.LOGIN)}
+          >
             already have your herocast account? <span className="underline">log in</span>
           </div>
         );
@@ -347,11 +353,11 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   return (
     <div className="grid gap-6">
       <Form {...form}>
-        <span className="text-3xl font-semibold tracking-tight">{renderViewHelpText()}</span>
+        <span className="text-2xl sm:text-3xl font-semibold tracking-tight">{renderViewHelpText()}</span>
 
         <form>
           <div className="flex">
-            {userMessage && <span className="text-md text-muted-foreground">{userMessage}</span>}
+            {userMessage && <span className="text-sm sm:text-base text-muted-foreground">{userMessage}</span>}
           </div>
           <div className="grid gap-4">
             {view !== ViewState.LOGGED_IN && (
@@ -438,7 +444,9 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
             {!isAuthenticated ? (
               <>
                 <SignInButton hideSignOut />
-                <span className="text-center text-sm text-foreground">Sign in with Farcaster for read-only access</span>
+                <span className="text-center text-xs sm:text-sm text-foreground">
+                  Sign in with Farcaster for read-only access
+                </span>
               </>
             ) : (
               <Button

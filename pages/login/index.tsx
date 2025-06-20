@@ -35,9 +35,9 @@ export default function Login() {
   return (
     <div className="w-full min-h-screen">
       <div className="w-full h-screen lg:grid lg:grid-cols-2 lg:justify-between">
-        <div className="flex lg:align-top items-start mt-20 justify-center py-12">
+        <div className="flex lg:align-top items-start mt-20 justify-center py-12 px-4">
           <AuthKitProvider config={authKitConfig}>
-            <Card className="mx-auto min-w-96 max-w-96">
+            <Card className="mx-4 w-full max-w-md sm:mx-auto">
               <CardContent className="mt-6">
                 {errorMessage && (
                   <Alert variant="destructive" className="mb-4">
