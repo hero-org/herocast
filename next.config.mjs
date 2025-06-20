@@ -45,13 +45,13 @@ const nextConfig = {
         permanent: false,
       },
       {
-        source: '/',
-        destination: '/login',
+        source: '/.well-known/farcaster.json',
+        destination: 'https://api.farcaster.xyz/miniapps/hosted-manifest/01978dbe-43fa-10d9-ebbf-255c27d14cbc',
         permanent: false,
       },
       {
-        source: '.well-known/farcaster.json',
-        destination: 'https://api.farcaster.xyz/miniapps/hosted-manifest/01978dbe-43fa-10d9-ebbf-255c27d14cbc',
+        source: '/',
+        destination: '/login',
         permanent: false,
       },
     ];
