@@ -12,7 +12,6 @@ import { PostHogProvider } from 'posthog-js/react';
 import { loadPosthogAnalytics } from '../src/lib/analytics';
 import { useRouter } from 'next/router';
 import localFont from 'next/font/local';
-import sdk from '@farcaster/frame-sdk';
 
 // Dynamic import with safe hydration
 import dynamic from 'next/dynamic';
@@ -76,7 +75,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
-    sdk.actions.ready();
+    import('@farcaster/frame-sdk').then((sdk) => {
+      sdk.default.actions.ready();
+    });
   }, []);
 
   const children = (

@@ -10,22 +10,22 @@ herocast is an open source Farcaster client built with Next.js, focused on profe
 
 ### Development
 
-- `npm run dev` - Start Next.js development server
-- `npm run build` - Build production Next.js application
-- `npm run start` - Start production server
+- `pnpm run dev` - Start Next.js development server
+- `pnpm run build` - Build production Next.js application
+- `pnpm run start` - Start production server
 
 ### Code Quality
 
-- `npm run lint` - Run ESLint (extends Next.js config)
-- `npm run lint:fix` - Auto-fix ESLint issues
-- `npm run format` - Format code with Prettier
-- `npm test` - Run Jest tests
+- `pnpm run lint` - Run ESLint (extends Next.js config)
+- `pnpm run lint:fix` - Auto-fix ESLint issues
+- `pnpm run format` - Format code with Prettier
+- `pnpm test` - Run Jest tests
 
 ### Desktop App (Tauri)
 
-- `npm run rls` - Build production Tauri app
-- `npm run rls:debug` - Build debug Tauri app
-- `npm run rls:mac-universal` - Build universal macOS binary
+- `pnpm run rls` - Build production Tauri app
+- `pnpm run rls:debug` - Build debug Tauri app
+- `pnpm run rls:mac-universal` - Build universal macOS binary
 
 ## Architecture Overview
 

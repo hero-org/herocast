@@ -31,13 +31,13 @@ git clone https://github.com/hellno/herocast.git
   ```bash
   nvm install
   ```
-- Install Yarn (if not already installed for this Node version):
+- Install pnpm (if not already installed for this Node version):
   ```bash
-  npm -g install yarn
+  npm -g install pnpm
   ```
 - Install packages:
   ```bash
-  yarn
+  pnpm install
   ```
 
 4. Create a file `.env.local`:
@@ -126,7 +126,7 @@ git clone https://github.com/hellno/herocast.git
 7. Run the local app in development mode:
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
 This will output:

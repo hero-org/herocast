@@ -31,25 +31,22 @@ jobs:
       #     path: |
       #       ~/.cargo
 
-      - name: Set up cache
-        uses: actions/cache@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          version: 10
 
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.12.2
-          cache: yarn
+          cache: pnpm
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Run tests
-        run: yarn test
+        run: pnpm test
       # - name: 🦀 Install Rust
       #   uses: actions-rs/toolchain@v1
       #   with: { toolchain: stable }
