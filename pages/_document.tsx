@@ -6,7 +6,7 @@ const appUrl = process.env.NEXT_PUBLIC_URL;
 
 const frame = {
   version: 'next',
-  imageUrl: `${appUrl}/og.png`,
+  imageUrl: `${appUrl}/images/herocast_og.png`,
   button: {
     title: 'Launch herocast',
     action: {

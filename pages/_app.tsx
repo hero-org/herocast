@@ -12,6 +12,7 @@ import { PostHogProvider } from 'posthog-js/react';
 import { loadPosthogAnalytics } from '../src/lib/analytics';
 import { useRouter } from 'next/router';
 import localFont from 'next/font/local';
+import sdk from '@farcaster/frame-sdk';
 
 // Dynamic import with safe hydration
 import dynamic from 'next/dynamic';
@@ -64,6 +65,7 @@ const posthog = loadPosthogAnalytics();
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [queryClient] = useState(() => new QueryClient());
+
   useEffect(() => {
     const handleRouteChange = () => posthog?.capture('$pageview');
     router.events.on('routeChangeComplete', handleRouteChange);
@@ -71,6 +73,10 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
+  }, []);
+
+  useEffect(() => {
+    sdk.actions.ready();
   }, []);
 
   const children = (

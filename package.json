@@ -43,6 +43,7 @@
     "@faker-js/faker": "^7.6.0",
     "@farcaster/auth-kit": "^0.7.0",
     "@farcaster/core": "^0.16.4",
+    "@farcaster/frame-sdk": "^0.0.64",
     "@farcaster/hub-web": "^0.9.7",
     "@gumlet/react-hls-player": "^1.0.1",
     "@headlessui/react": "^2.2.0",
