@@ -321,6 +321,18 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     } = await supabase.auth.getSession();
 
     if (session) {
+      // Sync notifications before logout
+      try {
+        const { useNotificationStore } = await import('@/stores/useNotificationStore');
+        const notificationStore = useNotificationStore.getState();
+        if (notificationStore.syncQueue.length > 0) {
+          console.log('Syncing notifications before logout...');
+          await notificationStore.syncToSupabase();
+        }
+      } catch (error) {
+        console.error('Error syncing notifications on logout:', error);
+      }
+
       resetStore();
       await supabase.auth.signOut();
       posthog.reset();

@@ -484,12 +484,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </Dialog>
         </Transition.Root>
         <div className="container mx-auto">
-          <div className="grid grid-cols-[1fr] lg:grid-cols-[13rem_1fr]">
+          <div className="grid grid-cols-[1fr] lg:grid-cols-[14rem_1fr]">
             {/* Static sidebar for desktop */}
             {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-            <div className="hidden lg:flex lg:grow lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:full lg:overflow-y-auto lg:bg-background border-r border-muted">
+            <div className="hidden lg:flex lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-56 lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted">
               {/* Sidebar component, swap this element with another sidebar if you like */}
-              <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-6">
+              <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-4">
                 <Link href="/post" className="flex h-16 shrink-0 items-center hover:cursor-pointer">
                   <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
                     herocast
@@ -520,7 +520,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                                         )}
                                       >
                                         {item.icon}
-                                        <span className="">{item.name}</span>
+                                        <span className="truncate">{item.name}</span>
                                       </div>
                                     </Link>
                                   </li>
@@ -534,8 +534,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </div>
                 {isReadOnlyUser && renderUpgradeCard()}
                 {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
-                <div className="mt-auto flex flex-row lg:space-x-2 py-4">
-                  <AccountSwitcher />
+                <div className="mt-auto flex flex-row gap-2 py-4">
+                  <div className="flex-1 min-w-0">
+                    <AccountSwitcher />
+                  </div>
                   <ThemeToggle />
                 </div>
               </div>

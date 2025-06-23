@@ -5,9 +5,12 @@ import { Json } from './database.types';
  */
 export interface SearchFilters {
   orderBy?: string;
-  hideReplies?: boolean;
-  onlyPowerBadge?: boolean;
   interval?: string;
+  mode?: 'literal' | 'semantic' | 'hybrid';
+  sortType?: 'desc_chron' | 'algorithmic';
+  authorFid?: number;
+  parentUrl?: string;
+  channelId?: string;
 }
 
 /**

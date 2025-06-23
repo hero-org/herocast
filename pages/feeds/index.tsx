@@ -25,8 +25,9 @@ import { AccountStatusType } from '@/common/constants/accounts';
 import { createClient } from '@/common/helpers/supabase/component';
 import includes from 'lodash.includes';
 import { useListStore, isFidList } from '@/stores/useListStore';
-import { getCastsFromSearch, SearchFilters } from '@/common/helpers/search';
+import { searchService } from '@/services/searchService';
 import { Interval } from '@/common/types/types';
+import { SearchFilters } from '@/common/types/list.types';
 import { orderBy } from 'lodash';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
 import { startTiming, endTiming } from '@/stores/usePerformanceStore';
@@ -330,13 +331,14 @@ export default function Feeds() {
           filters.interval = cursor ? Interval.d14 : Interval.d7;
           filters.hideReplies = true;
 
-          newFeed = await getCastsFromSearch({
-            term,
+          const searchResults = await searchService.searchWithCasts({
+            searchTerm: term,
             filters,
             viewerFid: fid,
             limit: DEFAULT_FEED_PAGE_SIZE,
             offset: Number(cursor) || 0,
           });
+          newFeed = searchResults;
         }
       } else if (parentUrl === CUSTOM_CHANNELS.FOLLOWING) {
         newFeed = await neynarClient.fetchUserFollowingFeed(Number(fid), feedOptions);

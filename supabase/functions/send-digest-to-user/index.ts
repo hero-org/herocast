@@ -5,7 +5,7 @@ import 'https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts';
 
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'npm:resend';
-import { SearchInterval, runFarcasterCastSearch } from '../_shared/search.ts';
+import { runFarcasterCastSearch } from '../_shared/searchService.ts';
 import { getHtmlEmail } from '../_shared/email.ts';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 
@@ -135,7 +135,7 @@ async function processUser(supabaseClient: any, userId: string) {
     profile.lists.map(async (list) => {
       let searchResult = await runFarcasterCastSearch({
         searchTerm: list.contents.term,
-        filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+        filters: { ...list.contents.filters, interval: '1 day' },
         limit: 5,
         baseUrl,
       });
@@ -150,7 +150,7 @@ async function processUser(supabaseClient: any, userId: string) {
         console.log(`search timeout for term ${list.contents.term} for user ${profile.user_id} - try again`);
         searchResult = await runFarcasterCastSearch({
           searchTerm: list.contents.term,
-          filters: { ...list.contents.filters, interval: SearchInterval.d1 },
+          filters: { ...list.contents.filters, interval: '1 day' },
           limit: 5,
           baseUrl,
         });

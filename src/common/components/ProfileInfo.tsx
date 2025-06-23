@@ -36,75 +36,7 @@ const ProfileInfo = ({
     }
   }, [fid, viewerFid, profile]);
 
-  const renderDateJoined = () => {
-    if (!profile?.airstackSocialInfo?.userCreatedAt) return null;
-    return (
-      <p className="text-sm text-muted-foreground">
-        <span className="font-semibold text-foreground">
-          {formatDistanceToNow(profile.airstackSocialInfo?.userCreatedAt)}
-        </span>{' '}
-        account age
-      </p>
-    );
-  };
-
-  const renderSocialCapitalScore = () =>
-    profile?.airstackSocialInfo?.socialCapitalRank && (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{profile?.airstackSocialInfo?.socialCapitalRank}</span>{' '}
-              social rank
-            </span>
-          </TooltipTrigger>
-          <TooltipContent
-            className="w-44 p-3 bg-background border border-muted text-foreground/80"
-            side="bottom"
-            sideOffset={5}
-          >
-            Social Capital Scores (SCS) are a measure of each Farcaster user&apos;s influence in the network. Learn more
-            at{' '}
-            <a
-              target="_blank"
-              rel="noreferrer"
-              className="underline cursor-pointer"
-              href="https://docs.airstack.xyz/airstack-docs-and-faqs/farcaster/farcaster/social-capital#social-capital-scores"
-            >
-              Airstack.xyz
-            </a>
-          </TooltipContent>
-        </Tooltip>
-        {profile?.airstackSocialInfo?.moxieEarnings && (
-          <>
-            <br />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">
-                    {formatLargeNumber(profile?.airstackSocialInfo?.moxieEarnings)}
-                  </span>{' '}
-                  Moxie earned
-                </span>
-              </TooltipTrigger>
-              <TooltipContent
-                className="w-44 p-3 bg-background border border-muted text-foreground/80"
-                side="bottom"
-                sideOffset={5}
-              >
-                Moxie is a community-owned and community-governed Farcaster protocol. Its mission is to grow the
-                Farcaster GDP. Learn more at{' '}
-                <a target="_blank" rel="noreferrer" className="underline cursor-pointer" href="https://moxie.xyz">
-                  moxie.xyz
-                </a>
-              </TooltipContent>
-            </Tooltip>
-          </>
-        )}
-      </TooltipProvider>
-    );
-
-  const shouldRenderFullInfo = showFullInfo && (profile?.airstackSocialInfo || profile?.icebreakerSocialInfo);
+  const shouldRenderFullInfo = showFullInfo && profile?.icebreakerSocialInfo;
 
   const renderIcebreakerCredentials = () => {
     if (!profile?.icebreakerSocialInfo?.credentials?.length) return null;
@@ -201,8 +133,6 @@ const ProfileInfo = ({
       </Link>
       {shouldRenderFullInfo && (
         <div className="mt-3 space-y-3">
-          {renderDateJoined()}
-          {renderSocialCapitalScore()}
           {renderIcebreakerChannels()}
           {renderIcebreakerCredentials()}
           {renderCoordinapeAttestations()}
