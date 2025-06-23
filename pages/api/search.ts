@@ -47,12 +47,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Invalid search query type.' });
   }
   if (searchQuery && searchQuery.length < 3 && !hasFilters && !hasValidOperators) {
-    return res
-      .status(400)
-      .json({
-        error:
-          'Invalid search query. Minimum 3 characters required unless filtering by author, channel, or using operators.',
-      });
+    return res.status(400).json({
+      error:
+        'Invalid search query. Minimum 3 characters required unless filtering by author, channel, or using operators.',
+    });
   }
 
   // Validate query syntax only if we have a query

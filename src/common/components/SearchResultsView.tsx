@@ -49,7 +49,7 @@ export function SearchResultsView({
       </div>
     );
   }
-  
+
   // If not searched yet and not loading, don't show anything
   if (!hasSearched && !isLoading) {
     return null;
