@@ -5,15 +5,11 @@ describe('searchService.getTextMatchCondition', () => {
   const TEXT_COLUMN = 'casts.text';
 
   test('should handle single word', () => {
-    expect(searchService.getTextMatchCondition('optimistic')).toBe(
-      `${TEXT_COLUMN} ~* '\\moptimistic\\M'`
-    );
+    expect(searchService.getTextMatchCondition('optimistic')).toBe(`${TEXT_COLUMN} ~* '\\moptimistic\\M'`);
   });
 
   test('should handle quoted single word', () => {
-    expect(searchService.getTextMatchCondition('"optimistic"')).toBe(
-      `${TEXT_COLUMN} ~* '\\moptimistic\\M'`
-    );
+    expect(searchService.getTextMatchCondition('"optimistic"')).toBe(`${TEXT_COLUMN} ~* '\\moptimistic\\M'`);
   });
 
   test('should handle phrase without quotes', () => {
