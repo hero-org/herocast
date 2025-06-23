@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { openDB } from "idb";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { openDB } from 'idb';
 import { create as mutativeCreate, Draft } from 'mutative';
 import { createClient } from '@/common/helpers/supabase/component';
 import debounce from 'lodash.debounce';
@@ -27,7 +27,7 @@ interface NotificationStore {
   isHydrated: boolean;
   syncQueue: NotificationReadState[]; // Queue for pending syncs
   lastSyncAt: number;
-  
+
   // Actions
   markAsRead: (notificationId: string, type: string) => void;
   markAsUnread: (notificationId: string) => void;
@@ -98,7 +98,7 @@ if (typeof window !== 'undefined') {
       }
     }
   });
-  
+
   // Fallback for older browsers
   window.addEventListener('beforeunload', () => {
     const state = useNotificationStore.getState();
@@ -110,176 +110,181 @@ if (typeof window !== 'undefined') {
 }
 
 const store = (set: StoreSet, get) => ({
-      readStates: {},
-      lastReadTimestamp: {},
-      isHydrated: false,
-      syncQueue: [],
-      lastSyncAt: 0,
-      
-      markAsRead: (notificationId: string, type: string) => {
+  readStates: {},
+  lastReadTimestamp: {},
+  isHydrated: false,
+  syncQueue: [],
+  lastSyncAt: 0,
+
+  markAsRead: (notificationId: string, type: string) => {
+    set((state) => {
+      const readState = {
+        notificationId,
+        readAt: Date.now(),
+        type,
+      };
+      state.readStates[notificationId] = readState;
+      state.lastReadTimestamp[type] = Date.now();
+
+      // Add to sync queue
+      state.syncQueue.push(readState);
+    });
+
+    // Trigger debounced sync
+    debouncedSync();
+  },
+
+  markAsUnread: (notificationId: string) => {
+    set((state) => {
+      delete state.readStates[notificationId];
+    });
+  },
+
+  markAllAsRead: (type: string, notificationIds: string[]) => {
+    set((state) => {
+      const now = Date.now();
+      notificationIds.forEach((id) => {
+        const readState = {
+          notificationId: id,
+          readAt: now,
+          type,
+        };
+        state.readStates[id] = readState;
+        state.syncQueue.push(readState);
+      });
+      state.lastReadTimestamp[type] = now;
+    });
+
+    // Trigger debounced sync
+    debouncedSync();
+  },
+
+  isRead: (notificationId: string) => {
+    const state = get();
+    return !!state.readStates[notificationId];
+  },
+
+  getUnreadCount: (type: string, allIds: string[]) => {
+    const state = get();
+    return allIds.filter((id) => !state.readStates[id]).length;
+  },
+
+  hydrate: async () => {
+    try {
+      // Fetch read states from Supabase
+      const { data, error } = await supabaseClient
+        .from('notification_read_states')
+        .select('notification_id, notification_type, read_at')
+        .order('read_at', { ascending: false });
+
+      if (!error && data) {
         set((state) => {
-          const readState = {
-            notificationId,
-            readAt: Date.now(),
-            type
-          };
-          state.readStates[notificationId] = readState;
-          state.lastReadTimestamp[type] = Date.now();
-          
-          // Add to sync queue
-          state.syncQueue.push(readState);
-        });
-        
-        // Trigger debounced sync
-        debouncedSync();
-      },
-      
-      markAsUnread: (notificationId: string) => {
-        set((state) => {
-          delete state.readStates[notificationId];
-        });
-      },
-      
-      markAllAsRead: (type: string, notificationIds: string[]) => {
-        set((state) => {
-          const now = Date.now();
-          notificationIds.forEach(id => {
-            const readState = {
-              notificationId: id,
-              readAt: now,
-              type
-            };
-            state.readStates[id] = readState;
-            state.syncQueue.push(readState);
-          });
-          state.lastReadTimestamp[type] = now;
-        });
-        
-        // Trigger debounced sync
-        debouncedSync();
-      },
-      
-      isRead: (notificationId: string) => {
-        const state = get();
-        return !!state.readStates[notificationId];
-      },
-      
-      getUnreadCount: (type: string, allIds: string[]) => {
-        const state = get();
-        return allIds.filter(id => !state.readStates[id]).length;
-      },
-      
-      hydrate: async () => {
-        try {
-          // Fetch read states from Supabase
-          const { data, error } = await supabaseClient
-            .from('notification_read_states')
-            .select('notification_id, notification_type, read_at')
-            .order('read_at', { ascending: false });
-          
-          if (!error && data) {
-            set((state) => {
-              // Merge Supabase data with local data, preferring newer timestamps
-              data.forEach(item => {
-                const localState = state.readStates[item.notification_id];
-                const remoteReadAt = new Date(item.read_at).getTime();
-                
-                // If no local state or remote is newer, use remote
-                if (!localState || remoteReadAt > localState.readAt) {
-                  state.readStates[item.notification_id] = {
-                    notificationId: item.notification_id,
-                    readAt: remoteReadAt,
-                    type: item.notification_type
-                  };
-                }
-              });
-              
-              state.isHydrated = true;
-            });
-          } else {
-            // If error or no data, just mark as hydrated
-            set((state) => {
-              state.isHydrated = true;
-            });
-          }
-        } catch (error) {
-          console.error('Error hydrating notification states:', error);
-          set((state) => {
-            state.isHydrated = true;
-          });
-        }
-      },
-      
-      syncToSupabase: async () => {
-        const state = get();
-        if (state.syncQueue.length === 0) return;
-        
-        try {
-          // Get current user
-          const { data: { user } } = await supabaseClient.auth.getUser();
-          if (!user) {
-            console.log('No authenticated user, skipping sync');
-            return;
-          }
-          
-          // Get unique items from sync queue
-          const uniqueItems = state.syncQueue.reduce((acc, item) => {
-            acc[item.notificationId] = item;
-            return acc;
-          }, {} as Record<string, NotificationReadState>);
-          
-          const items = Object.values(uniqueItems).map(item => ({
-            user_id: user.id,
-            notification_id: item.notificationId,
-            notification_type: item.type,
-            read_at: new Date(item.readAt).toISOString()
-          }));
-          
-          console.log('Syncing to Supabase:', items.length, 'items');
-          
-          // Try sendBeacon first for page unload scenarios
-          if (typeof navigator !== 'undefined' && navigator.sendBeacon && document.visibilityState === 'hidden') {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-              const payload = {
-                items,
-                access_token: session.access_token
+          // Merge Supabase data with local data, preferring newer timestamps
+          data.forEach((item) => {
+            const localState = state.readStates[item.notification_id];
+            const remoteReadAt = new Date(item.read_at).getTime();
+
+            // If no local state or remote is newer, use remote
+            if (!localState || remoteReadAt > localState.readAt) {
+              state.readStates[item.notification_id] = {
+                notificationId: item.notification_id,
+                readAt: remoteReadAt,
+                type: item.notification_type,
               };
-              const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-              const success = navigator.sendBeacon('/api/notifications/sync', blob);
-              if (success) {
-                console.log('Sync sent via beacon');
-                set((state) => {
-                  state.syncQueue = [];
-                  state.lastSyncAt = Date.now();
-                });
-                return;
-              }
             }
-          }
-          
-          // Regular sync
-          const { error } = await supabaseClient
-            .from('notification_read_states')
-            .upsert(items, { 
-              onConflict: 'user_id,notification_id',
-              ignoreDuplicates: false 
-            });
-          
-          if (!error) {
-            console.log('Sync successful!');
-            // Clear sync queue on success
+          });
+
+          state.isHydrated = true;
+        });
+      } else {
+        // If error or no data, just mark as hydrated
+        set((state) => {
+          state.isHydrated = true;
+        });
+      }
+    } catch (error) {
+      console.error('Error hydrating notification states:', error);
+      set((state) => {
+        state.isHydrated = true;
+      });
+    }
+  },
+
+  syncToSupabase: async () => {
+    const state = get();
+    if (state.syncQueue.length === 0) return;
+
+    try {
+      // Get current user
+      const {
+        data: { user },
+      } = await supabaseClient.auth.getUser();
+      if (!user) {
+        console.log('No authenticated user, skipping sync');
+        return;
+      }
+
+      // Get unique items from sync queue
+      const uniqueItems = state.syncQueue.reduce(
+        (acc, item) => {
+          acc[item.notificationId] = item;
+          return acc;
+        },
+        {} as Record<string, NotificationReadState>
+      );
+
+      const items = Object.values(uniqueItems).map((item) => ({
+        user_id: user.id,
+        notification_id: item.notificationId,
+        notification_type: item.type,
+        read_at: new Date(item.readAt).toISOString(),
+      }));
+
+      console.log('Syncing to Supabase:', items.length, 'items');
+
+      // Try sendBeacon first for page unload scenarios
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon && document.visibilityState === 'hidden') {
+        const {
+          data: { session },
+        } = await supabaseClient.auth.getSession();
+        if (session) {
+          const payload = {
+            items,
+            access_token: session.access_token,
+          };
+          const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+          const success = navigator.sendBeacon('/api/notifications/sync', blob);
+          if (success) {
+            console.log('Sync sent via beacon');
             set((state) => {
               state.syncQueue = [];
               state.lastSyncAt = Date.now();
             });
-          } else {
-            console.error('Error syncing to Supabase:', error);
+            return;
           }
-        } catch (error) {
-          console.error('Error in syncToSupabase:', error);
         }
       }
+
+      // Regular sync
+      const { error } = await supabaseClient.from('notification_read_states').upsert(items, {
+        onConflict: 'user_id,notification_id',
+        ignoreDuplicates: false,
+      });
+
+      if (!error) {
+        console.log('Sync successful!');
+        // Clear sync queue on success
+        set((state) => {
+          state.syncQueue = [];
+          state.lastSyncAt = Date.now();
+        });
+      } else {
+        console.error('Error syncing to Supabase:', error);
+      }
+    } catch (error) {
+      console.error('Error in syncToSupabase:', error);
+    }
+  },
 });
 
 export const useNotificationStore = create<NotificationStore>()(

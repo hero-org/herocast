@@ -140,7 +140,7 @@ const Inbox = () => {
 
   // Get current notifications for active tab
   const notifications = notificationsByType[activeTab];
-  
+
   // Generate unique ID for notification
   const getNotificationId = (notification: Notification): string => {
     if (notification.type === NotificationTypeEnum.Follows && notification.follows) {
@@ -334,7 +334,7 @@ const Inbox = () => {
 
     const notification = notifications[selectedNotificationIdx];
     if (!notification) return;
-    
+
     // Mark as read immediately when selected
     const notificationId = getNotificationId(notification);
     if (!isRead(notificationId)) {
@@ -368,7 +368,17 @@ const Inbox = () => {
       updateSelectedCast(undefined);
       setParentCast(null);
     }
-  }, [notifications, selectedNotificationIdx, parentCast?.hash, loadingByType, activeTab, isRead, markAsRead, getNotificationId, updateSelectedCast]);
+  }, [
+    notifications,
+    selectedNotificationIdx,
+    parentCast?.hash,
+    loadingByType,
+    activeTab,
+    isRead,
+    markAsRead,
+    getNotificationId,
+    updateSelectedCast,
+  ]);
 
   // Reset selection when tab changes
   useEffect(() => {
@@ -514,24 +524,21 @@ const Inbox = () => {
   const switchToLikes = useCallback(() => changeTab(NotificationTab.likes), [changeTab]);
   const switchToRecasts = useCallback(() => changeTab(NotificationTab.recasts), [changeTab]);
   const switchToFollows = useCallback(() => changeTab(NotificationTab.follows), [changeTab]);
-  const refreshNotifications = useCallback(
-    async () => {
-      // Clear all state before refresh
-      setParentCast(null);
-      updateSelectedCast(undefined);
-      setSelectedNotificationIdx(0);
-      
-      // Clear notifications for current tab to show loading state
-      setNotificationsByType((prev) => ({
-        ...prev,
-        [activeTab]: []
-      }));
-      
-      // Fetch fresh notifications
-      await fetchNotifications(activeTab, true, true, 25);
-    },
-    [fetchNotifications, activeTab, updateSelectedCast]
-  );
+  const refreshNotifications = useCallback(async () => {
+    // Clear all state before refresh
+    setParentCast(null);
+    updateSelectedCast(undefined);
+    setSelectedNotificationIdx(0);
+
+    // Clear notifications for current tab to show loading state
+    setNotificationsByType((prev) => ({
+      ...prev,
+      [activeTab]: [],
+    }));
+
+    // Fetch fresh notifications
+    await fetchNotifications(activeTab, true, true, 25);
+  }, [fetchNotifications, activeTab, updateSelectedCast]);
   const loadMoreNotifications = useCallback(() => {
     if (cursorsByType.current[activeTab] && !loadingByType[activeTab]) {
       fetchNotifications(activeTab, false, true, 25);
@@ -631,7 +638,7 @@ const Inbox = () => {
     if (selectedNotificationIdx >= 0 && notifications.length > selectedNotificationIdx) {
       const notification = notifications[selectedNotificationIdx];
       const notificationId = getNotificationId(notification);
-      
+
       // Always mark as read, even if already read
       markAsRead(notificationId, activeTab);
     }
@@ -780,7 +787,7 @@ const Inbox = () => {
     },
     [cycleToPrevTab]
   );
-  
+
   // Mark as read
   useHotkeys(
     'e',
@@ -886,9 +893,7 @@ const Inbox = () => {
             <AvatarFallback>{author?.username?.slice(0, 2)}</AvatarFallback>
           </Avatar>
           {/* Unread indicator */}
-          {!isNotificationRead && (
-            <div className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 bg-blue-500 rounded-full" />
-          )}
+          {!isNotificationRead && <div className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 bg-blue-500 rounded-full" />}
         </div>
         <div className="flex-auto min-w-0">
           <div className="flex items-center justify-between gap-x-4">
@@ -988,63 +993,68 @@ const Inbox = () => {
             <TabsList className="grid grid-cols-5 flex-1 mr-3">
               <TabsTrigger value={NotificationTab.replies} className="text-xs relative">
                 Replies
-                {activeTab === NotificationTab.replies && (() => {
-                  const notificationIds = notificationsByType[NotificationTab.replies].map(getNotificationId);
-                  const unreadCount = getUnreadCount(NotificationTab.replies, notificationIds);
-                  return unreadCount > 0 ? (
-                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  ) : null;
-                })()}
+                {activeTab === NotificationTab.replies &&
+                  (() => {
+                    const notificationIds = notificationsByType[NotificationTab.replies].map(getNotificationId);
+                    const unreadCount = getUnreadCount(NotificationTab.replies, notificationIds);
+                    return unreadCount > 0 ? (
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    ) : null;
+                  })()}
               </TabsTrigger>
               <TabsTrigger value={NotificationTab.mentions} className="text-xs relative">
                 Mentions
-                {activeTab === NotificationTab.mentions && (() => {
-                  const notificationIds = notificationsByType[NotificationTab.mentions].map(getNotificationId);
-                  const unreadCount = getUnreadCount(NotificationTab.mentions, notificationIds);
-                  return unreadCount > 0 ? (
-                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  ) : null;
-                })()}
+                {activeTab === NotificationTab.mentions &&
+                  (() => {
+                    const notificationIds = notificationsByType[NotificationTab.mentions].map(getNotificationId);
+                    const unreadCount = getUnreadCount(NotificationTab.mentions, notificationIds);
+                    return unreadCount > 0 ? (
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    ) : null;
+                  })()}
               </TabsTrigger>
               <TabsTrigger value={NotificationTab.likes} className="text-xs relative">
                 Likes
-                {activeTab === NotificationTab.likes && (() => {
-                  const notificationIds = notificationsByType[NotificationTab.likes].map(getNotificationId);
-                  const unreadCount = getUnreadCount(NotificationTab.likes, notificationIds);
-                  return unreadCount > 0 ? (
-                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  ) : null;
-                })()}
+                {activeTab === NotificationTab.likes &&
+                  (() => {
+                    const notificationIds = notificationsByType[NotificationTab.likes].map(getNotificationId);
+                    const unreadCount = getUnreadCount(NotificationTab.likes, notificationIds);
+                    return unreadCount > 0 ? (
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    ) : null;
+                  })()}
               </TabsTrigger>
               <TabsTrigger value={NotificationTab.recasts} className="text-xs relative">
                 Recasts
-                {activeTab === NotificationTab.recasts && (() => {
-                  const notificationIds = notificationsByType[NotificationTab.recasts].map(getNotificationId);
-                  const unreadCount = getUnreadCount(NotificationTab.recasts, notificationIds);
-                  return unreadCount > 0 ? (
-                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  ) : null;
-                })()}
+                {activeTab === NotificationTab.recasts &&
+                  (() => {
+                    const notificationIds = notificationsByType[NotificationTab.recasts].map(getNotificationId);
+                    const unreadCount = getUnreadCount(NotificationTab.recasts, notificationIds);
+                    return unreadCount > 0 ? (
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    ) : null;
+                  })()}
               </TabsTrigger>
               <TabsTrigger value={NotificationTab.follows} className="text-xs relative">
                 Follows
-                {activeTab === NotificationTab.follows && (() => {
-                  const notificationIds = notificationsByType[NotificationTab.follows].map(getNotificationId);
-                  const unreadCount = getUnreadCount(NotificationTab.follows, notificationIds);
-                  return unreadCount > 0 ? (
-                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  ) : null;
-                })()}
+                {activeTab === NotificationTab.follows &&
+                  (() => {
+                    const notificationIds = notificationsByType[NotificationTab.follows].map(getNotificationId);
+                    const unreadCount = getUnreadCount(NotificationTab.follows, notificationIds);
+                    return unreadCount > 0 ? (
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    ) : null;
+                  })()}
               </TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
@@ -1067,10 +1077,7 @@ const Inbox = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={refreshNotifications}
-                    disabled={loadingByType[activeTab]}
-                  >
+                  <DropdownMenuItem onClick={refreshNotifications} disabled={loadingByType[activeTab]}>
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Refresh
                   </DropdownMenuItem>

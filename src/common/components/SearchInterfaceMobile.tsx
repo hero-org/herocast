@@ -4,11 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Badge } from '@/components/ui/badge';
-import { 
-  MagnifyingGlassIcon, 
-  AdjustmentsHorizontalIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { SearchFiltersPanel } from './SearchFiltersPanel';
 import { Interval } from '@/common/types/types';
@@ -72,24 +68,15 @@ export function SearchInterfaceMobile({
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button
-            className="flex-1"
-            disabled={!canSearch || isLoading}
-            onClick={onSearch}
-          >
+          <Button className="flex-1" disabled={!canSearch || isLoading} onClick={onSearch}>
             {isLoading ? 'Searching...' : 'Search'}
           </Button>
-          
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowFilters(true)}
-            className="relative"
-          >
+
+          <Button variant="outline" size="icon" onClick={() => setShowFilters(true)} className="relative">
             <AdjustmentsHorizontalIcon className="h-4 w-4" />
             {activeFiltersCount > 0 && (
-              <Badge 
-                variant="destructive" 
+              <Badge
+                variant="destructive"
                 className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
               >
                 {activeFiltersCount}

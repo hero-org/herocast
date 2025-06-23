@@ -29,7 +29,7 @@ export class SearchQueryBuilder {
 
   private extractDateFilters(query: string): string {
     if (!query) return '';
-    
+
     // Extract before: operator
     const beforeMatch = query.match(/before:(\d{4}-\d{2}-\d{2})/);
     if (beforeMatch) {
@@ -49,7 +49,7 @@ export class SearchQueryBuilder {
 
   private extractChannelFilter(query: string): string {
     if (!query) return '';
-    
+
     const channelMatch = query.match(/channel:([^\s]+)/);
     if (channelMatch) {
       this.filters.channelId = channelMatch[1];
@@ -60,7 +60,7 @@ export class SearchQueryBuilder {
 
   private extractParentFilter(query: string): string {
     if (!query) return '';
-    
+
     const parentMatch = query.match(/parent:([^\s]+)/);
     if (parentMatch) {
       this.filters.parentUrl = parentMatch[1];
@@ -92,7 +92,7 @@ export class SearchQueryBuilder {
       filters: {
         channelId: this.filters.channelId,
         parentUrl: this.filters.parentUrl,
-      }
+      },
     };
   }
 
@@ -118,7 +118,7 @@ export class SearchQueryBuilder {
    */
   static validateQuery(query: string): { valid: boolean; error?: string } {
     if (!query) return { valid: true };
-    
+
     // Check for balanced parentheses
     let parenCount = 0;
     for (const char of query) {

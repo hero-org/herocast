@@ -5,19 +5,27 @@ describe('searchService.searchService.getTextMatchCondition', () => {
   const TEXT_COLUMN = 'casts.text';
 
   test('should handle single word', () => {
-    expect(searchService.searchService.getTextMatchCondition('optimistic')).toBe(`${TEXT_COLUMN} ~* '\\moptimistic\\M'`);
+    expect(searchService.searchService.getTextMatchCondition('optimistic')).toBe(
+      `${TEXT_COLUMN} ~* '\\moptimistic\\M'`
+    );
   });
 
   test('should handle quoted single word', () => {
-    expect(searchService.searchService.getTextMatchCondition('"optimistic"')).toBe(`${TEXT_COLUMN} ~* '\\moptimistic\\M'`);
+    expect(searchService.searchService.getTextMatchCondition('"optimistic"')).toBe(
+      `${TEXT_COLUMN} ~* '\\moptimistic\\M'`
+    );
   });
 
   test('should handle phrase without quotes', () => {
-    expect(searchService.searchService.getTextMatchCondition('looking at clouds')).toBe(`${TEXT_COLUMN} ~* '\\mlooking at clouds\\M'`);
+    expect(searchService.searchService.getTextMatchCondition('looking at clouds')).toBe(
+      `${TEXT_COLUMN} ~* '\\mlooking at clouds\\M'`
+    );
   });
 
   test('should handle phrase with quotes', () => {
-    expect(searchService.searchService.getTextMatchCondition('"looking at clouds"')).toBe(`${TEXT_COLUMN} ~* '\\mlooking at clouds\\M'`);
+    expect(searchService.searchService.getTextMatchCondition('"looking at clouds"')).toBe(
+      `${TEXT_COLUMN} ~* '\\mlooking at clouds\\M'`
+    );
   });
 
   test('should handle combination of quotes and boolean operator', () => {

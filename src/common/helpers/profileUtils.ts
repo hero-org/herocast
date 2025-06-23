@@ -60,9 +60,8 @@ export const getProfileFetchIfNeeded = async ({
       viewerFid,
     });
     const matchingUsernames = [username, `${username}.eth`];
-    profile = results.find((user) => 
-      matchingUsernames.includes(user.username) || 
-      user.username?.toLowerCase() === username?.toLowerCase()
+    profile = results.find(
+      (user) => matchingUsernames.includes(user.username) || user.username?.toLowerCase() === username?.toLowerCase()
     );
   }
   return profile;

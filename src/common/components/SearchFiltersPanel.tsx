@@ -1,24 +1,14 @@
 import React, { useState } from 'react';
 import { SearchFilters, SearchMode, SortType } from '@/services/searchService';
 import { SearchService } from '@/services/searchService';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Interval } from '@/common/types/types';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -60,9 +50,7 @@ export function SearchFiltersPanel({ filters, onFiltersChange, className }: Sear
             <PopoverContent className="w-96">
               <div className="space-y-2">
                 <h4 className="font-medium">Search Operators</h4>
-                <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                  {SearchService.getSearchHelp()}
-                </pre>
+                <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">{SearchService.getSearchHelp()}</pre>
               </div>
             </PopoverContent>
           </Popover>
@@ -141,17 +129,18 @@ export function SearchFiltersPanel({ filters, onFiltersChange, className }: Sear
         </div>
       </div>
 
-
       {/* Clear Filters */}
       {activeFiltersCount > 0 && (
         <Button
           variant="outline"
           size="sm"
           className="w-full"
-          onClick={() => onFiltersChange({
-            interval: Interval.d7,
-            sortType: SortType.DESC_CHRON,
-          })}
+          onClick={() =>
+            onFiltersChange({
+              interval: Interval.d7,
+              sortType: SortType.DESC_CHRON,
+            })
+          }
         >
           <XMarkIcon className="h-4 w-4 mr-1" />
           Clear All Filters

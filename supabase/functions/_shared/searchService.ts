@@ -4,12 +4,12 @@
 export enum SearchMode {
   LITERAL = 'literal',
   SEMANTIC = 'semantic',
-  HYBRID = 'hybrid'
+  HYBRID = 'hybrid',
 }
 
 export enum SortType {
   DESC_CHRON = 'desc_chron',
-  ALGORITHMIC = 'algorithmic'
+  ALGORITHMIC = 'algorithmic',
 }
 
 export type SearchFilters = {
@@ -65,7 +65,7 @@ export class SearchService {
   private buildSearchUrl(params: SearchParams): string {
     const term = this.prepareSearchTerm(params.searchTerm);
     const urlParams = new URLSearchParams({ term });
-    
+
     // Add all parameters
     if (params.limit) urlParams.append('limit', params.limit.toString());
     if (params.offset) urlParams.append('offset', params.offset.toString());
@@ -73,7 +73,7 @@ export class SearchService {
     if (params.orderBy) urlParams.append('orderBy', params.orderBy);
     if (params.mentionFid) urlParams.append('mentionFid', params.mentionFid.toString());
     if (params.fromFid) urlParams.append('fromFid', params.fromFid.toString());
-    
+
     // Add filter parameters
     if (params.filters) {
       Object.entries(params.filters).forEach(([key, value]) => {
@@ -82,12 +82,12 @@ export class SearchService {
         }
       });
     }
-    
+
     // Default interval if not set
     if (!urlParams.get('interval')) {
       urlParams.set('interval', '7 days');
     }
-    
+
     const baseUrl = params.baseUrl || Deno.env.get('BASE_URL') || '';
     return `${baseUrl}/api/search?${urlParams.toString()}`;
   }

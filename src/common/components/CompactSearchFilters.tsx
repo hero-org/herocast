@@ -36,7 +36,11 @@ export function CompactSearchFilters({ filters, onFiltersChange, className }: Co
     onFiltersChange({ ...filters, [key]: value });
   };
 
-  const toggleFilter = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K], defaultValue: SearchFilters[K]) => {
+  const toggleFilter = <K extends keyof SearchFilters>(
+    key: K,
+    value: SearchFilters[K],
+    defaultValue: SearchFilters[K]
+  ) => {
     const currentValue = filters[key];
     updateFilter(key, currentValue === value ? defaultValue : value);
   };
@@ -71,24 +75,16 @@ export function CompactSearchFilters({ filters, onFiltersChange, className }: Co
         Most Engaging
       </FilterBadge>
 
-
-
       {/* Show active channel filter */}
       {filters.channelId && (
-        <FilterBadge
-          isActive={true}
-          onClick={() => updateFilter('channelId', undefined)}
-        >
+        <FilterBadge isActive={true} onClick={() => updateFilter('channelId', undefined)}>
           #{filters.channelId} ×
         </FilterBadge>
       )}
 
       {/* Show active author filter */}
       {filters.authorFid && (
-        <FilterBadge
-          isActive={true}
-          onClick={() => updateFilter('authorFid', undefined)}
-        >
+        <FilterBadge isActive={true} onClick={() => updateFilter('authorFid', undefined)}>
           Author: {filters.authorFid} ×
         </FilterBadge>
       )}

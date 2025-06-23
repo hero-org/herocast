@@ -15,7 +15,14 @@ import { map, uniq, debounce } from 'lodash';
 import { Interval } from '@/common/types/types';
 import { cn } from '@/lib/utils';
 import { usePostHog } from 'posthog-js/react';
-import { searchService, SearchFilters, SearchResponse, RawSearchResult, SearchMode, SortType } from '@/services/searchService';
+import {
+  searchService,
+  SearchFilters,
+  SearchResponse,
+  RawSearchResult,
+  SearchMode,
+  SortType,
+} from '@/services/searchService';
 import { SearchInterface } from '@/common/components/SearchInterface';
 import { SearchResultsView } from '@/common/components/SearchResultsView';
 import ManageListModal from '@/common/components/ManageListModal';
@@ -34,7 +41,6 @@ export const DEFAULT_FILTERS: SearchFilters = {
   sortType: SortType.DESC_CHRON,
 };
 
-
 export default function SearchPage() {
   const posthog = usePostHog();
 
@@ -43,6 +49,7 @@ export default function SearchPage() {
   const [castHashes, setCastHashes] = useState<RawSearchResult[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false); // Track if search has been performed
   const [searchCounter, setSearchCounter] = useState(0);
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
   const [error, setError] = useState<Error | null>(null);
@@ -129,6 +136,10 @@ export default function SearchPage() {
 
   const onChange = async (text: string) => {
     setSearchTerm(text);
+    // Reset hasSearched if the user clears the search term
+    if (!text.trim()) {
+      setHasSearched(false);
+    }
   };
 
   const addCastHashes = (newCastHashes: RawSearchResult[], reset: boolean) => {
@@ -162,6 +173,7 @@ export default function SearchPage() {
 
       resetState();
       setShowCastThreadView(false);
+      setHasSearched(true); // Mark that a search has been performed
       posthog.capture('user_start_castSearch', {
         term,
       });
@@ -223,20 +235,22 @@ export default function SearchPage() {
     posthog.capture('user_start_castSearch', {
       term: searchTerm,
     });
-    searchService.search({
-      searchTerm,
-      filters: getFilters(),
-      viewerFid,
-      limit: SEARCH_LIMIT_NEXT_LOAD,
-      orderBy: 'timestamp DESC',
-      offset: castHashes.length,
-    }).then((response) => {
-      posthog.capture('backend_returns_castSearch', {
-        term: searchTerm,
-        resultsCount: (response?.results || []).length,
+    searchService
+      .search({
+        searchTerm,
+        filters: getFilters(),
+        viewerFid,
+        limit: SEARCH_LIMIT_NEXT_LOAD,
+        orderBy: 'timestamp DESC',
+        offset: castHashes.length,
+      })
+      .then((response) => {
+        posthog.capture('backend_returns_castSearch', {
+          term: searchTerm,
+          resultsCount: (response?.results || []).length,
+        });
+        processSearchResponse(response, SEARCH_LIMIT_NEXT_LOAD);
       });
-      processSearchResponse(response, SEARCH_LIMIT_NEXT_LOAD);
-    });
   };
 
   const onSaveSearch = async () => {
@@ -302,7 +316,7 @@ export default function SearchPage() {
             filters={filters}
             isLoading={isLoading}
             canSearch={canSearch}
-            onSearchTermChange={setSearchTerm}
+            onSearchTermChange={onChange}
             onFiltersChange={setFilters}
             onSearch={() => onSearch()}
             onSaveSearch={onSaveSearch}
@@ -315,6 +329,7 @@ export default function SearchPage() {
               casts={casts}
               castHashes={castHashes}
               isLoading={isLoading}
+              hasSearched={hasSearched}
               hasMore={hasMore}
               error={error}
               selectedCastIdx={selectedCastIdx}

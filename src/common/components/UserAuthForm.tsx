@@ -332,7 +332,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       } catch (error) {
         console.error('Error syncing notifications on logout:', error);
       }
-      
+
       resetStore();
       await supabase.auth.signOut();
       posthog.reset();

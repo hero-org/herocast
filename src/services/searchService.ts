@@ -14,12 +14,12 @@ export type RawSearchResult = {
 export enum SearchMode {
   LITERAL = 'literal',
   SEMANTIC = 'semantic',
-  HYBRID = 'hybrid'
+  HYBRID = 'hybrid',
 }
 
 export enum SortType {
   DESC_CHRON = 'desc_chron',
-  ALGORITHMIC = 'algorithmic'
+  ALGORITHMIC = 'algorithmic',
 }
 
 export type SearchFilters = {
@@ -104,11 +104,11 @@ export class SearchService {
 
       // Remove from: operator from the query string
       const cleanQuery = SearchQueryBuilder.removeFromOperator(q);
-      
+
       const searchParams = {
         ...params,
-        q: cleanQuery,  // Always use the cleaned query
-        searchTerm: undefined,  // Clear searchTerm to force use of q
+        q: cleanQuery, // Always use the cleaned query
+        searchTerm: undefined, // Clear searchTerm to force use of q
         authorFid: authorFid,
         channelId: params.channelId || filters.channelId,
         parentUrl: params.parentUrl || filters.parentUrl,
@@ -133,11 +133,11 @@ export class SearchService {
   async searchWithCasts(params: SearchParams): Promise<CastsResponseResult> {
     const searchResponse = await this.search(params);
     const castHashes = searchResponse.results?.map((result) => result.hash) || [];
-    
+
     if (!this.neynarClient) {
       this.neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
     }
-    
+
     const apiResponse = await this.neynarClient.fetchBulkCasts(castHashes, {
       viewerFid: Number(params.viewerFid),
     });
@@ -146,7 +146,7 @@ export class SearchService {
 
   private buildSearchUrl(params: SearchParams): string {
     const urlParams = new URLSearchParams();
-    
+
     // Use 'q' parameter for Neynar API
     if (params.q) {
       urlParams.append('q', params.q);
@@ -154,12 +154,12 @@ export class SearchService {
       // Fallback to term for backward compatibility
       urlParams.append('term', params.searchTerm);
     }
-    
+
     // Core search parameters
     if (params.limit) urlParams.append('limit', params.limit.toString());
     if (params.offset) urlParams.append('offset', params.offset.toString());
     if (params.viewerFid) urlParams.append('viewerFid', params.viewerFid);
-    
+
     // Neynar API parameters
     if (params.mode || params.filters?.mode) {
       urlParams.append('mode', params.mode || params.filters.mode);
@@ -176,20 +176,19 @@ export class SearchService {
     if (params.channelId) {
       urlParams.append('channelId', params.channelId);
     }
-    
+
     // Filter parameters
     if (params.filters) {
       if (params.filters.interval) urlParams.append('interval', params.filters.interval);
     }
-    
+
     if (!urlParams.get('interval')) {
       urlParams.set('interval', Interval.d7);
     }
-    
-    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_URL || '');
+
+    const baseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_URL || '';
     return `${baseUrl}/api/search?${urlParams.toString()}`;
   }
-
 
   getTextMatchCondition(term: string): string {
     term = term.trim();

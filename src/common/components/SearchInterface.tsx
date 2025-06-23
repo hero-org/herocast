@@ -6,24 +6,14 @@ import { SearchInterfaceMobile } from './SearchInterfaceMobile';
 import { useMediaQuery } from '@/common/hooks/useMediaQuery';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Interval } from '@/common/types/types';
-import { 
-  MagnifyingGlassIcon, 
+import {
+  MagnifyingGlassIcon,
   AdjustmentsHorizontalIcon,
   QuestionMarkCircleIcon,
   XMarkIcon,
@@ -86,12 +76,15 @@ export function SearchInterface({
   // Check for from: and channel: operators in search term
   const fromUsername = SearchQueryBuilder.extractFromUsername(searchTerm);
   const channelFromQuery = searchTerm.match(/channel:([^\s]+)/)?.[1];
-  
-  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    if (key === 'interval') return value !== Interval.d7;
-    if (key === 'sortType') return value !== SortType.DESC_CHRON;
-    return value !== undefined && value !== false && value !== '';
-  }).length + (fromUsername ? 1 : 0) + (channelFromQuery ? 1 : 0);
+
+  const activeFiltersCount =
+    Object.entries(filters).filter(([key, value]) => {
+      if (key === 'interval') return value !== Interval.d7;
+      if (key === 'sortType') return value !== SortType.DESC_CHRON;
+      return value !== undefined && value !== false && value !== '';
+    }).length +
+    (fromUsername ? 1 : 0) +
+    (channelFromQuery ? 1 : 0);
 
   const clearAllFilters = () => {
     onFiltersChange({
@@ -126,13 +119,8 @@ export function SearchInterface({
               </Button>
             )}
           </div>
-          
-          <Button
-            size="lg"
-            disabled={!canSearch || isLoading}
-            onClick={onSearch}
-            className="h-12"
-          >
+
+          <Button size="lg" disabled={!canSearch || isLoading} onClick={onSearch} className="h-12">
             {isLoading ? (
               <div className="flex items-center gap-2">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
@@ -147,12 +135,7 @@ export function SearchInterface({
         {/* Controls Bar */}
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-            >
+            <Button variant="outline" size="sm" className="h-7" onClick={() => setShowAdvanced(!showAdvanced)}>
               <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1" />
               Advanced
             </Button>
@@ -187,9 +170,7 @@ export function SearchInterface({
                     </div>
                   </div>
                   <div className="border-t pt-3">
-                    <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-{SearchService.getSearchHelp()}
-                    </pre>
+                    <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">{SearchService.getSearchHelp()}</pre>
                   </div>
                 </div>
               </PopoverContent>
@@ -198,23 +179,12 @@ export function SearchInterface({
 
           <div className="flex items-center gap-2">
             {activeFiltersCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllFilters}
-                className="h-7 text-xs"
-              >
+              <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs">
                 Clear filters ({activeFiltersCount})
               </Button>
             )}
-            
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!searchTerm}
-              onClick={onSaveSearch}
-              className="h-7"
-            >
+
+            <Button variant="outline" size="sm" disabled={!searchTerm} onClick={onSaveSearch} className="h-7">
               Save Search
             </Button>
           </div>
@@ -355,7 +325,6 @@ export function SearchInterface({
           </div>
         )}
       </div>
-
     </div>
   );
 }

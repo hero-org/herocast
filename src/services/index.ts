@@ -1,4 +1,4 @@
-export { 
+export {
   searchService,
   SearchService,
   SearchMode,
@@ -6,7 +6,7 @@ export {
   type SearchFilters,
   type SearchParams,
   type SearchResponse,
-  type RawSearchResult 
+  type RawSearchResult,
 } from './searchService';
 
 export { SearchQueryBuilder } from './searchQueryBuilder';
