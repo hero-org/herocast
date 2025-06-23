@@ -104,17 +104,17 @@ export default function AccountSwitcher({ className }: AccountSwitcherProps) {
           role="combobox"
           aria-expanded={open}
           aria-label="Select an account"
-          className={cn('px-2 max-w-[130px] min-w-[130px] justify-between', className)}
+          className={cn('px-2 w-full justify-between', className)}
         >
           {selectedAccount ? (
-            <div className="flex truncate max-w-full">
+            <div className="flex items-center truncate max-w-full">
               {selectedAccount.user?.pfp_url && (
-                <Avatar className="mr-2 h-5 w-5">
+                <Avatar className="mr-2 h-5 w-5 flex-shrink-0">
                   <AvatarImage src={selectedAccount.user?.pfp_url} alt={selectedAccount.name} />
                   <AvatarFallback>{selectedAccount.name?.slice(0, 2)}</AvatarFallback>
                 </Avatar>
               )}
-              {selectedAccount.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
+              <span className="truncate">{selectedAccount.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}</span>
             </div>
           ) : (
             'Select...'

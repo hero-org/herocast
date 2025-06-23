@@ -95,14 +95,6 @@ const ManageListModal = ({ open, onClose }) => {
             <Label>Search Interval</Label>
             <IntervalFilter defaultInterval={searchInterval} intervals={intervals} />
           </div>
-          <div className="flex flex-col">
-            <Label>Hide replies</Label>
-            <Switch disabled checked={list.contents?.filters?.hideReplies} />
-          </div>
-          <div className="flex flex-col">
-            <Label>Only power badge</Label>
-            <Switch disabled checked={list.contents?.filters?.onlyPowerBadge} />
-          </div>
         </div>
         <div className="flex justify-end gap-4">
           <Button size="sm" variant="destructive" onClick={() => onClickDelete(list.id)}>

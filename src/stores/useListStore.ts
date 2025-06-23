@@ -22,6 +22,7 @@ interface ListStoreProps {
   lists: List[];
   isHydrated: boolean;
   selectedListId?: UUID;
+  currentSearchTerm?: string;
 }
 
 interface ListStoreActions {
@@ -33,6 +34,7 @@ interface ListStoreActions {
   addList: (newList: AddListType) => void;
   removeList: (listId: UUID) => void;
   setSelectedListId: (id?: UUID) => void;
+  setCurrentSearchTerm: (term?: string) => void;
 
   // Helper methods
   getFidLists: () => List[];
@@ -62,9 +64,15 @@ const store = (set: StoreSet, get: () => ListStore) => ({
   searches: [],
   isHydrated: false,
   selectedListId: undefined,
+  currentSearchTerm: undefined,
   addSearch: (search: Search) => {
     set((state) => {
       state.searches = [...state.searches, search];
+    });
+  },
+  setCurrentSearchTerm: (term?: string) => {
+    set((state) => {
+      state.currentSearchTerm = term;
     });
   },
   // Helper methods for working with FIDs in lists

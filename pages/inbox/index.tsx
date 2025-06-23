@@ -18,6 +18,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { formatLargeNumber } from '@/common/helpers/text';
 import { useDraftStore } from '@/stores/useDraftStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, RefreshCw, Cloud } from 'lucide-react';
 
 // Client-side cache for parent casts (prevents repeated API calls)
 const parentCastCache = new Map<string, { cast: CastWithInteractions; timestamp: number }>();
@@ -99,6 +107,7 @@ const Inbox = () => {
   const { isNewCastModalOpen, setCastModalView, openNewCastModal, setCastModalDraftId } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
+  const { isRead, markAsRead, markAsUnread, getUnreadCount } = useNotificationStore();
   const [notificationsByType, setNotificationsByType] = useState<Record<NotificationTab, Notification[]>>({
     [NotificationTab.replies]: [],
     [NotificationTab.mentions]: [],
@@ -131,6 +140,16 @@ const Inbox = () => {
 
   // Get current notifications for active tab
   const notifications = notificationsByType[activeTab];
+  
+  // Generate unique ID for notification
+  const getNotificationId = (notification: Notification): string => {
+    if (notification.type === NotificationTypeEnum.Follows && notification.follows) {
+      // For follows, use the first follower's fid + timestamp
+      return `follow-${notification.follows[0]?.user?.fid}-${notification.most_recent_timestamp}`;
+    }
+    // For other types, use cast hash + type + timestamp
+    return `${notification.cast?.hash || 'unknown'}-${notification.type}-${notification.most_recent_timestamp}`;
+  };
 
   const isLoading = loadingByType[activeTab] || false;
   const loadMoreCursor = cursorsByType.current[activeTab];
@@ -301,13 +320,26 @@ const Inbox = () => {
 
   // Update selected cast and fetch parent when notification selection changes
   useEffect(() => {
+    // If notifications are empty (after refresh or on initial load), clear the selected cast
+    if (isEmpty(notifications)) {
+      updateSelectedCast(undefined);
+      setParentCast(null);
+      return;
+    }
+
     // Don't process selection changes while loading to prevent jittery effect
-    if (loadingByType[activeTab] || isEmpty(notifications) || selectedNotificationIdx < 0) {
+    if (loadingByType[activeTab] || selectedNotificationIdx < 0) {
       return;
     }
 
     const notification = notifications[selectedNotificationIdx];
     if (!notification) return;
+    
+    // Mark as read immediately when selected
+    const notificationId = getNotificationId(notification);
+    if (!isRead(notificationId)) {
+      markAsRead(notificationId, activeTab);
+    }
 
     // Only update selected cast if the notification has a cast (not for follows)
     if (notification?.cast) {
@@ -336,7 +368,7 @@ const Inbox = () => {
       updateSelectedCast(undefined);
       setParentCast(null);
     }
-  }, [notifications, selectedNotificationIdx, parentCast?.hash, loadingByType, activeTab]);
+  }, [notifications, selectedNotificationIdx, parentCast?.hash, loadingByType, activeTab, isRead, markAsRead, getNotificationId, updateSelectedCast]);
 
   // Reset selection when tab changes
   useEffect(() => {
@@ -483,8 +515,22 @@ const Inbox = () => {
   const switchToRecasts = useCallback(() => changeTab(NotificationTab.recasts), [changeTab]);
   const switchToFollows = useCallback(() => changeTab(NotificationTab.follows), [changeTab]);
   const refreshNotifications = useCallback(
-    () => fetchNotifications(activeTab, true, true, 30),
-    [fetchNotifications, activeTab]
+    async () => {
+      // Clear all state before refresh
+      setParentCast(null);
+      updateSelectedCast(undefined);
+      setSelectedNotificationIdx(0);
+      
+      // Clear notifications for current tab to show loading state
+      setNotificationsByType((prev) => ({
+        ...prev,
+        [activeTab]: []
+      }));
+      
+      // Fetch fresh notifications
+      await fetchNotifications(activeTab, true, true, 25);
+    },
+    [fetchNotifications, activeTab, updateSelectedCast]
   );
   const loadMoreNotifications = useCallback(() => {
     if (cursorsByType.current[activeTab] && !loadingByType[activeTab]) {
@@ -579,6 +625,17 @@ const Inbox = () => {
     changeTab(tabOrder[prevIndex]);
     console.log(`🔄 Shift+Tab navigation: ${activeTab} → ${tabOrder[prevIndex]}`);
   }, [activeTab, changeTab]);
+
+  // Mark selected notification as read
+  const markSelectedAsRead = useCallback(() => {
+    if (selectedNotificationIdx >= 0 && notifications.length > selectedNotificationIdx) {
+      const notification = notifications[selectedNotificationIdx];
+      const notificationId = getNotificationId(notification);
+      
+      // Always mark as read, even if already read
+      markAsRead(notificationId, activeTab);
+    }
+  }, [selectedNotificationIdx, notifications, markAsRead, getNotificationId, activeTab]);
 
   // Keyboard shortcuts with proper dependency arrays and stable callbacks
   useHotkeys(
@@ -723,6 +780,19 @@ const Inbox = () => {
     },
     [cycleToPrevTab]
   );
+  
+  // Mark as read
+  useHotkeys(
+    'e',
+    markSelectedAsRead,
+    {
+      enabled: !isNewCastModalOpen,
+      enableOnFormTags: false,
+      enableOnContentEditable: false,
+      preventDefault: true,
+    },
+    [markSelectedAsRead]
+  );
 
   const getActionDescriptionForRow = (notification: Notification): string => {
     const cast = notification.cast;
@@ -746,6 +816,8 @@ const Inbox = () => {
     const { cast } = notification;
     const timeAgoStr = formatDistanceToNowStrict(new Date(notification.most_recent_timestamp));
     const actionDescription = getActionDescriptionForRow(notification);
+    const notificationId = getNotificationId(notification);
+    const isNotificationRead = isRead(notificationId);
 
     // Handle follow notifications specially
     if (notification.type === NotificationTypeEnum.Follows && notification.follows) {
@@ -756,10 +828,10 @@ const Inbox = () => {
         <li
           key={`notification-${notification.most_recent_timestamp}`}
           className={cn(
+            'flex gap-x-4 px-4 py-3 border-b border-muted/50 transition-colors border-l-2',
             idx === selectedNotificationIdx
-              ? 'bg-muted border-l-2 border-blue-500'
-              : 'cursor-pointer bg-background/80 hover:bg-muted/50',
-            'flex gap-x-4 px-4 py-3 border-b border-muted/50 transition-colors'
+              ? 'bg-muted border-l-blue-500'
+              : 'cursor-pointer bg-background/80 hover:bg-muted/50 border-l-transparent'
           )}
           onClick={() => setSelectedNotificationIdx(idx)}
         >
@@ -768,6 +840,10 @@ const Inbox = () => {
               <AvatarImage src={firstFollower?.pfp_url} />
               <AvatarFallback>{firstFollower?.username?.slice(0, 2)}</AvatarFallback>
             </Avatar>
+            {/* Unread indicator */}
+            {!isNotificationRead && (
+              <div className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 bg-blue-500 rounded-full" />
+            )}
             {remainingCount > 0 && (
               <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                 +{Math.min(remainingCount, 9)}
@@ -797,17 +873,23 @@ const Inbox = () => {
       <li
         key={`notification-${notification.most_recent_timestamp}`}
         className={cn(
+          'flex gap-x-4 px-4 py-3 border-b border-muted/50 transition-colors border-l-2',
           idx === selectedNotificationIdx
-            ? 'bg-muted border-l-2 border-blue-500'
-            : 'cursor-pointer bg-background/80 hover:bg-muted/50',
-          'flex gap-x-4 px-4 py-3 border-b border-muted/50 transition-colors'
+            ? 'bg-muted border-l-blue-500'
+            : 'cursor-pointer bg-background/80 hover:bg-muted/50 border-l-transparent'
         )}
         onClick={() => setSelectedNotificationIdx(idx)}
       >
-        <Avatar className="mt-1 h-8 w-8 flex-none">
-          <AvatarImage src={author?.pfp_url} />
-          <AvatarFallback>{author?.username?.slice(0, 2)}</AvatarFallback>
-        </Avatar>
+        <div className="relative mt-1">
+          <Avatar className="h-8 w-8 flex-none">
+            <AvatarImage src={author?.pfp_url} />
+            <AvatarFallback>{author?.username?.slice(0, 2)}</AvatarFallback>
+          </Avatar>
+          {/* Unread indicator */}
+          {!isNotificationRead && (
+            <div className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 bg-blue-500 rounded-full" />
+          )}
+        </div>
         <div className="flex-auto min-w-0">
           <div className="flex items-center justify-between gap-x-4">
             <p className="text-sm font-medium text-foreground truncate">{actionDescription}</p>
@@ -904,31 +986,106 @@ const Inbox = () => {
         <Tabs value={activeTab} onValueChange={(value) => changeTab(value as NotificationTab)}>
           <div className="flex items-center justify-between">
             <TabsList className="grid grid-cols-5 flex-1 mr-3">
-              <TabsTrigger value={NotificationTab.replies} className="text-xs">
+              <TabsTrigger value={NotificationTab.replies} className="text-xs relative">
                 Replies
+                {activeTab === NotificationTab.replies && (() => {
+                  const notificationIds = notificationsByType[NotificationTab.replies].map(getNotificationId);
+                  const unreadCount = getUnreadCount(NotificationTab.replies, notificationIds);
+                  return unreadCount > 0 ? (
+                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  ) : null;
+                })()}
               </TabsTrigger>
-              <TabsTrigger value={NotificationTab.mentions} className="text-xs">
+              <TabsTrigger value={NotificationTab.mentions} className="text-xs relative">
                 Mentions
+                {activeTab === NotificationTab.mentions && (() => {
+                  const notificationIds = notificationsByType[NotificationTab.mentions].map(getNotificationId);
+                  const unreadCount = getUnreadCount(NotificationTab.mentions, notificationIds);
+                  return unreadCount > 0 ? (
+                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  ) : null;
+                })()}
               </TabsTrigger>
-              <TabsTrigger value={NotificationTab.likes} className="text-xs">
+              <TabsTrigger value={NotificationTab.likes} className="text-xs relative">
                 Likes
+                {activeTab === NotificationTab.likes && (() => {
+                  const notificationIds = notificationsByType[NotificationTab.likes].map(getNotificationId);
+                  const unreadCount = getUnreadCount(NotificationTab.likes, notificationIds);
+                  return unreadCount > 0 ? (
+                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  ) : null;
+                })()}
               </TabsTrigger>
-              <TabsTrigger value={NotificationTab.recasts} className="text-xs">
+              <TabsTrigger value={NotificationTab.recasts} className="text-xs relative">
                 Recasts
+                {activeTab === NotificationTab.recasts && (() => {
+                  const notificationIds = notificationsByType[NotificationTab.recasts].map(getNotificationId);
+                  const unreadCount = getUnreadCount(NotificationTab.recasts, notificationIds);
+                  return unreadCount > 0 ? (
+                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  ) : null;
+                })()}
               </TabsTrigger>
-              <TabsTrigger value={NotificationTab.follows} className="text-xs">
+              <TabsTrigger value={NotificationTab.follows} className="text-xs relative">
                 Follows
+                {activeTab === NotificationTab.follows && (() => {
+                  const notificationIds = notificationsByType[NotificationTab.follows].map(getNotificationId);
+                  const unreadCount = getUnreadCount(NotificationTab.follows, notificationIds);
+                  return unreadCount > 0 ? (
+                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  ) : null;
+                })()}
               </TabsTrigger>
             </TabsList>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refreshNotifications}
-              disabled={loadingByType[activeTab]}
-              className="flex-shrink-0"
-            >
-              {loadingByType[activeTab] ? <Loading /> : 'Refresh'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const notificationIds = notifications.map(getNotificationId);
+                  useNotificationStore.getState().markAllAsRead(activeTab, notificationIds);
+                }}
+                disabled={loadingByType[activeTab]}
+                className="flex-shrink-0"
+              >
+                Mark all read
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex-shrink-0 px-2">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={refreshNotifications}
+                    disabled={loadingByType[activeTab]}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      console.log('Manual sync triggered');
+                      useNotificationStore.getState().syncToSupabase();
+                    }}
+                  >
+                    <Cloud className="mr-2 h-4 w-4" />
+                    Sync to cloud
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </Tabs>
       </div>

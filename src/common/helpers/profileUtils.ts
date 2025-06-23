@@ -60,7 +60,10 @@ export const getProfileFetchIfNeeded = async ({
       viewerFid,
     });
     const matchingUsernames = [username, `${username}.eth`];
-    profile = results.find((user) => matchingUsernames.includes(user.username));
+    profile = results.find((user) => 
+      matchingUsernames.includes(user.username) || 
+      user.username?.toLowerCase() === username?.toLowerCase()
+    );
   }
   return profile;
 };

@@ -22,13 +22,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing or invalid FID parameter' });
   }
 
+  // Validate and cap the limit according to Neynar's constraints (max 25)
+  // Neynar API enforces a maximum limit of 25 for notifications endpoint
+  const validatedLimit = Math.min(parseInt(limit as string) || 25, 25);
+
   const timeout = setTimeout(() => {
     res.status(503).json({ error: TIMEOUT_ERROR_MESSAGE, notifications: [], isTimeout: true });
   }, timeoutThreshold);
 
   try {
     // Constructing the Neynar API URL with query parameters
-    let apiUrl = `${NEYNAR_API_URL}?fid=${fid}&priority_mode=${priorityMode}&limit=${limit}`;
+    let apiUrl = `${NEYNAR_API_URL}?fid=${fid}&priority_mode=${priorityMode}&limit=${validatedLimit}`;
 
     if (cursor) {
       apiUrl += `&cursor=${encodeURIComponent(cursor as string)}`;
