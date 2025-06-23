@@ -105,10 +105,10 @@ export class SearchService {
       // Remove from: operator from the query string
       const cleanQuery = SearchQueryBuilder.removeFromOperator(q);
 
-      const searchParams = {
+      const searchParams: SearchParams = {
         ...params,
         q: cleanQuery, // Always use the cleaned query
-        searchTerm: undefined, // Clear searchTerm to force use of q
+        searchTerm: '', // Empty string instead of undefined
         authorFid: authorFid,
         channelId: params.channelId || filters.channelId,
         parentUrl: params.parentUrl || filters.parentUrl,
@@ -161,11 +161,13 @@ export class SearchService {
     if (params.viewerFid) urlParams.append('viewerFid', params.viewerFid);
 
     // Neynar API parameters
-    if (params.mode || params.filters?.mode) {
-      urlParams.append('mode', params.mode || params.filters.mode);
+    const mode = params.mode || params.filters?.mode;
+    if (mode) {
+      urlParams.append('mode', mode);
     }
-    if (params.sortType || params.filters?.sortType) {
-      urlParams.append('sortType', params.sortType || params.filters.sortType);
+    const sortType = params.sortType || params.filters?.sortType;
+    if (sortType) {
+      urlParams.append('sortType', sortType);
     }
     if (params.authorFid) {
       urlParams.append('authorFid', params.authorFid.toString());

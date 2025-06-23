@@ -51,12 +51,12 @@ export const getProfileFetchIfNeeded = async ({
     return;
   }
 
-  let profile = getProfile(useDataStore.getState(), username, fid);
+  let profile = getProfile(useDataStore.getState(), username, fid?.toString());
   if (!profile) {
     username = username && username.startsWith('@') ? username.slice(1) : username;
     const results = await fetchAndAddUserProfile({
       username,
-      fid,
+      fid: fid?.toString(),
       viewerFid,
     });
     const matchingUsernames = [username, `${username}.eth`];

@@ -5,7 +5,6 @@ import { devtools } from 'zustand/middleware';
 import { create as mutativeCreate, Draft } from 'mutative';
 import { CastWithInteractions, User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
-import { AirstackSocialInfo } from '@/common/helpers/airstack';
 import { AnalyticsData } from '@/common/types/types';
 import { CoordinapeAttestation } from '@/common/helpers/coordinapeAttestations';
 
@@ -88,7 +87,6 @@ type addTokenDataProps = {
 };
 
 type AdditionalUserInfo = {
-  airstackSocialInfo: AirstackSocialInfo;
   icebreakerSocialInfo: IcebreakerSocialInfo;
   coordinapeAttestations: CoordinapeAttestation[];
 };

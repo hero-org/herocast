@@ -1,29 +1,29 @@
 import { describe, expect, test } from '@jest/globals';
 import { searchService } from '@/services/searchService';
 
-describe('searchService.searchService.getTextMatchCondition', () => {
+describe('searchService.getTextMatchCondition', () => {
   const TEXT_COLUMN = 'casts.text';
 
   test('should handle single word', () => {
-    expect(searchService.searchService.getTextMatchCondition('optimistic')).toBe(
+    expect(searchService.getTextMatchCondition('optimistic')).toBe(
       `${TEXT_COLUMN} ~* '\\moptimistic\\M'`
     );
   });
 
   test('should handle quoted single word', () => {
-    expect(searchService.searchService.getTextMatchCondition('"optimistic"')).toBe(
+    expect(searchService.getTextMatchCondition('"optimistic"')).toBe(
       `${TEXT_COLUMN} ~* '\\moptimistic\\M'`
     );
   });
 
   test('should handle phrase without quotes', () => {
-    expect(searchService.searchService.getTextMatchCondition('looking at clouds')).toBe(
+    expect(searchService.getTextMatchCondition('looking at clouds')).toBe(
       `${TEXT_COLUMN} ~* '\\mlooking at clouds\\M'`
     );
   });
 
   test('should handle phrase with quotes', () => {
-    expect(searchService.searchService.getTextMatchCondition('"looking at clouds"')).toBe(
+    expect(searchService.getTextMatchCondition('"looking at clouds"')).toBe(
       `${TEXT_COLUMN} ~* '\\mlooking at clouds\\M'`
     );
   });

@@ -2,15 +2,18 @@
  * SearchQueryBuilder handles advanced query operators for Neynar search
  * Supports: +, |, *, "", (), ~n, -, before:, after:, from:, channel:, parent:
  */
+
+type QueryFilters = {
+  authorFid?: number;
+  channelId?: string;
+  parentUrl?: string;
+  beforeDate?: string;
+  afterDate?: string;
+};
+
 export class SearchQueryBuilder {
   private query: string;
-  private filters: {
-    authorFid?: number;
-    channelId?: string;
-    parentUrl?: string;
-    beforeDate?: string;
-    afterDate?: string;
-  } = {};
+  private filters: QueryFilters = {};
 
   constructor(query: string) {
     this.query = query || '';
@@ -72,7 +75,7 @@ export class SearchQueryBuilder {
   /**
    * Build the final query object with date filters in the query string
    */
-  buildQuery(): { q: string; filters: typeof this.filters } {
+  buildQuery(): { q: string; filters: QueryFilters } {
     let finalQuery = this.query;
 
     // Re-add date filters to the query string as Neynar expects them
