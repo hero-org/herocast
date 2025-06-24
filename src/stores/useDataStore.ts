@@ -152,15 +152,15 @@ const store = (set: StoreSet, get: () => DataStore) => ({
       const timestamp = Date.now();
       const newUsernameToFid = {};
       const newFidToData = {};
-      
-      users.forEach(user => {
+
+      users.forEach((user) => {
         newUsernameToFid[user.username] = user.fid;
         newFidToData[user.fid] = {
           ...user,
           updatedAt: timestamp,
         };
       });
-      
+
       state.usernameToFid = { ...state.usernameToFid, ...newUsernameToFid };
       state.fidToData = { ...state.fidToData, ...newFidToData };
     });
@@ -173,15 +173,19 @@ const store = (set: StoreSet, get: () => DataStore) => ({
       };
     });
   },
-  fetchBulkProfiles: async (fids: number[], viewerFid: string, skipAdditionalInfo: boolean = true): Promise<UserProfile[]> => {
+  fetchBulkProfiles: async (
+    fids: number[],
+    viewerFid: string,
+    skipAdditionalInfo: boolean = true
+  ): Promise<UserProfile[]> => {
     if (fids.length === 0) return [];
 
     const currentState = get();
     const uncachedFids: number[] = [];
     const cachedProfiles: UserProfile[] = [];
-    
+
     // Check cache for existing profiles
-    fids.forEach(fid => {
+    fids.forEach((fid) => {
       const profile = currentState.fidToData[fid];
       if (!profile || shouldUpdateProfile(profile)) {
         uncachedFids.push(fid);
@@ -200,29 +204,29 @@ const store = (set: StoreSet, get: () => DataStore) => ({
     const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
     const fetchedProfiles: UserProfile[] = [];
     const batchSize = 50;
-    
+
     // Batch fetch uncached profiles
     for (let i = 0; i < uncachedFids.length; i += batchSize) {
       const batch = uncachedFids.slice(i, i + batchSize);
-      
+
       try {
         const response = await neynarClient.fetchBulkUsers(batch, {
           viewerFid: parseInt(viewerFid),
         });
-        
+
         if (response.users) {
           // Add basic profiles to store immediately
           const addUserProfiles = get().addUserProfiles;
           addUserProfiles(response.users);
-          
+
           // Create UserProfile objects
-          const userProfiles = response.users.map(user => ({
+          const userProfiles = response.users.map((user) => ({
             ...user,
             updatedAt: Date.now(),
           }));
-          
+
           fetchedProfiles.push(...userProfiles);
-          
+
           // Fetch additional info if requested
           if (!skipAdditionalInfo) {
             await Promise.all(

@@ -79,7 +79,7 @@ export default function ListPage() {
     const fidsToProcess = onlyFirstPage ? fidList.fids.slice(0, USERS_PER_PAGE) : fidList.fids;
 
     // Convert string FIDs to numbers
-    const numericFids = fidsToProcess.map(fid => parseInt(fid));
+    const numericFids = fidsToProcess.map((fid) => parseInt(fid));
 
     // Use the store's bulk fetch function that checks cache first
     const { fetchBulkProfiles } = useDataStore.getState();
@@ -121,12 +121,12 @@ export default function ListPage() {
     if (activeList && isFidListContent(activeList.contents)) {
       const content = activeList.contents as FidListContent;
       if (!content.fids || content.fids.length === 0) return;
-      
+
       // Get FIDs for current page
       const startIndex = (currentPage - 1) * USERS_PER_PAGE;
       const endIndex = startIndex + USERS_PER_PAGE;
       const pageFids = content.fids.slice(startIndex, endIndex);
-      
+
       // Load profiles for current page
       loadProfileData({ fids: pageFids, displayNames: {} }, false);
     }
@@ -145,14 +145,14 @@ export default function ListPage() {
 
     try {
       await addFidList(newListName, []);
-      
+
       // Get the newly created list and set it as active
       const updatedLists = getFidLists();
       const newList = updatedLists[updatedLists.length - 1]; // New list is added at the end
       if (newList) {
         setActiveListId(newList.id);
       }
-      
+
       setNewListName('');
       setIsCreatingList(false);
       toast({
