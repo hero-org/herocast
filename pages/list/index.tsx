@@ -272,11 +272,19 @@ export default function ListPage() {
       };
 
       // Use the store's update method which properly handles RLS
-      await updateList({
-        id: activeListId,
-        name: activeList.name,
-        contents: updatedContent,
-      });
+      try {
+        await updateList({
+          id: activeListId,
+          name: activeList.name,
+          contents: updatedContent,
+        });
+      } catch (updateError) {
+        console.error('Failed to update list:', updateError);
+        return {
+          success: false,
+          error: `Failed to update list: ${updateError.message}. Please try again.`,
+        };
+      }
 
       // Refresh the list to ensure consistency
       await hydrate();
