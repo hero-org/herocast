@@ -197,7 +197,9 @@ export default function ListPage() {
   };
 
   // Handle bulk add users
-  const handleBulkAddUsers = async (users: Array<{ fid: string; displayName: string }>): Promise<{ success: boolean; error?: string }> => {
+  const handleBulkAddUsers = async (
+    users: Array<{ fid: string; displayName: string }>
+  ): Promise<{ success: boolean; error?: string }> => {
     if (!activeListId || !activeList) {
       return { success: false, error: 'No active list selected' };
     }
@@ -238,35 +240,35 @@ export default function ListPage() {
         console.error('Failed to update list in database:', error);
         // Try to rollback by refreshing from the database
         await hydrate();
-        return { 
-          success: false, 
-          error: `Database update failed: ${error.message}. Please try again.` 
+        return {
+          success: false,
+          error: `Database update failed: ${error.message}. Please try again.`,
         };
       }
 
       // Refresh the list to ensure consistency
       await hydrate();
-      
+
       // Load profile data for the newly added users
-      const newUserFids = users.map(u => u.fid);
+      const newUserFids = users.map((u) => u.fid);
       await Promise.all(
-        newUserFids.map(fid => 
+        newUserFids.map((fid) =>
           getProfileFetchIfNeeded({
             fid,
             viewerFid: process.env.NEXT_PUBLIC_APP_FID!,
-          }).catch(err => {
+          }).catch((err) => {
             console.error(`Failed to load profile for FID ${fid}:`, err);
             return null;
           })
         )
       );
-      
+
       return { success: true };
     } catch (error) {
       console.error('Failed to bulk add users:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Failed to add users to the list' 
+      return {
+        success: false,
+        error: error.message || 'Failed to add users to the list',
       };
     }
   };

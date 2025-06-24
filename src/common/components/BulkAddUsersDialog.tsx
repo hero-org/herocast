@@ -379,7 +379,7 @@ export function BulkAddUsersDialog({
                 </AlertDescription>
               </Alert>
             )}
-            
+
             {lastAddError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -420,8 +420,10 @@ export function BulkAddUsersDialog({
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Adding...
                   </>
+                ) : lastAddError ? (
+                  `Retry Adding ${validCount} User${validCount !== 1 ? 's' : ''}`
                 ) : (
-                  lastAddError ? `Retry Adding ${validCount} User${validCount !== 1 ? 's' : ''}` : `Add ${validCount} User${validCount !== 1 ? 's' : ''}`
+                  `Add ${validCount} User${validCount !== 1 ? 's' : ''}`
                 )}
               </Button>
             </>
