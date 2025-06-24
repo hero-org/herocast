@@ -6,10 +6,12 @@ export const fetchAndAddUserProfile = async ({
   username,
   fid,
   viewerFid,
+  skipAdditionalInfo = false,
 }: {
   username?: string;
   fid?: string;
   viewerFid: string;
+  skipAdditionalInfo?: boolean;
 }) => {
   const users = await getUserDataForFidOrUsername({
     username,
@@ -19,18 +21,22 @@ export const fetchAndAddUserProfile = async ({
   const { addUserProfile } = useDataStore.getState();
   if (users.length) {
     for (const user of users) {
-      const response = await fetch(
-        `/api/additionalProfileInfo?fid=${user.fid}&addresses=${user.verified_addresses.eth_addresses}`
-      );
-      if (response.ok) {
-        const userProfileInfos = await response.json();
-        const enrichedUser = {
-          ...user,
-          ...userProfileInfos,
-        };
-        addUserProfile({ user: enrichedUser });
+      if (!skipAdditionalInfo) {
+        const response = await fetch(
+          `/api/additionalProfileInfo?fid=${user.fid}&addresses=${user.verified_addresses.eth_addresses}`
+        );
+        if (response.ok) {
+          const userProfileInfos = await response.json();
+          const enrichedUser = {
+            ...user,
+            ...userProfileInfos,
+          };
+          addUserProfile({ user: enrichedUser });
+        } else {
+          console.error(`Failed to fetch assets for user with FID ${user.fid}`);
+          addUserProfile({ user });
+        }
       } else {
-        console.error(`Failed to fetch assets for user with FID ${user.fid}`);
         addUserProfile({ user });
       }
     }
@@ -42,10 +48,12 @@ export const getProfileFetchIfNeeded = async ({
   username,
   fid,
   viewerFid,
+  skipAdditionalInfo = false,
 }: {
   username?: string;
   viewerFid: string;
   fid?: string | number;
+  skipAdditionalInfo?: boolean;
 }) => {
   if (!username && !fid) {
     return;
@@ -58,6 +66,7 @@ export const getProfileFetchIfNeeded = async ({
       username,
       fid: fid?.toString(),
       viewerFid,
+      skipAdditionalInfo,
     });
     const matchingUsernames = [username, `${username}.eth`];
     profile = results.find(

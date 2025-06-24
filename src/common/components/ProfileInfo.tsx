@@ -34,9 +34,10 @@ const ProfileInfo = ({
 
   useEffect(() => {
     if (shouldUpdateProfile(profile)) {
-      fetchAndAddUserProfile({ fid, viewerFid });
+      // Only fetch additional info if showFullInfo is true
+      fetchAndAddUserProfile({ fid, viewerFid, skipAdditionalInfo: !showFullInfo });
     }
-  }, [fid, viewerFid, profile]);
+  }, [fid, viewerFid, profile, showFullInfo]);
 
   const shouldRenderFullInfo = showFullInfo && profile?.icebreakerSocialInfo;
 

@@ -30,7 +30,7 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
     const effectiveViewerFid = viewerFid || Number(process.env.NEXT_PUBLIC_APP_FID!);
 
     if (shouldUpdateProfile(profile)) {
-      fetchAndAddUserProfile({ username, fid, viewerFid: effectiveViewerFid });
+      fetchAndAddUserProfile({ username, fid, viewerFid: effectiveViewerFid, skipAdditionalInfo: true });
     }
   }, [inView, username, fid]);
 
