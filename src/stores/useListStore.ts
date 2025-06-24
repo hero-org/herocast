@@ -275,11 +275,21 @@ const store = (set: StoreSet, get: () => ListStore) => ({
   },
   updateList: async (search: UpdateList) => {
     if (!search.id) throw new Error('List id is required');
-    const { data, error } = await supabaseClient.from('list').upsert(search).select();
+    
+    // Remove id from the update payload and use it in the where clause
+    const { id, ...updateData } = search;
+    
+    const { data, error } = await supabaseClient
+      .from('list')
+      .update(updateData)
+      .eq('id', id)
+      .select();
+      
     if (error) {
-      throw new Error('Failed to update list');
+      throw new Error(`Failed to update list: ${error.message}`);
     }
-    const idx = useListStore.getState().lists.findIndex((s) => s.id === search.id);
+    
+    const idx = useListStore.getState().lists.findIndex((s) => s.id === id);
     set((state) => {
       state.lists[idx] = data?.[0] as List;
     });
@@ -298,14 +308,14 @@ const store = (set: StoreSet, get: () => ListStore) => ({
 
     const { data, error } = await supabaseClient
       .from('list')
-      .upsert({
-        id: listId,
+      .update({
         name,
         contents: {
           fids,
           displayNames,
         },
       })
+      .eq('id', listId)
       .select();
 
     if (error) {

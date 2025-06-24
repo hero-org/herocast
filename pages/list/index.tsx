@@ -221,28 +221,24 @@ export default function ListPage() {
         }
       });
 
-      // Update the list using the store method first
-      await updateFidList(activeListId, activeList.name, newFids);
+      // Create a new content object with both FIDs and display names
+      const updatedContent: FidListContent = {
+        fids: newFids,
+        displayNames: newDisplayNames,
+      };
 
-      // Update display names in the database
-      const { data, error } = await supabaseClient
-        .from('list')
-        .update({
-          contents: {
-            fids: newFids,
-            displayNames: newDisplayNames,
-          },
-        })
-        .eq('id', activeListId)
-        .select();
-
-      if (error) {
-        console.error('Failed to update list in database:', error);
-        // Try to rollback by refreshing from the database
-        await hydrate();
+      // Use the store's update method which properly handles RLS
+      try {
+        await updateList({
+          id: activeListId,
+          name: activeList.name,
+          contents: updatedContent,
+        });
+      } catch (updateError) {
+        console.error('Failed to update list:', updateError);
         return {
           success: false,
-          error: `Database update failed: ${error.message}. Please try again.`,
+          error: `Failed to update list: ${updateError.message}. Please try again.`,
         };
       }
 
