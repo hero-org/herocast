@@ -366,29 +366,33 @@ export default function ListPage() {
   };
 
   return (
-    <div className="max-w-4xl py-8">
+    <div className="container mx-auto px-6 py-8">
       {/* Navigation breadcrumb */}
-      <div className="mb-6">
-        <Link href="/lists" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Back to all lists
+      <div className="mb-8">
+        <Link href="/lists" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to all lists
         </Link>
       </div>
 
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Manage User Lists</h1>
-          <p className="text-muted-foreground">Create and manage lists of users to customize your feed</p>
-        </div>
+      {/* Header section */}
+      <div className="mb-10">
+        <h1 className="text-4xl font-bold tracking-tight mb-3">Manage User Lists</h1>
+        <p className="text-lg text-muted-foreground">Create and manage lists of users to customize your feed</p>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full max-w-md" />
-          <Skeleton className="h-[400px] w-full" />
-        </div>
-      ) : (
-        renderListTabs()
-      )}
+      <div className="max-w-6xl">
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full max-w-md" />
+            <Skeleton className="h-[400px] w-full" />
+          </div>
+        ) : (
+          renderListTabs()
+        )}
+      </div>
 
       {/* Create List Dialog */}
       <Dialog open={isCreatingList} onOpenChange={setIsCreatingList}>

@@ -19,6 +19,9 @@ import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getProfile } from '@/common/helpers/profileUtils';
+import { useDataStore } from '@/stores/useDataStore';
+import { fetchAndAddUserProfile } from '@/common/helpers/profileUtils';
 
 interface BulkAddUsersDialogProps {
   open: boolean;
@@ -48,6 +51,7 @@ export function BulkAddUsersDialog({
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedUsers, setParsedUsers] = useState<ParsedUser[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState({ current: 0, total: 0 });
 
   const resetDialog = () => {
     setInput('');
@@ -87,67 +91,151 @@ export function BulkAddUsersDialog({
     const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
     const results: ParsedUser[] = [];
+    setProcessingProgress({ current: 0, total: items.length });
 
-    // Process in batches
-    const batchSize = 100;
-    for (let i = 0; i < items.length; i += batchSize) {
-      const batch = items.slice(i, i + batchSize);
-      const batchResults = await Promise.all(
-        batch.map(async (item): Promise<ParsedUser> => {
-          // Check if it's a number (FID)
-          const isNumeric = /^\d+$/.test(item);
+    // Separate FIDs and usernames
+    const fids: string[] = [];
+    const usernames: string[] = [];
+    
+    items.forEach(item => {
+      if (/^\d+$/.test(item)) {
+        fids.push(item);
+      } else {
+        usernames.push(item);
+      }
+    });
 
-          try {
-            if (isNumeric) {
-              // It's an FID
-              const fid = item;
-
-              // Check if already in list
-              if (existingFids.includes(fid)) {
-                return { input: item, fid, isDuplicate: true };
-              }
-
-              // Fetch user data
-              const response = await neynarClient.fetchBulkUsers([parseInt(fid)], {
-                viewerFid: parseInt(viewerFid),
-              });
-
-              if (response.users && response.users.length > 0) {
-                return { input: item, fid, user: response.users[0] };
-              } else {
-                return { input: item, error: 'User not found' };
-              }
-            } else {
-              // It's a username - search for it
-              const response = await neynarClient.searchUser(item, parseInt(viewerFid));
-
-              if (response.result?.users && response.result.users.length > 0) {
-                const user = response.result.users[0];
-                const fid = user.fid.toString();
-
-                // Check if already in list
-                if (existingFids.includes(fid)) {
-                  return { input: item, fid, user, isDuplicate: true };
-                }
-
-                return { input: item, fid, user };
-              } else {
-                return { input: item, error: 'User not found' };
-              }
-            }
-          } catch (error) {
-            console.error(`Error processing ${item}:`, error);
-            return { input: item, error: 'Failed to fetch user' };
+    // Process FIDs in batches using bulk API
+    const fidBatchSize = 50; // Neynar bulk API supports up to 100, using 50 to be safe
+    for (let i = 0; i < fids.length; i += fidBatchSize) {
+      const batch = fids.slice(i, i + fidBatchSize);
+      const batchFids = batch.map(fid => parseInt(fid));
+      
+      try {
+        // First check cache for existing profiles
+        const cachedResults: ParsedUser[] = [];
+        const uncachedFids: number[] = [];
+        
+        for (const fid of batchFids) {
+          const cachedProfile = getProfile(useDataStore.getState(), fid);
+          if (cachedProfile) {
+            cachedResults.push({
+              input: fid.toString(),
+              fid: fid.toString(),
+              user: cachedProfile as User,
+              isDuplicate: existingFids.includes(fid.toString())
+            });
+          } else {
+            uncachedFids.push(fid);
           }
-        })
-      );
+        }
+        
+        results.push(...cachedResults);
+        
+        // Fetch uncached profiles in bulk
+        if (uncachedFids.length > 0) {
+          const response = await neynarClient.fetchBulkUsers(uncachedFids, {
+            viewerFid: parseInt(viewerFid),
+          });
+          
+          if (response.users) {
+            response.users.forEach(user => {
+              const fidStr = user.fid.toString();
+              results.push({
+                input: fidStr,
+                fid: fidStr,
+                user,
+                isDuplicate: existingFids.includes(fidStr)
+              });
+              // Add to cache
+              fetchAndAddUserProfile({ fid: user.fid, viewerFid: parseInt(viewerFid) });
+            });
+            
+            // Handle not found FIDs
+            const foundFids = new Set(response.users.map(u => u.fid.toString()));
+            uncachedFids.forEach(fid => {
+              if (!foundFids.has(fid.toString())) {
+                results.push({
+                  input: fid.toString(),
+                  error: 'User not found'
+                });
+              }
+            });
+          }
+        }
+        
+        setProcessingProgress({ current: i + batch.length, total: items.length });
+        
+        // Add delay between batches to avoid rate limiting
+        if (i + fidBatchSize < fids.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      } catch (error) {
+        console.error('Error processing FID batch:', error);
+        batch.forEach(fid => {
+          results.push({ input: fid, error: 'Failed to fetch user' });
+        });
+      }
+    }
 
-      results.push(...batchResults);
+    // Process usernames one by one with rate limiting
+    const usernameDelay = 150; // 150ms between requests to stay well under rate limit
+    for (let i = 0; i < usernames.length; i++) {
+      const username = usernames[i];
+      
+      try {
+        // Check cache first by username
+        const cachedFid = useDataStore.getState().usernameToFid[username.toLowerCase()];
+        if (cachedFid) {
+          const cachedProfile = getProfile(useDataStore.getState(), cachedFid);
+          if (cachedProfile) {
+            results.push({
+              input: username,
+              fid: cachedFid.toString(),
+              user: cachedProfile as User,
+              isDuplicate: existingFids.includes(cachedFid.toString())
+            });
+            setProcessingProgress({ current: fids.length + i + 1, total: items.length });
+            continue;
+          }
+        }
+        
+        // Search for username
+        const response = await neynarClient.searchUser(username, parseInt(viewerFid));
+        
+        if (response.result?.users && response.result.users.length > 0) {
+          const user = response.result.users[0];
+          const fid = user.fid.toString();
+          
+          results.push({
+            input: username,
+            fid,
+            user,
+            isDuplicate: existingFids.includes(fid)
+          });
+          
+          // Add to cache
+          fetchAndAddUserProfile({ fid: user.fid, viewerFid: parseInt(viewerFid) });
+        } else {
+          results.push({ input: username, error: 'User not found' });
+        }
+      } catch (error) {
+        console.error(`Error processing username ${username}:`, error);
+        results.push({ input: username, error: 'Failed to fetch user' });
+      }
+      
+      setProcessingProgress({ current: fids.length + i + 1, total: items.length });
+      
+      // Rate limit delay between username searches
+      if (i < usernames.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, usernameDelay));
+      }
     }
 
     setParsedUsers(results);
     setShowPreview(true);
     setIsProcessing(false);
+    setProcessingProgress({ current: 0, total: 0 });
   };
 
   const handleAddUsers = async () => {
@@ -287,7 +375,7 @@ export function BulkAddUsersDialog({
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                  Processing{processingProgress.total > 0 && ` (${processingProgress.current}/${processingProgress.total})`}...
                 </>
               ) : (
                 'Preview'
