@@ -161,7 +161,7 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
           {isListsOpen && (hasFidLists ? renderFidLists() : renderAddFirstListButton())}
         </div>
       </div>
-      
+
       {/* View all lists button */}
       <div className="px-3 pt-2">
         <Link href="/lists">

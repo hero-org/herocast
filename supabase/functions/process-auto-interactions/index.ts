@@ -1,13 +1,13 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
 import { corsHeaders } from '../_shared/cors.ts';
-import { 
+import {
   makeReactionAdd,
   makeCastAdd,
   FarcasterNetwork,
   ReactionType,
   getSSLHubRpcClient,
-  Message
+  Message,
 } from 'https://esm.sh/@farcaster/core@0.14.0';
 import { hexToBytes } from 'https://esm.sh/@noble/hashes@1.3.2/utils';
 
@@ -34,10 +34,7 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Fetch all auto-interaction lists
-    const { data: lists, error: listsError } = await supabase
-      .from('list')
-      .select('*')
-      .eq('type', 'auto_interaction');
+    const { data: lists, error: listsError } = await supabase.from('list').select('*').eq('type', 'auto_interaction');
 
     if (listsError) {
       throw new Error(`Failed to fetch auto-interaction lists: ${listsError.message}`);
@@ -68,7 +65,7 @@ serve(async (req) => {
 
 async function processAutoInteractionList(supabase: any, list: any) {
   const content = list.contents as AutoInteractionListContent;
-  
+
   if (!content.fids || content.fids.length === 0) {
     console.log(`List ${list.id} has no FIDs to monitor`);
     return;
@@ -98,7 +95,7 @@ async function processAutoInteractionList(supabase: any, list: any) {
 
   // Fetch recent casts from target FIDs
   const casts = await fetchRecentCasts(content.fids, content.lastProcessedHash);
-  
+
   console.log(`Found ${casts.length} casts to process for list ${list.id}`);
 
   let processedCount = 0;
@@ -125,7 +122,7 @@ async function processAutoInteractionList(supabase: any, list: any) {
     try {
       if (content.actionType === 'like' || content.actionType === 'both') {
         await performLike(cast.hash, privateKey, sourceAccount.platform_account_id, cast.author.fid);
-        
+
         // Record the action
         await supabase.from('auto_interaction_history').insert({
           list_id: list.id,
@@ -136,7 +133,7 @@ async function processAutoInteractionList(supabase: any, list: any) {
 
       if (content.actionType === 'recast' || content.actionType === 'both') {
         await performRecast(cast.hash, privateKey, sourceAccount.platform_account_id, cast.author.fid);
-        
+
         // Record the action
         await supabase.from('auto_interaction_history').insert({
           list_id: list.id,
@@ -155,10 +152,7 @@ async function processAutoInteractionList(supabase: any, list: any) {
   // Update last processed hash if we processed any casts
   if (processedCount > 0 && lastHash !== content.lastProcessedHash) {
     const updatedContent = { ...content, lastProcessedHash: lastHash };
-    await supabase
-      .from('list')
-      .update({ contents: updatedContent })
-      .eq('id', list.id);
+    await supabase.from('list').update({ contents: updatedContent }).eq('id', list.id);
   }
 
   console.log(`Processed ${processedCount} casts for list ${list.id}`);
@@ -173,9 +167,7 @@ function shouldProcessCast(cast: any, content: AutoInteractionListContent): bool
   // Check mention requirements
   if (content.requireMentions && content.requireMentions.length > 0) {
     const mentionedFids = extractMentionedFids(cast);
-    const hasRequiredMention = content.requireMentions.some((fid) => 
-      mentionedFids.includes(fid)
-    );
+    const hasRequiredMention = content.requireMentions.some((fid) => mentionedFids.includes(fid));
     if (!hasRequiredMention) {
       return false;
     }
@@ -186,7 +178,7 @@ function shouldProcessCast(cast: any, content: AutoInteractionListContent): bool
 
 function extractMentionedFids(cast: any): string[] {
   const fids: string[] = [];
-  
+
   // Extract from mentioned_profiles if available
   if (cast.mentioned_profiles) {
     cast.mentioned_profiles.forEach((profile: any) => {
@@ -209,7 +201,7 @@ function extractMentionedFids(cast: any): string[] {
 async function fetchRecentCasts(fids: string[], lastProcessedHash?: string): Promise<any[]> {
   const response = await fetch(`https://api.neynar.com/v2/farcaster/feed?fids=${fids.join(',')}&limit=50`, {
     headers: {
-      'api_key': NEYNAR_API_KEY,
+      api_key: NEYNAR_API_KEY,
     },
   });
 
@@ -235,18 +227,18 @@ async function performLike(castHash: string, privateKey: string, signerFid: stri
   try {
     // Convert the cast hash from hex string to bytes
     const targetHash = hexToBytes(castHash.startsWith('0x') ? castHash.slice(2) : castHash);
-    
+
     // Convert private key from hex string to bytes
     const privateKeyBytes = hexToBytes(privateKey.startsWith('0x') ? privateKey.slice(2) : privateKey);
-    
+
     // Create the reaction add message
     const reactionAdd = await makeReactionAdd(
       {
         type: ReactionType.LIKE,
         targetCastId: {
           hash: targetHash,
-          fid: BigInt(targetFid)
-        }
+          fid: BigInt(targetFid),
+        },
       },
       { fid: Number(signerFid), network: FarcasterNetwork.MAINNET },
       privateKeyBytes
@@ -261,7 +253,7 @@ async function performLike(castHash: string, privateKey: string, signerFid: stri
       'hub-grpc.pinata.cloud',
       'nemes.farcaster.xyz:2283',
       'hoyt.farcaster.xyz:2283',
-      'hub.farcaster.standardcrypto.vc:2283'
+      'hub.farcaster.standardcrypto.vc:2283',
     ];
 
     let submitted = false;
@@ -299,18 +291,18 @@ async function performRecast(castHash: string, privateKey: string, signerFid: st
   try {
     // Convert the cast hash from hex string to bytes
     const targetHash = hexToBytes(castHash.startsWith('0x') ? castHash.slice(2) : castHash);
-    
+
     // Convert private key from hex string to bytes
     const privateKeyBytes = hexToBytes(privateKey.startsWith('0x') ? privateKey.slice(2) : privateKey);
-    
+
     // Create the reaction add message for recast
     const reactionAdd = await makeReactionAdd(
       {
         type: ReactionType.RECAST,
         targetCastId: {
           hash: targetHash,
-          fid: BigInt(targetFid)
-        }
+          fid: BigInt(targetFid),
+        },
       },
       { fid: Number(signerFid), network: FarcasterNetwork.MAINNET },
       privateKeyBytes
@@ -325,7 +317,7 @@ async function performRecast(castHash: string, privateKey: string, signerFid: st
       'hub-grpc.pinata.cloud',
       'nemes.farcaster.xyz:2283',
       'hoyt.farcaster.xyz:2283',
-      'hub.farcaster.standardcrypto.vc:2283'
+      'hub.farcaster.standardcrypto.vc:2283',
     ];
 
     let submitted = false;

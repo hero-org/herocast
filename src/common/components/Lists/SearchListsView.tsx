@@ -39,9 +39,7 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
       <div className="text-center py-12">
         <MagnifyingGlassIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No saved searches yet</h3>
-        <p className="text-muted-foreground mb-4">
-          Create searches to monitor keywords and topics on Farcaster
-        </p>
+        <p className="text-muted-foreground mb-4">Create searches to monitor keywords and topics on Farcaster</p>
         <Button onClick={() => router.push('/search')}>
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Your First Search
@@ -53,9 +51,7 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">
-          Monitor keywords and get notified about new casts
-        </p>
+        <p className="text-sm text-muted-foreground">Monitor keywords and get notified about new casts</p>
         <Button size="sm" onClick={() => router.push('/search')}>
           <PlusIcon className="h-4 w-4 mr-2" />
           New Search
@@ -66,10 +62,10 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
         {lists.map((list) => {
           const content = list.contents as SearchListContent;
           const hasEmailEnabled = content.enabled_daily_email;
-          
+
           return (
-            <Card 
-              key={list.id} 
+            <Card
+              key={list.id}
               className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => handleListClick(list.id)}
             >
@@ -78,33 +74,17 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
                   <div className="flex-1">
                     <CardTitle className="text-lg flex items-center gap-2">
                       {list.name}
-                      {hasEmailEnabled && (
-                        <BellIcon className="h-4 w-4 text-muted-foreground" />
-                      )}
+                      {hasEmailEnabled && <BellIcon className="h-4 w-4 text-muted-foreground" />}
                     </CardTitle>
-                    <CardDescription className="mt-1">
-                      Searching for: &quot;{content.term}&quot;
-                    </CardDescription>
+                    <CardDescription className="mt-1">Searching for: &quot;{content.term}&quot;</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {content.filters?.interval && (
-                    <Badge variant="secondary">
-                      {content.filters.interval}
-                    </Badge>
-                  )}
-                  {content.filters?.channelId && (
-                    <Badge variant="secondary">
-                      /{content.filters.channelId}
-                    </Badge>
-                  )}
-                  {hasEmailEnabled && (
-                    <Badge variant="outline">
-                      Daily emails
-                    </Badge>
-                  )}
+                  {content.filters?.interval && <Badge variant="secondary">{content.filters.interval}</Badge>}
+                  {content.filters?.channelId && <Badge variant="secondary">/{content.filters.channelId}</Badge>}
+                  {hasEmailEnabled && <Badge variant="outline">Daily emails</Badge>}
                 </div>
               </CardContent>
               <CardFooter className="text-xs text-muted-foreground">

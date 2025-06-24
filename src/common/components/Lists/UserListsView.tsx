@@ -41,9 +41,7 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
       <div className="text-center py-12">
         <UserGroupIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No user lists yet</h3>
-        <p className="text-muted-foreground mb-4">
-          Create lists to organize and follow groups of users
-        </p>
+        <p className="text-muted-foreground mb-4">Create lists to organize and follow groups of users</p>
         <Button onClick={() => router.push('/list')}>
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Your First List
@@ -55,9 +53,7 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">
-          Organize users into lists to see their casts in custom feeds
-        </p>
+        <p className="text-sm text-muted-foreground">Organize users into lists to see their casts in custom feeds</p>
         <Button size="sm" onClick={() => router.push('/list')}>
           <PlusIcon className="h-4 w-4 mr-2" />
           New List
@@ -68,10 +64,10 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
         {lists.map((list) => {
           const content = list.contents as FidListContent;
           const previewFids = content.fids.slice(0, 5);
-          
+
           return (
-            <Card 
-              key={list.id} 
+            <Card
+              key={list.id}
               className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => handleListClick(list.id)}
             >
@@ -88,9 +84,7 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
                     return (
                       <Avatar key={fid} className="h-8 w-8 border-2 border-background">
                         <AvatarImage src={userData?.pfp_url} />
-                        <AvatarFallback>
-                          {userData?.username?.[0]?.toUpperCase() || 'U'}
-                        </AvatarFallback>
+                        <AvatarFallback>{userData?.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                       </Avatar>
                     );
                   })}
@@ -106,8 +100,8 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
                   <span className="text-xs text-muted-foreground">
                     Created {formatDistanceToNow(new Date(list.created_at))} ago
                   </span>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();

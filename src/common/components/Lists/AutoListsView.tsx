@@ -37,9 +37,7 @@ export function AutoListsView({ lists, isLoading }: AutoListsViewProps) {
       <div className="text-center py-12">
         <BoltIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No auto-interactions yet</h3>
-        <p className="text-muted-foreground mb-4">
-          Set up automated likes and recasts between your accounts
-        </p>
+        <p className="text-muted-foreground mb-4">Set up automated likes and recasts between your accounts</p>
         <Button onClick={() => router.push('/list/auto-interactions')}>
           <PlusIcon className="h-4 w-4 mr-2" />
           Create Your First Automation
@@ -51,9 +49,7 @@ export function AutoListsView({ lists, isLoading }: AutoListsViewProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">
-          Automatically interact with casts from specific accounts
-        </p>
+        <p className="text-sm text-muted-foreground">Automatically interact with casts from specific accounts</p>
         <Button size="sm" onClick={() => router.push('/list/auto-interactions')}>
           <PlusIcon className="h-4 w-4 mr-2" />
           New Automation
@@ -63,12 +59,12 @@ export function AutoListsView({ lists, isLoading }: AutoListsViewProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {lists.map((list) => {
           const content = list.contents as AutoInteractionListContent;
-          const sourceAccount = accounts.find(a => a.id === content.sourceAccountId);
+          const sourceAccount = accounts.find((a) => a.id === content.sourceAccountId);
           const previewFids = content.fids.slice(0, 3);
-          
+
           return (
-            <Card 
-              key={list.id} 
+            <Card
+              key={list.id}
               className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => router.push('/list/auto-interactions')}
             >

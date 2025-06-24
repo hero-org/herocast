@@ -3,7 +3,12 @@ import { devtools } from 'zustand/middleware';
 import { create as mutativeCreate, Draft } from 'mutative';
 import { createClient } from '@/common/helpers/supabase/component';
 import { InsertList, List, UpdateList } from '@/common/types/database.types';
-import { FidListContent, isFidListContent, AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
+import {
+  FidListContent,
+  isFidListContent,
+  AutoInteractionListContent,
+  isAutoInteractionListContent,
+} from '@/common/types/list.types';
 import { UUID } from 'crypto';
 
 export type Search = {
@@ -48,7 +53,14 @@ interface ListStoreActions {
   getListsByFid: (fid: string) => List[];
 
   // Auto-interaction list methods
-  addAutoInteractionList: (name: string, fids: string[], sourceAccountId: string, actionType: 'like' | 'recast' | 'both', onlyTopCasts: boolean, requireMentions?: string[]) => Promise<void>;
+  addAutoInteractionList: (
+    name: string,
+    fids: string[],
+    sourceAccountId: string,
+    actionType: 'like' | 'recast' | 'both',
+    onlyTopCasts: boolean,
+    requireMentions?: string[]
+  ) => Promise<void>;
   updateAutoInteractionSettings: (listId: UUID, settings: Partial<AutoInteractionListContent>) => Promise<void>;
   getAutoInteractionLists: () => List[];
 }
@@ -359,7 +371,14 @@ const store = (set: StoreSet, get: () => ListStore) => ({
   },
 
   // Auto-interaction list methods
-  addAutoInteractionList: async (name: string, fids: string[], sourceAccountId: string, actionType: 'like' | 'recast' | 'both', onlyTopCasts: boolean, requireMentions?: string[]) => {
+  addAutoInteractionList: async (
+    name: string,
+    fids: string[],
+    sourceAccountId: string,
+    actionType: 'like' | 'recast' | 'both',
+    onlyTopCasts: boolean,
+    requireMentions?: string[]
+  ) => {
     const {
       data: { user },
     } = await supabaseClient.auth.getUser();

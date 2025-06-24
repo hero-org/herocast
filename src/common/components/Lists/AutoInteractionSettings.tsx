@@ -67,18 +67,27 @@ export function AutoInteractionSettings({
 
       <div className="space-y-2">
         <Label>Action Type</Label>
-        <RadioGroup value={actionType} onValueChange={(value) => onActionTypeChange(value as 'like' | 'recast' | 'both')}>
+        <RadioGroup
+          value={actionType}
+          onValueChange={(value) => onActionTypeChange(value as 'like' | 'recast' | 'both')}
+        >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="like" id="like" />
-            <Label htmlFor="like" className="font-normal cursor-pointer">Like only</Label>
+            <Label htmlFor="like" className="font-normal cursor-pointer">
+              Like only
+            </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="recast" id="recast" />
-            <Label htmlFor="recast" className="font-normal cursor-pointer">Recast only</Label>
+            <Label htmlFor="recast" className="font-normal cursor-pointer">
+              Recast only
+            </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="both" id="both" />
-            <Label htmlFor="both" className="font-normal cursor-pointer">Like and recast</Label>
+            <Label htmlFor="both" className="font-normal cursor-pointer">
+              Like and recast
+            </Label>
           </div>
         </RadioGroup>
       </div>
@@ -86,15 +95,9 @@ export function AutoInteractionSettings({
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="only-top-casts">Only interact with top-level casts</Label>
-          <Switch
-            id="only-top-casts"
-            checked={onlyTopCasts}
-            onCheckedChange={onOnlyTopCastsChange}
-          />
+          <Switch id="only-top-casts" checked={onlyTopCasts} onCheckedChange={onOnlyTopCastsChange} />
         </div>
-        <p className="text-sm text-muted-foreground">
-          When enabled, replies will be ignored
-        </p>
+        <p className="text-sm text-muted-foreground">When enabled, replies will be ignored</p>
       </div>
 
       <div className="space-y-2">

@@ -48,10 +48,10 @@ export default function ListsHub() {
   const router = useRouter();
   const { lists, isHydrated, hydrate } = useListStore();
   const [activeTab, setActiveTab] = useState('all');
-  
-  const searchLists = lists.filter(l => l.type === 'search');
-  const fidLists = lists.filter(l => l.type === 'fids');
-  const autoLists = lists.filter(l => l.type === 'auto_interaction');
+
+  const searchLists = lists.filter((l) => l.type === 'search');
+  const fidLists = lists.filter((l) => l.type === 'fids');
+  const autoLists = lists.filter((l) => l.type === 'auto_interaction');
 
   // Initialize from query params
   useEffect(() => {
@@ -85,21 +85,13 @@ export default function ListsHub() {
             Organize your Farcaster experience with saved searches, user lists, and automated interactions
           </p>
         </div>
-        
+
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">
-              All Lists {isHydrated && `(${lists.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="search">
-              Searches {isHydrated && `(${searchLists.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="users">
-              User Lists {isHydrated && `(${fidLists.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="auto">
-              Automations {isHydrated && `(${autoLists.length})`}
-            </TabsTrigger>
+            <TabsTrigger value="all">All Lists {isHydrated && `(${lists.length})`}</TabsTrigger>
+            <TabsTrigger value="search">Searches {isHydrated && `(${searchLists.length})`}</TabsTrigger>
+            <TabsTrigger value="users">User Lists {isHydrated && `(${fidLists.length})`}</TabsTrigger>
+            <TabsTrigger value="auto">Automations {isHydrated && `(${autoLists.length})`}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">

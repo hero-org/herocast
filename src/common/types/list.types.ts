@@ -59,7 +59,13 @@ export function isSearchListContent(content: Json): content is SearchListContent
  * Type guard to check if content is a FID list
  */
 export function isFidListContent(content: Json): content is FidListContent {
-  return content && typeof content === 'object' && 'fids' in content && Array.isArray(content.fids) && !('sourceAccountId' in content);
+  return (
+    content &&
+    typeof content === 'object' &&
+    'fids' in content &&
+    Array.isArray(content.fids) &&
+    !('sourceAccountId' in content)
+  );
 }
 
 /**

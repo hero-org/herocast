@@ -263,7 +263,7 @@ export default function SearchPage() {
       filters: getFilters(),
       enabled_daily_email: false,
     };
-    
+
     await addList({
       name: searchTerm,
       type: 'search',
@@ -271,16 +271,16 @@ export default function SearchPage() {
       idx: newIdx,
       account_id: selectedAccount?.id || undefined,
     });
-    
+
     posthog.capture('user_save_list', {
       contents,
     });
-    
+
     toast({
-      title: "Search saved",
+      title: 'Search saved',
       description: `"${searchTerm}" has been saved to your lists`,
     });
-    
+
     router.push('/lists?tab=search');
   };
 

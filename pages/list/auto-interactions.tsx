@@ -36,15 +36,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function AutoInteractionsPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { 
-    lists, 
-    getAutoInteractionLists, 
-    hydrate, 
-    addAutoInteractionList, 
-    updateAutoInteractionSettings, 
+  const {
+    lists,
+    getAutoInteractionLists,
+    hydrate,
+    addAutoInteractionList,
+    updateAutoInteractionSettings,
     addFidToList,
     removeFidFromList,
-    removeList 
+    removeList,
   } = useListStore();
   const fidToData = useDataStore((state) => state.fidToData);
 
@@ -53,7 +53,7 @@ export default function AutoInteractionsPage() {
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<User | undefined>(undefined);
-  
+
   // Auto-interaction settings state
   const [sourceAccountId, setSourceAccountId] = useState<string>('');
   const [actionType, setActionType] = useState<'like' | 'recast' | 'both'>('both');
@@ -97,13 +97,13 @@ export default function AutoInteractionsPage() {
         onlyTopCasts,
         requireMentions.length > 0 ? requireMentions : undefined
       );
-      
+
       // Reset form
       setNewListName('');
       setTargetFids([]);
       setRequireMentions([]);
       setIsCreatingList(false);
-      
+
       toast({
         title: 'Success',
         description: 'Auto-interaction list created successfully',
@@ -219,9 +219,7 @@ export default function AutoInteractionsPage() {
             <BoltIcon className="h-8 w-8 text-primary" />
             Auto-Interactions
           </h1>
-          <p className="text-muted-foreground mt-2">
-            Automatically like and recast content from specific accounts
-          </p>
+          <p className="text-muted-foreground mt-2">Automatically like and recast content from specific accounts</p>
         </div>
 
         <div className="grid grid-cols-12 gap-6">
@@ -240,9 +238,7 @@ export default function AutoInteractionsPage() {
                     <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>Create Auto-Interaction List</DialogTitle>
-                        <DialogDescription>
-                          Set up automatic likes and recasts between your accounts
-                        </DialogDescription>
+                        <DialogDescription>Set up automatic likes and recasts between your accounts</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div>
@@ -254,7 +250,7 @@ export default function AutoInteractionsPage() {
                             placeholder="e.g., Business Account Auto-Likes"
                           />
                         </div>
-                        
+
                         <div>
                           <Label>Target Accounts</Label>
                           <ProfileSearchDropdown
@@ -305,9 +301,7 @@ export default function AutoInteractionsPage() {
               <CardContent className="p-0">
                 <ScrollArea className="h-[400px]">
                   {autoInteractionLists.length === 0 ? (
-                    <div className="p-4 text-center text-muted-foreground">
-                      No auto-interaction lists yet
-                    </div>
+                    <div className="p-4 text-center text-muted-foreground">No auto-interaction lists yet</div>
                   ) : (
                     <div className="space-y-1">
                       {autoInteractionLists.map((list) => (
@@ -316,9 +310,7 @@ export default function AutoInteractionsPage() {
                           onClick={() => setActiveListId(list.id)}
                           className={cn(
                             'px-4 py-2 cursor-pointer transition-colors',
-                            activeListId === list.id
-                              ? 'bg-primary text-primary-foreground'
-                              : 'hover:bg-muted'
+                            activeListId === list.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
                           )}
                         >
                           <div className="font-medium">{list.name}</div>
@@ -344,15 +336,9 @@ export default function AutoInteractionsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>{activeList.name}</CardTitle>
-                      <CardDescription>
-                        Manage auto-interaction settings and target accounts
-                      </CardDescription>
+                      <CardDescription>Manage auto-interaction settings and target accounts</CardDescription>
                     </div>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteList(activeList.id as string)}
-                    >
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteList(activeList.id as string)}>
                       <TrashIcon className="h-4 w-4 mr-1" />
                       Delete List
                     </Button>
@@ -365,7 +351,7 @@ export default function AutoInteractionsPage() {
                       <TabsTrigger value="settings">Settings</TabsTrigger>
                       <TabsTrigger value="history">History</TabsTrigger>
                     </TabsList>
-                    
+
                     <TabsContent value="accounts" className="mt-4">
                       <div className="space-y-4">
                         <div className="flex items-center gap-2">
@@ -381,7 +367,7 @@ export default function AutoInteractionsPage() {
                             placeholder="Add account to monitor"
                           />
                         </div>
-                        
+
                         <div className="border rounded-lg">
                           {(activeList.contents as AutoInteractionListContent).fids.map((fid) => (
                             <div key={fid} className="flex items-center justify-between p-3 border-b last:border-b-0">
@@ -398,7 +384,7 @@ export default function AutoInteractionsPage() {
                         </div>
                       </div>
                     </TabsContent>
-                    
+
                     <TabsContent value="settings" className="mt-4">
                       <AutoInteractionSettings
                         sourceAccountId={sourceAccountId}
@@ -414,11 +400,9 @@ export default function AutoInteractionsPage() {
                         <Button onClick={handleUpdateSettings}>Save Settings</Button>
                       </div>
                     </TabsContent>
-                    
+
                     <TabsContent value="history" className="mt-4">
-                      <div className="text-center text-muted-foreground py-8">
-                        History tracking coming soon
-                      </div>
+                      <div className="text-center text-muted-foreground py-8">History tracking coming soon</div>
                     </TabsContent>
                   </Tabs>
                 </CardContent>
@@ -427,9 +411,7 @@ export default function AutoInteractionsPage() {
               <Card>
                 <CardContent className="text-center py-12">
                   <BoltIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">
-                    Select a list to view details or create a new one
-                  </p>
+                  <p className="text-muted-foreground">Select a list to view details or create a new one</p>
                 </CardContent>
               </Card>
             )}
