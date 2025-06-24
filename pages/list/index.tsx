@@ -197,46 +197,75 @@ export default function ListPage() {
   };
 
   // Handle bulk add users
-  const handleBulkAddUsers = async (users: Array<{ fid: string; displayName: string }>) => {
-    if (!activeListId || !activeList) return;
+  const handleBulkAddUsers = async (
+    users: Array<{ fid: string; displayName: string }>
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!activeListId || !activeList) {
+      return { success: false, error: 'No active list selected' };
+    }
 
-    // Get current list content
-    const content = activeList.contents as FidListContent;
-    const currentFids = content.fids || [];
-    const currentDisplayNames = content.displayNames || {};
+    try {
+      // Get current list content
+      const content = activeList.contents as FidListContent;
+      const currentFids = content.fids || [];
+      const currentDisplayNames = content.displayNames || {};
 
-    // Merge new users with existing ones
-    const newFids = [...currentFids];
-    const newDisplayNames = { ...currentDisplayNames };
+      // Merge new users with existing ones
+      const newFids = [...currentFids];
+      const newDisplayNames = { ...currentDisplayNames };
 
-    users.forEach(({ fid, displayName }) => {
-      if (!currentFids.includes(fid)) {
-        newFids.push(fid);
-        newDisplayNames[fid] = displayName;
+      users.forEach(({ fid, displayName }) => {
+        if (!currentFids.includes(fid)) {
+          newFids.push(fid);
+          newDisplayNames[fid] = displayName;
+        }
+      });
+
+      // Create a new content object with both FIDs and display names
+      const updatedContent: FidListContent = {
+        fids: newFids,
+        displayNames: newDisplayNames,
+      };
+
+      // Use the store's update method which properly handles RLS
+      try {
+        await updateList({
+          id: activeListId,
+          name: activeList.name,
+          contents: updatedContent,
+        });
+      } catch (updateError) {
+        console.error('Failed to update list:', updateError);
+        return {
+          success: false,
+          error: `Failed to update list: ${updateError.message}. Please try again.`,
+        };
       }
-    });
 
-    // Update the list
-    await updateFidList(activeListId, activeList.name, newFids);
+      // Refresh the list to ensure consistency
+      await hydrate();
 
-    // Update display names
-    const updatedList = lists.find((l) => l.id === activeListId);
-    if (updatedList) {
-      const { data, error } = await supabaseClient
-        .from('list')
-        .update({
-          contents: {
-            fids: newFids,
-            displayNames: newDisplayNames,
-          },
-        })
-        .eq('id', activeListId)
-        .select();
+      // Load profile data for the newly added users
+      const newUserFids = users.map((u) => u.fid);
+      await Promise.all(
+        newUserFids.map((fid) =>
+          getProfileFetchIfNeeded({
+            fid,
+            viewerFid: process.env.NEXT_PUBLIC_APP_FID!,
+          }).catch((err) => {
+            console.error(`Failed to load profile for FID ${fid}:`, err);
+            return null;
+          })
+        )
+      );
 
-      if (!error && data) {
-        // Refresh the list
-        await hydrate();
-      }
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to bulk add users:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to add users to the list',
+      };
     }
   };
 
@@ -366,29 +395,42 @@ export default function ListPage() {
   };
 
   return (
-    <div className="max-w-4xl py-8">
+    <div className="container mx-auto px-6 py-8">
       {/* Navigation breadcrumb */}
-      <div className="mb-6">
-        <Link href="/lists" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Back to all lists
+      <div className="mb-8">
+        <Link
+          href="/lists"
+          className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to all lists
         </Link>
       </div>
 
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Manage User Lists</h1>
-          <p className="text-muted-foreground">Create and manage lists of users to customize your feed</p>
-        </div>
+      {/* Header section */}
+      <div className="mb-10">
+        <h1 className="text-4xl font-bold tracking-tight mb-3">Manage User Lists</h1>
+        <p className="text-lg text-muted-foreground">Create and manage lists of users to customize your feed</p>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full max-w-md" />
-          <Skeleton className="h-[400px] w-full" />
-        </div>
-      ) : (
-        renderListTabs()
-      )}
+      <div className="max-w-6xl">
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full max-w-md" />
+            <Skeleton className="h-[400px] w-full" />
+          </div>
+        ) : (
+          renderListTabs()
+        )}
+      </div>
 
       {/* Create List Dialog */}
       <Dialog open={isCreatingList} onOpenChange={setIsCreatingList}>
