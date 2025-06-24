@@ -96,8 +96,8 @@ export function BulkAddUsersDialog({
     // Separate FIDs and usernames
     const fids: string[] = [];
     const usernames: string[] = [];
-    
-    items.forEach(item => {
+
+    items.forEach((item) => {
       if (/^\d+$/.test(item)) {
         fids.push(item);
       } else {
@@ -109,13 +109,13 @@ export function BulkAddUsersDialog({
     const fidBatchSize = 50; // Neynar bulk API supports up to 100, using 50 to be safe
     for (let i = 0; i < fids.length; i += fidBatchSize) {
       const batch = fids.slice(i, i + fidBatchSize);
-      const batchFids = batch.map(fid => parseInt(fid));
-      
+      const batchFids = batch.map((fid) => parseInt(fid));
+
       try {
         // First check cache for existing profiles
         const cachedResults: ParsedUser[] = [];
         const uncachedFids: number[] = [];
-        
+
         for (const fid of batchFids) {
           const cachedProfile = getProfile(useDataStore.getState(), fid);
           if (cachedProfile) {
@@ -123,56 +123,56 @@ export function BulkAddUsersDialog({
               input: fid.toString(),
               fid: fid.toString(),
               user: cachedProfile as User,
-              isDuplicate: existingFids.includes(fid.toString())
+              isDuplicate: existingFids.includes(fid.toString()),
             });
           } else {
             uncachedFids.push(fid);
           }
         }
-        
+
         results.push(...cachedResults);
-        
+
         // Fetch uncached profiles in bulk
         if (uncachedFids.length > 0) {
           const response = await neynarClient.fetchBulkUsers(uncachedFids, {
             viewerFid: parseInt(viewerFid),
           });
-          
+
           if (response.users) {
-            response.users.forEach(user => {
+            response.users.forEach((user) => {
               const fidStr = user.fid.toString();
               results.push({
                 input: fidStr,
                 fid: fidStr,
                 user,
-                isDuplicate: existingFids.includes(fidStr)
+                isDuplicate: existingFids.includes(fidStr),
               });
               // Add to cache
               fetchAndAddUserProfile({ fid: user.fid, viewerFid: parseInt(viewerFid) });
             });
-            
+
             // Handle not found FIDs
-            const foundFids = new Set(response.users.map(u => u.fid.toString()));
-            uncachedFids.forEach(fid => {
+            const foundFids = new Set(response.users.map((u) => u.fid.toString()));
+            uncachedFids.forEach((fid) => {
               if (!foundFids.has(fid.toString())) {
                 results.push({
                   input: fid.toString(),
-                  error: 'User not found'
+                  error: 'User not found',
                 });
               }
             });
           }
         }
-        
+
         setProcessingProgress({ current: i + batch.length, total: items.length });
-        
+
         // Add delay between batches to avoid rate limiting
         if (i + fidBatchSize < fids.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
       } catch (error) {
         console.error('Error processing FID batch:', error);
-        batch.forEach(fid => {
+        batch.forEach((fid) => {
           results.push({ input: fid, error: 'Failed to fetch user' });
         });
       }
@@ -182,7 +182,7 @@ export function BulkAddUsersDialog({
     const usernameDelay = 150; // 150ms between requests to stay well under rate limit
     for (let i = 0; i < usernames.length; i++) {
       const username = usernames[i];
-      
+
       try {
         // Check cache first by username
         const cachedFid = useDataStore.getState().usernameToFid[username.toLowerCase()];
@@ -193,27 +193,27 @@ export function BulkAddUsersDialog({
               input: username,
               fid: cachedFid.toString(),
               user: cachedProfile as User,
-              isDuplicate: existingFids.includes(cachedFid.toString())
+              isDuplicate: existingFids.includes(cachedFid.toString()),
             });
             setProcessingProgress({ current: fids.length + i + 1, total: items.length });
             continue;
           }
         }
-        
+
         // Search for username
         const response = await neynarClient.searchUser(username, parseInt(viewerFid));
-        
+
         if (response.result?.users && response.result.users.length > 0) {
           const user = response.result.users[0];
           const fid = user.fid.toString();
-          
+
           results.push({
             input: username,
             fid,
             user,
-            isDuplicate: existingFids.includes(fid)
+            isDuplicate: existingFids.includes(fid),
           });
-          
+
           // Add to cache
           fetchAndAddUserProfile({ fid: user.fid, viewerFid: parseInt(viewerFid) });
         } else {
@@ -223,12 +223,12 @@ export function BulkAddUsersDialog({
         console.error(`Error processing username ${username}:`, error);
         results.push({ input: username, error: 'Failed to fetch user' });
       }
-      
+
       setProcessingProgress({ current: fids.length + i + 1, total: items.length });
-      
+
       // Rate limit delay between username searches
       if (i < usernames.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, usernameDelay));
+        await new Promise((resolve) => setTimeout(resolve, usernameDelay));
       }
     }
 
@@ -375,7 +375,8 @@ export function BulkAddUsersDialog({
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing{processingProgress.total > 0 && ` (${processingProgress.current}/${processingProgress.total})`}...
+                  Processing
+                  {processingProgress.total > 0 && ` (${processingProgress.current}/${processingProgress.total})`}...
                 </>
               ) : (
                 'Preview'

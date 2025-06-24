@@ -369,8 +369,17 @@ export default function ListPage() {
     <div className="container mx-auto px-6 py-8">
       {/* Navigation breadcrumb */}
       <div className="mb-8">
-        <Link href="/lists" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <Link
+          href="/lists"
+          className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back to all lists
