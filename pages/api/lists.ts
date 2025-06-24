@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
 import { Database } from '@/common/types/database.types';
 import createClient from '@/common/helpers/supabase/api';
+import { NEYNAR_API_MAX_FIDS_PER_REQUEST } from '@/common/constants/listLimits';
 
 const apiKey = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 
@@ -48,42 +49,95 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch feed from Neynar API using fetch
     const limitValue = typeof limit === 'string' ? parseInt(limit, 10) : limit;
 
-    // Build URL with query parameters
-    const url = new URL('https://api.neynar.com/v2/farcaster/feed');
-    url.searchParams.append('feed_type', 'filter');
-    url.searchParams.append('filter_type', 'fids');
-    url.searchParams.append('fids', fids.join(','));
-    url.searchParams.append('limit', limitValue.toString());
+    // If FIDs exceed the API limit, we need to make multiple requests
+    if (fids.length > NEYNAR_API_MAX_FIDS_PER_REQUEST && !cursor) {
+      // For initial requests (no cursor), fetch from multiple chunks and merge
+      const chunks: number[][] = [];
+      for (let i = 0; i < fids.length; i += NEYNAR_API_MAX_FIDS_PER_REQUEST) {
+        chunks.push(fids.slice(i, i + NEYNAR_API_MAX_FIDS_PER_REQUEST));
+      }
 
-    if (cursor) {
-      url.searchParams.append('cursor', cursor as string);
+      // Fetch from all chunks in parallel
+      const chunkPromises = chunks.map(async (chunkFids) => {
+        const url = new URL('https://api.neynar.com/v2/farcaster/feed');
+        url.searchParams.append('feed_type', 'filter');
+        url.searchParams.append('filter_type', 'fids');
+        url.searchParams.append('fids', chunkFids.join(','));
+        url.searchParams.append('limit', limitValue.toString());
+
+        if (viewerFid) {
+          url.searchParams.append('viewer_fid', viewerFid as string);
+        }
+
+        const options = {
+          method: 'GET',
+          headers: {
+            'x-api-key': apiKey || '',
+            Accept: 'application/json',
+          },
+        };
+
+        const fetchResponse = await fetch(url.toString(), options);
+
+        if (!fetchResponse.ok) {
+          throw new Error(`Neynar API error: ${fetchResponse.status} ${fetchResponse.statusText}`);
+        }
+
+        return fetchResponse.json();
+      });
+
+      const responses = await Promise.all(chunkPromises);
+
+      // Merge all casts from different chunks
+      const allCasts = responses.flatMap((r) => r.casts || []);
+
+      // Sort by timestamp (newest first) and take the limit
+      allCasts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      const limitedCasts = allCasts.slice(0, limitValue);
+
+      // Return the merged feed data
+      return res.status(200).json({
+        casts: limitedCasts,
+        next: null, // Pagination with chunked requests is complex, disable for now
+      });
+    } else {
+      // For paginated requests or lists with <= NEYNAR_API_MAX_FIDS_PER_REQUEST FIDs, use single request
+      const url = new URL('https://api.neynar.com/v2/farcaster/feed');
+      url.searchParams.append('feed_type', 'filter');
+      url.searchParams.append('filter_type', 'fids');
+      url.searchParams.append('fids', fids.slice(0, NEYNAR_API_MAX_FIDS_PER_REQUEST).join(',')); // Limit to API max FIDs
+      url.searchParams.append('limit', limitValue.toString());
+
+      if (cursor) {
+        url.searchParams.append('cursor', cursor as string);
+      }
+
+      if (viewerFid) {
+        url.searchParams.append('viewer_fid', viewerFid as string);
+      }
+
+      const options = {
+        method: 'GET',
+        headers: {
+          'x-api-key': apiKey || '',
+          Accept: 'application/json',
+        },
+      };
+
+      const fetchResponse = await fetch(url.toString(), options);
+
+      if (!fetchResponse.ok) {
+        throw new Error(`Neynar API error: ${fetchResponse.status} ${fetchResponse.statusText}`);
+      }
+
+      const response = await fetchResponse.json();
+
+      // Return the feed data
+      return res.status(200).json({
+        casts: response.casts,
+        next: response.next?.cursor,
+      });
     }
-
-    if (viewerFid) {
-      url.searchParams.append('viewer_fid', viewerFid as string);
-    }
-
-    const options = {
-      method: 'GET',
-      headers: {
-        'x-api-key': apiKey || '',
-        Accept: 'application/json',
-      },
-    };
-
-    const fetchResponse = await fetch(url.toString(), options);
-
-    if (!fetchResponse.ok) {
-      throw new Error(`Neynar API error: ${fetchResponse.status} ${fetchResponse.statusText}`);
-    }
-
-    const response = await fetchResponse.json();
-
-    // Return the feed data
-    return res.status(200).json({
-      casts: response.casts,
-      next: response.next?.cursor,
-    });
   } catch (error) {
     console.error('Error fetching list feed:', error);
     return res.status(500).json({ error: 'Internal server error' });

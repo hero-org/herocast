@@ -10,6 +10,7 @@ import {
   isAutoInteractionListContent,
 } from '@/common/types/list.types';
 import { UUID } from 'crypto';
+import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
 
 export type Search = {
   term: string;
@@ -104,6 +105,11 @@ const store = (set: StoreSet, get: () => ListStore) => ({
 
     const content = list.contents as FidListContent;
     if (!content.fids.includes(fid)) {
+      // Check if adding would exceed the limit
+      if (content.fids.length >= MAX_USERS_PER_LIST) {
+        throw new Error(`List cannot exceed ${MAX_USERS_PER_LIST} users`);
+      }
+
       // Add new FID to the beginning of the list
       const updatedFids = [fid, ...content.fids];
       const updatedDisplayNames = { ...content.displayNames };
@@ -213,6 +219,11 @@ const store = (set: StoreSet, get: () => ListStore) => ({
       throw new Error('User not logged in');
     }
 
+    // Validate FID list size
+    if (fids.length > MAX_USERS_PER_LIST) {
+      throw new Error(`List cannot exceed ${MAX_USERS_PER_LIST} users`);
+    }
+
     // Find the highest idx to place the new list after it
     const lists = useListStore.getState().lists;
     const highestIdx = lists.length > 0 ? Math.max(...lists.map((list) => list.idx)) : 0;
@@ -294,6 +305,11 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     const existingList = useListStore.getState().lists.find((list) => list.id === listId);
     if (!existingList) {
       throw new Error('FID list not found');
+    }
+
+    // Validate FID list size
+    if (fids.length > MAX_USERS_PER_LIST) {
+      throw new Error(`List cannot exceed ${MAX_USERS_PER_LIST} users`);
     }
 
     // Preserve displayNames if they exist in the current list
@@ -396,6 +412,11 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     } = await supabaseClient.auth.getUser();
     if (!user) {
       throw new Error('User not logged in');
+    }
+
+    // Validate FID list size
+    if (fids.length > MAX_USERS_PER_LIST) {
+      throw new Error(`List cannot exceed ${MAX_USERS_PER_LIST} users`);
     }
 
     const lists = useListStore.getState().lists;

@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 import { List } from '@/common/types/database.types';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { MAX_USERS_PER_LIST, LIST_SIZE_WARNING_THRESHOLD } from '@/common/constants/listLimits';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -254,6 +255,18 @@ export default function ListPage() {
       const currentFids = content.fids || [];
       const currentDisplayNames = content.displayNames || {};
 
+      // Check how many new users would be added
+      const newUsersToAdd = users.filter(({ fid }) => !currentFids.includes(fid));
+
+      // Check if adding these users would exceed the limit
+      if (currentFids.length + newUsersToAdd.length > MAX_USERS_PER_LIST) {
+        const availableSlots = MAX_USERS_PER_LIST - currentFids.length;
+        return {
+          success: false,
+          error: `Cannot add ${newUsersToAdd.length} users. This list has ${currentFids.length} users and can only add ${availableSlots} more (max ${MAX_USERS_PER_LIST} users per list).`,
+        };
+      }
+
       // Merge new users with existing ones
       const newFids = [...currentFids];
       const newDisplayNames = { ...currentDisplayNames };
@@ -374,6 +387,7 @@ export default function ListPage() {
             <span className="text-sm text-muted-foreground">
               {filteredFids.length} {filteredFids.length === 1 ? 'user' : 'users'}
               {searchTerm && ` matching "${searchTerm}"`}
+              {content.fids.length > 0 && ` (${content.fids.length}/${MAX_USERS_PER_LIST} total)`}
             </span>
           </div>
         </div>
@@ -526,6 +540,14 @@ export default function ListPage() {
                         ? `${list.contents.fids.length} users in this list`
                         : 'No users in this list yet'}
                     </p>
+                    {isFidListContent(list.contents) &&
+                      list.contents.fids &&
+                      list.contents.fids.length >= LIST_SIZE_WARNING_THRESHOLD && (
+                        <p className="text-sm text-warning mt-1">
+                          ⚠️ Approaching limit: {MAX_USERS_PER_LIST - list.contents.fids.length} slots remaining (max{' '}
+                          {MAX_USERS_PER_LIST})
+                        </p>
+                      )}
                   </div>
                   <Button
                     variant="ghost"
@@ -539,6 +561,14 @@ export default function ListPage() {
                     <TrashIcon className="h-4 w-4" />
                   </Button>
                 </div>
+                {isFidListContent(list.contents) &&
+                  list.contents.fids &&
+                  list.contents.fids.length >= MAX_USERS_PER_LIST && (
+                    <p className="text-sm text-muted-foreground mt-3">
+                      This list has reached the maximum limit of {MAX_USERS_PER_LIST} users. Remove some users to add
+                      new ones.
+                    </p>
+                  )}
               </CardContent>
             </Card>
 
@@ -558,10 +588,26 @@ export default function ListPage() {
                       placeholder="Add user to list..."
                     />
                   </div>
-                  <Button onClick={handleAddUser} disabled={!selectedProfile} className="sm:w-auto w-full">
+                  <Button
+                    onClick={handleAddUser}
+                    disabled={
+                      !selectedProfile ||
+                      (isFidListContent(list.contents) &&
+                        list.contents.fids &&
+                        list.contents.fids.length >= MAX_USERS_PER_LIST)
+                    }
+                    className="sm:w-auto w-full"
+                  >
                     Add to List
                   </Button>
-                  <Button variant="outline" onClick={() => setIsBulkAddOpen(true)} className="gap-2 sm:w-auto w-full">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsBulkAddOpen(true)}
+                    disabled={
+                      isFidListContent(list.contents) && list.contents.fids && list.contents.fids.length >= 1000
+                    }
+                    className="gap-2 sm:w-auto w-full"
+                  >
                     <UsersIcon className="h-4 w-4" />
                     Bulk Add Users
                   </Button>
