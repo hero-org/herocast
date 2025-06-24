@@ -242,7 +242,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         },
         {
           name: 'Lists',
-          router: '/list',
+          router: '/lists',
           icon: <UserGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: 'Shift + L',
         },

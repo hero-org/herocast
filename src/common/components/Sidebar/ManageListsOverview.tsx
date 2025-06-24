@@ -18,13 +18,13 @@ import {
   BellIcon,
   EnvelopeIcon,
 } from '@heroicons/react/24/outline';
-import { useNavigationStore } from '@/stores/useNavigationStore';
 import { UUID } from 'crypto';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAccountStore } from '@/stores/useAccountStore';
 import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
 import { cn } from '@/lib/utils';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
+import { useRouter } from 'next/router';
 
 type ListsOverviewProps = {
   hideHeader?: boolean;
@@ -33,15 +33,14 @@ type ListsOverviewProps = {
 };
 
 const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOverviewProps) => {
+  const router = useRouter();
   const { searches, selectedListId, setSelectedListId, addList, lists } = useListStore();
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccountId = accounts[selectedAccountIdx]?.id;
 
-  const { setIsManageListModalOpen } = useNavigationStore();
-
-  const onOpenManageListModal = (id: UUID) => {
+  const onManageList = (id: UUID) => {
     updateSelectedList(id);
-    setIsManageListModalOpen(true);
+    router.push('/lists?tab=search');
     if (onItemClick) onItemClick();
   };
 
@@ -96,7 +95,7 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
                   Search
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onOpenManageListModal(list.id)}>
+                <DropdownMenuItem onClick={() => onManageList(list.id)}>
                   <Cog6ToothIcon className="h-4 w-4 mr-2" />
                   Manage
                 </DropdownMenuItem>

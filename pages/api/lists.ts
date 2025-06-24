@@ -33,7 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const fidListContent = list.contents as FidListContent;
-    console.log('list', list);
     // Ensure the list has FIDs
     if (!fidListContent.fids || fidListContent.fids.length === 0) {
       return res.status(200).json({

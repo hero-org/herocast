@@ -15,6 +15,7 @@ type ProfileInfoContentProps = {
   isHoverCard?: boolean;
   hideBio?: boolean;
   wideFormat?: boolean;
+  compact?: boolean;
 };
 
 const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
@@ -23,6 +24,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
   isHoverCard = false,
   hideBio = false,
   wideFormat = false,
+  compact = false,
 }) => {
   const currentUserFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
 
@@ -39,7 +41,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
     <div className="space-y-3">
       <div className="flex flex-row justify-between items-start">
         <div className="flex space-x-3">
-          <Avatar className="h-10 w-10 ring-2 ring-sidebar-border/20">
+          <Avatar className={compact ? 'h-8 w-8' : 'h-10 w-10 ring-2 ring-sidebar-border/20'}>
             <AvatarImage src={profile.pfp_url} />
             <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
               {profile.username?.slice(0, 2).toUpperCase()}
@@ -59,62 +61,64 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
         </div>
         {wideFormat && renderFollowButton()}
       </div>
-      {!wideFormat && renderFollowButton()}
-      <div className="space-y-2 text-sm">
-        {!hideBio && profile.profile?.bio?.text && (
-          <div
-            className={`text-sm break-words text-foreground/80 leading-relaxed ${isHoverCard ? '' : 'pr-2 overflow-x-hidden'}`}
-          >
-            <Linkify
-              as="p"
-              options={{
-                validate: {
-                  url: (value): boolean => {
-                    return !value.startsWith('$');
-                  },
-                },
-                render: {
-                  url: ({ attributes, content }) => {
-                    const { href, ...props } = attributes;
-                    return (
-                      <Link
-                        href={href}
-                        className="text-primary underline hover:no-underline transition-all"
-                        prefetch={false}
-                        {...props}
-                      >
-                        {content}
-                      </Link>
-                    );
-                  },
-                },
-              }}
+      {!wideFormat && !compact && renderFollowButton()}
+      {!compact && (
+        <div className="space-y-2 text-sm">
+          {!hideBio && profile.profile?.bio?.text && (
+            <div
+              className={`text-sm break-words text-foreground/80 leading-relaxed ${isHoverCard ? '' : 'pr-2 overflow-x-hidden'}`}
             >
-              {profile.profile?.bio?.text}
-            </Linkify>
+              <Linkify
+                as="p"
+                options={{
+                  validate: {
+                    url: (value): boolean => {
+                      return !value.startsWith('$');
+                    },
+                  },
+                  render: {
+                    url: ({ attributes, content }) => {
+                      const { href, ...props } = attributes;
+                      return (
+                        <Link
+                          href={href}
+                          className="text-primary underline hover:no-underline transition-all"
+                          prefetch={false}
+                          {...props}
+                        >
+                          {content}
+                        </Link>
+                      );
+                    },
+                  },
+                }}
+              >
+                {profile.profile?.bio?.text}
+              </Linkify>
+            </div>
+          )}
+          <div className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-4 lg:flex-col lg:space-x-0 lg:space-y-1 text-sm">
+            <p className="text-foreground/70">
+              <span className="font-semibold text-foreground">
+                {formatLargeNumber(profile.follower_count || 0)}&nbsp;
+              </span>
+              followers
+            </p>
+            <p className="text-foreground/70">
+              <span className="font-semibold text-foreground">
+                {formatLargeNumber(profile.following_count || 0)}&nbsp;
+              </span>
+              following
+            </p>
           </div>
-        )}
-        <div className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-4 lg:flex-col lg:space-x-0 lg:space-y-1 text-sm">
-          <p className="text-foreground/70">
-            <span className="font-semibold text-foreground">
-              {formatLargeNumber(profile.follower_count || 0)}&nbsp;
-            </span>
-            followers
-          </p>
-          <p className="text-foreground/70">
-            <span className="font-semibold text-foreground">
-              {formatLargeNumber(profile.following_count || 0)}&nbsp;
-            </span>
-            following
-          </p>
+          {!isHoverCard && profile.fid && (
+            <p className="text-foreground/70 text-xs">
+              <span className="font-semibold text-foreground">{profile.fid}&nbsp;</span>
+              fid
+            </p>
+          )}
         </div>
-        {!isHoverCard && profile.fid && (
-          <p className="text-foreground/70 text-xs">
-            <span className="font-semibold text-foreground">{profile.fid}&nbsp;</span>
-            fid
-          </p>
-        )}
-      </div>
+      )}
     </div>
   );
 };
