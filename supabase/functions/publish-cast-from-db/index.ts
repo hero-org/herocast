@@ -165,12 +165,7 @@ async function submitWithAlternativeApproach({
   console.log('Cast body:', JSON.stringify(castAddBody, null, 2));
 
   // Try multiple hub endpoints with different configurations
-  const hubEndpoints = [
-    'https://hub-api.neynar.com',
-    'https://snapchain-api.neynar.com',
-    'https://hubs.airstack.xyz',
-    'https://hub.pinata.cloud',
-  ];
+  const hubEndpoints = ['https://hub-api.neynar.com', 'https://snapchain-api.neynar.com', 'https://hub.pinata.cloud'];
 
   let lastError;
 

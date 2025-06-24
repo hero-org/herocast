@@ -109,7 +109,7 @@ export default function ListsHub() {
                 title="User Lists"
                 description="Group and follow specific users"
                 count={fidLists.length}
-                onClick={() => router.push('/list')}
+                onClick={() => router.push('/lists')}
                 isLoading={!isHydrated}
               />
               <ListTypeCard

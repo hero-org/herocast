@@ -31,6 +31,9 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BulkAddUsersDialog } from '@/common/components/BulkAddUsersDialog';
+import { UsersIcon } from 'lucide-react';
+import { supabaseClient } from '@/common/helpers/supabase';
 
 export default function ListPage() {
   const router = useRouter();
@@ -44,6 +47,7 @@ export default function ListPage() {
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [defaultProfiles, setDefaultProfiles] = useState<User[]>([]);
+  const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const fidToData = useDataStore((state) => state.fidToData);
 
   // Get active list
@@ -192,6 +196,50 @@ export default function ListPage() {
     }
   };
 
+  // Handle bulk add users
+  const handleBulkAddUsers = async (users: Array<{ fid: string; displayName: string }>) => {
+    if (!activeListId || !activeList) return;
+
+    // Get current list content
+    const content = activeList.contents as FidListContent;
+    const currentFids = content.fids || [];
+    const currentDisplayNames = content.displayNames || {};
+
+    // Merge new users with existing ones
+    const newFids = [...currentFids];
+    const newDisplayNames = { ...currentDisplayNames };
+
+    users.forEach(({ fid, displayName }) => {
+      if (!currentFids.includes(fid)) {
+        newFids.push(fid);
+        newDisplayNames[fid] = displayName;
+      }
+    });
+
+    // Update the list
+    await updateFidList(activeListId, activeList.name, newFids);
+
+    // Update display names
+    const updatedList = lists.find((l) => l.id === activeListId);
+    if (updatedList) {
+      const { data, error } = await supabaseClient
+        .from('list')
+        .update({
+          contents: {
+            fids: newFids,
+            displayNames: newDisplayNames,
+          },
+        })
+        .eq('id', activeListId)
+        .select();
+
+      if (!error && data) {
+        // Refresh the list
+        await hydrate();
+      }
+    }
+  };
+
   // Render list of users in the active list
   const renderListUsers = () => {
     if (!activeList || !isFidListContent(activeList.contents)) {
@@ -225,6 +273,7 @@ export default function ListPage() {
                         hideBio={true}
                         showFollowButton={false}
                         wideFormat={false}
+                        compact={true}
                       />
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => handleRemoveUser(fid, displayName)}>
@@ -298,6 +347,10 @@ export default function ListPage() {
               <Button onClick={handleAddUser} disabled={!selectedProfile}>
                 Add to List
               </Button>
+              <Button variant="outline" onClick={() => setIsBulkAddOpen(true)} className="gap-2">
+                <UsersIcon className="h-4 w-4" />
+                Bulk Add
+              </Button>
             </div>
 
             <Card>
@@ -313,7 +366,7 @@ export default function ListPage() {
   };
 
   return (
-    <div className="container max-w-4xl py-8">
+    <div className="max-w-4xl py-8">
       {/* Navigation breadcrumb */}
       <div className="mb-6">
         <Link href="/lists" className="text-sm text-muted-foreground hover:text-foreground">
@@ -364,6 +417,17 @@ export default function ListPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Add Users Dialog */}
+      {activeList && isFidListContent(activeList.contents) && (
+        <BulkAddUsersDialog
+          open={isBulkAddOpen}
+          onOpenChange={setIsBulkAddOpen}
+          onAddUsers={handleBulkAddUsers}
+          existingFids={(activeList.contents as FidListContent).fids || []}
+          viewerFid={process.env.NEXT_PUBLIC_APP_FID || '3'}
+        />
+      )}
     </div>
   );
 }

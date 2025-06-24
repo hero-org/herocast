@@ -27,10 +27,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { AutoInteractionSettings } from '@/common/components/Lists/AutoInteractionSettings';
+import { AutoInteractionContentFilters } from '@/common/components/Lists/AutoInteractionContentFilters';
+import { AutoInteractionHistory } from '@/common/components/Lists/AutoInteractionHistory';
 import { Badge } from '@/components/ui/badge';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Account } from '@/common/types/database.types';
 import { formatDistanceToNow } from 'date-fns';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { useDataStore } from '@/stores/useDataStore';
+import { useAccountStore } from '@/stores/useAccountStore';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AutoInteractionsPage() {
@@ -47,10 +54,14 @@ export default function AutoInteractionsPage() {
     removeList,
   } = useListStore();
   const fidToData = useDataStore((state) => state.fidToData);
+  const { accounts, selectedAccountIdx } = useAccountStore();
+  const currentAccount = accounts[selectedAccountIdx];
+  const viewerFid = currentAccount?.platformAccountId ? Number(currentAccount.platformAccountId) : 3;
 
   const [activeListId, setActiveListId] = useState<string | null>(null);
   const [newListName, setNewListName] = useState('');
   const [isCreatingList, setIsCreatingList] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<User | undefined>(undefined);
 
@@ -60,6 +71,9 @@ export default function AutoInteractionsPage() {
   const [onlyTopCasts, setOnlyTopCasts] = useState(true);
   const [requireMentions, setRequireMentions] = useState<string[]>([]);
   const [targetFids, setTargetFids] = useState<string[]>([]);
+  const [feedSource, setFeedSource] = useState<'specific_users' | 'following'>('specific_users');
+  const [requiredUrls, setRequiredUrls] = useState<string[]>([]);
+  const [requiredKeywords, setRequiredKeywords] = useState<string[]>([]);
 
   const autoInteractionLists = getAutoInteractionLists();
   const activeList = activeListId ? lists.find((list) => list.id === activeListId) : null;
@@ -79,10 +93,20 @@ export default function AutoInteractionsPage() {
   }, []);
 
   const handleCreateList = async () => {
-    if (!newListName.trim() || !sourceAccountId || targetFids.length === 0) {
+    if (!newListName.trim() || !sourceAccountId) {
       toast({
         title: 'Error',
-        description: 'Please provide a name, select an account, and add target accounts',
+        description: 'Please provide a name and select an account',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate based on feed source
+    if (feedSource === 'specific_users' && targetFids.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Please add at least one target account',
         variant: 'destructive',
       });
       return;
@@ -95,13 +119,19 @@ export default function AutoInteractionsPage() {
         sourceAccountId,
         actionType,
         onlyTopCasts,
-        requireMentions.length > 0 ? requireMentions : undefined
+        requireMentions.length > 0 ? requireMentions : undefined,
+        feedSource,
+        requiredUrls.length > 0 ? requiredUrls : undefined,
+        requiredKeywords.length > 0 ? requiredKeywords : undefined
       );
 
       // Reset form
       setNewListName('');
       setTargetFids([]);
       setRequireMentions([]);
+      setFeedSource('specific_users');
+      setRequiredUrls([]);
+      setRequiredKeywords([]);
       setIsCreatingList(false);
 
       toast({
@@ -136,6 +166,9 @@ export default function AutoInteractionsPage() {
         actionType,
         onlyTopCasts,
         requireMentions: requireMentions.length > 0 ? requireMentions : undefined,
+        feedSource,
+        requiredUrls: requiredUrls.length > 0 ? requiredUrls : undefined,
+        requiredKeywords: requiredKeywords.length > 0 ? requiredKeywords : undefined,
       });
 
       toast({
@@ -178,6 +211,9 @@ export default function AutoInteractionsPage() {
       setActionType(content.actionType || 'both');
       setOnlyTopCasts(content.onlyTopCasts ?? true);
       setRequireMentions(content.requireMentions || []);
+      setFeedSource(content.feedSource || 'specific_users');
+      setRequiredUrls(content.requiredUrls || []);
+      setRequiredKeywords(content.requiredKeywords || []);
     }
   }, [activeList]);
 
@@ -235,64 +271,309 @@ export default function AutoInteractionsPage() {
                         <PlusIcon className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-xl">
                       <DialogHeader>
-                        <DialogTitle>Create Auto-Interaction List</DialogTitle>
-                        <DialogDescription>Set up automatic likes and recasts between your accounts</DialogDescription>
+                        <DialogTitle>Create Auto-Interaction</DialogTitle>
+                        <DialogDescription>
+                          Step {currentStep} of 3:{' '}
+                          {currentStep === 1
+                            ? 'Basic Setup'
+                            : currentStep === 2
+                              ? 'Content Filters'
+                              : 'Action Settings'}
+                        </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div>
-                          <Label htmlFor="name">List Name</Label>
-                          <Input
-                            id="name"
-                            value={newListName}
-                            onChange={(e) => setNewListName(e.target.value)}
-                            placeholder="e.g., Business Account Auto-Likes"
-                          />
-                        </div>
 
-                        <div>
-                          <Label>Target Accounts</Label>
-                          <ProfileSearchDropdown
-                            defaultProfiles={[]}
-                            selectedProfile={undefined}
-                            setSelectedProfile={handleAddTargetAccount}
-                            placeholder="Add accounts to monitor"
-                          />
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {targetFids.map((fid) => {
-                              const profile = fidToData[parseInt(fid)];
-                              return (
-                                <Badge key={fid} variant="secondary">
-                                  @{profile?.username || `fid:${fid}`}
-                                  <button
-                                    onClick={() => handleRemoveTargetAccount(fid)}
-                                    className="ml-1 hover:text-destructive"
-                                  >
-                                    ×
-                                  </button>
-                                </Badge>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        <AutoInteractionSettings
-                          sourceAccountId={sourceAccountId}
-                          actionType={actionType}
-                          onlyTopCasts={onlyTopCasts}
-                          requireMentions={requireMentions}
-                          onSourceAccountChange={setSourceAccountId}
-                          onActionTypeChange={setActionType}
-                          onOnlyTopCastsChange={setOnlyTopCasts}
-                          onRequireMentionsChange={setRequireMentions}
-                        />
+                      {/* Progress Indicator */}
+                      <div className="flex items-center justify-center space-x-2 py-4">
+                        <div className={cn('h-2 w-16 rounded-full', currentStep >= 1 ? 'bg-primary' : 'bg-muted')} />
+                        <div className={cn('h-2 w-16 rounded-full', currentStep >= 2 ? 'bg-primary' : 'bg-muted')} />
+                        <div className={cn('h-2 w-16 rounded-full', currentStep >= 3 ? 'bg-primary' : 'bg-muted')} />
                       </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsCreatingList(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleCreateList}>Create List</Button>
+
+                      <div className="space-y-4 py-4 min-h-[300px]">
+                        {/* Step 1: Basic Setup */}
+                        {currentStep === 1 && (
+                          <div className="space-y-6">
+                            <div>
+                              <Label htmlFor="name">Automation Name</Label>
+                              <Input
+                                id="name"
+                                value={newListName}
+                                onChange={(e) => setNewListName(e.target.value)}
+                                placeholder="e.g., Amplify product mentions"
+                                className="mt-2"
+                              />
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Give your automation a descriptive name
+                              </p>
+                            </div>
+
+                            <div className="space-y-3">
+                              <Label>Who to monitor</Label>
+                              <RadioGroup
+                                value={feedSource}
+                                onValueChange={(value) => setFeedSource(value as 'specific_users' | 'following')}
+                              >
+                                <Label
+                                  htmlFor="specific_users_create"
+                                  className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                                >
+                                  <RadioGroupItem value="specific_users" id="specific_users_create" />
+                                  <div className="flex-1">
+                                    <span className="font-normal">Specific users</span>
+                                    <p className="text-sm text-muted-foreground">
+                                      Monitor casts from selected accounts only
+                                    </p>
+                                  </div>
+                                </Label>
+                                <Label
+                                  htmlFor="following_create"
+                                  className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                                >
+                                  <RadioGroupItem value="following" id="following_create" />
+                                  <div className="flex-1">
+                                    <span className="font-normal">Everyone I follow</span>
+                                    <p className="text-sm text-muted-foreground">
+                                      Monitor casts from all accounts you follow
+                                    </p>
+                                  </div>
+                                </Label>
+                              </RadioGroup>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="source-account-create">Acting Account</Label>
+                              <Select value={sourceAccountId} onValueChange={setSourceAccountId}>
+                                <SelectTrigger id="source-account-create">
+                                  <SelectValue placeholder="Select an account" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {accounts.map((account: Account) => (
+                                    <SelectItem key={account.id} value={account.id}>
+                                      {account.name || `Account ${account.id.slice(0, 8)}`}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <p className="text-sm text-muted-foreground">
+                                This account will automatically like or recast posts
+                              </p>
+                            </div>
+
+                            {feedSource === 'specific_users' && (
+                              <div>
+                                <Label>Select accounts to monitor</Label>
+                                <ProfileSearchDropdown
+                                  defaultProfiles={[]}
+                                  selectedProfile={undefined}
+                                  setSelectedProfile={handleAddTargetAccount}
+                                  placeholder="Search and add accounts"
+                                />
+                                {targetFids.length > 0 && (
+                                  <div className="mt-2">
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      {targetFids.length} accounts selected:
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {targetFids.map((fid) => {
+                                        const profile = fidToData[parseInt(fid)];
+                                        return (
+                                          <Badge key={fid} variant="secondary">
+                                            @{profile?.username || `fid:${fid}`}
+                                            <button
+                                              onClick={() => handleRemoveTargetAccount(fid)}
+                                              className="ml-1 hover:text-destructive"
+                                            >
+                                              ×
+                                            </button>
+                                          </Badge>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Step 2: Content Filters */}
+                        {currentStep === 2 && (
+                          <div className="space-y-6">
+                            <div>
+                              <h3 className="font-medium mb-2">Content Filters</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Define what content should trigger automatic interactions (optional)
+                              </p>
+                            </div>
+
+                            <AutoInteractionContentFilters
+                              feedSource={feedSource}
+                              requiredUrls={requiredUrls}
+                              requiredKeywords={requiredKeywords}
+                              onFeedSourceChange={() => {}}
+                              onRequiredUrlsChange={setRequiredUrls}
+                              onRequiredKeywordsChange={setRequiredKeywords}
+                              hideSpecificUsers={true}
+                            />
+
+                            <div className="space-y-2">
+                              <Label>Require mentions (optional)</Label>
+                              <ProfileSearchDropdown
+                                defaultProfiles={[]}
+                                selectedProfile={undefined}
+                                setSelectedProfile={(profile) => {
+                                  if (profile && !requireMentions.includes(profile.fid.toString())) {
+                                    setRequireMentions([...requireMentions, profile.fid.toString()]);
+                                  }
+                                }}
+                                placeholder="Add required mentions"
+                              />
+                              {requireMentions.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {requireMentions.map((fid) => {
+                                    const profile = fidToData[parseInt(fid)];
+                                    return (
+                                      <Badge key={fid} variant="secondary">
+                                        @{profile?.username || `fid:${fid}`}
+                                        <button
+                                          onClick={() => setRequireMentions(requireMentions.filter((f) => f !== fid))}
+                                          className="ml-1 hover:text-destructive"
+                                        >
+                                          ×
+                                        </button>
+                                      </Badge>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              <p className="text-sm text-muted-foreground">
+                                Only interact if these accounts are mentioned in the cast
+                              </p>
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label htmlFor="only-top-casts-create">Only interact with top-level casts</Label>
+                                <Switch
+                                  id="only-top-casts-create"
+                                  checked={onlyTopCasts}
+                                  onCheckedChange={setOnlyTopCasts}
+                                />
+                              </div>
+                              <p className="text-sm text-muted-foreground">When enabled, replies will be ignored</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Step 3: Action Settings */}
+                        {currentStep === 3 && (
+                          <div className="space-y-6">
+                            <div>
+                              <h3 className="font-medium mb-2">Action Settings</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Configure how to interact with matching content
+                              </p>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Action Type</Label>
+                              <RadioGroup
+                                value={actionType}
+                                onValueChange={(value) => setActionType(value as 'like' | 'recast' | 'both')}
+                              >
+                                <Label htmlFor="like-create" className="flex items-center space-x-2 cursor-pointer">
+                                  <RadioGroupItem value="like" id="like-create" />
+                                  <span className="font-normal">Like only</span>
+                                </Label>
+                                <Label htmlFor="recast-create" className="flex items-center space-x-2 cursor-pointer">
+                                  <RadioGroupItem value="recast" id="recast-create" />
+                                  <span className="font-normal">Recast only</span>
+                                </Label>
+                                <Label htmlFor="both-create" className="flex items-center space-x-2 cursor-pointer">
+                                  <RadioGroupItem value="both" id="both-create" />
+                                  <span className="font-normal">Like and recast</span>
+                                </Label>
+                              </RadioGroup>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <DialogFooter className="flex justify-between">
+                        <div>
+                          {currentStep > 1 && (
+                            <Button variant="ghost" onClick={() => setCurrentStep(currentStep - 1)}>
+                              Previous
+                            </Button>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setIsCreatingList(false);
+                              setCurrentStep(1);
+                              // Reset form
+                              setNewListName('');
+                              setTargetFids([]);
+                              setRequireMentions([]);
+                              setFeedSource('specific_users');
+                              setRequiredUrls([]);
+                              setRequiredKeywords([]);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          {currentStep < 3 ? (
+                            <Button
+                              onClick={() => {
+                                // Validate current step
+                                if (currentStep === 1) {
+                                  if (!newListName.trim()) {
+                                    toast({
+                                      title: 'Error',
+                                      description: 'Please provide a name',
+                                      variant: 'destructive',
+                                    });
+                                    return;
+                                  }
+                                  if (!sourceAccountId) {
+                                    toast({
+                                      title: 'Error',
+                                      description: 'Please select an acting account',
+                                      variant: 'destructive',
+                                    });
+                                    return;
+                                  }
+                                  if (feedSource === 'specific_users' && targetFids.length === 0) {
+                                    toast({
+                                      title: 'Error',
+                                      description: 'Please add at least one account to monitor',
+                                      variant: 'destructive',
+                                    });
+                                    return;
+                                  }
+                                }
+                                if (currentStep === 2) {
+                                  // No validation needed for filters (all optional)
+                                }
+                                setCurrentStep(currentStep + 1);
+                              }}
+                            >
+                              Next
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => {
+                                handleCreateList();
+                                setCurrentStep(1);
+                              }}
+                            >
+                              Create Automation
+                            </Button>
+                          )}
+                        </div>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -345,64 +626,190 @@ export default function AutoInteractionsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="accounts">
+                  <Tabs defaultValue="sources">
                     <TabsList>
-                      <TabsTrigger value="accounts">Target Accounts</TabsTrigger>
-                      <TabsTrigger value="settings">Settings</TabsTrigger>
+                      <TabsTrigger value="sources">Sources</TabsTrigger>
+                      <TabsTrigger value="filters">Filters</TabsTrigger>
+                      <TabsTrigger value="actions">Actions</TabsTrigger>
                       <TabsTrigger value="history">History</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="accounts" className="mt-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <ProfileSearchDropdown
-                            defaultProfiles={[]}
-                            selectedProfile={selectedProfile}
-                            setSelectedProfile={async (profile) => {
-                              if (profile) {
-                                await addFidToList(activeList.id as UUID, profile.fid.toString(), profile.username);
-                                setSelectedProfile(undefined);
-                              }
-                            }}
-                            placeholder="Add account to monitor"
-                          />
+                    <TabsContent value="sources" className="mt-4">
+                      <div className="space-y-6">
+                        {/* Feed Source Selection */}
+                        <div className="space-y-2">
+                          <Label>Who to monitor</Label>
+                          <RadioGroup
+                            value={feedSource}
+                            onValueChange={(value) => setFeedSource(value as 'specific_users' | 'following')}
+                          >
+                            <Label htmlFor="specific_users_tab" className="flex items-center space-x-2 cursor-pointer">
+                              <RadioGroupItem value="specific_users" id="specific_users_tab" />
+                              <span className="font-normal">Specific users</span>
+                            </Label>
+                            <Label htmlFor="following_tab" className="flex items-center space-x-2 cursor-pointer">
+                              <RadioGroupItem value="following" id="following_tab" />
+                              <span className="font-normal">Everyone I follow</span>
+                            </Label>
+                          </RadioGroup>
+                          <p className="text-sm text-muted-foreground">
+                            {feedSource === 'specific_users'
+                              ? 'Monitor casts from specific accounts only'
+                              : 'Monitor casts from all accounts you follow'}
+                          </p>
                         </div>
 
-                        <div className="border rounded-lg">
-                          {(activeList.contents as AutoInteractionListContent).fids.map((fid) => (
-                            <div key={fid} className="flex items-center justify-between p-3 border-b last:border-b-0">
-                              <ProfileInfo fid={fid} />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeFidFromList(activeList.id as UUID, fid)}
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                              </Button>
+                        {/* User List Management - Only show for specific users */}
+                        {feedSource === 'specific_users' && (
+                          <div className="space-y-4">
+                            <div>
+                              <Label className="mb-2 block">Accounts to monitor</Label>
+                              <div className="flex items-center gap-2">
+                                <ProfileSearchDropdown
+                                  defaultProfiles={[]}
+                                  selectedProfile={selectedProfile}
+                                  setSelectedProfile={async (profile) => {
+                                    if (profile) {
+                                      await addFidToList(
+                                        activeList.id as UUID,
+                                        profile.fid.toString(),
+                                        profile.username
+                                      );
+                                      setSelectedProfile(undefined);
+                                    }
+                                  }}
+                                  placeholder="Add account to monitor"
+                                />
+                              </div>
                             </div>
-                          ))}
+
+                            <div className="border rounded-lg">
+                              {(activeList.contents as AutoInteractionListContent).fids.length === 0 ? (
+                                <div className="p-6 text-center text-muted-foreground">
+                                  No accounts added yet. Add accounts to monitor their casts.
+                                </div>
+                              ) : (
+                                (activeList.contents as AutoInteractionListContent).fids.map((fid) => (
+                                  <div
+                                    key={fid}
+                                    className="flex items-center justify-between p-3 border-b last:border-b-0"
+                                  >
+                                    <ProfileInfo fid={parseInt(fid)} viewerFid={viewerFid} compact={true} />
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeFidFromList(activeList.id as UUID, fid)}
+                                    >
+                                      <TrashIcon className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Following Feed Info */}
+                        {feedSource === 'following' && (
+                          <div className="border rounded-lg p-6 bg-muted/50">
+                            <p className="text-sm text-muted-foreground">
+                              This automation will monitor casts from all accounts you follow.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="filters" className="mt-4">
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-medium mb-4">Content Filters</h3>
+                          <p className="text-sm text-muted-foreground mb-6">
+                            Define what content should trigger automatic interactions
+                          </p>
+                        </div>
+
+                        <AutoInteractionContentFilters
+                          feedSource={feedSource}
+                          requiredUrls={requiredUrls}
+                          requiredKeywords={requiredKeywords}
+                          onFeedSourceChange={() => {}} // Disabled here, controlled in Sources tab
+                          onRequiredUrlsChange={setRequiredUrls}
+                          onRequiredKeywordsChange={setRequiredKeywords}
+                          hideSpecificUsers={true} // Hide feed source selector
+                        />
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="only-top-casts">Only interact with top-level casts</Label>
+                            <Switch id="only-top-casts" checked={onlyTopCasts} onCheckedChange={setOnlyTopCasts} />
+                          </div>
+                          <p className="text-sm text-muted-foreground">When enabled, replies will be ignored</p>
+                        </div>
+
+                        <div className="mt-6">
+                          <Button onClick={handleUpdateSettings}>Save Filters</Button>
                         </div>
                       </div>
                     </TabsContent>
 
-                    <TabsContent value="settings" className="mt-4">
-                      <AutoInteractionSettings
-                        sourceAccountId={sourceAccountId}
-                        actionType={actionType}
-                        onlyTopCasts={onlyTopCasts}
-                        requireMentions={requireMentions}
-                        onSourceAccountChange={setSourceAccountId}
-                        onActionTypeChange={setActionType}
-                        onOnlyTopCastsChange={setOnlyTopCasts}
-                        onRequireMentionsChange={setRequireMentions}
-                      />
-                      <div className="mt-6">
-                        <Button onClick={handleUpdateSettings}>Save Settings</Button>
+                    <TabsContent value="actions" className="mt-4">
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-medium mb-4">Action Settings</h3>
+                          <p className="text-sm text-muted-foreground mb-6">
+                            Configure how to interact with matching content
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="source-account">Acting Account</Label>
+                          <Select value={sourceAccountId} onValueChange={setSourceAccountId}>
+                            <SelectTrigger id="source-account">
+                              <SelectValue placeholder="Select an account to perform actions" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {accounts.map((account: Account) => (
+                                <SelectItem key={account.id} value={account.id}>
+                                  {account.name || `Account ${account.id.slice(0, 8)}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-sm text-muted-foreground">
+                            This account will automatically like or recast posts
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Action Type</Label>
+                          <RadioGroup
+                            value={actionType}
+                            onValueChange={(value) => setActionType(value as 'like' | 'recast' | 'both')}
+                          >
+                            <Label htmlFor="like" className="flex items-center space-x-2 cursor-pointer">
+                              <RadioGroupItem value="like" id="like" />
+                              <span className="font-normal">Like only</span>
+                            </Label>
+                            <Label htmlFor="recast" className="flex items-center space-x-2 cursor-pointer">
+                              <RadioGroupItem value="recast" id="recast" />
+                              <span className="font-normal">Recast only</span>
+                            </Label>
+                            <Label htmlFor="both" className="flex items-center space-x-2 cursor-pointer">
+                              <RadioGroupItem value="both" id="both" />
+                              <span className="font-normal">Like and recast</span>
+                            </Label>
+                          </RadioGroup>
+                        </div>
+
+                        <div className="mt-6">
+                          <Button onClick={handleUpdateSettings}>Save Actions</Button>
+                        </div>
                       </div>
                     </TabsContent>
 
                     <TabsContent value="history" className="mt-4">
-                      <div className="text-center text-muted-foreground py-8">History tracking coming soon</div>
+                      <AutoInteractionHistory listId={activeList.id} />
                     </TabsContent>
                   </Tabs>
                 </CardContent>

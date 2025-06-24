@@ -20,6 +20,7 @@ const ProfileInfo = ({
   showFullInfo,
   hideBio = false,
   wideFormat = false,
+  compact = false,
 }: {
   fid: number;
   viewerFid: number;
@@ -27,6 +28,7 @@ const ProfileInfo = ({
   showFullInfo?: boolean;
   hideBio?: boolean;
   wideFormat?: boolean;
+  compact?: boolean;
 }) => {
   const profile = useDataStore((state) => get(state.fidToData, fid));
 
@@ -128,6 +130,7 @@ const ProfileInfo = ({
             showFollowButton={showFollowButton}
             hideBio={hideBio}
             wideFormat={wideFormat}
+            compact={compact}
           />
         </div>
       </Link>

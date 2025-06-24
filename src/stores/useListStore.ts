@@ -59,7 +59,10 @@ interface ListStoreActions {
     sourceAccountId: string,
     actionType: 'like' | 'recast' | 'both',
     onlyTopCasts: boolean,
-    requireMentions?: string[]
+    requireMentions?: string[],
+    feedSource?: 'specific_users' | 'following',
+    requiredUrls?: string[],
+    requiredKeywords?: string[]
   ) => Promise<void>;
   updateAutoInteractionSettings: (listId: UUID, settings: Partial<AutoInteractionListContent>) => Promise<void>;
   getAutoInteractionLists: () => List[];
@@ -377,7 +380,10 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     sourceAccountId: string,
     actionType: 'like' | 'recast' | 'both',
     onlyTopCasts: boolean,
-    requireMentions?: string[]
+    requireMentions?: string[],
+    feedSource: 'specific_users' | 'following' = 'specific_users',
+    requiredUrls?: string[],
+    requiredKeywords?: string[]
   ) => {
     const {
       data: { user },
@@ -396,6 +402,9 @@ const store = (set: StoreSet, get: () => ListStore) => ({
       actionType,
       onlyTopCasts,
       requireMentions,
+      feedSource,
+      requiredUrls,
+      requiredKeywords,
     };
 
     const { data: list, error } = await supabaseClient

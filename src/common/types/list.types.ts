@@ -41,6 +41,10 @@ export interface AutoInteractionListContent {
   onlyTopCasts: boolean; // Only interact with top-level casts
   requireMentions?: string[]; // Only act if these FIDs are mentioned
   lastProcessedHash?: string; // Track last processed cast
+  // Content filters
+  feedSource?: 'specific_users' | 'following'; // Default: specific_users
+  requiredUrls?: string[]; // URLs that must be present in embeds
+  requiredKeywords?: string[]; // Keywords that must be present in text
 }
 
 /**

@@ -7,16 +7,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { Account } from '@/common/types/database.types';
+import { AutoInteractionContentFilters } from './AutoInteractionContentFilters';
 
 interface AutoInteractionSettingsProps {
   sourceAccountId?: string;
   actionType?: 'like' | 'recast' | 'both';
   onlyTopCasts?: boolean;
   requireMentions?: string[];
+  feedSource?: 'specific_users' | 'following';
+  requiredUrls?: string[];
+  requiredKeywords?: string[];
   onSourceAccountChange: (accountId: string) => void;
   onActionTypeChange: (type: 'like' | 'recast' | 'both') => void;
   onOnlyTopCastsChange: (value: boolean) => void;
   onRequireMentionsChange: (fids: string[]) => void;
+  onFeedSourceChange?: (source: 'specific_users' | 'following') => void;
+  onRequiredUrlsChange?: (urls: string[]) => void;
+  onRequiredKeywordsChange?: (keywords: string[]) => void;
+  hideSpecificUsers?: boolean;
 }
 
 export function AutoInteractionSettings({
@@ -24,10 +32,17 @@ export function AutoInteractionSettings({
   actionType = 'both',
   onlyTopCasts = true,
   requireMentions = [],
+  feedSource = 'specific_users',
+  requiredUrls = [],
+  requiredKeywords = [],
   onSourceAccountChange,
   onActionTypeChange,
   onOnlyTopCastsChange,
   onRequireMentionsChange,
+  onFeedSourceChange = () => {},
+  onRequiredUrlsChange = () => {},
+  onRequiredKeywordsChange = () => {},
+  hideSpecificUsers = false,
 }: AutoInteractionSettingsProps) {
   const { accounts } = useAccountStore();
   const [selectedMentionProfiles, setSelectedMentionProfiles] = useState<User[]>([]);
@@ -130,6 +145,16 @@ export function AutoInteractionSettings({
           </div>
         )}
       </div>
+
+      <AutoInteractionContentFilters
+        feedSource={feedSource}
+        requiredUrls={requiredUrls}
+        requiredKeywords={requiredKeywords}
+        onFeedSourceChange={onFeedSourceChange}
+        onRequiredUrlsChange={onRequiredUrlsChange}
+        onRequiredKeywordsChange={onRequiredKeywordsChange}
+        hideSpecificUsers={hideSpecificUsers}
+      />
     </div>
   );
 }
