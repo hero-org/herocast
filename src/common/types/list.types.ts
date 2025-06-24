@@ -31,9 +31,22 @@ export interface FidListContent {
 }
 
 /**
+ * Content structure for auto-interaction lists
+ */
+export interface AutoInteractionListContent {
+  fids: string[]; // Target accounts to monitor
+  displayNames?: Record<string, string>;
+  sourceAccountId: string; // Account that will perform actions
+  actionType: 'like' | 'recast' | 'both';
+  onlyTopCasts: boolean; // Only interact with top-level casts
+  requireMentions?: string[]; // Only act if these FIDs are mentioned
+  lastProcessedHash?: string; // Track last processed cast
+}
+
+/**
  * Union type for all possible list content structures
  */
-export type ListContent = SearchListContent | FidListContent;
+export type ListContent = SearchListContent | FidListContent | AutoInteractionListContent;
 
 /**
  * Type guard to check if content is a search list
@@ -46,5 +59,12 @@ export function isSearchListContent(content: Json): content is SearchListContent
  * Type guard to check if content is a FID list
  */
 export function isFidListContent(content: Json): content is FidListContent {
-  return content && typeof content === 'object' && 'fids' in content && Array.isArray(content.fids);
+  return content && typeof content === 'object' && 'fids' in content && Array.isArray(content.fids) && !('sourceAccountId' in content);
+}
+
+/**
+ * Type guard to check if content is an auto-interaction list
+ */
+export function isAutoInteractionListContent(content: Json): content is AutoInteractionListContent {
+  return content && typeof content === 'object' && 'fids' in content && 'sourceAccountId' in content;
 }

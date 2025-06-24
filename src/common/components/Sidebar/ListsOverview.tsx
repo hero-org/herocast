@@ -20,13 +20,14 @@ type ListsOverviewProps = {
 };
 
 const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
-  const { selectedListId, setSelectedListId, getSearchLists, getFidLists } = useListStore();
+  const { selectedListId, setSelectedListId, getSearchLists, getFidLists, getAutoInteractionLists } = useListStore();
   const allLists = sortBy(
     useListStore((state) => state.lists),
     (s) => s.idx
   );
   const searchLists = getSearchLists();
   const fidLists = getFidLists();
+  const autoInteractionLists = getAutoInteractionLists();
   const { setSelectedChannelUrl } = useAccountStore();
   const [isShowAllSearchLists, setIsShowAllSearchLists] = useState(false);
   const [isShowAllFidLists, setIsShowAllFidLists] = useState(false);
@@ -102,7 +103,7 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
   );
 
   const renderAddFirstSearchButton = () => (
-    <Link href="/search" className="px-3 py-2">
+    <Link href="/lists?tab=search" className="px-3 py-2">
       <Button size="sm" variant="outline" className="w-full border-dashed h-8">
         Add keyword search
       </Button>
@@ -110,7 +111,7 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
   );
 
   const renderAddFirstListButton = () => (
-    <Link href="/list" className="px-3 py-2">
+    <Link href="/lists?tab=users" className="px-3 py-2">
       <Button size="sm" variant="outline" className="w-full border-dashed h-8">
         Add user list
       </Button>
@@ -128,7 +129,7 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
             <MagnifyingGlassIcon className="h-4 w-4" aria-hidden="true" />
             <span>Searches</span>
           </span>,
-          <Link href="/search" onClick={(e) => e.stopPropagation()}>
+          <Link href="/lists?tab=search" onClick={(e) => e.stopPropagation()}>
             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-sidebar/40">
               Add
             </Button>
@@ -148,7 +149,7 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
               <UserGroupIcon className="h-4 w-4" aria-hidden="true" />
               <span>Lists</span>
             </span>,
-            <Link href="/list" onClick={(e) => e.stopPropagation()}>
+            <Link href="/lists?tab=users" onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-sidebar/40">
                 Add
               </Button>
@@ -159,6 +160,15 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
           )}
           {isListsOpen && (hasFidLists ? renderFidLists() : renderAddFirstListButton())}
         </div>
+      </div>
+      
+      {/* View all lists button */}
+      <div className="px-3 pt-2">
+        <Link href="/lists">
+          <Button variant="outline" size="sm" className="w-full">
+            View All Lists & Automations
+          </Button>
+        </Link>
       </div>
     </div>
   );

@@ -384,7 +384,7 @@ export type Database = {
       };
     };
     Enums: {
-      list_type: 'fids' | 'search';
+      list_type: 'fids' | 'search' | 'auto_interaction';
     };
     CompositeTypes: {
       [_ in never]: never;

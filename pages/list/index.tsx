@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 import { fetchAndAddUserProfile, getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
 import { useDataStore } from '@/stores/useDataStore';
 import ProfileInfo from '@/common/components/ProfileInfo';
@@ -29,6 +30,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ListPage() {
   const router = useRouter();
@@ -312,6 +314,13 @@ export default function ListPage() {
 
   return (
     <div className="container max-w-4xl py-8">
+      {/* Navigation breadcrumb */}
+      <div className="mb-6">
+        <Link href="/lists" className="text-sm text-muted-foreground hover:text-foreground">
+          ← Back to all lists
+        </Link>
+      </div>
+
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Manage User Lists</h1>
@@ -320,8 +329,9 @@ export default function ListPage() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading lists...</p>
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full max-w-md" />
+          <Skeleton className="h-[400px] w-full" />
         </div>
       ) : (
         renderListTabs()

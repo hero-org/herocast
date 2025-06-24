@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { create as mutativeCreate, Draft } from 'mutative';
 import { createClient } from '@/common/helpers/supabase/component';
 import { InsertList, List, UpdateList } from '@/common/types/database.types';
-import { FidListContent, isFidListContent } from '@/common/types/list.types';
+import { FidListContent, isFidListContent, AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
 import { UUID } from 'crypto';
 
 export type Search = {
@@ -46,6 +46,11 @@ interface ListStoreActions {
   updateFidDisplayName: (listId: UUID, fid: string, displayName: string) => Promise<void>;
   isFidInList: (listId: UUID, fid: string) => boolean;
   getListsByFid: (fid: string) => List[];
+
+  // Auto-interaction list methods
+  addAutoInteractionList: (name: string, fids: string[], sourceAccountId: string, actionType: 'like' | 'recast' | 'both', onlyTopCasts: boolean, requireMentions?: string[]) => Promise<void>;
+  updateAutoInteractionSettings: (listId: UUID, settings: Partial<AutoInteractionListContent>) => Promise<void>;
+  getAutoInteractionLists: () => List[];
 }
 
 export interface ListStore extends ListStoreProps, ListStoreActions {}
@@ -352,10 +357,85 @@ const store = (set: StoreSet, get: () => ListStore) => ({
       console.error('Failed to hydrate ListStore:', error);
     }
   },
+
+  // Auto-interaction list methods
+  addAutoInteractionList: async (name: string, fids: string[], sourceAccountId: string, actionType: 'like' | 'recast' | 'both', onlyTopCasts: boolean, requireMentions?: string[]) => {
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser();
+    if (!user) {
+      throw new Error('User not logged in');
+    }
+
+    const lists = useListStore.getState().lists;
+    const highestIdx = lists.length > 0 ? Math.max(...lists.map((list) => list.idx)) : 0;
+
+    const content: AutoInteractionListContent = {
+      fids,
+      displayNames: {},
+      sourceAccountId,
+      actionType,
+      onlyTopCasts,
+      requireMentions,
+    };
+
+    const { data: list, error } = await supabaseClient
+      .from('list')
+      .insert([
+        {
+          name,
+          type: 'auto_interaction',
+          contents: content,
+          user_id: user.id,
+          idx: highestIdx + 1,
+        },
+      ])
+      .select();
+
+    if (error || !list) {
+      throw new Error(`Failed to add auto-interaction list: ${error?.message}`);
+    }
+
+    set((state) => {
+      state.lists = [...state.lists, list[0]];
+    });
+  },
+
+  updateAutoInteractionSettings: async (listId: UUID, settings: Partial<AutoInteractionListContent>) => {
+    const list = get().lists.find((l) => l.id === listId);
+    if (!list || list.type !== 'auto_interaction') {
+      throw new Error('Auto-interaction list not found or invalid list type');
+    }
+
+    const currentContent = list.contents as AutoInteractionListContent;
+    const updatedContent = { ...currentContent, ...settings };
+
+    const { data, error } = await supabaseClient
+      .from('list')
+      .update({
+        contents: updatedContent,
+      })
+      .eq('id', listId)
+      .select();
+
+    if (error) {
+      throw new Error(`Failed to update auto-interaction settings: ${error.message}`);
+    }
+
+    const idx = get().lists.findIndex((l) => l.id === listId);
+    set((state) => {
+      state.lists[idx] = data?.[0] as List;
+    });
+  },
+
+  getAutoInteractionLists: () => {
+    return get().lists.filter((list) => list.type === 'auto_interaction');
+  },
 });
 
 // Type guard helper functions
 export const isFidList = (list: List): boolean => list.type === 'fids';
 export const isSearchList = (list: List): boolean => list.type === 'search';
+export const isAutoInteractionList = (list: List): boolean => list.type === 'auto_interaction';
 
 export const useListStore = create<ListStore>()(devtools(mutative(store)));

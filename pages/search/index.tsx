@@ -25,9 +25,10 @@ import {
 } from '@/services/searchService';
 import { SearchInterface } from '@/common/components/SearchInterface';
 import { SearchResultsView } from '@/common/components/SearchResultsView';
-import ManageListModal from '@/common/components/ManageListModal';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { UUID } from 'crypto';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/router';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
@@ -57,7 +58,8 @@ export default function SearchPage() {
   const [hasMore, setHasMore] = useState(true);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
 
-  const { isManageListModalOpen, setIsManageListModalOpen } = useNavigationStore();
+  const router = useRouter();
+  const { toast } = useToast();
   const { addSearch, addList, setSelectedListId, lists } = useListStore();
   const selectedList = useListStore((state) =>
     state.selectedListId !== undefined ? state.lists.find((list) => list.id === state.selectedListId) : undefined
@@ -259,23 +261,32 @@ export default function SearchPage() {
     const contents = {
       term: searchTerm,
       filters: getFilters(),
-      enabled_daily_email: true,
+      enabled_daily_email: false,
     };
-    addList({
+    
+    await addList({
       name: searchTerm,
       type: 'search',
       contents,
       idx: newIdx,
-      account_id: selectedAccount?.id,
+      account_id: selectedAccount?.id || undefined,
     });
+    
     posthog.capture('user_save_list', {
       contents,
     });
+    
+    toast({
+      title: "Search saved",
+      description: `"${searchTerm}" has been saved to your lists`,
+    });
+    
+    router.push('/lists?tab=search');
   };
 
   useHotkeys([Key.Enter, 'meta+enter'], () => onSearch(), [onSearch], {
     enableOnFormTags: true,
-    enabled: canSearch && !isLoading && !isManageListModalOpen,
+    enabled: canSearch && !isLoading,
   });
 
   useEffect(() => {
@@ -340,7 +351,6 @@ export default function SearchPage() {
               onLoadMore={onContinueSearch}
             />
           </div>
-          <ManageListModal open={isManageListModalOpen} onClose={() => setIsManageListModalOpen(false)} />
         </>
       ) : (
         <CastThreadView cast={casts[selectedCastIdx]} onBack={onBack} />
