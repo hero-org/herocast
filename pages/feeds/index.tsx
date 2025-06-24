@@ -564,7 +564,7 @@ export default function Feeds() {
   };
 
   const renderContent = () => (
-    <main className="w-full max-w-2xl mx-auto">
+    <main className="w-full max-w-2xl">
       {isLoadingFeed && isEmpty(casts) && (
         <div className="ml-4">
           <Loading loadingMessage={loadingMessage} />
