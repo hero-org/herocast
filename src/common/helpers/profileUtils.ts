@@ -1,6 +1,7 @@
 import get from 'lodash.get';
 import { getUserDataForFidOrUsername } from './neynar';
 import { DataStore, useDataStore, UserProfile, PROFILE_UPDATE_INTERVAL } from '@/stores/useDataStore';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
 export const fetchAndAddUserProfile = async ({
   username,

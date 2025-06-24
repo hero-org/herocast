@@ -166,7 +166,7 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
       <div className="px-3 pt-2">
         <Link href="/lists">
           <Button variant="outline" size="sm" className="w-full">
-            View All Lists & Automations
+            Show Lists
           </Button>
         </Link>
       </div>

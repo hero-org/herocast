@@ -74,48 +74,16 @@ export default function ListPage() {
     if (!fidList.fids || fidList.fids.length === 0) return;
 
     const viewerFid = process.env.NEXT_PUBLIC_APP_FID!;
-    const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
     // If only loading first page, limit the FIDs
     const fidsToProcess = onlyFirstPage ? fidList.fids.slice(0, USERS_PER_PAGE) : fidList.fids;
 
-    // First check which FIDs are not in cache
-    const uncachedFids: string[] = [];
-    fidsToProcess.forEach((fid) => {
-      const profile = getProfile(useDataStore.getState(), parseInt(fid));
-      if (!profile) {
-        uncachedFids.push(fid);
-      }
-    });
+    // Convert string FIDs to numbers
+    const numericFids = fidsToProcess.map(fid => parseInt(fid));
 
-    // Don't fetch if we already have all profiles cached
-    if (uncachedFids.length === 0) return;
-
-    // Batch fetch uncached profiles
-    const batchSize = 50;
-    for (let i = 0; i < uncachedFids.length; i += batchSize) {
-      const batch = uncachedFids.slice(i, i + batchSize);
-      const fidsToFetch = batch.map((fid) => parseInt(fid));
-
-      try {
-        const response = await neynarClient.fetchBulkUsers(fidsToFetch, {
-          viewerFid: parseInt(viewerFid),
-        });
-
-        // Add to cache - skip additional info for list views
-        if (response.users) {
-          response.users.forEach((user) => {
-            fetchAndAddUserProfile({ 
-              fid: user.fid, 
-              viewerFid: parseInt(viewerFid),
-              skipAdditionalInfo: true 
-            });
-          });
-        }
-      } catch (error) {
-        console.error(`Failed to fetch batch of profiles:`, error);
-      }
-    }
+    // Use the store's bulk fetch function that checks cache first
+    const { fetchBulkProfiles } = useDataStore.getState();
+    await fetchBulkProfiles(numericFids, viewerFid, true);
   };
 
   useEffect(() => {
@@ -148,6 +116,22 @@ export default function ListPage() {
     }
   }, [activeList]);
 
+  // Load profile data when page changes
+  useEffect(() => {
+    if (activeList && isFidListContent(activeList.contents)) {
+      const content = activeList.contents as FidListContent;
+      if (!content.fids || content.fids.length === 0) return;
+      
+      // Get FIDs for current page
+      const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+      const endIndex = startIndex + USERS_PER_PAGE;
+      const pageFids = content.fids.slice(startIndex, endIndex);
+      
+      // Load profiles for current page
+      loadProfileData({ fids: pageFids, displayNames: {} }, false);
+    }
+  }, [currentPage, activeList]);
+
   // Create a new list
   const handleCreateList = async () => {
     if (!newListName.trim()) {
@@ -161,6 +145,14 @@ export default function ListPage() {
 
     try {
       await addFidList(newListName, []);
+      
+      // Get the newly created list and set it as active
+      const updatedLists = getFidLists();
+      const newList = updatedLists[updatedLists.length - 1]; // New list is added at the end
+      if (newList) {
+        setActiveListId(newList.id);
+      }
+      
       setNewListName('');
       setIsCreatingList(false);
       toast({
@@ -335,7 +327,7 @@ export default function ListPage() {
     if (searchTerm) {
       filteredFids = content.fids.filter((fid) => {
         const displayName = content.displayNames?.[fid] || '';
-        const profile = getProfile(useDataStore.getState(), parseInt(fid));
+        const profile = fidToData[parseInt(fid)];
         const username = profile?.username || '';
         const searchLower = searchTerm.toLowerCase();
         return (
@@ -382,7 +374,7 @@ export default function ListPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentPageFids.map((fid) => {
             const displayName = content.displayNames?.[fid] || `FID: ${fid}`;
-            const profile = getProfile(useDataStore.getState(), parseInt(fid));
+            const profile = fidToData[parseInt(fid)];
 
             return (
               <Card key={`list-user-${fid}`} className="overflow-hidden">
@@ -665,7 +657,7 @@ export default function ListPage() {
           <DialogHeader>
             <DialogTitle>Delete List</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{listToDelete?.name}"? This action cannot be undone.
+              Are you sure you want to delete &ldquo;{listToDelete?.name}&rdquo;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

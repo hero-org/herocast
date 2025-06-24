@@ -107,8 +107,10 @@ interface DataStoreProps {
 interface DataStoreActions {
   updateSelectedCast: (cast?: CastWithInteractions) => void;
   addUserProfile: ({ user }: addUserProfileProps) => void;
+  addUserProfiles: (users: User[]) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
   addAnalytics: (fid: number, analytics: AnalyticsData) => void;
+  fetchBulkProfiles: (fids: number[], viewerFid: string, skipAdditionalInfo?: boolean) => Promise<UserProfile[]>;
 }
 
 export interface DataStore extends DataStoreProps, DataStoreActions {}
@@ -117,7 +119,12 @@ export const mutative = (config) => (set, get) => config((fn) => set(mutativeCre
 
 type StoreSet = (fn: (draft: Draft<DataStore>) => void) => void;
 
-const store = (set: StoreSet) => ({
+// Helper function to check if profile needs update
+const shouldUpdateProfile = (profile?: UserProfile) => {
+  return !profile || profile?.updatedAt < Date.now() - PROFILE_UPDATE_INTERVAL;
+};
+
+const store = (set: StoreSet, get: () => DataStore) => ({
   selectedCast: null,
   usernameToFid: {},
   fidToData: {},
@@ -140,6 +147,24 @@ const store = (set: StoreSet) => ({
       state.fidToData = { ...state.fidToData, ...{ [user.fid]: userObject } };
     });
   },
+  addUserProfiles: (users: User[]) => {
+    set((state) => {
+      const timestamp = Date.now();
+      const newUsernameToFid = {};
+      const newFidToData = {};
+      
+      users.forEach(user => {
+        newUsernameToFid[user.username] = user.fid;
+        newFidToData[user.fid] = {
+          ...user,
+          updatedAt: timestamp,
+        };
+      });
+      
+      state.usernameToFid = { ...state.usernameToFid, ...newUsernameToFid };
+      state.fidToData = { ...state.fidToData, ...newFidToData };
+    });
+  },
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => {
     set((state) => {
       state.tokenSymbolToData = {
@@ -147,6 +172,90 @@ const store = (set: StoreSet) => ({
         ...{ [tokenSymbol]: data },
       };
     });
+  },
+  fetchBulkProfiles: async (fids: number[], viewerFid: string, skipAdditionalInfo: boolean = true): Promise<UserProfile[]> => {
+    if (fids.length === 0) return [];
+
+    const currentState = get();
+    const uncachedFids: number[] = [];
+    const cachedProfiles: UserProfile[] = [];
+    
+    // Check cache for existing profiles
+    fids.forEach(fid => {
+      const profile = currentState.fidToData[fid];
+      if (!profile || shouldUpdateProfile(profile)) {
+        uncachedFids.push(fid);
+      } else {
+        cachedProfiles.push(profile);
+      }
+    });
+
+    // Return cached profiles if all are fresh
+    if (uncachedFids.length === 0) {
+      return cachedProfiles;
+    }
+
+    // Dynamically import NeynarAPIClient to avoid circular dependencies
+    const { NeynarAPIClient } = await import('@neynar/nodejs-sdk');
+    const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+    const fetchedProfiles: UserProfile[] = [];
+    const batchSize = 50;
+    
+    // Batch fetch uncached profiles
+    for (let i = 0; i < uncachedFids.length; i += batchSize) {
+      const batch = uncachedFids.slice(i, i + batchSize);
+      
+      try {
+        const response = await neynarClient.fetchBulkUsers(batch, {
+          viewerFid: parseInt(viewerFid),
+        });
+        
+        if (response.users) {
+          // Add basic profiles to store immediately
+          const addUserProfiles = get().addUserProfiles;
+          addUserProfiles(response.users);
+          
+          // Create UserProfile objects
+          const userProfiles = response.users.map(user => ({
+            ...user,
+            updatedAt: Date.now(),
+          }));
+          
+          fetchedProfiles.push(...userProfiles);
+          
+          // Fetch additional info if requested
+          if (!skipAdditionalInfo) {
+            await Promise.all(
+              response.users.map(async (user) => {
+                try {
+                  const additionalResponse = await fetch(
+                    `/api/additionalProfileInfo?fid=${user.fid}&addresses=${user.verified_addresses.eth_addresses}`
+                  );
+                  if (additionalResponse.ok) {
+                    const additionalInfo = await additionalResponse.json();
+                    // Update the user with additional info
+                    const addUserProfile = get().addUserProfile;
+                    addUserProfile({
+                      user: {
+                        ...user,
+                        ...additionalInfo,
+                      },
+                    });
+                  }
+                } catch (error) {
+                  console.error(`Failed to fetch additional info for FID ${user.fid}:`, error);
+                }
+              })
+            );
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to fetch batch of profiles:`, error);
+      }
+    }
+
+    // Return combined results
+    return [...cachedProfiles, ...fetchedProfiles];
   },
 });
 

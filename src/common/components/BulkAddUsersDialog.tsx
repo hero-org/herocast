@@ -51,12 +51,14 @@ export function BulkAddUsersDialog({
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedUsers, setParsedUsers] = useState<ParsedUser[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState({ current: 0, total: 0 });
 
   const resetDialog = () => {
     setInput('');
     setParsedUsers([]);
     setShowPreview(false);
     setIsProcessing(false);
+    setProcessingProgress({ current: 0, total: 0 });
   };
 
   const handleClose = () => {
@@ -95,8 +97,8 @@ export function BulkAddUsersDialog({
     // Separate FIDs and usernames
     const fidItems: { input: string; fid: string }[] = [];
     const usernameItems: string[] = [];
-    
-    items.forEach(item => {
+
+    items.forEach((item) => {
       if (/^\d+$/.test(item)) {
         fidItems.push({ input: item, fid: item });
       } else {
@@ -108,69 +110,67 @@ export function BulkAddUsersDialog({
     const fidBatchSize = 50; // Neynar bulk API supports up to 100, using 50 to be safe
     for (let i = 0; i < fidItems.length; i += fidBatchSize) {
       const batch = fidItems.slice(i, i + fidBatchSize);
-      
+
       // First, handle duplicates
-      const duplicates = batch.filter(item => existingFids.includes(item.fid));
-      duplicates.forEach(item => {
+      const duplicates = batch.filter((item) => existingFids.includes(item.fid));
+      duplicates.forEach((item) => {
         results.push({ input: item.input, fid: item.fid, isDuplicate: true });
       });
-      
+
       // Get non-duplicate FIDs to fetch
-      const fidsToFetch = batch
-        .filter(item => !existingFids.includes(item.fid))
-        .map(item => parseInt(item.fid));
-      
+      const fidsToFetch = batch.filter((item) => !existingFids.includes(item.fid)).map((item) => parseInt(item.fid));
+
       if (fidsToFetch.length > 0) {
         try {
           // Check cache first
           const cachedResults: ParsedUser[] = [];
           const uncachedFids: number[] = [];
-          
-          fidsToFetch.forEach(fid => {
-            const cachedProfile = getProfile(useDataStore.getState(), fid);
+
+          fidsToFetch.forEach((fid) => {
+            const cachedProfile = getProfile(useDataStore.getState(), undefined, fid.toString());
             if (cachedProfile) {
-              const fidItem = batch.find(item => parseInt(item.fid) === fid)!;
+              const fidItem = batch.find((item) => parseInt(item.fid) === fid)!;
               cachedResults.push({
                 input: fidItem.input,
                 fid: fid.toString(),
                 user: cachedProfile as User,
-                isDuplicate: false
+                isDuplicate: false,
               });
             } else {
               uncachedFids.push(fid);
             }
           });
-          
+
           results.push(...cachedResults);
-          
+
           // Fetch uncached profiles in bulk
           if (uncachedFids.length > 0) {
             const response = await neynarClient.fetchBulkUsers(uncachedFids, {
               viewerFid: parseInt(viewerFid),
             });
-            
+
             if (response.users) {
               // Add fetched users to results and cache
-              response.users.forEach(user => {
-                const fidItem = batch.find(item => parseInt(item.fid) === user.fid)!;
+              response.users.forEach((user) => {
+                const fidItem = batch.find((item) => parseInt(item.fid) === user.fid)!;
                 results.push({
                   input: fidItem.input,
                   fid: user.fid.toString(),
                   user,
-                  isDuplicate: false
+                  isDuplicate: false,
                 });
                 // Add to cache - skip additional info for bulk operations
                 fetchAndAddUserProfile({ fid: user.fid, viewerFid: parseInt(viewerFid), skipAdditionalInfo: true });
               });
-              
+
               // Handle not found FIDs
-              const foundFids = new Set(response.users.map(u => u.fid));
-              uncachedFids.forEach(fid => {
+              const foundFids = new Set(response.users.map((u) => u.fid));
+              uncachedFids.forEach((fid) => {
                 if (!foundFids.has(fid)) {
-                  const fidItem = batch.find(item => parseInt(item.fid) === fid)!;
+                  const fidItem = batch.find((item) => parseInt(item.fid) === fid)!;
                   results.push({
                     input: fidItem.input,
-                    error: 'User not found'
+                    error: 'User not found',
                   });
                 }
               });
@@ -178,19 +178,19 @@ export function BulkAddUsersDialog({
           }
         } catch (error) {
           console.error('Error processing FID batch:', error);
-          batch.forEach(item => {
+          batch.forEach((item) => {
             if (!existingFids.includes(item.fid)) {
               results.push({ input: item.input, error: 'Failed to fetch user' });
             }
           });
         }
       }
-      
+
       setProcessingProgress({ current: i + batch.length, total: items.length });
-      
+
       // Add delay between batches to avoid rate limiting
       if (i + fidBatchSize < fidItems.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
@@ -198,38 +198,38 @@ export function BulkAddUsersDialog({
     const usernameDelay = 150; // 150ms between requests to stay well under rate limit
     for (let i = 0; i < usernameItems.length; i++) {
       const username = usernameItems[i];
-      
+
       try {
         // Check cache first by username
         const cachedFid = useDataStore.getState().usernameToFid[username.toLowerCase()];
         if (cachedFid) {
-          const cachedProfile = getProfile(useDataStore.getState(), cachedFid);
+          const cachedProfile = getProfile(useDataStore.getState(), undefined, cachedFid.toString());
           if (cachedProfile) {
             results.push({
               input: username,
               fid: cachedFid.toString(),
               user: cachedProfile as User,
-              isDuplicate: existingFids.includes(cachedFid.toString())
+              isDuplicate: existingFids.includes(cachedFid.toString()),
             });
             setProcessingProgress({ current: fidItems.length + i + 1, total: items.length });
             continue;
           }
         }
-        
+
         // Search for username
         const response = await neynarClient.searchUser(username, parseInt(viewerFid));
-        
+
         if (response.result?.users && response.result.users.length > 0) {
           const user = response.result.users[0];
           const fid = user.fid.toString();
-          
+
           results.push({
             input: username,
             fid,
             user,
-            isDuplicate: existingFids.includes(fid)
+            isDuplicate: existingFids.includes(fid),
           });
-          
+
           // Add to cache - skip additional info for bulk operations
           fetchAndAddUserProfile({ fid: user.fid, viewerFid: parseInt(viewerFid), skipAdditionalInfo: true });
         } else {
@@ -239,12 +239,12 @@ export function BulkAddUsersDialog({
         console.error(`Error processing username ${username}:`, error);
         results.push({ input: username, error: 'Failed to fetch user' });
       }
-      
+
       setProcessingProgress({ current: fidItems.length + i + 1, total: items.length });
-      
+
       // Rate limit delay between username searches
       if (i < usernameItems.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, usernameDelay));
+        await new Promise((resolve) => setTimeout(resolve, usernameDelay));
       }
     }
 
