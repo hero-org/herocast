@@ -197,31 +197,32 @@ export default function ListPage() {
   };
 
   // Handle bulk add users
-  const handleBulkAddUsers = async (users: Array<{ fid: string; displayName: string }>) => {
-    if (!activeListId || !activeList) return;
+  const handleBulkAddUsers = async (users: Array<{ fid: string; displayName: string }>): Promise<{ success: boolean; error?: string }> => {
+    if (!activeListId || !activeList) {
+      return { success: false, error: 'No active list selected' };
+    }
 
-    // Get current list content
-    const content = activeList.contents as FidListContent;
-    const currentFids = content.fids || [];
-    const currentDisplayNames = content.displayNames || {};
+    try {
+      // Get current list content
+      const content = activeList.contents as FidListContent;
+      const currentFids = content.fids || [];
+      const currentDisplayNames = content.displayNames || {};
 
-    // Merge new users with existing ones
-    const newFids = [...currentFids];
-    const newDisplayNames = { ...currentDisplayNames };
+      // Merge new users with existing ones
+      const newFids = [...currentFids];
+      const newDisplayNames = { ...currentDisplayNames };
 
-    users.forEach(({ fid, displayName }) => {
-      if (!currentFids.includes(fid)) {
-        newFids.push(fid);
-        newDisplayNames[fid] = displayName;
-      }
-    });
+      users.forEach(({ fid, displayName }) => {
+        if (!currentFids.includes(fid)) {
+          newFids.push(fid);
+          newDisplayNames[fid] = displayName;
+        }
+      });
 
-    // Update the list
-    await updateFidList(activeListId, activeList.name, newFids);
+      // Update the list using the store method first
+      await updateFidList(activeListId, activeList.name, newFids);
 
-    // Update display names
-    const updatedList = lists.find((l) => l.id === activeListId);
-    if (updatedList) {
+      // Update display names in the database
       const { data, error } = await supabaseClient
         .from('list')
         .update({
@@ -233,10 +234,40 @@ export default function ListPage() {
         .eq('id', activeListId)
         .select();
 
-      if (!error && data) {
-        // Refresh the list
+      if (error) {
+        console.error('Failed to update list in database:', error);
+        // Try to rollback by refreshing from the database
         await hydrate();
+        return { 
+          success: false, 
+          error: `Database update failed: ${error.message}. Please try again.` 
+        };
       }
+
+      // Refresh the list to ensure consistency
+      await hydrate();
+      
+      // Load profile data for the newly added users
+      const newUserFids = users.map(u => u.fid);
+      await Promise.all(
+        newUserFids.map(fid => 
+          getProfileFetchIfNeeded({
+            fid,
+            viewerFid: process.env.NEXT_PUBLIC_APP_FID!,
+          }).catch(err => {
+            console.error(`Failed to load profile for FID ${fid}:`, err);
+            return null;
+          })
+        )
+      );
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to bulk add users:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Failed to add users to the list' 
+      };
     }
   };
 

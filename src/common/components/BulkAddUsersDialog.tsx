@@ -26,7 +26,7 @@ import { fetchAndAddUserProfile } from '@/common/helpers/profileUtils';
 interface BulkAddUsersDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddUsers: (users: Array<{ fid: string; displayName: string }>) => Promise<void>;
+  onAddUsers: (users: Array<{ fid: string; displayName: string }>) => Promise<{ success: boolean; error?: string }>;
   existingFids: string[];
   viewerFid: string;
 }
@@ -52,12 +52,14 @@ export function BulkAddUsersDialog({
   const [parsedUsers, setParsedUsers] = useState<ParsedUser[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [processingProgress, setProcessingProgress] = useState({ current: 0, total: 0 });
+  const [lastAddError, setLastAddError] = useState<string | null>(null);
 
   const resetDialog = () => {
     setInput('');
     setParsedUsers([]);
     setShowPreview(false);
     setIsProcessing(false);
+    setLastAddError(null);
   };
 
   const handleClose = () => {
@@ -251,6 +253,7 @@ export function BulkAddUsersDialog({
     }
 
     setIsProcessing(true);
+    setLastAddError(null);
 
     try {
       const usersToAdd = validUsers.map((u) => ({
@@ -258,18 +261,31 @@ export function BulkAddUsersDialog({
         displayName: u.user!.username,
       }));
 
-      await onAddUsers(usersToAdd);
+      const result = await onAddUsers(usersToAdd);
 
-      toast({
-        title: 'Success',
-        description: `Added ${usersToAdd.length} users to the list`,
-      });
-
-      handleClose();
+      if (result.success) {
+        toast({
+          title: 'Success',
+          description: `Added ${usersToAdd.length} users to the list`,
+        });
+        handleClose();
+      } else {
+        // Keep the dialog open for retry
+        setLastAddError(result.error || 'Failed to add users to the list');
+        toast({
+          title: 'Error',
+          description: result.error || 'Failed to add users. You can retry without re-fetching.',
+          variant: 'destructive',
+        });
+        setIsProcessing(false);
+      }
     } catch (error) {
+      // Keep the dialog open for retry
+      const errorMessage = error.message || 'An unexpected error occurred';
+      setLastAddError(errorMessage);
       toast({
         title: 'Error',
-        description: `Failed to add users: ${error.message}`,
+        description: `Failed to add users: ${errorMessage}`,
         variant: 'destructive',
       });
       setIsProcessing(false);
@@ -363,6 +379,17 @@ export function BulkAddUsersDialog({
                 </AlertDescription>
               </Alert>
             )}
+            
+            {lastAddError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {lastAddError}
+                  <br />
+                  <span className="text-xs mt-1">You can retry without re-fetching the data.</span>
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         )}
 
@@ -394,7 +421,7 @@ export function BulkAddUsersDialog({
                     Adding...
                   </>
                 ) : (
-                  `Add ${validCount} User${validCount !== 1 ? 's' : ''}`
+                  lastAddError ? `Retry Adding ${validCount} User${validCount !== 1 ? 's' : ''}` : `Add ${validCount} User${validCount !== 1 ? 's' : ''}`
                 )}
               </Button>
             </>
