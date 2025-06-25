@@ -101,7 +101,7 @@ export default function ListsHub() {
                 title="Saved Searches"
                 description="Monitor keywords and get daily email alerts"
                 count={searchLists.length}
-                onClick={() => router.push('/search')}
+                onClick={() => handleTabChange('search')}
                 isLoading={!isHydrated}
               />
               <ListTypeCard
@@ -109,7 +109,7 @@ export default function ListsHub() {
                 title="User Lists"
                 description="Group and follow specific users"
                 count={fidLists.length}
-                onClick={() => router.push('/lists')}
+                onClick={() => handleTabChange('users')}
                 isLoading={!isHydrated}
               />
               <ListTypeCard
@@ -117,7 +117,7 @@ export default function ListsHub() {
                 title="Auto-Interactions"
                 description="Automated likes and recasts between accounts"
                 count={autoLists.length}
-                onClick={() => router.push('/list/auto-interactions')}
+                onClick={() => handleTabChange('auto')}
                 isLoading={!isHydrated}
               />
             </div>

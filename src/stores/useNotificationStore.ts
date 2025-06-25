@@ -40,6 +40,11 @@ interface NotificationStore {
 
 // Create or get the database connection
 const getDB = async () => {
+  // Check if we're in the browser environment
+  if (typeof window === 'undefined' || !window.indexedDB) {
+    throw new Error('IndexedDB is not available');
+  }
+  
   return openDB(IDB_DATABASE_NAME, IDB_VERSION, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(IDB_STORE_NAME)) {
@@ -52,6 +57,10 @@ const getDB = async () => {
 const storage = createJSONStorage<NotificationStore>(() => ({
   getItem: async (name: string) => {
     try {
+      // Return null during SSR
+      if (typeof window === 'undefined' || !window.indexedDB) {
+        return null;
+      }
       const db = await getDB();
       const value = await db.get(IDB_STORE_NAME, name);
       return value || null;
@@ -62,6 +71,10 @@ const storage = createJSONStorage<NotificationStore>(() => ({
   },
   setItem: async (name: string, value: string) => {
     try {
+      // Skip during SSR
+      if (typeof window === 'undefined' || !window.indexedDB) {
+        return;
+      }
       const db = await getDB();
       await db.put(IDB_STORE_NAME, value, name);
     } catch (error) {
@@ -70,6 +83,10 @@ const storage = createJSONStorage<NotificationStore>(() => ({
   },
   removeItem: async (name: string) => {
     try {
+      // Skip during SSR
+      if (typeof window === 'undefined' || !window.indexedDB) {
+        return;
+      }
       const db = await getDB();
       await db.delete(IDB_STORE_NAME, name);
     } catch (error) {

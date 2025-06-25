@@ -6,11 +6,22 @@ export class IndexedDBStorage implements StateStorage {
 
   constructor(dbName: string) {
     this.dbName = dbName;
-    this.dbPromise = this.openDB();
+    // Only initialize DB promise in browser environment
+    if (typeof window !== 'undefined' && window.indexedDB) {
+      this.dbPromise = this.openDB();
+    } else {
+      this.dbPromise = Promise.reject(new Error('IndexedDB is not available'));
+    }
   }
 
   private openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
+      // Check if we're in the browser environment
+      if (typeof window === 'undefined' || !window.indexedDB) {
+        reject(new Error('IndexedDB is not available'));
+        return;
+      }
+      
       const request = indexedDB.open(this.dbName, 1);
 
       request.onupgradeneeded = (event) => {

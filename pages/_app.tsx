@@ -3,6 +3,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import type { AppProps } from 'next/app';
+import Head from 'next/head';
 import { ThemeProvider } from '../src/common/hooks/ThemeProvider';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -80,35 +81,47 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     });
   }, []);
 
+  const content = (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider theme={rainbowKitTheme}>
+          <AuthProvider>
+            <CommandPalette />
+            <PerfPanel />
+            <Home>
+              <Component {...pageProps} />
+            </Home>
+          </AuthProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+
   const children = (
     <main
       className={cn(satoshi.className)}
       style={{
-        '-ms-overflow-style': 'none',
-        'scrollbar-width': 'none',
-        '-webkit-scrollbar': 'none',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        WebkitScrollbar: 'none',
       }}
     >
-      <PostHogProvider client={posthog}>
-        <WagmiProvider config={config}>
-          <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider theme={rainbowKitTheme}>
-              <AuthProvider>
-                <CommandPalette />
-                <PerfPanel />
-                <Home>
-                  <Component {...pageProps} />
-                </Home>
-              </AuthProvider>
-            </RainbowKitProvider>
-          </QueryClientProvider>
-        </WagmiProvider>
-      </PostHogProvider>
+      {posthog ? (
+        <PostHogProvider client={posthog}>
+          {content}
+        </PostHogProvider>
+      ) : (
+        content
+      )}
     </main>
   );
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+      <Head>
+        <title>herocast</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </Head>
       {children}
     </ThemeProvider>
   );
