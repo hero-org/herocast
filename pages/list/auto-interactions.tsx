@@ -19,7 +19,7 @@ import {
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
 import { useListStore, isAutoInteractionList } from '@/stores/useListStore';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { BoltIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { BoltIcon, PlusIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { List } from '@/common/types/database.types';
 import { AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
@@ -74,6 +74,8 @@ export default function AutoInteractionsPage() {
   const [feedSource, setFeedSource] = useState<'specific_users' | 'following'>('specific_users');
   const [requiredUrls, setRequiredUrls] = useState<string[]>([]);
   const [requiredKeywords, setRequiredKeywords] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const autoInteractionLists = getAutoInteractionLists();
   const activeList = activeListId ? lists.find((list) => list.id === activeListId) : null;
@@ -160,6 +162,9 @@ export default function AutoInteractionsPage() {
   const handleUpdateSettings = async () => {
     if (!activeList || !isAutoInteractionListContent(activeList.contents)) return;
 
+    setIsSaving(true);
+    setSaveSuccess(false);
+
     try {
       await updateAutoInteractionSettings(activeList.id as UUID, {
         sourceAccountId,
@@ -171,16 +176,24 @@ export default function AutoInteractionsPage() {
         requiredKeywords: requiredKeywords.length > 0 ? requiredKeywords : undefined,
       });
 
+      setSaveSuccess(true);
       toast({
         title: 'Success',
         description: 'Settings updated successfully',
       });
+
+      // Reset success state after 2 seconds
+      setTimeout(() => {
+        setSaveSuccess(false);
+      }, 2000);
     } catch (error) {
       toast({
         title: 'Error',
         description: `Failed to update settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -748,7 +761,22 @@ export default function AutoInteractionsPage() {
                         </div>
 
                         <div className="mt-6">
-                          <Button onClick={handleUpdateSettings}>Save Filters</Button>
+                          <Button 
+                            onClick={handleUpdateSettings} 
+                            disabled={isSaving}
+                            className="min-w-[120px]"
+                          >
+                            {isSaving ? (
+                              'Saving...'
+                            ) : saveSuccess ? (
+                              <>
+                                <CheckIcon className="w-4 h-4 mr-2" />
+                                Saved
+                              </>
+                            ) : (
+                              'Save Filters'
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </TabsContent>
@@ -803,7 +831,22 @@ export default function AutoInteractionsPage() {
                         </div>
 
                         <div className="mt-6">
-                          <Button onClick={handleUpdateSettings}>Save Actions</Button>
+                          <Button 
+                            onClick={handleUpdateSettings} 
+                            disabled={isSaving}
+                            className="min-w-[120px]"
+                          >
+                            {isSaving ? (
+                              'Saving...'
+                            ) : saveSuccess ? (
+                              <>
+                                <CheckIcon className="w-4 h-4 mr-2" />
+                                Saved
+                              </>
+                            ) : (
+                              'Save Actions'
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </TabsContent>

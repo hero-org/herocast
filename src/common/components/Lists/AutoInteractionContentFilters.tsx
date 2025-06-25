@@ -67,13 +67,18 @@ export function AutoInteractionContentFilters({
           <p className="text-sm text-muted-foreground">
             {feedSource === 'specific_users'
               ? 'Monitor casts from specific accounts only'
-              : 'Monitor casts from all accounts you follow'}
+              : 'Monitor casts from all accounts the acting account follows'}
           </p>
+          {feedSource === 'following' && (
+            <p className="text-xs text-muted-foreground mt-1">
+              <span className="font-medium">Note:</span> This uses the following list of the account that performs the interactions (acting account), not the account you&apos;re currently viewing
+            </p>
+          )}
         </div>
       )}
 
       <div className="space-y-2">
-        <Label>Required URLs (optional)</Label>
+        <Label>Required URLs (optional) - OR logic</Label>
         <div className="flex gap-2">
           <Input
             placeholder="e.g., vibes.engineering"
@@ -100,11 +105,13 @@ export function AutoInteractionContentFilters({
             ))}
           </div>
         )}
-        <p className="text-sm text-muted-foreground">Only interact with casts containing these URLs</p>
+        <p className="text-sm text-muted-foreground">
+          Only interact with casts containing <span className="font-medium">any</span> of these URLs
+        </p>
       </div>
 
       <div className="space-y-2">
-        <Label>Required Keywords (optional)</Label>
+        <Label>Required Keywords (optional) - OR logic</Label>
         <div className="flex gap-2">
           <Input
             placeholder="e.g., launch, announcement"
@@ -131,7 +138,9 @@ export function AutoInteractionContentFilters({
             ))}
           </div>
         )}
-        <p className="text-sm text-muted-foreground">Only interact with casts containing these keywords</p>
+        <p className="text-sm text-muted-foreground">
+          Only interact with casts containing <span className="font-medium">any</span> of these keywords
+        </p>
       </div>
     </div>
   );
