@@ -44,7 +44,7 @@ const getDB = async () => {
   if (typeof window === 'undefined' || !window.indexedDB) {
     throw new Error('IndexedDB is not available');
   }
-  
+
   return openDB(IDB_DATABASE_NAME, IDB_VERSION, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(IDB_STORE_NAME)) {

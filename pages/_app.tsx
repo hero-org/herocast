@@ -106,13 +106,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         WebkitScrollbar: 'none',
       }}
     >
-      {posthog ? (
-        <PostHogProvider client={posthog}>
-          {content}
-        </PostHogProvider>
-      ) : (
-        content
-      )}
+      {posthog ? <PostHogProvider client={posthog}>{content}</PostHogProvider> : content}
     </main>
   );
 

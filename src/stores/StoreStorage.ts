@@ -21,7 +21,7 @@ export class IndexedDBStorage implements StateStorage {
         reject(new Error('IndexedDB is not available'));
         return;
       }
-      
+
       const request = indexedDB.open(this.dbName, 1);
 
       request.onupgradeneeded = (event) => {
