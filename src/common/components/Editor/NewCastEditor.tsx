@@ -7,7 +7,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { useEditor, EditorContent } from '@mod-protocol/react-editor';
 import { EmbedsEditor } from '@mod-protocol/react-ui-shadcn/dist/lib/embeds';
 
-import { ModManifest, fetchUrlMetadata, handleAddEmbed, handleOpenFile, handleSetInput } from '@mod-protocol/core';
+import { fetchUrlMetadata, handleAddEmbed, handleOpenFile, handleSetInput } from '@mod-protocol/core';
 import { getFarcasterMentions } from '@mod-protocol/farcaster';
 // import { createRenderMentionsSuggestionConfig } from '@mod-protocol/react-ui-shadcn/dist/lib/mentions';
 import { createFixedMentionsSuggestionConfig as createRenderMentionsSuggestionConfig } from '@/lib/mentions/fixedMentions';
@@ -15,9 +15,6 @@ import { Button } from '@/components/ui/button';
 import { take } from 'lodash';
 import { ChannelPicker } from '../ChannelPicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CreationMod } from '@mod-protocol/react';
-import { creationMods } from '@mod-protocol/mod-registry';
-import { renderers } from '@mod-protocol/react-ui-shadcn/dist/renderers';
 import map from 'lodash.map';
 import { renderEmbedForUrl } from '../Embeds';
 import { CalendarDaysIcon, PhotoIcon } from '@heroicons/react/20/solid';
@@ -27,7 +24,7 @@ import { ChannelList } from '../ChannelList';
 import isEmpty from 'lodash.isempty';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { FarcasterEmbed } from '@mod-protocol/farcaster';
-import { DateTimePicker } from '@/components/ui/datetime-picker';
+import { EnhancedDateTimePicker } from '@/components/ui/enhanced-datetime-picker';
 import { toast } from 'sonner';
 import { usePostHog } from 'posthog-js/react';
 import { useTextLength } from '../../helpers/editor';
@@ -87,7 +84,6 @@ export default function NewPostEntry({
 }: NewPostEntryProps) {
   const posthog = usePostHog();
   const { addScheduledDraft, updatePostDraft, publishPostDraft } = useDraftStore();
-  const [currentMod, setCurrentMod] = React.useState<ModManifest | null>(null);
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
 
@@ -370,38 +366,24 @@ export default function NewPostEntry({
             className="h-9 p-2"
             type="button"
             variant="outline"
-            disabled={isPublishing}
-            onClick={() => setCurrentMod(creationMods[0])}
-          >
-            <PhotoIcon className="w-5 h-5" />
-            <span className="sr-only md:not-sr-only md:pl-2">Image</span>
-          </Button>
-          <Popover
-            open={!!currentMod}
-            onOpenChange={(op: boolean) => {
-              if (!op) setCurrentMod(null);
+            disabled={isPublishing || isUploading}
+            onClick={() => {
+              // Create a file input and trigger it
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = 'image/*';
+              input.onchange = (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                  uploadImage(file);
+                }
+              };
+              input.click();
             }}
           >
-            <PopoverTrigger></PopoverTrigger>
-            <PopoverContent className="w-[300px]">
-              <div className="space-y-4">
-                <h4 className="font-medium leading-none">{currentMod?.name}</h4>
-                <hr />
-                <CreationMod
-                  input={getText()}
-                  embeds={getEmbeds()}
-                  api={API_URL}
-                  variant="creation"
-                  manifest={currentMod!}
-                  renderers={renderers}
-                  onOpenFileAction={handleOpenFile}
-                  onExitAction={() => setCurrentMod(null)}
-                  onSetInputAction={handleSetInput(setText)}
-                  onAddEmbedAction={handleAddEmbed(addEmbed)}
-                />
-              </div>
-            </PopoverContent>
-          </Popover>
+            <PhotoIcon className="w-5 h-5" />
+            <span className="sr-only md:not-sr-only md:pl-2">{isUploading ? 'Uploading...' : 'Image'}</span>
+          </Button>
           {textLengthWarning && <div className={cn('my-2 ml-2 text-sm', textLengthTailwind)}>{textLengthWarning}</div>}
           {onRemove && (
             <Button className="h-9" variant="outline" type="button" onClick={onRemove} disabled={isPublishing}>
@@ -410,9 +392,7 @@ export default function NewPostEntry({
           )}
           {!hideSchedule &&
             (scheduleDateTime ? (
-              <DateTimePicker
-                granularity="minute"
-                hourCycle={24}
+              <EnhancedDateTimePicker
                 jsDate={scheduleDateTime}
                 onJsDateChange={(date) => setScheduleDateTime(date || undefined)}
                 showClearButton

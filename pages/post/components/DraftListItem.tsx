@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClockIcon, TrashIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, TrashIcon, CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -12,9 +12,10 @@ type DraftListItemProps = {
   isSelected: boolean;
   onSelect: (draftId: string) => void;
   onRemove: (draft: DraftType) => void;
+  onDuplicate?: (draft: DraftType) => void;
 };
 
-const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSelect, onRemove }) => {
+const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSelect, onRemove, onDuplicate }) => {
   return (
     <div
       className={cn(
@@ -31,17 +32,33 @@ const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSele
             {draft.text ? draft.text.substring(0, 30) + (draft.text.length > 30 ? '...' : '') : 'New draft'}
           </span>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove(draft);
-          }}
-        >
-          <TrashIcon className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {onDuplicate && (draft.status === DraftStatus.scheduled || draft.status === DraftStatus.published) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDuplicate(draft);
+              }}
+              title="Duplicate cast"
+            >
+              <DocumentDuplicateIcon className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(draft);
+            }}
+          >
+            <TrashIcon className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
       <div className="flex items-center text-xs text-muted-foreground">
         <span>

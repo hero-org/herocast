@@ -9,6 +9,7 @@ type DraftListProps = {
   setSelectedIdx: (idx: number) => void;
   setSelectedDraftId: (id: string) => void;
   onRemove: (draft: DraftType) => void;
+  onDuplicate?: (draft: DraftType) => void;
   isActive: boolean;
 };
 
@@ -18,6 +19,7 @@ const DraftList: React.FC<DraftListProps> = ({
   setSelectedIdx,
   setSelectedDraftId,
   onRemove,
+  onDuplicate,
   isActive,
 }) => {
   return (
@@ -36,6 +38,7 @@ const DraftList: React.FC<DraftListProps> = ({
             isSelected={idx === selectedIdx}
             onSelect={setSelectedDraftId}
             onRemove={onRemove}
+            onDuplicate={onDuplicate}
           />
         );
       }}

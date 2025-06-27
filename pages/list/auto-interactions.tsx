@@ -19,7 +19,7 @@ import {
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
 import { useListStore, isAutoInteractionList } from '@/stores/useListStore';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { BoltIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { BoltIcon, PlusIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { List } from '@/common/types/database.types';
 import { AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
@@ -74,6 +74,8 @@ export default function AutoInteractionsPage() {
   const [feedSource, setFeedSource] = useState<'specific_users' | 'following'>('specific_users');
   const [requiredUrls, setRequiredUrls] = useState<string[]>([]);
   const [requiredKeywords, setRequiredKeywords] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const autoInteractionLists = getAutoInteractionLists();
   const activeList = activeListId ? lists.find((list) => list.id === activeListId) : null;
@@ -160,6 +162,9 @@ export default function AutoInteractionsPage() {
   const handleUpdateSettings = async () => {
     if (!activeList || !isAutoInteractionListContent(activeList.contents)) return;
 
+    setIsSaving(true);
+    setSaveSuccess(false);
+
     try {
       await updateAutoInteractionSettings(activeList.id as UUID, {
         sourceAccountId,
@@ -171,16 +176,24 @@ export default function AutoInteractionsPage() {
         requiredKeywords: requiredKeywords.length > 0 ? requiredKeywords : undefined,
       });
 
+      setSaveSuccess(true);
       toast({
         title: 'Success',
         description: 'Settings updated successfully',
       });
+
+      // Reset success state after 2 seconds
+      setTimeout(() => {
+        setSaveSuccess(false);
+      }, 2000);
     } catch (error) {
       toast({
         title: 'Error',
         description: `Failed to update settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -740,6 +753,43 @@ export default function AutoInteractionsPage() {
                         />
 
                         <div className="space-y-2">
+                          <Label>Require mentions (optional)</Label>
+                          <ProfileSearchDropdown
+                            defaultProfiles={[]}
+                            selectedProfile={undefined}
+                            setSelectedProfile={(profile: User) => {
+                              if (!requireMentions.includes(profile.fid.toString())) {
+                                setRequireMentions([...requireMentions, profile.fid.toString()]);
+                              }
+                            }}
+                            placeholder="Add accounts that must be mentioned"
+                          />
+                          {requireMentions.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Only interact if these accounts are mentioned:
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {requireMentions.map((fid) => (
+                                  <div
+                                    key={fid}
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-sm bg-secondary rounded-md"
+                                  >
+                                    <ProfileInfo fid={parseInt(fid)} viewerFid={viewerFid} compact={true} />
+                                    <button
+                                      onClick={() => setRequireMentions(requireMentions.filter((f) => f !== fid))}
+                                      className="ml-1 text-muted-foreground hover:text-foreground"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <Label htmlFor="only-top-casts">Only interact with top-level casts</Label>
                             <Switch id="only-top-casts" checked={onlyTopCasts} onCheckedChange={setOnlyTopCasts} />
@@ -748,7 +798,18 @@ export default function AutoInteractionsPage() {
                         </div>
 
                         <div className="mt-6">
-                          <Button onClick={handleUpdateSettings}>Save Filters</Button>
+                          <Button onClick={handleUpdateSettings} disabled={isSaving} className="min-w-[120px]">
+                            {isSaving ? (
+                              'Saving...'
+                            ) : saveSuccess ? (
+                              <>
+                                <CheckIcon className="w-4 h-4 mr-2" />
+                                Saved
+                              </>
+                            ) : (
+                              'Save Filters'
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </TabsContent>
@@ -803,7 +864,18 @@ export default function AutoInteractionsPage() {
                         </div>
 
                         <div className="mt-6">
-                          <Button onClick={handleUpdateSettings}>Save Actions</Button>
+                          <Button onClick={handleUpdateSettings} disabled={isSaving} className="min-w-[120px]">
+                            {isSaving ? (
+                              'Saving...'
+                            ) : saveSuccess ? (
+                              <>
+                                <CheckIcon className="w-4 h-4 mr-2" />
+                                Saved
+                              </>
+                            ) : (
+                              'Save Actions'
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </TabsContent>
