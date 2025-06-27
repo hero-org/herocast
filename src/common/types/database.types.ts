@@ -382,6 +382,16 @@ export type Database = {
         };
         Returns: boolean;
       };
+      decrypted_account: {
+        Args: {
+          account_id: string;
+        };
+        Returns: {
+          id: string;
+          platform_account_id: string | null;
+          decrypted_private_key: string | null;
+        }[];
+      };
     };
     Enums: {
       list_type: 'fids' | 'search' | 'auto_interaction';
