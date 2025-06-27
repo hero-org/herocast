@@ -1,165 +1,161 @@
-import * as React from "react"
-import { CalendarIcon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { format, startOfToday, isToday, isBefore, startOfMinute } from "date-fns"
-import { today as todayTz, getLocalTimeZone } from '@internationalized/date'
+import * as React from 'react';
+import { CalendarIcon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { format, startOfToday, isToday, isBefore, startOfMinute } from 'date-fns';
+import { today as todayTz, getLocalTimeZone } from '@internationalized/date';
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 type DateTimePickerProps = {
-  jsDate?: Date | null
-  onJsDateChange?: (date: Date | null) => void
-  showClearButton?: boolean
-  granularity?: string
-  hourCycle?: number
-  disabled?: boolean
-}
+  jsDate?: Date | null;
+  onJsDateChange?: (date: Date | null) => void;
+  showClearButton?: boolean;
+  granularity?: string;
+  hourCycle?: number;
+  disabled?: boolean;
+};
 
 type TimePreset = {
-  label: string
-  hour: number
-  minute: number
-  description: string
-}
+  label: string;
+  hour: number;
+  minute: number;
+  description: string;
+};
 
 const getTimePresets = (selectedDate?: Date): TimePreset[] => {
-  const presets: TimePreset[] = []
-  
+  const presets: TimePreset[] = [];
+
   // Add "Tomorrow morning" if the selected date is tomorrow
   if (selectedDate) {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    tomorrow.setHours(0, 0, 0, 0)
-    
-    const selectedDay = new Date(selectedDate)
-    selectedDay.setHours(0, 0, 0, 0)
-    
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    const selectedDay = new Date(selectedDate);
+    selectedDay.setHours(0, 0, 0, 0);
+
     if (selectedDay.getTime() === tomorrow.getTime()) {
-      presets.push({ label: "Tomorrow morning", hour: 14, minute: 0, description: "9 AM ET" })
+      presets.push({ label: 'Tomorrow morning', hour: 14, minute: 0, description: '9 AM ET' });
     }
   }
-  
+
   // Add regular presets
   presets.push(
-    { label: "US Morning", hour: 14, minute: 0, description: "9 AM ET" },
-    { label: "US Afternoon", hour: 18, minute: 0, description: "1 PM ET" },
-    { label: "US Evening", hour: 23, minute: 0, description: "6 PM ET" },
-    { label: "EU Morning", hour: 8, minute: 0, description: "9 AM CET" },
-    { label: "Asia Evening", hour: 9, minute: 0, description: "6 PM JST" },
-  )
-  
-  return presets
-}
+    { label: 'US Morning', hour: 14, minute: 0, description: '9 AM ET' },
+    { label: 'US Afternoon', hour: 18, minute: 0, description: '1 PM ET' },
+    { label: 'US Evening', hour: 23, minute: 0, description: '6 PM ET' },
+    { label: 'EU Morning', hour: 8, minute: 0, description: '9 AM CET' },
+    { label: 'Asia Evening', hour: 9, minute: 0, description: '6 PM JST' }
+  );
+
+  return presets;
+};
 
 export function EnhancedDateTimePicker({
   jsDate,
   onJsDateChange,
   showClearButton = true,
-  granularity = "minute",
+  granularity = 'minute',
   hourCycle = 24,
   disabled = false,
 }: DateTimePickerProps) {
-  const [open, setOpen] = React.useState(false)
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(jsDate || undefined)
+  const [open, setOpen] = React.useState(false);
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(jsDate || undefined);
   const [timeValue, setTimeValue] = React.useState<string>(() => {
     if (jsDate) {
-      const hours = jsDate.getHours().toString().padStart(2, '0')
-      const minutes = jsDate.getMinutes().toString().padStart(2, '0')
-      return `${hours}:${minutes}`
+      const hours = jsDate.getHours().toString().padStart(2, '0');
+      const minutes = jsDate.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
     }
-    return "16:00" // Default to 16:00 UTC (US morning)
-  })
+    return '16:00'; // Default to 16:00 UTC (US morning)
+  });
 
   // Update internal state when jsDate prop changes
   React.useEffect(() => {
     if (jsDate) {
-      setSelectedDate(jsDate)
-      const hours = jsDate.getHours().toString().padStart(2, '0')
-      const minutes = jsDate.getMinutes().toString().padStart(2, '0')
-      setTimeValue(`${hours}:${minutes}`)
+      setSelectedDate(jsDate);
+      const hours = jsDate.getHours().toString().padStart(2, '0');
+      const minutes = jsDate.getMinutes().toString().padStart(2, '0');
+      setTimeValue(`${hours}:${minutes}`);
     } else {
-      setSelectedDate(undefined)
-      setTimeValue("16:00")
+      setSelectedDate(undefined);
+      setTimeValue('16:00');
     }
-  }, [jsDate])
+  }, [jsDate]);
 
   const handleDateSelect = (date: Date | undefined) => {
-    if (!date) return
-    
-    setSelectedDate(date)
-    updateDateTime(date, timeValue)
-  }
+    if (!date) return;
+
+    setSelectedDate(date);
+    updateDateTime(date, timeValue);
+  };
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setTimeValue(value)
-    
+    const value = e.target.value;
+    setTimeValue(value);
+
     if (selectedDate && value) {
-      const [hours, minutes] = value.split(':').map(Number)
-      const testDate = new Date(selectedDate)
-      testDate.setHours(hours, minutes, 0, 0)
-      
+      const [hours, minutes] = value.split(':').map(Number);
+      const testDate = new Date(selectedDate);
+      testDate.setHours(hours, minutes, 0, 0);
+
       // If the selected date is today, validate the time isn't in the past
       if (isToday(selectedDate) && isBefore(testDate, new Date())) {
         // Don't update if it would be in the past
-        return
+        return;
       }
-      
-      updateDateTime(selectedDate, value)
+
+      updateDateTime(selectedDate, value);
     }
-  }
+  };
 
   const handleTimePreset = (preset: TimePreset) => {
-    const timeStr = `${preset.hour.toString().padStart(2, '0')}:${preset.minute.toString().padStart(2, '0')}`
-    setTimeValue(timeStr)
-    
+    const timeStr = `${preset.hour.toString().padStart(2, '0')}:${preset.minute.toString().padStart(2, '0')}`;
+    setTimeValue(timeStr);
+
     if (selectedDate) {
-      const testDate = new Date(selectedDate)
-      testDate.setHours(preset.hour, preset.minute, 0, 0)
-      
+      const testDate = new Date(selectedDate);
+      testDate.setHours(preset.hour, preset.minute, 0, 0);
+
       // If the selected date is today, validate the time isn't in the past
       if (isToday(selectedDate) && isBefore(testDate, new Date())) {
         // Don't update if it would be in the past
-        return
+        return;
       }
-      
-      updateDateTime(selectedDate, timeStr)
+
+      updateDateTime(selectedDate, timeStr);
     }
-  }
+  };
 
   const updateDateTime = (date: Date, timeString: string) => {
-    const [hours, minutes] = timeString.split(':').map(Number)
-    const newDate = new Date(date)
-    newDate.setHours(hours, minutes, 0, 0)
-    
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const newDate = new Date(date);
+    newDate.setHours(hours, minutes, 0, 0);
+
     // Don't round here - let the parent component handle it
-    onJsDateChange?.(newDate)
-  }
+    onJsDateChange?.(newDate);
+  };
 
   const handleClear = () => {
-    setSelectedDate(undefined)
-    setTimeValue("16:00")
-    onJsDateChange?.(null)
-    setOpen(false)
-  }
+    setSelectedDate(undefined);
+    setTimeValue('16:00');
+    onJsDateChange?.(null);
+    setOpen(false);
+  };
 
   const formatDisplayText = () => {
-    if (!jsDate) return "Select date & time"
-    
+    if (!jsDate) return 'Select date & time';
+
     try {
-      return format(jsDate, "MMM d, yyyy 'at' HH:mm")
+      return format(jsDate, "MMM d, yyyy 'at' HH:mm");
     } catch {
-      return "Select date & time"
+      return 'Select date & time';
     }
-  }
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -168,8 +164,8 @@ export function EnhancedDateTimePicker({
           <Button
             variant="outline"
             className={cn(
-              "justify-start text-left font-normal min-w-[180px] sm:min-w-[200px] h-9 text-sm",
-              !jsDate && "text-muted-foreground"
+              'justify-start text-left font-normal min-w-[180px] sm:min-w-[200px] h-9 text-sm',
+              !jsDate && 'text-muted-foreground'
             )}
             disabled={disabled}
           >
@@ -186,12 +182,12 @@ export function EnhancedDateTimePicker({
                 selected={selectedDate}
                 onSelect={handleDateSelect}
                 disabled={{
-                  before: startOfToday()
+                  before: startOfToday(),
                 }}
                 initialFocus
               />
             </div>
-            
+
             {/* Time Section */}
             <div className="p-3 space-y-4 w-full sm:w-[280px]">
               <div>
@@ -200,12 +196,12 @@ export function EnhancedDateTimePicker({
                   {selectedDate && timeValue && (
                     <span className="text-xs text-muted-foreground">
                       {(() => {
-                        const [hours, minutes] = timeValue.split(':').map(Number)
-                        const testDate = new Date(selectedDate)
-                        testDate.setHours(hours, minutes, 0, 0)
-                        const utcHours = testDate.getUTCHours().toString().padStart(2, '0')
-                        const utcMinutes = testDate.getUTCMinutes().toString().padStart(2, '0')
-                        return `${utcHours}:${utcMinutes} UTC`
+                        const [hours, minutes] = timeValue.split(':').map(Number);
+                        const testDate = new Date(selectedDate);
+                        testDate.setHours(hours, minutes, 0, 0);
+                        const utcHours = testDate.getUTCHours().toString().padStart(2, '0');
+                        const utcMinutes = testDate.getUTCMinutes().toString().padStart(2, '0');
+                        return `${utcHours}:${utcMinutes} UTC`;
                       })()}
                     </span>
                   )}
@@ -218,7 +214,7 @@ export function EnhancedDateTimePicker({
                   className="w-full"
                 />
               </div>
-              
+
               <div>
                 <Label className="text-sm font-medium mb-2 block">Quick presets</Label>
                 <div className="space-y-1">
@@ -236,13 +232,9 @@ export function EnhancedDateTimePicker({
                   ))}
                 </div>
               </div>
-              
+
               <div className="pt-2 border-t sm:hidden">
-                <Button
-                  className="w-full"
-                  size="sm"
-                  onClick={() => setOpen(false)}
-                >
+                <Button className="w-full" size="sm" onClick={() => setOpen(false)}>
                   Done
                 </Button>
               </div>
@@ -250,18 +242,12 @@ export function EnhancedDateTimePicker({
           </div>
         </PopoverContent>
       </Popover>
-      
+
       {showClearButton && jsDate && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={handleClear}
-          disabled={disabled}
-        >
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleClear} disabled={disabled}>
           <XMarkIcon className="h-4 w-4" />
         </Button>
       )}
     </div>
-  )
+  );
 }

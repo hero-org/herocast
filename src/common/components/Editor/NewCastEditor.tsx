@@ -382,9 +382,7 @@ export default function NewPostEntry({
             }}
           >
             <PhotoIcon className="w-5 h-5" />
-            <span className="sr-only md:not-sr-only md:pl-2">
-              {isUploading ? 'Uploading...' : 'Image'}
-            </span>
+            <span className="sr-only md:not-sr-only md:pl-2">{isUploading ? 'Uploading...' : 'Image'}</span>
           </Button>
           {textLengthWarning && <div className={cn('my-2 ml-2 text-sm', textLengthTailwind)}>{textLengthWarning}</div>}
           {onRemove && (

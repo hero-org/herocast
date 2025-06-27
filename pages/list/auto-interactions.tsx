@@ -766,7 +766,9 @@ export default function AutoInteractionsPage() {
                           />
                           {requireMentions.length > 0 && (
                             <div className="mt-2 space-y-1">
-                              <p className="text-sm text-muted-foreground">Only interact if these accounts are mentioned:</p>
+                              <p className="text-sm text-muted-foreground">
+                                Only interact if these accounts are mentioned:
+                              </p>
                               <div className="flex flex-wrap gap-2">
                                 {requireMentions.map((fid) => (
                                   <div

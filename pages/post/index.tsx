@@ -197,7 +197,7 @@ export default function NewPost() {
         // Switch to writing tab and select the new draft
         setActiveTab(DraftListTab.writing);
         setSelectedDraftId(newDraftId);
-      }
+      },
     });
   };
 

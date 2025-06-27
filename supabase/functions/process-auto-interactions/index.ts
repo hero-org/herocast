@@ -59,7 +59,7 @@ serve(async (req) => {
 
 async function processAutoInteractionList(supabase: any, list: any) {
   const content = list.contents as AutoInteractionListContent;
-  
+
   console.log(`[List ${list.id}] Starting processing:`, {
     name: list.name,
     feedSource: content.feedSource || 'specific_users',
@@ -70,9 +70,9 @@ async function processAutoInteractionList(supabase: any, list: any) {
       onlyTopCasts: content.onlyTopCasts,
       requireMentions: content.requireMentions || [],
       requiredUrls: content.requiredUrls || [],
-      requiredKeywords: content.requiredKeywords || []
+      requiredKeywords: content.requiredKeywords || [],
     },
-    listCreatedAt: list.created_at
+    listCreatedAt: list.created_at,
   });
 
   if (!content.fids || content.fids.length === 0) {
@@ -94,14 +94,14 @@ async function processAutoInteractionList(supabase: any, list: any) {
 
   const account = accounts[0];
   const privateKey = account.decrypted_private_key;
-  
+
   console.log(`[List ${list.id}] Decrypted account:`, {
     hasAccount: !!account,
     hasPrivateKey: !!privateKey,
     accountId: content.sourceAccountId,
-    platformAccountId: account.platform_account_id
+    platformAccountId: account.platform_account_id,
   });
-  
+
   if (!privateKey) {
     throw new Error(`No private key found for account ${content.sourceAccountId}`);
   }
@@ -121,24 +121,26 @@ async function processAutoInteractionList(supabase: any, list: any) {
 
   let filteredOutCount = 0;
   let duplicateCount = 0;
-  
+
   // First, filter casts and collect hashes
   const castsToProcess = [];
   const castHashes = [];
-  
+
   for (const cast of casts) {
     // Apply filters
     if (!shouldProcessCast(cast, content, account.platform_account_id)) {
       filteredOutCount++;
       continue;
     }
-    
+
     castsToProcess.push(cast);
     castHashes.push(cast.hash);
   }
-  
-  console.log(`[List ${list.id}] Filtered ${castsToProcess.length} casts from ${casts.length} total (${filteredOutCount} filtered out)`);
-  
+
+  console.log(
+    `[List ${list.id}] Filtered ${castsToProcess.length} casts from ${casts.length} total (${filteredOutCount} filtered out)`
+  );
+
   // Batch query to check which casts have already been processed
   let processedCastHashes = new Set<string>();
   if (castHashes.length > 0) {
@@ -147,13 +149,13 @@ async function processAutoInteractionList(supabase: any, list: any) {
       .select('cast_hash')
       .eq('list_id', list.id)
       .in('cast_hash', castHashes);
-    
+
     if (existingHistory && existingHistory.length > 0) {
       processedCastHashes = new Set(existingHistory.map((h: any) => h.cast_hash));
       console.log(`[List ${list.id}] Found ${processedCastHashes.size} already processed casts`);
     }
   }
-  
+
   // Now process each cast
   for (const cast of castsToProcess) {
     // Check if already processed using O(1) Set lookup
@@ -162,12 +164,12 @@ async function processAutoInteractionList(supabase: any, list: any) {
       duplicateCount++;
       continue;
     }
-    
+
     console.log(`[List ${list.id}] Processing cast:`, {
       hash: cast.hash,
       author: cast.author.username || cast.author.fid,
       text: cast.text?.substring(0, 100) + '...',
-      isReply: !!cast.parent_hash
+      isReply: !!cast.parent_hash,
     });
 
     // Perform the actions
@@ -218,9 +220,9 @@ async function processAutoInteractionList(supabase: any, list: any) {
   // Update last processed hash
   if (casts.length > 0 && casts[0].hash !== content.lastProcessedHash) {
     // Always update to the newest cast we saw (first in the array)
-    const updatedContent = { 
-      ...content, 
-      lastProcessedHash: casts[0].hash
+    const updatedContent = {
+      ...content,
+      lastProcessedHash: casts[0].hash,
     };
     await supabase.from('list').update({ contents: updatedContent }).eq('id', list.id);
     console.log(`[List ${list.id}] Updated lastProcessedHash to ${casts[0].hash}`);
@@ -231,19 +233,19 @@ async function processAutoInteractionList(supabase: any, list: any) {
     filteredOut: filteredOutCount,
     duplicatesSkipped: duplicateCount,
     actionsPerformed: processedCount,
-    lastProcessedHash: lastHash
+    lastProcessedHash: lastHash,
   });
 }
 
 function shouldProcessCast(cast: any, content: AutoInteractionListContent, actingAccountFid: string): boolean {
   const logPrefix = `  [${cast.hash.substring(0, 10)}...] @${cast.author.username || cast.author.fid}:`;
-  
+
   // Check if cast is from the acting account itself
   if (cast.author.fid.toString() === actingAccountFid) {
     console.log(`${logPrefix} ❌ Filtered: Self-cast (acting account)`);
     return false;
   }
-  
+
   // Check if it's a top-level cast
   if (content.onlyTopCasts && cast.parent_hash) {
     console.log(`${logPrefix} ❌ Filtered: Is a reply`);
@@ -255,7 +257,9 @@ function shouldProcessCast(cast: any, content: AutoInteractionListContent, actin
     const mentionedFids = extractMentionedFids(cast);
     const hasRequiredMention = content.requireMentions.some((fid) => mentionedFids.includes(fid));
     if (!hasRequiredMention) {
-      console.log(`${logPrefix} ❌ Filtered: Missing mentions. Required: [${content.requireMentions}], Found: [${mentionedFids}]`);
+      console.log(
+        `${logPrefix} ❌ Filtered: Missing mentions. Required: [${content.requireMentions}], Found: [${mentionedFids}]`
+      );
       return false;
     }
   }
@@ -341,13 +345,11 @@ async function fetchAllRecentCasts(
   let cursor: string | undefined;
   let pageCount = 0;
   const maxPages = 5; // Reduced to prevent timeouts - Supabase functions have limited execution time
-  
+
   // For first run, only process casts created after the list was created
   // Add 5 minute grace period for testing
   const graceMinutes = 5;
-  const listCreationTime = listCreatedAt 
-    ? new Date(listCreatedAt).getTime() - (graceMinutes * 60 * 1000)
-    : 0;
+  const listCreationTime = listCreatedAt ? new Date(listCreatedAt).getTime() - graceMinutes * 60 * 1000 : 0;
 
   console.log(`Fetching casts:`, {
     followingFid,
@@ -355,7 +357,7 @@ async function fetchAllRecentCasts(
     lastProcessedHash: lastProcessedHash || 'none (first run)',
     listCreatedAt: listCreatedAt || 'none',
     effectiveStartTime: listCreationTime ? new Date(listCreationTime).toISOString() : 'none',
-    graceMinutes: !lastProcessedHash ? graceMinutes : 0
+    graceMinutes: !lastProcessedHash ? graceMinutes : 0,
   });
 
   while (pageCount < maxPages) {
@@ -392,7 +394,7 @@ async function fetchAllRecentCasts(
     const data = await response.json();
     const pageCasts = data.casts || [];
     cursor = data.next?.cursor;
-    
+
     pageCount++;
     console.log(`  Page ${pageCount}: fetched ${pageCasts.length} casts`);
 
@@ -416,7 +418,7 @@ async function fetchAllRecentCasts(
               author: cast.author?.username,
               time: cast.timestamp,
               text: cast.text?.substring(0, 100),
-              listCreated: new Date(listCreationTime).toISOString()
+              listCreated: new Date(listCreationTime).toISOString(),
             });
           } else {
             console.log(`  Skipping cast older than list creation: ${cast.hash}`);
@@ -431,7 +433,7 @@ async function fetchAllRecentCasts(
           hash: cast.hash,
           author: cast.author?.username,
           time: cast.timestamp,
-          text: cast.text
+          text: cast.text,
         });
       }
 
@@ -443,7 +445,7 @@ async function fetchAllRecentCasts(
       console.log(`  Found last processed hash, stopping pagination`);
       break;
     }
-    
+
     if (!cursor) {
       console.log(`  No more pages available`);
       break;
@@ -454,7 +456,7 @@ async function fetchAllRecentCasts(
       console.log(`  Reached maximum cast limit (200) to prevent timeout`);
       break;
     }
-    
+
     // For first run, don't paginate too far back
     if (!lastProcessedHash && allCasts.length >= 100) {
       console.log(`  First run: limiting to 100 casts`);
