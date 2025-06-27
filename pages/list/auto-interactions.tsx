@@ -753,6 +753,41 @@ export default function AutoInteractionsPage() {
                         />
 
                         <div className="space-y-2">
+                          <Label>Require mentions (optional)</Label>
+                          <ProfileSearchDropdown
+                            defaultProfiles={[]}
+                            selectedProfile={undefined}
+                            setSelectedProfile={(profile: User) => {
+                              if (!requireMentions.includes(profile.fid.toString())) {
+                                setRequireMentions([...requireMentions, profile.fid.toString()]);
+                              }
+                            }}
+                            placeholder="Add accounts that must be mentioned"
+                          />
+                          {requireMentions.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              <p className="text-sm text-muted-foreground">Only interact if these accounts are mentioned:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {requireMentions.map((fid) => (
+                                  <div
+                                    key={fid}
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-sm bg-secondary rounded-md"
+                                  >
+                                    <ProfileInfo fid={parseInt(fid)} viewerFid={viewerFid} compact={true} />
+                                    <button
+                                      onClick={() => setRequireMentions(requireMentions.filter((f) => f !== fid))}
+                                      className="ml-1 text-muted-foreground hover:text-foreground"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <Label htmlFor="only-top-casts">Only interact with top-level casts</Label>
                             <Switch id="only-top-casts" checked={onlyTopCasts} onCheckedChange={setOnlyTopCasts} />
@@ -761,11 +796,7 @@ export default function AutoInteractionsPage() {
                         </div>
 
                         <div className="mt-6">
-                          <Button 
-                            onClick={handleUpdateSettings} 
-                            disabled={isSaving}
-                            className="min-w-[120px]"
-                          >
+                          <Button onClick={handleUpdateSettings} disabled={isSaving} className="min-w-[120px]">
                             {isSaving ? (
                               'Saving...'
                             ) : saveSuccess ? (
@@ -831,11 +862,7 @@ export default function AutoInteractionsPage() {
                         </div>
 
                         <div className="mt-6">
-                          <Button 
-                            onClick={handleUpdateSettings} 
-                            disabled={isSaving}
-                            className="min-w-[120px]"
-                          >
+                          <Button onClick={handleUpdateSettings} disabled={isSaving} className="min-w-[120px]">
                             {isSaving ? (
                               'Saving...'
                             ) : saveSuccess ? (

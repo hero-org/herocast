@@ -71,7 +71,8 @@ export function AutoInteractionContentFilters({
           </p>
           {feedSource === 'following' && (
             <p className="text-xs text-muted-foreground mt-1">
-              <span className="font-medium">Note:</span> This uses the following list of the account that performs the interactions (acting account), not the account you&apos;re currently viewing
+              <span className="font-medium">Note:</span> This uses the following list of the account that performs the
+              interactions (acting account).
             </p>
           )}
         </div>

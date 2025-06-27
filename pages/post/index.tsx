@@ -187,6 +187,20 @@ export default function NewPost() {
     removePostDraftById(draft.id);
   };
 
+  const onDuplicate = (draft: DraftType) => {
+    // Create a new draft with the same content
+    addNewPostDraft({
+      text: draft.text,
+      parentUrl: draft.parentUrl,
+      embeds: draft.embeds,
+      onSuccess: (newDraftId) => {
+        // Switch to writing tab and select the new draft
+        setActiveTab(DraftListTab.writing);
+        setSelectedDraftId(newDraftId);
+      }
+    });
+  };
+
   const renderNewDraftButton = () => (
     <Button
       variant="outline"
@@ -343,6 +357,7 @@ export default function NewPost() {
         setSelectedIdx={setSelectedDraftIndex}
         setSelectedDraftId={setSelectedDraftId}
         onRemove={onRemove}
+        onDuplicate={onDuplicate}
         isActive={true}
       />
     );
