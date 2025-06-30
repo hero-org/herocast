@@ -37,7 +37,6 @@ export default function Settings() {
     getUser();
   }, []);
 
-
   const onLogout = async () => {
     const {
       data: { session },
@@ -56,8 +55,8 @@ export default function Settings() {
   const displayEmail = user?.email ? `${user?.email.slice(0, 5)}...@${user?.email.split('@')[1]}` : '';
 
   const renderInfoSection = () => {
-    // Get shortcuts from definitions and organize by category  
-    const allShortcuts: SimpleCommand[] = hotkeyDefinitions.map(def => ({
+    // Get shortcuts from definitions and organize by category
+    const allShortcuts: SimpleCommand[] = hotkeyDefinitions.map((def) => ({
       name: `${def.category}: ${def.name}`,
       shortcut: Array.isArray(def.keys) ? def.keys.join(' or ') : def.keys,
     }));

@@ -5,13 +5,10 @@ import { formatKey } from '@/components/ui/keyboard-shortcut';
  * Converts shortcut strings like "meta+k" to formatted arrays like ["⌘", "K"]
  */
 export function formatShortcutKeys(shortcut: string): string[] {
-  const platform = typeof window !== 'undefined' 
-    ? navigator.platform.toLowerCase().includes('mac') ? 'mac' : 'other'
-    : 'other';
-    
-  return shortcut
-    .split('+')
-    .map(key => formatKey(key.trim(), platform));
+  const platform =
+    typeof window !== 'undefined' ? (navigator.platform.toLowerCase().includes('mac') ? 'mac' : 'other') : 'other';
+
+  return shortcut.split('+').map((key) => formatKey(key.trim(), platform));
 }
 
 /**
@@ -23,7 +20,7 @@ export const APP_SHORTCUTS = {
   COMMAND_PALETTE: 'meta+k',
   SEARCH: '/',
   NEW_CAST: 'c',
-  
+
   // Navigation
   GO_TO_FEEDS: 'shift+f',
   GO_TO_CHANNELS: 'shift+c',
@@ -31,23 +28,23 @@ export const APP_SHORTCUTS = {
   GO_TO_PROFILE: 'meta+shift+p',
   GO_TO_ANALYTICS: 'meta+shift+a',
   GO_TO_SETTINGS: 'meta+shift+,',
-  
+
   // Cast actions (when selected)
   REPLY: 'r',
   LIKE: 'l',
   RECAST: 'shift+r',
-  
+
   // Account switching
   SWITCH_ACCOUNT: (index: number) => `ctrl+${index + 1}`,
-  
+
   // Feed switching
   SWITCH_TO_FOLLOWING: 'shift+0',
   SWITCH_TO_TRENDING: 'shift+1',
-  
+
   // Theme
   LIGHT_MODE: 'meta+shift+l',
   DARK_MODE: 'meta+shift+d',
-  
+
   // Modal actions
   CLOSE: 'esc',
   SUBMIT: 'meta+enter',

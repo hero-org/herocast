@@ -92,7 +92,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -196,12 +197,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.05) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.05) 50%, transparent 100%);
   animation: shimmer 1.5s infinite;
 }
 
@@ -222,7 +218,7 @@
     animation: none;
     transition: none;
   }
-  
+
   .scrollContainer {
     scroll-behavior: auto;
   }

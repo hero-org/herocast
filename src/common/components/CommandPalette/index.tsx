@@ -767,7 +767,7 @@ export default function CommandPalette() {
             if ((e.key === 'j' || e.key === 'k') && !e.metaKey && !e.ctrlKey) {
               e.preventDefault();
               e.stopPropagation();
-              
+
               // Find the input and dispatch arrow key from there
               const input = e.currentTarget.querySelector('input[cmdk-input]');
               if (input) {
@@ -776,7 +776,7 @@ export default function CommandPalette() {
                   bubbles: true,
                   cancelable: true,
                 });
-                
+
                 input.dispatchEvent(arrowEvent);
               }
             }

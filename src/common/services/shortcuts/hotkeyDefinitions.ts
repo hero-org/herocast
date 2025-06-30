@@ -1,7 +1,7 @@
 import { HotkeyScopes } from '@/common/constants/hotkeys';
-import { 
-  MagnifyingGlassCircleIcon, 
-  UserCircleIcon, 
+import {
+  MagnifyingGlassCircleIcon,
+  UserCircleIcon,
   ChartBarIcon,
   HeartIcon,
   ArrowPathRoundedSquareIcon,
@@ -199,7 +199,7 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
   {
     id: 'switch-trending-feed',
     keys: 'shift+1',
-    name: 'Switch to Trending Feed', 
+    name: 'Switch to Trending Feed',
     category: hotkeyCategories.feed,
     scopes: [HotkeyScopes.FEED],
   },
@@ -207,10 +207,10 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
 
 // Helper to get hotkeys by scope
 export function getHotkeysByScope(scope: string): HotkeyDefinition[] {
-  return hotkeyDefinitions.filter(h => h.scopes.includes(scope));
+  return hotkeyDefinitions.filter((h) => h.scopes.includes(scope));
 }
 
 // Helper to get hotkeys by category
 export function getHotkeysByCategory(category: string): HotkeyDefinition[] {
-  return hotkeyDefinitions.filter(h => h.category === category);
+  return hotkeyDefinitions.filter((h) => h.category === category);
 }

@@ -77,13 +77,7 @@ export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) =
           className="flex items-center py-1.5 rounded-lg"
         >
           {user.pfp_url ? (
-            <Image
-              src={user.pfp_url}
-              alt=""
-              width={20}
-              height={20}
-              className="mr-2 h-5 w-5 flex-none rounded-full"
-            />
+            <Image src={user.pfp_url} alt="" width={20} height={20} className="mr-2 h-5 w-5 flex-none rounded-full" />
           ) : (
             <UserCircleIcon className="h-5 w-5 flex-none text-foreground/80 mr-2" />
           )}

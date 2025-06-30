@@ -2,7 +2,7 @@
 export const HotkeyScopes = {
   // Always active
   GLOBAL: 'global',
-  
+
   // Page-specific scopes
   FEED: 'feed',
   SEARCH: 'search',
@@ -10,17 +10,17 @@ export const HotkeyScopes = {
   CONVERSATION: 'conversation',
   SETTINGS: 'settings',
   ANALYTICS: 'analytics',
-  
+
   // Component-specific scopes
   EDITOR: 'editor',
   MODAL: 'modal',
   COMMAND_PALETTE: 'command-palette',
-  
+
   // State-specific scopes
   CAST_SELECTED: 'cast-selected',
 } as const;
 
-export type HotkeyScope = typeof HotkeyScopes[keyof typeof HotkeyScopes];
+export type HotkeyScope = (typeof HotkeyScopes)[keyof typeof HotkeyScopes];
 
 // Scope configurations for different pages
 export const PageScopes: Record<string, HotkeyScope[]> = {

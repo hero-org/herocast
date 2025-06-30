@@ -32,66 +32,72 @@ export function useGlobalHotkeys() {
   );
 
   // Navigation hotkeys
-  useMultipleHotkeys([
-    {
-      keys: 'shift+f',
-      callback: () => router.push('/feeds'),
-      options: { scopes: HotkeyScopes.GLOBAL },
-    },
-    {
-      keys: '/',
-      callback: () => router.push('/search'),
-      options: { scopes: HotkeyScopes.GLOBAL, preventDefault: true },
-    },
-    {
-      keys: 'shift+c',
-      callback: () => router.push('/channels'),
-      options: { scopes: HotkeyScopes.GLOBAL },
-    },
-    {
-      keys: 'shift+n',
-      callback: () => router.push('/notifications'),
-      options: { scopes: HotkeyScopes.GLOBAL },
-    },
-    {
-      keys: 'meta+shift+,',
-      callback: () => router.push('/settings'),
-      options: { scopes: HotkeyScopes.GLOBAL },
-    },
-    {
-      keys: 'meta+shift+p',
-      callback: () => {
-        const selectedAccountName = accounts[selectedAccountIdx]?.user?.username;
-        if (selectedAccountName) {
-          router.push(`/profile/${selectedAccountName}`);
-        }
+  useMultipleHotkeys(
+    [
+      {
+        keys: 'shift+f',
+        callback: () => router.push('/feeds'),
+        options: { scopes: HotkeyScopes.GLOBAL },
       },
-      options: { scopes: HotkeyScopes.GLOBAL },
-    },
-    {
-      keys: 'meta+shift+a',
-      callback: () => {
-        const fid = accounts[selectedAccountIdx]?.platformAccountId;
-        const route = fid ? `/analytics?fid=${fid}` : '/analytics';
-        router.push(route);
+      {
+        keys: '/',
+        callback: () => router.push('/search'),
+        options: { scopes: HotkeyScopes.GLOBAL, preventDefault: true },
       },
-      options: { scopes: HotkeyScopes.GLOBAL },
-    },
-  ], [router, accounts, selectedAccountIdx]);
+      {
+        keys: 'shift+c',
+        callback: () => router.push('/channels'),
+        options: { scopes: HotkeyScopes.GLOBAL },
+      },
+      {
+        keys: 'shift+n',
+        callback: () => router.push('/notifications'),
+        options: { scopes: HotkeyScopes.GLOBAL },
+      },
+      {
+        keys: 'meta+shift+,',
+        callback: () => router.push('/settings'),
+        options: { scopes: HotkeyScopes.GLOBAL },
+      },
+      {
+        keys: 'meta+shift+p',
+        callback: () => {
+          const selectedAccountName = accounts[selectedAccountIdx]?.user?.username;
+          if (selectedAccountName) {
+            router.push(`/profile/${selectedAccountName}`);
+          }
+        },
+        options: { scopes: HotkeyScopes.GLOBAL },
+      },
+      {
+        keys: 'meta+shift+a',
+        callback: () => {
+          const fid = accounts[selectedAccountIdx]?.platformAccountId;
+          const route = fid ? `/analytics?fid=${fid}` : '/analytics';
+          router.push(route);
+        },
+        options: { scopes: HotkeyScopes.GLOBAL },
+      },
+    ],
+    [router, accounts, selectedAccountIdx]
+  );
 
   // Theme switching
-  useMultipleHotkeys([
-    {
-      keys: 'meta+shift+l',
-      callback: () => setTheme('light'),
-      options: { scopes: HotkeyScopes.GLOBAL },
-    },
-    {
-      keys: 'meta+shift+d',
-      callback: () => setTheme('dark'),
-      options: { scopes: HotkeyScopes.GLOBAL },
-    },
-  ], [setTheme]);
+  useMultipleHotkeys(
+    [
+      {
+        keys: 'meta+shift+l',
+        callback: () => setTheme('light'),
+        options: { scopes: HotkeyScopes.GLOBAL },
+      },
+      {
+        keys: 'meta+shift+d',
+        callback: () => setTheme('dark'),
+        options: { scopes: HotkeyScopes.GLOBAL },
+      },
+    ],
+    [setTheme]
+  );
 
   // Post creation
   useAppHotkeys(
@@ -109,7 +115,7 @@ export function useGlobalHotkeys() {
     'r',
     () => {
       if (!selectedCast) return;
-      
+
       addNewPostDraft({
         parentCastId: {
           fid: selectedCast.author.fid.toString(),
@@ -119,7 +125,7 @@ export function useGlobalHotkeys() {
       setCastModalView(CastModalView.Reply);
       openNewCastModal();
     },
-    { 
+    {
       scopes: HotkeyScopes.CAST_SELECTED,
       enabled: !!selectedCast,
     },
@@ -142,7 +148,7 @@ export function useGlobalHotkeys() {
 
   // Feed switching (only on feeds page)
   const isFeedsPage = router.pathname === '/feeds';
-  
+
   useAppHotkeys(
     'shift+0',
     () => {
@@ -150,7 +156,7 @@ export function useGlobalHotkeys() {
         setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
       }
     },
-    { 
+    {
       scopes: HotkeyScopes.FEED,
       enabled: isFeedsPage,
     },
@@ -164,7 +170,7 @@ export function useGlobalHotkeys() {
         setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
       }
     },
-    { 
+    {
       scopes: HotkeyScopes.FEED,
       enabled: isFeedsPage,
     },
