@@ -119,9 +119,18 @@ export default function CommandPalette() {
   const [lastQuery, setLastQuery] = useState('');
   const [executingCommand, setExecutingCommand] = useState<string | null>(null);
   const isNavigatingRef = useRef(false);
-  const commandListRef = useRef<HTMLDivElement>(null);
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
+  const eventCleanupRef = useRef<(() => void) | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (eventCleanupRef.current) {
+        eventCleanupRef.current();
+      }
+    };
+  }, []);
 
   // Restore last query on open
   useEffect(() => {
@@ -398,7 +407,6 @@ export default function CommandPalette() {
         return;
       }
 
-
       // Track command execution performance
       const timingId = startTiming('command-execution');
       console.log('⚡ Command Execution: Starting timer for:', command.name); // Debug log
@@ -552,8 +560,11 @@ export default function CommandPalette() {
   }, []);
 
   const renderCommandItem = (command: CommandType) => {
-    // Check if this is a single-letter shortcut command
-    const isSingleLetterShortcut = command.shortcut && command.shortcut.length === 1;
+    // Only show single character for true single-key shortcuts (no modifiers)
+    const SINGLE_KEY_SHORTCUTS = ['c', 'l', 'j', 'k', 'r', '/'];
+    const isSingleLetterShortcut = command.shortcut && 
+      SINGLE_KEY_SHORTCUTS.includes(command.shortcut.toLowerCase()) &&
+      !command.shortcut.includes('+');
 
     return (
       <CommandItem
@@ -562,17 +573,25 @@ export default function CommandPalette() {
         onSelect={() => {
           // Only execute on Enter key or click, not on navigation
           // cmdk calls onSelect on Enter/Space/Click
-          onClick(command);
+          if (!command.keyboardOnly) {
+            onClick(command);
+          }
         }}
         className={cn(
           'flex items-center justify-between rounded-lg',
           styles.item,
-          executingCommand === command.name && styles.executing
+          executingCommand === command.name && styles.executing,
+          command.keyboardOnly && 'cursor-default opacity-75'
         )}
       >
         <div className="flex items-center gap-4">
           <div className="w-6 h-6 flex items-center justify-center">{renderIcon(command, false)}</div>
-          <span className="text-[18px] font-medium leading-tight">{command.name}</span>
+          <span className="text-[18px] font-medium leading-tight">
+            {command.name}
+            {command.keyboardOnly && (
+              <span className="ml-2 text-xs text-muted-foreground font-normal">(keyboard only)</span>
+            )}
+          </span>
         </div>
         {executingCommand === command.name ? (
           <span className="ml-auto text-sm text-muted-foreground">Executing...</span>
@@ -602,9 +621,9 @@ export default function CommandPalette() {
     // Show context-aware single-letter shortcuts when a cast is selected
     const contextShortcuts = selectedCast
       ? [
-          { name: 'Like', shortcut: 'l', action: () => {}, icon: HeartIcon },
-          { name: 'Reply', shortcut: 'r', action: () => {}, icon: ChatBubbleLeftIcon },
-          { name: 'Recast', shortcut: 's', action: () => {}, icon: ArrowPathRoundedSquareIcon },
+          { name: 'Like', shortcut: 'l', action: () => {}, icon: HeartIcon, keyboardOnly: true },
+          { name: 'Reply', shortcut: 'r', action: () => {}, icon: ChatBubbleLeftIcon, keyboardOnly: true },
+          { name: 'Recast', shortcut: 's', action: () => {}, icon: ArrowPathRoundedSquareIcon, keyboardOnly: true },
         ]
       : [];
 
@@ -639,8 +658,9 @@ export default function CommandPalette() {
           {!selectedCast && (
             <CommandItem
               value="navigate-feed"
-              disabled
-              className={cn('flex items-center justify-between rounded-lg opacity-60', styles.item)}
+              data-hint="true"
+              className={cn('flex items-center justify-between rounded-lg opacity-60 cursor-default', styles.item)}
+              onSelect={(e) => e.preventDefault()}
             >
               <div className="flex items-center gap-4">
                 <div className="w-6 h-6 flex items-center justify-center">

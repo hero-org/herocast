@@ -14,4 +14,5 @@ export type CommandType = {
   navigateTo?: string;
   data?: any;
   page?: string;
+  keyboardOnly?: boolean;
 };
