@@ -1,8 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Key } from 'ts-key-enum';
 import { useInView } from 'react-intersection-observer';
 import isEmpty from 'lodash.isempty';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { useRouter } from 'next/router';
+import { getScopesForPage } from '@/common/constants/hotkeys';
 
 type SelectableListWithHotkeysProps = {
   data: any[];
@@ -42,6 +45,8 @@ export const SelectableListWithHotkeys = ({
 
   const scrollToRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const pageScopes = getScopesForPage(router.pathname);
   // scroll to selected cast when selectedCastIdx changes
   useEffect(() => {
     if (!disableScroll && scrollToRef.current) {
@@ -92,58 +97,60 @@ export const SelectableListWithHotkeys = ({
     }
   }, [selectedIdx, pinnedNavigation]);
 
-  useHotkeys(
-    ['o', Key.Enter],
-    () => {
-      onSelect?.(selectedIdx);
-    },
-    [selectedIdx],
-    {
-      enabled: isActive,
-    }
-  );
-
-  useHotkeys(
-    'shift+o',
-    () => {
-      onExpand && onExpand(selectedIdx);
-    },
-    [selectedIdx],
-    {
-      enabled: onExpand !== undefined && isActive,
-    }
-  );
-
-  useHotkeys(
+  // Navigation hotkeys
+  useAppHotkeys(
     ['j', Key.ArrowDown],
     () => {
       onDown?.();
-
       if (selectedIdx < data.length - 1) {
         setSelectedIdx(selectedIdx + 1);
       }
     },
-    [data, selectedIdx, setSelectedIdx],
     {
+      scopes: pageScopes,
       enabled: isActive && !isEmpty(data),
-    }
+    },
+    [data, selectedIdx, setSelectedIdx, onDown]
   );
 
-  useHotkeys(
+  useAppHotkeys(
     ['k', Key.ArrowUp],
     () => {
       onUp?.();
-
       if (selectedIdx === 0) {
         return;
       }
-
       setSelectedIdx(selectedIdx - 1);
     },
-    [data, selectedIdx, setSelectedIdx],
     {
+      scopes: pageScopes,
       enabled: isActive && !isEmpty(data),
-    }
+    },
+    [data, selectedIdx, setSelectedIdx, onUp]
+  );
+
+  useAppHotkeys(
+    ['o', Key.Enter],
+    () => {
+      onSelect?.(selectedIdx);
+    },
+    {
+      scopes: pageScopes,
+      enabled: isActive,
+    },
+    [selectedIdx, onSelect]
+  );
+
+  useAppHotkeys(
+    'shift+o',
+    () => {
+      onExpand && onExpand(selectedIdx);
+    },
+    {
+      scopes: pageScopes,
+      enabled: onExpand !== undefined && isActive,
+    },
+    [selectedIdx, onExpand]
   );
 
   if (isEmpty(data)) return null;

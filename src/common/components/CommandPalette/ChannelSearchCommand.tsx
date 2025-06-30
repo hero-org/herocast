@@ -3,6 +3,7 @@ import { CommandItem } from '@/components/ui/command';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { useRouter } from 'next/router';
 import { useAccountStore } from '@/stores/useAccountStore';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -71,6 +72,9 @@ export const ChannelSearchCommand: React.FC<ChannelSearchCommandProps> = ({ quer
           onSelect={() => {
             setSelectedChannelUrl(channel.parent_url || channel.url);
             router.push('/feeds');
+            // Close command palette
+            const { toggleCommandPalette } = useNavigationStore.getState();
+            toggleCommandPalette();
           }}
           className="flex items-center py-1.5 rounded-lg"
         >

@@ -11,6 +11,7 @@ import { createClient } from '@/common/helpers/supabase/component';
 import { usePostHog } from 'posthog-js/react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatShortcut } from '@/common/helpers/text';
+import { hotkeyDefinitions, hotkeyCategories } from '@/common/services/shortcuts/hotkeyDefinitions';
 
 type SimpleCommand = {
   name: string;
@@ -36,6 +37,7 @@ export default function Settings() {
     getUser();
   }, []);
 
+
   const onLogout = async () => {
     const {
       data: { session },
@@ -54,18 +56,11 @@ export default function Settings() {
   const displayEmail = user?.email ? `${user?.email.slice(0, 5)}...@${user?.email.split('@')[1]}` : '';
 
   const renderInfoSection = () => {
-    const allCommands = [
-      { name: 'Command Palette', shortcut: 'cmd+k' },
-      { name: 'Feed: go to previous cast in list', shortcut: 'k' },
-      { name: 'Feed: go to next cast in list', shortcut: 'j' },
-      { name: 'Feed: Open thread view for cast', shortcut: 'Enter or o' },
-      { name: 'Feed: Open embedded link in new tab', shortcut: 'shift+o' },
-      ...getNavigationCommands({ router }),
-      ...newPostCommands,
-      ...accountCommands,
-    ];
-
-    const commandsWithShortcuts: SimpleCommand[] = allCommands.filter((command) => command.shortcut !== undefined);
+    // Get shortcuts from definitions and organize by category  
+    const allShortcuts: SimpleCommand[] = hotkeyDefinitions.map(def => ({
+      name: `${def.category}: ${def.name}`,
+      shortcut: Array.isArray(def.keys) ? def.keys.join(' or ') : def.keys,
+    }));
 
     return (
       <div className="w-full max-w-xl mt-20 overflow-hidden">
@@ -79,7 +74,7 @@ export default function Settings() {
           <CollapsibleContent>
             <div className="border-t border-muted">
               <dl className="divide-y divide-muted">
-                {commandsWithShortcuts.map((command) => (
+                {allShortcuts.map((command) => (
                   <div key={`command-${command.name}`} className="px-2 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                     <dt className="text-sm text-foreground/60">{command.name}</dt>
                     {command.shortcut && (
