@@ -1075,7 +1075,7 @@ const Inbox = () => {
               </TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
-              <KeyboardShortcutTooltip keys={['alt', 'e']} description="Mark all as read">
+              <KeyboardShortcutTooltip keys="alt+e" shortcutSize="md">
                 <Button
                   variant="outline"
                   size="sm"

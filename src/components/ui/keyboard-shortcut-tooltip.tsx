@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { KeyboardShortcut, KeyboardShortcutGroup } from '@/components/ui/keyboard-shortcut';
+import { KeyboardShortcutSingle } from '@/components/ui/keyboard-shortcut-single';
 import { cn } from '@/lib/utils';
 
 interface KeyboardShortcutTooltipProps {
@@ -37,7 +37,7 @@ export function KeyboardShortcutTooltip({
         <TooltipContent
           side={side}
           align={align}
-          className={cn('flex items-center gap-2', contentClassName)}
+          className={cn('flex items-center gap-3 px-3 py-2', contentClassName)}
           onPointerDownOutside={(e) => {
             // Prevent tooltip from closing when clicking on it
             if (!showOnFocus) {
@@ -45,8 +45,12 @@ export function KeyboardShortcutTooltip({
             }
           }}
         >
-          {description && <span className="text-xs">{description}</span>}
-          <KeyboardShortcut keys={keys} size={shortcutSize} />
+          {description && <span className="text-sm font-medium">{description}</span>}
+          <KeyboardShortcutSingle 
+            shortcut={typeof keys === 'string' ? keys : keys.join('+')} 
+            size={shortcutSize} 
+            className="ml-auto"
+          />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -88,7 +92,7 @@ export function KeyboardShortcutTooltipGroup({
         <TooltipContent
           side={side}
           align={align}
-          className={cn('flex flex-col gap-1.5 p-2', contentClassName)}
+          className={cn('flex flex-col gap-2 p-3', contentClassName)}
           onPointerDownOutside={(e) => {
             if (!showOnFocus) {
               e.preventDefault();
@@ -96,9 +100,13 @@ export function KeyboardShortcutTooltipGroup({
           }}
         >
           {shortcuts.map((shortcut, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <KeyboardShortcut keys={shortcut.keys} size={shortcutSize} />
-              {shortcut.description && <span className="text-xs text-muted-foreground">{shortcut.description}</span>}
+            <div key={index} className="flex items-center justify-between gap-4">
+              {shortcut.description && <span className="text-sm font-medium">{shortcut.description}</span>}
+              <KeyboardShortcutSingle 
+                shortcut={typeof shortcut.keys === 'string' ? shortcut.keys : shortcut.keys.join('+')} 
+                size={shortcutSize} 
+                className="ml-auto"
+              />
             </div>
           ))}
         </TooltipContent>

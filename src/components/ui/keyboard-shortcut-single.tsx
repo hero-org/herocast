@@ -43,9 +43,9 @@ const KEY_DISPLAY: Record<string, string> = {
 };
 
 const SIZE_CLASSES = {
-  sm: 'h-5 px-1.5 text-[11px] gap-0.5',
-  md: 'h-6 px-2 text-xs gap-0.5',
-  lg: 'h-7 px-2.5 text-sm gap-1',
+  sm: 'h-6 px-2 text-xs gap-1',
+  md: 'h-7 px-2.5 text-sm gap-1',
+  lg: 'h-9 px-3 text-[16px] gap-1.5',
 };
 
 function formatKeyPart(key: string, platform: 'mac' | 'windows' | 'linux'): string {
@@ -96,12 +96,30 @@ export function KeyboardShortcutSingle({ shortcut, size = 'sm', className, ...pr
   // Combine for display - modifiers first, then main keys
   const displayParts = [...modifiers, ...mainKeys];
 
+  // For single-letter shortcuts, show them like in the command palette
+  const isSingleLetter = displayParts.length === 1 && displayParts[0].length === 1;
+  
+  if (isSingleLetter) {
+    return (
+      <kbd
+        className={cn(
+          'inline-flex items-center justify-center rounded-md font-semibold select-none',
+          'bg-muted text-foreground',
+          size === 'lg' ? 'h-9 w-9 text-[16px]' : size === 'md' ? 'h-7 w-7 text-sm' : 'h-6 w-6 text-xs',
+          className
+        )}
+        {...props}
+      >
+        {displayParts[0].toUpperCase()}
+      </kbd>
+    );
+  }
+
   return (
     <kbd
       className={cn(
-        'inline-flex items-center justify-center rounded border font-mono font-medium select-none',
-        'bg-muted text-muted-foreground border-border',
-        'dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+        'inline-flex items-center justify-center rounded-md font-medium select-none',
+        'bg-muted text-foreground',
         SIZE_CLASSES[size],
         className
       )}
@@ -113,7 +131,7 @@ export function KeyboardShortcutSingle({ shortcut, size = 'sm', className, ...pr
 
         return (
           <React.Fragment key={index}>
-            <span className={cn(isModifier ? '' : 'font-semibold', index > 0 && 'ml-0.5')}>{formatted}</span>
+            <span className={cn('font-semibold', index > 0 && 'ml-1')}>{formatted}</span>
           </React.Fragment>
         );
       })}
