@@ -46,9 +46,9 @@ export function KeyboardShortcutTooltip({
           }}
         >
           {description && <span className="text-sm font-medium">{description}</span>}
-          <KeyboardShortcutSingle 
-            shortcut={typeof keys === 'string' ? keys : keys.join('+')} 
-            size={shortcutSize} 
+          <KeyboardShortcutSingle
+            shortcut={typeof keys === 'string' ? keys : keys.join('+')}
+            size={shortcutSize}
             className="ml-auto"
           />
         </TooltipContent>
@@ -102,9 +102,9 @@ export function KeyboardShortcutTooltipGroup({
           {shortcuts.map((shortcut, index) => (
             <div key={index} className="flex items-center justify-between gap-4">
               {shortcut.description && <span className="text-sm font-medium">{shortcut.description}</span>}
-              <KeyboardShortcutSingle 
-                shortcut={typeof shortcut.keys === 'string' ? shortcut.keys : shortcut.keys.join('+')} 
-                size={shortcutSize} 
+              <KeyboardShortcutSingle
+                shortcut={typeof shortcut.keys === 'string' ? shortcut.keys : shortcut.keys.join('+')}
+                size={shortcutSize}
                 className="ml-auto"
               />
             </div>

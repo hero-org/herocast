@@ -98,7 +98,7 @@ export function KeyboardShortcutSingle({ shortcut, size = 'sm', className, ...pr
 
   // For single-letter shortcuts, show them like in the command palette
   const isSingleLetter = displayParts.length === 1 && displayParts[0].length === 1;
-  
+
   if (isSingleLetter) {
     return (
       <kbd
