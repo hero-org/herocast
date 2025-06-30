@@ -3,7 +3,8 @@ import { useDraftStore } from '@/stores/useDraftStore';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useChannelLookup } from '@/common/hooks/useChannelLookup';
 import { DraftStatus, DraftType } from '../../constants/farcaster';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { useEditor, EditorContent } from '@mod-protocol/react-editor';
 import { EmbedsEditor } from '@mod-protocol/react-ui-shadcn/dist/lib/embeds';
 
@@ -162,9 +163,16 @@ export default function NewPostEntry({
     return true;
   };
 
-  const ref = useHotkeys('meta+enter', onSubmitPost, [onSubmitPost, draft, account, isHydrated], {
-    enableOnFormTags: true,
-  });
+  const ref = useAppHotkeys(
+    'meta+enter',
+    onSubmitPost,
+    {
+      scopes: [HotkeyScopes.EDITOR],
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [onSubmitPost, draft, account, isHydrated]
+  );
 
   const { uploadImage, isUploading, error, image } = useImgurUpload();
 

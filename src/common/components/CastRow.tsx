@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 import { useChannelLookup } from '../hooks/useChannelLookup';
 import { castTextStyle } from '@/common/helpers/css';
@@ -18,7 +18,8 @@ import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
 import { publishReaction, removeCast, removeReaction } from '../helpers/farcaster';
 import includes from 'lodash.includes';
 import map from 'lodash.map';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import get from 'lodash.get';
 import Linkify from 'linkify-react';
@@ -293,28 +294,6 @@ const CastRowComponent = ({
     userFid,
   ]);
 
-  useHotkeys(
-    'l',
-    () => {
-      if (isSelected) {
-        onClickReaction(CastReactionType.likes, reactions[CastReactionType.likes].isActive);
-      }
-    },
-    { enabled: isSelected },
-    [isSelected, selectedAccountIdx, authorFid, cast?.hash, reactions?.likes]
-  );
-
-  useHotkeys(
-    'shift+r',
-    () => {
-      if (isSelected) {
-        onClickReaction(CastReactionType.recasts, reactions[CastReactionType.recasts].isActive);
-      }
-    },
-    { enabled: isSelected },
-    [isSelected, selectedAccountIdx, authorFid, cast.hash, reactions?.recasts]
-  );
-
   // Use on-demand channel lookup instead of loading all channels
   const parentUrl = 'parent_url' in cast ? cast.parent_url : null;
   const { channel: parentChannel } = useChannelLookup(parentUrl);
@@ -419,6 +398,35 @@ const CastRowComponent = ({
       }
     }
   };
+
+  // Cast action hotkeys - only active when this cast is selected
+  useAppHotkeys(
+    'l',
+    () => {
+      if (isSelected) {
+        onClickReaction(CastReactionType.likes, reactions[CastReactionType.likes].isActive);
+      }
+    },
+    {
+      scopes: [HotkeyScopes.CAST_SELECTED],
+      enabled: isSelected,
+    },
+    [isSelected, reactions, onClickReaction]
+  );
+
+  useAppHotkeys(
+    'shift+r',
+    () => {
+      if (isSelected) {
+        onClickReaction(CastReactionType.recasts, reactions[CastReactionType.recasts].isActive);
+      }
+    },
+    {
+      scopes: [HotkeyScopes.CAST_SELECTED],
+      enabled: isSelected,
+    },
+    [isSelected, reactions, onClickReaction]
+  );
 
   const renderReaction = (key: CastReactionType, isActive: boolean, count?: number | string, icon?: JSX.Element) => {
     return (

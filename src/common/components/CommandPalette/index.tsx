@@ -3,6 +3,13 @@ import { CommandType } from '@/common/constants/commands';
 import { accountCommands, getChannelCommands, useAccountStore } from '@/stores/useAccountStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 import { newPostCommands, useDraftStore } from '@/stores/useDraftStore';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { hotkeyDefinitions, hotkeyCategories } from '@/common/services/shortcuts/hotkeyDefinitions';
+import { SearchIcon, AtSymbolIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/20/solid';
+import { useRecentCommands } from '@/common/hooks/useRecentCommands';
+import { findCommandByAlias } from '@/common/constants/commandAliases';
+import styles from './CommandPalette.module.css';
 import {
   PayCasterBotPayDraft,
   PayCasterBotRequestDraft,
@@ -13,7 +20,6 @@ import {
 } from '@/common/constants/postDrafts';
 import {
   Command,
-  CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
@@ -21,10 +27,11 @@ import {
   CommandList,
   CommandShortcut,
 } from '@/components/ui/command';
-import { ChartBarIcon, MagnifyingGlassCircleIcon, UserCircleIcon } from '@heroicons/react/20/solid';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { KeyboardShortcutSingle } from '@/components/ui/keyboard-shortcut-single';
+import { ChartBarIcon, MagnifyingGlassCircleIcon, UserCircleIcon, ArrowsUpDownIcon } from '@heroicons/react/20/solid';
 import Image from 'next/image';
 import commandScore from 'command-score';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { useRouter } from 'next/router';
 import { getNavigationCommands } from '@/getNavigationCommands';
 import { useTheme } from 'next-themes';
@@ -37,7 +44,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
 import { cn } from '@/lib/utils';
 import { ChannelSearchCommand } from './ChannelSearchCommand';
+import { UserSearchCommand } from './UserSearchCommand';
 import { startTiming, endTiming } from '@/stores/usePerformanceStore';
+import { HeartIcon } from 'lucide-react';
+import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
@@ -105,16 +115,40 @@ export default function CommandPalette() {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const { addCommand, getRecentCommands, recentCommandNames } = useRecentCommands();
+  const [lastQuery, setLastQuery] = useState('');
+  const [executingCommand, setExecutingCommand] = useState<string | null>(null);
+  const isNavigatingRef = useRef(false);
 
   const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
+  const eventCleanupRef = useRef<(() => void) | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (eventCleanupRef.current) {
+        eventCleanupRef.current();
+      }
+    };
+  }, []);
+
+  // Restore last query on open
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (isCommandPaletteOpen) {
+      const savedQuery = sessionStorage.getItem('commandPalette.lastQuery');
+      if (savedQuery && Date.now() - parseInt(sessionStorage.getItem('commandPalette.lastTime') || '0') < 2000) {
+        setQuery(savedQuery);
+        setDebouncedQuery(savedQuery);
+      }
+    } else {
+      sessionStorage.setItem('commandPalette.lastTime', Date.now().toString());
+    }
+  }, [isCommandPaletteOpen]);
 
   const { setSelectedChannelUrl, setSelectedChannelByName } = useAccountStore();
 
-  useEffect(() => {
-    if (!isCommandPaletteOpen) {
-      setQuery('');
-    }
-  }, [isCommandPaletteOpen]);
   // Cache frequently accessed store data in refs for performance
   const accountStoreRef = useRef<any>(null);
   const lastChannelsLengthRef = useRef(0);
@@ -123,9 +157,12 @@ export default function CommandPalette() {
   // Get theme and store data
   const { theme, setTheme } = useTheme();
   const { accounts, selectedAccountIdx } = useAccountStore();
+  const { selectedCast } = useDataStore();
 
   // Use only user's pinned channels instead of all channels for better performance
   const userChannels = accounts[selectedAccountIdx]?.channels || [];
+
+  // Remove hotkey registration from here - it will be handled at app level
 
   // Memoize expensive command generation with granular dependencies
   const themeCommands = useMemo(() => getThemeCommands(theme, setTheme), [theme, setTheme]);
@@ -179,19 +216,96 @@ export default function CommandPalette() {
   // Get cached bot commands
   const farcasterBotCommands = useMemo(() => getFarcasterBotCommands(), []);
 
-  // Optimized command assembly with minimal recreation
-  const allCommands = useMemo(
-    () => [
-      ...channelCommands,
-      ...navigationCommands,
-      ...newPostCommands,
-      ...accountCommands,
-      ...themeCommands,
-      ...profileCommands,
-      ...farcasterBotCommands,
-    ],
-    [channelCommands, navigationCommands, themeCommands, profileCommands, farcasterBotCommands]
-  );
+  // Get shortcuts as commands (only those not already in navigation/other commands)
+  const shortcutCommands = useMemo(() => {
+    // List of command names that have actual implementations elsewhere
+    const implementedCommands = new Set([
+      'Switch to Feeds',
+      'Switch to Search',
+      'Switch to Channels',
+      'Notifications',
+      'Settings',
+      'Your Profile',
+      'Your Analytics',
+      'Create cast',
+      'Reply',
+    ]);
+
+    return hotkeyDefinitions
+      .filter((def) => !implementedCommands.has(def.name))
+      .map((def) => ({
+        name: def.name,
+        shortcut: Array.isArray(def.keys) ? def.keys[0] : def.keys,
+        shortcuts: Array.isArray(def.keys) ? def.keys : undefined,
+        action: () => {}, // No-op action for shortcut definitions
+        icon: def.icon,
+        category: def.category,
+      }));
+  }, []);
+
+  // Get dynamic shortcuts based on context
+  const dynamicShortcuts = useMemo(() => {
+    if (!selectedCast) return [];
+    return [
+      {
+        name: `Like ${selectedCast.author.username}'s cast`,
+        shortcut: 'l',
+        action: () => {},
+        icon: () => <span className="text-lg">❤️</span>,
+      },
+      {
+        name: `Recast ${selectedCast.author.username}'s cast`,
+        shortcut: 'shift+r',
+        action: () => {},
+        icon: () => <span className="text-lg">🔁</span>,
+      },
+      {
+        name: `Reply to ${selectedCast.author.username}`,
+        shortcut: 'r',
+        action: () => {},
+        icon: () => <span className="text-lg">💬</span>,
+      },
+    ];
+  }, [selectedCast]);
+
+  // Optimized command assembly with deduplication
+  const allCommands = useMemo(() => {
+    const commandMap = new Map<string, CommandType>();
+
+    // Add commands in priority order (later additions override earlier ones)
+    // Commands with actual actions should come after shortcut definitions
+    const commandArrays = [
+      shortcutCommands, // These are just definitions without actions
+      dynamicShortcuts,
+      farcasterBotCommands,
+      profileCommands,
+      themeCommands,
+      accountCommands,
+      newPostCommands,
+      navigationCommands, // These have actual navigation actions
+      channelCommands, // These have actual channel switching actions
+    ];
+
+    commandArrays.forEach((commands) => {
+      commands.forEach((cmd) => {
+        if (cmd.name) {
+          commandMap.set(cmd.name, cmd);
+        }
+      });
+    });
+
+    return Array.from(commandMap.values());
+  }, [
+    shortcutCommands,
+    channelCommands,
+    navigationCommands,
+    themeCommands,
+    profileCommands,
+    farcasterBotCommands,
+    dynamicShortcuts,
+    newPostCommands,
+    accountCommands,
+  ]);
 
   // Debounce search query for performance
   useEffect(() => {
@@ -212,21 +326,6 @@ export default function CommandPalette() {
 
   // Track Command Palette opening performance
   const openTimingRef = useRef<string | null>(null);
-
-  useHotkeys(
-    'meta+k',
-    () => {
-      // Start timing when hotkey is pressed
-      openTimingRef.current = startTiming('command-palette-open');
-      console.log('🔥 Command Palette: Starting timer'); // Debug log
-      toggleCommandPalette();
-    },
-    {
-      enableOnFormTags: true,
-      preventDefault: true,
-    },
-    [toggleCommandPalette]
-  );
 
   const setupHotkeysForCommands = useCallback(
     (commands: CommandType[]) => {
@@ -300,8 +399,7 @@ export default function CommandPalette() {
     }
   }, [isCommandPaletteOpen]);
 
-  // Setup hotkeys for all commands with optimized memoization
-  setupHotkeysForCommands(allCommands);
+  // Remove old setupHotkeysForCommands function call
 
   const onClick = useCallback(
     (command: CommandType) => {
@@ -313,11 +411,28 @@ export default function CommandPalette() {
       const timingId = startTiming('command-execution');
       console.log('⚡ Command Execution: Starting timer for:', command.name); // Debug log
 
+      // Show executing state
+      setExecutingCommand(command.name);
+
+      // Track command usage
+      addCommand(command);
+
+      // Save query for persistence
+      if (query && typeof window !== 'undefined') {
+        sessionStorage.setItem('commandPalette.lastQuery', query);
+      }
+
+      // Execute immediately for snappy feel
       if (command.navigateTo) {
         router.push(command.navigateTo);
       }
       command.action();
       closeCommandPallete();
+
+      // Reset executing state after a brief moment
+      setTimeout(() => {
+        setExecutingCommand(null);
+      }, 50);
 
       // End timing after command executes
       setTimeout(() => {
@@ -325,7 +440,7 @@ export default function CommandPalette() {
         console.log('⚡ Command Execution: Completed'); // Debug log
       }, 0);
     },
-    [router, closeCommandPallete]
+    [router, closeCommandPallete, addCommand, query, setExecutingCommand]
   );
 
   const getWarpcastCommandForUrl = (url: string): CommandType => {
@@ -364,6 +479,21 @@ export default function CommandPalette() {
       console.log('🔍 Command Search: Starting filter timer for query:', debouncedQuery); // Debug log
     }
 
+    // Check for special search prefixes
+    const isUserSearch = debouncedQuery.startsWith('@');
+    const isChannelSearch = debouncedQuery.startsWith('/') && debouncedQuery.length > 1;
+
+    // For special searches, only show relevant results
+    if (isUserSearch || isChannelSearch) {
+      if (timingId) {
+        endTiming(timingId, 20);
+      }
+      return []; // Return empty for now, will be handled by special components
+    }
+
+    // First try to find exact alias match
+    const aliasMatch = findCommandByAlias(debouncedQuery, allCommands);
+
     let result = allCommands.filter((command: CommandType) => {
       const namesToScore = [command.name, ...(command.aliases || [])];
       const scores = namesToScore.map((alias: string) => {
@@ -371,6 +501,11 @@ export default function CommandPalette() {
       });
       return Math.max(...scores) > MIN_SCORE_THRESHOLD;
     });
+
+    // If we found an alias match, prioritize it
+    if (aliasMatch && !result.find((cmd) => cmd.name === aliasMatch.name)) {
+      result = [aliasMatch, ...result];
+    }
 
     if (timingId) {
       endTiming(timingId, 20);
@@ -393,23 +528,6 @@ export default function CommandPalette() {
       ];
     }
 
-    if (debouncedQuery.startsWith('@') || result.length === 0) {
-      const profile = getProfile(useDataStore.getState(), debouncedQuery.slice(1));
-
-      result = [
-        {
-          name: `Go to profile ${debouncedQuery}`,
-          action: () => {
-            router.push(`/profile/${debouncedQuery}`);
-          },
-          iconUrl: profile?.pfp_url,
-          icon: UserCircleIcon,
-        },
-        getSearchCommand(debouncedQuery),
-        ...result,
-      ];
-    }
-
     return result;
   }, [allCommands, debouncedQuery, router]);
 
@@ -421,9 +539,9 @@ export default function CommandPalette() {
         <Image
           src={command.iconUrl}
           alt=""
-          width={20}
-          height={20}
-          className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full"
+          width={24}
+          height={24}
+          className="h-6 w-6 flex-none rounded-full object-cover"
         />
       );
     }
@@ -432,57 +550,280 @@ export default function CommandPalette() {
       const IconComponent = command.icon as ComponentType<SVGProps<SVGSVGElement>>;
       return (
         <IconComponent
-          className={cn('h-5 w-5 flex-none', active ? 'text-foreground' : 'text-foreground/80')}
+          className={cn('h-6 w-6 flex-none', active ? 'text-foreground' : 'text-foreground/70')}
           aria-hidden="true"
         />
       );
     }
 
-    return <Skeleton className="mr-1 mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full" />;
+    return <div className="h-6 w-6 flex-none rounded-full bg-muted" />;
   }, []);
 
-  const renderCommandItem = useCallback(
-    (command: CommandType) => (
+  const renderCommandItem = (command: CommandType) => {
+    // Only show single character for true single-key shortcuts (no modifiers)
+    const SINGLE_KEY_SHORTCUTS = ['c', 'l', 'j', 'k', 'r', '/'];
+    const isSingleLetterShortcut =
+      command.shortcut &&
+      SINGLE_KEY_SHORTCUTS.includes(command.shortcut.toLowerCase()) &&
+      !command.shortcut.includes('+');
+
+    return (
       <CommandItem
         key={command.name}
         value={command.name}
-        onSelect={() => onClick(command)}
-        className="flex items-center py-1.5 rounded-lg"
+        onSelect={() => {
+          // Only execute on Enter key or click, not on navigation
+          // cmdk calls onSelect on Enter/Space/Click
+          if (!command.keyboardOnly) {
+            onClick(command);
+          }
+        }}
+        className={cn(
+          'flex items-center justify-between rounded-lg',
+          styles.item,
+          executingCommand === command.name && styles.executing,
+          command.keyboardOnly && 'cursor-default opacity-75'
+        )}
       >
-        {renderIcon(command, false)}
-        <span className="ml-2 flex-auto truncate">{command.name}</span>
-        {command.shortcut && <CommandShortcut>{formatShortcut(command.shortcut)}</CommandShortcut>}
+        <div className="flex items-center gap-4">
+          <div className="w-6 h-6 flex items-center justify-center">{renderIcon(command, false)}</div>
+          <span className="text-[18px] font-medium leading-tight">
+            {command.name}
+            {command.keyboardOnly && (
+              <span className="ml-2 text-xs text-muted-foreground font-normal">(keyboard only)</span>
+            )}
+          </span>
+        </div>
+        {executingCommand === command.name ? (
+          <span className="ml-auto text-sm text-muted-foreground">Executing...</span>
+        ) : (
+          command.shortcut &&
+          (isSingleLetterShortcut ? (
+            // Large single-letter shortcuts like Superhuman
+            <kbd className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-md bg-muted text-[16px] font-semibold text-foreground">
+              {command.shortcut.toUpperCase()}
+            </kbd>
+          ) : (
+            // For multi-key shortcuts, use the full shortcut display
+            <KeyboardShortcutSingle shortcut={command.shortcut} size="lg" className="ml-auto" />
+          ))
+        )}
       </CommandItem>
-    ),
-    []
-  );
+    );
+  };
 
-  const renderDefaultCommands = () => (
-    <CommandGroup heading="Suggestions">
-      {[...profileCommands, getSearchCommand(debouncedQuery)].map(renderCommandItem)}
-    </CommandGroup>
-  );
+  const renderDefaultCommands = () => {
+    const recentCommands = getRecentCommands();
+    const recentCommandItems = recentCommands
+      .map((recent) => allCommands.find((cmd) => cmd.name === recent.commandName))
+      .filter((cmd): cmd is CommandType => !!cmd)
+      .slice(0, 3); // Reduced from 5 to 3
 
-  const renderFilteredCommands = () => (
-    <>
-      <CommandGroup heading="Commands">{filteredCommands.map(renderCommandItem)}</CommandGroup>
-      {query && query.length >= 2 && (
-        <CommandGroup heading="Channels">
-          <ChannelSearchCommand query={query} />
+    // Show context-aware single-letter shortcuts when a cast is selected
+    const contextShortcuts = selectedCast
+      ? [
+          { name: 'Like', shortcut: 'l', action: () => {}, icon: HeartIcon, keyboardOnly: true },
+          { name: 'Reply', shortcut: 'r', action: () => {}, icon: ChatBubbleLeftIcon, keyboardOnly: true },
+          { name: 'Recast', shortcut: 's', action: () => {}, icon: ArrowPathRoundedSquareIcon, keyboardOnly: true },
+        ]
+      : [];
+
+    // Essential commands - show fewer to match Superhuman
+    const essentialCommands = [
+      ...newPostCommands.slice(0, 1), // Just "New Post"
+      ...navigationCommands.slice(0, 2), // Top 2 navigation
+    ];
+
+    return (
+      <>
+        {recentCommandItems.length > 0 && (
+          <>
+            <CommandGroup heading="Recent" className={styles.commandGroup}>
+              {recentCommandItems.map(renderCommandItem)}
+            </CommandGroup>
+            <div className={styles.categoryDivider} />
+          </>
+        )}
+
+        {contextShortcuts.length > 0 && (
+          <>
+            <CommandGroup heading="Cast Actions" className={styles.commandGroup}>
+              {contextShortcuts.map(renderCommandItem)}
+            </CommandGroup>
+            <div className={styles.categoryDivider} />
+          </>
+        )}
+
+        <CommandGroup heading="Essentials" className={styles.commandGroup}>
+          {essentialCommands.map(renderCommandItem)}
+          {!selectedCast && (
+            <CommandItem
+              value="navigate-feed"
+              data-hint="true"
+              className={cn('flex items-center justify-between rounded-lg opacity-60 cursor-default', styles.item)}
+              onSelect={(e) => e.preventDefault()}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-6 h-6 flex items-center justify-center">
+                  <ArrowsUpDownIcon className="h-6 w-6 flex-none text-foreground/70" />
+                </div>
+                <span className="text-[18px] font-medium leading-tight text-muted-foreground">Navigate in feed</span>
+              </div>
+              <div className="flex gap-1.5">
+                <kbd className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-muted text-[16px] font-semibold text-foreground">
+                  J
+                </kbd>
+                <kbd className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-muted text-[16px] font-semibold text-foreground">
+                  K
+                </kbd>
+              </div>
+            </CommandItem>
+          )}
         </CommandGroup>
-      )}
-    </>
-  );
+      </>
+    );
+  };
+
+  const renderFilteredCommands = () => {
+    // Handle special search modes
+    if (debouncedQuery.startsWith('@')) {
+      return (
+        <CommandGroup heading="Users" className={styles.commandGroup}>
+          <UserSearchCommand query={debouncedQuery.slice(1)} />
+        </CommandGroup>
+      );
+    }
+
+    if (debouncedQuery.startsWith('/') && debouncedQuery.length > 1) {
+      return (
+        <CommandGroup heading="Channels" className={styles.commandGroup}>
+          <ChannelSearchCommand query={debouncedQuery.slice(1)} />
+        </CommandGroup>
+      );
+    }
+
+    // Group commands by category
+    const categorizedCommands = new Set<string>();
+    const commandsByCategory: Record<string, CommandType[]> = {
+      'Quick Actions': filteredCommands.filter((cmd) => {
+        if (!cmd?.name) return false;
+        // Hide quick actions on settings page
+        if (router.pathname === '/settings') return false;
+        const matches =
+          newPostCommands.some((pc) => pc.name === cmd.name) ||
+          cmd.name.includes('Create') ||
+          cmd.name.includes('Search');
+        if (matches) categorizedCommands.add(cmd.name);
+        return matches;
+      }),
+      Navigation: filteredCommands.filter((cmd) => {
+        if (!cmd?.name) return false;
+        const matches = navigationCommands.some((nc) => nc.name === cmd.name);
+        if (matches) categorizedCommands.add(cmd.name);
+        return matches;
+      }),
+      Channels: filteredCommands.filter((cmd) => {
+        if (!cmd?.name) return false;
+        const matches = channelCommands.some((cc) => cc.name === cmd.name);
+        if (matches) categorizedCommands.add(cmd.name);
+        return matches;
+      }),
+      'Account & Settings': filteredCommands.filter((cmd) => {
+        if (!cmd?.name) return false;
+        const matches =
+          accountCommands.some((ac) => ac.name === cmd.name) || themeCommands.some((tc) => tc.name === cmd.name);
+        if (matches) categorizedCommands.add(cmd.name);
+        return matches;
+      }),
+      'Keyboard Shortcuts': filteredCommands.filter((cmd) => {
+        if (!cmd?.name) return false;
+        const matches = shortcutCommands.some((sc) => sc.name === cmd.name);
+        if (matches) categorizedCommands.add(cmd.name);
+        return matches;
+      }),
+    };
+
+    // Add uncategorized commands to 'Other'
+    commandsByCategory['Other'] = filteredCommands.filter((cmd) => cmd?.name && !categorizedCommands.has(cmd.name));
+
+    // Regular command search
+    return (
+      <>
+        {Object.entries(commandsByCategory)
+          .filter(([_, commands]) => commands.length > 0)
+          .map(([category, commands], index) => (
+            <div key={category}>
+              {index > 0 && <div className={styles.categoryDivider} />}
+              <CommandGroup heading={`${category} (${commands.length})`} className={styles.commandGroup}>
+                {commands.map(renderCommandItem)}
+              </CommandGroup>
+            </div>
+          ))}
+        {/* Show channel search for queries >= 2 chars */}
+        {query && query.length >= 2 && !debouncedQuery.startsWith('@') && !debouncedQuery.startsWith('/') && (
+          <CommandGroup heading="Search Channels" className={styles.commandGroup}>
+            <ChannelSearchCommand query={query} />
+          </CommandGroup>
+        )}
+      </>
+    );
+  };
 
   return (
-    <CommandDialog open={isCommandPaletteOpen} onOpenChange={toggleCommandPalette} defaultOpen>
-      <Command shouldFilter={false} loop>
-        <CommandInput onValueChange={setQuery} autoFocus placeholder="Search Herocast..." />
-        <CommandList className="">
-          <CommandEmpty className="py-4 text-center text-sm text-muted-foreground">No command found.</CommandEmpty>
-          {debouncedQuery ? renderFilteredCommands() : renderDefaultCommands()}
-        </CommandList>
-      </Command>
-    </CommandDialog>
+    <Dialog open={isCommandPaletteOpen} onOpenChange={toggleCommandPalette}>
+      <DialogContent className={cn('overflow-hidden p-0', styles.dialogContent)}>
+        <Command
+          shouldFilter={false}
+          loop
+          className={cn(
+            styles.palette,
+            '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-sm [&_[cmdk-group]]:px-2 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-2.5 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5'
+          )}
+          onKeyDown={(e) => {
+            // Handle vim-style navigation
+            if ((e.key === 'j' || e.key === 'k') && !e.metaKey && !e.ctrlKey) {
+              e.preventDefault();
+              e.stopPropagation();
+
+              // Find the input and dispatch arrow key from there
+              const input = e.currentTarget.querySelector('input[cmdk-input]');
+              if (input) {
+                const arrowEvent = new KeyboardEvent('keydown', {
+                  key: e.key === 'j' ? 'ArrowDown' : 'ArrowUp',
+                  bubbles: true,
+                  cancelable: true,
+                });
+
+                input.dispatchEvent(arrowEvent);
+              }
+            }
+          }}
+        >
+          <CommandInput
+            onValueChange={setQuery}
+            autoFocus
+            placeholder="Search commands, @ for users, / for channels..."
+            className={cn(styles.input, 'text-base')}
+          />
+          <CommandList className={cn(styles.scrollContainer)}>
+            <CommandEmpty className="py-8 text-center text-muted-foreground">
+              <div className="space-y-3">
+                <p className="text-base font-medium">No command found</p>
+                <p className="text-sm">
+                  Tip: Try @ for users, / for channels, or common actions like &quot;new post&quot;
+                </p>
+              </div>
+            </CommandEmpty>
+            {debouncedQuery ? renderFilteredCommands() : renderDefaultCommands()}
+          </CommandList>
+          <div className={styles.footer}>
+            <span>↑↓ j/k Navigate</span>
+            <span>↵ Select</span>
+            <span>? All Shortcuts</span>
+            <span>ESC Close</span>
+          </div>
+        </Command>
+      </DialogContent>
+    </Dialog>
   );
 }

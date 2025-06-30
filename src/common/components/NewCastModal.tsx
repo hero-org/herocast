@@ -10,7 +10,8 @@ const NewPostEntry = dynamic(() => import('./Editor/NewCastEditor'), {
 });
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastRow } from './CastRow';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { AccountSelector } from './AccountSelector';
 import { AccountStatusType } from '../constants/accounts';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
@@ -35,11 +36,17 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
       removePostDraftById(draftId);
     }
   }, [open, draftId]);
-  useHotkeys('esc', () => setOpen(false), [open], {
-    enableOnFormTags: true,
-    enableOnContentEditable: true,
-    enabled: open,
-  });
+  useAppHotkeys(
+    'esc',
+    () => setOpen(false),
+    {
+      scopes: [HotkeyScopes.MODAL],
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+      enabled: open,
+    },
+    [open, setOpen]
+  );
 
   const getTitle = () => {
     let action = 'New post';

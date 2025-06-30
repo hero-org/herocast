@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/common/helpers/supabase';
+import { createClient } from '@/common/helpers/supabase/component';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { HeartIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
@@ -20,6 +20,7 @@ interface AutoInteractionHistoryProps {
 export function AutoInteractionHistory({ listId }: AutoInteractionHistoryProps) {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
     fetchHistory();

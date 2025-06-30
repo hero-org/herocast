@@ -17,13 +17,14 @@ import localFont from 'next/font/local';
 // Dynamic import with safe hydration
 import dynamic from 'next/dynamic';
 
-const CommandPalette = dynamic(() => import('../src/common/components/CommandPalette'), {
-  ssr: false, // Disable SSR for this component to avoid hydration issues
-});
+// Import CommandPalette directly - no dynamic import needed
+import CommandPalette from '../src/common/components/CommandPalette';
 import Home from '../src/home';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { PerfPanel } from '../src/common/components/PerfPanel';
+import { GlobalHotkeys } from '../src/common/components/GlobalHotkeys';
+import { AppHotkeysProvider } from '../src/common/components/AppHotkeysProvider';
 
 const satoshi = localFont({
   src: [
@@ -86,11 +87,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={rainbowKitTheme}>
           <AuthProvider>
-            <CommandPalette />
-            <PerfPanel />
-            <Home>
-              <Component {...pageProps} />
-            </Home>
+            <AppHotkeysProvider>
+              <GlobalHotkeys />
+              <CommandPalette />
+              <PerfPanel />
+              <Home>
+                <Component {...pageProps} />
+              </Home>
+            </AppHotkeysProvider>
           </AuthProvider>
         </RainbowKitProvider>
       </QueryClientProvider>

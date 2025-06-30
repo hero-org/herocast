@@ -349,7 +349,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       case ViewState.SIGNUP:
         return 'create your herocast account';
       case ViewState.LOGGED_IN:
-        return `you are logged in as ${user?.email}`;
+        return `welcome back to herocast`;
       default:
         return 'login to herocast';
     }
