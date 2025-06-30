@@ -398,8 +398,6 @@ export default function CommandPalette() {
         return;
       }
 
-      console.log('onClick called for command:', command.name);
-      console.trace(); // Let's see the call stack
 
       // Track command execution performance
       const timingId = startTiming('command-execution');
@@ -586,10 +584,8 @@ export default function CommandPalette() {
               {command.shortcut.toUpperCase()}
             </kbd>
           ) : (
-            // For multi-key shortcuts, show only the main key in large format
-            <kbd className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-md bg-muted text-[16px] font-semibold text-foreground">
-              {command.shortcut.split('+').pop()?.toUpperCase() || command.shortcut.toUpperCase()}
-            </kbd>
+            // For multi-key shortcuts, use the full shortcut display
+            <KeyboardShortcutSingle shortcut={command.shortcut} size="lg" className="ml-auto" />
           ))
         )}
       </CommandItem>

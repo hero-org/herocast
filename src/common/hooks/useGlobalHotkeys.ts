@@ -72,9 +72,7 @@ export function useGlobalHotkeys() {
       {
         keys: 'meta+shift+a',
         callback: () => {
-          const fid = accounts[selectedAccountIdx]?.platformAccountId;
-          const route = fid ? `/analytics?fid=${fid}` : '/analytics';
-          router.push(route);
+          router.push('/accounts');
         },
         options: { scopes: HotkeyScopes.GLOBAL },
       },

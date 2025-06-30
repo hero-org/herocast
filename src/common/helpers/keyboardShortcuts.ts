@@ -26,7 +26,7 @@ export const APP_SHORTCUTS = {
   GO_TO_CHANNELS: 'shift+c',
   GO_TO_NOTIFICATIONS: 'shift+n',
   GO_TO_PROFILE: 'meta+shift+p',
-  GO_TO_ANALYTICS: 'meta+shift+a',
+  GO_TO_ACCOUNTS: 'meta+shift+a',
   GO_TO_SETTINGS: 'meta+shift+,',
 
   // Cast actions (when selected)

@@ -84,14 +84,6 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     scopes: [HotkeyScopes.GLOBAL],
     icon: UserCircleIcon,
   },
-  {
-    id: 'your-analytics',
-    keys: 'meta+shift+a',
-    name: 'Your Analytics',
-    category: hotkeyCategories.navigation,
-    scopes: [HotkeyScopes.GLOBAL],
-    icon: ChartBarIcon,
-  },
 
   // Feed Navigation
   {
