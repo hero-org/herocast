@@ -562,7 +562,8 @@ export default function CommandPalette() {
   const renderCommandItem = (command: CommandType) => {
     // Only show single character for true single-key shortcuts (no modifiers)
     const SINGLE_KEY_SHORTCUTS = ['c', 'l', 'j', 'k', 'r', '/'];
-    const isSingleLetterShortcut = command.shortcut && 
+    const isSingleLetterShortcut =
+      command.shortcut &&
       SINGLE_KEY_SHORTCUTS.includes(command.shortcut.toLowerCase()) &&
       !command.shortcut.includes('+');
 

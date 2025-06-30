@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, RefreshCw, Cloud } from 'lucide-react';
+import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
 
 // Client-side cache for parent casts (prevents repeated API calls)
 const parentCastCache = new Map<string, { cast: CastWithInteractions; timestamp: number }>();
@@ -801,6 +802,22 @@ const Inbox = () => {
     [markSelectedAsRead]
   );
 
+  // Mark all as read
+  useHotkeys(
+    'alt+e',
+    () => {
+      const notificationIds = notifications.map(getNotificationId);
+      useNotificationStore.getState().markAllAsRead(activeTab, notificationIds);
+    },
+    {
+      enabled: !isNewCastModalOpen,
+      enableOnFormTags: false,
+      enableOnContentEditable: false,
+      preventDefault: true,
+    },
+    [notifications, activeTab, getNotificationId]
+  );
+
   const getActionDescriptionForRow = (notification: Notification): string => {
     const cast = notification.cast;
     switch (notification.type) {
@@ -1058,18 +1075,20 @@ const Inbox = () => {
               </TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const notificationIds = notifications.map(getNotificationId);
-                  useNotificationStore.getState().markAllAsRead(activeTab, notificationIds);
-                }}
-                disabled={loadingByType[activeTab]}
-                className="flex-shrink-0"
-              >
-                Mark all read
-              </Button>
+              <KeyboardShortcutTooltip keys={['alt', 'e']} description="Mark all as read">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const notificationIds = notifications.map(getNotificationId);
+                    useNotificationStore.getState().markAllAsRead(activeTab, notificationIds);
+                  }}
+                  disabled={loadingByType[activeTab]}
+                  className="flex-shrink-0"
+                >
+                  Mark all read
+                </Button>
+              </KeyboardShortcutTooltip>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="flex-shrink-0 px-2">

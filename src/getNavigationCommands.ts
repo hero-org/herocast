@@ -1,7 +1,7 @@
 import { NextRouter } from 'next/router';
 import { CommandType } from './common/constants/commands';
 import { ChartBarIcon, MagnifyingGlassIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
-import { BellIcon } from '@heroicons/react/24/outline';
+import { BellIcon, HashtagIcon } from '@heroicons/react/24/outline';
 import { Bars3BottomLeftIcon } from '@heroicons/react/20/solid';
 import { Cog6ToothIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 
@@ -56,10 +56,65 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
     aliases: ['notify', 'alert', 'mentions', 'replies', 'messages', 'inbox'],
     icon: BellIcon,
     shortcut: 'shift+n',
-    action: () => router.push('/notifications'),
+    action: () => router.push('/inbox'),
     options: {
       enableOnFormTags: false,
     },
+  },
+  {
+    name: 'Inbox: Switch to Replies',
+    aliases: ['inbox replies', 'notification replies'],
+    icon: HashtagIcon,
+    shortcut: '1',
+    action: () => router.push('/inbox'),
+    options: {
+      enableOnFormTags: false,
+    },
+    page: 'inbox',
+  },
+  {
+    name: 'Inbox: Switch to Mentions',
+    aliases: ['inbox mentions', 'notification mentions'],
+    icon: HashtagIcon,
+    shortcut: '2',
+    action: () => router.push('/inbox'),
+    options: {
+      enableOnFormTags: false,
+    },
+    page: 'inbox',
+  },
+  {
+    name: 'Inbox: Switch to Likes',
+    aliases: ['inbox likes', 'notification likes'],
+    icon: HashtagIcon,
+    shortcut: '3',
+    action: () => router.push('/inbox'),
+    options: {
+      enableOnFormTags: false,
+    },
+    page: 'inbox',
+  },
+  {
+    name: 'Inbox: Switch to Recasts',
+    aliases: ['inbox recasts', 'notification recasts'],
+    icon: HashtagIcon,
+    shortcut: '4',
+    action: () => router.push('/inbox'),
+    options: {
+      enableOnFormTags: false,
+    },
+    page: 'inbox',
+  },
+  {
+    name: 'Inbox: Switch to Follows',
+    aliases: ['inbox follows', 'notification follows'],
+    icon: HashtagIcon,
+    shortcut: '5',
+    action: () => router.push('/inbox'),
+    options: {
+      enableOnFormTags: false,
+    },
+    page: 'inbox',
   },
   {
     name: 'Settings',
