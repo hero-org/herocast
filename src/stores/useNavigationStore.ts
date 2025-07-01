@@ -19,7 +19,7 @@ interface NavigationStoreProps {
 }
 
 interface NavigationStoreActions {
-  setCastModalDraftId: (draftId: number) => void;
+  setCastModalDraftId: (draftId: UUID) => void;
   setCastModalView: (view: CastModalView) => void;
   setIsManageListModalOpen: (isOpen: boolean) => void;
   openNewCastModal: () => void;

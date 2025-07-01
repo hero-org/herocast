@@ -66,7 +66,7 @@ const onError = (err) => {
 };
 
 type NewPostEntryProps = {
-  draft?: DraftType;
+  draft: DraftType;
   draftIdx: number;
   onPost?: () => void;
   onRemove?: () => void;
@@ -88,7 +88,7 @@ export default function NewPostEntry({
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
 
-  const hasEmbeds = draft?.embeds && !!draft.embeds.length;
+  const hasEmbeds = draft.embeds && !!draft.embeds.length;
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const hasMultipleActiveAccounts =
     useAccountStore(
@@ -100,11 +100,11 @@ export default function NewPostEntry({
   const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
 
   // Use on-demand channel lookup for draft's parent URL
-  const { channel: draftChannel } = useChannelLookup(draft?.parentUrl);
+  const { channel: draftChannel } = useChannelLookup(draft.parentUrl);
 
   // Use pinned channels instead of all channels for better performance
   const userChannels = accounts[selectedAccountIdx]?.channels || [];
-  const isReply = draft?.parentCastId !== undefined;
+  const isReply = draft.parentCastId !== undefined;
 
   useEffect(() => {
     if (scheduleDateTime) {
@@ -133,7 +133,7 @@ export default function NewPostEntry({
   const onSubmitPost = async (): Promise<boolean> => {
     if (!isHydrated) return false;
 
-    if (!draft?.text && !draft?.embeds?.length) return false;
+    if (!draft.text && !draft.embeds?.length) return false;
 
     if (scheduleDateTime && !validateScheduledDateTime(scheduleDateTime)) {
       return false;
@@ -210,7 +210,7 @@ export default function NewPostEntry({
     }
   }, [isUploading, error, image]);
 
-  const isPublishing = draft?.status === DraftStatus.publishing;
+  const isPublishing = draft.status === DraftStatus.publishing;
   const { editor, getText, addEmbed, getEmbeds, setEmbeds, setChannel, getChannel, handleSubmit, setText } = useEditor({
     fetchUrlMetadata: getUrlMetadata,
     onError,
@@ -245,13 +245,13 @@ export default function NewPostEntry({
   });
 
   useEffect(() => {
-    if (!text && draft?.text && isEmpty(draft.mentionsToFids)) {
+    if (!text && draft.text && isEmpty(draft.mentionsToFids)) {
       editor?.commands.setContent(`<p>${draft.text.replace(/\n/g, '<br>')}</p>`, true, {
         preserveWhitespace: 'full',
       });
     }
 
-    if (draft?.embeds) {
+    if (draft.embeds) {
       setInitialEmbeds(draft.embeds);
     }
   }, [editor]);
@@ -271,18 +271,13 @@ export default function NewPostEntry({
     if (isPublishing) return;
 
     const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
+    
+    // Use the original draft data with only the changed fields
     updatePostDraft(draftIdx, {
-      id: draft.id,
-      status: draft.status,
-      createdAt: draft.createdAt,
-      accountId: draft.accountId,
+      ...draft,
       text,
       embeds: newEmbeds,
       parentUrl: channel?.parent_url || undefined,
-      parentCastId: draft.parentCastId,
-      mentionsToFids: draft.mentionsToFids,
-      timestamp: draft.timestamp,
-      hash: draft.hash,
     });
   }, [text, embeds, initialEmbeds, channel, isPublishing, editor]);
 
@@ -321,7 +316,7 @@ export default function NewPostEntry({
         lead: {},
       });
     }
-  }, [draft?.parentUrl, userChannels, draftChannel]);
+  }, [draft.parentUrl, userChannels, draftChannel]);
 
   const getButtonText = () => {
     if (isPublishing) return scheduleDateTime ? 'Scheduling...' : 'Publishing...';
@@ -334,8 +329,6 @@ export default function NewPostEntry({
   const openSourcePlanLimits = getPlanLimitsForPlan('openSource');
   const hasReachedFreePlanLimit = !isPaidUser() && scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
   const isButtonDisabled = isPublishing || !textLengthIsValid || (scheduleDateTime && hasReachedFreePlanLimit);
-
-  if (!draft) return null;
 
   return (
     <div

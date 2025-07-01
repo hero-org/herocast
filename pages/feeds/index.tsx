@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { useRouter } from 'next/router';
 import get from 'lodash.get';
 import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
 import { CastRow } from '@/common/components/CastRow';
@@ -91,10 +92,23 @@ export default function Feeds() {
     threshold: 0,
     delay: 100,
   });
-  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated } = useAccountStore();
+  const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated, setSelectedChannelUrl } = useAccountStore();
+  const router = useRouter();
 
   const { selectedCast, updateSelectedCast } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
+
+  // Handle URL query parameter for channel switching
+  useEffect(() => {
+    const { channel } = router.query;
+    if (channel && typeof channel === 'string') {
+      // Check if it's a valid custom channel
+      if (channel === 'following' || channel === 'trending') {
+        console.log(`📍 Switching to ${channel} channel from URL query`);
+        setSelectedChannelUrl(channel);
+      }
+    }
+  }, [router.query.channel, setSelectedChannelUrl]);
 
   useEffect(() => {
     // if navigating away, reset the selected cast

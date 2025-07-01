@@ -12,7 +12,7 @@ import { CUSTOM_CHANNELS } from '@/stores/useAccountStore';
 export function useGlobalHotkeys() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const { toggleCommandPalette, openNewCastModal, setCastModalView } = useNavigationStore();
+  const { toggleCommandPalette, openNewCastModal, setCastModalView, setCastModalDraftId } = useNavigationStore();
   const { accounts, selectedAccountIdx, setCurrentAccountIdx, setSelectedChannelUrl } = useAccountStore();
   const { addNewPostDraft } = useDraftStore();
   const { selectedCast } = useDataStore();
@@ -101,11 +101,16 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'c',
     () => {
-      addNewPostDraft({});
-      openNewCastModal();
+      addNewPostDraft({
+        onSuccess: (draftId) => {
+          setCastModalView(CastModalView.New);
+          setCastModalDraftId(draftId);
+          openNewCastModal();
+        },
+      });
     },
     { scopes: HotkeyScopes.GLOBAL },
-    [addNewPostDraft, openNewCastModal]
+    [addNewPostDraft, setCastModalView, setCastModalDraftId, openNewCastModal]
   );
 
   // Reply shortcut (when cast is selected)
@@ -119,15 +124,18 @@ export function useGlobalHotkeys() {
           fid: selectedCast.author.fid.toString(),
           hash: selectedCast.hash,
         },
+        onSuccess: (draftId) => {
+          setCastModalView(CastModalView.Reply);
+          setCastModalDraftId(draftId);
+          openNewCastModal();
+        },
       });
-      setCastModalView(CastModalView.Reply);
-      openNewCastModal();
     },
     {
       scopes: HotkeyScopes.CAST_SELECTED,
       enabled: !!selectedCast,
     },
-    [selectedCast, addNewPostDraft, setCastModalView, openNewCastModal]
+    [selectedCast, addNewPostDraft, setCastModalView, setCastModalDraftId, openNewCastModal]
   );
 
   // Account switching - register all 9 shortcuts

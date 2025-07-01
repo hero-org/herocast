@@ -278,6 +278,20 @@ const Inbox = () => {
     [viewerFid]
   );
 
+  // Handle URL query parameter for tab switching
+  useEffect(() => {
+    const { tab } = router.query;
+    if (tab && typeof tab === 'string') {
+      // Validate the tab value is a valid NotificationTab
+      const validTabs = Object.values(NotificationTab);
+      if (validTabs.includes(tab as NotificationTab)) {
+        const newTab = tab as NotificationTab;
+        console.log(`📍 Switching to ${newTab} tab from URL query`);
+        changeTab(newTab);
+      }
+    }
+  }, [router.query.tab, changeTab]);
+
   // Initial load and account changes
   useEffect(() => {
     if (!viewerFid) return;

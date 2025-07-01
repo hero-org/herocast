@@ -649,7 +649,7 @@ const getCommandsForPinnedChannels = (channels: ChannelType[], state) => {
   return commands;
 };
 
-export const getChannelCommands = (state) => {
+export const getChannelCommands = (state, router?) => {
   let channelCommands: CommandType[] = [
     {
       icon: HomeIcon,
@@ -660,9 +660,12 @@ export const getChannelCommands = (state) => {
         enableOnFormTags: false,
       },
       action: () => {
-        state.setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
+        if (router) {
+          router.push('/feeds?channel=following');
+        } else {
+          state.setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
+        }
       },
-      page: 'feeds',
     },
     {
       icon: ArrowTrendingUpIcon,
@@ -673,9 +676,12 @@ export const getChannelCommands = (state) => {
         enableOnFormTags: false,
       },
       action: () => {
-        state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+        if (router) {
+          router.push('/feeds?channel=trending');
+        } else {
+          state.setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+        }
       },
-      page: 'feeds',
     },
     {
       name: 'Switch to next channel',

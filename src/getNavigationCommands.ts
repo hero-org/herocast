@@ -66,7 +66,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
     aliases: ['inbox replies', 'notification replies'],
     icon: HashtagIcon,
     shortcut: '1',
-    action: () => router.push('/inbox'),
+    action: () => router.push('/inbox?tab=replies'),
     options: {
       enableOnFormTags: false,
     },
@@ -77,7 +77,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
     aliases: ['inbox mentions', 'notification mentions'],
     icon: HashtagIcon,
     shortcut: '2',
-    action: () => router.push('/inbox'),
+    action: () => router.push('/inbox?tab=mentions'),
     options: {
       enableOnFormTags: false,
     },
@@ -88,7 +88,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
     aliases: ['inbox likes', 'notification likes'],
     icon: HashtagIcon,
     shortcut: '3',
-    action: () => router.push('/inbox'),
+    action: () => router.push('/inbox?tab=likes'),
     options: {
       enableOnFormTags: false,
     },
@@ -99,7 +99,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
     aliases: ['inbox recasts', 'notification recasts'],
     icon: HashtagIcon,
     shortcut: '4',
-    action: () => router.push('/inbox'),
+    action: () => router.push('/inbox?tab=recasts'),
     options: {
       enableOnFormTags: false,
     },
@@ -110,7 +110,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
     aliases: ['inbox follows', 'notification follows'],
     icon: HashtagIcon,
     shortcut: '5',
-    action: () => router.push('/inbox'),
+    action: () => router.push('/inbox?tab=follows'),
     options: {
       enableOnFormTags: false,
     },

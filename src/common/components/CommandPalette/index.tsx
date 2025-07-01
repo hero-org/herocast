@@ -205,7 +205,7 @@ export default function CommandPalette() {
       return accountStoreRef.current.channelCommands || [];
     }
 
-    const commands = getChannelCommands(useAccountStore.getState());
+    const commands = getChannelCommands(useAccountStore.getState(), router);
     lastChannelsLengthRef.current = currentChannelsLength;
     if (!accountStoreRef.current) accountStoreRef.current = {};
     accountStoreRef.current.channelCommands = commands;

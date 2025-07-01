@@ -29,7 +29,7 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
   const { selectedCast } = useDataStore();
   const { drafts, removePostDraftById } = useDraftStore();
   const draftIdx = useMemo(() => drafts.findIndex((draft) => draft.id === draftId), [draftId, drafts]);
-  const draft = draftIdx !== undefined ? drafts[draftIdx] : undefined;
+  const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 
   useEffect(() => {
     if (!open && draftId !== undefined) {
@@ -81,14 +81,18 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
               </div>
             )}
             <div className="flex">
-              <NewPostEntry
-                draft={draft}
-                draftIdx={draftIdx}
-                onPost={() => {
-                  setOpen(false);
-                }}
-                hideChannel={castModalView === CastModalView.Reply}
-              />
+              {draft && draftIdx !== -1 ? (
+                <NewPostEntry
+                  draft={draft}
+                  draftIdx={draftIdx}
+                  onPost={() => {
+                    setOpen(false);
+                  }}
+                  hideChannel={castModalView === CastModalView.Reply}
+                />
+              ) : (
+                <Loading loadingMessage="Loading draft..." />
+              )}
             </div>
           </div>
         )}
