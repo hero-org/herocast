@@ -271,7 +271,7 @@ export default function NewPostEntry({
     if (isPublishing) return;
 
     const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
-    
+
     // Use the original draft data with only the changed fields
     updatePostDraft(draftIdx, {
       ...draft,
