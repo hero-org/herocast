@@ -203,34 +203,34 @@ const store = (set: StoreSet, get: () => DataStore) => ({
     const { NeynarAPIClient } = await import('@neynar/nodejs-sdk');
     const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
     const fetchedProfiles: UserProfile[] = [];
-    const batchSize = 50;
+    const batchSize = 100; // Increased batch size for better efficiency
 
-    // Batch fetch uncached profiles
+    // Batch fetch uncached profiles with parallel processing
+    const batchPromises = [];
+    
     for (let i = 0; i < uncachedFids.length; i += batchSize) {
       const batch = uncachedFids.slice(i, i + batchSize);
+      
+      const batchPromise = (async () => {
+        try {
+          const response = await neynarClient.fetchBulkUsers(batch, {
+            viewerFid: parseInt(viewerFid),
+          });
 
-      try {
-        const response = await neynarClient.fetchBulkUsers(batch, {
-          viewerFid: parseInt(viewerFid),
-        });
+          if (response.users) {
+            // Add basic profiles to store immediately
+            const addUserProfiles = get().addUserProfiles;
+            addUserProfiles(response.users);
 
-        if (response.users) {
-          // Add basic profiles to store immediately
-          const addUserProfiles = get().addUserProfiles;
-          addUserProfiles(response.users);
+            // Create UserProfile objects
+            const userProfiles = response.users.map((user) => ({
+              ...user,
+              updatedAt: Date.now(),
+            }));
 
-          // Create UserProfile objects
-          const userProfiles = response.users.map((user) => ({
-            ...user,
-            updatedAt: Date.now(),
-          }));
-
-          fetchedProfiles.push(...userProfiles);
-
-          // Fetch additional info if requested
-          if (!skipAdditionalInfo) {
-            await Promise.all(
-              response.users.map(async (user) => {
+            // Fetch additional info if requested (in parallel)
+            if (!skipAdditionalInfo) {
+              const additionalPromises = response.users.map(async (user) => {
                 try {
                   const additionalResponse = await fetch(
                     `/api/additionalProfileInfo?fid=${user.fid}&addresses=${user.verified_addresses.eth_addresses}`
@@ -249,14 +249,26 @@ const store = (set: StoreSet, get: () => DataStore) => ({
                 } catch (error) {
                   console.error(`Failed to fetch additional info for FID ${user.fid}:`, error);
                 }
-              })
-            );
+              });
+              
+              await Promise.all(additionalPromises);
+            }
+
+            return userProfiles;
           }
+          return [];
+        } catch (error) {
+          console.error(`Failed to fetch batch of profiles:`, error);
+          return [];
         }
-      } catch (error) {
-        console.error(`Failed to fetch batch of profiles:`, error);
-      }
+      })();
+      
+      batchPromises.push(batchPromise);
     }
+    
+    // Wait for all batches to complete
+    const batchResults = await Promise.all(batchPromises);
+    batchResults.forEach(profiles => fetchedProfiles.push(...profiles));
 
     // Return combined results
     return [...cachedProfiles, ...fetchedProfiles];

@@ -78,6 +78,7 @@ export type AccountObjectType = {
   data?: { deeplinkUrl?: string; signerToken?: string; deadline?: number };
   channels: AccountChannelType[];
   user?: User;
+  farcasterApiKey?: string; // Only available in memory, never persisted to IndexedDB
 };
 
 interface AccountStoreProps {
@@ -107,6 +108,8 @@ interface AccountStoreActions {
   resetStore: () => void;
   addPinnedChannel: (channel: ChannelType) => void;
   removePinnedChannel: (channel: ChannelType) => void;
+  updateAccountProperty: (accountId: UUID, property: keyof AccountObjectType, value: any) => void;
+  loadFarcasterApiKey: (accountId: UUID) => Promise<void>;
 }
 
 export interface AccountStore extends AccountStoreProps, AccountStoreActions {}
@@ -446,6 +449,63 @@ const store = (set: StoreSet) => ({
     });
 
     console.log('done hydrating complete 🌊 full functionality ready');
+  },
+  updateAccountProperty: (accountId: UUID, property: keyof AccountObjectType, value: any) => {
+    set((state) => {
+      const accountIdx = state.accounts.findIndex((acc) => acc.id === accountId);
+      if (accountIdx !== -1) {
+        state.accounts[accountIdx][property] = value;
+      }
+    });
+  },
+  loadFarcasterApiKey: async (accountId: UUID) => {
+    console.log('[loadFarcasterApiKey Debug] Starting load for account:', accountId);
+    try {
+      // First get the current user
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+      console.log('[loadFarcasterApiKey Debug] Auth user:', {
+        userId: user?.id,
+        email: user?.email,
+        error: userError,
+      });
+      
+      if (!user) {
+        console.error('[loadFarcasterApiKey Debug] No authenticated user found');
+        return;
+      }
+
+      console.log('[loadFarcasterApiKey Debug] Querying decrypted_dm_accounts...');
+      const { data, error } = await supabaseClient
+        .from('decrypted_dm_accounts')
+        .select('decrypted_farcaster_api_key')
+        .eq('id', accountId)
+        .eq('user_id', user.id)
+        .single();
+
+      console.log('[loadFarcasterApiKey Debug] Query result:', {
+        hasData: !!data,
+        hasApiKey: !!data?.decrypted_farcaster_api_key,
+        error: error,
+      });
+
+      if (!error && data?.decrypted_farcaster_api_key) {
+        set((state) => {
+          const accountIdx = state.accounts.findIndex((acc) => acc.id === accountId);
+          if (accountIdx !== -1) {
+            state.accounts[accountIdx].farcasterApiKey = data.decrypted_farcaster_api_key;
+            console.log('[loadFarcasterApiKey Debug] Successfully set API key for account index:', accountIdx);
+          } else {
+            console.error('[loadFarcasterApiKey Debug] Account not found in state:', accountId);
+          }
+        });
+      } else if (error) {
+        console.error('[loadFarcasterApiKey Debug] Error loading Farcaster API key:', error);
+      } else {
+        console.error('[loadFarcasterApiKey Debug] No API key found in response');
+      }
+    } catch (err) {
+      console.error('[loadFarcasterApiKey Debug] Caught error:', err);
+    }
   },
 });
 

@@ -51,7 +51,12 @@ export function useGlobalHotkeys() {
       },
       {
         keys: 'shift+n',
-        callback: () => router.push('/notifications'),
+        callback: () => router.push('/inbox'),
+        options: { scopes: HotkeyScopes.GLOBAL },
+      },
+      {
+        keys: 'shift+m',
+        callback: () => router.push('/dms'),
         options: { scopes: HotkeyScopes.GLOBAL },
       },
       {

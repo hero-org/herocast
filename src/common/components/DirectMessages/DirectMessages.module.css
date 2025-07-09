@@ -1,0 +1,58 @@
+/* Custom animations for Direct Messages */
+
+/* Reduce or remove animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-in {
+    animation: none !important;
+  }
+  
+  .transition-all,
+  .transition-opacity,
+  .transition-transform,
+  .transition-colors {
+    transition: none !important;
+  }
+}
+
+/* Smooth scroll behavior */
+.messages-container {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .messages-container {
+    scroll-behavior: auto;
+  }
+}
+
+/* Loading skeleton pulse animation */
+@keyframes skeleton-pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-pulse {
+    animation: none;
+    opacity: 0.6;
+  }
+}

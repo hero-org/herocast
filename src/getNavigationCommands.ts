@@ -3,7 +3,7 @@ import { CommandType } from './common/constants/commands';
 import { ChartBarIcon, MagnifyingGlassIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { BellIcon, HashtagIcon } from '@heroicons/react/24/outline';
 import { Bars3BottomLeftIcon } from '@heroicons/react/20/solid';
-import { Cog6ToothIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, UserPlusIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 
 interface WithRouterProps {
   router: NextRouter;
@@ -57,6 +57,16 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
     icon: BellIcon,
     shortcut: 'shift+n',
     action: () => router.push('/inbox'),
+    options: {
+      enableOnFormTags: false,
+    },
+  },
+  {
+    name: 'Direct Messages',
+    aliases: ['dms', 'messages', 'chats', 'direct', 'dm'],
+    icon: ChatBubbleLeftRightIcon,
+    shortcut: 'shift+m',
+    action: () => router.push('/dms'),
     options: {
       enableOnFormTags: false,
     },
