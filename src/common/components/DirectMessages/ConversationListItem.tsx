@@ -57,7 +57,7 @@ const getSafeDisplayName = (profile: any, fid?: number) => {
 // Helper to get avatar fallback
 const getAvatarFallback = (profile: any, fid?: number, isGroup?: boolean) => {
   if (isGroup) return 'GC';
-  
+
   if (profile?.username && profile.username.length >= 2) {
     return profile.username.slice(0, 2).toUpperCase();
   }
@@ -83,17 +83,15 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
   getProfileByFid,
 }) => {
   const timeAgo = lastMessage ? formatDistanceToNowStrict(new Date(lastMessage.creationTimestamp * 1000)) : '';
-  
+
   // Handle empty conversations
   const hasNoMessages = !lastMessage;
-  
+
   return (
     <li
       className={cn(
         'flex gap-x-3 px-4 py-3 border-b border-muted/50 transition-colors border-l-2 cursor-pointer',
-        isSelected
-          ? 'bg-muted border-l-blue-500'
-          : 'bg-background/80 hover:bg-muted/50 border-l-transparent'
+        isSelected ? 'bg-muted border-l-blue-500' : 'bg-background/80 hover:bg-muted/50 border-l-transparent'
       )}
       onClick={onClick}
     >
@@ -106,9 +104,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
           <ProfileHoverCard fid={participantFid} username={participantProfile?.username} viewerFid={viewerFid}>
             <Avatar className="h-10 w-10">
               <AvatarImage src={participantProfile?.pfpUrl} />
-              <AvatarFallback>
-                {getAvatarFallback(participantProfile, participantFid, false)}
-              </AvatarFallback>
+              <AvatarFallback>{getAvatarFallback(participantProfile, participantFid, false)}</AvatarFallback>
             </Avatar>
           </ProfileHoverCard>
         )}
@@ -116,9 +112,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-x-2">
           {isGroup ? (
-            <p className="text-sm font-medium text-foreground truncate">
-              {truncateText(name || 'Unnamed Group', 30)}
-            </p>
+            <p className="text-sm font-medium text-foreground truncate">{truncateText(name || 'Unnamed Group', 30)}</p>
           ) : (
             <ProfileHoverCard fid={participantFid} username={participantProfile?.username} viewerFid={viewerFid}>
               <p className="text-sm font-medium text-foreground truncate">
@@ -137,7 +131,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
           <p className="mt-0.5 text-sm text-foreground/70 truncate">
             {isGroup && lastMessage.senderFid !== viewerFid && getProfileByFid && (
               <span className="text-foreground/50">
-                @{getSafeUsername(getProfileByFid(lastMessage.senderFid), lastMessage.senderFid)}: 
+                @{getSafeUsername(getProfileByFid(lastMessage.senderFid), lastMessage.senderFid)}:
               </span>
             )}
             {lastMessage.isDeleted ? (

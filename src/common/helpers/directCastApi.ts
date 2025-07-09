@@ -41,7 +41,7 @@ export class DirectCastAPI {
 
     try {
       const url = new URL(`${this.baseUrl}${endpoint}`);
-      
+
       // Add query parameters
       if (options?.query) {
         Object.entries(options.query).forEach(([key, value]) => {
@@ -52,7 +52,7 @@ export class DirectCastAPI {
       }
 
       const headers: Record<string, string> = {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
       };
 
@@ -96,18 +96,18 @@ export class DirectCastAPI {
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error instanceof DirectCastAPIError) {
         throw error;
       }
-      
+
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           throw new DirectCastAPIError('Request timeout', 503);
         }
         throw new DirectCastAPIError(error.message);
       }
-      
+
       throw new DirectCastAPIError('Unknown error occurred');
     }
   }
@@ -129,20 +129,19 @@ export class DirectCastAPI {
     });
   }
 
-  async createConversation(recipientFid: number, settings?: {
-    messageTTLDays?: 1 | 7 | 30 | 365;
-  }) {
+  async createConversation(
+    recipientFid: number,
+    settings?: {
+      messageTTLDays?: 1 | 7 | 30 | 365;
+    }
+  ) {
     return this.makeRequest<any>('PUT', DIRECT_CAST_API.ENDPOINTS.CREATE_CONVERSATION, {
       body: { recipientFid, settings },
     });
   }
 
   // Group methods
-  async getGroupList(params?: {
-    category?: 'default' | 'request' | 'archived';
-    cursor?: string;
-    limit?: number;
-  }) {
+  async getGroupList(params?: { category?: 'default' | 'request' | 'archived'; cursor?: string; limit?: number }) {
     return this.makeRequest<any>('GET', DIRECT_CAST_API.ENDPOINTS.LIST_GROUPS, {
       query: params as any,
     });
@@ -186,7 +185,9 @@ export class DirectCastAPI {
     }
 
     if (body.message.length > DIRECT_CAST_API.MESSAGE.MAX_LENGTH) {
-      throw new DirectCastAPIError(`Message exceeds maximum length of ${DIRECT_CAST_API.MESSAGE.MAX_LENGTH} characters`);
+      throw new DirectCastAPIError(
+        `Message exceeds maximum length of ${DIRECT_CAST_API.MESSAGE.MAX_LENGTH} characters`
+      );
     }
 
     return this.makeRequest<any>('PUT', DIRECT_CAST_API.ENDPOINTS.SEND_MESSAGE, {
@@ -195,11 +196,7 @@ export class DirectCastAPI {
     });
   }
 
-  async deleteMessage(params: {
-    conversationId?: string;
-    groupId?: string;
-    messageId: string;
-  }) {
+  async deleteMessage(params: { conversationId?: string; groupId?: string; messageId: string }) {
     if (!params.conversationId && !params.groupId) {
       throw new DirectCastAPIError('Either conversationId or groupId must be provided');
     }

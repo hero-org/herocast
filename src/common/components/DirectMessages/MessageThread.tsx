@@ -39,7 +39,7 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { scrollToElement } = useSmoothScroll();
-  
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > 0) {
@@ -89,7 +89,7 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
   return (
     <div className="flex flex-col h-full">
       {/* Messages container */}
-      <div 
+      <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
         style={{ scrollBehavior: 'smooth' }}
@@ -111,8 +111,8 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
         {messageGroups.map((group, groupIdx) => {
           const isViewer = group.sender.senderFid === viewerFid;
           return (
-            <div 
-              key={`group-${groupIdx}`} 
+            <div
+              key={`group-${groupIdx}`}
               className={cn(
                 'flex gap-3 animate-in fade-in-0 slide-up duration-300',
                 isViewer ? 'flex-row-reverse' : 'flex-row'
@@ -121,7 +121,11 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
             >
               {/* Avatar */}
               {!isViewer && (
-                <ProfileHoverCard fid={group.sender.senderFid} username={group.sender.senderUsername} viewerFid={viewerFid}>
+                <ProfileHoverCard
+                  fid={group.sender.senderFid}
+                  username={group.sender.senderUsername}
+                  viewerFid={viewerFid}
+                >
                   <Avatar className="h-8 w-8 flex-shrink-0 transition-transform duration-200 hover:scale-110">
                     <AvatarImage src={group.sender.senderPfpUrl} />
                     <AvatarFallback>{getAvatarFallback(group.sender)}</AvatarFallback>
@@ -133,7 +137,11 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
               <div className={cn('flex flex-col gap-1 max-w-[70%]', isViewer ? 'items-end' : 'items-start')}>
                 {/* Sender name (only for non-viewer) */}
                 {!isViewer && (
-                  <ProfileHoverCard fid={group.sender.senderFid} username={group.sender.senderUsername} viewerFid={viewerFid}>
+                  <ProfileHoverCard
+                    fid={group.sender.senderFid}
+                    username={group.sender.senderUsername}
+                    viewerFid={viewerFid}
+                  >
                     <span className="text-xs text-foreground/60 px-3 truncate max-w-full cursor-pointer hover:text-foreground/80">
                       {getDisplayName(group.sender)}
                     </span>
@@ -147,9 +155,10 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
                     text={message.text}
                     isViewer={isViewer}
                     isDeleted={message.isDeleted}
-                    timestamp={idx === group.messages.length - 1 ? 
-                      formatDistanceToNowStrict(new Date(message.timestamp)) + ' ago' : 
-                      undefined
+                    timestamp={
+                      idx === group.messages.length - 1
+                        ? formatDistanceToNowStrict(new Date(message.timestamp)) + ' ago'
+                        : undefined
                     }
                     showTimestamp={idx === group.messages.length - 1}
                   />
@@ -166,7 +175,7 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
             <p>No messages yet. Start a conversation!</p>
           </div>
         )}
-        
+
         {/* Scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
@@ -188,4 +197,3 @@ export const MessageThread: React.FC<MessageThreadProps> = (props) => {
     </DMErrorBoundary>
   );
 };
-

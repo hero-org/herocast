@@ -462,13 +462,16 @@ const store = (set: StoreSet) => ({
     console.log('[loadFarcasterApiKey Debug] Starting load for account:', accountId);
     try {
       // First get the current user
-      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabaseClient.auth.getUser();
       console.log('[loadFarcasterApiKey Debug] Auth user:', {
         userId: user?.id,
         email: user?.email,
         error: userError,
       });
-      
+
       if (!user) {
         console.error('[loadFarcasterApiKey Debug] No authenticated user found');
         return;

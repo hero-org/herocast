@@ -21,14 +21,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const supabase = createClient(req, res);
 
   // Get authenticated user
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
   console.log('[DMs API Debug] Auth check:', {
     hasUser: !!user,
     userId: user?.id,
     userEmail: user?.email,
     error: userError,
   });
-  
+
   if (userError || !user) {
     console.error('[DMs API Debug] Auth failed:', userError);
     return res.status(401).json({ error: 'Unauthorized', conversations: [], groups: [] });
@@ -39,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     accountId,
     userId: user.id,
   });
-  
+
   const { data: account, error } = await supabase
     .from('decrypted_dm_accounts')
     .select('decrypted_farcaster_api_key')
@@ -67,9 +70,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       keyLength: account.decrypted_farcaster_api_key?.length,
       keyPrefix: account.decrypted_farcaster_api_key?.substring(0, 10) + '...',
     });
-    
+
     const api = new DirectCastAPI({ apiKey: account.decrypted_farcaster_api_key });
-    
+
     // Fetch both conversations and groups in parallel
     const [conversationsRes, groupsRes] = await Promise.all([
       api.getConversationList({
@@ -93,14 +96,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     clearTimeout(timeout);
-    
+
     if (error instanceof DirectCastAPIError) {
       console.error('[DMs API Debug] DirectCast API error details:', {
         message: error.message,
         statusCode: error.statusCode,
         fullError: error,
       });
-      return res.status(error.statusCode || 500).json({ 
+      return res.status(error.statusCode || 500).json({
         error: error.message,
         conversations: [],
         groups: [],

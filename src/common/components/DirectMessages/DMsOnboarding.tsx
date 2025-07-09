@@ -106,23 +106,31 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
             </div>
             <ol className="space-y-3">
               <li className="flex gap-3 text-sm">
-                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">1</span>
+                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
+                  1
+                </span>
                 <span className="text-muted-foreground pt-0.5">Open Farcaster app on your device</span>
               </li>
               <li className="flex gap-3 text-sm">
-                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">2</span>
+                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
+                  2
+                </span>
                 <span className="text-muted-foreground pt-0.5">Go to Settings → Developers (scroll down)</span>
               </li>
               <li className="flex gap-3 text-sm">
-                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">3</span>
+                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
+                  3
+                </span>
                 <span className="text-muted-foreground pt-0.5">Tap API Keys → Create new API key</span>
               </li>
               <li className="flex gap-3 text-sm">
-                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">4</span>
+                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
+                  4
+                </span>
                 <span className="text-muted-foreground pt-0.5">Copy the generated key and paste it below</span>
               </li>
             </ol>
-            
+
             {/* Screenshot guides */}
             {showImages && (
               <div className="space-y-6 mt-6 p-6 bg-muted/30 rounded-lg">
@@ -164,7 +172,9 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
 
           {/* API Key input */}
           <div className="space-y-3">
-            <Label htmlFor="api-key" className="text-base font-medium">Farcaster API Key</Label>
+            <Label htmlFor="api-key" className="text-base font-medium">
+              Farcaster API Key
+            </Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -184,9 +194,9 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
 
           {/* Actions */}
           <div className="flex flex-col gap-3 pt-2">
-            <Button 
-              onClick={handleSaveApiKey} 
-              disabled={isLoading || !apiKey.trim()} 
+            <Button
+              onClick={handleSaveApiKey}
+              disabled={isLoading || !apiKey.trim()}
               className="w-full h-12 text-base font-medium"
               size="lg"
             >
@@ -218,4 +228,3 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
     </div>
   );
 };
-

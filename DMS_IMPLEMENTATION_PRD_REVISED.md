@@ -7,6 +7,7 @@ Add read-only Direct Messages (DMs) functionality to Herocast, allowing users to
 ## Important Naming Convention
 
 **CRITICAL**: Throughout the codebase, we use the following naming conventions:
+
 - Database column: `farcaster_api_key` (NOT `warpcast_api_key`)
 - Type field: `farcasterApiKey` (NOT `warpcastApiKey`)
 - UI references: "Farcaster API Key" and "Farcaster app" (NOT "Warpcast")
@@ -306,6 +307,7 @@ Add to `/src/getNavigationCommands.ts`:
 ## Success Metrics
 
 ### Completed & Verified ✅
+
 - [x] Shift+M opens DMs instantly
 - [x] All keyboard shortcuts work (1/2/3 for tabs, j/k navigation, Enter select, Shift+R refresh)
 - [x] API key stored securely (encrypted in Supabase, never in IndexedDB)
@@ -313,6 +315,7 @@ Add to `/src/getNavigationCommands.ts`:
 - [x] Clean onboarding flow with API key validation
 
 ### Implemented but Pending API Access Testing ⏳
+
 - [ ] Conversations load within 2 seconds (blocked by API allowlisting)
 - [ ] Auto-refresh keeps data current (implemented, needs real data)
 - [ ] Clean error states for all scenarios (basic implementation done)
@@ -324,12 +327,14 @@ Add to `/src/getNavigationCommands.ts`:
 ### Completed (Days 1-3)
 
 1. **UI Scaffolding & Navigation** ✅
+
    - Created `/pages/dms/index.tsx` with full layout
    - Three tabs: Conversations, Groups, Archived
    - 50/50 split layout with SelectableListWithHotkeys
    - All keyboard shortcuts working (1/2/3 for tabs, j/k for navigation, Enter to select, Shift+R to refresh)
 
 2. **Mock Data & Components** ✅
+
    - Created comprehensive mock conversations and groups
    - Built `MessageThread` component with chat-style UI
    - Unread indicators and timestamps
@@ -354,14 +359,15 @@ Add to `/src/getNavigationCommands.ts`:
    - Dynamic image sizing (not forced aspect ratios) looks better
 4. **Security**: API keys must never be stored in IndexedDB, only in encrypted Supabase columns
 
-4. **Database & API Key Storage** ✅
+5. **Database & API Key Storage** ✅
+
    - Created Supabase migration with encrypted `farcaster_api_key` column
    - Updated AccountObjectType with farcasterApiKey field (memory only)
    - Built secure API endpoint `/api/accounts/farcaster-api-key`
    - Added `updateAccountProperty` and `loadFarcasterApiKey` functions
    - Verified API key is excluded from IndexedDB persistence
 
-5. **API Integration - Conversations & Messages** ✅
+6. **API Integration - Conversations & Messages** ✅
    - Created comprehensive Direct Cast API constants with rate limits
    - Built DirectCastAPI client class with proper error handling
    - Implemented `/api/dms/conversations` and `/api/dms/messages` endpoints
@@ -375,11 +381,13 @@ Add to `/src/getNavigationCommands.ts`:
 ### Day 5 Additional Learnings
 
 1. **Authentication Flow**:
+
    - The `decrypted_dm_accounts` view requires `auth.uid()` to match the account owner
    - API keys are successfully decrypted when authenticated correctly
    - The 401 error comes from the Direct Cast API, not our authentication
 
 2. **API Allowlisting Required**:
+
    - Direct Cast API requires accounts to be allowlisted before access
    - All infrastructure is ready and working up to the external API call
    - Debug logging added to track the exact failure point
@@ -394,24 +402,28 @@ Add to `/src/getNavigationCommands.ts`:
 Successfully completed all Day 6 polish and performance tasks:
 
 1. **Comprehensive Error Handling**:
+
    - Created `dmErrors.ts` utility with error classification and recovery strategies
    - Added `DMErrorState` component with user-friendly error displays
    - Implemented exponential backoff retry logic with jitter
    - Added specific handling for auth errors, rate limits, and network failures
 
 2. **UI Enhancements**:
+
    - Added refresh dropdown menu with keyboard shortcuts
    - Implemented smooth 60fps transitions and animations
    - Added loading skeletons and states throughout
    - Created responsive design with mobile support
 
 3. **Edge Case Handling**:
+
    - Added error boundaries to prevent crashes
    - Created smart message display with "Show more" for long messages
    - Added handling for deleted messages and empty conversations
    - Implemented proper truncation and fallbacks
 
 4. **Performance Optimizations**:
+
    - Added 300ms debouncing for API calls
    - Implemented request cancellation with AbortController
    - Created profile prefetching with batch loading (100 profiles at once)
@@ -427,12 +439,14 @@ Successfully completed all Day 6 polish and performance tasks:
 After review, we identified and fixed several issues:
 
 1. **Removed Redundant Code**:
+
    - Removed `useProfilePrefetch` hook (redundant with existing `fetchBulkProfiles`)
    - Removed `ProfileLoader` component (unused)
    - Removed `UnavailableConversation` component (not needed)
    - Used existing `useDataStore` profile caching instead of reimplementing
 
 2. **Integrated Unused Components**:
+
    - Connected `DMLoadingState`, `DMEmptyState`, `DMErrorState` to DMs page
    - Replaced inline `renderDMRow` with `ConversationListItem` component
    - Fixed undefined styles reference in `AnimatedMessageThread`
@@ -458,8 +472,8 @@ These tests require Direct Cast API access and will be completed after allowlist
   - Test auto-refresh with real data
   - Validate rate limit handling
   - Test pagination with large conversation lists
-  
 - [ ] **Error Handling Tests**:
+
   - Invalid API key error messages
   - Expired token handling
   - Network timeout scenarios

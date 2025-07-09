@@ -29,7 +29,7 @@ export const AnimatedMessageThread: React.FC<AnimatedMessageThreadProps> = ({
     if (conversationKey !== currentKey) {
       // Start transition
       setIsTransitioning(true);
-      
+
       // After fade out completes, update content
       setTimeout(() => {
         setCurrentKey(conversationKey);
@@ -49,29 +49,11 @@ export const AnimatedMessageThread: React.FC<AnimatedMessageThreadProps> = ({
   const MessageSkeleton = () => (
     <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
       {[...Array(5)].map((_, i) => (
-        <div
-          key={i}
-          className={cn(
-            'flex gap-3',
-            i % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
-          )}
-        >
+        <div key={i} className={cn('flex gap-3', i % 2 === 0 ? 'flex-row' : 'flex-row-reverse')}>
           {i % 2 === 0 && <Skeleton className="h-8 w-8 rounded-full" />}
-          <div
-            className={cn(
-              'flex flex-col gap-1 max-w-[70%]',
-              i % 2 === 0 ? 'items-start' : 'items-end'
-            )}
-          >
-            {i % 2 === 0 && (
-              <Skeleton className="h-3 w-24 mb-1" />
-            )}
-            <Skeleton
-              className={cn(
-                'h-16 rounded-2xl bg-muted animate-pulse',
-                i % 2 === 0 ? 'w-48' : 'w-56'
-              )}
-            />
+          <div className={cn('flex flex-col gap-1 max-w-[70%]', i % 2 === 0 ? 'items-start' : 'items-end')}>
+            {i % 2 === 0 && <Skeleton className="h-3 w-24 mb-1" />}
+            <Skeleton className={cn('h-16 rounded-2xl bg-muted animate-pulse', i % 2 === 0 ? 'w-48' : 'w-56')} />
           </div>
         </div>
       ))}
@@ -79,9 +61,8 @@ export const AnimatedMessageThread: React.FC<AnimatedMessageThreadProps> = ({
   );
 
   // Check for reduced motion preference
-  const prefersReducedMotion = 
-    typeof window !== 'undefined' && 
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if (prefersReducedMotion) {
     // No animations for users who prefer reduced motion
@@ -109,12 +90,7 @@ export const AnimatedMessageThread: React.FC<AnimatedMessageThreadProps> = ({
       </div>
 
       {/* Actual message thread */}
-      <div
-        className={cn(
-          'h-full transition-opacity duration-200',
-          isTransitioning ? 'opacity-0' : 'opacity-100'
-        )}
-      >
+      <div className={cn('h-full transition-opacity duration-200', isTransitioning ? 'opacity-0' : 'opacity-100')}>
         <MessageThread
           messages={displayMessages}
           viewerFid={viewerFid}

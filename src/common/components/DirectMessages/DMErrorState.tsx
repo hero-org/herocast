@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { 
-  AlertCircle, 
-  Clock, 
-  Key, 
-  RefreshCw, 
-  WifiOff, 
-  ExternalLink,
-  Loader2
-} from 'lucide-react';
-import { 
-  getErrorInfo, 
-  DMErrorType, 
-  DMErrorInfo 
-} from '@/common/utils/dmErrors';
+import { AlertCircle, Clock, Key, RefreshCw, WifiOff, ExternalLink, Loader2 } from 'lucide-react';
+import { getErrorInfo, DMErrorType, DMErrorInfo } from '@/common/utils/dmErrors';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/router';
 
@@ -25,12 +13,7 @@ interface RetryButtonProps {
   children?: React.ReactNode;
 }
 
-const RetryButton: React.FC<RetryButtonProps> = ({ 
-  onRetry, 
-  disabled = false, 
-  className,
-  children = 'Retry'
-}) => {
+const RetryButton: React.FC<RetryButtonProps> = ({ onRetry, disabled = false, className, children = 'Retry' }) => {
   const [isRetrying, setIsRetrying] = useState(false);
 
   const handleRetry = async () => {
@@ -48,7 +31,7 @@ const RetryButton: React.FC<RetryButtonProps> = ({
       disabled={disabled || isRetrying}
       variant="outline"
       size="sm"
-      className={cn("min-w-[80px]", className)}
+      className={cn('min-w-[80px]', className)}
     >
       {isRetrying ? (
         <>
@@ -78,7 +61,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ endTime, onComplete }) 
       const now = Date.now();
       const remaining = Math.max(0, endTime - now);
       setTimeLeft(Math.ceil(remaining / 1000));
-      
+
       if (remaining <= 0) {
         onComplete();
       }
@@ -97,11 +80,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ endTime, onComplete }) 
     return `${minutes}m ${secs}s`;
   };
 
-  return (
-    <span className="font-mono text-sm text-muted-foreground">
-      {formatTime(timeLeft)}
-    </span>
-  );
+  return <span className="font-mono text-sm text-muted-foreground">{formatTime(timeLeft)}</span>;
 };
 
 interface DMErrorStateProps {
@@ -110,11 +89,7 @@ interface DMErrorStateProps {
   className?: string;
 }
 
-export const DMErrorState: React.FC<DMErrorStateProps> = ({ 
-  error, 
-  onRetry,
-  className 
-}) => {
+export const DMErrorState: React.FC<DMErrorStateProps> = ({ error, onRetry, className }) => {
   const router = useRouter();
   const [canRetry, setCanRetry] = useState(false);
   const errorInfo = getErrorInfo(error);
@@ -165,25 +140,12 @@ export const DMErrorState: React.FC<DMErrorStateProps> = ({
               <p className="text-sm text-muted-foreground">{errorInfo.action}</p>
             </AlertDescription>
             <div className="flex flex-col sm:flex-row gap-2">
-              <Button
-                onClick={handleReEnterApiKey}
-                size="sm"
-                className="w-full sm:w-auto"
-              >
+              <Button onClick={handleReEnterApiKey} size="sm" className="w-full sm:w-auto">
                 <Key className="mr-2 h-4 w-4" />
                 Update API Key
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full sm:w-auto"
-                asChild
-              >
-                <a 
-                  href="https://docs.farcaster.xyz/reference/warpcast/api" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
+              <Button variant="ghost" size="sm" className="w-full sm:w-auto" asChild>
+                <a href="https://docs.farcaster.xyz/reference/warpcast/api" target="_blank" rel="noopener noreferrer">
                   Learn More
                   <ExternalLink className="ml-2 h-3 w-3" />
                 </a>
@@ -202,17 +164,9 @@ export const DMErrorState: React.FC<DMErrorStateProps> = ({
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Try again in:</span>
-                <CountdownTimer 
-                  endTime={getRateLimitEndTime()} 
-                  onComplete={handleRateLimitComplete}
-                />
+                <CountdownTimer endTime={getRateLimitEndTime()} onComplete={handleRateLimitComplete} />
               </div>
-              {onRetry && (
-                <RetryButton 
-                  onRetry={onRetry} 
-                  disabled={!canRetry}
-                />
-              )}
+              {onRetry && <RetryButton onRetry={onRetry} disabled={!canRetry} />}
             </div>
           </div>
         );
@@ -227,9 +181,7 @@ export const DMErrorState: React.FC<DMErrorStateProps> = ({
             {onRetry && (
               <div className="flex items-center gap-3">
                 <RetryButton onRetry={onRetry} />
-                <span className="text-xs text-muted-foreground">
-                  Check your internet connection
-                </span>
+                <span className="text-xs text-muted-foreground">Check your internet connection</span>
               </div>
             )}
           </div>
@@ -240,25 +192,12 @@ export const DMErrorState: React.FC<DMErrorStateProps> = ({
           <div className="space-y-3">
             <AlertDescription className="space-y-2">
               <p>{errorInfo.message}</p>
-              {errorInfo.action && (
-                <p className="text-sm text-muted-foreground">{errorInfo.action}</p>
-              )}
+              {errorInfo.action && <p className="text-sm text-muted-foreground">{errorInfo.action}</p>}
             </AlertDescription>
             <div className="flex flex-col sm:flex-row gap-2">
-              {onRetry && errorInfo.canRetry && (
-                <RetryButton onRetry={onRetry} />
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full sm:w-auto"
-                asChild
-              >
-                <a 
-                  href="https://github.com/hellno/herocast/issues/new" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
+              {onRetry && errorInfo.canRetry && <RetryButton onRetry={onRetry} />}
+              <Button variant="ghost" size="sm" className="w-full sm:w-auto" asChild>
+                <a href="https://github.com/hellno/herocast/issues/new" target="_blank" rel="noopener noreferrer">
                   Report Issue
                   <ExternalLink className="ml-2 h-3 w-3" />
                 </a>
@@ -270,7 +209,7 @@ export const DMErrorState: React.FC<DMErrorStateProps> = ({
   };
 
   return (
-    <div className={cn("animate-in fade-in-50 duration-500", className)}>
+    <div className={cn('animate-in fade-in-50 duration-500', className)}>
       <Alert variant={getAlertVariant()}>
         {getErrorIcon()}
         <AlertTitle className="ml-2">

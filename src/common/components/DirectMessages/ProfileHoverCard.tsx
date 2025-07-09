@@ -49,12 +49,10 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
     return (
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger ref={ref} className={`${className} text-left`} asChild>
-          <div onClick={(e) => e.stopPropagation()}>
-            {children}
-          </div>
+          <div onClick={(e) => e.stopPropagation()}>{children}</div>
         </PopoverTrigger>
-        <PopoverContent 
-          side="bottom" 
+        <PopoverContent
+          side="bottom"
           className="w-80 border border-gray-400 overflow-hidden cursor-pointer p-4"
           align="start"
           avoidCollisions={true}
@@ -70,12 +68,10 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
   return (
     <HoverCard openDelay={500}>
       <HoverCardTrigger ref={ref} className={`${className} text-left`} asChild>
-        <div>
-          {children}
-        </div>
+        <div>{children}</div>
       </HoverCardTrigger>
-      <HoverCardContent 
-        side="bottom" 
+      <HoverCardContent
+        side="bottom"
         className="w-80 border border-gray-400 overflow-hidden cursor-pointer"
         align="start"
         avoidCollisions={true}

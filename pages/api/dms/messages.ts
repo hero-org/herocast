@@ -24,7 +24,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const supabase = createClient(req, res);
 
   // Get authenticated user
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
   if (userError || !user) {
     return res.status(401).json({ error: 'Unauthorized', messages: [] });
   }
@@ -41,13 +44,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(403).json({ error: 'Unauthorized or API key not found' });
   }
 
-  const timeout = setTimeout(() => {
-    res.status(503).json({ error: 'Request timeout', messages: [] });
-  }, DIRECT_CAST_API.RATE_LIMITS.MESSAGES_PER_CONVERSATION_PER_MINUTE * 1000 - 1000);
+  const timeout = setTimeout(
+    () => {
+      res.status(503).json({ error: 'Request timeout', messages: [] });
+    },
+    DIRECT_CAST_API.RATE_LIMITS.MESSAGES_PER_CONVERSATION_PER_MINUTE * 1000 - 1000
+  );
 
   try {
     const api = new DirectCastAPI({ apiKey: account.decrypted_farcaster_api_key });
-    
+
     const response = await api.getMessageList({
       conversationId: conversationId as string,
       groupId: groupId as string,
@@ -63,10 +69,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     clearTimeout(timeout);
-    
+
     if (error instanceof DirectCastAPIError) {
       console.error('DirectCast API error:', error.message);
-      return res.status(error.statusCode || 500).json({ 
+      return res.status(error.statusCode || 500).json({
         error: error.message,
         messages: [],
       });

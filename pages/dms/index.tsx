@@ -31,7 +31,13 @@ import { useDirectMessages, useDirectMessageThread } from '@/common/hooks/useDir
 import { DirectCastConversation, DirectCastGroup, DirectCastMessage } from '@/common/constants/directCast';
 import { getUsernameForFid } from '@/common/helpers/farcaster';
 import { useDataStore } from '@/stores/useDataStore';
-import { extractFidsFromDMData, getSafeDisplayName, getSafeUsername, truncateText, getAvatarFallback } from '@/common/helpers/dmProfiles';
+import {
+  extractFidsFromDMData,
+  getSafeDisplayName,
+  getSafeUsername,
+  truncateText,
+  getAvatarFallback,
+} from '@/common/helpers/dmProfiles';
 
 export enum DMTab {
   conversations = 'conversations',
@@ -49,7 +55,7 @@ const DirectMessages = () => {
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const listContainerRef = useRef<HTMLDivElement>(null);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
-  
+
   // Fetch DMs based on active tab
   const category = activeTab === DMTab.archived ? 'archived' : 'default';
   const { conversations, groups, isLoading, error, refresh } = useDirectMessages({
@@ -80,17 +86,20 @@ const DirectMessages = () => {
   };
 
   const currentList = getCurrentList();
-  
+
   // Get selected item details
   const selectedItem = currentList[selectedDMIdx];
-  const selectedConversationId = selectedItem && 'conversationId' in selectedItem ? selectedItem.conversationId : undefined;
+  const selectedConversationId =
+    selectedItem && 'conversationId' in selectedItem ? selectedItem.conversationId : undefined;
   const selectedGroupId = selectedItem && 'groupId' in selectedItem ? selectedItem.groupId : undefined;
-  
+
   // Fetch messages for selected conversation/group
-  const { messages, isLoading: messagesLoading, loadMore: loadMoreMessages, hasMore } = useDirectMessageThread(
-    selectedConversationId,
-    selectedGroupId
-  );
+  const {
+    messages,
+    isLoading: messagesLoading,
+    loadMore: loadMoreMessages,
+    hasMore,
+  } = useDirectMessageThread(selectedConversationId, selectedGroupId);
 
   // Collect all unique fids that need profiles from conversations and messages
   const allFidsToFetch = useMemo(() => {
@@ -104,12 +113,11 @@ const DirectMessages = () => {
 
   // Prefetch profiles for all visible fids using existing dataStore
   const [profilesLoading, setProfilesLoading] = useState(false);
-  
+
   useEffect(() => {
     if (!showOnboarding && !isLoading && allFidsToFetch.length > 0 && viewerFid) {
       setProfilesLoading(true);
-      fetchBulkProfiles(allFidsToFetch, viewerFid, true)
-        .finally(() => setProfilesLoading(false));
+      fetchBulkProfiles(allFidsToFetch, viewerFid, true).finally(() => setProfilesLoading(false));
     }
   }, [allFidsToFetch, viewerFid, showOnboarding, isLoading, fetchBulkProfiles]);
 
@@ -159,21 +167,19 @@ const DirectMessages = () => {
         }
 
         console.log('[DMs Debug] API key not in memory, attempting to load from Supabase...');
-        
+
         // Otherwise, try to load it from Supabase
         const { loadFarcasterApiKey } = useAccountStore.getState();
         await loadFarcasterApiKey(selectedAccount.id);
-        
+
         // Check again after loading
-        const updatedAccount = useAccountStore.getState().accounts[
-          useAccountStore.getState().selectedAccountIdx
-        ];
-        
+        const updatedAccount = useAccountStore.getState().accounts[useAccountStore.getState().selectedAccountIdx];
+
         console.log('[DMs Debug] After loading attempt:', {
           hasApiKey: !!updatedAccount?.farcasterApiKey,
           showOnboarding: !updatedAccount?.farcasterApiKey,
         });
-        
+
         setShowOnboarding(!updatedAccount?.farcasterApiKey);
       }
     };
@@ -182,7 +188,7 @@ const DirectMessages = () => {
   }, [selectedAccount]);
 
   // Convert DirectCastMessage to Message format for MessageThread
-  const convertedMessages: Message[] = messages.map(msg => {
+  const convertedMessages: Message[] = messages.map((msg) => {
     const profile = getProfileByFid(msg.senderFid);
     return {
       id: msg.messageId,
@@ -254,7 +260,6 @@ const DirectMessages = () => {
     [onSelect]
   );
 
-
   // Render conversation/group row
   const renderDMRow = (item: DirectCastConversation | DirectCastGroup, idx: number) => {
     const handleClick = () => {
@@ -294,20 +299,22 @@ const DirectMessages = () => {
     const isGroup = 'groupId' in selectedItem;
     let participantFid: number | undefined;
     let participantProfile: any;
-    
+
     if (!isGroup) {
-      participantFid = selectedItem.participantFids.find(fid => fid !== Number(viewerFid));
+      participantFid = selectedItem.participantFids.find((fid) => fid !== Number(viewerFid));
       if (participantFid) {
         participantProfile = getProfileByFid(participantFid);
       }
     }
 
     return (
-      <div className={cn(
-        "flex-1 border-l border-muted flex flex-col",
-        "transition-opacity duration-200",
-        isChangingConversation ? "opacity-0" : "opacity-100"
-      )}>
+      <div
+        className={cn(
+          'flex-1 border-l border-muted flex flex-col',
+          'transition-opacity duration-200',
+          isChangingConversation ? 'opacity-0' : 'opacity-100'
+        )}
+      >
         {/* Header */}
         <div className="px-4 py-3 border-b border-muted/50 bg-muted/30">
           <div className="flex items-center gap-3">
@@ -325,15 +332,15 @@ const DirectMessages = () => {
               <>
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={participantProfile?.pfpUrl} />
-                  <AvatarFallback>
-                    {getAvatarFallback(participantProfile, participantFid)}
-                  </AvatarFallback>
+                  <AvatarFallback>{getAvatarFallback(participantProfile, participantFid)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-medium text-foreground truncate">
                     {getSafeDisplayName(participantProfile, participantFid)}
                   </h3>
-                  <p className="text-xs text-foreground/60 truncate">@{getSafeUsername(participantProfile, participantFid)}</p>
+                  <p className="text-xs text-foreground/60 truncate">
+                    @{getSafeUsername(participantProfile, participantFid)}
+                  </p>
                 </div>
               </>
             )}
@@ -376,104 +383,103 @@ const DirectMessages = () => {
   return (
     <DMErrorBoundary>
       <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-muted px-4 py-3">
-        <Tabs value={activeTab} onValueChange={(value) => changeTab(value as DMTab)}>
-          <div className="flex items-center justify-between">
-            <TabsList className="grid grid-cols-3 flex-1 mr-3">
-              <TabsTrigger value={DMTab.conversations} className="text-xs transition-all duration-200">
-                <MessageSquare className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
-                Conversations
-              </TabsTrigger>
-              <TabsTrigger value={DMTab.groups} className="text-xs transition-all duration-200">
-                <Users className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
-                Groups
-              </TabsTrigger>
-              <TabsTrigger value={DMTab.archived} className="text-xs transition-all duration-200">
-                <Archive className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
-                Archived
-              </TabsTrigger>
-            </TabsList>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex-shrink-0 px-2">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <KeyboardShortcutTooltip keys="shift+r">
-                  <DropdownMenuItem onClick={refreshDMs} disabled={isLoading}>
-                    <RefreshCw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
-                    Refresh
+        {/* Header */}
+        <div className="border-b border-muted px-4 py-3">
+          <Tabs value={activeTab} onValueChange={(value) => changeTab(value as DMTab)}>
+            <div className="flex items-center justify-between">
+              <TabsList className="grid grid-cols-3 flex-1 mr-3">
+                <TabsTrigger value={DMTab.conversations} className="text-xs transition-all duration-200">
+                  <MessageSquare className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
+                  Conversations
+                </TabsTrigger>
+                <TabsTrigger value={DMTab.groups} className="text-xs transition-all duration-200">
+                  <Users className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
+                  Groups
+                </TabsTrigger>
+                <TabsTrigger value={DMTab.archived} className="text-xs transition-all duration-200">
+                  <Archive className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
+                  Archived
+                </TabsTrigger>
+              </TabsList>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex-shrink-0 px-2">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <KeyboardShortcutTooltip keys="shift+r">
+                    <DropdownMenuItem onClick={refreshDMs} disabled={isLoading}>
+                      <RefreshCw className={cn('mr-2 h-4 w-4', isLoading && 'animate-spin')} />
+                      Refresh
+                    </DropdownMenuItem>
+                  </KeyboardShortcutTooltip>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      // Placeholder for future implementation
+                      console.log('Mark all as read clicked');
+                    }}
+                    disabled={isEmpty(currentList)}
+                  >
+                    <CheckCheck className="mr-2 h-4 w-4" />
+                    Mark all as read
                   </DropdownMenuItem>
-                </KeyboardShortcutTooltip>
-                <DropdownMenuItem 
-                  onClick={() => {
-                    // Placeholder for future implementation
-                    console.log('Mark all as read clicked');
-                  }}
-                  disabled={isEmpty(currentList)}
-                >
-                  <CheckCheck className="mr-2 h-4 w-4" />
-                  Mark all as read
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => {
-                    router.push('/settings');
-                  }}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </Tabs>
-      </div>
-
-      {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* DMs list (50% width) */}
-        <div className="w-1/2 flex flex-col relative">
-          <div className={cn(
-            "flex-1 overflow-hidden transition-opacity duration-200",
-            isChangingConversation && activeTab !== activeTab ? "opacity-0" : "opacity-100"
-          )} ref={listContainerRef}>
-            {error ? (
-              <DMErrorState 
-                error={new Error(error)} 
-                onRetry={retryAfterError}
-                accountId={selectedAccount?.id}
-              />
-            ) : isEmpty(currentList) && !isLoading ? (
-              <DMEmptyState activeTab={activeTab} />
-            ) : isLoading && isEmpty(currentList) ? (
-              <DMLoadingState />
-            ) : (
-              <>
-                <SelectableListWithHotkeys
-                  data={currentList}
-                  selectedIdx={selectedDMIdx}
-                  setSelectedIdx={setSelectedDMIdx}
-                  renderRow={renderDMRow}
-                  onSelect={onSelect}
-                  isActive={!isNewCastModalOpen}
-                  pinnedNavigation={true}
-                  containerHeight="100%"
-                />
-                {profilesLoading && (
-                  <div className="absolute top-2 right-2 text-xs text-foreground/60 bg-background/80 px-2 py-1 rounded">
-                    Loading profiles...
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      router.push('/settings');
+                    }}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </Tabs>
         </div>
 
-        {/* Selected DM detail (50% width) */}
-        {renderSelectedDMDetail()}
-      </div>
+        {/* Main content */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* DMs list (50% width) */}
+          <div className="w-1/2 flex flex-col relative">
+            <div
+              className={cn(
+                'flex-1 overflow-hidden transition-opacity duration-200',
+                isChangingConversation && activeTab !== activeTab ? 'opacity-0' : 'opacity-100'
+              )}
+              ref={listContainerRef}
+            >
+              {error ? (
+                <DMErrorState error={new Error(error)} onRetry={retryAfterError} accountId={selectedAccount?.id} />
+              ) : isEmpty(currentList) && !isLoading ? (
+                <DMEmptyState activeTab={activeTab} />
+              ) : isLoading && isEmpty(currentList) ? (
+                <DMLoadingState />
+              ) : (
+                <>
+                  <SelectableListWithHotkeys
+                    data={currentList}
+                    selectedIdx={selectedDMIdx}
+                    setSelectedIdx={setSelectedDMIdx}
+                    renderRow={renderDMRow}
+                    onSelect={onSelect}
+                    isActive={!isNewCastModalOpen}
+                    pinnedNavigation={true}
+                    containerHeight="100%"
+                  />
+                  {profilesLoading && (
+                    <div className="absolute top-2 right-2 text-xs text-foreground/60 bg-background/80 px-2 py-1 rounded">
+                      Loading profiles...
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Selected DM detail (50% width) */}
+          {renderSelectedDMDetail()}
+        </div>
       </div>
     </DMErrorBoundary>
   );

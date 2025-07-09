@@ -19,7 +19,7 @@ export function extractFidsFromDMData(
         fids.add(fid);
       }
     });
-    
+
     if (conv.lastMessage?.senderFid) {
       fids.add(conv.lastMessage.senderFid);
     }
@@ -48,32 +48,24 @@ export function extractFidsFromDMData(
 /**
  * Helper to safely get profile display name with fallback
  */
-export function getSafeDisplayName(
-  profile: any,
-  fid?: number,
-  maxLength: number = 25
-): string {
+export function getSafeDisplayName(profile: any, fid?: number, maxLength: number = 25): string {
   const displayName = profile?.displayName?.trim() || profile?.username?.trim();
-  
+
   if (displayName) {
     return truncateText(displayName, maxLength);
   }
-  
+
   return fid ? `User ${fid}` : 'Unknown User';
 }
 
 /**
  * Helper to safely get username with @ prefix
  */
-export function getSafeUsername(
-  profile: any,
-  fid?: number,
-  maxLength: number = 20
-): string {
+export function getSafeUsername(profile: any, fid?: number, maxLength: number = 20): string {
   if (profile?.username?.trim()) {
     return truncateText(profile.username, maxLength);
   }
-  
+
   return fid ? `fid:${fid}` : 'Unknown';
 }
 
@@ -90,21 +82,17 @@ export function truncateText(text: string, maxLength: number): string {
 /**
  * Get avatar fallback text for profile
  */
-export function getAvatarFallback(
-  profile: any,
-  fid?: number,
-  isGroup: boolean = false
-): string {
+export function getAvatarFallback(profile: any, fid?: number, isGroup: boolean = false): string {
   if (isGroup) return 'GC';
-  
+
   const name = profile?.username || profile?.displayName;
   if (name && name.length >= 2) {
     return name.slice(0, 2).toUpperCase();
   }
-  
+
   if (fid) {
     return fid.toString().slice(0, 2);
   }
-  
+
   return '??';
 }

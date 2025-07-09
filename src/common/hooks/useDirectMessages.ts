@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { DirectCastConversation, DirectCastGroup, DirectCastMessage, DIRECT_CAST_API } from '@/common/constants/directCast';
+import {
+  DirectCastConversation,
+  DirectCastGroup,
+  DirectCastMessage,
+  DIRECT_CAST_API,
+} from '@/common/constants/directCast';
 import { DMTab } from '@/pages/dms';
 import { UUID } from 'crypto';
 import { useDebouncedCallback } from '@/common/helpers/hooks';
@@ -15,7 +20,7 @@ enum ErrorType {
   RATE_LIMIT = 'RATE_LIMIT',
   AUTH = 'AUTH',
   NETWORK = 'NETWORK',
-  UNKNOWN = 'UNKNOWN'
+  UNKNOWN = 'UNKNOWN',
 }
 
 interface RetryState {
@@ -36,16 +41,23 @@ function classifyError(error: any): { type: ErrorType; retryable: boolean; waitT
   }
 
   // Check for auth errors
-  if (error.statusCode === 401 || error.statusCode === 403 || 
-      error.message?.toLowerCase().includes('unauthorized') ||
-      error.message?.toLowerCase().includes('forbidden')) {
+  if (
+    error.statusCode === 401 ||
+    error.statusCode === 403 ||
+    error.message?.toLowerCase().includes('unauthorized') ||
+    error.message?.toLowerCase().includes('forbidden')
+  ) {
     return { type: ErrorType.AUTH, retryable: false };
   }
 
   // Check for network errors
-  if (error.statusCode === 503 || error.statusCode === 502 || error.statusCode === 504 ||
-      error.message?.toLowerCase().includes('timeout') ||
-      error.message?.toLowerCase().includes('network')) {
+  if (
+    error.statusCode === 503 ||
+    error.statusCode === 502 ||
+    error.statusCode === 504 ||
+    error.message?.toLowerCase().includes('timeout') ||
+    error.message?.toLowerCase().includes('network')
+  ) {
     return { type: ErrorType.NETWORK, retryable: true };
   }
 
@@ -66,7 +78,7 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
   const { category = 'default', enabled = true } = options;
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const updateAccountProperty = useAccountStore((state) => state.updateAccountProperty);
-  
+
   const [conversations, setConversations] = useState<DirectCastConversation[]>([]);
   const [groups, setGroups] = useState<DirectCastGroup[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,136 +88,147 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
   const [retryState, setRetryState] = useState<RetryState>({
     attempts: 0,
     nextRetryTime: null,
-    isRetrying: false
+    isRetrying: false,
   });
-  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const maxRetries = 3;
 
-  const fetchDMsInternal = useCallback(async (append = false, isRetry = false) => {
-    if (!selectedAccount?.id || !selectedAccount?.farcasterApiKey || !enabled) return;
+  const fetchDMsInternal = useCallback(
+    async (append = false, isRetry = false) => {
+      if (!selectedAccount?.id || !selectedAccount?.farcasterApiKey || !enabled) return;
 
-    // Don't retry if we're already at max attempts
-    if (isRetry && retryState.attempts >= maxRetries) {
-      setRetryState(prev => ({ ...prev, isRetrying: false }));
-      return;
-    }
-
-    // Cancel any previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController();
-
-    setIsLoading(true);
-    setError(null);
-    
-    if (isRetry) {
-      setRetryState(prev => ({ ...prev, isRetrying: true }));
-    }
-
-    try {
-      const params = new URLSearchParams({
-        accountId: selectedAccount.id,
-        ...(category && { category }),
-        ...(append && cursor && { cursor }),
-        limit: '25',
-      });
-
-      const response = await fetch(`/api/dms/conversations?${params}`, {
-        signal: abortControllerRef.current.signal
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        const error = {
-          message: data.error || 'Failed to fetch messages',
-          statusCode: response.status,
-          apiError: data
-        };
-        throw error;
-      }
-
-      // Success - reset retry state
-      setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
-
-      if (append) {
-        setConversations(prev => [...prev, ...(data.conversations || [])]);
-        setGroups(prev => [...prev, ...(data.groups || [])]);
-      } else {
-        setConversations(data.conversations || []);
-        setGroups(data.groups || []);
-      }
-
-      setCursor(data.nextCursor || null);
-      setHasMore(!!data.nextCursor);
-    } catch (err: any) {
-      // Ignore abort errors
-      if (err.name === 'AbortError') {
-        setIsLoading(false);
-        return;
-      }
-      
-      console.error('Error fetching DMs:', err);
-      
-      const { type, retryable, waitTime } = classifyError(err);
-      const errorMessage = err.message || 'Failed to fetch messages';
-      
-      setError(errorMessage);
-
-      // Handle auth errors - clear API key from memory
-      if (type === ErrorType.AUTH) {
-        console.error('Auth error detected, clearing API key');
-        if (selectedAccount?.id) {
-          updateAccountProperty(selectedAccount.id as UUID, 'farcasterApiKey', undefined);
-        }
-        setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+      // Don't retry if we're already at max attempts
+      if (isRetry && retryState.attempts >= maxRetries) {
+        setRetryState((prev) => ({ ...prev, isRetrying: false }));
         return;
       }
 
-      // Handle retryable errors
-      if (retryable && retryState.attempts < maxRetries) {
-        const nextAttempt = retryState.attempts + 1;
-        let delay: number;
+      // Cancel any previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
 
-        if (type === ErrorType.RATE_LIMIT && waitTime) {
-          // Use server-specified wait time for rate limits
-          delay = waitTime;
-        } else {
-          // Use exponential backoff for other errors
-          delay = calculateBackoff(nextAttempt);
-        }
+      // Create new abort controller for this request
+      abortControllerRef.current = new AbortController();
 
-        const retryTime = Date.now() + delay;
-        
-        setRetryState({
-          attempts: nextAttempt,
-          nextRetryTime: retryTime,
-          isRetrying: false
+      setIsLoading(true);
+      setError(null);
+
+      if (isRetry) {
+        setRetryState((prev) => ({ ...prev, isRetrying: true }));
+      }
+
+      try {
+        const params = new URLSearchParams({
+          accountId: selectedAccount.id,
+          ...(category && { category }),
+          ...(append && cursor && { cursor }),
+          limit: '25',
         });
 
-        // Schedule retry
-        if (retryTimeoutRef.current) {
-          clearTimeout(retryTimeoutRef.current);
-        }
-        
-        retryTimeoutRef.current = setTimeout(() => {
-          fetchDMsInternal(append, true);
-        }, delay);
+        const response = await fetch(`/api/dms/conversations?${params}`, {
+          signal: abortControllerRef.current.signal,
+        });
+        const data = await response.json();
 
-        console.log(`Retrying in ${delay}ms (attempt ${nextAttempt}/${maxRetries})`);
-      } else {
-        // Max retries reached or non-retryable error
+        if (!response.ok) {
+          const error = {
+            message: data.error || 'Failed to fetch messages',
+            statusCode: response.status,
+            apiError: data,
+          };
+          throw error;
+        }
+
+        // Success - reset retry state
         setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+
+        if (append) {
+          setConversations((prev) => [...prev, ...(data.conversations || [])]);
+          setGroups((prev) => [...prev, ...(data.groups || [])]);
+        } else {
+          setConversations(data.conversations || []);
+          setGroups(data.groups || []);
+        }
+
+        setCursor(data.nextCursor || null);
+        setHasMore(!!data.nextCursor);
+      } catch (err: any) {
+        // Ignore abort errors
+        if (err.name === 'AbortError') {
+          setIsLoading(false);
+          return;
+        }
+
+        console.error('Error fetching DMs:', err);
+
+        const { type, retryable, waitTime } = classifyError(err);
+        const errorMessage = err.message || 'Failed to fetch messages';
+
+        setError(errorMessage);
+
+        // Handle auth errors - clear API key from memory
+        if (type === ErrorType.AUTH) {
+          console.error('Auth error detected, clearing API key');
+          if (selectedAccount?.id) {
+            updateAccountProperty(selectedAccount.id as UUID, 'farcasterApiKey', undefined);
+          }
+          setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+          return;
+        }
+
+        // Handle retryable errors
+        if (retryable && retryState.attempts < maxRetries) {
+          const nextAttempt = retryState.attempts + 1;
+          let delay: number;
+
+          if (type === ErrorType.RATE_LIMIT && waitTime) {
+            // Use server-specified wait time for rate limits
+            delay = waitTime;
+          } else {
+            // Use exponential backoff for other errors
+            delay = calculateBackoff(nextAttempt);
+          }
+
+          const retryTime = Date.now() + delay;
+
+          setRetryState({
+            attempts: nextAttempt,
+            nextRetryTime: retryTime,
+            isRetrying: false,
+          });
+
+          // Schedule retry
+          if (retryTimeoutRef.current) {
+            clearTimeout(retryTimeoutRef.current);
+          }
+
+          retryTimeoutRef.current = setTimeout(() => {
+            fetchDMsInternal(append, true);
+          }, delay);
+
+          console.log(`Retrying in ${delay}ms (attempt ${nextAttempt}/${maxRetries})`);
+        } else {
+          // Max retries reached or non-retryable error
+          setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedAccount?.id, selectedAccount?.farcasterApiKey, category, cursor, enabled, retryState.attempts, updateAccountProperty]);
+    },
+    [
+      selectedAccount?.id,
+      selectedAccount?.farcasterApiKey,
+      category,
+      cursor,
+      enabled,
+      retryState.attempts,
+      updateAccountProperty,
+    ]
+  );
 
   // Debounced version of fetchDMs with 300ms delay
   const fetchDMs = useDebouncedCallback(
@@ -217,11 +240,15 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
   );
 
   // Debounced loadMore with 500ms delay to prevent rapid pagination
-  const loadMore = useDebouncedCallback(() => {
-    if (!isLoading && hasMore && !retryState.isRetrying) {
-      fetchDMsInternal(true);
-    }
-  }, 500, [fetchDMsInternal, isLoading, hasMore, retryState.isRetrying]);
+  const loadMore = useDebouncedCallback(
+    () => {
+      if (!isLoading && hasMore && !retryState.isRetrying) {
+        fetchDMsInternal(true);
+      }
+    },
+    500,
+    [fetchDMsInternal, isLoading, hasMore, retryState.isRetrying]
+  );
 
   const refresh = useCallback(() => {
     // Cancel any pending retries
@@ -295,7 +322,7 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
 export function useDirectMessageThread(conversationId?: string, groupId?: string) {
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const updateAccountProperty = useAccountStore((state) => state.updateAccountProperty);
-  
+
   const [messages, setMessages] = useState<DirectCastMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -304,135 +331,146 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
   const [retryState, setRetryState] = useState<RetryState>({
     attempts: 0,
     nextRetryTime: null,
-    isRetrying: false
+    isRetrying: false,
   });
-  
+
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const maxRetries = 3;
 
-  const fetchMessagesInternal = useCallback(async (append = false, isRetry = false) => {
-    if (!selectedAccount?.id || !selectedAccount?.farcasterApiKey) return;
-    if (!conversationId && !groupId) return;
+  const fetchMessagesInternal = useCallback(
+    async (append = false, isRetry = false) => {
+      if (!selectedAccount?.id || !selectedAccount?.farcasterApiKey) return;
+      if (!conversationId && !groupId) return;
 
-    // Don't retry if we're already at max attempts
-    if (isRetry && retryState.attempts >= maxRetries) {
-      setRetryState(prev => ({ ...prev, isRetrying: false }));
-      return;
-    }
-
-    // Cancel any previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController();
-
-    setIsLoading(true);
-    setError(null);
-    
-    if (isRetry) {
-      setRetryState(prev => ({ ...prev, isRetrying: true }));
-    }
-
-    try {
-      const params = new URLSearchParams({
-        accountId: selectedAccount.id,
-        ...(conversationId && { conversationId }),
-        ...(groupId && { groupId }),
-        ...(append && cursor && { cursor }),
-        limit: '50',
-      });
-
-      const response = await fetch(`/api/dms/messages?${params}`, {
-        signal: abortControllerRef.current.signal
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        const error = {
-          message: data.error || 'Failed to fetch messages',
-          statusCode: response.status,
-          apiError: data
-        };
-        throw error;
-      }
-
-      // Success - reset retry state
-      setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
-
-      if (append) {
-        setMessages(prev => [...prev, ...(data.messages || [])]);
-      } else {
-        setMessages(data.messages || []);
-      }
-
-      setCursor(data.nextCursor || null);
-      setHasMore(!!data.nextCursor);
-    } catch (err: any) {
-      // Ignore abort errors
-      if (err.name === 'AbortError') {
-        setIsLoading(false);
-        return;
-      }
-      
-      console.error('Error fetching messages:', err);
-      
-      const { type, retryable, waitTime } = classifyError(err);
-      const errorMessage = err.message || 'Failed to fetch messages';
-      
-      setError(errorMessage);
-
-      // Handle auth errors - clear API key from memory
-      if (type === ErrorType.AUTH) {
-        console.error('Auth error detected, clearing API key');
-        if (selectedAccount?.id) {
-          updateAccountProperty(selectedAccount.id as UUID, 'farcasterApiKey', undefined);
-        }
-        setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+      // Don't retry if we're already at max attempts
+      if (isRetry && retryState.attempts >= maxRetries) {
+        setRetryState((prev) => ({ ...prev, isRetrying: false }));
         return;
       }
 
-      // Handle retryable errors
-      if (retryable && retryState.attempts < maxRetries) {
-        const nextAttempt = retryState.attempts + 1;
-        let delay: number;
+      // Cancel any previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
 
-        if (type === ErrorType.RATE_LIMIT && waitTime) {
-          // Use server-specified wait time for rate limits
-          delay = waitTime;
-        } else {
-          // Use exponential backoff for other errors
-          delay = calculateBackoff(nextAttempt);
-        }
+      // Create new abort controller for this request
+      abortControllerRef.current = new AbortController();
 
-        const retryTime = Date.now() + delay;
-        
-        setRetryState({
-          attempts: nextAttempt,
-          nextRetryTime: retryTime,
-          isRetrying: false
+      setIsLoading(true);
+      setError(null);
+
+      if (isRetry) {
+        setRetryState((prev) => ({ ...prev, isRetrying: true }));
+      }
+
+      try {
+        const params = new URLSearchParams({
+          accountId: selectedAccount.id,
+          ...(conversationId && { conversationId }),
+          ...(groupId && { groupId }),
+          ...(append && cursor && { cursor }),
+          limit: '50',
         });
 
-        // Schedule retry
-        if (retryTimeoutRef.current) {
-          clearTimeout(retryTimeoutRef.current);
-        }
-        
-        retryTimeoutRef.current = setTimeout(() => {
-          fetchMessagesInternal(append, true);
-        }, delay);
+        const response = await fetch(`/api/dms/messages?${params}`, {
+          signal: abortControllerRef.current.signal,
+        });
+        const data = await response.json();
 
-        console.log(`Retrying in ${delay}ms (attempt ${nextAttempt}/${maxRetries})`);
-      } else {
-        // Max retries reached or non-retryable error
+        if (!response.ok) {
+          const error = {
+            message: data.error || 'Failed to fetch messages',
+            statusCode: response.status,
+            apiError: data,
+          };
+          throw error;
+        }
+
+        // Success - reset retry state
         setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+
+        if (append) {
+          setMessages((prev) => [...prev, ...(data.messages || [])]);
+        } else {
+          setMessages(data.messages || []);
+        }
+
+        setCursor(data.nextCursor || null);
+        setHasMore(!!data.nextCursor);
+      } catch (err: any) {
+        // Ignore abort errors
+        if (err.name === 'AbortError') {
+          setIsLoading(false);
+          return;
+        }
+
+        console.error('Error fetching messages:', err);
+
+        const { type, retryable, waitTime } = classifyError(err);
+        const errorMessage = err.message || 'Failed to fetch messages';
+
+        setError(errorMessage);
+
+        // Handle auth errors - clear API key from memory
+        if (type === ErrorType.AUTH) {
+          console.error('Auth error detected, clearing API key');
+          if (selectedAccount?.id) {
+            updateAccountProperty(selectedAccount.id as UUID, 'farcasterApiKey', undefined);
+          }
+          setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+          return;
+        }
+
+        // Handle retryable errors
+        if (retryable && retryState.attempts < maxRetries) {
+          const nextAttempt = retryState.attempts + 1;
+          let delay: number;
+
+          if (type === ErrorType.RATE_LIMIT && waitTime) {
+            // Use server-specified wait time for rate limits
+            delay = waitTime;
+          } else {
+            // Use exponential backoff for other errors
+            delay = calculateBackoff(nextAttempt);
+          }
+
+          const retryTime = Date.now() + delay;
+
+          setRetryState({
+            attempts: nextAttempt,
+            nextRetryTime: retryTime,
+            isRetrying: false,
+          });
+
+          // Schedule retry
+          if (retryTimeoutRef.current) {
+            clearTimeout(retryTimeoutRef.current);
+          }
+
+          retryTimeoutRef.current = setTimeout(() => {
+            fetchMessagesInternal(append, true);
+          }, delay);
+
+          console.log(`Retrying in ${delay}ms (attempt ${nextAttempt}/${maxRetries})`);
+        } else {
+          // Max retries reached or non-retryable error
+          setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedAccount?.id, selectedAccount?.farcasterApiKey, conversationId, groupId, cursor, retryState.attempts, updateAccountProperty]);
+    },
+    [
+      selectedAccount?.id,
+      selectedAccount?.farcasterApiKey,
+      conversationId,
+      groupId,
+      cursor,
+      retryState.attempts,
+      updateAccountProperty,
+    ]
+  );
 
   // Debounced version of fetchMessages with 300ms delay
   const fetchMessages = useDebouncedCallback(
@@ -444,11 +482,15 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
   );
 
   // Debounced loadMore with 500ms delay to prevent rapid pagination
-  const loadMore = useDebouncedCallback(() => {
-    if (!isLoading && hasMore && !retryState.isRetrying) {
-      fetchMessagesInternal(true);
-    }
-  }, 500, [fetchMessagesInternal, isLoading, hasMore, retryState.isRetrying]);
+  const loadMore = useDebouncedCallback(
+    () => {
+      if (!isLoading && hasMore && !retryState.isRetrying) {
+        fetchMessagesInternal(true);
+      }
+    },
+    500,
+    [fetchMessagesInternal, isLoading, hasMore, retryState.isRetrying]
+  );
 
   // Manual retry function for users
   const retryAfterError = useCallback(() => {

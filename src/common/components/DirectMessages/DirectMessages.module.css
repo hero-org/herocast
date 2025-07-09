@@ -9,11 +9,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   .animate-in {
     animation: none !important;
   }
-  
+
   .transition-all,
   .transition-opacity,
   .transition-transform,

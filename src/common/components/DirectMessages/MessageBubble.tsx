@@ -20,7 +20,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   showTimestamp,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   // Handle deleted messages
   if (isDeleted) {
     return (
@@ -35,7 +35,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       </div>
     );
   }
-  
+
   // Handle empty or whitespace-only messages
   const trimmedText = text?.trim() || '';
   if (!trimmedText) {
@@ -51,17 +51,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       </div>
     );
   }
-  
+
   // Check if message is emoji-only (up to 3 emojis)
   const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F){1,3}$/u;
   const isEmojiOnly = emojiRegex.test(trimmedText);
-  
+
   // Determine if we need to show "Show more" button
   const needsExpansion = trimmedText.length > MAX_MESSAGE_LENGTH;
-  const displayText = needsExpansion && !isExpanded
-    ? trimmedText.slice(0, MAX_MESSAGE_LENGTH) + '...'
-    : trimmedText;
-  
+  const displayText = needsExpansion && !isExpanded ? trimmedText.slice(0, MAX_MESSAGE_LENGTH) + '...' : trimmedText;
+
   return (
     <div>
       <div
@@ -72,15 +70,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           isEmojiOnly && 'px-3 py-1' // Smaller padding for emoji-only messages
         )}
       >
-        <p 
-          className={cn(
-            'break-words whitespace-pre-wrap',
-            isEmojiOnly ? 'text-3xl' : 'text-sm'
-          )}
-        >
-          {displayText}
-        </p>
-        
+        <p className={cn('break-words whitespace-pre-wrap', isEmojiOnly ? 'text-3xl' : 'text-sm')}>{displayText}</p>
+
         {needsExpansion && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -100,11 +91,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
           </button>
         )}
-        
+
         {showTimestamp && timestamp && (
-          <p className={cn('text-xs mt-1', isViewer ? 'text-blue-200' : 'text-foreground/60')}>
-            {timestamp}
-          </p>
+          <p className={cn('text-xs mt-1', isViewer ? 'text-blue-200' : 'text-foreground/60')}>{timestamp}</p>
         )}
       </div>
     </div>

@@ -207,10 +207,10 @@ const store = (set: StoreSet, get: () => DataStore) => ({
 
     // Batch fetch uncached profiles with parallel processing
     const batchPromises = [];
-    
+
     for (let i = 0; i < uncachedFids.length; i += batchSize) {
       const batch = uncachedFids.slice(i, i + batchSize);
-      
+
       const batchPromise = (async () => {
         try {
           const response = await neynarClient.fetchBulkUsers(batch, {
@@ -250,7 +250,7 @@ const store = (set: StoreSet, get: () => DataStore) => ({
                   console.error(`Failed to fetch additional info for FID ${user.fid}:`, error);
                 }
               });
-              
+
               await Promise.all(additionalPromises);
             }
 
@@ -262,13 +262,13 @@ const store = (set: StoreSet, get: () => DataStore) => ({
           return [];
         }
       })();
-      
+
       batchPromises.push(batchPromise);
     }
-    
+
     // Wait for all batches to complete
     const batchResults = await Promise.all(batchPromises);
-    batchResults.forEach(profiles => fetchedProfiles.push(...profiles));
+    batchResults.forEach((profiles) => fetchedProfiles.push(...profiles));
 
     // Return combined results
     return [...cachedProfiles, ...fetchedProfiles];
