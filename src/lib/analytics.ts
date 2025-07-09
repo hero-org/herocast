@@ -11,6 +11,14 @@ export const loadPosthogAnalytics = () => {
         if (process.env.NODE_ENV === 'development') posthog.debug(); // debug mode in development
       },
     });
+
+    // Catch unhandled promise rejections from PostHog recorder on iOS Safari
+    window.addEventListener('unhandledrejection', (event) => {
+      if (event.reason?.message === 'Load failed' && event.reason?.stack?.includes('recorder.js')) {
+        event.preventDefault(); // Prevent the error from being logged
+      }
+    });
+
     return posthog;
   }
 
