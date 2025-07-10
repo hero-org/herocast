@@ -59,7 +59,7 @@ export function InlineUserSearch({
 
   useEffect(() => {
     searchUsers(query);
-    
+
     // Cleanup function to cancel pending searches
     return () => {
       searchUsers.cancel();

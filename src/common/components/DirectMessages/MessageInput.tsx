@@ -85,7 +85,7 @@ export function MessageInput({
       />
 
       <div className="absolute inset-y-0 right-2 flex items-center gap-2">
-        <span 
+        <span
           className={cn(
             'text-[11px] font-medium tabular-nums transition-all duration-200',
             message.length > 0 ? 'opacity-70' : 'opacity-0',
@@ -102,10 +102,10 @@ export function MessageInput({
             onClick={handleSubmit}
             disabled={!message.trim() || isLoading || disabled}
             className={cn(
-              "h-7 px-3 text-xs font-medium",
-              "border-muted-foreground/20 hover:border-muted-foreground/40",
-              "transition-all duration-200",
-              message.trim() && !isLoading && !disabled && "border-primary/50 hover:border-primary"
+              'h-7 px-3 text-xs font-medium',
+              'border-muted-foreground/20 hover:border-muted-foreground/40',
+              'transition-all duration-200',
+              message.trim() && !isLoading && !disabled && 'border-primary/50 hover:border-primary'
             )}
           >
             {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Send'}
