@@ -187,7 +187,7 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
                       <MessageStatus
                         status={message._status}
                         error={message._error}
-                        className={cn("mt-1", isViewer ? "self-end mr-3" : "self-start ml-3")}
+                        className={cn('mt-1', isViewer ? 'self-end mr-3' : 'self-start ml-3')}
                       />
                     )}
                   </div>

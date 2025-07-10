@@ -230,6 +230,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           router: '/dms',
           icon: <ChatBubbleLeftRightIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: 'Shift + M',
+          hideTitlebar: true,
         },
         {
           name: 'Lists',

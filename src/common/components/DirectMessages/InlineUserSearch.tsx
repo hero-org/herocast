@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, User } from 'lucide-react';
@@ -18,48 +18,52 @@ export function InlineUserSearch({
   onSelect,
   placeholder = 'Search for a user...',
   viewerFid,
-  autoFocus = true
+  autoFocus = true,
 }: InlineUserSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<NeynarUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Create debounced search function
-  const searchUsers = useCallback(
-    debounce(async (searchQuery: string) => {
-      if (!searchQuery || searchQuery.length < 2) {
-        setResults([]);
-        setIsLoading(false);
-        return;
-      }
+  // Memoize the search function to prevent recreating on every render
+  const searchUsers = useMemo(
+    () =>
+      debounce(async (searchQuery: string) => {
+        if (!searchQuery || searchQuery.length < 2) {
+          setResults([]);
+          setIsLoading(false);
+          return;
+        }
 
-      setIsLoading(true);
-      setHasSearched(true);
+        setIsLoading(true);
+        setHasSearched(true);
 
-      try {
-        const appFid = process.env.NEXT_PUBLIC_APP_FID!;
-        const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-        
-        const response = await client.searchUser(
-          searchQuery.replace('@', ''), 
-          Number(viewerFid || appFid),
-          { limit: 10 }
-        );
+        try {
+          const appFid = process.env.NEXT_PUBLIC_APP_FID!;
+          const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
-        setResults(response.result.users || []);
-      } catch (error) {
-        console.error('Error searching users:', error);
-        setResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 300),
+          const response = await client.searchUser(searchQuery.replace('@', ''), Number(viewerFid || appFid), {
+            limit: 10,
+          });
+
+          setResults(response.result.users || []);
+        } catch (error) {
+          console.error('Error searching users:', error);
+          setResults([]);
+        } finally {
+          setIsLoading(false);
+        }
+      }, 300),
     [viewerFid]
   );
 
   useEffect(() => {
     searchUsers(query);
+    
+    // Cleanup function to cancel pending searches
+    return () => {
+      searchUsers.cancel();
+    };
   }, [query, searchUsers]);
 
   return (

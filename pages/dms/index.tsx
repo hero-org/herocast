@@ -225,7 +225,7 @@ const DirectMessages = () => {
 
         // Refresh conversations to show the new one
         refresh();
-        
+
         // TODO: Navigate to the new conversation
         console.log('New conversation started:', result);
       } catch (error) {
@@ -398,12 +398,12 @@ const DirectMessages = () => {
     'cmd+n,ctrl+n',
     () => setShowNewConversation(true),
     {
-      enabled: !isNewCastModalOpen && activeTab === DMTab.conversations,
+      enabled: !isNewCastModalOpen && activeTab === DMTab.conversations && !showNewConversation,
       enableOnFormTags: false,
       preventDefault: true,
       enableOnContentEditable: false,
     },
-    [activeTab]
+    [activeTab, showNewConversation]
   );
 
   // Render conversation/group row
@@ -434,7 +434,7 @@ const DirectMessages = () => {
     const selectedItem = currentList[selectedDMIdx];
     if (!selectedItem || !viewerFid) {
       return (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-foreground/60">Select a conversation to view messages</p>
@@ -455,9 +455,9 @@ const DirectMessages = () => {
     }
 
     return (
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-muted/50 bg-muted/30 transition-all duration-50">
+        <div className="px-4 py-3 border-b border-muted/50 bg-muted/30 transition-all duration-50 flex-shrink-0">
           <div className="flex items-center gap-3">
             {isGroup ? (
               <>
@@ -488,8 +488,8 @@ const DirectMessages = () => {
           </div>
         </div>
 
-        {/* Messages area */}
-        <div className="flex min-h-0">
+        {/* Messages area - explicit height constraint using viewport calculation */}
+        <div className="flex-1 min-h-0 h-0 max-h-[calc(100vh-10rem)]">
           {(isConversationChanging || messagesLoading) && messages.length === 0 ? (
             <MessageSkeleton />
           ) : (
@@ -511,7 +511,7 @@ const DirectMessages = () => {
 
   if (!viewerFid) {
     return (
-      <div className="flex items-center justify-center h-screen overflow-hidden">
+      <div className="flex items-center justify-center h-full overflow-hidden">
         <p className="text-foreground/60">Please connect an account to view direct messages.</p>
       </div>
     );
@@ -530,38 +530,26 @@ const DirectMessages = () => {
   return (
     <DMErrorBoundary>
       <div className="flex flex-col h-full bg-background">
-        {/* Header */}
-        <div className="border-b border-muted px-4 py-3 flex-shrink-0">
-          <Tabs value={activeTab} onValueChange={(value) => changeTab(value as DMTab)}>
-            <div className="flex items-center justify-between">
-              <TabsList className="grid grid-cols-3 flex-1 mr-3">
-                <TabsTrigger value={DMTab.conversations} className="text-xs transition-all duration-50">
-                  <MessageSquare className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
-                  Conversations
-                </TabsTrigger>
-                <TabsTrigger value={DMTab.groups} className="text-xs transition-all duration-50">
-                  <Users className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
-                  Groups
-                </TabsTrigger>
-                <TabsTrigger value={DMTab.archived} className="text-xs transition-all duration-50">
-                  <Archive className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
-                  Archived
-                </TabsTrigger>
-              </TabsList>
+        {/* Compact DMs Header */}
+        <div className="border-b border-muted px-4 py-2 flex-shrink-0 bg-muted/20">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold text-foreground">Direct Messages</h1>
+            <div className="flex items-center gap-2">
               <KeyboardShortcutTooltip keys="cmd+n">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="flex-shrink-0 px-2 mr-1"
                   onClick={() => setShowNewConversation(true)}
                   disabled={activeTab !== DMTab.conversations}
+                  className="h-8 px-2"
                 >
                   <Plus className="h-4 w-4" />
+                  <span className="ml-1 hidden sm:inline">New</span>
                 </Button>
               </KeyboardShortcutTooltip>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex-shrink-0 px-2">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -582,27 +570,39 @@ const DirectMessages = () => {
                     <CheckCheck className="mr-2 h-4 w-4" />
                     Mark all as read
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      router.push('/settings');
-                    }}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+          </div>
+        </div>
+        
+        {/* Tabs */}
+        <div className="border-b border-muted px-4 py-2 flex-shrink-0">
+          <Tabs value={activeTab} onValueChange={(value) => changeTab(value as DMTab)}>
+            <TabsList className="grid grid-cols-3 w-full">
+              <TabsTrigger value={DMTab.conversations} className="text-xs transition-all duration-50">
+                <MessageSquare className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
+                Conversations
+              </TabsTrigger>
+              <TabsTrigger value={DMTab.groups} className="text-xs transition-all duration-50">
+                <Users className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
+                Groups
+              </TabsTrigger>
+              <TabsTrigger value={DMTab.archived} className="text-xs transition-all duration-50">
+                <Archive className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
+                Archived
+              </TabsTrigger>
+            </TabsList>
           </Tabs>
         </div>
 
         {/* Main content */}
-        <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1 overflow-hidden">
           {/* DMs list - fixed width sidebar */}
           <div className="w-56 lg:w-64 flex-shrink-0 flex flex-col relative border-r border-muted">
             <div className="flex-1 overflow-y-auto" ref={listContainerRef}>
               {error ? (
-                <DMErrorState error={new Error(error)} onRetry={retryAfterError} accountId={selectedAccount?.id} />
+                <DMErrorState error={new Error(error)} onRetry={retryAfterError} />
               ) : isEmpty(currentList) && !isLoading ? (
                 <DMEmptyState activeTab={activeTab} />
               ) : isLoading && isEmpty(currentList) ? (
@@ -629,11 +629,13 @@ const DirectMessages = () => {
             </div>
           </div>
 
-          {/* Selected DM detail (50% width) */}
-          {renderSelectedDMDetail()}
+          {/* Selected DM detail - flex container for proper layout */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {renderSelectedDMDetail()}
+          </div>
         </div>
       </div>
-      
+
       <NewConversationDialog
         open={showNewConversation}
         onOpenChange={setShowNewConversation}

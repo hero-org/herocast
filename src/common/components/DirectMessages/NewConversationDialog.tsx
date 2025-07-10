@@ -22,7 +22,7 @@ export function NewConversationDialog({
   onOpenChange,
   onStartConversation,
   viewerFid,
-  isLoading = false
+  isLoading = false,
 }: NewConversationDialogProps) {
   const [selectedUser, setSelectedUser] = useState<NeynarUser | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,23 +32,26 @@ export function NewConversationDialog({
     setError(null);
   }, []);
 
-  const handleSendMessage = useCallback(async (message: string) => {
-    if (!selectedUser) {
-      setError('Please select a user first');
-      return;
-    }
+  const handleSendMessage = useCallback(
+    async (message: string) => {
+      if (!selectedUser) {
+        setError('Please select a user first');
+        return;
+      }
 
-    try {
-      setError(null);
-      await onStartConversation(selectedUser.fid, message);
-      // Close dialog on success
-      onOpenChange(false);
-      // Reset state
-      setSelectedUser(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start conversation');
-    }
-  }, [selectedUser, onStartConversation, onOpenChange]);
+      try {
+        setError(null);
+        await onStartConversation(selectedUser.fid, message);
+        // Close dialog on success
+        onOpenChange(false);
+        // Reset state
+        setSelectedUser(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to start conversation');
+      }
+    },
+    [selectedUser, onStartConversation, onOpenChange]
+  );
 
   const handleClose = useCallback(() => {
     onOpenChange(false);
@@ -63,7 +66,7 @@ export function NewConversationDialog({
         <DialogHeader>
           <DialogTitle>New Conversation</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4 mt-4">
           {/* User Selection */}
           <div className="space-y-2">
@@ -82,12 +85,7 @@ export function NewConversationDialog({
                     <span className="text-sm text-muted-foreground ml-2">@{selectedUser.username}</span>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedUser(null)}
-                  className="h-8 w-8 p-0"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)} className="h-8 w-8 p-0">
                   <X className="h-4 w-4" />
                 </Button>
               </div>

@@ -23,7 +23,7 @@ export function MessageStatus({ status, error, onRetry, className }: MessageStat
           Sending...
         </Badge>
       )}
-      
+
       {status === 'failed' && (
         <div className="flex items-center gap-2">
           <Badge variant="destructive" className="text-xs px-2 py-0.5">
@@ -31,10 +31,7 @@ export function MessageStatus({ status, error, onRetry, className }: MessageStat
             Failed
           </Badge>
           {onRetry && (
-            <button
-              onClick={onRetry}
-              className="text-xs text-primary hover:underline flex items-center gap-1"
-            >
+            <button onClick={onRetry} className="text-xs text-primary hover:underline flex items-center gap-1">
               <RefreshCw className="h-3 w-3" />
               Retry
             </button>

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
 
 interface MessageInputProps {
   onSend: (message: string) => Promise<void>;
@@ -76,32 +77,41 @@ export function MessageInput({
         placeholder={placeholder}
         disabled={disabled || isLoading}
         className={cn(
-          'resize-none overflow-hidden min-h-[40px] max-h-[200px] pr-12',
+          'resize-none overflow-hidden min-h-[40px] max-h-[200px] pr-24',
           'focus:ring-1 focus:ring-ring',
           disabled && 'opacity-50 cursor-not-allowed'
         )}
         rows={1}
       />
 
-      <div className="absolute bottom-2 right-2 flex items-center gap-2">
-        {message.length > 0 && (
-          <span className={cn('text-xs', isNearLimit ? 'text-destructive' : 'text-muted-foreground')}>
-            {remainingChars}
-          </span>
-        )}
-
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={handleSubmit}
-          disabled={!message.trim() || isLoading || disabled}
-          className="h-8 w-8 p-0"
+      <div className="absolute inset-y-0 right-2 flex items-center gap-2">
+        <span 
+          className={cn(
+            'text-[11px] font-medium tabular-nums transition-all duration-200',
+            message.length > 0 ? 'opacity-70' : 'opacity-0',
+            isNearLimit && 'text-destructive opacity-100'
+          )}
         >
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        </Button>
-      </div>
+          {remainingChars}
+        </span>
 
-      {message.length > 0 && <div className="text-xs text-muted-foreground mt-1">Press Cmd+Enter to send</div>}
+        <KeyboardShortcutTooltip keys="cmd+enter" disabled={!message.trim() || isLoading || disabled}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleSubmit}
+            disabled={!message.trim() || isLoading || disabled}
+            className={cn(
+              "h-7 px-3 text-xs font-medium",
+              "border-muted-foreground/20 hover:border-muted-foreground/40",
+              "transition-all duration-200",
+              message.trim() && !isLoading && !disabled && "border-primary/50 hover:border-primary"
+            )}
+          >
+            {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Send'}
+          </Button>
+        </KeyboardShortcutTooltip>
+      </div>
     </div>
   );
 }
