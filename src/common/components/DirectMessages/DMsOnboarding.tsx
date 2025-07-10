@@ -85,6 +85,14 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
         </CardHeader>
 
         <CardContent className="space-y-8 px-8 pb-8">
+          {/* Allowlist notice */}
+          <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+            <Key className="h-5 w-5 text-amber-600" />
+            <AlertDescription className="text-sm leading-relaxed">
+              <strong className="font-semibold">Important:</strong> Direct Messages API access is restricted. Your Farcaster account must be allowlisted by the Farcaster team to use DMs in third-party apps like Herocast.
+            </AlertDescription>
+          </Alert>
+
           {/* Security note */}
           <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
             <Shield className="h-5 w-5 text-green-600" />
@@ -106,26 +114,32 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
             </div>
             <ol className="space-y-3">
               <li className="flex gap-3 text-sm">
-                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
+                <span className="flex-shrink-0 font-medium text-amber-500 bg-amber-50 dark:bg-amber-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   1
                 </span>
-                <span className="text-muted-foreground pt-0.5">Open Farcaster app on your device</span>
+                <span className="text-muted-foreground pt-0.5">Ensure your account has DM API access from Farcaster</span>
               </li>
               <li className="flex gap-3 text-sm">
                 <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   2
                 </span>
-                <span className="text-muted-foreground pt-0.5">Go to Settings → Developers (scroll down)</span>
+                <span className="text-muted-foreground pt-0.5">Open Farcaster app on your device</span>
               </li>
               <li className="flex gap-3 text-sm">
                 <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   3
                 </span>
-                <span className="text-muted-foreground pt-0.5">Tap API Keys → Create new API key</span>
+                <span className="text-muted-foreground pt-0.5">Go to Settings → Developers (scroll down)</span>
               </li>
               <li className="flex gap-3 text-sm">
                 <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   4
+                </span>
+                <span className="text-muted-foreground pt-0.5">Tap API Keys → Create new API key</span>
+              </li>
+              <li className="flex gap-3 text-sm">
+                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
+                  5
                 </span>
                 <span className="text-muted-foreground pt-0.5">Copy the generated key and paste it below</span>
               </li>
@@ -135,7 +149,7 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
             {showImages && (
               <div className="space-y-6 mt-6 p-6 bg-muted/30 rounded-lg">
                 <div className="space-y-3">
-                  <p className="text-sm font-medium">Step 3: Create new API key</p>
+                  <p className="text-sm font-medium">Step 4: Create new API key</p>
                   <div className="rounded-lg overflow-hidden border border-muted shadow-sm">
                     <Image
                       src="/images/dms/farcaster-create-api-key.png"
@@ -151,7 +165,7 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
                   </p>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-sm font-medium">Step 4: Save your API key</p>
+                  <p className="text-sm font-medium">Step 5: Save your API key</p>
                   <div className="rounded-lg overflow-hidden border border-muted shadow-sm">
                     <Image
                       src="/images/dms/farcaster-save-api-key.png"
@@ -203,15 +217,27 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
               {isLoading ? 'Saving...' : 'Enable Direct Messages'}
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={() => window.open('https://warpcast.com/~/settings', '_blank')}
-              className="w-full h-12 text-base"
-              size="lg"
-            >
-              <ExternalLink className="h-5 w-5 mr-2" />
-              Open Farcaster Settings
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                onClick={() => window.open('https://warpcast.com/~/settings', '_blank')}
+                className="h-12 text-base"
+                size="lg"
+              >
+                <ExternalLink className="h-5 w-5 mr-2" />
+                Farcaster Settings
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => window.open('https://warpcast.com/dwr.eth', '_blank')}
+                className="h-12 text-base"
+                size="lg"
+              >
+                <MessageSquare className="h-5 w-5 mr-2" />
+                Contact Farcaster
+              </Button>
+            </div>
           </div>
 
           {/* Skip option */}
