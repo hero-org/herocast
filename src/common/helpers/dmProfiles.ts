@@ -49,7 +49,7 @@ export function extractFidsFromDMData(
  * Helper to safely get profile display name with fallback
  */
 export function getSafeDisplayName(profile: any, fid?: number, maxLength: number = 25): string {
-  const displayName = profile?.displayName?.trim() || profile?.username?.trim();
+  const displayName = profile?.display_name?.trim() || profile?.username?.trim();
 
   if (displayName) {
     return truncateText(displayName, maxLength);
@@ -85,7 +85,7 @@ export function truncateText(text: string, maxLength: number): string {
 export function getAvatarFallback(profile: any, fid?: number, isGroup: boolean = false): string {
   if (isGroup) return 'GC';
 
-  const name = profile?.username || profile?.displayName;
+  const name = profile?.username || profile?.display_name;
   if (name && name.length >= 2) {
     return name.slice(0, 2).toUpperCase();
   }

@@ -68,7 +68,7 @@ export default function SearchPage() {
   const hasValidOperators = /(?:from:|channel:|parent:|before:|after:)\S+/.test(searchTerm);
   const hasActiveFilters = filters.authorFid || filters.channelId || filters.parentUrl;
   const canSearch = searchTerm.trim().length >= 3 || hasValidOperators || hasActiveFilters;
-  const { updateSelectedCast } = useDataStore();
+  const { updateSelectedCast, updateSelectedProfileFid } = useDataStore();
 
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const viewerFid = selectedAccount?.platformAccountId || APP_FID;
@@ -103,9 +103,10 @@ export default function SearchPage() {
       setSelectedListId(listId as UUID);
     }
 
-    // if navigating away, reset the selected cast
+    // if navigating away, reset the selected cast and profile
     return () => {
       updateSelectedCast();
+      updateSelectedProfileFid();
       setSelectedListId();
     };
   }, []);
@@ -115,10 +116,13 @@ export default function SearchPage() {
 
     if (isEmpty(casts)) {
       updateSelectedCast();
+      updateSelectedProfileFid();
     } else {
       updateSelectedCast(casts[selectedCastIdx]);
+      // Clear selectedProfileFid when selecting a cast (sidebar will use cast author)
+      updateSelectedProfileFid();
     }
-  }, [selectedCastIdx, casts]);
+  }, [selectedCastIdx, casts, updateSelectedCast, updateSelectedProfileFid]);
 
   useEffect(() => {
     if (selectedList && selectedList.type === 'search') {

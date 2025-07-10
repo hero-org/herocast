@@ -110,6 +110,7 @@ interface AccountStoreActions {
   removePinnedChannel: (channel: ChannelType) => void;
   updateAccountProperty: (accountId: UUID, property: keyof AccountObjectType, value: any) => void;
   loadFarcasterApiKey: (accountId: UUID) => Promise<void>;
+  updateAccountDisplayOrder: ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => void;
 }
 
 export interface AccountStore extends AccountStoreProps, AccountStoreActions {}
@@ -149,6 +150,17 @@ const store = (set: StoreSet) => ({
       return;
     } else {
       console.log('adding account to DB', account);
+
+      // Get the current max display_order for this user
+      const { data: maxOrderData } = await supabaseClient
+        .from('accounts')
+        .select('display_order')
+        .eq('user_id', (await supabaseClient.auth.getUser()).data.user?.id)
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      const nextDisplayOrder = maxOrderData && maxOrderData[0]?.display_order ? maxOrderData[0].display_order + 1 : 1;
+
       await supabaseClient
         .from('accounts')
         .insert({
@@ -158,6 +170,7 @@ const store = (set: StoreSet) => ({
           platform: account.platform,
           data: account.data || {},
           private_key: account.privateKey,
+          display_order: nextDisplayOrder,
         })
         .select()
         .then(({ error, data }) => {
@@ -509,6 +522,51 @@ const store = (set: StoreSet) => ({
     } catch (err) {
       console.error('[loadFarcasterApiKey Debug] Caught error:', err);
     }
+  },
+  updateAccountDisplayOrder: ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
+    set((state) => {
+      const accounts = [...state.accounts];
+      const [movedAccount] = accounts.splice(oldIndex, 1);
+      accounts.splice(newIndex, 0, movedAccount);
+
+      // Update local state immediately for optimistic UI
+      state.accounts = accounts;
+
+      // Update selectedAccountIdx if needed
+      if (state.selectedAccountIdx === oldIndex) {
+        state.selectedAccountIdx = newIndex;
+      } else if (oldIndex < state.selectedAccountIdx && newIndex >= state.selectedAccountIdx) {
+        state.selectedAccountIdx -= 1;
+      } else if (oldIndex > state.selectedAccountIdx && newIndex <= state.selectedAccountIdx) {
+        state.selectedAccountIdx += 1;
+      }
+
+      // Update display_order in database asynchronously
+      const updates = [];
+      for (let i = Math.min(oldIndex, newIndex); i <= Math.max(oldIndex, newIndex); i++) {
+        const account = accounts[i];
+        const newDisplayOrder = i + 1; // 1-indexed for database
+
+        if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
+          updates.push(
+            supabaseClient
+              .from('accounts')
+              .update({ display_order: newDisplayOrder })
+              .eq('id', account.id)
+              .then(({ error }) => {
+                if (error) {
+                  console.error('Failed to update account display order:', account.id, error);
+                }
+              })
+          );
+        }
+      }
+
+      // Execute all updates in background
+      Promise.all(updates).catch((error) => {
+        console.error('Error updating account display orders:', error);
+      });
+    });
   },
 });
 

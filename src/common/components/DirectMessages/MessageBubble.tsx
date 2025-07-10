@@ -27,11 +27,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={cn(
           'rounded-2xl px-4 py-2 italic',
-          'transition-all duration-200',
           isViewer ? 'bg-blue-500/20 text-blue-300' : 'bg-muted text-foreground/50'
         )}
       >
-        <p className="text-sm">Message deleted</p>
+        <p className="text-sm break-words">Message deleted</p>
       </div>
     );
   }
@@ -43,11 +42,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={cn(
           'rounded-2xl px-4 py-2 italic',
-          'transition-all duration-200',
           isViewer ? 'bg-blue-500/20 text-blue-300' : 'bg-muted text-foreground/50'
         )}
       >
-        <p className="text-sm">Empty message</p>
+        <p className="text-sm break-words">Empty message</p>
       </div>
     );
   }
@@ -64,13 +62,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     <div>
       <div
         className={cn(
-          'rounded-2xl px-4 py-2',
-          'transition-all duration-200 hover:shadow-md transform hover:scale-[1.02]',
-          isViewer ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-muted text-foreground hover:bg-muted/80',
+          'rounded-2xl px-4 py-2 overflow-hidden',
+          isViewer ? 'bg-blue-500 text-white' : 'bg-muted text-foreground',
           isEmojiOnly && 'px-3 py-1' // Smaller padding for emoji-only messages
         )}
       >
-        <p className={cn('break-words whitespace-pre-wrap', isEmojiOnly ? 'text-3xl' : 'text-sm')}>{displayText}</p>
+        <p
+          className={cn('whitespace-pre-wrap', isEmojiOnly ? 'text-3xl' : 'text-sm')}
+          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+        >
+          {displayText}
+        </p>
 
         {needsExpansion && (
           <button

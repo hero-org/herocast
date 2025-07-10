@@ -16,6 +16,7 @@ export const getAccountsForUser = async (supabaseClient) => {
     .select('*, accounts_to_channel(*, channel(*))')
     .eq('user_id', user?.id)
     .neq('status', AccountStatusType.removed)
+    .order('display_order', { ascending: true, nullsLast: true })
     .order('created_at', { ascending: true });
 
   if (accountError) {
@@ -70,6 +71,16 @@ export const addUnsafeCustomerForUser = async (
 
   if (error) {
     console.error('error adding customer', error);
+    return false;
+  }
+  return true;
+};
+
+export const updateAccountDisplayOrder = async (supabaseClient, accountId: string, displayOrder: number) => {
+  const { error } = await supabaseClient.from('accounts').update({ display_order: displayOrder }).eq('id', accountId);
+
+  if (error) {
+    console.error('error updating account display order', error);
     return false;
   }
   return true;

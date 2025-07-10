@@ -99,6 +99,7 @@ export type UserProfile = User & { updatedAt: number } & Partial<AdditionalUserI
 
 interface DataStoreProps {
   selectedCast?: CastWithInteractions;
+  selectedProfileFid?: number;
   usernameToFid: Record<string, number>;
   fidToData: Record<number, UserProfile>;
   tokenSymbolToData: Record<string, DexPair>;
@@ -106,6 +107,7 @@ interface DataStoreProps {
 
 interface DataStoreActions {
   updateSelectedCast: (cast?: CastWithInteractions) => void;
+  updateSelectedProfileFid: (fid?: number) => void;
   addUserProfile: ({ user }: addUserProfileProps) => void;
   addUserProfiles: (users: User[]) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
@@ -126,12 +128,18 @@ const shouldUpdateProfile = (profile?: UserProfile) => {
 
 const store = (set: StoreSet, get: () => DataStore) => ({
   selectedCast: null,
+  selectedProfileFid: undefined,
   usernameToFid: {},
   fidToData: {},
   tokenSymbolToData: {},
   updateSelectedCast: (cast?: CastWithInteractions) => {
     set((state) => {
       state.selectedCast = cast;
+    });
+  },
+  updateSelectedProfileFid: (fid?: number) => {
+    set((state) => {
+      state.selectedProfileFid = fid;
     });
   },
   addUserProfile: async ({ user }: addUserProfileProps) => {

@@ -40,12 +40,12 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { scrollToElement } = useSmoothScroll();
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive - instant scroll
   useEffect(() => {
-    if (messages.length > 0) {
-      scrollToElement(messagesEndRef.current, { block: 'end' });
+    if (messages.length > 0 && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
     }
-  }, [messages.length, scrollToElement]);
+  }, [messages.length]);
   const groupMessagesByUser = (messages: Message[]) => {
     const groups: Array<{ sender: Message; messages: Message[] }> = [];
     let currentGroup: { sender: Message; messages: Message[] } | null = null;
@@ -62,7 +62,14 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
     return groups;
   };
 
-  const messageGroups = groupMessagesByUser(messages);
+  // Sort messages by timestamp (oldest first)
+  const sortedMessages = [...messages].sort((a, b) => {
+    const timeA = new Date(a.timestamp).getTime();
+    const timeB = new Date(b.timestamp).getTime();
+    return timeA - timeB;
+  });
+
+  const messageGroups = groupMessagesByUser(sortedMessages);
 
   // Helper to get display name with fallback
   const getDisplayName = (message: Message) => {
@@ -87,13 +94,9 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Messages container */}
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
-        style={{ scrollBehavior: 'smooth' }}
-      >
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
         {/* Load more button */}
         {hasMore && (
           <div className="text-center py-2">
@@ -111,14 +114,7 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
         {messageGroups.map((group, groupIdx) => {
           const isViewer = group.sender.senderFid === viewerFid;
           return (
-            <div
-              key={`group-${groupIdx}`}
-              className={cn(
-                'flex gap-3 animate-in fade-in-0 slide-up duration-300',
-                isViewer ? 'flex-row-reverse' : 'flex-row'
-              )}
-              style={{ animationDelay: `${groupIdx * 50}ms`, animationFillMode: 'both' }}
-            >
+            <div key={`group-${groupIdx}`} className={cn('flex gap-3', isViewer ? 'flex-row-reverse' : 'flex-row')}>
               {/* Avatar */}
               {!isViewer && (
                 <ProfileHoverCard
@@ -126,7 +122,7 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
                   username={group.sender.senderUsername}
                   viewerFid={viewerFid}
                 >
-                  <Avatar className="h-8 w-8 flex-shrink-0 transition-transform duration-200 hover:scale-110">
+                  <Avatar className="h-8 w-8 flex-shrink-0">
                     <AvatarImage src={group.sender.senderPfpUrl} />
                     <AvatarFallback>{getAvatarFallback(group.sender)}</AvatarFallback>
                   </Avatar>
@@ -157,7 +153,20 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
                     isDeleted={message.isDeleted}
                     timestamp={
                       idx === group.messages.length - 1
-                        ? formatDistanceToNowStrict(new Date(message.timestamp)) + ' ago'
+                        ? (() => {
+                            try {
+                              const date = new Date(message.timestamp);
+                              // Check if date is valid
+                              if (isNaN(date.getTime())) {
+                                console.warn('Invalid timestamp for message:', message.id, message.timestamp);
+                                return 'just now';
+                              }
+                              return formatDistanceToNowStrict(date) + ' ago';
+                            } catch (error) {
+                              console.error('Error formatting timestamp:', error, message.id);
+                              return 'just now';
+                            }
+                          })()
                         : undefined
                     }
                     showTimestamp={idx === group.messages.length - 1}
@@ -181,7 +190,7 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
       </div>
 
       {/* Input area placeholder */}
-      <div className="border-t border-muted px-4 py-3">
+      <div className="flex-shrink-0 border-t border-muted px-4 py-3 bg-background">
         <div className="bg-muted rounded-lg px-4 py-3 text-foreground/60 text-sm text-center">
           Read-only mode - Sending messages coming soon
         </div>

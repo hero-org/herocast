@@ -4,27 +4,15 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Users, MessageSquareOff } from 'lucide-react';
 import ProfileHoverCard from './ProfileHoverCard';
+import { DirectCastConversation, DirectCastGroup } from '@/common/constants/directCast';
 
 interface ConversationListItemProps {
-  isGroup: boolean;
-  name?: string;
-  participantProfile?: {
-    username?: string;
-    displayName?: string;
-    pfpUrl?: string;
-  };
-  participantFid?: number;
-  lastMessage?: {
-    message: string;
-    isDeleted: boolean;
-    senderFid: number;
-    creationTimestamp: number;
-  };
-  memberCount?: number;
+  item: DirectCastConversation | DirectCastGroup;
   isSelected: boolean;
   viewerFid: number;
   onClick: () => void;
-  getProfileByFid?: (fid: number) => any;
+  getProfileByFid: (fid: number) => any;
+  index: number;
 }
 
 // Helper to truncate long text with ellipsis
@@ -45,8 +33,8 @@ const getSafeUsername = (profile: any, fid?: number) => {
 
 // Helper to get safe display name
 const getSafeDisplayName = (profile: any, fid?: number) => {
-  if (profile?.displayName && profile.displayName.trim()) {
-    return truncateText(profile.displayName, 25);
+  if (profile?.display_name && profile.display_name.trim()) {
+    return truncateText(profile.display_name, 25);
   }
   if (profile?.username && profile.username.trim()) {
     return truncateText(profile.username, 25);
@@ -61,8 +49,8 @@ const getAvatarFallback = (profile: any, fid?: number, isGroup?: boolean) => {
   if (profile?.username && profile.username.length >= 2) {
     return profile.username.slice(0, 2).toUpperCase();
   }
-  if (profile?.displayName && profile.displayName.length >= 2) {
-    return profile.displayName.slice(0, 2).toUpperCase();
+  if (profile?.display_name && profile.display_name.length >= 2) {
+    return profile.display_name.slice(0, 2).toUpperCase();
   }
   if (fid) {
     return fid.toString().slice(0, 2);
@@ -71,18 +59,60 @@ const getAvatarFallback = (profile: any, fid?: number, isGroup?: boolean) => {
 };
 
 export const ConversationListItem: React.FC<ConversationListItemProps> = ({
-  isGroup,
-  name,
-  participantProfile,
-  participantFid,
-  lastMessage,
-  memberCount,
+  item,
   isSelected,
   viewerFid,
   onClick,
   getProfileByFid,
+  index,
 }) => {
-  const timeAgo = lastMessage ? formatDistanceToNowStrict(new Date(lastMessage.creationTimestamp * 1000)) : '';
+  // Determine if it's a group
+  const isGroup = 'groupId' in item;
+
+  // Extract data based on type
+  let participantFid: number | undefined;
+  let participantProfile: any;
+  let name: string | undefined;
+  let memberCount: number | undefined;
+  const lastMessage = item.lastMessage;
+
+  if (isGroup) {
+    name = item.name;
+    memberCount = item.memberCount;
+  } else {
+    // For conversations, find the other participant
+    participantFid = item.participantFids.find((fid) => fid !== viewerFid);
+    if (participantFid) {
+      participantProfile = getProfileByFid(participantFid);
+      // Debug logging
+      if (index === 0) {
+        console.log('[ConversationListItem Debug]', {
+          participantFid,
+          participantProfile,
+          hasProfile: !!participantProfile,
+          displayName: participantProfile?.display_name,
+          username: participantProfile?.username,
+        });
+      }
+    }
+  }
+
+  // Handle timestamp edge cases
+  let timeAgo = '';
+  if (lastMessage) {
+    let timestamp: Date;
+    if (!lastMessage.creationTimestamp || lastMessage.creationTimestamp === 0) {
+      // Fallback to current time if timestamp is missing
+      timestamp = new Date();
+    } else if (lastMessage.creationTimestamp > 10000000000) {
+      // If timestamp is already in milliseconds (has more than 10 digits)
+      timestamp = new Date(lastMessage.creationTimestamp);
+    } else {
+      // Normal case: timestamp is in seconds
+      timestamp = new Date(lastMessage.creationTimestamp * 1000);
+    }
+    timeAgo = formatDistanceToNowStrict(timestamp);
+  }
 
   // Handle empty conversations
   const hasNoMessages = !lastMessage;
@@ -90,7 +120,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
   return (
     <li
       className={cn(
-        'flex gap-x-3 px-4 py-3 border-b border-muted/50 transition-colors border-l-2 cursor-pointer',
+        'flex gap-x-3 px-4 py-3 border-b border-muted/50 transition-colors duration-50 border-l-2 cursor-pointer min-w-0',
         isSelected ? 'bg-muted border-l-blue-500' : 'bg-background/80 hover:bg-muted/50 border-l-transparent'
       )}
       onClick={onClick}
@@ -103,7 +133,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
         ) : (
           <ProfileHoverCard fid={participantFid} username={participantProfile?.username} viewerFid={viewerFid}>
             <Avatar className="h-10 w-10">
-              <AvatarImage src={participantProfile?.pfpUrl} />
+              <AvatarImage src={participantProfile?.pfp_url} />
               <AvatarFallback>{getAvatarFallback(participantProfile, participantFid, false)}</AvatarFallback>
             </Avatar>
           </ProfileHoverCard>
@@ -139,7 +169,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
             ) : !lastMessage.message?.trim() ? (
               <span className="italic text-foreground/50">Empty message</span>
             ) : (
-              truncateText(lastMessage.message, 60)
+              truncateText(lastMessage.message, 40)
             )}
           </p>
         ) : null}

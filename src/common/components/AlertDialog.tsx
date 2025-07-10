@@ -10,7 +10,13 @@ type AlertDialogProps = {
 const AlertDialogDemo = ({ buttonText, onClick }: AlertDialogProps) => (
   <AlertDialog.Root>
     <AlertDialog.Trigger asChild>
-      <Button variant="destructive">{buttonText}</Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+      >
+        {buttonText}
+      </Button>
     </AlertDialog.Trigger>
     <AlertDialog.Portal>
       <AlertDialog.Overlay className="bg-background/50 data-[state=open]:animate-overlayShow fixed inset-0" />

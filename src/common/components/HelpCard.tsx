@@ -12,9 +12,9 @@ const HelpCard = () => (
       <CardDescription>Did anything break? Need support? Want to chat about Farcaster apps?</CardDescription>
     </CardHeader>
     <CardContent className="flex flex-col space-y-2">
-      <Button variant="default" onClick={() => openWindow('https://warpcast.com/hellno')}>
+      <Button variant="default" onClick={() => openWindow('https://farcaster.xyz/hellno')}>
         <ChatBubbleLeftEllipsisIcon className="mr-2 h-4 w-4" />
-        Talk to us on Warpcast
+        Talk to us on Farcaster
       </Button>
       <Button variant="outline" onClick={() => openWindow('https://t.me/HELLNO_HELLNO')}>
         <PaperAirplaneIcon className="mr-2 h-4 w-4" />

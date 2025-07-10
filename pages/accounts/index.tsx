@@ -32,6 +32,8 @@ import AlertDialogDemo from '@/common/components/AlertDialog';
 import AccountManagementModal from '@/common/components/AccountManagement/AccountManagementModal';
 import { cn } from '@/lib/utils';
 import { filter } from 'lodash';
+import SortableList, { SortableItem } from 'react-easy-sort';
+import { Badge } from '@/components/ui/badge';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -50,7 +52,8 @@ export default function Accounts() {
   const isMounted = useIsMounted();
   const [selectedAccount, setSelectedAccount] = useState<AccountObjectType>();
 
-  const { accounts, addAccount, setAccountActive, removeAccount, updateAccountUsername } = useAccountStore();
+  const { accounts, addAccount, setAccountActive, removeAccount, updateAccountUsername, updateAccountDisplayOrder } =
+    useAccountStore();
 
   const pendingAccounts =
     accounts.filter(
@@ -89,6 +92,12 @@ export default function Accounts() {
       })
       .catch((error) => console.error('Error refreshing account names:', error));
     setIsLoading(false);
+  };
+
+  const onSortEnd = (oldIndex: number, newIndex: number) => {
+    if (oldIndex !== newIndex) {
+      updateAccountDisplayOrder({ oldIndex, newIndex });
+    }
   };
 
   const onCreateNewAccount = async () => {
@@ -191,7 +200,7 @@ export default function Accounts() {
       <CardFooter>
         <Button className="w-full" variant="default" onClick={() => onCreateNewAccount()}>
           <UserPlusIcon className="mr-1.5 h-5 w-5" aria-hidden="true" />
-          {isLoading ? 'Creating account...' : 'Connect'}
+          {isLoading ? 'Connecting...' : 'Connect Account'}
         </Button>
       </CardFooter>
     </Card>
@@ -247,7 +256,7 @@ export default function Accounts() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">Create a new Farcaster account onchain</CardTitle>
         <CardDescription>
-          No need to connect with Warpcast. Sign up directly with the Farcaster protocol onchain.
+          No need to connect with Farcaster app. Sign up directly with the Farcaster protocol onchain.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid">
@@ -286,78 +295,216 @@ export default function Accounts() {
     );
   };
 
-  const renderFullAccountTabs = () => {
-    return (
-      <Tabs defaultValue="default">
-        <div className="flex items-center mb-4">
-          <TabsList>
-            <TabsTrigger value="default">Add accounts</TabsTrigger>
-            <TabsTrigger value="create">Create accounts</TabsTrigger>
-            <TabsTrigger value="manage">Manage</TabsTrigger>
-            <TabsTrigger value="help">Help</TabsTrigger>
-          </TabsList>
-        </div>
-        <TabsContent value="default" className="max-w-md">
-          {renderActiveAccountsOverview()}
+  const renderUnifiedAccountsPage = () => {
+    const activeAccounts = filter(accounts, (account) => account.status === 'active');
+    const hasMultipleAccounts = accounts.length > 1;
 
-          <div className="grid flex-1 items-start gap-4 sm:py-0 md:gap-8">
-            <div className="max-w-md lg:max-w-lg">
-              {signupState === SignupStateEnum.initial && renderCreateSignerStep()}
-              {signupState === SignupStateEnum.connecting && renderConnectAccountStep()}
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header with actions */}
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold">Farcaster Accounts</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {accounts.length === 0
+                ? 'Connect your Farcaster account to start casting'
+                : hasMultipleAccounts
+                  ? 'Drag to reorder accounts and update hotkey assignments'
+                  : 'Connect more accounts to switch between them with hotkeys'}
+            </p>
+          </div>
+          {accounts.length > 0 && (
+            <Button variant="outline" size="sm" disabled={isLoading} onClick={() => refreshAccountNames()}>
+              <ArrowPathIcon className={cn(isLoading && 'animate-spin', 'mr-2 h-4 w-4')} />
+              Refresh
+            </Button>
+          )}
+        </div>
+
+        {/* Main content area */}
+        <div className="space-y-6">
+          {/* Connect account button - always visible at top */}
+          {accounts.length > 0 && (
+            <div className="flex justify-end">
+              <Button
+                onClick={() => onCreateNewAccount()}
+                disabled={isLoading || signupState === SignupStateEnum.connecting}
+              >
+                <UserPlusIcon className="mr-2 h-4 w-4" />
+                Connect Account
+              </Button>
+            </div>
+          )}
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Left column: Existing accounts or empty state */}
+            <div className="space-y-4">
+              {accounts.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                    <UserPlusIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No accounts connected</h3>
+                    <p className="text-sm text-muted-foreground">Connect your first Farcaster account to get started</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    Your Accounts
+                    <Badge variant="secondary">{accounts.length}</Badge>
+                  </h2>
+                  <SortableList onSortEnd={onSortEnd} className="space-y-2" draggedItemClassName="opacity-50">
+                    {accounts.map((item: AccountObjectType, idx: number) => (
+                      <SortableItem key={item.id}>
+                        <div className="rounded-lg border bg-card p-4 cursor-move hover:bg-accent/50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              {/* Drag handle */}
+                              {hasMultipleAccounts && (
+                                <div className="text-muted-foreground">
+                                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <circle cx="4" cy="4" r="1.5" />
+                                    <circle cx="12" cy="4" r="1.5" />
+                                    <circle cx="4" cy="8" r="1.5" />
+                                    <circle cx="12" cy="8" r="1.5" />
+                                    <circle cx="4" cy="12" r="1.5" />
+                                    <circle cx="12" cy="12" r="1.5" />
+                                  </svg>
+                                </div>
+                              )}
+
+                              {/* Account info */}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold truncate">
+                                  {item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
+                                </h3>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <span>FID: {item.platformAccountId || 'Pending'}</span>
+                                  {idx < 9 && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="font-mono text-xs">Ctrl+{idx + 1}</span>
+                                    </>
+                                  )}
+                                  {item.status !== 'active' && <span className="text-yellow-600">• {item.status}</span>}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-2 ml-4">
+                              {item.status === 'active' && (
+                                <Button variant="ghost" size="sm" onClick={() => onClickManageAccount(item)}>
+                                  Manage
+                                </Button>
+                              )}
+                              <AlertDialogDemo buttonText="Remove" onClick={() => removeAccount(item.id)} />
+                            </div>
+                          </div>
+                        </div>
+                      </SortableItem>
+                    ))}
+                  </SortableList>
+                </>
+              )}
+            </div>
+
+            {/* Right column: Connect account options */}
+            <div className="space-y-4">
+              {/* Show connection flow or options based on state */}
+              {signupState === SignupStateEnum.initial ? (
+                <>
+                  <h2 className="text-lg font-semibold">Connect Account</h2>
+
+                  {/* Connect with Warpcast - Primary CTA */}
+                  <Card className={accounts.length === 0 ? 'border-primary' : ''}>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Connect with Farcaster</CardTitle>
+                      <CardDescription>Connect your existing Farcaster account via Warpcast</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button
+                        className="w-full"
+                        variant={accounts.length === 0 ? 'default' : 'outline'}
+                        onClick={() => onCreateNewAccount()}
+                        disabled={isLoading}
+                      >
+                        <UserPlusIcon className="mr-2 h-4 w-4" />
+                        {isLoading ? 'Connecting...' : 'Connect Account'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Create new account option */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">New to Farcaster?</CardTitle>
+                      <CardDescription>Create a brand new Farcaster account directly onchain</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button variant="outline" className="w-full" onClick={() => router.push('/farcaster-signup')}>
+                        Create New Account
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                /* Connecting state */
+                <>
+                  <h2 className="text-lg font-semibold">Complete Connection</h2>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Scan QR Code</CardTitle>
+                      <CardDescription>Scan with Warpcast or pay with ETH to connect</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="text-center">
+                        <QrCode
+                          deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
+                        />
+                        <p className="text-sm text-muted-foreground mt-2">Scan with your mobile camera</p>
+                      </div>
+
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-background px-2 text-muted-foreground">Or</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount} /> : <SwitchWalletButton />}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {/* Help section */}
+              <Card className="bg-muted/50">
+                <CardHeader>
+                  <CardTitle className="text-lg">Need Help?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <HelpCard />
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </TabsContent>
-        <TabsContent value="create">
-          <div className="flex flex-col max-w-md lg:max-w-lg gap-5">{renderCreateNewOnchainAccountCard()}</div>
-        </TabsContent>
-        <TabsContent value="manage" className="max-w-[600px]">
-          <div className="flex justify-between pb-2 border-b border-gray-200">
-            <h1 className="text-xl font-semibold leading-7 text-foreground/80">Farcaster accounts</h1>
-            <Button variant="outline" className="h-8" disabled={isLoading} onClick={() => refreshAccountNames()}>
-              Reload accounts
-              <ArrowPathIcon className={cn(isLoading && 'animate-spin', 'ml-1 w-4 h-4')} />
-            </Button>
-          </div>
-          <ul role="list" className="divide-y divide-white/5">
-            {accounts.map((item: AccountObjectType, idx: number) => (
-              <li key={item.id} className="px-2 py-2">
-                <div className="flex items-center gap-x-3">
-                  <h3 className="text-foreground/80 flex-auto truncate text-sm font-semibold leading-6">
-                    {item.name || PENDING_ACCOUNT_NAME_PLACEHOLDER}
-                  </h3>
-                  {item.platformAccountId && item.status !== 'active' && (
-                    <p className="truncate text-sm text-foreground/80">{item.status}</p>
-                  )}
-                  {item.platformAccountId && item.status === 'active' && (
-                    <p className="font-mono truncate text-sm text-foreground/80">fid: {item.platformAccountId}</p>
-                  )}
-                  {item.status === 'active' && (
-                    <Button variant="secondary" onClick={() => onClickManageAccount(item)}>
-                      Manage
-                    </Button>
-                  )}
-                  <AlertDialogDemo buttonText={`Remove`} onClick={() => removeAccount(item.id)} />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </TabsContent>
-        <TabsContent value="help">
-          <div className="flex flex-col max-w-md lg:max-w-lg gap-5">
-            <HelpCard />
-          </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     );
   };
 
   return (
-    <div className="pt-4 flex min-h-screen w-full flex-col bg-muted/40">
-      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+    <div className="min-h-screen w-full bg-muted/40 overflow-y-auto">
+      <main className="p-4 sm:px-6 sm:py-6 pb-12">
         {hasOnlyLocalAccounts ? (
-          <div className="flex">{renderSignupForNonLocalAccount()}</div>
+          <div className="flex max-w-4xl mx-auto">{renderSignupForNonLocalAccount()}</div>
         ) : (
-          renderFullAccountTabs()
+          renderUnifiedAccountsPage()
         )}
       </main>
       <AccountManagementModal account={selectedAccount} open={isModalOpen} setOpen={setModalOpen} />

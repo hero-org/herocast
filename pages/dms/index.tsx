@@ -19,12 +19,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, RefreshCw, MessageSquare, Users, Archive, CheckCheck, Settings } from 'lucide-react';
 import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
-import { AnimatedMessageThread } from '@/common/components/DirectMessages/AnimatedMessageThread';
-import { Message } from '@/common/components/DirectMessages/MessageThread';
+import { MessageThread, Message } from '@/common/components/DirectMessages/MessageThread';
+import { MessageSkeleton } from '@/common/components/DirectMessages/MessageSkeleton';
 import { DMsOnboarding } from '@/common/components/DirectMessages/DMsOnboarding';
 import { DMErrorBoundary } from '@/common/components/DirectMessages/DMErrorBoundary';
 import { DMLoadingState } from '@/common/components/DirectMessages/DMLoadingState';
-import { DMEmptyState } from '@/common/components/DirectMessages/DMEmptyState';
+import { DMEmptyState, DMTab } from '@/common/components/DirectMessages/DMEmptyState';
 import { DMErrorState } from '@/common/components/DirectMessages/DMErrorState';
 import { ConversationListItem } from '@/common/components/DirectMessages/ConversationListItem';
 import { useDirectMessages, useDirectMessageThread } from '@/common/hooks/useDirectMessages';
@@ -39,36 +39,39 @@ import {
   getAvatarFallback,
 } from '@/common/helpers/dmProfiles';
 
-export enum DMTab {
-  conversations = 'conversations',
-  groups = 'groups',
-  archived = 'archived',
-}
-
 const DirectMessages = () => {
   const router = useRouter();
   const { isNewCastModalOpen } = useNavigationStore();
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const [activeTab, setActiveTab] = useState<DMTab>(DMTab.conversations);
   const [selectedDMIdx, setSelectedDMIdx] = useState<number>(0);
-  const [isChangingConversation, setIsChangingConversation] = useState<boolean>(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const [previousConversationId, setPreviousConversationId] = useState<string | undefined>(undefined);
   const listContainerRef = useRef<HTMLDivElement>(null);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
 
   // Fetch DMs based on active tab
   const category = activeTab === DMTab.archived ? 'archived' : 'default';
-  const { conversations, groups, isLoading, error, refresh } = useDirectMessages({
+  const { conversations, groups, isLoading, error, refresh, retryAfterError } = useDirectMessages({
     category,
     enabled: !showOnboarding,
   });
 
   // Get cached user data and fetch function
-  const { fidToData, fetchBulkProfiles } = useDataStore((state) => ({
+  const { fidToData, fetchBulkProfiles, updateSelectedProfileFid } = useDataStore((state) => ({
     fidToData: state.fidToData,
     fetchBulkProfiles: state.fetchBulkProfiles,
+    updateSelectedProfileFid: state.updateSelectedProfileFid,
   }));
   const getProfileByFid = (fid: number) => fidToData[fid];
+
+  // Helper to get unique ID for an item
+  const getItemId = (item: DirectCastConversation | DirectCastGroup) => {
+    if ('conversationId' in item) {
+      return item.conversationId;
+    }
+    return item.groupId;
+  };
 
   // Get current list based on active tab
   const getCurrentList = (): (DirectCastConversation | DirectCastGroup)[] => {
@@ -85,13 +88,20 @@ const DirectMessages = () => {
     }
   };
 
-  const currentList = getCurrentList();
+  // Add id property to items for SelectableListWithHotkeys
+  const currentList = getCurrentList().map((item) => ({
+    ...item,
+    id: getItemId(item),
+  }));
 
   // Get selected item details
   const selectedItem = currentList[selectedDMIdx];
   const selectedConversationId =
     selectedItem && 'conversationId' in selectedItem ? selectedItem.conversationId : undefined;
   const selectedGroupId = selectedItem && 'groupId' in selectedItem ? selectedItem.groupId : undefined;
+
+  // Determine the current conversation key
+  const currentConversationKey = selectedConversationId || selectedGroupId;
 
   // Fetch messages for selected conversation/group
   const {
@@ -100,6 +110,41 @@ const DirectMessages = () => {
     loadMore: loadMoreMessages,
     hasMore,
   } = useDirectMessageThread(selectedConversationId, selectedGroupId);
+
+  // Track conversation changes
+  const isConversationChanging = currentConversationKey !== previousConversationId;
+
+  useEffect(() => {
+    if (currentConversationKey && currentConversationKey !== previousConversationId) {
+      setPreviousConversationId(currentConversationKey);
+    }
+  }, [currentConversationKey, previousConversationId]);
+
+  // Update selectedProfileFid when conversation changes
+  useEffect(() => {
+    if (selectedItem && viewerFid) {
+      // For conversations, set the other participant's FID
+      if ('conversationId' in selectedItem) {
+        const participantFid = selectedItem.participantFids.find((fid) => fid !== Number(viewerFid));
+        if (participantFid) {
+          updateSelectedProfileFid(participantFid);
+        }
+      }
+      // For groups, we don't set a specific profile (could show group info in future)
+      else if ('groupId' in selectedItem) {
+        updateSelectedProfileFid(undefined);
+      }
+    } else {
+      updateSelectedProfileFid(undefined);
+    }
+  }, [selectedItem, viewerFid, updateSelectedProfileFid]);
+
+  // Clear selectedProfileFid when leaving the page
+  useEffect(() => {
+    return () => {
+      updateSelectedProfileFid(undefined);
+    };
+  }, [updateSelectedProfileFid]);
 
   // Collect all unique fids that need profiles from conversations and messages
   const allFidsToFetch = useMemo(() => {
@@ -116,6 +161,13 @@ const DirectMessages = () => {
 
   useEffect(() => {
     if (!showOnboarding && !isLoading && allFidsToFetch.length > 0 && viewerFid) {
+      console.log('[DMs Profile Fetch Debug]', {
+        allFidsToFetch,
+        viewerFid,
+        conversationsCount: conversations.length,
+        groupsCount: groups.length,
+        messagesCount: messages.length,
+      });
       setProfilesLoading(true);
       fetchBulkProfiles(allFidsToFetch, viewerFid, true).finally(() => setProfilesLoading(false));
     }
@@ -123,10 +175,8 @@ const DirectMessages = () => {
 
   // Tab switching callback
   const changeTab = useCallback((tab: DMTab) => {
-    setIsChangingConversation(true);
     setActiveTab(tab);
     setSelectedDMIdx(0);
-    setTimeout(() => setIsChangingConversation(false), 300);
   }, []);
 
   // Stable callbacks for tab switching
@@ -190,14 +240,39 @@ const DirectMessages = () => {
   // Convert DirectCastMessage to Message format for MessageThread
   const convertedMessages: Message[] = messages.map((msg) => {
     const profile = getProfileByFid(msg.senderFid);
+
+    // Debug timestamp issues
+    console.log('Message timestamp debug:', {
+      messageId: msg.messageId,
+      creationTimestamp: msg.creationTimestamp,
+      timestampInMs: msg.creationTimestamp * 1000,
+      date: new Date(msg.creationTimestamp * 1000),
+      isoString: new Date(msg.creationTimestamp * 1000).toISOString(),
+    });
+
+    // Handle edge cases for timestamp
+    let timestamp: string;
+    if (!msg.creationTimestamp || msg.creationTimestamp === 0) {
+      // Fallback to current time if timestamp is missing
+      timestamp = new Date().toISOString();
+      console.warn('Message has no timestamp, using current time:', msg.messageId);
+    } else if (msg.creationTimestamp > 10000000000) {
+      // If timestamp is already in milliseconds (has more than 10 digits)
+      timestamp = new Date(msg.creationTimestamp).toISOString();
+      console.warn('Timestamp appears to be in milliseconds already:', msg.messageId);
+    } else {
+      // Normal case: timestamp is in seconds
+      timestamp = new Date(msg.creationTimestamp * 1000).toISOString();
+    }
+
     return {
       id: msg.messageId,
       text: msg.message,
       senderFid: msg.senderFid,
       senderUsername: profile?.username || `fid:${msg.senderFid}`,
-      senderDisplayName: profile?.displayName || profile?.username || `User ${msg.senderFid}`,
-      senderPfpUrl: profile?.pfpUrl || '',
-      timestamp: new Date(msg.creationTimestamp * 1000).toISOString(),
+      senderDisplayName: profile?.display_name || profile?.username || `User ${msg.senderFid}`,
+      senderPfpUrl: profile?.pfp_url || '',
+      timestamp,
       isRead: true, // API doesn't provide read status, so we assume all are read
       isDeleted: msg.isDeleted,
     };
@@ -264,15 +339,16 @@ const DirectMessages = () => {
   const renderDMRow = (item: DirectCastConversation | DirectCastGroup, idx: number) => {
     const handleClick = () => {
       if (idx !== selectedDMIdx) {
-        setIsChangingConversation(true);
         setSelectedDMIdx(idx);
-        setTimeout(() => setIsChangingConversation(false), 300);
       }
     };
 
+    // Add id property for SelectableListWithHotkeys
+    const itemWithId = { ...item, id: getItemId(item) };
+
     return (
       <ConversationListItem
-        item={item}
+        item={itemWithId}
         isSelected={idx === selectedDMIdx}
         onClick={handleClick}
         viewerFid={Number(viewerFid)}
@@ -287,7 +363,7 @@ const DirectMessages = () => {
     const selectedItem = currentList[selectedDMIdx];
     if (!selectedItem || !viewerFid) {
       return (
-        <div className="flex-1 border-l border-muted flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-foreground/60">Select a conversation to view messages</p>
@@ -308,15 +384,9 @@ const DirectMessages = () => {
     }
 
     return (
-      <div
-        className={cn(
-          'flex-1 border-l border-muted flex flex-col',
-          'transition-opacity duration-200',
-          isChangingConversation ? 'opacity-0' : 'opacity-100'
-        )}
-      >
+      <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-muted/50 bg-muted/30">
+        <div className="px-4 py-3 border-b border-muted/50 bg-muted/30 transition-all duration-50">
           <div className="flex items-center gap-3">
             {isGroup ? (
               <>
@@ -331,7 +401,7 @@ const DirectMessages = () => {
             ) : (
               <>
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={participantProfile?.pfpUrl} />
+                  <AvatarImage src={participantProfile?.pfp_url} />
                   <AvatarFallback>{getAvatarFallback(participantProfile, participantFid)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
@@ -349,14 +419,17 @@ const DirectMessages = () => {
 
         {/* Messages area */}
         <div className="flex-1 overflow-hidden">
-          <AnimatedMessageThread
-            messages={convertedMessages}
-            viewerFid={Number(viewerFid)}
-            onLoadMore={loadMoreMessages}
-            hasMore={hasMore}
-            isLoading={messagesLoading}
-            conversationKey={isGroup ? selectedItem.groupId : selectedItem.conversationId}
-          />
+          {(isConversationChanging || messagesLoading) && messages.length === 0 ? (
+            <MessageSkeleton />
+          ) : (
+            <MessageThread
+              messages={convertedMessages}
+              viewerFid={Number(viewerFid)}
+              onLoadMore={loadMoreMessages}
+              hasMore={hasMore}
+              isLoading={messagesLoading}
+            />
+          )}
         </div>
       </div>
     );
@@ -364,7 +437,7 @@ const DirectMessages = () => {
 
   if (!viewerFid) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-screen overflow-hidden">
         <p className="text-foreground/60">Please connect an account to view direct messages.</p>
       </div>
     );
@@ -382,22 +455,22 @@ const DirectMessages = () => {
 
   return (
     <DMErrorBoundary>
-      <div className="flex flex-col h-screen bg-background">
+      <div className="flex flex-col h-screen bg-background overflow-hidden">
         {/* Header */}
-        <div className="border-b border-muted px-4 py-3">
+        <div className="border-b border-muted px-4 py-3 flex-shrink-0">
           <Tabs value={activeTab} onValueChange={(value) => changeTab(value as DMTab)}>
             <div className="flex items-center justify-between">
               <TabsList className="grid grid-cols-3 flex-1 mr-3">
-                <TabsTrigger value={DMTab.conversations} className="text-xs transition-all duration-200">
-                  <MessageSquare className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
+                <TabsTrigger value={DMTab.conversations} className="text-xs transition-all duration-50">
+                  <MessageSquare className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
                   Conversations
                 </TabsTrigger>
-                <TabsTrigger value={DMTab.groups} className="text-xs transition-all duration-200">
-                  <Users className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
+                <TabsTrigger value={DMTab.groups} className="text-xs transition-all duration-50">
+                  <Users className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
                   Groups
                 </TabsTrigger>
-                <TabsTrigger value={DMTab.archived} className="text-xs transition-all duration-200">
-                  <Archive className="h-3 w-3 mr-1 transition-transform duration-200 group-hover:scale-110" />
+                <TabsTrigger value={DMTab.archived} className="text-xs transition-all duration-50">
+                  <Archive className="h-3 w-3 mr-1 transition-transform duration-50 group-hover:scale-110" />
                   Archived
                 </TabsTrigger>
               </TabsList>
@@ -440,15 +513,9 @@ const DirectMessages = () => {
 
         {/* Main content */}
         <div className="flex flex-1 overflow-hidden">
-          {/* DMs list (50% width) */}
-          <div className="w-1/2 flex flex-col relative">
-            <div
-              className={cn(
-                'flex-1 overflow-hidden transition-opacity duration-200',
-                isChangingConversation && activeTab !== activeTab ? 'opacity-0' : 'opacity-100'
-              )}
-              ref={listContainerRef}
-            >
+          {/* DMs list - fixed width sidebar */}
+          <div className="w-80 lg:w-96 flex-shrink-0 flex flex-col relative border-r border-muted">
+            <div className="flex-1 overflow-hidden" ref={listContainerRef}>
               {error ? (
                 <DMErrorState error={new Error(error)} onRetry={retryAfterError} accountId={selectedAccount?.id} />
               ) : isEmpty(currentList) && !isLoading ? (

@@ -8,6 +8,7 @@ import {
   MagnifyingGlassIcon,
   NewspaperIcon,
   UserGroupIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/solid';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
@@ -87,22 +88,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       state.accounts.length === 1 && state.accounts[0].platform === AccountPlatformType.farcaster_local_readonly
   );
   const [hasFinishedOnboarding, setHasFinishedOnboarding] = useState(false);
-  const loadingMessages = [
-    'Preparing your Farcaster experience',
-    'Loading herocast',
-    "You haven't been here for a while, welcome back!",
-  ];
-  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-
-  useEffect(() => {
-    if (!isHydrated) {
-      const interval = setInterval(() => {
-        setCurrentMessageIndex((prevIndex) => (prevIndex + 1) % loadingMessages.length);
-      }, 3000); // Change message every 3 seconds
-
-      return () => clearInterval(interval);
-    }
-  }, [isHydrated]);
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -241,6 +226,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           icon: <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
         },
         {
+          name: 'DMs',
+          router: '/dms',
+          icon: <ChatBubbleLeftRightIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          shortcut: 'Shift + M',
+        },
+        {
           name: 'Lists',
           router: '/lists',
           icon: <UserGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
@@ -307,6 +298,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
       case '/channels':
         return RIGHT_SIDEBAR_ENUM.NONE;
       case '/inbox':
+        return RIGHT_SIDEBAR_ENUM.CAST_INFO;
+      case '/dms':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       case '/search':
         return RIGHT_SIDEBAR_ENUM.SEARCH;
@@ -409,8 +402,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     );
 
   return (
-    <div className="h-full bg-background">
-      <SidebarProvider>
+    <div className="h-screen bg-background overflow-hidden">
+      <SidebarProvider className="h-full">
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog as="div" className="relative z-5 lg:hidden" onClose={() => setSidebarOpen(false)}>
             <Transition.Child
@@ -483,8 +476,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </div>
           </Dialog>
         </Transition.Root>
-        <div className="container mx-auto">
-          <div className="grid grid-cols-[1fr] lg:grid-cols-[14rem_1fr]">
+        <div className="container mx-auto h-full">
+          <div className="grid grid-cols-[1fr] lg:grid-cols-[14rem_1fr] h-full">
             {/* Static sidebar for desktop */}
             {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
             <div className="hidden lg:flex lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-56 lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted">
@@ -542,18 +535,17 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-[1fr] lg:grid-cols-[1fr_16rem] relative">
+            <div className="grid grid-cols-[1fr] lg:grid-cols-[1fr_16rem] relative h-full">
               <div
                 className={
                   sidebarType === RIGHT_SIDEBAR_ENUM.NONE
-                    ? 'lg:col-span-2 w-full h-screen overflow-y-auto no-scrollbar'
-                    : 'w-full h-screen overflow-y-auto no-scrollbar border-r border-muted lg:border-r-0'
+                    ? 'lg:col-span-2 w-full h-full flex flex-col overflow-hidden'
+                    : 'w-full h-full flex flex-col overflow-hidden border-r border-muted lg:border-r-0'
                 }
-                style={{ scrollBehavior: 'auto', contain: 'layout style' }}
               >
-                {/* Sticky header */}
+                {/* Header */}
                 {!hideTitlebar && (title || headerActions) && (
-                  <div className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
+                  <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
                     <button
                       type="button"
                       className="-m-2.5 p-2.5 text-foreground lg:hidden"
@@ -579,11 +571,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     </div>
                   </div>
                 )}
-                <div className="w-full">
+                <div className="flex-1 overflow-hidden">
                   {pageRequiresHydrate && !isHydrated ? (
-                    <Loading className="ml-8" loadingMessage={loadingMessages[currentMessageIndex]} />
+                    <Loading className="ml-8" loadingMessage="Loading herocast" />
                   ) : (
-                    <div className="w-full">{children}</div>
+                    <div className="h-full">{children}</div>
                   )}
                 </div>
               </div>

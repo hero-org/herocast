@@ -1,6 +1,11 @@
 import React from 'react';
 import { MessageSquare, Users, Archive } from 'lucide-react';
-import { DMTab } from '../../../pages/dms';
+
+export enum DMTab {
+  conversations = 'conversations',
+  groups = 'groups',
+  archived = 'archived',
+}
 
 interface DMEmptyStateProps {
   activeTab: DMTab;

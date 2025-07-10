@@ -21,29 +21,14 @@ export const AnimatedMessageThread: React.FC<AnimatedMessageThreadProps> = ({
   isLoading,
   conversationKey,
 }) => {
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [currentKey, setCurrentKey] = useState(conversationKey);
-  const [displayMessages, setDisplayMessages] = useState(messages);
+  const [prevKey, setPrevKey] = useState(conversationKey);
+  const isNewConversation = conversationKey !== prevKey;
 
   useEffect(() => {
-    if (conversationKey !== currentKey) {
-      // Start transition
-      setIsTransitioning(true);
-
-      // After fade out completes, update content
-      setTimeout(() => {
-        setCurrentKey(conversationKey);
-        setDisplayMessages(messages);
-        // Start fade in after a brief pause
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 50);
-      }, 200);
-    } else {
-      // Just update messages if same conversation
-      setDisplayMessages(messages);
+    if (isNewConversation) {
+      setPrevKey(conversationKey);
     }
-  }, [conversationKey, currentKey, messages]);
+  }, [conversationKey, isNewConversation]);
 
   // Loading skeleton
   const MessageSkeleton = () => (
@@ -60,45 +45,22 @@ export const AnimatedMessageThread: React.FC<AnimatedMessageThreadProps> = ({
     </div>
   );
 
-  // Check for reduced motion preference
-  const prefersReducedMotion =
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (prefersReducedMotion) {
-    // No animations for users who prefer reduced motion
-    return (
-      <MessageThread
-        messages={displayMessages}
-        viewerFid={viewerFid}
-        onLoadMore={onLoadMore}
-        hasMore={hasMore}
-        isLoading={isLoading}
-      />
-    );
-  }
+  // Show loading skeleton only when switching conversations and no messages yet
+  const showSkeleton = isNewConversation && messages.length === 0 && isLoading;
 
   return (
     <div className="relative h-full">
-      {/* Loading skeleton overlay */}
-      <div
-        className={cn(
-          'absolute inset-0 z-10 bg-background transition-opacity duration-200',
-          isTransitioning ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}
-      >
+      {showSkeleton ? (
         <MessageSkeleton />
-      </div>
-
-      {/* Actual message thread */}
-      <div className={cn('h-full transition-opacity duration-200', isTransitioning ? 'opacity-0' : 'opacity-100')}>
+      ) : (
         <MessageThread
-          messages={displayMessages}
+          messages={messages}
           viewerFid={viewerFid}
           onLoadMore={onLoadMore}
           hasMore={hasMore}
           isLoading={isLoading}
         />
-      </div>
+      )}
     </div>
   );
 };

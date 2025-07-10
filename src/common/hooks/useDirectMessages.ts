@@ -230,12 +230,11 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
     ]
   );
 
-  // Debounced version of fetchDMs with 300ms delay
-  const fetchDMs = useDebouncedCallback(
+  // Direct fetch without debounce for instant loading
+  const fetchDMs = useCallback(
     (append: boolean = false, isRetry: boolean = false) => {
       fetchDMsInternal(append, isRetry);
     },
-    300,
     [fetchDMsInternal]
   );
 
@@ -472,12 +471,11 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
     ]
   );
 
-  // Debounced version of fetchMessages with 300ms delay
-  const fetchMessages = useDebouncedCallback(
+  // Direct fetch without debounce for instant loading
+  const fetchMessages = useCallback(
     (append: boolean = false, isRetry: boolean = false) => {
       fetchMessagesInternal(append, isRetry);
     },
-    300,
     [fetchMessagesInternal]
   );
 
@@ -503,6 +501,9 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
 
   // Fetch messages when conversation/group changes - use debounced version
   useEffect(() => {
+    // Clear messages immediately when switching conversations
+    setMessages([]);
+
     if (conversationId || groupId) {
       // Cancel any pending retries when switching conversations
       if (retryTimeoutRef.current) {
