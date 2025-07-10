@@ -214,7 +214,7 @@ const store = (set: StoreSet, get: () => DataStore) => ({
     const batchSize = 100; // Increased batch size for better efficiency
 
     // Batch fetch uncached profiles with parallel processing
-    const batchPromises = [];
+    const batchPromises: Promise<UserProfile[]>[] = [];
 
     for (let i = 0; i < uncachedFids.length; i += batchSize) {
       const batch = uncachedFids.slice(i, i + batchSize);
