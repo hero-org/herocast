@@ -346,12 +346,7 @@ Use existing shadcn Dialog components:
 ```typescript
 // src/common/components/DirectMessages/NewConversationDialog.tsx
 // Use these components:
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Command, CommandInput, CommandList, CommandItem } from '@/components/ui/command';
 
 // Copy user search logic from: pages/search/index.tsx
@@ -364,8 +359,8 @@ import { Command, CommandInput, CommandList, CommandItem } from '@/components/ui
 2. Add state for dialog: `const [showNewConversation, setShowNewConversation] = useState(false)`
 3. Add hotkey (copy existing hotkey pattern):
    ```typescript
-   useHotkeys('cmd+n,ctrl+n', () => setShowNewConversation(true), { 
-     enabled: !isNewCastModalOpen 
+   useHotkeys('cmd+n,ctrl+n', () => setShowNewConversation(true), {
+     enabled: !isNewCastModalOpen,
    });
    ```
 
@@ -378,7 +373,7 @@ Reuse existing search functionality:
 // Copy from: src/common/components/SearchInterface.tsx
 // But simplify to just user search:
 // 1. Remove filters
-// 2. Use NeynarAPIClient.searchUser() 
+// 2. Use NeynarAPIClient.searchUser()
 // 3. Show results in CommandList (like command palette)
 ```
 
@@ -389,7 +384,7 @@ In `MessageThread.tsx`, add the input at the bottom:
 ```typescript
 // At the end of the component, add:
 <div className="flex-shrink-0 border-t border-muted px-4 py-3">
-  <MessageInput 
+  <MessageInput
     onSend={handleSend}
     disabled={!hasApiKey}
     isLoading={isSending}
@@ -412,13 +407,15 @@ const sendMessage = async (text: string, conversationId?: string, recipientFid?:
     timestamp: new Date().toISOString(),
     // ... other fields
   };
-  
+
   // 2. Add to messages array immediately
-  setMessages(prev => [...prev, optimisticMessage]);
-  
+  setMessages((prev) => [...prev, optimisticMessage]);
+
   // 3. Call API
   try {
-    const result = await fetch('/api/dms/send', { /* ... */ });
+    const result = await fetch('/api/dms/send', {
+      /* ... */
+    });
     // 4. Replace optimistic message with real one
   } catch (error) {
     // 5. Mark as failed, show retry button
@@ -427,6 +424,7 @@ const sendMessage = async (text: string, conversationId?: string, recipientFid?:
 ```
 
 #### Important Files to Reference:
+
 - **For Dialog**: `/src/common/components/CommandPalette.tsx` - shows dialog + search pattern
 - **For Textarea**: `/src/common/components/NewCastModal.tsx` - shows auto-resize textarea
 - **For User Search**: `/pages/search/index.tsx` - shows user search implementation
@@ -630,12 +628,14 @@ These tests require Direct Cast API access and will be completed after allowlist
 After initial Day 6 implementation, we completed extensive UI polish based on user feedback:
 
 1. **Performance Enhancements**:
+
    - Achieved <100ms conversation switching by removing all animation delays
    - Removed 300ms debounce from message loading for instant updates
    - Messages clear immediately when switching conversations
    - Added skeleton loading to prevent showing old messages with new headers
 
 2. **UI Bug Fixes**:
+
    - Fixed "Unknown user" display by correcting property names (pfpUrl → pfp_url)
    - Fixed "55504 years ago" timestamp by handling edge cases properly
    - Fixed reversed conversation order (now shows oldest first)
@@ -645,12 +645,14 @@ After initial Day 6 implementation, we completed extensive UI polish based on us
    - Fixed text wrapping for long URLs without breaking normal text
 
 3. **Layout Improvements**:
+
    - Fixed sidebar width wiggling with fixed-width classes (w-80 lg:w-96)
    - Proper height constraints with flex layouts throughout
    - Changed home layout from overflow-y-auto to overflow-hidden
    - Added flex-1 and min-h-0 for proper content sizing
 
 4. **Right Sidebar Integration**:
+
    - Added selectedProfileFid state to useDataStore
    - Updated ShadcnRightSidebar to prioritize selectedProfileFid
    - DMs page updates selectedProfileFid when selecting conversations
@@ -683,6 +685,7 @@ The only remaining task is testing with real API access once the account is allo
 **API Endpoints Required**:
 
 1. **Send Message**: `POST /api/dms/send`
+
    ```typescript
    Request: {
      conversationId?: string,  // For existing conversations
@@ -693,9 +696,10 @@ The only remaining task is testing with real API access once the account is allo
    ```
 
 2. **Search Users**: Use existing Neynar search
+
    ```typescript
    // Reuse from search page
-   neynarClient.searchUser(query, viewerFid)
+   neynarClient.searchUser(query, viewerFid);
    ```
 
 3. **Start Conversation**: `POST /api/dms/conversation/new`
@@ -711,10 +715,12 @@ The only remaining task is testing with real API access once the account is allo
    ```
 
 **Direct Cast API Endpoints**:
+
 - Send message: `POST https://api.warpcast.com/fc/conversation-send`
 - Rate limit: 5 messages per minute per user
 
 **Component Structure**:
+
 ```
 src/common/components/DirectMessages/
 ├── MessageInput.tsx         // Reply input component (copy from NewCastModal.tsx textarea)
@@ -732,6 +738,7 @@ src/common/components/DirectMessages/
 5. **Ask questions** - the codebase has examples for everything you need
 
 **State Updates**:
+
 - Add `sendMessage` action to `useDirectMessages` hook
 - Add `pendingMessages` to local state
 - Update `conversations` list after sending

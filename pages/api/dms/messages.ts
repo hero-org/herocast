@@ -106,8 +106,8 @@ async function handleSendMessage(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (message.length > DIRECT_CAST_API.MESSAGE.MAX_LENGTH) {
-    return res.status(400).json({ 
-      error: `Message exceeds maximum length of ${DIRECT_CAST_API.MESSAGE.MAX_LENGTH} characters` 
+    return res.status(400).json({
+      error: `Message exceeds maximum length of ${DIRECT_CAST_API.MESSAGE.MAX_LENGTH} characters`,
     });
   }
 

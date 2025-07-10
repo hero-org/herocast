@@ -533,6 +533,91 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
     fetchMessages(false);
   }, [fetchMessages]);
 
+  // Send message with optimistic updates
+  const sendMessage = useCallback(
+    async (text: string, options?: { conversationId?: string; groupId?: string; recipientFid?: number }) => {
+      if (!selectedAccount?.id || !selectedAccount?.farcasterApiKey) {
+        throw new Error('No account or API key available');
+      }
+
+      // Create optimistic message
+      const optimisticMessage: DirectCastMessage = {
+        messageId: `pending-${Date.now()}`,
+        message: text,
+        senderFid: Number(selectedAccount.platformAccountId),
+        creationTimestamp: Math.floor(Date.now() / 1000),
+        isDeleted: false,
+        isProgrammatic: false,
+        // Add metadata to identify as optimistic
+        _optimistic: true,
+        _status: 'pending',
+      } as DirectCastMessage & { _optimistic: boolean; _status: 'pending' | 'sent' | 'failed' };
+
+      // Add optimistic message to the beginning (newest first)
+      setMessages((prev) => [optimisticMessage, ...prev]);
+
+      try {
+        const payload: any = { message: text };
+
+        // Use provided IDs or fall back to current conversation/group
+        if (options?.conversationId || conversationId) {
+          payload.conversationId = options?.conversationId || conversationId;
+        } else if (options?.groupId || groupId) {
+          payload.groupId = options?.groupId || groupId;
+        } else if (options?.recipientFid) {
+          payload.recipientFid = options.recipientFid;
+        } else {
+          throw new Error('No conversation, group, or recipient specified');
+        }
+
+        const response = await fetch(`/api/dms/messages?accountId=${selectedAccount.id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to send message');
+        }
+
+        const result = await response.json();
+
+        // Replace optimistic message with the real one
+        setMessages((prev) => {
+          const filtered = prev.filter((msg) => msg.messageId !== optimisticMessage.messageId);
+          // If we have a new message from the server, add it
+          if (result.message) {
+            return [result.message, ...filtered];
+          }
+          // Otherwise just remove the optimistic one and refresh will get the new message
+          return filtered;
+        });
+
+        // Refresh to ensure we have the latest messages
+        // Small delay to allow server to process
+        setTimeout(() => {
+          refresh();
+        }, 500);
+
+        return result;
+      } catch (error) {
+        // Mark optimistic message as failed
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.messageId === optimisticMessage.messageId
+              ? { ...msg, _status: 'failed' as any, _error: error instanceof Error ? error.message : 'Failed to send' }
+              : msg
+          )
+        );
+        throw error;
+      }
+    },
+    [selectedAccount, conversationId, groupId, refresh]
+  );
+
   return {
     messages,
     isLoading,
@@ -542,5 +627,6 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
     refresh,
     retryAfterError,
     retryState,
+    sendMessage,
   };
 }

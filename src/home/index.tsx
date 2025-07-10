@@ -428,7 +428,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 leaveFrom="translate-x-0"
                 leaveTo="-translate-x-full"
               >
-                <Dialog.Panel className="relative mr-2 flex w-full max-w-64 flex-1">
+                <Dialog.Panel className="relative mr-2 flex w-full max-w-40 flex-1">
                   {/* Sidebar component, swap this element with another sidebar if you like */}
                   <div className="mt-16 z-100 flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
                     <nav className="flex flex-1 flex-col divide-y divide-muted-foreground/20">
@@ -477,10 +477,10 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </Dialog>
         </Transition.Root>
         <div className="container mx-auto h-full">
-          <div className="grid grid-cols-[1fr] lg:grid-cols-[14rem_1fr] h-full">
+          <div className="grid grid-cols-[1fr] lg:grid-cols-[10rem_1fr] h-full">
             {/* Static sidebar for desktop */}
             {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-            <div className="hidden lg:flex lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-56 lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted">
+            <div className="hidden lg:flex lg:sticky lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-40 lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted">
               {/* Sidebar component, swap this element with another sidebar if you like */}
               <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-4">
                 <Link href="/post" className="flex h-16 shrink-0 items-center hover:cursor-pointer">
@@ -539,8 +539,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               <div
                 className={
                   sidebarType === RIGHT_SIDEBAR_ENUM.NONE
-                    ? 'lg:col-span-2 w-full h-full flex flex-col overflow-hidden'
-                    : 'w-full h-full flex flex-col overflow-hidden border-r border-muted lg:border-r-0'
+                    ? 'lg:col-span-2 w-full h-full flex flex-col'
+                    : 'w-full h-full flex flex-col border-r border-muted lg:border-r-0'
                 }
               >
                 {/* Header */}
@@ -571,11 +571,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     </div>
                   </div>
                 )}
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 min-h-0">
                   {pageRequiresHydrate && !isHydrated ? (
                     <Loading className="ml-8" loadingMessage="Loading herocast" />
                   ) : (
-                    <div className="h-full">{children}</div>
+                    <div className="h-full overflow-hidden">{children}</div>
                   )}
                 </div>
               </div>

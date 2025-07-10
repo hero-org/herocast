@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, RefreshCw, MessageSquare, Users, Archive, CheckCheck, Settings } from 'lucide-react';
+import { MoreHorizontal, RefreshCw, MessageSquare, Users, Archive, CheckCheck, Settings, Plus } from 'lucide-react';
 import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
 import { MessageThread, Message } from '@/common/components/DirectMessages/MessageThread';
 import { MessageSkeleton } from '@/common/components/DirectMessages/MessageSkeleton';
@@ -27,6 +27,7 @@ import { DMLoadingState } from '@/common/components/DirectMessages/DMLoadingStat
 import { DMEmptyState, DMTab } from '@/common/components/DirectMessages/DMEmptyState';
 import { DMErrorState } from '@/common/components/DirectMessages/DMErrorState';
 import { ConversationListItem } from '@/common/components/DirectMessages/ConversationListItem';
+import { NewConversationDialog } from '@/common/components/DirectMessages/NewConversationDialog';
 import { useDirectMessages, useDirectMessageThread } from '@/common/hooks/useDirectMessages';
 import { DirectCastConversation, DirectCastGroup, DirectCastMessage } from '@/common/constants/directCast';
 import { getUsernameForFid } from '@/common/helpers/farcaster';
@@ -48,6 +49,7 @@ const DirectMessages = () => {
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [previousConversationId, setPreviousConversationId] = useState<string | undefined>(undefined);
   const [isSendingMessage, setIsSendingMessage] = useState<boolean>(false);
+  const [showNewConversation, setShowNewConversation] = useState<boolean>(false);
   const listContainerRef = useRef<HTMLDivElement>(null);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
 
@@ -111,6 +113,7 @@ const DirectMessages = () => {
     loadMore: loadMoreMessages,
     hasMore,
     refresh: refreshMessages,
+    sendMessage,
   } = useDirectMessageThread(selectedConversationId, selectedGroupId);
 
   // Track conversation changes
@@ -192,47 +195,46 @@ const DirectMessages = () => {
   }, [refresh]);
 
   // Send message handler
-  const handleSendMessage = useCallback(async (message: string) => {
-    if (!selectedAccount || !selectedItem || isSendingMessage) {
-      throw new Error('Cannot send message: invalid state');
-    }
-
-    setIsSendingMessage(true);
-    
-    try {
-      const payload: any = { message };
-      
-      if ('conversationId' in selectedItem) {
-        payload.conversationId = selectedItem.conversationId;
-      } else if ('groupId' in selectedItem) {
-        payload.groupId = selectedItem.groupId;
+  const handleSendMessage = useCallback(
+    async (message: string) => {
+      if (!selectedItem || isSendingMessage) {
+        throw new Error('Cannot send message: invalid state');
       }
 
-      const response = await fetch(`/api/dms/messages?accountId=${selectedAccount.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      setIsSendingMessage(true);
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to send message');
+      try {
+        // Use the sendMessage function from the hook which handles optimistic updates
+        await sendMessage(message);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        throw error;
+      } finally {
+        setIsSendingMessage(false);
       }
+    },
+    [selectedItem, isSendingMessage, sendMessage]
+  );
 
-      const result = await response.json();
-      
-      // Refresh messages to show the new message
-      refreshMessages();
-      
-    } catch (error) {
-      console.error('Error sending message:', error);
-      throw error;
-    } finally {
-      setIsSendingMessage(false);
-    }
-  }, [selectedAccount, selectedItem, isSendingMessage, refreshMessages]);
+  // Handle starting a new conversation
+  const handleStartConversation = useCallback(
+    async (recipientFid: number, message: string) => {
+      try {
+        // Use the sendMessage function with recipientFid option
+        const result = await sendMessage(message, { recipientFid });
+
+        // Refresh conversations to show the new one
+        refresh();
+        
+        // TODO: Navigate to the new conversation
+        console.log('New conversation started:', result);
+      } catch (error) {
+        console.error('Error starting conversation:', error);
+        throw error;
+      }
+    },
+    [sendMessage, refresh]
+  );
 
   // Select/open conversation
   const onSelect = useCallback(() => {
@@ -287,13 +289,21 @@ const DirectMessages = () => {
     const profile = getProfileByFid(msg.senderFid);
 
     // Debug timestamp issues
-    console.log('Message timestamp debug:', {
-      messageId: msg.messageId,
-      creationTimestamp: msg.creationTimestamp,
-      timestampInMs: msg.creationTimestamp * 1000,
-      date: new Date(msg.creationTimestamp * 1000),
-      isoString: new Date(msg.creationTimestamp * 1000).toISOString(),
-    });
+    if (msg.creationTimestamp) {
+      console.log('Message timestamp debug:', {
+        messageId: msg.messageId,
+        creationTimestamp: msg.creationTimestamp,
+        timestampInMs: msg.creationTimestamp * 1000,
+        date: new Date(msg.creationTimestamp * 1000),
+        isoString: new Date(msg.creationTimestamp * 1000).toISOString(),
+      });
+    } else {
+      console.log('Message has no timestamp:', {
+        messageId: msg.messageId,
+        creationTimestamp: msg.creationTimestamp,
+        message: msg,
+      });
+    }
 
     // Handle edge cases for timestamp
     let timestamp: string;
@@ -320,6 +330,10 @@ const DirectMessages = () => {
       timestamp,
       isRead: true, // API doesn't provide read status, so we assume all are read
       isDeleted: msg.isDeleted,
+      // Include optimistic message properties if they exist
+      _optimistic: (msg as any)._optimistic,
+      _status: (msg as any)._status,
+      _error: (msg as any)._error,
     };
   });
 
@@ -380,6 +394,18 @@ const DirectMessages = () => {
     [onSelect]
   );
 
+  useHotkeys(
+    'cmd+n,ctrl+n',
+    () => setShowNewConversation(true),
+    {
+      enabled: !isNewCastModalOpen && activeTab === DMTab.conversations,
+      enableOnFormTags: false,
+      preventDefault: true,
+      enableOnContentEditable: false,
+    },
+    [activeTab]
+  );
+
   // Render conversation/group row
   const renderDMRow = (item: DirectCastConversation | DirectCastGroup, idx: number) => {
     const handleClick = () => {
@@ -429,7 +455,7 @@ const DirectMessages = () => {
     }
 
     return (
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <div className="px-4 py-3 border-b border-muted/50 bg-muted/30 transition-all duration-50">
           <div className="flex items-center gap-3">
@@ -463,7 +489,7 @@ const DirectMessages = () => {
         </div>
 
         {/* Messages area */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex min-h-0">
           {(isConversationChanging || messagesLoading) && messages.length === 0 ? (
             <MessageSkeleton />
           ) : (
@@ -503,7 +529,7 @@ const DirectMessages = () => {
 
   return (
     <DMErrorBoundary>
-      <div className="flex flex-col h-screen bg-background overflow-hidden">
+      <div className="flex flex-col h-full bg-background">
         {/* Header */}
         <div className="border-b border-muted px-4 py-3 flex-shrink-0">
           <Tabs value={activeTab} onValueChange={(value) => changeTab(value as DMTab)}>
@@ -522,6 +548,17 @@ const DirectMessages = () => {
                   Archived
                 </TabsTrigger>
               </TabsList>
+              <KeyboardShortcutTooltip keys="cmd+n">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-shrink-0 px-2 mr-1"
+                  onClick={() => setShowNewConversation(true)}
+                  disabled={activeTab !== DMTab.conversations}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </KeyboardShortcutTooltip>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="flex-shrink-0 px-2">
@@ -560,10 +597,10 @@ const DirectMessages = () => {
         </div>
 
         {/* Main content */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 min-h-0">
           {/* DMs list - fixed width sidebar */}
-          <div className="w-80 lg:w-96 flex-shrink-0 flex flex-col relative border-r border-muted">
-            <div className="flex-1 overflow-hidden" ref={listContainerRef}>
+          <div className="w-56 lg:w-64 flex-shrink-0 flex flex-col relative border-r border-muted">
+            <div className="flex-1 overflow-y-auto" ref={listContainerRef}>
               {error ? (
                 <DMErrorState error={new Error(error)} onRetry={retryAfterError} accountId={selectedAccount?.id} />
               ) : isEmpty(currentList) && !isLoading ? (
@@ -596,6 +633,14 @@ const DirectMessages = () => {
           {renderSelectedDMDetail()}
         </div>
       </div>
+      
+      <NewConversationDialog
+        open={showNewConversation}
+        onOpenChange={setShowNewConversation}
+        onStartConversation={handleStartConversation}
+        viewerFid={viewerFid}
+        isLoading={isSendingMessage}
+      />
     </DMErrorBoundary>
   );
 };

@@ -27,7 +27,7 @@ export function MessageInput({
     const value = e.target.value;
     if (value.length <= MAX_CHAR_LIMIT) {
       setMessage(value);
-      
+
       // Auto-resize logic
       const textarea = e.target;
       textarea.style.height = 'auto';
@@ -41,7 +41,7 @@ export function MessageInput({
     try {
       await onSend(message.trim());
       setMessage('');
-      
+
       // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -51,16 +51,8 @@ export function MessageInput({
     }
   }, [message, onSend, isLoading, disabled]);
 
-  // Keyboard shortcut for sending
-  useHotkeys(
-    'cmd+enter,ctrl+enter',
-    handleSubmit,
-    {
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-    },
-    [handleSubmit]
-  );
+  // Removed global hotkey registration to prevent conflicts
+  // The onKeyDown handler on the textarea already handles Cmd+Enter
 
   const remainingChars = MAX_CHAR_LIMIT - message.length;
   const isNearLimit = remainingChars < 50;
@@ -90,19 +82,14 @@ export function MessageInput({
         )}
         rows={1}
       />
-      
+
       <div className="absolute bottom-2 right-2 flex items-center gap-2">
         {message.length > 0 && (
-          <span
-            className={cn(
-              'text-xs',
-              isNearLimit ? 'text-destructive' : 'text-muted-foreground'
-            )}
-          >
+          <span className={cn('text-xs', isNearLimit ? 'text-destructive' : 'text-muted-foreground')}>
             {remainingChars}
           </span>
         )}
-        
+
         <Button
           size="sm"
           variant="ghost"
@@ -110,19 +97,11 @@ export function MessageInput({
           disabled={!message.trim() || isLoading || disabled}
           className="h-8 w-8 p-0"
         >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
       </div>
-      
-      {message.length > 0 && (
-        <div className="text-xs text-muted-foreground mt-1">
-          Press Cmd+Enter to send
-        </div>
-      )}
+
+      {message.length > 0 && <div className="text-xs text-muted-foreground mt-1">Press Cmd+Enter to send</div>}
     </div>
   );
 }
