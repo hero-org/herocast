@@ -6,6 +6,7 @@ import { ChevronDown, MessageSquareOff } from 'lucide-react';
 import { DMErrorBoundary } from './DMErrorBoundary';
 import { useSmoothScroll } from '@/common/hooks/useSmoothScroll';
 import ProfileHoverCard from './ProfileHoverCard';
+import { MessageInput } from './MessageInput';
 
 export interface Message {
   id: string;
@@ -25,6 +26,9 @@ interface MessageThreadProps {
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoading?: boolean;
+  onSendMessage?: (message: string) => Promise<void>;
+  isSending?: boolean;
+  isReadOnly?: boolean;
 }
 
 import { MessageBubble } from './MessageBubble';
@@ -35,6 +39,9 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
   onLoadMore,
   hasMore = false,
   isLoading = false,
+  onSendMessage,
+  isSending = false,
+  isReadOnly = false,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -189,11 +196,20 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area placeholder */}
+      {/* Input area */}
       <div className="flex-shrink-0 border-t border-muted px-4 py-3 bg-background">
-        <div className="bg-muted rounded-lg px-4 py-3 text-foreground/60 text-sm text-center">
-          Read-only mode - Sending messages coming soon
-        </div>
+        {isReadOnly ? (
+          <div className="bg-muted rounded-lg px-4 py-3 text-foreground/60 text-sm text-center">
+            Read-only mode
+          </div>
+        ) : (
+          <MessageInput
+            onSend={onSendMessage || (async () => {})}
+            disabled={!onSendMessage}
+            isLoading={isSending}
+            placeholder={onSendMessage ? "Type a message..." : "Sending messages coming soon"}
+          />
+        )}
       </div>
     </div>
   );

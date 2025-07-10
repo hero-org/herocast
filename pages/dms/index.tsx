@@ -47,6 +47,7 @@ const DirectMessages = () => {
   const [selectedDMIdx, setSelectedDMIdx] = useState<number>(0);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [previousConversationId, setPreviousConversationId] = useState<string | undefined>(undefined);
+  const [isSendingMessage, setIsSendingMessage] = useState<boolean>(false);
   const listContainerRef = useRef<HTMLDivElement>(null);
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
 
@@ -109,6 +110,7 @@ const DirectMessages = () => {
     isLoading: messagesLoading,
     loadMore: loadMoreMessages,
     hasMore,
+    refresh: refreshMessages,
   } = useDirectMessageThread(selectedConversationId, selectedGroupId);
 
   // Track conversation changes
@@ -188,6 +190,49 @@ const DirectMessages = () => {
   const refreshDMs = useCallback(() => {
     refresh();
   }, [refresh]);
+
+  // Send message handler
+  const handleSendMessage = useCallback(async (message: string) => {
+    if (!selectedAccount || !selectedItem || isSendingMessage) {
+      throw new Error('Cannot send message: invalid state');
+    }
+
+    setIsSendingMessage(true);
+    
+    try {
+      const payload: any = { message };
+      
+      if ('conversationId' in selectedItem) {
+        payload.conversationId = selectedItem.conversationId;
+      } else if ('groupId' in selectedItem) {
+        payload.groupId = selectedItem.groupId;
+      }
+
+      const response = await fetch(`/api/dms/messages?accountId=${selectedAccount.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to send message');
+      }
+
+      const result = await response.json();
+      
+      // Refresh messages to show the new message
+      refreshMessages();
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    } finally {
+      setIsSendingMessage(false);
+    }
+  }, [selectedAccount, selectedItem, isSendingMessage, refreshMessages]);
 
   // Select/open conversation
   const onSelect = useCallback(() => {
@@ -428,6 +473,9 @@ const DirectMessages = () => {
               onLoadMore={loadMoreMessages}
               hasMore={hasMore}
               isLoading={messagesLoading}
+              onSendMessage={handleSendMessage}
+              isSending={isSendingMessage}
+              isReadOnly={false}
             />
           )}
         </div>

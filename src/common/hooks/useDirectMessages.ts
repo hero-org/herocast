@@ -527,12 +527,19 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
     };
   }, []);
 
+  // Refresh messages (non-append, non-retry)
+  const refresh = useCallback(() => {
+    setCursor(null);
+    fetchMessages(false);
+  }, [fetchMessages]);
+
   return {
     messages,
     isLoading,
     error,
     hasMore,
     loadMore,
+    refresh,
     retryAfterError,
     retryState,
   };
