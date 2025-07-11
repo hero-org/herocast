@@ -235,7 +235,7 @@ const DirectMessages = () => {
 
         // Close dialog on success
         setShowNewConversation(false);
-        
+
         toast.success('Conversation started');
       } catch (error) {
         console.error('Error starting conversation:', error);

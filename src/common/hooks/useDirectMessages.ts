@@ -513,7 +513,7 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
       setCursor(null);
       fetchMessages(false);
     }
-    
+
     // Cleanup function to remove any pending optimistic messages when switching conversations
     return () => {
       setMessages((prev) => prev.filter((msg) => !(msg as any)._optimistic || (msg as any)._status !== 'pending'));
@@ -561,11 +561,13 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
       // Store the current conversation/group ID to validate later
       const currentConversationId = options?.conversationId || conversationId;
       const currentGroupId = options?.groupId || groupId;
-      
+
       // Only add optimistic message if we're still in the same conversation
-      if ((currentConversationId && currentConversationId === conversationId) || 
-          (currentGroupId && currentGroupId === groupId) ||
-          options?.recipientFid) {
+      if (
+        (currentConversationId && currentConversationId === conversationId) ||
+        (currentGroupId && currentGroupId === groupId) ||
+        options?.recipientFid
+      ) {
         setMessages((prev) => [optimisticMessage, ...prev]);
       }
 
@@ -599,8 +601,10 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
         const result = await response.json();
 
         // Only update messages if we're still in the same conversation
-        if ((currentConversationId && currentConversationId === conversationId) || 
-            (currentGroupId && currentGroupId === groupId)) {
+        if (
+          (currentConversationId && currentConversationId === conversationId) ||
+          (currentGroupId && currentGroupId === groupId)
+        ) {
           setMessages((prev) => {
             const filtered = prev.filter((msg) => msg.messageId !== optimisticMessage.messageId);
             // If we have a new message from the server, add it
@@ -621,12 +625,18 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
         return result;
       } catch (error) {
         // Only mark as failed if we're still in the same conversation
-        if ((currentConversationId && currentConversationId === conversationId) || 
-            (currentGroupId && currentGroupId === groupId)) {
+        if (
+          (currentConversationId && currentConversationId === conversationId) ||
+          (currentGroupId && currentGroupId === groupId)
+        ) {
           setMessages((prev) =>
             prev.map((msg) =>
               msg.messageId === optimisticMessage.messageId
-                ? { ...msg, _status: 'failed' as any, _error: error instanceof Error ? error.message : 'Failed to send' }
+                ? {
+                    ...msg,
+                    _status: 'failed' as any,
+                    _error: error instanceof Error ? error.message : 'Failed to send',
+                  }
                 : msg
             )
           );
