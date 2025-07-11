@@ -81,7 +81,7 @@ export function QuickListManageDialog({
       // Process all pending changes
       for (const [listId, shouldBeInList] of pendingChanges.entries()) {
         const isCurrentlyInList = userLists.has(listId);
-        
+
         if (shouldBeInList && !isCurrentlyInList) {
           // Add to list
           const success = await addFidToList(listId, authorFid, authorDisplayName);
@@ -133,9 +133,7 @@ export function QuickListManageDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Manage Lists</DialogTitle>
-          <DialogDescription>
-            Add or remove @{authorUsername} from your lists
-          </DialogDescription>
+          <DialogDescription>Add or remove @{authorUsername} from your lists</DialogDescription>
         </DialogHeader>
 
         {/* Author info */}
