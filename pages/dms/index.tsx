@@ -39,6 +39,7 @@ import {
   truncateText,
   getAvatarFallback,
 } from '@/common/helpers/dmProfiles';
+import { toast } from 'sonner';
 
 const DirectMessages = () => {
   const router = useRouter();
@@ -208,7 +209,13 @@ const DirectMessages = () => {
         await sendMessage(message);
       } catch (error) {
         console.error('Error sending message:', error);
-        throw error;
+        toast.error('Failed to send message', {
+          description: error instanceof Error ? error.message : 'Please try again',
+          action: {
+            label: 'Retry',
+            onClick: () => handleSendMessage(message),
+          },
+        });
       } finally {
         setIsSendingMessage(false);
       }
@@ -226,11 +233,16 @@ const DirectMessages = () => {
         // Refresh conversations to show the new one
         refresh();
 
-        // TODO: Navigate to the new conversation
-        console.log('New conversation started:', result);
+        // Close dialog on success
+        setShowNewConversation(false);
+        
+        toast.success('Conversation started');
       } catch (error) {
         console.error('Error starting conversation:', error);
-        throw error;
+        toast.error('Failed to start conversation', {
+          description: error instanceof Error ? error.message : 'Please try again',
+        });
+        // Don't close dialog on error, let user retry
       }
     },
     [sendMessage, refresh]

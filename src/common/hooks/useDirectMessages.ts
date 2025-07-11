@@ -513,6 +513,11 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
       setCursor(null);
       fetchMessages(false);
     }
+    
+    // Cleanup function to remove any pending optimistic messages when switching conversations
+    return () => {
+      setMessages((prev) => prev.filter((msg) => !(msg as any)._optimistic || (msg as any)._status !== 'pending'));
+    };
   }, [conversationId, groupId, selectedAccount?.id, selectedAccount?.farcasterApiKey]);
 
   // Cleanup on unmount
@@ -553,8 +558,16 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
         _status: 'pending',
       } as DirectCastMessage & { _optimistic: boolean; _status: 'pending' | 'sent' | 'failed' };
 
-      // Add optimistic message to the beginning (newest first)
-      setMessages((prev) => [optimisticMessage, ...prev]);
+      // Store the current conversation/group ID to validate later
+      const currentConversationId = options?.conversationId || conversationId;
+      const currentGroupId = options?.groupId || groupId;
+      
+      // Only add optimistic message if we're still in the same conversation
+      if ((currentConversationId && currentConversationId === conversationId) || 
+          (currentGroupId && currentGroupId === groupId) ||
+          options?.recipientFid) {
+        setMessages((prev) => [optimisticMessage, ...prev]);
+      }
 
       try {
         const payload: any = { message: text };
@@ -585,16 +598,19 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
 
         const result = await response.json();
 
-        // Replace optimistic message with the real one
-        setMessages((prev) => {
-          const filtered = prev.filter((msg) => msg.messageId !== optimisticMessage.messageId);
-          // If we have a new message from the server, add it
-          if (result.message) {
-            return [result.message, ...filtered];
-          }
-          // Otherwise just remove the optimistic one and refresh will get the new message
-          return filtered;
-        });
+        // Only update messages if we're still in the same conversation
+        if ((currentConversationId && currentConversationId === conversationId) || 
+            (currentGroupId && currentGroupId === groupId)) {
+          setMessages((prev) => {
+            const filtered = prev.filter((msg) => msg.messageId !== optimisticMessage.messageId);
+            // If we have a new message from the server, add it
+            if (result.message) {
+              return [result.message, ...filtered];
+            }
+            // Otherwise just remove the optimistic one and refresh will get the new message
+            return filtered;
+          });
+        }
 
         // Refresh to ensure we have the latest messages
         // Small delay to allow server to process
@@ -604,14 +620,17 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
 
         return result;
       } catch (error) {
-        // Mark optimistic message as failed
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.messageId === optimisticMessage.messageId
-              ? { ...msg, _status: 'failed' as any, _error: error instanceof Error ? error.message : 'Failed to send' }
-              : msg
-          )
-        );
+        // Only mark as failed if we're still in the same conversation
+        if ((currentConversationId && currentConversationId === conversationId) || 
+            (currentGroupId && currentGroupId === groupId)) {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.messageId === optimisticMessage.messageId
+                ? { ...msg, _status: 'failed' as any, _error: error instanceof Error ? error.message : 'Failed to send' }
+                : msg
+            )
+          );
+        }
         throw error;
       }
     },

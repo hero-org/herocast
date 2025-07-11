@@ -42,11 +42,11 @@ export function NewConversationDialog({
       try {
         setError(null);
         await onStartConversation(selectedUser.fid, message);
-        // Close dialog on success
-        onOpenChange(false);
-        // Reset state
+        // Dialog will be closed by the parent component on success
+        // Reset selected user for next time
         setSelectedUser(null);
       } catch (err) {
+        // Error will be shown as toast by parent, just show inline error too
         setError(err instanceof Error ? err.message : 'Failed to start conversation');
       }
     },
