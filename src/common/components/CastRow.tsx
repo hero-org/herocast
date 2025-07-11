@@ -69,6 +69,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getProfile } from '../helpers/profileUtils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { QuickListManageDialog } from './QuickListManageDialog';
 
 // Register linkify plugins once globally to avoid hot reload warnings
 if (typeof window !== 'undefined' && !window.__linkify_plugins_registered) {
@@ -223,6 +224,7 @@ const CastRowComponent = ({
 
   const [didLike, setDidLike] = useState(false);
   const [didRecast, setDidRecast] = useState(false);
+  const [isListDialogOpen, setIsListDialogOpen] = useState(false);
 
   const selectedAccount = accounts[selectedAccountIdx];
   const userFid = Number(selectedAccount?.platformAccountId);
@@ -426,6 +428,21 @@ const CastRowComponent = ({
       enabled: isSelected,
     },
     [isSelected, reactions, onClickReaction]
+  );
+
+  // Hotkey for managing lists
+  useAppHotkeys(
+    'm',
+    () => {
+      if (isSelected && 'author' in cast && cast.author.fid) {
+        setIsListDialogOpen(true);
+      }
+    },
+    {
+      scopes: [HotkeyScopes.CAST_SELECTED],
+      enabled: isSelected && 'author' in cast && !!cast.author.fid,
+    },
+    [isSelected, cast]
   );
 
   const renderReaction = (key: CastReactionType, isActive: boolean, count?: number | string, icon?: JSX.Element) => {
@@ -846,7 +863,21 @@ const CastRowComponent = ({
     );
   }
 
-  return renderCastContent();
+  return (
+    <>
+      {renderCastContent()}
+      {'author' in cast && cast.author.fid && (
+        <QuickListManageDialog
+          open={isListDialogOpen}
+          onOpenChange={setIsListDialogOpen}
+          authorFid={cast.author.fid.toString()}
+          authorUsername={cast.author.username || 'unknown'}
+          authorDisplayName={cast.author.display_name || cast.author.username || 'Unknown'}
+          authorAvatar={cast.author.pfp_url}
+        />
+      )}
+    </>
+  );
 };
 
 export const CastRow = React.memo(CastRowComponent, (prevProps, nextProps) => {

@@ -147,6 +147,15 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     scopes: [HotkeyScopes.CAST_SELECTED],
     icon: ChatBubbleLeftIcon,
   },
+  {
+    id: 'manage-lists',
+    keys: 'm',
+    name: 'Manage Lists',
+    description: 'Add/remove author from lists',
+    category: hotkeyCategories.actions,
+    scopes: [HotkeyScopes.CAST_SELECTED],
+    icon: UserCircleIcon,
+  },
 
   // Post Actions
   {

@@ -119,6 +119,47 @@ All stores use mutative for immutable updates and have different persistence str
 - Focus on utility function testing
 - Use `@jest/globals` for test setup
 
+## Feed Architecture
+
+### Feed Types
+
+The application supports multiple feed types through a unified feed system:
+
+- **Custom Channels**: `CUSTOM_CHANNELS` enum defines special feeds
+  - `FOLLOWING` - User's following feed
+  - `TRENDING` - Global trending feed
+- **Channel Feeds**: User-subscribed Farcaster channels
+- **List Feeds**: Custom lists with different content types
+  - **Search Lists**: Keyword-based feeds with filters
+  - **FID Lists**: Curated lists of specific users
+  - **Auto-interaction Lists**: Automated engagement lists
+
+### Feed Implementation
+
+- **Main Feed Component**: `pages/feeds/index.tsx`
+  - Manages feed state using `FeedKeyToFeed` mapping
+  - Supports pagination with cursor-based loading
+  - Handles different feed sources (Neynar API, custom lists, search)
+  - Implements auto-refresh on visibility change
+
+### Feed Components
+
+- **CastRow**: Individual cast rendering with interactions
+- **CastThreadView**: Threaded conversation view
+- **SelectableListWithHotkeys**: Keyboard navigation for feed items
+
+### List System
+
+- **List Types**: Defined in `src/common/types/list.types.ts`
+  - `SearchListContent`: Search term + filters
+  - `FidListContent`: Array of user FIDs
+  - `AutoInteractionListContent`: Automated actions configuration
+- **List Store**: `useListStore` manages all list operations
+- **List Components**:
+  - `ListsOverview`: Sidebar list navigation
+  - `SearchListsView`: Search list management
+  - `UserListsView`: FID list management
+
 ## Deployment
 
 - Vercel for web deployment

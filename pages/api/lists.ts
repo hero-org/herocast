@@ -44,8 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Convert string FIDs to numbers
     const fids = fidListContent.fids.map((fid) => parseInt(fid, 10));
-    console.log('fidListContent', fidListContent);
-    console.log('fids', fids);
     // Fetch feed from Neynar API using fetch
     const limitValue = typeof limit === 'string' ? parseInt(limit, 10) : limit;
 
