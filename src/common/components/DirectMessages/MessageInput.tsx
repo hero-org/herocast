@@ -11,6 +11,7 @@ interface MessageInputProps {
   disabled?: boolean;
   isLoading?: boolean;
   placeholder?: string;
+  autoFocus?: boolean;
 }
 
 const MAX_CHAR_LIMIT = 320;
@@ -20,6 +21,7 @@ export function MessageInput({
   disabled = false,
   isLoading = false,
   placeholder = 'Type a message...',
+  autoFocus = false,
 }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -70,12 +72,17 @@ export function MessageInput({
         onChange={handleTextareaChange}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-            e.preventDefault();
-            handleSubmit();
+            // Only handle if this textarea is currently focused
+            if (document.activeElement === e.currentTarget) {
+              e.preventDefault();
+              e.stopPropagation(); // Prevent event from bubbling to other components
+              handleSubmit();
+            }
           }
         }}
         placeholder={placeholder}
         disabled={disabled || isLoading}
+        autoFocus={autoFocus}
         className={cn(
           'resize-none overflow-hidden min-h-[40px] max-h-[200px] pr-24',
           'focus:ring-1 focus:ring-ring',

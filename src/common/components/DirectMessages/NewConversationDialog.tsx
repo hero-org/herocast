@@ -116,6 +116,7 @@ export function NewConversationDialog({
                 disabled={isLoading}
                 isLoading={isLoading}
                 placeholder={`Send a message to ${selectedUser.display_name}...`}
+                autoFocus
               />
             </div>
           )}
