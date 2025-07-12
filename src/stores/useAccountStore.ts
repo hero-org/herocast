@@ -78,6 +78,7 @@ export type AccountObjectType = {
   data?: { deeplinkUrl?: string; signerToken?: string; deadline?: number };
   channels: AccountChannelType[];
   user?: User;
+  farcasterApiKey?: string; // Only available in memory, never persisted to IndexedDB
 };
 
 interface AccountStoreProps {
@@ -107,6 +108,9 @@ interface AccountStoreActions {
   resetStore: () => void;
   addPinnedChannel: (channel: ChannelType) => void;
   removePinnedChannel: (channel: ChannelType) => void;
+  updateAccountProperty: (accountId: UUID, property: keyof AccountObjectType, value: any) => void;
+  loadFarcasterApiKey: (accountId: UUID) => Promise<void>;
+  updateAccountDisplayOrder: ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => void;
 }
 
 export interface AccountStore extends AccountStoreProps, AccountStoreActions {}
@@ -146,6 +150,17 @@ const store = (set: StoreSet) => ({
       return;
     } else {
       console.log('adding account to DB', account);
+
+      // Get the current max display_order for this user
+      const { data: maxOrderData } = await supabaseClient
+        .from('accounts')
+        .select('display_order')
+        .eq('user_id', (await supabaseClient.auth.getUser()).data.user?.id)
+        .order('display_order', { ascending: false })
+        .limit(1);
+
+      const nextDisplayOrder = maxOrderData && maxOrderData[0]?.display_order ? maxOrderData[0].display_order + 1 : 1;
+
       await supabaseClient
         .from('accounts')
         .insert({
@@ -155,6 +170,7 @@ const store = (set: StoreSet) => ({
           platform: account.platform,
           data: account.data || {},
           private_key: account.privateKey,
+          display_order: nextDisplayOrder,
         })
         .select()
         .then(({ error, data }) => {
@@ -446,6 +462,111 @@ const store = (set: StoreSet) => ({
     });
 
     console.log('done hydrating complete 🌊 full functionality ready');
+  },
+  updateAccountProperty: (accountId: UUID, property: keyof AccountObjectType, value: any) => {
+    set((state) => {
+      const accountIdx = state.accounts.findIndex((acc) => acc.id === accountId);
+      if (accountIdx !== -1) {
+        state.accounts[accountIdx][property] = value;
+      }
+    });
+  },
+  loadFarcasterApiKey: async (accountId: UUID) => {
+    console.log('[loadFarcasterApiKey Debug] Starting load for account:', accountId);
+    try {
+      // First get the current user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabaseClient.auth.getUser();
+      console.log('[loadFarcasterApiKey Debug] Auth user:', {
+        userId: user?.id,
+        email: user?.email,
+        error: userError,
+      });
+
+      if (!user) {
+        console.error('[loadFarcasterApiKey Debug] No authenticated user found');
+        return;
+      }
+
+      console.log('[loadFarcasterApiKey Debug] Querying decrypted_dm_accounts...');
+      const { data, error } = await supabaseClient
+        .from('decrypted_dm_accounts')
+        .select('decrypted_farcaster_api_key')
+        .eq('id', accountId)
+        .eq('user_id', user.id)
+        .single();
+
+      console.log('[loadFarcasterApiKey Debug] Query result:', {
+        hasData: !!data,
+        hasApiKey: !!data?.decrypted_farcaster_api_key,
+        error: error,
+      });
+
+      if (!error && data?.decrypted_farcaster_api_key) {
+        set((state) => {
+          const accountIdx = state.accounts.findIndex((acc) => acc.id === accountId);
+          if (accountIdx !== -1) {
+            state.accounts[accountIdx].farcasterApiKey = data.decrypted_farcaster_api_key;
+            console.log('[loadFarcasterApiKey Debug] Successfully set API key for account index:', accountIdx);
+          } else {
+            console.error('[loadFarcasterApiKey Debug] Account not found in state:', accountId);
+          }
+        });
+      } else if (error) {
+        console.error('[loadFarcasterApiKey Debug] Error loading Farcaster API key:', error);
+      } else {
+        console.error('[loadFarcasterApiKey Debug] No API key found in response');
+      }
+    } catch (err) {
+      console.error('[loadFarcasterApiKey Debug] Caught error:', err);
+    }
+  },
+  updateAccountDisplayOrder: ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
+    set((state) => {
+      const accounts = [...state.accounts];
+      const [movedAccount] = accounts.splice(oldIndex, 1);
+      accounts.splice(newIndex, 0, movedAccount);
+
+      // Update local state immediately for optimistic UI
+      state.accounts = accounts;
+
+      // Update selectedAccountIdx if needed
+      if (state.selectedAccountIdx === oldIndex) {
+        state.selectedAccountIdx = newIndex;
+      } else if (oldIndex < state.selectedAccountIdx && newIndex >= state.selectedAccountIdx) {
+        state.selectedAccountIdx -= 1;
+      } else if (oldIndex > state.selectedAccountIdx && newIndex <= state.selectedAccountIdx) {
+        state.selectedAccountIdx += 1;
+      }
+
+      // Update display_order in database asynchronously
+      const updates = [];
+      for (let i = Math.min(oldIndex, newIndex); i <= Math.max(oldIndex, newIndex); i++) {
+        const account = accounts[i];
+        const newDisplayOrder = i + 1; // 1-indexed for database
+
+        if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
+          updates.push(
+            supabaseClient
+              .from('accounts')
+              .update({ display_order: newDisplayOrder })
+              .eq('id', account.id)
+              .then(({ error }) => {
+                if (error) {
+                  console.error('Failed to update account display order:', account.id, error);
+                }
+              })
+          );
+        }
+      }
+
+      // Execute all updates in background
+      Promise.all(updates).catch((error) => {
+        console.error('Error updating account display orders:', error);
+      });
+    });
   },
 });
 

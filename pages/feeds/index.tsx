@@ -95,7 +95,7 @@ export default function Feeds() {
   const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated, setSelectedChannelUrl } = useAccountStore();
   const router = useRouter();
 
-  const { selectedCast, updateSelectedCast } = useDataStore();
+  const { selectedCast, updateSelectedCast, updateSelectedProfileFid } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
   // Handle URL query parameter for channel switching
@@ -111,9 +111,10 @@ export default function Feeds() {
   }, [router.query.channel, setSelectedChannelUrl]);
 
   useEffect(() => {
-    // if navigating away, reset the selected cast
+    // if navigating away, reset the selected cast and profile
     return () => {
       updateSelectedCast();
+      updateSelectedProfileFid();
       setSelectedListId();
     };
   }, []);
@@ -194,10 +195,13 @@ export default function Feeds() {
   useEffect(() => {
     if (selectedCastIdx === -1) {
       updateSelectedCast();
+      updateSelectedProfileFid();
     } else if (!isEmpty(casts)) {
       updateSelectedCast(casts[selectedCastIdx]);
+      // Clear selectedProfileFid when selecting a cast (sidebar will use cast author)
+      updateSelectedProfileFid();
     }
-  }, [selectedCastIdx, selectedChannelUrl, casts, updateSelectedCast]);
+  }, [selectedCastIdx, selectedChannelUrl, casts, updateSelectedCast, updateSelectedProfileFid]);
 
   useEffect(() => {
     if (account && inView && nextCursor) {

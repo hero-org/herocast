@@ -52,7 +52,7 @@ const ShadcnRightSidebar = ({
   const [isChannelsOpen, setIsChannelsOpen] = useState(true);
   const router = useRouter();
   const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
-  const { selectedCast } = useDataStore();
+  const { selectedCast, selectedProfileFid } = useDataStore();
   const selectedAccount = accounts[selectedAccountIdx];
   const hasAccounts = !isEmpty(accounts);
 
@@ -73,13 +73,24 @@ const ShadcnRightSidebar = ({
   const renderUserHeader = () => {
     if (!showAuthorInfo || !hasAccounts) return null;
 
-    // Show cast author if different from current user, otherwise show current user
-    const shouldShowAuthor =
+    // Priority: selectedProfileFid > selectedCast author > current user
+    let fid: number | undefined;
+
+    if (selectedProfileFid) {
+      // Use explicitly selected profile (e.g., from DMs)
+      fid = selectedProfileFid;
+    } else if (
       selectedCast &&
       selectedAccount?.platformAccountId &&
-      selectedAccount?.platformAccountId !== selectedCast.author.fid.toString();
+      selectedAccount.platformAccountId !== selectedCast.author.fid.toString()
+    ) {
+      // Use cast author if different from current user
+      fid = selectedCast.author.fid;
+    } else {
+      // Fall back to current user
+      fid = Number(selectedAccount?.platformAccountId);
+    }
 
-    const fid = shouldShowAuthor ? selectedCast.author.fid : Number(selectedAccount?.platformAccountId);
     const viewerFid = Number(selectedAccount?.platformAccountId);
 
     if (!fid || !viewerFid) return null;
