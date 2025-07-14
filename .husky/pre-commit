@@ -1,2 +1,2 @@
-yarn lint:fix
-yarn format
+pnpm lint:fix
+pnpm format
