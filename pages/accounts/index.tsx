@@ -210,44 +210,41 @@ export default function Accounts() {
     if (isEmpty(pendingAccounts)) return null;
 
     return (
-      <div className="grid grid-cols-1 gap-4">
-        <div className="h-fit">
-          <Card className="bg-background text-foreground">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Sign in with Warpcast</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Pay with Warps in Warpcast to connect with herocast
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <span>Scan the QR code with your mobile camera app to sign in via Warpcast.</span>
-              <QrCode
-                deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
-              />
-            </CardContent>
-          </Card>
-        </div>
-        <div className="relative mx-4">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="w-full border-t border-gray-300" />
+      <Card className="bg-background text-foreground">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">Sign in with Farcaster</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Pay with Warps in Farcaster app to connect with herocast
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <QrCode
+              deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
+            />
           </div>
-          <div className="relative flex justify-center">
-            <span className="bg-background px-2 text-sm text-foreground/80">OR</span>
-          </div>
-        </div>
-        <Card className="bg-background text-foreground">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Sign in with Web3 wallet</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Pay with ETH on Optimism to connect with herocast
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount!} /> : <SwitchWalletButton />}
-          </CardContent>
-          <CardFooter></CardFooter>
-        </Card>
-      </div>
+
+          <details className="group">
+            <summary className="cursor-pointer flex items-center justify-center text-sm text-muted-foreground hover:text-foreground">
+              <span className="flex items-center gap-2">
+                <span>Pay with ETH instead</span>
+                <svg
+                  className="w-4 h-4 transition-transform group-open:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </summary>
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-sm text-muted-foreground mb-3">Pay with ETH on Optimism to connect</p>
+              {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount!} /> : <SwitchWalletButton />}
+            </div>
+          </details>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -300,19 +297,16 @@ export default function Accounts() {
     const hasMultipleAccounts = accounts.length > 1;
 
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="space-y-6">
         {/* Header with actions */}
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold">Farcaster Accounts</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {accounts.length === 0
-                ? 'Connect your Farcaster account to start casting'
-                : hasMultipleAccounts
-                  ? 'Drag to reorder accounts and update hotkey assignments'
-                  : 'Connect more accounts to switch between them with hotkeys'}
-            </p>
-          </div>
+        <div className="flex justify-between items-center">
+          <Button
+            onClick={() => onCreateNewAccount()}
+            disabled={isLoading || signupState === SignupStateEnum.connecting}
+          >
+            <UserPlusIcon className="mr-2 h-4 w-4" />
+            Connect New Account
+          </Button>
           {accounts.length > 0 && (
             <Button variant="outline" size="sm" disabled={isLoading} onClick={() => refreshAccountNames()}>
               <ArrowPathIcon className={cn(isLoading && 'animate-spin', 'mr-2 h-4 w-4')} />
@@ -323,19 +317,6 @@ export default function Accounts() {
 
         {/* Main content area */}
         <div className="space-y-6">
-          {/* Connect account button - always visible at top */}
-          {accounts.length > 0 && (
-            <div className="flex justify-end">
-              <Button
-                onClick={() => onCreateNewAccount()}
-                disabled={isLoading || signupState === SignupStateEnum.connecting}
-              >
-                <UserPlusIcon className="mr-2 h-4 w-4" />
-                Connect Account
-              </Button>
-            </div>
-          )}
-
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left column: Existing accounts or empty state */}
             <div className="space-y-4">
@@ -458,39 +439,42 @@ export default function Accounts() {
                       <CardDescription>Scan with Warpcast or pay with ETH to connect</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="text-center">
+                      <div>
                         <QrCode
                           deepLink={`https://client.warpcast.com/deeplinks/signed-key-request?token=${pendingAccount?.data?.signerToken}`}
                         />
-                        <p className="text-sm text-muted-foreground mt-2">Scan with your mobile camera</p>
                       </div>
 
-                      <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t" />
+                      <details className="group">
+                        <summary className="cursor-pointer flex items-center justify-center text-sm text-muted-foreground hover:text-foreground">
+                          <span className="flex items-center gap-2">
+                            <span>Pay with ETH instead</span>
+                            <svg
+                              className="w-4 h-4 transition-transform group-open:rotate-180"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </span>
+                        </summary>
+                        <div className="mt-4 pt-4 border-t">
+                          <p className="text-sm text-muted-foreground mb-3">Pay with ETH on Optimism to connect</p>
+                          {isConnected ? (
+                            <ConfirmOnchainSignerButton account={pendingAccount} />
+                          ) : (
+                            <SwitchWalletButton />
+                          )}
                         </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-background px-2 text-muted-foreground">Or</span>
-                        </div>
-                      </div>
-
-                      <div>
-                        {isConnected ? <ConfirmOnchainSignerButton account={pendingAccount} /> : <SwitchWalletButton />}
-                      </div>
+                      </details>
                     </CardContent>
                   </Card>
                 </>
               )}
 
               {/* Help section */}
-              <Card className="bg-muted/50">
-                <CardHeader>
-                  <CardTitle className="text-lg">Need Help?</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <HelpCard />
-                </CardContent>
-              </Card>
+              <HelpCard />
             </div>
           </div>
         </div>
@@ -499,10 +483,10 @@ export default function Accounts() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-muted/40 overflow-y-auto">
-      <main className="p-4 sm:px-6 sm:py-6 pb-12">
+    <div className="h-full flex flex-col bg-muted/40">
+      <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:px-6 sm:py-6 pb-12">
         {hasOnlyLocalAccounts ? (
-          <div className="flex max-w-4xl mx-auto">{renderSignupForNonLocalAccount()}</div>
+          <div className="flex">{renderSignupForNonLocalAccount()}</div>
         ) : (
           renderUnifiedAccountsPage()
         )}

@@ -198,10 +198,11 @@ const DirectMessages = () => {
   // Send message handler
   const handleSendMessage = useCallback(
     async (message: string) => {
-      if (!selectedItem || isSendingMessage) {
-        throw new Error('Cannot send message: invalid state');
+      if (!selectedItem) {
+        throw new Error('Cannot send message: no conversation selected');
       }
 
+      // Don't prevent multiple sends - optimistic updates handle this
       setIsSendingMessage(true);
 
       try {
@@ -220,7 +221,7 @@ const DirectMessages = () => {
         setIsSendingMessage(false);
       }
     },
-    [selectedItem, isSendingMessage, sendMessage]
+    [selectedItem, sendMessage]
   );
 
   // Handle starting a new conversation
@@ -502,7 +503,7 @@ const DirectMessages = () => {
 
         {/* Messages area - explicit height constraint using viewport calculation */}
         <div className="flex-1 min-h-0 h-0 max-h-[calc(100vh-10rem)]">
-          {(isConversationChanging || messagesLoading) && messages.length === 0 ? (
+          {isConversationChanging || (messagesLoading && messages.length === 0) ? (
             <MessageSkeleton />
           ) : (
             <MessageThread
@@ -512,7 +513,7 @@ const DirectMessages = () => {
               hasMore={hasMore}
               isLoading={messagesLoading}
               onSendMessage={handleSendMessage}
-              isSending={isSendingMessage}
+              isSending={false}
               isReadOnly={false}
             />
           )}
@@ -612,7 +613,10 @@ const DirectMessages = () => {
         <div className="flex flex-1 overflow-hidden">
           {/* DMs list - fixed width sidebar */}
           <div className="w-56 lg:w-64 flex-shrink-0 flex flex-col relative border-r border-muted">
-            <div className="flex-1 overflow-y-auto" ref={listContainerRef}>
+            <div
+              className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
+              ref={listContainerRef}
+            >
               {error ? (
                 <DMErrorState error={new Error(error)} onRetry={retryAfterError} />
               ) : isEmpty(currentList) && !isLoading ? (
@@ -651,7 +655,7 @@ const DirectMessages = () => {
         onOpenChange={setShowNewConversation}
         onStartConversation={handleStartConversation}
         viewerFid={viewerFid}
-        isLoading={isSendingMessage}
+        isLoading={false}
       />
     </DMErrorBoundary>
   );

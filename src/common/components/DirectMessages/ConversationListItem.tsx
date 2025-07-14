@@ -120,7 +120,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
   return (
     <li
       className={cn(
-        'flex gap-x-3 px-4 py-3 border-b border-muted/50 transition-colors duration-50 border-l-2 cursor-pointer min-w-0',
+        'flex gap-x-3 px-4 py-3 border-b border-muted/50 transition-colors duration-50 border-l-2 cursor-pointer min-w-0 max-w-full',
         isSelected ? 'bg-muted border-l-blue-500' : 'bg-background/80 hover:bg-muted/50 border-l-transparent'
       )}
       onClick={onClick}
@@ -139,18 +139,20 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
           </ProfileHoverCard>
         )}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-x-2">
+      <div className="flex-1 min-w-0 max-w-full">
+        <div className="flex items-center justify-between gap-x-2 min-w-0">
           {isGroup ? (
-            <p className="text-sm font-medium text-foreground truncate">{truncateText(name || 'Unnamed Group', 30)}</p>
+            <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
+              {truncateText(name || 'Unnamed Group', 20)}
+            </p>
           ) : (
             <ProfileHoverCard fid={participantFid} username={participantProfile?.username} viewerFid={viewerFid}>
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
                 {getSafeDisplayName(participantProfile, participantFid)}
               </p>
             </ProfileHoverCard>
           )}
-          {timeAgo && <p className="flex-none text-xs text-foreground/60">{timeAgo}</p>}
+          {timeAgo && <p className="flex-shrink-0 text-xs text-foreground/60 ml-2">{timeAgo}</p>}
         </div>
         {hasNoMessages ? (
           <div className="mt-0.5 flex items-center gap-1">
@@ -158,7 +160,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
             <p className="text-sm text-foreground/50 italic">No messages yet</p>
           </div>
         ) : lastMessage ? (
-          <p className="mt-0.5 text-sm text-foreground/70 truncate">
+          <p className="mt-0.5 text-sm text-foreground/70 truncate min-w-0">
             {isGroup && lastMessage.senderFid !== viewerFid && getProfileByFid && (
               <span className="text-foreground/50">
                 @{getSafeUsername(getProfileByFid(lastMessage.senderFid), lastMessage.senderFid)}:
@@ -169,7 +171,7 @@ export const ConversationListItem: React.FC<ConversationListItemProps> = ({
             ) : !lastMessage.message?.trim() ? (
               <span className="italic text-foreground/50">Empty message</span>
             ) : (
-              truncateText(lastMessage.message, 40)
+              truncateText(lastMessage.message, 35)
             )}
           </p>
         ) : null}

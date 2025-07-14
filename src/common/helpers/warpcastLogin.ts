@@ -36,7 +36,7 @@ export enum WarpcastLoginStatus {
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID;
 const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC;
 
-const WARPCAST_API_ENDPOINT = 'https://api.warpcast.com/v2/';
+const WARPCAST_API_ENDPOINT = 'https://api.farcaster.xyz/v2/';
 const headers = { 'Content-Type': 'application/json' };
 
 export const generateKeyPair = async (): Promise<KeyPairType> => {

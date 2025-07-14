@@ -12,8 +12,10 @@ import { fetchUrlMetadata, handleAddEmbed, handleOpenFile, handleSetInput } from
 import { getFarcasterMentions } from '@mod-protocol/farcaster';
 // import { createRenderMentionsSuggestionConfig } from '@mod-protocol/react-ui-shadcn/dist/lib/mentions';
 import { createFixedMentionsSuggestionConfig as createRenderMentionsSuggestionConfig } from '@/lib/mentions/fixedMentions';
+import { convertCastPlainTextToStructured } from '@/common/helpers/farcaster';
 import { Button } from '@/components/ui/button';
 import { take } from 'lodash';
+import { useMemo, useCallback } from 'react';
 import { ChannelPicker } from '../ChannelPicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import map from 'lodash.map';
@@ -211,6 +213,32 @@ export default function NewPostEntry({
   }, [isUploading, error, image]);
 
   const isPublishing = draft.status === DraftStatus.publishing;
+
+  // Track mentions captured from dropdown selections
+  const [capturedMentions, setCapturedMentions] = React.useState<{ [key: string]: string }>({});
+
+  // Create enhanced mention configuration that captures FIDs
+  const mentionConfig = useMemo(() => {
+    return createRenderMentionsSuggestionConfig({
+      getResults: async (query: string) => {
+        const results = await getMentions(query);
+        // When results come back, check if any have FIDs and capture them
+        if (results && Array.isArray(results)) {
+          results.forEach((mention) => {
+            if (mention && mention.username && mention.fid) {
+              setCapturedMentions((prev) => ({
+                ...prev,
+                [mention.username]: mention.fid.toString(),
+              }));
+            }
+          });
+        }
+        return results;
+      },
+      RenderList: MentionList,
+    });
+  }, []);
+
   const { editor, getText, addEmbed, getEmbeds, setEmbeds, setChannel, getChannel, handleSubmit, setText } = useEditor({
     fetchUrlMetadata: getUrlMetadata,
     onError,
@@ -220,10 +248,7 @@ export default function NewPostEntry({
       getResults: getChannels,
       RenderList: ChannelList,
     }),
-    renderMentionsSuggestionConfig: createRenderMentionsSuggestionConfig({
-      getResults: getMentions,
-      RenderList: MentionList,
-    }),
+    renderMentionsSuggestionConfig: mentionConfig,
     editorOptions: {
       editorProps: {
         handlePaste: (view, event) =>
@@ -266,6 +291,27 @@ export default function NewPostEntry({
     tailwindColor: textLengthTailwind,
   } = useTextLength({ text });
 
+  // Memoized mention extraction - only runs when text changes and contains @
+  const extractMentionsFromText = useMemo(() => {
+    if (!text || !text.includes('@')) return {};
+
+    const structuredUnits = convertCastPlainTextToStructured({ text });
+    const mentionUnits = structuredUnits.filter((unit) => unit.type === 'mention');
+
+    return mentionUnits.reduce(
+      (acc, unit) => {
+        const username = unit.serializedContent.replace('@', '');
+        // Only include mentions with valid FIDs - prioritize captured mentions, then existing mappings
+        const fid = capturedMentions[username] || draft.mentionsToFids?.[username];
+        if (fid && fid !== '') {
+          acc[username] = fid;
+        }
+        return acc;
+      },
+      {} as { [key: string]: string }
+    );
+  }, [text, capturedMentions, draft.mentionsToFids]);
+
   useEffect(() => {
     if (!editor) return; // no updates before editor is initialized
     if (isPublishing) return;
@@ -278,8 +324,9 @@ export default function NewPostEntry({
       text,
       embeds: newEmbeds,
       parentUrl: channel?.parent_url || undefined,
+      mentionsToFids: extractMentionsFromText,
     });
-  }, [text, embeds, initialEmbeds, channel, isPublishing, editor]);
+  }, [text, embeds, initialEmbeds, channel, isPublishing, editor, extractMentionsFromText]);
 
   useEffect(() => {
     if (!draft || !draft.parentUrl) return;
@@ -345,7 +392,7 @@ export default function NewPostEntry({
         ) : (
           <div className="p-2 border-slate-200 rounded-lg border">
             <EditorContent editor={editor} autoFocus className="w-full h-full min-h-[150px] text-foreground/80" />
-            <EmbedsEditor embeds={[]} setEmbeds={setEmbeds} RichEmbed={() => <div />} />
+            <EmbedsEditor embeds={[...embeds]} setEmbeds={setEmbeds} RichEmbed={() => <div />} />
           </div>
         )}
 

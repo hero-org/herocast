@@ -39,7 +39,7 @@ export function MessageInput({
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!message.trim() || isLoading || disabled) return;
+    if (!message.trim() || disabled) return;
 
     try {
       await onSend(message.trim());
@@ -52,7 +52,7 @@ export function MessageInput({
     } catch (error) {
       console.error('Failed to send message:', error);
     }
-  }, [message, onSend, isLoading, disabled]);
+  }, [message, onSend, disabled]);
 
   // Removed global hotkey registration to prevent conflicts
   // The onKeyDown handler on the textarea already handles Cmd+Enter
@@ -72,8 +72,8 @@ export function MessageInput({
         onChange={handleTextareaChange}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-            // Only handle if this textarea is currently focused
-            if (document.activeElement === e.currentTarget) {
+            // Only handle if this textarea is currently focused and message is not empty
+            if (document.activeElement === e.currentTarget && message.trim() && !disabled) {
               e.preventDefault();
               e.stopPropagation(); // Prevent event from bubbling to other components
               handleSubmit();
@@ -81,7 +81,7 @@ export function MessageInput({
           }
         }}
         placeholder={placeholder}
-        disabled={disabled || isLoading}
+        disabled={disabled}
         autoFocus={autoFocus}
         className={cn(
           'resize-none overflow-hidden min-h-[40px] max-h-[200px] pr-24',
@@ -102,17 +102,17 @@ export function MessageInput({
           {remainingChars}
         </span>
 
-        <KeyboardShortcutTooltip keys="cmd+enter" disabled={!message.trim() || isLoading || disabled}>
+        <KeyboardShortcutTooltip keys="cmd+enter" disabled={!message.trim() || disabled}>
           <Button
             size="sm"
             variant="outline"
             onClick={handleSubmit}
-            disabled={!message.trim() || isLoading || disabled}
+            disabled={!message.trim() || disabled}
             className={cn(
               'h-7 px-3 text-xs font-medium',
               'border-muted-foreground/20 hover:border-muted-foreground/40',
               'transition-all duration-200',
-              message.trim() && !isLoading && !disabled && 'border-primary/50 hover:border-primary'
+              message.trim() && !disabled && 'border-primary/50 hover:border-primary'
             )}
           >
             {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Send'}

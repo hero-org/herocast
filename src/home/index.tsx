@@ -576,7 +576,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   {pageRequiresHydrate && !isHydrated ? (
                     <Loading className="ml-8" loadingMessage="Loading herocast" />
                   ) : (
-                    <div className="h-full overflow-hidden">{children}</div>
+                    <div className={cn('h-full', pathname === '/accounts' ? 'overflow-y-auto' : 'overflow-hidden')}>
+                      {children}
+                    </div>
                   )}
                 </div>
               </div>

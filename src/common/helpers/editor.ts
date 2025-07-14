@@ -1,4 +1,4 @@
-import { convertCastPlainTextToStructured } from '@mod-protocol/farcaster';
+import { convertCastPlainTextToStructured } from './farcaster';
 
 const MAX_BYTE_LENGTH = 320;
 

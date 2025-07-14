@@ -12,10 +12,15 @@ export function extractFidsFromDMData(
 ): number[] {
   const fids = new Set<number>();
 
+  // Always include viewer FID to ensure optimistic updates work
+  if (viewerFid) {
+    fids.add(viewerFid);
+  }
+
   // Extract from conversations
   conversations.forEach((conv) => {
     conv.participantFids?.forEach((fid) => {
-      if (fid && fid !== viewerFid) {
+      if (fid) {
         fids.add(fid);
       }
     });
