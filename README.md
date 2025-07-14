@@ -66,8 +66,8 @@ Distributed under the AGPLv3 License. See LICENSE for more information.
 
 ## Contact
 
-hellno [Warpcast](https://warpcast.com/hellno.eth)
+hellno [Farcaster](https://farcaster.xyz/hellno.eth)
 
 Website: https://herocast.xyz
 
-GitHub: https://github.com/hellno/herocast
+GitHub: https://github.com/hero-org/herocast
