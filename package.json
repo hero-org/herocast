@@ -55,7 +55,7 @@
     "@mod-protocol/react-ui-shadcn": "^0.3.1",
     "@neynar/nodejs-sdk": "1.21.1",
     "@noble/ed25519": "^2.2.3",
-    "@paywithglide/glide-js": "^0.8.0",
+    "@paywithglide/glide-js": "^0.12.39",
     "@radix-ui/colors": "^3.0.0",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-aspect-ratio": "^1.1.2",
