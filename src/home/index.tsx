@@ -16,7 +16,6 @@ import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
 import ShadcnRightSidebar from '@/common/components/Sidebar/ShadcnRightSidebar';
 import RightSidebarTrigger from '@/common/components/Sidebar/RightSidebarTrigger';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
-import { ThemeToggle } from '@/common/components/ThemeToggle';
 import { Toaster } from '@/components/ui/sonner';
 import AccountSwitcher from '@/common/components/Sidebar/AccountSwitcher';
 import { cn } from '@/lib/utils';
@@ -466,9 +465,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                           </div>
                         );
                       })}
-                      <div className="w-full flex flex-row py-4">
+                      <div className="w-full py-4">
                         <AccountSwitcher />
-                        <ThemeToggle />
                       </div>
                     </nav>
                   </div>
@@ -528,11 +526,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </div>
                 {isReadOnlyUser && renderUpgradeCard()}
                 {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
-                <div className="mt-auto flex flex-row gap-2 py-4">
-                  <div className="flex-1 min-w-0">
-                    <AccountSwitcher />
-                  </div>
-                  <ThemeToggle />
+                <div className="mt-auto py-4">
+                  <AccountSwitcher />
                 </div>
               </div>
             </div>

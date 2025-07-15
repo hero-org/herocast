@@ -227,9 +227,29 @@ const DirectMessages = () => {
   // Handle starting a new conversation
   const handleStartConversation = useCallback(
     async (recipientFid: number, message: string) => {
+      if (!selectedAccount?.id || !selectedAccount?.farcasterApiKey) {
+        toast.error('No account available');
+        return;
+      }
+
       try {
-        // Use the sendMessage function with recipientFid option
-        const result = await sendMessage(message, { recipientFid });
+        // Send message directly via API for new conversations
+        // Don't use the sendMessage from useDirectMessageThread as it's tied to current conversation
+        const response = await fetch(`/api/dms/messages?accountId=${selectedAccount.id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientFid,
+            message,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to send message');
+        }
 
         // Refresh conversations to show the new one
         refresh();
@@ -246,7 +266,7 @@ const DirectMessages = () => {
         // Don't close dialog on error, let user retry
       }
     },
-    [sendMessage, refresh]
+    [selectedAccount, refresh]
   );
 
   // Select/open conversation

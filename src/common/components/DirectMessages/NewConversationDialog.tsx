@@ -61,8 +61,30 @@ export function NewConversationDialog({
   }, [onOpenChange]);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={open} onOpenChange={handleClose} modal={true}>
+      <DialogContent
+        className="sm:max-w-[500px]"
+        onKeyDown={(e) => {
+          // Stop all keyboard events from bubbling out of the dialog
+          e.stopPropagation();
+        }}
+        onPointerDown={(e) => {
+          // Stop all pointer events from bubbling out of the dialog
+          e.stopPropagation();
+        }}
+        onClick={(e) => {
+          // Stop all click events from bubbling out of the dialog
+          e.stopPropagation();
+        }}
+        onFocus={(e) => {
+          // Ensure focus stays within the dialog
+          e.stopPropagation();
+        }}
+        onInteractOutside={(e) => {
+          // Prevent closing the dialog when interacting with outside elements
+          e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>New Conversation</DialogTitle>
         </DialogHeader>

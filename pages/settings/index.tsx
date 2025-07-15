@@ -21,7 +21,8 @@ import { usePostHog } from 'posthog-js/react';
 import { formatShortcut } from '@/common/helpers/text';
 import { hotkeyDefinitions, hotkeyCategories } from '@/common/services/shortcuts/hotkeyDefinitions';
 import { UserIcon, WalletIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid';
-import { CommandLineIcon } from '@heroicons/react/24/outline';
+import { CommandLineIcon, PaintBrushIcon } from '@heroicons/react/24/outline';
+import { ThemeToggle } from '@/common/components/ThemeToggle';
 
 type SimpleCommand = {
   name: string;
@@ -124,6 +125,26 @@ export default function Settings() {
                 <ArrowRightOnRectangleIcon className="h-4 w-4" />
                 Log out
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Appearance Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PaintBrushIcon className="h-5 w-5" />
+              Appearance
+            </CardTitle>
+            <CardDescription>Customize the look and feel of the application</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Theme</p>
+                <p className="text-sm text-muted-foreground">Choose between light, dark or system theme</p>
+              </div>
+              <ThemeToggle />
             </div>
           </CardContent>
         </Card>
