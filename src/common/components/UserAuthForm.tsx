@@ -25,14 +25,22 @@ const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 export type UserAuthFormValues = z.infer<typeof UserAuthFormSchema>;
 
-const UserAuthFormSchema = z.object({
-  email: z.string().email({
-    message: 'Please enter a valid email address.',
-  }),
-  password: z.string().min(6, {
-    message: 'Password must be at least 8 characters.',
-  }),
-});
+const UserAuthFormSchema = z
+  .object({
+    email: z.string().email({
+      message: 'Please enter a valid email address.',
+    }),
+    password: z.string().min(6, {
+      message: 'Password must be at least 8 characters.',
+    }),
+    confirmPassword: z.string().min(6, {
+      message: 'Confirm Password must be at least 8 characters.',
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  });
 
 enum ViewState {
   LOGIN = 'login',
@@ -395,26 +403,53 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                   )}
                 />
                 {!includes([ViewState.FORGOT, ViewState.LOGGED_IN], view) && (
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>password</FormLabel>
-                        <FormControl>
-                          <Input
-                            variantSize="lg"
-                            disabled={isLoading}
-                            autoComplete="current-password"
-                            type="password"
-                            placeholder="••••••"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  <>
+                    {/* Password Field */}
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input
+                              variantSize="lg"
+                              disabled={isLoading}
+                              autoComplete="new-password"
+                              type="password"
+                              placeholder="••••••"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Confirm Password Field for RESET view */}
+                    {view === ViewState.RESET && (
+                      <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <FormControl>
+                              <Input
+                                variantSize="lg"
+                                disabled={isLoading}
+                                autoComplete="new-password"
+                                type="password"
+                                placeholder="••••••"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
+                  </>
                 )}
               </div>
             )}
