@@ -197,6 +197,8 @@ const store = (set: StoreSet) => ({
         const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
         const account = state.accounts[accountIndex];
         account.status = AccountStatusType.active;
+        account.name = name;
+        account.platformAccountId = data.platform_account_id;
         state.accounts[accountIndex] = account;
       }
       console.log('-----> setAcountActive done');

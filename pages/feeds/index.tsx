@@ -62,10 +62,10 @@ const getFeedKey = ({
     return selectedListId;
   } else if (selectedChannelUrl) {
     return selectedChannelUrl;
-  } else if (account) {
-    return account.platformAccountId!;
+  } else if (account?.platformAccountId) {
+    return account.platformAccountId;
   }
-  throw new Error('No feed key found');
+  return null;
 };
 
 const DEFAULT_FEED_PAGE_SIZE = 15;
@@ -138,7 +138,9 @@ export default function Feeds() {
   };
 
   const setNextFeedCursor = (cursor: string) => {
-    updateFeed(feedKey, 'nextCursor', cursor);
+    if (feedKey) {
+      updateFeed(feedKey, 'nextCursor', cursor);
+    }
   };
 
   const feedKey = getFeedKey({ selectedChannelUrl, account, selectedListId });
@@ -155,10 +157,10 @@ export default function Feeds() {
   }, []);
 
   useEffect(() => {
-    // Scroll the main content container instead of window
-    const mainContainer = document.querySelector('.overflow-y-auto.no-scrollbar');
-    if (mainContainer) {
-      mainContainer.scrollTop = 0;
+    // Scroll the main content container to top when feed changes
+    const container = document.querySelector('.overflow-y-auto');
+    if (container) {
+      container.scrollTop = 0;
     }
   }, [feedKey]);
 
@@ -182,12 +184,12 @@ export default function Feeds() {
     if (showCastThreadView) return;
 
     // Scroll the main content container instead of window
-    const mainContainer = document.querySelector('.overflow-y-auto.no-scrollbar');
-    if (mainContainer) {
+    const container = document.querySelector('.overflow-y-auto');
+    if (container) {
       if (selectedCastIdx === 0) {
-        mainContainer.scrollTop = 0;
+        container.scrollTop = 0;
       } else if (selectedCastIdx === casts.length - 1) {
-        mainContainer.scrollTop = mainContainer.scrollHeight;
+        container.scrollTop = container.scrollHeight;
       }
     }
   }, [selectedCastIdx, showCastThreadView, casts.length]);
@@ -215,8 +217,8 @@ export default function Feeds() {
     setCastModalView(CastModalView.Reply);
     addNewPostDraft({
       parentCastId: {
-        hash: selectedCast.hash,
-        fid: selectedCast.author.fid.toString(),
+        hash: new TextEncoder().encode(selectedCast.hash),
+        fid: selectedCast.author.fid,
       },
       onSuccess(draftId) {
         setCastModalDraftId(draftId);
@@ -234,8 +236,8 @@ export default function Feeds() {
       embeds: [
         {
           castId: {
-            hash: selectedCast.hash,
-            fid: selectedCast.author.fid.toString(),
+            hash: new TextEncoder().encode(selectedCast.hash),
+            fid: selectedCast.author.fid,
           },
         },
       ],
@@ -284,12 +286,12 @@ export default function Feeds() {
     parentUrl === CUSTOM_CHANNELS.FOLLOWING || parentUrl === CUSTOM_CHANNELS.TRENDING ? undefined : parentUrl;
 
   const refreshFeed = useCallback(() => {
-    if (account?.platformAccountId && !showCastThreadView) {
+    if (account?.platformAccountId && !showCastThreadView && feedKey) {
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
       lastUpdateTimeRef.current = Date.now();
     }
-  }, [account, selectedChannelUrl, showCastThreadView, selectedListId]);
+  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey]);
 
   const getFeed = async ({
     fid,
@@ -302,7 +304,7 @@ export default function Feeds() {
     selectedListId?: string;
     cursor?: string;
   }) => {
-    if (isLoadingFeed) {
+    if (isLoadingFeed || !feedKey) {
       return;
     }
 
@@ -404,12 +406,12 @@ export default function Feeds() {
   };
 
   useEffect(() => {
-    if (account?.platformAccountId && !showCastThreadView) {
+    if (account?.platformAccountId && !showCastThreadView && feedKey) {
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
       lastUpdateTimeRef.current = Date.now();
     }
-  }, [account, selectedChannelUrl, showCastThreadView, selectedListId]);
+  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -443,7 +445,7 @@ export default function Feeds() {
   }, [selectedChannelUrl, selectedListId]);
 
   const renderRow = (item: any, idx: number) => (
-    <li key={item?.hash} className="border-b border-foreground/20 relative w-full">
+    <li key={item?.hash} className="border-b border-foreground/20 relative w-full px-4">
       <CastRow
         cast={item}
         isSelected={selectedCastIdx === idx}

@@ -484,7 +484,7 @@ export default function Accounts() {
 
   return (
     <div className="h-full flex flex-col bg-muted/40">
-      <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:px-6 sm:py-6 pb-12">
+      <main className="flex-1 overflow-y-auto p-4 sm:px-6 sm:py-6 pb-12">
         {hasOnlyLocalAccounts ? (
           <div className="flex">{renderSignupForNonLocalAccount()}</div>
         ) : (

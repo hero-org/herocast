@@ -23,11 +23,6 @@ export function useAppHotkeys(keys: string | string[], callback: () => void, opt
   // Create stable callback - ensure we include all dependencies
   const stableCallback = useCallback(callback, deps || [callback]);
 
-  // Only log in development on client side
-  if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-    console.log('useAppHotkeys: Registering', keyString, 'with scopes:', scopes);
-  }
-
   return useHotkeys(keyString, stableCallback, {
     ...options,
     scopes: scopes || ['global'], // Default to global scope

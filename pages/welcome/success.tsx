@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
+import {
+  CheckCircleIcon,
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+  RectangleGroupIcon,
+  UserIcon,
+} from '@heroicons/react/20/solid';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/router';
@@ -12,6 +18,8 @@ import { DraftStatus } from '@/common/constants/farcaster';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
 import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 enum OnboardingStep {
   login_to_herocast = 'login_to_herocast',
@@ -72,6 +80,8 @@ const WelcomeSuccessPage = () => {
   };
 
   const accounts = useAccountStore((state) => state.accounts);
+  const selectedAccountIdx = useAccountStore((state) => state.selectedAccountIdx);
+  const connectedAccount = accounts[selectedAccountIdx];
   const hasPinnedChannels = accounts && accounts.some((account) => account?.channels.length > 0);
   const hasScheduledCasts =
     drafts.filter((draft) => draft.status === DraftStatus.scheduled || draft.status === DraftStatus.published).length >
@@ -127,22 +137,6 @@ const WelcomeSuccessPage = () => {
                 )}
               </div>
               {step.title}
-              {!taskStatus[step.key] && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-6 px-2 ml-2"
-                  onClick={() => {
-                    setTaskStatus((prev) => {
-                      const newStatus = { ...prev, [step.key]: true };
-                      return newStatus;
-                    });
-                    setStep(onboardingSteps[idx + 1]?.key);
-                  }}
-                >
-                  Skip
-                </Button>
-              )}
             </div>
           </div>
         );
@@ -153,6 +147,41 @@ const WelcomeSuccessPage = () => {
     <div className="w-full flex flex-col mt-20 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
         <h2 className="text-4xl font-bold tracking-tight">welcome to herocast ✨</h2>
+
+        {connectedAccount && (
+          <div className="max-w-2xl mx-auto space-y-4">
+            <Alert className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+              <AlertDescription className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={connectedAccount.user?.pfp_url} alt={connectedAccount.name} />
+                      <AvatarFallback>{connectedAccount.name?.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-lg font-semibold">
+                      @{connectedAccount.name || connectedAccount.user?.username} is now connected to your herocast
+                      account
+                    </span>
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex justify-center">
+              <Button
+                onClick={() => router.push(`/profile/@${connectedAccount.name || connectedAccount.user?.username}`)}
+                size="lg"
+                variant="outline"
+                className="gap-2"
+              >
+                <UserIcon className="h-4 w-4" />
+                View Profile
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="max-w-max mx-auto">
           <Card className="bg-background text-foreground">
             <CardContent className="max-w-2xl p-4">

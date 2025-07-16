@@ -115,36 +115,40 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
             </div>
             <ol className="space-y-3">
               <li className="flex gap-3 text-sm">
-                <span className="flex-shrink-0 font-medium text-amber-500 bg-amber-50 dark:bg-amber-950/50 rounded-full w-7 h-7 flex items-center justify-center">
+                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   1
                 </span>
                 <span className="text-muted-foreground pt-0.5">
-                  Ensure your account has DM API access from Farcaster
+                  Click &quot;Get API Key (Desktop)&quot; button below to access the API keys page
                 </span>
               </li>
               <li className="flex gap-3 text-sm">
                 <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   2
                 </span>
-                <span className="text-muted-foreground pt-0.5">Open Farcaster app on your device</span>
+                <span className="text-muted-foreground pt-0.5">
+                  Sign in and navigate to your API keys (desktop only)
+                </span>
               </li>
               <li className="flex gap-3 text-sm">
                 <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   3
                 </span>
-                <span className="text-muted-foreground pt-0.5">Go to Settings → Developers (scroll down)</span>
+                <span className="text-muted-foreground pt-0.5">Create a new API key for Herocast</span>
               </li>
               <li className="flex gap-3 text-sm">
                 <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   4
                 </span>
-                <span className="text-muted-foreground pt-0.5">Tap API Keys → Create new API key</span>
+                <span className="text-muted-foreground pt-0.5">Copy the generated key and paste it below</span>
               </li>
               <li className="flex gap-3 text-sm">
-                <span className="flex-shrink-0 font-medium text-blue-500 bg-blue-50 dark:bg-blue-950/50 rounded-full w-7 h-7 flex items-center justify-center">
+                <span className="flex-shrink-0 font-medium text-amber-500 bg-amber-50 dark:bg-amber-950/50 rounded-full w-7 h-7 flex items-center justify-center">
                   5
                 </span>
-                <span className="text-muted-foreground pt-0.5">Copy the generated key and paste it below</span>
+                <span className="text-muted-foreground pt-0.5">
+                  Request DM API access by clicking &quot;Request Allowlist&quot; below
+                </span>
               </li>
             </ol>
 
@@ -223,22 +227,27 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
             <div className="grid grid-cols-2 gap-3">
               <Button
                 variant="outline"
-                onClick={() => window.open('https://warpcast.com/~/settings', '_blank')}
+                onClick={() => window.open('https://farcaster.xyz/~/developers/api-keys', '_blank')}
                 className="h-12 text-base"
                 size="lg"
               >
                 <ExternalLink className="h-5 w-5 mr-2" />
-                Farcaster Settings
+                Get API Key (Desktop)
               </Button>
 
               <Button
                 variant="outline"
-                onClick={() => window.open('https://warpcast.com/dwr.eth', '_blank')}
+                onClick={() => {
+                  const message = encodeURIComponent(
+                    'Hey! Would love to get my API key on the allowlist to use it in herocast'
+                  );
+                  window.open(`https://farcaster.xyz/~/inbox/create/834?text=${message}`, '_blank');
+                }}
                 className="h-12 text-base"
                 size="lg"
               >
                 <MessageSquare className="h-5 w-5 mr-2" />
-                Contact Farcaster
+                Request Allowlist
               </Button>
             </div>
           </div>
