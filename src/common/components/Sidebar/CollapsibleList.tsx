@@ -38,7 +38,11 @@ function CollapsibleList<T>({
             <div className="flex gap-1.5">
               {items.length > initialVisibleCount && (
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex-1 h-7 text-xs text-muted-foreground hover:text-foreground">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 h-7 text-xs text-muted-foreground hover:text-foreground"
+                  >
                     {isShowAll ? 'Show less' : 'Show more'}
                   </Button>
                 </CollapsibleTrigger>

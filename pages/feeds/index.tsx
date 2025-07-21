@@ -469,21 +469,22 @@ export default function Feeds() {
   };
 
   const renderLoadMoreButton = () => (
-    <Button
-      ref={buttonRef}
-      onClick={() =>
-        getFeed({
-          fid: account.platformAccountId!,
-          parentUrl: selectedChannelUrl,
-          selectedListId,
-          cursor: nextCursor,
-        })
-      }
-      variant="outline"
-      className="ml-4 my-4 "
-    >
-      {getButtonText()}
-    </Button>
+    <div className="px-4 py-4">
+      <Button
+        ref={buttonRef}
+        onClick={() =>
+          getFeed({
+            fid: account.platformAccountId!,
+            parentUrl: selectedChannelUrl,
+            selectedListId,
+            cursor: nextCursor,
+          })
+        }
+        variant="outline"
+      >
+        {getButtonText()}
+      </Button>
+    </div>
   );
 
   const renderFeed = () => (
@@ -542,62 +543,64 @@ export default function Feeds() {
       casts.length === 0 &&
       isHydrated &&
       !isLoadingFeed && (
-        <Card className="max-w-sm col-span-1 m-4">
-          <CardHeader>
-            <CardTitle>Feed is empty</CardTitle>
-            <CardDescription>
-              {listDetails ? `No results found for ${listDetails}` : 'Seems like there is nothing to see here.'}
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="flex gap-2">
-            <Button
-              className="flex-1"
-              disabled={isRefreshingPage}
-              onClick={async () => {
-                setIsRefreshingPage(true);
-                await hydrateAccounts();
-                await getFeed({
-                  fid: account.platformAccountId!,
-                  parentUrl: selectedChannelUrl,
-                  selectedListId,
-                });
-                setIsRefreshingPage(false);
-              }}
-            >
-              Refresh
-            </Button>
-            <Button
-              className="flex-1"
-              variant="outline"
-              onClick={() => {
-                // Navigate to trending feed
-                useAccountStore.setState({ selectedChannelUrl: CUSTOM_CHANNELS.TRENDING });
-                setSelectedListId(undefined);
-              }}
-            >
-              Go to Trending
-            </Button>
-          </CardFooter>
-        </Card>
+        <div className="w-full flex justify-center pt-12">
+          <Card className="max-w-sm">
+            <CardHeader>
+              <CardTitle>Feed is empty</CardTitle>
+              <CardDescription>
+                {listDetails ? `No results found for ${listDetails}` : 'Seems like there is nothing to see here.'}
+              </CardDescription>
+            </CardHeader>
+            <CardFooter className="flex gap-2">
+              <Button
+                className="flex-1"
+                disabled={isRefreshingPage}
+                onClick={async () => {
+                  setIsRefreshingPage(true);
+                  await hydrateAccounts();
+                  await getFeed({
+                    fid: account.platformAccountId!,
+                    parentUrl: selectedChannelUrl,
+                    selectedListId,
+                  });
+                  setIsRefreshingPage(false);
+                }}
+              >
+                Refresh
+              </Button>
+              <Button
+                className="flex-1"
+                variant="outline"
+                onClick={() => {
+                  // Navigate to trending feed
+                  useAccountStore.setState({ selectedChannelUrl: CUSTOM_CHANNELS.TRENDING });
+                  setSelectedListId(undefined);
+                }}
+              >
+                Go to Trending
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
       )
     );
   };
 
   const renderContent = () => (
-    <main className="w-full max-w-2xl">
+    <main className="w-full">
       {isLoadingFeed && isEmpty(casts) && (
-        <div className="ml-4">
+        <div className="px-4 pt-4">
           <Loading loadingMessage={loadingMessage} />
         </div>
       )}
       {showCastThreadView ? (
         renderThread()
       ) : (
-        <>
+        <div className="min-h-screen">
           {renderFeed()}
           {renderWelcomeMessage()}
           {!isEmpty(casts) && renderLoadMoreButton()}
-        </>
+        </div>
       )}
       {renderEmbedsModal()}
     </main>

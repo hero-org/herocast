@@ -57,12 +57,8 @@ class CastEditorErrorBoundary extends Component<{ children: ReactNode; onReset: 
         <div className="flex flex-col items-center justify-center p-8 text-center">
           <AlertCircle className="h-12 w-12 text-destructive mb-4" />
           <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
-          <p className="text-sm text-foreground/60 mb-4">
-            There was an error loading the editor. Please try again.
-          </p>
-          <p className="text-xs text-foreground/40 mb-4">
-            {this.state.error?.message}
-          </p>
+          <p className="text-sm text-foreground/60 mb-4">There was an error loading the editor. Please try again.</p>
+          <p className="text-xs text-foreground/40 mb-4">{this.state.error?.message}</p>
           <Button onClick={this.handleReset} variant="outline" size="sm">
             Try again
           </Button>

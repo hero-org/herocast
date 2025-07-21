@@ -150,30 +150,30 @@ export default function NewPostEntry({
       // Close the modal immediately by calling onPost
       onPost?.();
 
-    if (scheduleDateTime) {
-      posthog.capture('user_schedule_cast');
-      await updatePostDraft(draftIdx, {
-        ...draft,
-        status: DraftStatus.publishing,
-      });
-      await addScheduledDraft({
-        draftIdx,
-        scheduledFor: scheduleDateTime,
-        onSuccess: () => {
-          console.log('onSuccess after addScheduledDraft');
-          setScheduleDateTime(undefined);
-        },
-      });
-    } else {
-      posthog.capture('user_post_cast');
-      await publishPostDraft(draftIdx, account);
+      if (scheduleDateTime) {
+        posthog.capture('user_schedule_cast');
+        await updatePostDraft(draftIdx, {
+          ...draft,
+          status: DraftStatus.publishing,
+        });
+        await addScheduledDraft({
+          draftIdx,
+          scheduledFor: scheduleDateTime,
+          onSuccess: () => {
+            console.log('onSuccess after addScheduledDraft');
+            setScheduleDateTime(undefined);
+          },
+        });
+      } else {
+        posthog.capture('user_post_cast');
+        await publishPostDraft(draftIdx, account);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error submitting post:', error);
+      toast.error('Failed to submit post. Please try again.');
+      return false;
     }
-    return true;
-  } catch (error) {
-    console.error('Error submitting post:', error);
-    toast.error('Failed to submit post. Please try again.');
-    return false;
-  }
   };
 
   const ref = useAppHotkeys(
@@ -294,7 +294,7 @@ export default function NewPostEntry({
 
   useEffect(() => {
     if (!editor) return;
-    
+
     // Only set initial content once when editor is ready
     if (!text && draft.text && isEmpty(draft.mentionsToFids)) {
       try {
@@ -361,7 +361,18 @@ export default function NewPostEntry({
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [text, embeds, initialEmbeds, channel, isPublishing, editor, extractMentionsFromText, draftIdx, draft, updatePostDraft]);
+  }, [
+    text,
+    embeds,
+    initialEmbeds,
+    channel,
+    isPublishing,
+    editor,
+    extractMentionsFromText,
+    draftIdx,
+    draft,
+    updatePostDraft,
+  ]);
 
   useEffect(() => {
     if (!draft || !draft.parentUrl) return;

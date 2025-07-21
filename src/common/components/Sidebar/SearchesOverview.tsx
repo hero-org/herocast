@@ -17,9 +17,7 @@ const SearchesOverview = ({ onItemClick }: SearchesOverviewProps) => {
     const isSelected = currentSearchTerm === search.term;
     return (
       <div key={`search-${search.startedAt}`} className="relative">
-        {isSelected && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
-        )}
+        {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />}
         <div
           className={cn(
             'flex items-center gap-x-3 rounded-lg mx-1 px-3 py-1.5 text-sm cursor-pointer',

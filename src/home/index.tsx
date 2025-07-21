@@ -531,33 +531,22 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </div>
               </div>
             </div>
-            <div
-              className={cn(
-                'grid h-full relative',
-                sidebarType === RIGHT_SIDEBAR_ENUM.NONE ? 'grid-cols-[1fr]' : 'grid-cols-[1fr] lg:grid-cols-[1fr_16rem]'
-              )}
-            >
-              <div
-                className={
-                  sidebarType === RIGHT_SIDEBAR_ENUM.NONE
-                    ? 'lg:col-span-2 w-full h-full flex flex-col'
-                    : 'w-full h-full flex flex-col border-r border-muted lg:border-r-0'
-                }
-              >
+            <div className="h-full flex">
+              <div className="flex-1 h-full flex flex-col min-w-0">
                 {/* Header */}
                 {!hideTitlebar && (title || headerActions) && (
-                  <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4">
+                  <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4 min-w-0">
                     <button
                       type="button"
-                      className="-m-2.5 p-2.5 text-foreground lg:hidden"
+                      className="-m-2.5 p-2.5 text-foreground lg:hidden flex-shrink-0"
                       onClick={() => setSidebarOpen((prev) => !prev)}
                     >
                       <span className="sr-only">Open sidebar</span>
                       <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                     </button>
-                    <h1 className="md:ml-2 text-xl font-bold leading-7 text-foreground">{title}</h1>
-                    <div className="flex-grow" />
-                    <div className="flex gap-x-2">
+                    <h1 className="md:ml-2 text-xl font-bold leading-7 text-foreground truncate min-w-0">{title}</h1>
+                    <div className="flex-grow min-w-[40px]" />
+                    <div className="flex gap-x-2 flex-shrink-0">
                       {headerActions.map((action) => (
                         <Button
                           size="sm"
@@ -572,15 +561,23 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     </div>
                   </div>
                 )}
-                {pageRequiresHydrate && !isHydrated ? (
-                  <Loading className="ml-8" loadingMessage="Loading herocast" />
-                ) : (
-                  <div className={cn('h-full', pathname === '/accounts' ? 'overflow-y-auto' : 'overflow-hidden')}>
-                    {children}
-                  </div>
-                )}
+                <div className="flex-1 overflow-hidden">
+                  {pageRequiresHydrate && !isHydrated ? (
+                    <div className="p-8">
+                      <Loading loadingMessage="Loading herocast" />
+                    </div>
+                  ) : (
+                    <div className={cn('h-full', pathname === '/accounts' ? 'overflow-y-auto' : 'overflow-hidden')}>
+                      {children}
+                    </div>
+                  )}
+                </div>
               </div>
-              {renderRightSidebar()}
+              {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && (
+                <div className="hidden lg:block w-64 flex-shrink-0 overflow-y-auto border-l border-muted">
+                  {renderRightSidebar()}
+                </div>
+              )}
             </div>
             {renderNewCastModal()}
           </div>

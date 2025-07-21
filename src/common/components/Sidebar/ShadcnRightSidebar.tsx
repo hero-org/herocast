@@ -29,12 +29,7 @@ type ShadcnRightSidebarProps = {
   showLists?: boolean;
 };
 
-const ShadcnRightSidebar = ({
-  showFeeds,
-  showSearches,
-  showLists,
-  showManageLists,
-}: ShadcnRightSidebarProps) => {
+const ShadcnRightSidebar = ({ showFeeds, showSearches, showLists, showManageLists }: ShadcnRightSidebarProps) => {
   const { setOpenMobile, isMobile } = useSidebar();
 
   // Close sidebar on mobile when an item is clicked
@@ -64,11 +59,7 @@ const ShadcnRightSidebar = ({
   );
 
   return (
-    <Sidebar
-      side="right"
-      collapsible="offcanvas"
-      className="border-l border-sidebar-border/50 hidden lg:flex"
-    >
+    <Sidebar side="right" collapsible="offcanvas" className="border-l border-sidebar-border/50 hidden lg:flex">
       <SidebarContent className="flex flex-col h-full">
         {/* Empty state for no accounts */}
         {isHydrated && !hasAccounts && renderEmptyState()}

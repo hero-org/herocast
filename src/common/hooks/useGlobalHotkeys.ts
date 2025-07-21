@@ -7,6 +7,7 @@ import { useDraftStore } from '@/stores/useDraftStore';
 import { useDataStore } from '@/stores/useDataStore';
 import { useTheme } from 'next-themes';
 import { CUSTOM_CHANNELS } from '@/stores/useAccountStore';
+import { useListStore } from '@/stores/useListStore';
 
 // Hook that registers all global hotkeys for the app
 export function useGlobalHotkeys() {
@@ -14,6 +15,7 @@ export function useGlobalHotkeys() {
   const { theme, setTheme } = useTheme();
   const { toggleCommandPalette, openNewCastModal, setCastModalView, setCastModalDraftId } = useNavigationStore();
   const { accounts, selectedAccountIdx, setCurrentAccountIdx, setSelectedChannelUrl } = useAccountStore();
+  const { setSelectedListId } = useListStore();
   const { addNewPostDraft } = useDraftStore();
   const { selectedCast } = useDataStore();
 
@@ -165,13 +167,14 @@ export function useGlobalHotkeys() {
     () => {
       if (isFeedsPage) {
         setSelectedChannelUrl(CUSTOM_CHANNELS.FOLLOWING);
+        setSelectedListId(undefined);
       }
     },
     {
       scopes: HotkeyScopes.FEED,
       enabled: isFeedsPage,
     },
-    [isFeedsPage, setSelectedChannelUrl]
+    [isFeedsPage, setSelectedChannelUrl, setSelectedListId]
   );
 
   useAppHotkeys(
@@ -179,12 +182,13 @@ export function useGlobalHotkeys() {
     () => {
       if (isFeedsPage) {
         setSelectedChannelUrl(CUSTOM_CHANNELS.TRENDING);
+        setSelectedListId(undefined);
       }
     },
     {
       scopes: HotkeyScopes.FEED,
       enabled: isFeedsPage,
     },
-    [isFeedsPage, setSelectedChannelUrl]
+    [isFeedsPage, setSelectedChannelUrl, setSelectedListId]
   );
 }

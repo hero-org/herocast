@@ -32,13 +32,21 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
     if (onItemClick) onItemClick();
   };
 
-  const renderCustomChannel = ({ name, url, icon, hotkey }: { name: string; url: string; icon?: React.ReactNode; hotkey?: string }) => {
+  const renderCustomChannel = ({
+    name,
+    url,
+    icon,
+    hotkey,
+  }: {
+    name: string;
+    url: string;
+    icon?: React.ReactNode;
+    hotkey?: string;
+  }) => {
     const isSelected = selectedChannelUrl === url;
     return (
       <li key={`custom-channel-${name}`} className="relative">
-        {isSelected && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
-        )}
+        {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />}
         <div
           onClick={() => onUpdateChannel(url)}
           className={cn(
@@ -52,16 +60,19 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
             {icon}
             <span className="font-medium">{name}</span>
           </span>
+
           <div className="ml-auto flex items-center gap-x-2">
             {hotkey && (
-              <kbd className={cn(
-                'px-1.5 py-0.5 rounded font-mono text-xs transition-all',
-                isSelected 
-                  ? 'bg-primary text-primary-foreground opacity-80'
-                  : 'bg-muted/50 text-muted-foreground opacity-50 group-hover:opacity-100'
-              )}>
+              <span
+                className={cn(
+                  'px-1.5 py-0.5 rounded font-medium text-md transition-all',
+                  isSelected
+                    ? 'bg-primary text-primary-foreground opacity-80'
+                    : 'bg-muted/50 text-muted-foreground opacity-50 group-hover:opacity-100'
+                )}
+              >
                 {hotkey}
-              </kbd>
+              </span>
             )}
           </div>
         </div>
@@ -81,9 +92,7 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
     const isSelected = selectedChannelUrl === channel.url;
     return (
       <div className="relative">
-        {isSelected && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
-        )}
+        {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />}
         <div
           onClick={() => onUpdateChannel(channel.url)}
           className={cn(
@@ -118,8 +127,12 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
           setIsShowAll={setIsShowAllChannels}
           footer={
             <Link href="/channels" className="flex-1">
-              <Button variant="ghost" size="sm" className="w-full h-7 text-xs text-muted-foreground hover:text-foreground">
-+ Pin
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+              >
+                + Pin
               </Button>
             </Link>
           }
@@ -131,7 +144,7 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
   const renderAddFirstChannelsButton = () => (
     <Link href="/channels" className="px-3 py-1">
       <Button size="sm" variant="ghost" className="w-full h-7 text-xs text-muted-foreground hover:text-foreground">
-+ Add
+        + Add
       </Button>
     </Link>
   );

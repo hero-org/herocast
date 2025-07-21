@@ -75,10 +75,12 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
         >
           <span className="flex-1 truncate font-medium">{list.name}</span>
           {showNumber && (
-            <kbd className={cn(
-              'px-1 py-0.5 rounded font-mono text-[10px] opacity-0 group-hover:opacity-50 transition-opacity',
-              isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground'
-            )}>
+            <kbd
+              className={cn(
+                'px-1 py-0.5 rounded font-mono text-[10px] opacity-0 group-hover:opacity-50 transition-opacity',
+                isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground'
+              )}
+            >
               g {isSearchList ? 's' : 'l'} {index + 1}
             </kbd>
           )}
@@ -124,7 +126,7 @@ const ListsOverview = ({ onItemClick }: ListsOverviewProps) => {
                 size="sm"
                 className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
               >
-                View all
+                Manage
               </Button>
             </Link>
             <Link href="/lists?tab=users" className="flex-1">

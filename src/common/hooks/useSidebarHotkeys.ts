@@ -13,11 +13,7 @@ interface UseSidebarHotkeysProps {
   onItemClick?: () => void;
 }
 
-export const useSidebarHotkeys = ({
-  searchLists,
-  fidLists,
-  onItemClick,
-}: UseSidebarHotkeysProps) => {
+export const useSidebarHotkeys = ({ searchLists, fidLists, onItemClick }: UseSidebarHotkeysProps) => {
   const router = useRouter();
   const { setSelectedListId } = useListStore();
   const { setSelectedChannelUrl } = useAccountStore();
@@ -29,7 +25,7 @@ export const useSidebarHotkeys = ({
         setSelectedListId(list.id);
         setSelectedChannelUrl(null);
         if (onItemClick) onItemClick();
-        
+
         // Navigate to feed if not already there
         if (router.pathname !== '/feeds') {
           router.push('/feeds');
@@ -46,7 +42,7 @@ export const useSidebarHotkeys = ({
         setSelectedListId(list.id);
         setSelectedChannelUrl(null);
         if (onItemClick) onItemClick();
-        
+
         // Navigate to feed if not already there
         if (router.pathname !== '/feeds') {
           router.push('/feeds');
@@ -79,8 +75,5 @@ export const useSidebarHotkeys = ({
   }));
 
   // Register all hotkeys
-  useMultipleHotkeys(
-    [...searchHotkeys, ...listHotkeys],
-    [searchLists, fidLists, navigateToSearch, navigateToList]
-  );
+  useMultipleHotkeys([...searchHotkeys, ...listHotkeys], [searchLists, fidLists, navigateToSearch, navigateToList]);
 };

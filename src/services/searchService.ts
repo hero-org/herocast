@@ -134,6 +134,13 @@ export class SearchService {
     const searchResponse = await this.search(params);
     const castHashes = searchResponse.results?.map((result) => result.hash) || [];
 
+    // If no results, return empty response
+    if (castHashes.length === 0) {
+      return {
+        casts: [],
+      };
+    }
+
     if (!this.neynarClient) {
       this.neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
     }
