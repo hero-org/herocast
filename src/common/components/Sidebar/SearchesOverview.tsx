@@ -16,12 +16,15 @@ const SearchesOverview = ({ onItemClick }: SearchesOverviewProps) => {
   const renderSearch = (search: Search) => {
     const isSelected = currentSearchTerm === search.term;
     return (
-      <div key={`search-${search.startedAt}`} className="px-1">
+      <div key={`search-${search.startedAt}`} className="relative">
+        {isSelected && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
+        )}
         <div
           className={cn(
-            'flex items-center gap-x-3 rounded-lg px-3 py-1.5 text-sm cursor-pointer',
+            'flex items-center gap-x-3 rounded-lg mx-1 px-3 py-1.5 text-sm cursor-pointer',
             isSelected
-              ? 'bg-primary text-primary-foreground shadow-sm font-medium'
+              ? 'bg-primary/20 text-foreground font-semibold'
               : 'text-foreground/70 hover:text-foreground hover:bg-sidebar/40'
           )}
           onClick={() => {
@@ -31,7 +34,6 @@ const SearchesOverview = ({ onItemClick }: SearchesOverviewProps) => {
           }}
         >
           <span className="flex-1 truncate font-medium">{search.term}</span>
-          {isSelected && <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />}
         </div>
         {isDev() && (
           <div className="flex flex-row gap-x-2 px-3 mt-1">

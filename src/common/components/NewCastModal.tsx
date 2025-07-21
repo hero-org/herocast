@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, Suspense } from 'react';
+import React, { useEffect, useMemo, Suspense, Component, ReactNode } from 'react';
 import Modal from '@/common/components/Modal';
 import { Loading } from './Loading';
 import dynamic from 'next/dynamic';
+import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Dynamic import with loading fallback
 const NewPostEntry = dynamic(() => import('./Editor/NewCastEditor'), {
@@ -24,6 +26,54 @@ type NewCastModalProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+// Error Boundary for the Cast Editor
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class CastEditorErrorBoundary extends Component<{ children: ReactNode; onReset: () => void }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode; onReset: () => void }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Cast Editor Error:', error, errorInfo);
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null });
+    this.props.onReset();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 text-center">
+          <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
+          <p className="text-sm text-foreground/60 mb-4">
+            There was an error loading the editor. Please try again.
+          </p>
+          <p className="text-xs text-foreground/40 mb-4">
+            {this.state.error?.message}
+          </p>
+          <Button onClick={this.handleReset} variant="outline" size="sm">
+            Try again
+          </Button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) => {
   const { castModalView } = useNavigationStore();
   const { selectedCast } = useDataStore();
@@ -32,10 +82,14 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
   const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
 
   useEffect(() => {
+    // Add a small delay before removing draft to allow editor to finish any pending updates
     if (!open && draftId !== undefined) {
-      removePostDraftById(draftId);
+      const timeoutId = setTimeout(() => {
+        removePostDraftById(draftId);
+      }, 100);
+      return () => clearTimeout(timeoutId);
     }
-  }, [open, draftId]);
+  }, [open, draftId, removePostDraftById]);
   useAppHotkeys(
     'esc',
     () => setOpen(false),
@@ -81,18 +135,20 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
               </div>
             )}
             <div className="flex">
-              {draft && draftIdx !== -1 ? (
-                <NewPostEntry
-                  draft={draft}
-                  draftIdx={draftIdx}
-                  onPost={() => {
-                    setOpen(false);
-                  }}
-                  hideChannel={castModalView === CastModalView.Reply}
-                />
-              ) : (
-                <Loading loadingMessage="Loading draft..." />
-              )}
+              <CastEditorErrorBoundary onReset={() => window.location.reload()}>
+                {draft && draftIdx !== -1 ? (
+                  <NewPostEntry
+                    draft={draft}
+                    draftIdx={draftIdx}
+                    onPost={() => {
+                      setOpen(false);
+                    }}
+                    hideChannel={castModalView === CastModalView.Reply}
+                  />
+                ) : (
+                  <Loading loadingMessage="Loading draft..." />
+                )}
+              </CastEditorErrorBoundary>
             </div>
           </div>
         )}

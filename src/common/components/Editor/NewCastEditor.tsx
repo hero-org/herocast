@@ -61,9 +61,13 @@ const getAllChannels = async (): Promise<Channel[]> => {
 const getUrlMetadata = fetchUrlMetadata(API_URL);
 
 const onError = (err) => {
-  console.error(err);
+  console.error('Editor error:', err);
   if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'development') {
     window.alert(err.message);
+  }
+  // Ensure errors are properly logged in production
+  if (typeof window !== 'undefined' && (window as any).Sentry) {
+    (window as any).Sentry.captureException(err);
   }
 };
 
@@ -89,6 +93,7 @@ export default function NewPostEntry({
   const { addScheduledDraft, updatePostDraft, publishPostDraft } = useDraftStore();
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
+  const [editorKey, setEditorKey] = React.useState(0);
 
   const hasEmbeds = draft.embeds && !!draft.embeds.length;
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
@@ -133,16 +138,17 @@ export default function NewPostEntry({
   };
 
   const onSubmitPost = async (): Promise<boolean> => {
-    if (!isHydrated) return false;
+    try {
+      if (!isHydrated) return false;
 
-    if (!draft.text && !draft.embeds?.length) return false;
+      if (!draft.text && !draft.embeds?.length) return false;
 
-    if (scheduleDateTime && !validateScheduledDateTime(scheduleDateTime)) {
-      return false;
-    }
+      if (scheduleDateTime && !validateScheduledDateTime(scheduleDateTime)) {
+        return false;
+      }
 
-    // Close the modal immediately by calling onPost
-    onPost?.();
+      // Close the modal immediately by calling onPost
+      onPost?.();
 
     if (scheduleDateTime) {
       posthog.capture('user_schedule_cast');
@@ -163,6 +169,11 @@ export default function NewPostEntry({
       await publishPostDraft(draftIdx, account);
     }
     return true;
+  } catch (error) {
+    console.error('Error submitting post:', error);
+    toast.error('Failed to submit post. Please try again.');
+    return false;
+  }
   };
 
   const ref = useAppHotkeys(
@@ -221,19 +232,31 @@ export default function NewPostEntry({
   const mentionConfig = useMemo(() => {
     return createRenderMentionsSuggestionConfig({
       getResults: async (query: string) => {
-        const results = await getMentions(query);
-        // When results come back, check if any have FIDs and capture them
-        if (results && Array.isArray(results)) {
-          results.forEach((mention) => {
-            if (mention && mention.username && mention.fid) {
-              setCapturedMentions((prev) => ({
-                ...prev,
-                [mention.username]: mention.fid.toString(),
-              }));
-            }
-          });
+        try {
+          const results = await getMentions(query);
+          // When results come back, check if any have FIDs and capture them
+          // Use setTimeout to avoid state updates during render
+          if (results && Array.isArray(results)) {
+            setTimeout(() => {
+              const newMentions = {};
+              results.forEach((mention) => {
+                if (mention && mention.username && mention.fid) {
+                  newMentions[mention.username] = mention.fid.toString();
+                }
+              });
+              if (Object.keys(newMentions).length > 0) {
+                setCapturedMentions((prev) => ({
+                  ...prev,
+                  ...newMentions,
+                }));
+              }
+            }, 0);
+          }
+          return results;
+        } catch (error) {
+          console.error('Error fetching mentions:', error);
+          return [];
         }
-        return results;
       },
       RenderList: MentionList,
     });
@@ -270,16 +293,23 @@ export default function NewPostEntry({
   });
 
   useEffect(() => {
+    if (!editor) return;
+    
+    // Only set initial content once when editor is ready
     if (!text && draft.text && isEmpty(draft.mentionsToFids)) {
-      editor?.commands.setContent(`<p>${draft.text.replace(/\n/g, '<br>')}</p>`, true, {
-        preserveWhitespace: 'full',
-      });
+      try {
+        editor.commands.setContent(`<p>${draft.text.replace(/\n/g, '<br>')}</p>`, true, {
+          preserveWhitespace: 'full',
+        });
+      } catch (error) {
+        console.error('Error setting initial editor content:', error);
+      }
     }
 
-    if (draft.embeds) {
+    if (draft.embeds && !initialEmbeds) {
       setInitialEmbeds(draft.embeds);
     }
-  }, [editor]);
+  }, [editor, draft.text, draft.embeds, initialEmbeds]);
 
   const text = getText();
   const embeds = getEmbeds();
@@ -316,17 +346,22 @@ export default function NewPostEntry({
     if (!editor) return; // no updates before editor is initialized
     if (isPublishing) return;
 
-    const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
+    // Debounce draft updates to avoid rapid state changes
+    const timeoutId = setTimeout(() => {
+      const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
 
-    // Use the original draft data with only the changed fields
-    updatePostDraft(draftIdx, {
-      ...draft,
-      text,
-      embeds: newEmbeds,
-      parentUrl: channel?.parent_url || undefined,
-      mentionsToFids: extractMentionsFromText,
-    });
-  }, [text, embeds, initialEmbeds, channel, isPublishing, editor, extractMentionsFromText]);
+      // Use the original draft data with only the changed fields
+      updatePostDraft(draftIdx, {
+        ...draft,
+        text,
+        embeds: newEmbeds,
+        parentUrl: channel?.parent_url || undefined,
+        mentionsToFids: extractMentionsFromText,
+      });
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [text, embeds, initialEmbeds, channel, isPublishing, editor, extractMentionsFromText, draftIdx, draft, updatePostDraft]);
 
   useEffect(() => {
     if (!draft || !draft.parentUrl) return;
@@ -377,12 +412,21 @@ export default function NewPostEntry({
   const hasReachedFreePlanLimit = !isPaidUser() && scheduledCastCount >= openSourcePlanLimits.maxScheduledCasts;
   const isButtonDisabled = isPublishing || !textLengthIsValid || (scheduleDateTime && hasReachedFreePlanLimit);
 
+  // Cleanup editor on unmount
+  useEffect(() => {
+    return () => {
+      if (editor && !editor.isDestroyed) {
+        editor.destroy();
+      }
+    };
+  }, [editor]);
+
   return (
     <div
       className="flex flex-col items-start min-w-full w-full h-full"
       ref={ref as RefObject<HTMLDivElement>}
       tabIndex={-1}
-      key={draft.id}
+      key={`${draft.id}-${editorKey}`}
     >
       <form onSubmit={handleSubmit} className="w-full">
         {isPublishing ? (
@@ -490,7 +534,7 @@ export default function NewPostEntry({
               {renderEmbedForUrl({
                 ...embed,
                 onRemove: () => {
-                  const newEmbeds = draft.embeds.filter((e) => {
+                  const newEmbeds = draft.embeds?.filter((e) => {
                     if ('url' in embed && 'url' in e) return e.url !== embed.url;
                     if ('hash' in embed && 'hash' in e) return e.hash !== embed.hash;
                     return e !== embed;
@@ -501,14 +545,15 @@ export default function NewPostEntry({
                     createdAt: draft.createdAt,
                     accountId: draft.accountId,
                     text: draft.text,
-                    embeds: newEmbeds,
+                    embeds: newEmbeds || [],
                     parentUrl: draft.parentUrl,
                     parentCastId: draft.parentCastId,
                     mentionsToFids: draft.mentionsToFids,
                     timestamp: draft.timestamp,
                     hash: draft.hash,
                   });
-                  window.location.reload();
+                  // Force re-render of embeds by incrementing key
+                  setEditorKey((prev) => prev + 1);
                 },
               })}
             </div>

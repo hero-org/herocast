@@ -90,12 +90,12 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
             <Key className="h-5 w-5 text-amber-600" />
             <AlertDescription className="text-sm leading-relaxed">
               <strong className="font-semibold">Important:</strong> Direct Messages API access is restricted. Your
-              Farcaster account must be allowlisted by the Farcaster team to use DMs in third-party apps like Herocast.
+              Farcaster account must be allowlisted by the Farcaster team to use DMs in third-party apps like herocast.
             </AlertDescription>
           </Alert>
 
           {/* Security note */}
-          <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
+          <Alert className="text-center align-center border-green-200 bg-green-50 dark:bg-green-950/20">
             <Shield className="h-5 w-5 text-green-600" />
             <AlertDescription className="text-sm leading-relaxed">
               Your API key is encrypted and stored securely. It&apos;s never shared or exposed.

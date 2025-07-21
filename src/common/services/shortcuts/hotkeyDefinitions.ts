@@ -204,6 +204,26 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     category: hotkeyCategories.feed,
     scopes: [HotkeyScopes.FEED],
   },
+
+  // Sidebar Navigation - Sequential Keys
+  ...Array.from({ length: 9 }, (_, i) => ({
+    id: `go-to-search-${i + 1}`,
+    keys: `g>s>${i + 1}`,
+    name: `Go to Search ${i + 1}`,
+    description: `Navigate to search item ${i + 1}`,
+    category: hotkeyCategories.navigation,
+    scopes: [HotkeyScopes.FEED],
+    enableOnFormTags: false,
+  })),
+  ...Array.from({ length: 9 }, (_, i) => ({
+    id: `go-to-list-${i + 1}`,
+    keys: `g>l>${i + 1}`,
+    name: `Go to List ${i + 1}`,
+    description: `Navigate to list item ${i + 1}`,
+    category: hotkeyCategories.navigation,
+    scopes: [HotkeyScopes.FEED],
+    enableOnFormTags: false,
+  })),
 ];
 
 // Helper to get hotkeys by scope

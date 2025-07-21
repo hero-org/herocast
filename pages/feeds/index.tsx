@@ -394,7 +394,7 @@ export default function Feeds() {
       if (newFeed?.next?.cursor) {
         setNextFeedCursor(newFeed.next.cursor);
       } else {
-        setNextFeedCursor(castsInFeed.length.toString());
+        setNextFeedCursor('');
       }
     } catch (e) {
       console.error('Error fetching feed', e);

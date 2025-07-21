@@ -9,6 +9,7 @@ type CollapsibleListProps<T> = {
   isShowAll?: boolean;
   setIsShowAll?: (value: boolean) => void;
   className?: string;
+  footer?: React.ReactNode;
 };
 
 function CollapsibleList<T>({
@@ -18,6 +19,7 @@ function CollapsibleList<T>({
   isShowAll: externalIsShowAll,
   setIsShowAll: externalSetIsShowAll,
   className = '',
+  footer,
 }: CollapsibleListProps<T>) {
   const [internalIsShowAll, setInternalIsShowAll] = useState(false);
 
@@ -31,12 +33,19 @@ function CollapsibleList<T>({
         <CollapsibleContent>
           {items.slice(initialVisibleCount).map((item, index) => renderItem(item, index + initialVisibleCount))}
         </CollapsibleContent>
-        {items.length > initialVisibleCount && (
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm" className="h-6 px-1">
-              <span>Show {isShowAll ? 'less' : 'more'}</span>
-            </Button>
-          </CollapsibleTrigger>
+        {(items.length > initialVisibleCount || footer) && (
+          <div className="px-3 pt-2 pb-1">
+            <div className="flex gap-1.5">
+              {items.length > initialVisibleCount && (
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex-1 h-7 text-xs text-muted-foreground hover:text-foreground">
+                    {isShowAll ? 'Show less' : 'Show more'}
+                  </Button>
+                </CollapsibleTrigger>
+              )}
+              {footer}
+            </div>
+          </div>
         )}
       </Collapsible>
     </div>

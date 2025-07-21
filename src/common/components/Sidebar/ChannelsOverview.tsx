@@ -3,7 +3,8 @@ import { ChannelType } from '@/common/constants/channels';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
 import { SidebarHeader } from './SidebarHeader';
 import { cn } from '@/lib/utils';
-import { ArrowTrendingUpIcon, HomeIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
+import { ArrowTrendingUpIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { Rss, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -31,16 +32,19 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
     if (onItemClick) onItemClick();
   };
 
-  const renderCustomChannel = ({ name, url, icon }: { name: string; url: string; icon?: React.ReactNode }) => {
+  const renderCustomChannel = ({ name, url, icon, hotkey }: { name: string; url: string; icon?: React.ReactNode; hotkey?: string }) => {
     const isSelected = selectedChannelUrl === url;
     return (
-      <li key={`custom-channel-${name}`} className="px-1 mx-1">
+      <li key={`custom-channel-${name}`} className="relative">
+        {isSelected && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
+        )}
         <div
           onClick={() => onUpdateChannel(url)}
           className={cn(
-            'flex items-center gap-x-3 rounded-lg px-3 py-1.5 text-sm font-medium cursor-pointer',
+            'flex items-center gap-x-3 rounded-lg mx-1 px-3 py-1.5 text-sm font-medium cursor-pointer group',
             isSelected
-              ? 'bg-primary text-primary-foreground shadow-sm'
+              ? 'bg-primary/20 text-foreground font-semibold'
               : 'text-foreground/70 hover:text-foreground hover:bg-sidebar/40'
           )}
         >
@@ -48,17 +52,27 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
             {icon}
             <span className="font-medium">{name}</span>
           </span>
-          {isSelected && <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />}
+          <div className="ml-auto flex items-center gap-x-2">
+            {hotkey && (
+              <kbd className={cn(
+                'px-1.5 py-0.5 rounded font-mono text-xs transition-all',
+                isSelected 
+                  ? 'bg-primary text-primary-foreground opacity-80'
+                  : 'bg-muted/50 text-muted-foreground opacity-50 group-hover:opacity-100'
+              )}>
+                {hotkey}
+              </kbd>
+            )}
+          </div>
         </div>
       </li>
     );
   };
 
-  const renderFeedHeader = (title: string | JSX.Element, button?) => {
+  const renderFeedHeader = (title: string | JSX.Element) => {
     return (
-      <div className="flex items-center justify-between px-3 py-1.5">
-        <h3 className="text-sm font-semibold leading-6 text-foreground/90 flex items-center gap-x-2">{title}</h3>
-        {button}
+      <div className="px-3 pb-1">
+        <h3>{title}</h3>
       </div>
     );
   };
@@ -66,31 +80,30 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
   const renderChannel = (channel: ChannelType) => {
     const isSelected = selectedChannelUrl === channel.url;
     return (
-      <div
-        onClick={() => onUpdateChannel(channel.url)}
-        className={cn(
-          'flex items-center gap-x-3 rounded-lg mx-1 px-3 py-1.5 text-sm cursor-pointer',
-          isSelected
-            ? 'bg-primary text-primary-foreground shadow-sm font-medium'
-            : 'text-foreground/70 hover:text-foreground hover:bg-sidebar/40'
+      <div className="relative">
+        {isSelected && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
         )}
-      >
-        <div className="flex items-center gap-x-2 max-w-sm flex-1">
-          {channel.icon_url && (
-            <img
-              src={channel.icon_url}
-              alt=""
-              className={cn(
-                'h-4 w-4 flex-none rounded-full border transition-colors',
-                isSelected
-                  ? 'border-primary-foreground/30 bg-primary-foreground/10'
-                  : 'border-sidebar-border bg-sidebar/20'
-              )}
-            />
+        <div
+          onClick={() => onUpdateChannel(channel.url)}
+          className={cn(
+            'flex items-center gap-x-3 rounded-lg mx-1 px-3 py-1.5 text-sm cursor-pointer',
+            isSelected
+              ? 'bg-primary/20 text-foreground font-semibold'
+              : 'text-foreground/70 hover:text-foreground hover:bg-sidebar/40'
           )}
-          <span className="flex-nowrap truncate font-medium">{channel.name}</span>
+        >
+          <div className="flex items-center gap-x-2 max-w-sm flex-1">
+            {channel.icon_url && (
+              <img
+                src={channel.icon_url}
+                alt=""
+                className="h-4 w-4 flex-none rounded-full border border-sidebar-border/50"
+              />
+            )}
+            <span className="flex-nowrap truncate font-medium">{channel.name}</span>
+          </div>
         </div>
-        {isSelected && <div className="ml-auto w-2 h-2 bg-primary-foreground rounded-full" />}
       </div>
     );
   };
@@ -103,15 +116,22 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
           renderItem={(channel: ChannelType) => <div key={channel.name}>{renderChannel(channel)}</div>}
           isShowAll={isShowAllChannels}
           setIsShowAll={setIsShowAllChannels}
+          footer={
+            <Link href="/channels" className="flex-1">
+              <Button variant="ghost" size="sm" className="w-full h-7 text-xs text-muted-foreground hover:text-foreground">
++ Pin
+              </Button>
+            </Link>
+          }
         />
       </div>
     </div>
   );
 
   const renderAddFirstChannelsButton = () => (
-    <Link href="/channels" className="px-3 py-2">
-      <Button size="sm" variant="outline" className="w-full border-dashed h-8">
-        Pin your first channel
+    <Link href="/channels" className="px-3 py-1">
+      <Button size="sm" variant="ghost" className="w-full h-7 text-xs text-muted-foreground hover:text-foreground">
++ Add
       </Button>
     </Link>
   );
@@ -119,40 +139,43 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
   const hasChannels = channels.length > 0;
 
   return (
-    <div className="space-y-2">
-      {/* Default Feeds */}
-      <div className="space-y-0.5">
-        <ul role="list" className="space-y-0.5">
-          {renderCustomChannel({
-            name: 'Follow Feed',
-            url: CUSTOM_CHANNELS.FOLLOWING,
-            icon: <HomeIcon className="h-4 w-4 flex-none" />,
-          })}
-          {renderCustomChannel({
-            name: 'Trending Feed',
-            url: CUSTOM_CHANNELS.TRENDING,
-            icon: <ArrowTrendingUpIcon className="h-4 w-4 flex-none" />,
-          })}
-        </ul>
+    <div className="space-y-4">
+      {/* Feeds Section */}
+      <div>
+        {renderFeedHeader(
+          <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-1.5">
+            <Rss className="h-3 w-3" />
+            Feeds
+          </span>
+        )}
+        <div className="space-y-0.5">
+          <ul role="list" className="space-y-0.5">
+            {renderCustomChannel({
+              name: 'Follow Feed',
+              url: CUSTOM_CHANNELS.FOLLOWING,
+              icon: <HomeIcon className="h-4 w-4 flex-none" />,
+              hotkey: '⇧0',
+            })}
+            {renderCustomChannel({
+              name: 'Trending Feed',
+              url: CUSTOM_CHANNELS.TRENDING,
+              icon: <ArrowTrendingUpIcon className="h-4 w-4 flex-none" />,
+              hotkey: '⇧1',
+            })}
+          </ul>
+        </div>
       </div>
 
-      {/* Channels Section */}
-      <div className="pt-1">
-        <div className="border-t border-sidebar-border/30" />
-        <div className="pt-2">
-          {renderFeedHeader(
-            <span className="flex items-center gap-x-2">
-              <RectangleGroupIcon className="h-4 w-4" aria-hidden="true" />
-              <span>Channels</span>
-            </span>,
-            <Link href="/channels">
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs hover:bg-sidebar/40">
-                Pin
-              </Button>
-            </Link>
-          )}
-          {hasChannels ? renderChannelList() : renderAddFirstChannelsButton()}
-        </div>
+      {/* My Channels Section */}
+      <div>
+        <div className="border-t border-sidebar-border/20 mb-3" />
+        {renderFeedHeader(
+          <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-1.5">
+            <Hash className="h-3 w-3" />
+            My Channels
+          </span>
+        )}
+        {hasChannels ? renderChannelList() : renderAddFirstChannelsButton()}
       </div>
     </div>
   );
