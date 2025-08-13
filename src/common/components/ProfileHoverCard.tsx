@@ -36,8 +36,10 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
 
   return (
     <HoverCard openDelay={200}>
-      <HoverCardTrigger ref={ref} className={`${className} text-left`}>
-        <a href={`/profile/${profile?.username || username}`}>{children}</a>
+      <HoverCardTrigger ref={ref} className={`${className} text-left`} asChild>
+        <Link href={`/profile/${profile?.username || username}`} prefetch={false}>
+          {children}
+        </Link>
       </HoverCardTrigger>
       <HoverCardContent side="bottom" className="border border-gray-400 overflow-hidden cursor-pointer">
         <Link href={`/profile/${profile?.username || username}`} prefetch={false} className="w-full text-left">

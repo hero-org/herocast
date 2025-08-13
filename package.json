@@ -21,12 +21,14 @@
   },
   "browserslist": {
     "production": [
-      "last 3 Chrome versions",
-      "safari 13"
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
     ],
     "development": [
-      "last 3 Chrome versions",
-      "safari 13"
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
     ]
   },
   "prettier": {
@@ -198,5 +200,6 @@
     "ramda": "^0.29.1",
     "supabase": "^1.226.4",
     "ts-jest": "^29.2.6"
-  }
+  },
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }
