@@ -1,3 +1,5 @@
+'use client';
+
 import { useGlobalHotkeys } from '@/common/hooks/useGlobalHotkeys';
 
 export function GlobalHotkeys() {

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect } from 'react';
 import { HotkeysProvider, useHotkeysContext } from 'react-hotkeys-hook';
 import { useRouter } from 'next/router';
@@ -15,6 +17,9 @@ function ScopeManager() {
   const { enableScope, disableScope, enabledScopes } = useHotkeysContext();
   const { isCommandPaletteOpen, isNewCastModalOpen } = useNavigationStore();
   const { selectedCast } = useDataStore();
+  
+  // Use pathname safely with fallback
+  const pathname = router?.pathname || '/';
 
   // Ensure global scope is always enabled on mount
   useEffect(() => {
@@ -30,10 +35,10 @@ function ScopeManager() {
 
   // Update scopes based on current page
   useEffect(() => {
-    const scopes = getScopesForPage(router.pathname);
+    const scopes = getScopesForPage(pathname);
 
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-      console.log('Page scopes for', router.pathname, ':', scopes);
+      console.log('Page scopes for', pathname, ':', scopes);
     }
 
     // Enable page-specific scopes
@@ -50,7 +55,7 @@ function ScopeManager() {
           disableScope(scope);
         });
     };
-  }, [router.pathname, enableScope, disableScope]);
+  }, [pathname, enableScope, disableScope]);
 
   // Handle modal states
   useEffect(() => {
@@ -63,11 +68,11 @@ function ScopeManager() {
     } else {
       disableScope(HotkeyScopes.COMMAND_PALETTE);
       // Re-enable page scopes
-      getScopesForPage(router.pathname).forEach((scope) => enableScope(scope));
+      getScopesForPage(pathname).forEach((scope) => enableScope(scope));
       // Always ensure global scope is enabled
       enableScope(HotkeyScopes.GLOBAL);
     }
-  }, [isCommandPaletteOpen, router.pathname, enableScope, disableScope]);
+  }, [isCommandPaletteOpen, pathname, enableScope, disableScope]);
 
   // Handle editor modal
   useEffect(() => {

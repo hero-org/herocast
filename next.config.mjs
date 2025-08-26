@@ -12,6 +12,8 @@ const nextConfig = {
       ...config.resolve.alias,
       '@faker-js/faker': path.resolve(__dirname, 'node_modules/@faker-js/faker'),
       '@farcaster/core': path.resolve(__dirname, 'node_modules/@farcaster/core'),
+      // Router compatibility: redirect all next/router imports to our compatibility module
+      'next/router': path.resolve(__dirname, 'app/router-compat-full.ts'),
     };
     return config;
   },
