@@ -98,28 +98,66 @@ export function EnhancedDateTimePicker({
     const value = e.target.value;
     setTimeValue(value);
 
-    if (selectedDate && value) {
-      const [hours, minutes] = value.split(':').map(Number);
-      const testDate = new Date(selectedDate);
-      testDate.setHours(hours, minutes, 0, 0);
+    // Don't update parent on every keystroke - wait for blur
+  };
 
-      // If the selected date is today, validate the time isn't in the past
-      if (isToday(selectedDate) && isBefore(testDate, new Date())) {
-        // Don't update if it would be in the past
-        return;
+  const handleTimeBlur = () => {
+    if (selectedDate && timeValue) {
+      const [hours, minutes] = timeValue.split(':').map(Number);
+
+      // Round minutes to nearest 5-minute increment
+      let roundedMinutes = Math.round(minutes / 5) * 5;
+      let finalHours = hours;
+
+      // Handle overflow when rounding to 60
+      if (roundedMinutes >= 60) {
+        roundedMinutes = 0;
+        finalHours = (hours + 1) % 24;
       }
 
-      updateDateTime(selectedDate, value);
+      // Update the display value
+      const roundedTimeStr = `${finalHours.toString().padStart(2, '0')}:${roundedMinutes.toString().padStart(2, '0')}`;
+      setTimeValue(roundedTimeStr);
+
+      // Update the date
+      const newDate = new Date(selectedDate);
+      newDate.setHours(finalHours, roundedMinutes, 0, 0);
+
+      // Check if in the past
+      if (isToday(selectedDate) && isBefore(newDate, new Date())) {
+        // Reset to current time rounded up to next 5 minutes
+        const now = new Date();
+        const nowMinutes = now.getMinutes();
+        const nextMinutes = Math.ceil(nowMinutes / 5) * 5;
+        if (nextMinutes >= 60) {
+          now.setHours(now.getHours() + 1, 0, 0, 0);
+        } else {
+          now.setMinutes(nextMinutes, 0, 0);
+        }
+        setTimeValue(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+        onJsDateChange?.(now);
+      } else {
+        onJsDateChange?.(newDate);
+      }
     }
   };
 
   const handleTimePreset = (preset: TimePreset) => {
-    const timeStr = `${preset.hour.toString().padStart(2, '0')}:${preset.minute.toString().padStart(2, '0')}`;
+    // Round preset minutes to nearest 5-minute increment (though presets should already be at :00)
+    let roundedMinutes = Math.round(preset.minute / 5) * 5;
+    let finalHours = preset.hour;
+
+    if (roundedMinutes >= 60) {
+      roundedMinutes = 0;
+      finalHours = (preset.hour + 1) % 24;
+    }
+
+    const timeStr = `${finalHours.toString().padStart(2, '0')}:${roundedMinutes.toString().padStart(2, '0')}`;
     setTimeValue(timeStr);
 
     if (selectedDate) {
       const testDate = new Date(selectedDate);
-      testDate.setHours(preset.hour, preset.minute, 0, 0);
+      testDate.setHours(finalHours, roundedMinutes, 0, 0);
 
       // If the selected date is today, validate the time isn't in the past
       if (isToday(selectedDate) && isBefore(testDate, new Date())) {
@@ -135,8 +173,6 @@ export function EnhancedDateTimePicker({
     const [hours, minutes] = timeString.split(':').map(Number);
     const newDate = new Date(date);
     newDate.setHours(hours, minutes, 0, 0);
-
-    // Don't round here - let the parent component handle it
     onJsDateChange?.(newDate);
   };
 
@@ -210,7 +246,8 @@ export function EnhancedDateTimePicker({
                   type="time"
                   value={timeValue}
                   onChange={handleTimeChange}
-                  step="300" // 5 minute steps
+                  onBlur={handleTimeBlur}
+                  step="300" // 5 minute steps in dropdown
                   className="w-full"
                 />
               </div>
