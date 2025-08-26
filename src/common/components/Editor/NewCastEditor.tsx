@@ -113,20 +113,6 @@ export default function NewPostEntry({
   const userChannels = accounts[selectedAccountIdx]?.channels || [];
   const isReply = draft.parentCastId !== undefined;
 
-  useEffect(() => {
-    if (scheduleDateTime) {
-      const minutes = scheduleDateTime.getMinutes();
-      const remainder = minutes % 5;
-      // server only supports scheduling in 5 minute increments
-      if (remainder !== 0) {
-        const newMinutes = Math.round(minutes / 5) * 5;
-        const newDate = new Date(scheduleDateTime);
-        newDate.setMinutes(newMinutes);
-        setScheduleDateTime(newDate);
-      }
-    }
-  }, [scheduleDateTime]);
-
   const validateScheduledDateTime = (date: Date) => {
     if (!scheduleDateTime) return true;
 
@@ -509,6 +495,14 @@ export default function NewPostEntry({
                 onClick={() => {
                   const futureDate = new Date();
                   futureDate.setHours(futureDate.getHours() + 1);
+                  // Round minutes to next 5-minute interval
+                  const minutes = futureDate.getMinutes();
+                  const roundedMinutes = Math.ceil(minutes / 5) * 5;
+                  if (roundedMinutes >= 60) {
+                    futureDate.setHours(futureDate.getHours() + 1, 0, 0, 0);
+                  } else {
+                    futureDate.setMinutes(roundedMinutes, 0, 0);
+                  }
                   setScheduleDateTime(futureDate);
                 }}
               >
