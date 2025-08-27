@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const casts = searchParams.get('casts');
     const viewerFid = searchParams.get('viewer_fid');
-    
+
     if (!casts) {
       return NextResponse.json({ error: 'Missing casts parameter' }, { status: 400 });
     }
@@ -67,8 +67,8 @@ export async function GET(request: NextRequest) {
     try {
       const response = await axios.get(`${NEYNAR_API_URL}?${params.toString()}`, {
         headers: {
-          'accept': 'application/json',
-          'api_key': API_KEY,
+          accept: 'application/json',
+          api_key: API_KEY,
         },
         signal: controller.signal,
       });
@@ -81,20 +81,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response.data);
     } catch (error: any) {
       clearTimeout(timeoutId);
-      
+
       if (error.name === 'AbortError') {
         return NextResponse.json({ error: TIMEOUT_ERROR_MESSAGE }, { status: 408 });
       }
-      
+
       console.error('Error fetching casts:', error);
-      
+
       if (error.response) {
         return NextResponse.json(
           { error: error.response.data?.message || 'External API error' },
           { status: error.response.status }
         );
       }
-      
+
       return NextResponse.json({ error: 'Failed to fetch casts' }, { status: 500 });
     }
   } catch (error) {

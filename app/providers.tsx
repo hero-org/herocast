@@ -34,9 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={rainbowKitTheme}>
           <AuthProvider>
-            <AppHotkeysProvider>
-              {children}
-            </AppHotkeysProvider>
+            <AppHotkeysProvider>{children}</AppHotkeysProvider>
           </AuthProvider>
         </RainbowKitProvider>
       </QueryClientProvider>

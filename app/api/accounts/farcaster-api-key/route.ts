@@ -10,10 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { error } = await supabase
-      .from('accounts')
-      .update({ farcaster_api_key: apiKey })
-      .eq('id', accountId);
+    const { error } = await supabase.from('accounts').update({ farcaster_api_key: apiKey }).eq('id', accountId);
 
     if (error) {
       console.error('Error updating farcaster API key:', error);

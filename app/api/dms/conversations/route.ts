@@ -15,15 +15,17 @@ export async function GET(request: NextRequest) {
     const supabase = createClient(request);
 
     // Get authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized', conversations: [], groups: [] }, { status: 401 });
     }
 
     // For now, return empty data - full implementation needed later
     return NextResponse.json({ conversations: [], groups: [] });
-    
   } catch (error) {
     console.error('Error in conversations route:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

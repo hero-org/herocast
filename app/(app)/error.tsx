@@ -21,7 +21,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
         userAgent: navigator.userAgent,
         timestamp: new Date().toISOString(),
       });
-      
+
       // Add user context if available
       const userDataString = localStorage.getItem('herocast:user');
       if (userDataString) {
@@ -32,7 +32,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
           // Ignore JSON parse errors
         }
       }
-      
+
       Sentry.captureException(error);
     });
   }, [error]);
@@ -42,16 +42,14 @@ export default function AppError({ error, reset }: AppErrorProps) {
     if (typeof window !== 'undefined') {
       try {
         // Clear draft data that might be corrupted
-        const keysToRemove = Object.keys(sessionStorage).filter(key => 
-          key.includes('draft') || key.includes('compose') || key.includes('temp')
+        const keysToRemove = Object.keys(sessionStorage).filter(
+          (key) => key.includes('draft') || key.includes('compose') || key.includes('temp')
         );
-        keysToRemove.forEach(key => sessionStorage.removeItem(key));
-        
+        keysToRemove.forEach((key) => sessionStorage.removeItem(key));
+
         // Optionally clear some localStorage cache data (but preserve user data)
-        const cacheKeys = Object.keys(localStorage).filter(key =>
-          key.includes('cache') || key.includes('temp')
-        );
-        cacheKeys.forEach(key => localStorage.removeItem(key));
+        const cacheKeys = Object.keys(localStorage).filter((key) => key.includes('cache') || key.includes('temp'));
+        cacheKeys.forEach((key) => localStorage.removeItem(key));
       } catch (e) {
         console.warn('Failed to clear app session data:', e);
       }
@@ -60,11 +58,13 @@ export default function AppError({ error, reset }: AppErrorProps) {
   };
 
   // Determine error type for better user guidance
-  const isNetworkError = error.message.toLowerCase().includes('network') ||
+  const isNetworkError =
+    error.message.toLowerCase().includes('network') ||
     error.message.toLowerCase().includes('fetch') ||
     error.message.toLowerCase().includes('timeout');
-    
-  const isDataError = error.message.toLowerCase().includes('data') ||
+
+  const isDataError =
+    error.message.toLowerCase().includes('data') ||
     error.message.toLowerCase().includes('parse') ||
     error.message.toLowerCase().includes('json');
 
@@ -73,24 +73,24 @@ export default function AppError({ error, reset }: AppErrorProps) {
       return "We're having trouble connecting to our servers. Please check your internet connection and try again.";
     }
     if (isDataError) {
-      return "There was an issue loading your data. This might be temporary - please try refreshing the page.";
+      return 'There was an issue loading your data. This might be temporary - please try refreshing the page.';
     }
-    return "Something unexpected happened in the application. Our team has been notified.";
+    return 'Something unexpected happened in the application. Our team has been notified.';
   };
 
   const getErrorSuggestions = () => {
-    const suggestions = ["Try refreshing the page"];
-    
+    const suggestions = ['Try refreshing the page'];
+
     if (isNetworkError) {
-      suggestions.push("Check your internet connection");
-      suggestions.push("Try again in a few moments");
+      suggestions.push('Check your internet connection');
+      suggestions.push('Try again in a few moments');
     }
-    
+
     if (isDataError) {
-      suggestions.push("Clear your browser cache");
-      suggestions.push("Try signing out and back in");
+      suggestions.push('Clear your browser cache');
+      suggestions.push('Try signing out and back in');
     }
-    
+
     return suggestions;
   };
 
@@ -102,14 +102,10 @@ export default function AppError({ error, reset }: AppErrorProps) {
             <AlertCircle className="h-12 w-12 text-destructive" />
           </div>
         </div>
-        
+
         <div className="space-y-3">
-          <h1 className="text-2xl font-bold text-foreground">
-            Something went wrong
-          </h1>
-          <p className="text-foreground/70 text-base leading-relaxed">
-            {getErrorMessage()}
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">Something went wrong</h1>
+          <p className="text-foreground/70 text-base leading-relaxed">{getErrorMessage()}</p>
         </div>
 
         {process.env.NODE_ENV === 'development' && (
@@ -129,7 +125,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
             <RefreshCw className="h-4 w-4" />
             Try again
           </Button>
-          
+
           <div className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" asChild className="flex-1 flex items-center justify-center gap-2">
               <Link href="/">
@@ -137,7 +133,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
                 Go home
               </Link>
             </Button>
-            
+
             <Button variant="outline" asChild className="flex-1 flex items-center justify-center gap-2">
               <Link href="/settings">
                 <Settings className="h-4 w-4" />
@@ -149,9 +145,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
 
         <div className="pt-6 border-t border-border space-y-4">
           <div className="text-left">
-            <h3 className="text-sm font-semibold text-foreground mb-2">
-              What you can try:
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground mb-2">What you can try:</h3>
             <ul className="text-sm text-foreground/70 space-y-1">
               {getErrorSuggestions().map((suggestion, index) => (
                 <li key={index} className="flex items-start gap-2">
@@ -161,14 +155,12 @@ export default function AppError({ error, reset }: AppErrorProps) {
               ))}
             </ul>
           </div>
-          
+
           {error.digest && (
             <div className="text-xs text-foreground/50 pt-2 border-t border-border">
               Error ID: {error.digest}
               <br />
-              <span className="text-foreground/40">
-                Reference this ID if you need to contact support
-              </span>
+              <span className="text-foreground/40">Reference this ID if you need to contact support</span>
             </div>
           )}
         </div>

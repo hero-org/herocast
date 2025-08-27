@@ -17,7 +17,7 @@ function ScopeManager() {
   const { enableScope, disableScope, enabledScopes } = useHotkeysContext();
   const { isCommandPaletteOpen, isNewCastModalOpen } = useNavigationStore();
   const { selectedCast } = useDataStore();
-  
+
   // Use pathname safely with fallback
   const pathname = router?.pathname || '/';
 

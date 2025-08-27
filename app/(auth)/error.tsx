@@ -29,10 +29,10 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
     if (typeof window !== 'undefined') {
       try {
         // Clear auth-related session storage
-        const keysToRemove = Object.keys(sessionStorage).filter(key => 
-          key.includes('auth') || key.includes('farcaster') || key.includes('signer')
+        const keysToRemove = Object.keys(sessionStorage).filter(
+          (key) => key.includes('auth') || key.includes('farcaster') || key.includes('signer')
         );
-        keysToRemove.forEach(key => sessionStorage.removeItem(key));
+        keysToRemove.forEach((key) => sessionStorage.removeItem(key));
       } catch (e) {
         console.warn('Failed to clear auth session data:', e);
       }
@@ -41,7 +41,8 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
   };
 
   // Determine if this is likely an authentication-related error
-  const isAuthError = error.message.toLowerCase().includes('auth') ||
+  const isAuthError =
+    error.message.toLowerCase().includes('auth') ||
     error.message.toLowerCase().includes('unauthorized') ||
     error.message.toLowerCase().includes('forbidden') ||
     error.message.toLowerCase().includes('signer');
@@ -52,16 +53,13 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
         <div className="flex justify-center">
           <AlertCircle className="h-16 w-16 text-destructive" />
         </div>
-        
+
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">
-            Authentication Error
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">Authentication Error</h1>
           <p className="text-foreground/70">
-            {isAuthError 
-              ? "There was a problem with authentication. Please try signing in again."
-              : "Something went wrong during the authentication process."
-            }
+            {isAuthError
+              ? 'There was a problem with authentication. Please try signing in again.'
+              : 'Something went wrong during the authentication process.'}
           </p>
         </div>
 
@@ -82,7 +80,7 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
             <RefreshCw className="h-4 w-4" />
             Try again
           </Button>
-          
+
           {isAuthError && (
             <Button variant="outline" asChild className="flex items-center justify-center gap-2">
               <Link href="/login">
@@ -91,7 +89,7 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
               </Link>
             </Button>
           )}
-          
+
           <Button variant="ghost" asChild>
             <Link href="/">
               <span aria-hidden="true">←</span>
@@ -104,11 +102,7 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
           <p className="text-xs text-foreground/50">
             Need help? Try refreshing the page or clearing your browser data.
           </p>
-          {error.digest && (
-            <p className="text-xs text-foreground/40 mt-2">
-              Error ID: {error.digest}
-            </p>
-          )}
+          {error.digest && <p className="text-xs text-foreground/40 mt-2">Error ID: {error.digest}</p>}
         </div>
       </div>
     </div>

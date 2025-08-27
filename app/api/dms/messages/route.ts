@@ -22,15 +22,17 @@ export async function GET(request: NextRequest) {
     const supabase = createClient(request);
 
     // Get authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized', messages: [] }, { status: 401 });
     }
 
     // For now, return empty data - full implementation needed later
     return NextResponse.json({ messages: [] });
-    
   } catch (error) {
     console.error('Error in messages route:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -40,10 +42,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // For now, return placeholder response - full implementation needed later
     return NextResponse.json({ success: true, message: 'Message functionality not yet implemented' });
-    
   } catch (error) {
     console.error('Error in messages POST route:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

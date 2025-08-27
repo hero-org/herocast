@@ -1,11 +1,6 @@
 'use client';
 
-import { 
-  useRouter as useNavigationRouter, 
-  usePathname, 
-  useSearchParams, 
-  useParams 
-} from 'next/navigation';
+import { useRouter as useNavigationRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
 
 // Types matching next/router exactly
@@ -27,7 +22,7 @@ export interface NextRouter {
   isReady: boolean;
   isPreview: boolean;
   isFallback: boolean;
-  
+
   // Navigation methods
   push(url: string, as?: string, options?: TransitionOptions): Promise<boolean>;
   replace(url: string, as?: string, options?: TransitionOptions): Promise<boolean>;
@@ -36,7 +31,7 @@ export interface NextRouter {
   forward(): void;
   prefetch(url: string, asPath?: string, options?: PrefetchOptions): Promise<void>;
   beforePopState(cb: BeforePopStateCallback): void;
-  
+
   // Events
   events: RouterEvents;
 }
@@ -95,7 +90,7 @@ class RouterEventEmitter {
   emit(type: string, ...args: any[]) {
     const handlers = this.listeners.get(type);
     if (handlers) {
-      handlers.forEach(handler => {
+      handlers.forEach((handler) => {
         try {
           handler(...args);
         } catch (error) {
@@ -118,7 +113,7 @@ function useAppRouterCompat(): NextRouter {
   const navigationRouter = useNavigationRouter();
   const pathname = usePathname();
   const params = useParams();
-  
+
   // Lazy access to searchParams to avoid SSR issues
   // This will only be accessed when query or asPath is accessed
   const getSearchParams = useCallback(() => {
@@ -136,7 +131,7 @@ function useAppRouterCompat(): NextRouter {
   // Parse query parameters including dynamic route params
   const query = useMemo(() => {
     const queryObj: { [key: string]: string | string[] | undefined } = {};
-    
+
     // Add search params lazily
     const searchParams = getSearchParams();
     if (searchParams) {
@@ -175,38 +170,44 @@ function useAppRouterCompat(): NextRouter {
   }, [pathname, getSearchParams]);
 
   // Enhanced push with event emission
-  const push = useCallback(async (url: string, as?: string, options?: TransitionOptions): Promise<boolean> => {
-    try {
-      globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_START, as || url, { shallow: options?.shallow });
-      
-      await navigationRouter.push(url, {
-        scroll: options?.scroll !== false,
-      });
-      
-      globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_COMPLETE, as || url, { shallow: options?.shallow });
-      return true;
-    } catch (error) {
-      globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_ERROR, error, as || url, { shallow: options?.shallow });
-      return false;
-    }
-  }, [navigationRouter]);
+  const push = useCallback(
+    async (url: string, as?: string, options?: TransitionOptions): Promise<boolean> => {
+      try {
+        globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_START, as || url, { shallow: options?.shallow });
+
+        await navigationRouter.push(url, {
+          scroll: options?.scroll !== false,
+        });
+
+        globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_COMPLETE, as || url, { shallow: options?.shallow });
+        return true;
+      } catch (error) {
+        globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_ERROR, error, as || url, { shallow: options?.shallow });
+        return false;
+      }
+    },
+    [navigationRouter]
+  );
 
   // Enhanced replace with event emission
-  const replace = useCallback(async (url: string, as?: string, options?: TransitionOptions): Promise<boolean> => {
-    try {
-      globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_START, as || url, { shallow: options?.shallow });
-      
-      await navigationRouter.replace(url, {
-        scroll: options?.scroll !== false,
-      });
-      
-      globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_COMPLETE, as || url, { shallow: options?.shallow });
-      return true;
-    } catch (error) {
-      globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_ERROR, error, as || url, { shallow: options?.shallow });
-      return false;
-    }
-  }, [navigationRouter]);
+  const replace = useCallback(
+    async (url: string, as?: string, options?: TransitionOptions): Promise<boolean> => {
+      try {
+        globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_START, as || url, { shallow: options?.shallow });
+
+        await navigationRouter.replace(url, {
+          scroll: options?.scroll !== false,
+        });
+
+        globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_COMPLETE, as || url, { shallow: options?.shallow });
+        return true;
+      } catch (error) {
+        globalEventEmitter.emit(ROUTER_EVENTS.ROUTE_CHANGE_ERROR, error, as || url, { shallow: options?.shallow });
+        return false;
+      }
+    },
+    [navigationRouter]
+  );
 
   // Enhanced reload
   const reload = useCallback(() => {
@@ -230,13 +231,16 @@ function useAppRouterCompat(): NextRouter {
   }, [navigationRouter]);
 
   // Enhanced prefetch
-  const prefetch = useCallback(async (url: string, asPath?: string, options?: PrefetchOptions): Promise<void> => {
-    try {
-      await navigationRouter.prefetch(url);
-    } catch (error) {
-      console.warn('Prefetch failed:', error);
-    }
-  }, [navigationRouter]);
+  const prefetch = useCallback(
+    async (url: string, asPath?: string, options?: PrefetchOptions): Promise<void> => {
+      try {
+        await navigationRouter.prefetch(url);
+      } catch (error) {
+        console.warn('Prefetch failed:', error);
+      }
+    },
+    [navigationRouter]
+  );
 
   // beforePopState implementation
   const beforePopState = useCallback((cb: BeforePopStateCallback) => {
@@ -244,17 +248,20 @@ function useAppRouterCompat(): NextRouter {
   }, []);
 
   // Router events object
-  const events: RouterEvents = useMemo(() => ({
-    on: (type: string, handler: (...args: any[]) => void) => {
-      globalEventEmitter.on(type, handler);
-    },
-    off: (type: string, handler: (...args: any[]) => void) => {
-      globalEventEmitter.off(type, handler);
-    },
-    emit: (type: string, ...args: any[]) => {
-      globalEventEmitter.emit(type, ...args);
-    },
-  }), []);
+  const events: RouterEvents = useMemo(
+    () => ({
+      on: (type: string, handler: (...args: any[]) => void) => {
+        globalEventEmitter.on(type, handler);
+      },
+      off: (type: string, handler: (...args: any[]) => void) => {
+        globalEventEmitter.off(type, handler);
+      },
+      emit: (type: string, ...args: any[]) => {
+        globalEventEmitter.emit(type, ...args);
+      },
+    }),
+    []
+  );
 
   // Handle browser back/forward events
   useEffect(() => {
@@ -275,45 +282,36 @@ function useAppRouterCompat(): NextRouter {
   }, []);
 
   // Return the complete router object
-  return useMemo(() => ({
-    route: pathname,
-    pathname,
-    query,
-    asPath,
-    basePath: '',
-    locale: undefined,
-    locales: undefined,
-    defaultLocale: undefined,
-    domainLocales: undefined,
-    isLocaleDomain: false,
-    isReady: true,
-    isPreview: false,
-    isFallback: false,
-    
-    // Methods
-    push,
-    replace,
-    reload,
-    back,
-    forward,
-    prefetch,
-    beforePopState,
-    
-    // Events
-    events,
-  }), [
-    pathname,
-    query,
-    asPath,
-    push,
-    replace,
-    reload,
-    back,
-    forward,
-    prefetch,
-    beforePopState,
-    events,
-  ]);
+  return useMemo(
+    () => ({
+      route: pathname,
+      pathname,
+      query,
+      asPath,
+      basePath: '',
+      locale: undefined,
+      locales: undefined,
+      defaultLocale: undefined,
+      domainLocales: undefined,
+      isLocaleDomain: false,
+      isReady: true,
+      isPreview: false,
+      isFallback: false,
+
+      // Methods
+      push,
+      replace,
+      reload,
+      back,
+      forward,
+      prefetch,
+      beforePopState,
+
+      // Events
+      events,
+    }),
+    [pathname, query, asPath, push, replace, reload, back, forward, prefetch, beforePopState, events]
+  );
 }
 
 // Main useRouter hook that matches next/router API exactly

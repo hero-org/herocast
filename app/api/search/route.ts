@@ -11,7 +11,7 @@ const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     const term = searchParams.get('term');
     const q = searchParams.get('q'); // Direct Neynar query parameter
     const limit = parseInt(searchParams.get('limit') || '10', 10);
@@ -70,8 +70,8 @@ export async function GET(request: NextRequest) {
     try {
       const response = await axios.get(`${NEYNAR_API_URL}?${params.toString()}`, {
         headers: {
-          'accept': 'application/json',
-          'api_key': API_KEY,
+          accept: 'application/json',
+          api_key: API_KEY,
         },
         signal: controller.signal,
       });
@@ -88,20 +88,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(results);
     } catch (error: any) {
       clearTimeout(timeoutId);
-      
+
       if (error.name === 'AbortError') {
         return NextResponse.json({ error: TIMEOUT_ERROR_MESSAGE }, { status: 408 });
       }
-      
+
       console.error('Error searching casts:', error);
-      
+
       if (error.response) {
         return NextResponse.json(
           { error: error.response.data?.message || 'External API error' },
           { status: error.response.status }
         );
       }
-      
+
       return NextResponse.json({ error: 'Failed to search casts' }, { status: 500 });
     }
   } catch (error) {

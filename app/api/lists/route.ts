@@ -26,7 +26,10 @@ export async function GET(request: NextRequest) {
     const supabase = createClient(request);
 
     // Get authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -46,7 +49,7 @@ export async function GET(request: NextRequest) {
     // Handle different list types
     if (isFidListContent(list.content)) {
       const fidListContent = list.content as FidListContent;
-      
+
       // For now, return a basic response - the full implementation would
       // fetch user data from Neynar API using the FIDs
       return NextResponse.json({
@@ -60,7 +63,6 @@ export async function GET(request: NextRequest) {
       casts: [],
       next: { cursor: null },
     });
-
   } catch (error) {
     console.error('Error in lists route:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

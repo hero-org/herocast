@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Get additional profile info in parallel
     const [icebreakerInfo, coordinapeInfo] = await Promise.allSettled([
       getIcebreakerSocialInfoForFid(fidNum),
-      addresses ? getCoordinapeInfoForAddresses(addresses.split(',')) : Promise.resolve(null)
+      addresses ? getCoordinapeInfoForAddresses(addresses.split(',')) : Promise.resolve(null),
     ]);
 
     const result: any = {};
