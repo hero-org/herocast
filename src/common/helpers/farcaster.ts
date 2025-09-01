@@ -16,12 +16,14 @@ import {
   makeCastAdd,
   makeUserDataAdd,
   signedKeyRequestValidatorABI,
+  CastType,
 } from '@farcaster/hub-web';
 import { CastAdd, CastId, HubRestAPIClient } from '@standard-crypto/farcaster-js-hub-rest';
 import { Address, encodeAbiParameters, toBytes } from 'viem';
 import { publicClient, publicClientTestnet } from './rainbowkit';
 import { mnemonicToAccount } from 'viem/accounts';
 import { isDev } from './env';
+import { useTextLength } from '../helpers/editor';
 
 export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 
@@ -134,6 +136,8 @@ export const submitCast = async ({
   // below is copy and adapted from farcaster-js, because the package is missing parentUrl parameter
   // https://github.com/standard-crypto/farcaster-js/blob/be57dedec70ebadbb55118d3a64143457102adb4/packages/farcaster-js-hub-rest/src/hubRestApiClient.ts#L173
 
+  const castType = useTextLength({ text }).isLongCast ? CastType.LONG_CAST : CastType.CAST;
+
   const dataOptions = getDataOptions(fid);
   const castAdd: CastAddBody = {
     text,
@@ -142,6 +146,7 @@ export const submitCast = async ({
     mentions: mentions ?? [],
     mentionsPositions: mentionsPositions ?? [],
     parentUrl,
+    type: castType,
   };
   if (parentCastId !== undefined) {
     const parentHashBytes = hexStringToBytes(parentCastId.hash);

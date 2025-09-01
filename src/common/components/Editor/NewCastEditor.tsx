@@ -305,7 +305,7 @@ export default function NewPostEntry({
     label: textLengthWarning,
     isValid: textLengthIsValid,
     tailwindColor: textLengthTailwind,
-  } = useTextLength({ text });
+  } = useTextLength({ text, isPro: account?.user?.pro?.status === 'subscribed' });
 
   // Memoized mention extraction - only runs when text changes and contains @
   const extractMentionsFromText = useMemo(() => {
