@@ -260,16 +260,33 @@ export default function NewPostEntry({
     renderMentionsSuggestionConfig: mentionConfig,
     editorOptions: {
       editorProps: {
-        handlePaste: (view, event) =>
-          extractImageAndUpload({
+        handlePaste: (view, event) => {
+          const { state } = view;
+          const isFullSelection = state.selection.from === 0 && 
+                                  state.selection.to === state.doc.content.size;
+          
+          // Fix for TipTap bug: select-all + paste throws position error
+          if (isFullSelection && event.clipboardData?.getData('text/plain') && editor) {
+            editor.commands.setContent(event.clipboardData.getData('text/plain'));
+            return true;
+          }
+          
+          // Handle image uploads
+          const handled = extractImageAndUpload({
             data: event.clipboardData,
             uploadImage,
-          }),
-        handleDrop: (view, event) =>
-          extractImageAndUpload({
+          });
+          
+          return handled;
+        },
+        handleDrop: (view, event) => {
+          const handled = extractImageAndUpload({
             data: event.dataTransfer,
             uploadImage,
-          }),
+          });
+          
+          return handled;
+        },
       },
 
       parseOptions: {
@@ -425,9 +442,9 @@ export default function NewPostEntry({
       tabIndex={-1}
       key={`${draft.id}-${editorKey}`}
     >
-      <form onSubmit={handleSubmit} className="w-full">
-        {isPublishing ? (
-          <div className="w-full h-full min-h-[150px]">
+      <div className="flex flex-col rounded-lg w-full p-4 pb-4 gap-y-2 border">
+        {!editor ? (
+          <div className="px-2 py-1 w-full h-full min-h-[150px] text-foreground/80">
             <Skeleton className="px-2 py-1 w-full h-full min-h-[150px] text-foreground/80">{draft.text}</Skeleton>
           </div>
         ) : (
@@ -439,126 +456,97 @@ export default function NewPostEntry({
 
         <div className="flex flex-row py-2 gap-1 overflow-x-auto no-scrollbar">
           {!isReply && !hideChannel && (
-            <div className="text-foreground/80">
+            <>
               <ChannelPicker
-                disabled={isPublishing}
-                getChannels={getChannels}
-                getAllChannels={getAllChannels}
-                // @ts-expect-error - mod protocol channel type mismatch
+                value={channel || undefined}
                 onSelect={setChannel}
-                // @ts-expect-error - mod protocol channel type mismatch
-                value={getChannel()}
+                channels={userChannels}
+                // @ts-expect-error - channel type from mod protocol has different shape
+                getAllChannels={getAllChannels}
+                disabled={isPublishing}
               />
+            </>
+          )}
+          <Button
+            size="sm"
+            onClick={() => handleOpenFile({ addEmbed: (e) => addEmbed(e.url) })}
+            variant="outline"
+            disabled={isPublishing}
+          >
+            <PhotoIcon className="mr-1 h-4 w-4" />
+            Media
+          </Button>
+          {!hideSchedule && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="outline" disabled={isPublishing}>
+                  <CalendarDaysIcon className="mr-1 h-4 w-4" />
+                  {scheduleDateTime ? `${scheduleDateTime.toLocaleDateString()} ${scheduleDateTime.toLocaleTimeString()}` : 'Schedule'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <EnhancedDateTimePicker
+                  date={scheduleDateTime}
+                  setDate={(date: Date | undefined) => setScheduleDateTime(date)}
+                  disabled={isPublishing}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+          <div className="flex-grow"></div>
+          <label className={cn('flex items-center text-xs', `text-${textLengthTailwind}`)}>{textLengthWarning}</label>
+          {hasReachedFreePlanLimit && (
+            <p className="text-xs text-yellow-600 flex items-center">
+              Free accounts are limited to {openSourcePlanLimits.maxScheduledCasts} scheduled casts.{' '}
+              <Link href="/upgrade" className="underline">
+                Upgrade to schedule more
+              </Link>
+              .
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-row">
+          {onRemove && (
+            <div
+              onClick={() => {
+                onRemove && onRemove();
+              }}
+              className="flex items-center cursor-pointer"
+            >
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  onRemove && onRemove();
+                }}
+                disabled={isPublishing}
+              >
+                Remove
+              </Button>
             </div>
           )}
+          <div className="grow"></div>
           <Button
-            className="h-9 p-2"
-            type="button"
-            variant="outline"
-            disabled={isPublishing || isUploading}
-            onClick={() => {
-              // Create a file input and trigger it
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.accept = 'image/*';
-              input.onchange = (e) => {
-                const file = (e.target as HTMLInputElement).files?.[0];
-                if (file) {
-                  uploadImage(file);
-                }
-              };
-              input.click();
-            }}
-          >
-            <PhotoIcon className="w-5 h-5" />
-            <span className="sr-only md:not-sr-only md:pl-2">{isUploading ? 'Uploading...' : 'Image'}</span>
-          </Button>
-          {textLengthWarning && <div className={cn('my-2 ml-2 text-sm', textLengthTailwind)}>{textLengthWarning}</div>}
-          {onRemove && (
-            <Button className="h-9" variant="outline" type="button" onClick={onRemove} disabled={isPublishing}>
-              Remove
-            </Button>
-          )}
-          {!hideSchedule &&
-            (scheduleDateTime ? (
-              <EnhancedDateTimePicker
-                jsDate={scheduleDateTime}
-                onJsDateChange={(date) => setScheduleDateTime(date || undefined)}
-                showClearButton
-              />
-            ) : (
-              <Button
-                className="h-9"
-                type="button"
-                variant="outline"
-                disabled={isPublishing}
-                onClick={() => {
-                  const futureDate = new Date();
-                  futureDate.setHours(futureDate.getHours() + 1);
-                  // Round minutes to next 5-minute interval
-                  const minutes = futureDate.getMinutes();
-                  const roundedMinutes = Math.ceil(minutes / 5) * 5;
-                  if (roundedMinutes >= 60) {
-                    futureDate.setHours(futureDate.getHours() + 1, 0, 0, 0);
-                  } else {
-                    futureDate.setMinutes(roundedMinutes, 0, 0);
-                  }
-                  setScheduleDateTime(futureDate);
-                }}
-              >
-                <CalendarDaysIcon className="mr-1 w-5 h-5" />
-                Schedule
-              </Button>
-            ))}
-        </div>
-        <div className="flex flex-row pt-2 justify-between">
-          <div>
-            {scheduleDateTime && hasReachedFreePlanLimit && (
-              <Link href="/upgrade" prefetch={false}>
-                <Button variant="link" className="text-left px-0">
-                  You reached the limit of scheduled casts. Upgrade ↗
-                </Button>
-              </Link>
-            )}
-          </div>
-          <Button
-            size="lg"
-            type="submit"
-            className="line-clamp-1 min-w-48 max-w-md truncate"
+            size="sm"
             disabled={isButtonDisabled}
+            className="float-right"
+            onClick={() => {
+              onSubmitPost();
+            }}
           >
             {getButtonText()}
           </Button>
         </div>
-      </form>
-
+      </div>
       {hasEmbeds && (
-        <div className="mt-8 rounded-md bg-muted/50 p-2 w-full break-all">
-          {map(draft.embeds, (embed) => (
-            <div key={`cast-embed-${'url' in embed ? embed.url : 'hash' in embed ? embed.hash : 'unknown'}`}>
+        <div className="flex flex-col md:flex-row items-center my-4 w-full gap-2 flex-wrap">
+          {map(draft.embeds, (embed, idx) => (
+            <div className="max-w-xl rounded-md border border-gray-200" key={`embed-preview-${idx}`}>
               {renderEmbedForUrl({
-                ...embed,
-                onRemove: () => {
-                  const newEmbeds = draft.embeds?.filter((e) => {
-                    if ('url' in embed && 'url' in e) return e.url !== embed.url;
-                    if ('hash' in embed && 'hash' in e) return e.hash !== embed.hash;
-                    return e !== embed;
-                  });
-                  updatePostDraft(draftIdx, {
-                    id: draft.id,
-                    status: draft.status,
-                    createdAt: draft.createdAt,
-                    accountId: draft.accountId,
-                    text: draft.text,
-                    embeds: newEmbeds || [],
-                    parentUrl: draft.parentUrl,
-                    parentCastId: draft.parentCastId,
-                    mentionsToFids: draft.mentionsToFids,
-                    timestamp: draft.timestamp,
-                    hash: draft.hash,
-                  });
-                  // Force re-render of embeds by incrementing key
-                  setEditorKey((prev) => prev + 1);
+                url: embed.url,
+                castEmbedData: {
+                  cast_id: embed.cast_id ?? undefined,
                 },
               })}
             </div>
@@ -580,11 +568,20 @@ function extractImageAndUpload(args: { data: DataTransfer | null; uploadImage: (
   for (const item of items) {
     if (item.type.indexOf('image') === 0) {
       const file = item.getAsFile();
-      if (file) {
+      if (file != null) {
         uploadImage(file);
         return true;
       }
     }
   }
+
+  const files = Array.from(data.files);
+  for (const file of files) {
+    if (file.type.indexOf('image') === 0) {
+      uploadImage(file);
+      return true;
+    }
+  }
+
   return false;
 }

@@ -110,6 +110,7 @@ type SubmitCastParams = {
   parentUrl?: string;
   fid: number;
   signerPrivateKey: string;
+  isPro?: boolean;
 };
 
 export const submitCast = async ({
@@ -121,6 +122,7 @@ export const submitCast = async ({
   parentUrl,
   signerPrivateKey,
   fid,
+  isPro = false,
 }: SubmitCastParams) => {
   const writeClient = new HubRestAPIClient({
     hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
@@ -136,7 +138,7 @@ export const submitCast = async ({
   // below is copy and adapted from farcaster-js, because the package is missing parentUrl parameter
   // https://github.com/standard-crypto/farcaster-js/blob/be57dedec70ebadbb55118d3a64143457102adb4/packages/farcaster-js-hub-rest/src/hubRestApiClient.ts#L173
 
-  const castType = useTextLength({ text }).isLongCast ? CastType.LONG_CAST : CastType.CAST;
+  const castType = useTextLength({ text, isPro }).isLongCast ? CastType.LONG_CAST : CastType.CAST;
 
   const dataOptions = getDataOptions(fid);
   const castAdd: CastAddBody = {
