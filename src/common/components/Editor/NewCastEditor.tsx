@@ -262,21 +262,20 @@ export default function NewPostEntry({
       editorProps: {
         handlePaste: (view, event) => {
           const { state } = view;
-          const isFullSelection = state.selection.from === 0 && 
-                                  state.selection.to === state.doc.content.size;
-          
+          const isFullSelection = state.selection.from === 0 && state.selection.to === state.doc.content.size;
+
           // Fix for TipTap bug: select-all + paste throws position error
           if (isFullSelection && event.clipboardData?.getData('text/plain') && editor) {
             editor.commands.setContent(event.clipboardData.getData('text/plain'));
             return true;
           }
-          
+
           // Handle image uploads
           const handled = extractImageAndUpload({
             data: event.clipboardData,
             uploadImage,
           });
-          
+
           return handled;
         },
         handleDrop: (view, event) => {
@@ -284,7 +283,7 @@ export default function NewPostEntry({
             data: event.dataTransfer,
             uploadImage,
           });
-          
+
           return handled;
         },
       },
@@ -481,7 +480,9 @@ export default function NewPostEntry({
               <PopoverTrigger asChild>
                 <Button size="sm" variant="outline" disabled={isPublishing}>
                   <CalendarDaysIcon className="mr-1 h-4 w-4" />
-                  {scheduleDateTime ? `${scheduleDateTime.toLocaleDateString()} ${scheduleDateTime.toLocaleTimeString()}` : 'Schedule'}
+                  {scheduleDateTime
+                    ? `${scheduleDateTime.toLocaleDateString()} ${scheduleDateTime.toLocaleTimeString()}`
+                    : 'Schedule'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
