@@ -127,7 +127,7 @@
     "lodash.uniqby": "^4.7.0",
     "lucide-react": "^0.411.0",
     "mutative": "^1.1.0",
-    "next": "^15.3.5",
+    "next": "^15.4.7",
     "next-themes": "^0.3.0",
     "pg": "^8.14.0",
     "posthog-js": "^1.230.4",
