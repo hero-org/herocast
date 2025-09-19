@@ -362,12 +362,12 @@ const store = (set: StoreSet) => ({
           status: DraftStatus.publishing,
         });
         const castBody = await prepareCastBody(draft);
-        console.log('castBody', castBody);
-        console.log('account', account);
+        const isPro = account?.user?.pro?.status === 'subscribed';
         const hash = await submitCast({
           ...castBody,
           signerPrivateKey: account.privateKey!,
           fid: Number(account.platformAccountId),
+          isPro,
         });
 
         await state.updatePostDraft(draftIdx, {

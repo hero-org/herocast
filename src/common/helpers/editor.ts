@@ -1,8 +1,10 @@
 import { convertCastPlainTextToStructured } from './farcaster';
 
-const MAX_BYTE_LENGTH = 320;
+export const MAX_SHORT_CAST_LENGTH = 320;
+export const MAX_NO_PRO_CAST_LENGTH = 1024;
+export const MAX_PRO_CAST_LENGTH = 10_000;
 
-export function useTextLength({ text }: { text: string }) {
+export function useTextLength({ text, isPro = false }: { text: string; isPro?: boolean }) {
   // Mentions don't occupy space in the cast, so we need to ignore them for our length calculation
   const structuredTextUnits = convertCastPlainTextToStructured({ text });
   const textWithoutMentions = structuredTextUnits.reduce((acc, unit) => {
@@ -12,22 +14,25 @@ export function useTextLength({ text }: { text: string }) {
 
   const lengthInBytes = new TextEncoder().encode(textWithoutMentions).length;
 
-  const ninetyPercentComplete = MAX_BYTE_LENGTH * 0.9;
+  // Non-pro users limited to 1024 bytes, pro users can use up to 10_000 bytes
+  const MAX_USER_CAST_CHARACTERS = isPro ? MAX_PRO_CAST_LENGTH : MAX_NO_PRO_CAST_LENGTH;
+  const ninetyPercentComplete = MAX_USER_CAST_CHARACTERS * 0.9;
+  const isValid = lengthInBytes <= MAX_USER_CAST_CHARACTERS;
 
   return {
     length: lengthInBytes,
-    isValid: lengthInBytes <= MAX_BYTE_LENGTH,
-    tailwindColor:
-      lengthInBytes > MAX_BYTE_LENGTH
-        ? 'text-red-500 font-semibold'
-        : lengthInBytes > ninetyPercentComplete
-          ? `text-orange-500`
-          : 'text-foreground/60',
+    isLongCast: lengthInBytes > MAX_SHORT_CAST_LENGTH,
+    isValid,
+    tailwindColor: !isValid
+      ? 'text-red-500 font-semibold'
+      : lengthInBytes > ninetyPercentComplete
+        ? `text-orange-500`
+        : 'text-foreground/60',
     label:
-      lengthInBytes > MAX_BYTE_LENGTH
-        ? `-${lengthInBytes - MAX_BYTE_LENGTH} characters left`
+      lengthInBytes > MAX_USER_CAST_CHARACTERS
+        ? `-${lengthInBytes - MAX_USER_CAST_CHARACTERS} characters left`
         : lengthInBytes > ninetyPercentComplete
-          ? `${MAX_BYTE_LENGTH - lengthInBytes} characters left`
+          ? `${MAX_USER_CAST_CHARACTERS - lengthInBytes} characters left`
           : ``,
   };
 }
