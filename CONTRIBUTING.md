@@ -150,6 +150,7 @@ If you want to prove the Supabase side is behaving like production, connect with
    RETURNING id;
    ```
 2. Use the returned `id` when inserting an account and view the decrypted row:
+
    ```sql
    INSERT INTO public.accounts (user_id, private_key, platform)
    VALUES ('<id>', 's3cr3t', 'farcaster') RETURNING id;
@@ -157,7 +158,9 @@ If you want to prove the Supabase side is behaving like production, connect with
    SELECT private_key FROM public.accounts WHERE id = '<account-id>';
    SELECT decrypted_private_key FROM public.decrypted_accounts WHERE id = '<account-id>';
    ```
+
    The stored column should be unreadable base64 while the view returns `s3cr3t`.
+
 3. Clean up the throwaway data once you’re done:
    ```sql
    DELETE FROM public.accounts WHERE id = '<account-id>';
