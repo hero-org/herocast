@@ -28,6 +28,12 @@ const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 120; // 5 days;
 const CHANNEL_UPDATE_RELEASE_DATE = 1722607765000;
 
+type ExtendedUser = User & {
+  pro?: {
+    status: string | 'subscribed';
+  };
+};
+
 export const PENDING_ACCOUNT_NAME_PLACEHOLDER = 'New Account';
 export enum CUSTOM_CHANNELS {
   FOLLOWING = 'following',
@@ -77,7 +83,7 @@ export type AccountObjectType = {
   createdAt?: string;
   data?: { deeplinkUrl?: string; signerToken?: string; deadline?: number };
   channels: AccountChannelType[];
-  user?: User;
+  user?: ExtendedUser;
   farcasterApiKey?: string; // Only available in memory, never persisted to IndexedDB
 };
 

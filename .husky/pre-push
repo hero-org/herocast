@@ -1,1 +1,19 @@
-pnpm build
+#!/bin/sh
+# Try to find pnpm in common locations
+if command -v pnpm >/dev/null 2>&1; then
+  PNPM_CMD="pnpm"
+elif [ -f "$HOME/.local/share/pnpm/pnpm" ]; then
+  PNPM_CMD="$HOME/.local/share/pnpm/pnpm"
+elif [ -f "/opt/homebrew/bin/pnpm" ]; then
+  PNPM_CMD="/opt/homebrew/bin/pnpm"
+elif [ -f "/usr/local/bin/pnpm" ]; then
+  PNPM_CMD="/usr/local/bin/pnpm"
+elif command -v npm >/dev/null 2>&1; then
+  # Fallback to npx if pnpm not found
+  PNPM_CMD="npx pnpm"
+else
+  echo "Error: pnpm not found. Please install pnpm or use command line git."
+  exit 1
+fi
+
+$PNPM_CMD build
