@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Key } from 'ts-key-enum';
 import { useInView } from 'react-intersection-observer';
@@ -48,52 +48,69 @@ export const SelectableListWithHotkeys = ({
 
   const scrollToRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
   const router = useRouter();
   const pageScopes = scopes ?? getScopesForPage(router.pathname);
   // scroll to selected cast when selectedCastIdx changes
-  useEffect(() => {
-    if (!disableScroll && scrollToRef.current) {
-      // Find the correct scrollable container
-      let container = null;
+  useLayoutEffect(() => {
+    // Cancel any pending scroll animation from previous keypress
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
 
-      // First try to use the container ref if we're in pinned navigation mode
-      if (pinnedNavigation && containerRef.current) {
-        container = containerRef.current;
-      } else {
-        // Look for the main scrollable container with no-scrollbar class
-        container =
-          scrollToRef.current.closest('.overflow-y-auto.no-scrollbar') ||
-          scrollToRef.current.closest('[class*="overflow-y-auto"]') ||
-          document.querySelector('.overflow-y-auto.no-scrollbar');
-      }
+    // Schedule scroll for next animation frame
+    rafRef.current = requestAnimationFrame(() => {
+      if (!disableScroll && scrollToRef.current) {
+        // Find the correct scrollable container
+        let container = null;
 
-      if (container) {
-        // Define comfortable reading position from top
-        const COMFORTABLE_TOP_OFFSET = 0;
+        // First try to use the container ref if we're in pinned navigation mode
+        if (pinnedNavigation && containerRef.current) {
+          container = containerRef.current;
+        } else {
+          // Look for the main scrollable container with no-scrollbar class
+          container =
+            scrollToRef.current.closest('.overflow-y-auto.no-scrollbar') ||
+            scrollToRef.current.closest('[class*="overflow-y-auto"]') ||
+            document.querySelector('.overflow-y-auto.no-scrollbar');
+        }
 
-        // Always position the selected item at the comfortable reading height
-        const elementRect = scrollToRef.current.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - COMFORTABLE_TOP_OFFSET;
+        if (container) {
+          // Define comfortable reading position from top
+          const COMFORTABLE_TOP_OFFSET = 0;
 
-        // Scroll to the target position with smooth animation
-        container.scrollTo({
-          top: Math.max(0, targetScrollTop),
-          behavior: 'smooth',
-        });
-      } else {
-        // Fallback to scrollIntoView but prevent document scrolling
-        try {
-          scrollToRef.current.scrollIntoView({
-            behavior: 'auto',
-            block: 'start',
+          // Always position the selected item at the comfortable reading height
+          const elementRect = scrollToRef.current.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - COMFORTABLE_TOP_OFFSET;
+
+          // Scroll to the target position instantly
+          container.scrollTo({
+            top: Math.max(0, targetScrollTop),
+            behavior: 'instant',
           });
-        } catch (e) {
-          // Ignore scrollIntoView errors if element is not in DOM
+        } else {
+          // Fallback to scrollIntoView but prevent document scrolling
+          try {
+            scrollToRef.current.scrollIntoView({
+              behavior: 'auto',
+              block: 'start',
+            });
+          } catch (e) {
+            // Ignore scrollIntoView errors if element is not in DOM
+          }
         }
       }
-    }
-  }, [selectedIdx, pinnedNavigation]);
+      rafRef.current = null;
+    });
+
+    // Cleanup: cancel RAF on unmount or before next effect
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [selectedIdx, pinnedNavigation, disableScroll]);
 
   // Navigation hotkeys
   useAppHotkeys(
