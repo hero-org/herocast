@@ -42,6 +42,7 @@ import {
   getAvatarFallback,
 } from '@/common/helpers/dmProfiles';
 import { toast } from 'sonner';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
 
 const DirectMessages = () => {
   const router = useRouter();
@@ -656,6 +657,7 @@ const DirectMessages = () => {
                     isActive={!isNewCastModalOpen}
                     pinnedNavigation={true}
                     containerHeight="100%"
+                    scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.DMS]}
                   />
                   {profilesLoading && (
                     <div className="absolute top-2 right-2 text-xs text-foreground/60 bg-background/80 px-2 py-1 rounded">

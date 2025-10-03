@@ -20,6 +20,7 @@ import { Loading } from '@/common/components/Loading';
 import uniqBy from 'lodash.uniqby';
 import { useDataStore } from '@/stores/useDataStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
 
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDraftStore } from '@/stores/useDraftStore';
@@ -181,20 +182,6 @@ export default function Feeds() {
         .eq('channel_id', channelId);
     }
   }, [account, selectedChannelUrl]);
-
-  useEffect(() => {
-    if (showCastThreadView) return;
-
-    // Scroll the main content container instead of window
-    const container = document.querySelector('.overflow-y-auto');
-    if (container) {
-      if (selectedCastIdx === 0) {
-        container.scrollTop = 0;
-      } else if (selectedCastIdx === casts.length - 1) {
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-  }, [selectedCastIdx, showCastThreadView, casts.length]);
 
   useEffect(() => {
     if (selectedCastIdx === -1) {
@@ -498,6 +485,9 @@ export default function Feeds() {
       onExpand={onOpenLinkInCast}
       onSelect={onSelectCast}
       isActive={!(showCastThreadView || isNewCastModalOpen || showEmbedsModal)}
+      pinnedNavigation={true}
+      containerHeight="100%"
+      scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
     />
   );
 
@@ -589,7 +579,7 @@ export default function Feeds() {
   };
 
   const renderContent = () => (
-    <main className="w-full">
+    <main className="w-full h-full">
       {isLoadingFeed && isEmpty(casts) && (
         <div className="px-4 pt-4">
           <Loading loadingMessage={loadingMessage} />
@@ -598,7 +588,7 @@ export default function Feeds() {
       {showCastThreadView ? (
         renderThread()
       ) : (
-        <div className="min-h-screen">
+        <div className="h-full">
           {renderFeed()}
           {renderWelcomeMessage()}
           {!isEmpty(casts) && renderLoadMoreButton()}

@@ -3,7 +3,7 @@ import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Key } from 'ts-key-enum';
 import { useInView } from 'react-intersection-observer';
 import isEmpty from 'lodash.isempty';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { HotkeyScopes, HotkeyScope } from '@/common/constants/hotkeys';
 import { useRouter } from 'next/router';
 import { getScopesForPage } from '@/common/constants/hotkeys';
 
@@ -21,6 +21,8 @@ type SelectableListWithHotkeysProps = {
   // New optional props for pinned navigation
   pinnedNavigation?: boolean;
   containerHeight?: string;
+  // Optional scopes for explicit scope injection
+  scopes?: HotkeyScope[];
 };
 
 export const SelectableListWithHotkeys = ({
@@ -37,6 +39,7 @@ export const SelectableListWithHotkeys = ({
   // Default to false for backward compatibility
   pinnedNavigation = false,
   containerHeight = '80vh',
+  scopes,
 }: SelectableListWithHotkeysProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
@@ -46,7 +49,7 @@ export const SelectableListWithHotkeys = ({
   const scrollToRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const pageScopes = getScopesForPage(router.pathname);
+  const pageScopes = scopes ?? getScopesForPage(router.pathname);
   // scroll to selected cast when selectedCastIdx changes
   useEffect(() => {
     if (!disableScroll && scrollToRef.current) {
@@ -65,24 +68,19 @@ export const SelectableListWithHotkeys = ({
       }
 
       if (container) {
-        // Get the element's position relative to the container
+        // Define comfortable reading position from top
+        const COMFORTABLE_TOP_OFFSET = 0;
+
+        // Always position the selected item at the comfortable reading height
         const elementRect = scrollToRef.current.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
+        const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - COMFORTABLE_TOP_OFFSET;
 
-        // Calculate the scroll position needed to show the element
-        const elementTop = elementRect.top - containerRect.top;
-        const elementBottom = elementRect.bottom - containerRect.top;
-        const containerHeight = container.clientHeight;
-
-        // Check if element is outside the visible area
-        if (elementTop < 64) {
-          // Account for sticky header
-          // Scroll up to show the element
-          container.scrollTop += elementTop - 64;
-        } else if (elementBottom > containerHeight) {
-          // Scroll down to show the element
-          container.scrollTop += elementBottom - containerHeight + 20; // Add small margin
-        }
+        // Scroll to the target position with smooth animation
+        container.scrollTo({
+          top: Math.max(0, targetScrollTop),
+          behavior: 'smooth',
+        });
       } else {
         // Fallback to scrollIntoView but prevent document scrolling
         try {
@@ -174,7 +172,7 @@ export const SelectableListWithHotkeys = ({
 
   // Return either a scrollable container or the direct list based on pinnedNavigation setting
   return pinnedNavigation ? (
-    <div ref={containerRef} className="overflow-y-auto" style={{ height: containerHeight }}>
+    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight }}>
       {content}
     </div>
   ) : (

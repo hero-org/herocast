@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, RefreshCw, Cloud } from 'lucide-react';
 import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
 
 // Client-side cache for parent casts (prevents repeated API calls)
 const parentCastCache = new Map<string, { cast: CastWithInteractions; timestamp: number }>();
@@ -1156,6 +1157,7 @@ const Inbox = () => {
                 isActive={!isNewCastModalOpen && !loadingByType[activeTab]}
                 pinnedNavigation={true}
                 containerHeight="100%"
+                scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.INBOX]}
               />
             )}
           </div>

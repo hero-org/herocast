@@ -10,6 +10,8 @@ export const HotkeyScopes = {
   CONVERSATION: 'conversation',
   SETTINGS: 'settings',
   ANALYTICS: 'analytics',
+  INBOX: 'inbox',
+  DMS: 'dms',
 
   // Component-specific scopes
   EDITOR: 'editor',
@@ -31,6 +33,8 @@ export const PageScopes: Record<string, HotkeyScope[]> = {
   settings: [HotkeyScopes.GLOBAL, HotkeyScopes.SETTINGS],
   analytics: [HotkeyScopes.GLOBAL, HotkeyScopes.ANALYTICS],
   post: [HotkeyScopes.GLOBAL, HotkeyScopes.EDITOR],
+  inbox: [HotkeyScopes.GLOBAL, HotkeyScopes.INBOX],
+  dms: [HotkeyScopes.GLOBAL, HotkeyScopes.DMS],
 };
 
 // Helper to get scopes for current page
