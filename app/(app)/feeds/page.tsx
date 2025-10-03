@@ -488,6 +488,7 @@ export default function Feeds() {
       pinnedNavigation={true}
       containerHeight="100%"
       scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
+      footer={!isEmpty(casts) ? renderLoadMoreButton() : null}
     />
   );
 
@@ -591,7 +592,6 @@ export default function Feeds() {
         <div className="h-full">
           {renderFeed()}
           {renderWelcomeMessage()}
-          {!isEmpty(casts) && renderLoadMoreButton()}
         </div>
       )}
       {renderEmbedsModal()}

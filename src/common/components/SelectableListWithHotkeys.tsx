@@ -23,6 +23,8 @@ type SelectableListWithHotkeysProps = {
   containerHeight?: string;
   // Optional scopes for explicit scope injection
   scopes?: HotkeyScope[];
+  // Optional footer to render inside scroll container
+  footer?: React.ReactNode;
 };
 
 export const SelectableListWithHotkeys = ({
@@ -40,6 +42,7 @@ export const SelectableListWithHotkeys = ({
   pinnedNavigation = false,
   containerHeight = '80vh',
   scopes,
+  footer,
 }: SelectableListWithHotkeysProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
@@ -191,6 +194,7 @@ export const SelectableListWithHotkeys = ({
   return pinnedNavigation ? (
     <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight }}>
       {content}
+      {footer && footer}
     </div>
   ) : (
     content
