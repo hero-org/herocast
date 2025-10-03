@@ -72,6 +72,7 @@ const getFeedKey = ({
 };
 
 const DEFAULT_FEED_PAGE_SIZE = 15;
+const PREFETCH_THRESHOLD = 5; // Auto-fetch when this many items from end come into view
 const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const supabaseClient = createClient();
@@ -433,19 +434,28 @@ export default function Feeds() {
     setSelectedCastIdx(-1);
   }, [selectedChannelUrl, selectedListId]);
 
-  const renderRow = (item: any, idx: number) => (
-    <li key={item?.hash} className="border-b border-foreground/20 relative w-full px-4">
-      <CastRow
-        cast={item}
-        isSelected={selectedCastIdx === idx}
-        onSelect={() => onSelectCast(idx)}
-        onEmbedClick={onOpenLinkInCast}
-        showChannel={
-          selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
-        }
-      />
-    </li>
-  );
+  const renderRow = (item: any, idx: number) => {
+    // Attach sentinel ref to 5th-from-last item for auto-pagination
+    const isSentinel = idx === casts.length - PREFETCH_THRESHOLD;
+
+    return (
+      <li
+        key={item?.hash}
+        className="border-b border-foreground/20 relative w-full px-4"
+        ref={isSentinel ? buttonRef : undefined}
+      >
+        <CastRow
+          cast={item}
+          isSelected={selectedCastIdx === idx}
+          onSelect={() => onSelectCast(idx)}
+          onEmbedClick={onOpenLinkInCast}
+          showChannel={
+            selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
+          }
+        />
+      </li>
+    );
+  };
 
   const getButtonText = (): string => {
     if (isLoadingFeed) {
