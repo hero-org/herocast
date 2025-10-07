@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useMemo, useState, useCallback, ComponentType, SVGProps, useEffect, useRef } from 'react';
 import { CommandType } from '@/common/constants/commands';
 import { accountCommands, getChannelCommands, useAccountStore } from '@/stores/useAccountStore';
@@ -32,7 +34,7 @@ import { KeyboardShortcutSingle } from '@/components/ui/keyboard-shortcut-single
 import { ChartBarIcon, MagnifyingGlassCircleIcon, UserCircleIcon, ArrowsUpDownIcon } from '@heroicons/react/20/solid';
 import Image from 'next/image';
 import commandScore from 'command-score';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { getNavigationCommands } from '@/getNavigationCommands';
 import { useTheme } from 'next-themes';
 import { getThemeCommands } from '@/getThemeCommands';

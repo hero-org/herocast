@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Key } from 'ts-key-enum';
 import { useInView } from 'react-intersection-observer';
 import isEmpty from 'lodash.isempty';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { HotkeyScopes, HotkeyScope } from '@/common/constants/hotkeys';
 import { useRouter } from 'next/router';
 import { getScopesForPage } from '@/common/constants/hotkeys';
 
@@ -21,6 +21,10 @@ type SelectableListWithHotkeysProps = {
   // New optional props for pinned navigation
   pinnedNavigation?: boolean;
   containerHeight?: string;
+  // Optional scopes for explicit scope injection
+  scopes?: HotkeyScope[];
+  // Optional footer to render inside scroll container
+  footer?: React.ReactNode;
 };
 
 export const SelectableListWithHotkeys = ({
@@ -37,6 +41,8 @@ export const SelectableListWithHotkeys = ({
   // Default to false for backward compatibility
   pinnedNavigation = false,
   containerHeight = '80vh',
+  scopes,
+  footer,
 }: SelectableListWithHotkeysProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
@@ -45,57 +51,69 @@ export const SelectableListWithHotkeys = ({
 
   const scrollToRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
   const router = useRouter();
-  const pageScopes = getScopesForPage(router.pathname);
+  const pageScopes = scopes ?? getScopesForPage(router.pathname);
   // scroll to selected cast when selectedCastIdx changes
-  useEffect(() => {
-    if (!disableScroll && scrollToRef.current) {
-      // Find the correct scrollable container
-      let container = null;
-
-      // First try to use the container ref if we're in pinned navigation mode
-      if (pinnedNavigation && containerRef.current) {
-        container = containerRef.current;
-      } else {
-        // Look for the main scrollable container with no-scrollbar class
-        container =
-          scrollToRef.current.closest('.overflow-y-auto.no-scrollbar') ||
-          scrollToRef.current.closest('[class*="overflow-y-auto"]') ||
-          document.querySelector('.overflow-y-auto.no-scrollbar');
-      }
-
-      if (container) {
-        // Get the element's position relative to the container
-        const elementRect = scrollToRef.current.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        // Calculate the scroll position needed to show the element
-        const elementTop = elementRect.top - containerRect.top;
-        const elementBottom = elementRect.bottom - containerRect.top;
-        const containerHeight = container.clientHeight;
-
-        // Check if element is outside the visible area
-        if (elementTop < 64) {
-          // Account for sticky header
-          // Scroll up to show the element
-          container.scrollTop += elementTop - 64;
-        } else if (elementBottom > containerHeight) {
-          // Scroll down to show the element
-          container.scrollTop += elementBottom - containerHeight + 20; // Add small margin
-        }
-      } else {
-        // Fallback to scrollIntoView but prevent document scrolling
-        try {
-          scrollToRef.current.scrollIntoView({
-            behavior: 'auto',
-            block: 'start',
-          });
-        } catch (e) {
-          // Ignore scrollIntoView errors if element is not in DOM
-        }
-      }
+  useLayoutEffect(() => {
+    // Cancel any pending scroll animation from previous keypress
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
     }
-  }, [selectedIdx, pinnedNavigation]);
+
+    // Schedule scroll for next animation frame
+    rafRef.current = requestAnimationFrame(() => {
+      if (!disableScroll && scrollToRef.current) {
+        // Find the correct scrollable container
+        let container = null;
+
+        // First try to use the container ref if we're in pinned navigation mode
+        if (pinnedNavigation && containerRef.current) {
+          container = containerRef.current;
+        } else {
+          // Look for the main scrollable container with no-scrollbar class
+          container =
+            scrollToRef.current.closest('.overflow-y-auto.no-scrollbar') ||
+            scrollToRef.current.closest('[class*="overflow-y-auto"]') ||
+            document.querySelector('.overflow-y-auto.no-scrollbar');
+        }
+
+        if (container) {
+          // Define comfortable reading position from top
+          const COMFORTABLE_TOP_OFFSET = 0;
+
+          // Always position the selected item at the comfortable reading height
+          const elementRect = scrollToRef.current.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - COMFORTABLE_TOP_OFFSET;
+
+          // Scroll to the target position instantly
+          container.scrollTo({
+            top: Math.max(0, targetScrollTop),
+            behavior: 'instant',
+          });
+        } else {
+          // Fallback to scrollIntoView but prevent document scrolling
+          try {
+            scrollToRef.current.scrollIntoView({
+              behavior: 'auto',
+              block: 'start',
+            });
+          } catch (e) {
+            // Ignore scrollIntoView errors if element is not in DOM
+          }
+        }
+      }
+      rafRef.current = null;
+    });
+
+    // Cleanup: cancel RAF on unmount or before next effect
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [selectedIdx, pinnedNavigation, disableScroll]);
 
   // Navigation hotkeys
   useAppHotkeys(
@@ -174,8 +192,9 @@ export const SelectableListWithHotkeys = ({
 
   // Return either a scrollable container or the direct list based on pinnedNavigation setting
   return pinnedNavigation ? (
-    <div ref={containerRef} className="overflow-y-auto" style={{ height: containerHeight }}>
+    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight }}>
       {content}
+      {footer && footer}
     </div>
   ) : (
     content

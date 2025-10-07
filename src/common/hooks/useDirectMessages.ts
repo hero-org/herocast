@@ -6,7 +6,7 @@ import {
   DirectCastMessage,
   DIRECT_CAST_API,
 } from '@/common/constants/directCast';
-import { DMTab } from '@/pages/dms';
+import { DMTab } from '@/common/components/DirectMessages/DMEmptyState';
 import { UUID } from 'crypto';
 import { useDebouncedCallback } from '@/common/helpers/hooks';
 
