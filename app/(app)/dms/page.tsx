@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { useRouter } from 'next/router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -45,7 +44,6 @@ import { toast } from 'sonner';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 
 const DirectMessages = () => {
-  const router = useRouter();
   const { isNewCastModalOpen } = useNavigationStore();
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const [activeTab, setActiveTab] = useState<DMTab>(DMTab.conversations);

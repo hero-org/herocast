@@ -6,7 +6,8 @@ import { Loading } from './Loading';
 import { SignInButton, useProfile } from '@farcaster/auth-kit';
 import { useEffect, useState } from 'react';
 import { createClient } from '../helpers/supabase/component';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -53,6 +54,7 @@ enum ViewState {
 export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const posthog = usePostHog();
   const {
     isAuthenticated,
@@ -203,14 +205,15 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   });
 
   useEffect(() => {
-    if (router.query?.view) {
-      setView(router.query.view as ViewState);
+    const viewParam = searchParams.get('view');
+    if (viewParam) {
+      setView(viewParam as ViewState);
     }
 
-    if (user && router.query?.view !== ViewState.RESET) {
+    if (user && viewParam !== ViewState.RESET) {
       setView(ViewState.LOGGED_IN);
     }
-  }, [router.query?.view, user]);
+  }, [searchParams, user]);
 
   useEffect(() => {
     if (isAuthenticated && username && fid) {

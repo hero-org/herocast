@@ -14,7 +14,7 @@ import orderBy from 'lodash.orderby';
 import { PersonIcon } from '@radix-ui/react-icons';
 import { formatLargeNumber } from '@/common/helpers/text';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import filter from 'lodash.filter';
 import { cn } from '@/lib/utils';
 

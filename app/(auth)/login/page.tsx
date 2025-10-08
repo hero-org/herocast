@@ -1,10 +1,10 @@
 'use client';
 
 import '@farcaster/auth-kit/styles.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { UserAuthForm } from '@/common/components/UserAuthForm';
 import { AuthKitProvider } from '@farcaster/auth-kit';
-import { useRouter } from 'next/router';
+import { useSearchParams } from 'next/navigation';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -16,9 +16,12 @@ const authKitConfig = {
   // siweUri: `${process.env.NEXT_PUBLIC_URL}/api/auth/siwe`,
 };
 
-export default function Login() {
-  const router = useRouter();
-  const { signupOnly, view, error, error_description } = router.query;
+function LoginContent() {
+  const searchParams = useSearchParams();
+  const signupOnly = searchParams.get('signupOnly');
+  const view = searchParams.get('view');
+  const error = searchParams.get('error');
+  const error_description = searchParams.get('error_description');
   const showOnlySignup = signupOnly === 'true' || view === 'reset';
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -65,5 +68,13 @@ export default function Login() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div className="w-full min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

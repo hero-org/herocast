@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/20/solid';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { JoinedHerocastPostDraft } from '@/common/constants/postDrafts';
 import Link from 'next/link';

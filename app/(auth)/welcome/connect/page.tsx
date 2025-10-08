@@ -12,7 +12,7 @@ import { getTimestamp } from '@/common/helpers/farcaster';
 import { WarpcastLoginStatus, getWarpcastSignerStatus } from '@/common/helpers/warpcastLogin';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useIsMounted } from '@/common/helpers/hooks';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
