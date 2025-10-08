@@ -36,9 +36,9 @@ const UserAuthFormSchema = z
     }),
     confirmPassword: z.string().min(6, {
       message: 'Confirm Password must be at least 8 characters.',
-    }),
+    }).optional(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => !data.confirmPassword || data.password === data.confirmPassword, {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
