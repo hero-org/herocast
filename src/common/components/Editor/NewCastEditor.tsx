@@ -507,9 +507,7 @@ export default function NewPostEntry({
                 >
                   <CalendarDaysIcon className="mr-1 h-4 w-4" />
                   {scheduleDateTime ? (
-                    <span className="font-mono">
-                      {format(scheduleDateTime, 'MM/dd/yyyy hh:mm a')}
-                    </span>
+                    <span className="font-mono">{format(scheduleDateTime, 'MM/dd/yyyy hh:mm a')}</span>
                   ) : (
                     'Schedule'
                   )}
