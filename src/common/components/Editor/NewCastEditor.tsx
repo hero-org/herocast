@@ -27,7 +27,9 @@ import { ChannelList } from '../ChannelList';
 import isEmpty from 'lodash.isempty';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { FarcasterEmbed } from '@mod-protocol/farcaster';
-import { EnhancedDateTimePicker } from '@/components/ui/enhanced-datetime-picker';
+import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { usePostHog } from 'posthog-js/react';
 import { useTextLength } from '../../helpers/editor';
@@ -37,6 +39,7 @@ import { isPaidUser } from '@/stores/useUserStore';
 import { MentionList } from '../MentionsList';
 import { useImgurUpload } from '@/common/hooks/useImgurUpload';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
+import { format, startOfToday } from 'date-fns';
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
@@ -59,6 +62,18 @@ const getAllChannels = async (): Promise<Channel[]> => {
 };
 
 const getUrlMetadata = fetchUrlMetadata(API_URL);
+
+const getDefaultScheduleTime = (): Date => {
+  // Returns date 1 hour from now, rounded to nearest 5 minutes
+  const now = new Date();
+  const roundedMinutes = Math.ceil(now.getMinutes() / 5) * 5;
+  const date = new Date(now);
+  date.setMinutes(roundedMinutes);
+  date.setSeconds(0);
+  date.setMilliseconds(0);
+  date.setHours(date.getHours() + 1);
+  return date;
+};
 
 const onError = (err) => {
   console.error('Editor error:', err);
@@ -93,6 +108,7 @@ export default function NewPostEntry({
   const { addScheduledDraft, updatePostDraft, publishPostDraft } = useDraftStore();
   const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
+  const [schedulePopoverOpen, setSchedulePopoverOpen] = React.useState(false);
   const [editorKey, setEditorKey] = React.useState(0);
 
   const hasEmbeds = draft.embeds && !!draft.embeds.length;
@@ -476,21 +492,131 @@ export default function NewPostEntry({
             Media
           </Button>
           {!hideSchedule && (
-            <Popover>
+            <Popover open={schedulePopoverOpen} onOpenChange={setSchedulePopoverOpen}>
               <PopoverTrigger asChild>
-                <Button size="sm" variant="outline" disabled={isPublishing}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isPublishing}
+                  onClick={() => {
+                    if (!scheduleDateTime) {
+                      setScheduleDateTime(getDefaultScheduleTime());
+                    }
+                    setSchedulePopoverOpen(true);
+                  }}
+                >
                   <CalendarDaysIcon className="mr-1 h-4 w-4" />
-                  {scheduleDateTime
-                    ? `${scheduleDateTime.toLocaleDateString()} ${scheduleDateTime.toLocaleTimeString()}`
-                    : 'Schedule'}
+                  {scheduleDateTime ? (
+                    <span className="font-mono">
+                      {format(scheduleDateTime, 'MM/dd/yyyy hh:mm a')}
+                    </span>
+                  ) : (
+                    'Schedule'
+                  )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <EnhancedDateTimePicker
-                  date={scheduleDateTime}
-                  setDate={(date: Date | undefined) => setScheduleDateTime(date)}
-                  disabled={isPublishing}
-                />
+              <PopoverContent className="w-[520px] p-0" align="center">
+                <div className="flex">
+                  {/* Calendar Section */}
+                  <div className="p-3 border-r">
+                    <Calendar
+                      mode="single"
+                      selected={scheduleDateTime}
+                      onSelect={(date: Date | undefined) => {
+                        if (date) {
+                          const newDate = new Date(date);
+                          if (scheduleDateTime) {
+                            newDate.setHours(scheduleDateTime.getHours(), scheduleDateTime.getMinutes(), 0, 0);
+                          } else {
+                            newDate.setHours(14, 0, 0, 0); // Default 14:00 UTC
+                          }
+                          setScheduleDateTime(newDate);
+                        }
+                      }}
+                      disabled={{ before: startOfToday() }}
+                    />
+                  </div>
+
+                  {/* Time + Presets Section */}
+                  <div className="p-3 w-[240px] space-y-3">
+                    {/* Time Input */}
+                    {scheduleDateTime && (
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Time (24h)</Label>
+                        <Input
+                          type="time"
+                          value={format(scheduleDateTime, 'HH:mm')}
+                          onChange={(e) => {
+                            const [hours, minutes] = e.target.value.split(':').map(Number);
+                            const newDate = new Date(scheduleDateTime);
+                            newDate.setHours(hours, minutes, 0, 0);
+                            setScheduleDateTime(newDate);
+                          }}
+                          step="300"
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {format(scheduleDateTime, "MMM d, yyyy 'at' HH:mm")}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Quick Presets */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Quick presets</Label>
+                      <div className="space-y-1">
+                        {[
+                          { label: 'US Morning', hour: 14, desc: '9 AM ET' },
+                          { label: 'US Afternoon', hour: 18, desc: '1 PM ET' },
+                          { label: 'US Evening', hour: 23, desc: '6 PM ET' },
+                          { label: 'EU Morning', hour: 8, desc: '9 AM CET' },
+                          { label: 'Asia Evening', hour: 9, desc: '6 PM JST' },
+                        ].map((preset) => (
+                          <Button
+                            key={preset.label}
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-between text-xs"
+                            onClick={() => {
+                              const newDate = scheduleDateTime ? new Date(scheduleDateTime) : getDefaultScheduleTime();
+                              newDate.setHours(preset.hour, 0, 0, 0);
+                              if (newDate < new Date()) {
+                                newDate.setDate(newDate.getDate() + 1);
+                              }
+                              setScheduleDateTime(newDate);
+                            }}
+                          >
+                            <span>{preset.label}</span>
+                            <span className="text-muted-foreground">{preset.desc}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex gap-2 border-t pt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setScheduleDateTime(undefined);
+                          setSchedulePopoverOpen(false);
+                        }}
+                      >
+                        Clear
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => setSchedulePopoverOpen(false)}
+                        disabled={!scheduleDateTime || scheduleDateTime < new Date()}
+                      >
+                        Done
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </PopoverContent>
             </Popover>
           )}
