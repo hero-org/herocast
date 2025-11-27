@@ -11,6 +11,7 @@ import { Interval } from '../types/types';
 import { Switch } from '@/components/ui/switch';
 import { toastSuccessSavedSearchUpdate } from '../helpers/toast';
 import { BellIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner';
 
 const intervals = [Interval.d1, Interval.d7, Interval.d14];
 
@@ -44,7 +45,7 @@ const ManageListModal = ({ open, onClose }) => {
     setIsDailyEmailEnabled(list?.contents?.enabled_daily_email);
   }, [list]);
 
-  const onClickSave = () => {
+  const onClickSave = async () => {
     if (!list || !canSave) return;
 
     const newContents = {
@@ -52,14 +53,22 @@ const ManageListModal = ({ open, onClose }) => {
       term: newSearchTerm,
       enabled_daily_email: isDailyEmailEnabled,
     };
-    updateList({
-      ...list,
-      name: newName,
-      contents: newContents,
-    }).then(() => {
+
+    try {
+      await updateList({
+        ...list,
+        name: newName,
+        contents: newContents,
+      });
       toastSuccessSavedSearchUpdate(newName);
       onClose();
-    });
+    } catch (error) {
+      console.error('Error saving list:', error);
+      toast.error('Failed to save search', {
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
+        duration: 5000,
+      });
+    }
     posthog.capture('user_save_list');
   };
 
@@ -72,19 +81,20 @@ const ManageListModal = ({ open, onClose }) => {
     <Modal open={open} setOpen={onClose} title="Manage Saved Search">
       <div className="flex flex-col gap-4 mt-4">
         <div>
-          <Label>Change Name</Label>
-          <Input label="Name" value={newName} onChange={(e) => setNewName(e.target.value)} />
+          <Label htmlFor="list-name">Change Name</Label>
+          <Input id="list-name" label="Name" value={newName} onChange={(e) => setNewName(e.target.value)} />
         </div>
         <div>
-          <Label>Change search</Label>
-          <Input label="Search" value={newSearchTerm} onChange={(e) => setNewSearchTerm(e.target.value)} />
+          <Label htmlFor="list-search">Change search</Label>
+          <Input id="list-search" label="Search" value={newSearchTerm} onChange={(e) => setNewSearchTerm(e.target.value)} />
         </div>
         <div className="flex flex-col">
-          <Label className="flex">
+          <Label htmlFor="daily-email-switch" className="flex">
             <BellIcon className="h-5 w-5 mr-1" />
             Daily Email Alert
           </Label>
           <Switch
+            id="daily-email-switch"
             className="mt-2"
             checked={isDailyEmailEnabled}
             onCheckedChange={() => setIsDailyEmailEnabled(!isDailyEmailEnabled)}
@@ -92,7 +102,7 @@ const ManageListModal = ({ open, onClose }) => {
         </div>
         <div className="flex flex-row space-x-4">
           <div className="flex flex-col">
-            <Label>Search Interval</Label>
+            <Label htmlFor="search-interval">Search Interval</Label>
             <IntervalFilter defaultInterval={searchInterval} intervals={intervals} />
           </div>
         </div>
