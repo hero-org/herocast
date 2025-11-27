@@ -1,11 +1,11 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Key } from 'ts-key-enum';
-import { useInView } from 'react-intersection-observer';
 import isEmpty from 'lodash.isempty';
 import { HotkeyScopes, HotkeyScope } from '@/common/constants/hotkeys';
 import { useRouter } from 'next/router';
 import { getScopesForPage } from '@/common/constants/hotkeys';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 type SelectableListWithHotkeysProps = {
   data: any[];
@@ -25,6 +25,8 @@ type SelectableListWithHotkeysProps = {
   scopes?: HotkeyScope[];
   // Optional footer to render inside scroll container
   footer?: React.ReactNode;
+  // Estimated item height for virtualization (defaults to 150px for cast rows)
+  estimatedItemHeight?: number;
 };
 
 export const SelectableListWithHotkeys = ({
@@ -43,77 +45,29 @@ export const SelectableListWithHotkeys = ({
   containerHeight = '80vh',
   scopes,
   footer,
+  estimatedItemHeight = 150,
 }: SelectableListWithHotkeysProps) => {
-  const { ref, inView } = useInView({
-    threshold: 0,
-    delay: 100,
-  });
-
-  const scrollToRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number | null>(null);
   const router = useRouter();
   const pageScopes = scopes ?? getScopesForPage(router.pathname);
-  // scroll to selected cast when selectedCastIdx changes
+
+  // Set up virtualizer for efficient rendering of large lists
+  const virtualizer = useVirtualizer({
+    count: data.length,
+    getScrollElement: () => containerRef.current,
+    estimateSize: () => estimatedItemHeight,
+    overscan: 5, // Render 5 items above and below the visible area for smooth scrolling
+  });
+
+  // Scroll to selected item when selectedIdx changes
   useLayoutEffect(() => {
-    // Cancel any pending scroll animation from previous keypress
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
+    if (!disableScroll && selectedIdx >= 0 && selectedIdx < data.length) {
+      virtualizer.scrollToIndex(selectedIdx, {
+        align: 'start',
+        behavior: 'auto',
+      });
     }
-
-    // Schedule scroll for next animation frame
-    rafRef.current = requestAnimationFrame(() => {
-      if (!disableScroll && scrollToRef.current) {
-        // Find the correct scrollable container
-        let container = null;
-
-        // First try to use the container ref if we're in pinned navigation mode
-        if (pinnedNavigation && containerRef.current) {
-          container = containerRef.current;
-        } else {
-          // Look for the main scrollable container with no-scrollbar class
-          container =
-            scrollToRef.current.closest('.overflow-y-auto.no-scrollbar') ||
-            scrollToRef.current.closest('[class*="overflow-y-auto"]') ||
-            document.querySelector('.overflow-y-auto.no-scrollbar');
-        }
-
-        if (container) {
-          // Define comfortable reading position from top
-          const COMFORTABLE_TOP_OFFSET = 0;
-
-          // Always position the selected item at the comfortable reading height
-          const elementRect = scrollToRef.current.getBoundingClientRect();
-          const containerRect = container.getBoundingClientRect();
-          const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - COMFORTABLE_TOP_OFFSET;
-
-          // Scroll to the target position instantly
-          container.scrollTo({
-            top: Math.max(0, targetScrollTop),
-            behavior: 'instant',
-          });
-        } else {
-          // Fallback to scrollIntoView but prevent document scrolling
-          try {
-            scrollToRef.current.scrollIntoView({
-              behavior: 'auto',
-              block: 'start',
-            });
-          } catch (e) {
-            // Ignore scrollIntoView errors if element is not in DOM
-          }
-        }
-      }
-      rafRef.current = null;
-    });
-
-    // Cleanup: cancel RAF on unmount or before next effect
-    return () => {
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, [selectedIdx, pinnedNavigation, disableScroll]);
+  }, [selectedIdx, disableScroll, data.length, virtualizer]);
 
   // Navigation hotkeys
   useAppHotkeys(
@@ -173,21 +127,41 @@ export const SelectableListWithHotkeys = ({
 
   if (isEmpty(data)) return null;
 
-  // Create the list content
+  const virtualItems = virtualizer.getVirtualItems();
+
+  // Create the virtualized list content
   const content = (
-    <ul role="list" className="">
-      {data.map((item: any, idx: number) => {
-        return item ? (
+    <div
+      role="list"
+      style={{
+        height: `${virtualizer.getTotalSize()}px`,
+        width: '100%',
+        position: 'relative',
+      }}
+    >
+      {virtualItems.map((virtualItem) => {
+        const item = data[virtualItem.index];
+        const idx = virtualItem.index;
+        if (!item) return null;
+
+        return (
           <div
             key={`row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`}
-            ref={selectedIdx === idx ? scrollToRef : null}
+            data-index={virtualItem.index}
+            ref={virtualizer.measureElement}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              transform: `translateY(${virtualItem.start}px)`,
+            }}
           >
             {renderRow(item, idx)}
           </div>
-        ) : null;
+        );
       })}
-      <li ref={ref} className="" />
-    </ul>
+    </div>
   );
 
   // Return either a scrollable container or the direct list based on pinnedNavigation setting
@@ -197,6 +171,8 @@ export const SelectableListWithHotkeys = ({
       {footer && footer}
     </div>
   ) : (
-    content
+    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight }}>
+      {content}
+    </div>
   );
 };
