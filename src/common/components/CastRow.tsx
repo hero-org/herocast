@@ -882,6 +882,10 @@ const CastRowComponent = ({
 
 export const CastRow = React.memo(CastRowComponent, (prevProps, nextProps) => {
   // Custom comparison for better performance
+  // Avoid JSON.stringify for reactions - use targeted shallow comparisons instead
+  const prevReactions = prevProps.cast.reactions;
+  const nextReactions = nextProps.cast.reactions;
+
   return (
     prevProps.cast.hash === nextProps.cast.hash &&
     prevProps.isSelected === nextProps.isSelected &&
@@ -889,7 +893,12 @@ export const CastRow = React.memo(CastRowComponent, (prevProps, nextProps) => {
     prevProps.isEmbed === nextProps.isEmbed &&
     prevProps.hideReactions === nextProps.hideReactions &&
     prevProps.recastedByFid === nextProps.recastedByFid &&
-    // Only re-render if reactions have actually changed
-    JSON.stringify(prevProps.cast.reactions) === JSON.stringify(nextProps.cast.reactions)
+    // Targeted shallow comparisons for reaction counts
+    prevReactions?.likes_count === nextReactions?.likes_count &&
+    prevReactions?.recasts_count === nextReactions?.recasts_count &&
+    prevReactions?.count === nextReactions?.count &&
+    // Compare array lengths for viewer context changes
+    prevReactions?.likes?.length === nextReactions?.likes?.length &&
+    prevReactions?.recasts?.length === nextReactions?.recasts?.length
   );
 });
