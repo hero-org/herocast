@@ -86,7 +86,12 @@ const ManageListModal = ({ open, onClose }) => {
         </div>
         <div>
           <Label htmlFor="list-search">Change search</Label>
-          <Input id="list-search" label="Search" value={newSearchTerm} onChange={(e) => setNewSearchTerm(e.target.value)} />
+          <Input
+            id="list-search"
+            label="Search"
+            value={newSearchTerm}
+            onChange={(e) => setNewSearchTerm(e.target.value)}
+          />
         </div>
         <div className="flex flex-col">
           <Label htmlFor="daily-email-switch" className="flex">
