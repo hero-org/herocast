@@ -151,10 +151,9 @@ export const SelectableListWithHotkeys = ({
             ref={virtualizer.measureElement}
             style={{
               position: 'absolute',
-              top: 0,
+              top: `${virtualItem.start}px`,
               left: 0,
               width: '100%',
-              transform: `translateY(${virtualItem.start}px)`,
             }}
           >
             {renderRow(item, idx)}
@@ -166,12 +165,12 @@ export const SelectableListWithHotkeys = ({
 
   // Return either a scrollable container or the direct list based on pinnedNavigation setting
   return pinnedNavigation ? (
-    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight }}>
+    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight, width: '100%' }}>
       {content}
       {footer && footer}
     </div>
   ) : (
-    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight }}>
+    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight, width: '100%' }}>
       {content}
     </div>
   );

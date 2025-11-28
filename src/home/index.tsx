@@ -475,7 +475,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </div>
           </Dialog>
         </Transition.Root>
-        <div className="h-full lg:ml-40">
+        <div className="h-full lg:ml-40 flex-1">
           <div className="h-full">
             {/* Static sidebar for desktop */}
             {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}

@@ -160,6 +160,33 @@ The application supports multiple feed types through a unified feed system:
   - `SearchListsView`: Search list management
   - `UserListsView`: FID list management
 
+## Layout Architecture
+
+### Home Layout (`src/home/index.tsx`)
+
+The main layout uses a complex flex structure with fixed and flexible elements:
+
+- **SidebarProvider** (`src/components/ui/sidebar.tsx`): Wraps the entire app and is a **flex container** (`flex` class)
+- **Left Sidebar**: Fixed positioned (`lg:fixed lg:w-40`), not in document flow
+- **Main Content**: Must have `flex-1` to fill remaining space in SidebarProvider's flex container
+- **Right Sidebar**: Conditionally rendered, `w-64 flex-shrink-0`
+
+**Critical**: Line 478 in `src/home/index.tsx` MUST have `flex-1`:
+
+```tsx
+<div className="h-full lg:ml-40 flex-1">
+```
+
+Without `flex-1`, the main content area will only take its content width instead of filling available space, causing the feed to appear "squeezed".
+
+### Virtualization in Feeds
+
+The feed uses `@tanstack/react-virtual` for performance. Key implementation details in `SelectableListWithHotkeys.tsx`:
+
+- Use `top` positioning instead of `transform: translateY()` for virtual items
+- `transform` creates a CSS containing block that breaks percentage width calculations
+- Item wrapper must have `width: '100%'` and `position: absolute`
+
 ## Deployment
 
 - Vercel for web deployment

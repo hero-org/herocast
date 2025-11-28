@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { FilterType, NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { CastWithInteractions, FeedType } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Loading } from '@/common/components/Loading';
+import SkeletonCastRow from '@/common/components/SkeletonCastRow';
 import uniqBy from 'lodash.uniqby';
 import { useDataStore } from '@/stores/useDataStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
@@ -547,7 +548,7 @@ export default function Feeds() {
       isHydrated &&
       !isLoadingFeed && (
         <div className="w-full flex justify-center pt-12">
-          <Card className="max-w-sm">
+          <Card className="w-full max-w-md mx-4">
             <CardHeader>
               <CardTitle>Feed is empty</CardTitle>
               <CardDescription>
@@ -592,14 +593,16 @@ export default function Feeds() {
   const renderContent = () => (
     <main className="w-full h-full">
       {isLoadingFeed && isEmpty(casts) && (
-        <div className="px-4 pt-4">
-          <Loading loadingMessage={loadingMessage} />
+        <div className="w-full">
+          {Array.from({ length: DEFAULT_FEED_PAGE_SIZE }).map((_, idx) => (
+            <SkeletonCastRow key={`skeleton-${idx}`} />
+          ))}
         </div>
       )}
       {showCastThreadView ? (
         renderThread()
       ) : (
-        <div className="h-full">
+        <div className="h-full w-full">
           {renderFeed()}
           {renderWelcomeMessage()}
         </div>
