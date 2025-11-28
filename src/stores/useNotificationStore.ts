@@ -153,6 +153,12 @@ const store = (set: StoreSet, get) => ({
       state.syncQueue.push(readState);
     });
 
+    // Cleanup if exceeding thresholds
+    const state = get();
+    if (Object.keys(state.readStates).length > MAX_READ_STATES || state.syncQueue.length > MAX_SYNC_QUEUE) {
+      get().cleanup();
+    }
+
     // Trigger debounced sync
     debouncedSync();
   },
@@ -177,6 +183,12 @@ const store = (set: StoreSet, get) => ({
       });
       state.lastReadTimestamp[type] = now;
     });
+
+    // Cleanup if exceeding thresholds
+    const state = get();
+    if (Object.keys(state.readStates).length > MAX_READ_STATES || state.syncQueue.length > MAX_SYNC_QUEUE) {
+      get().cleanup();
+    }
 
     // Trigger debounced sync
     debouncedSync();
