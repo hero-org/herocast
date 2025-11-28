@@ -50,7 +50,7 @@ const FarcasterAccountSetupFormSchema = z.object({
           message: 'Bio must be at least 4 characters.',
         })
         .max(160, {
-          message: 'Bio must not be longer than 20 characters.',
+          message: 'Bio must not be longer than 160 characters.',
         }),
     ])
     .optional()

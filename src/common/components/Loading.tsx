@@ -9,12 +9,20 @@ interface LoadingProps {
 
 export const Loading = ({ className, isInline = false, loadingMessage = 'Loading' }: LoadingProps) =>
   isInline ? (
-    <span className={clsx(className, 'my-4 whitespace-nowrap font-semibold text-foreground')}>
+    <span
+      role="status"
+      aria-live="polite"
+      className={clsx(className, 'my-4 whitespace-nowrap font-semibold text-foreground')}
+    >
       {loadingMessage}
       <span className="animate-pulse">...</span>
     </span>
   ) : (
-    <p className={clsx(className, 'my-4 whitespace-nowrap font-semibold text-foreground')}>
+    <p
+      role="status"
+      aria-live="polite"
+      className={clsx(className, 'my-4 whitespace-nowrap font-semibold text-foreground')}
+    >
       {loadingMessage}
       <span className="animate-pulse">...</span>
     </p>
