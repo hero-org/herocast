@@ -38,6 +38,20 @@
     "tabWidth": 2,
     "semi": true
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@openapitools/openapi-generator-cli",
+      "@sentry/cli",
+      "bufferutil",
+      "core-js",
+      "esbuild",
+      "keccak",
+      "sharp",
+      "supabase",
+      "utf-8-validate"
+    ]
+  },
   "dependencies": {
     "@date-fns/utc": "^2.1.0",
     "@emotion/react": "^11.14.0",
