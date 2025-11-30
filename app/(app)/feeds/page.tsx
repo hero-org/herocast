@@ -36,6 +36,7 @@ import { SearchFilters } from '@/common/types/list.types';
 import { orderBy } from 'lodash';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
 import { startTiming, endTiming } from '@/stores/usePerformanceStore';
+import { useTrendingFeedInfinite, flattenTrendingFeedPages } from '@/hooks/queries/useTrendingFeed';
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -103,6 +104,13 @@ export default function Feeds() {
   const { selectedCast, updateSelectedCast, updateSelectedProfileFid } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
+  // React Query hook for TRENDING feed - provides automatic caching & deduplication
+  const isTrendingFeed = selectedChannelUrl === CUSTOM_CHANNELS.TRENDING;
+  const trendingQuery = useTrendingFeedInfinite({
+    limit: 10,
+    enabled: isTrendingFeed && !selectedListId,
+  });
+
   // Handle URL query parameter for channel switching
   useEffect(() => {
     const { channel } = router.query;
@@ -150,7 +158,14 @@ export default function Feeds() {
 
   const feedKey = getFeedKey({ selectedChannelUrl, account, selectedListId });
   const feed = feedKey ? get(feeds, feedKey, EMPTY_FEED) : EMPTY_FEED;
-  const { isLoading: isLoadingFeed, nextCursor, casts } = feed;
+
+  // For TRENDING feed, use React Query data; for other feeds, use local state
+  const trendingCasts = flattenTrendingFeedPages(trendingQuery.data);
+  const casts = isTrendingFeed && !selectedListId ? trendingCasts : feed.casts;
+  const isLoadingFeed = isTrendingFeed && !selectedListId ? trendingQuery.isLoading : feed.isLoading;
+  const nextCursor = isTrendingFeed && !selectedListId
+    ? (trendingQuery.hasNextPage ? 'has-more' : '')
+    : feed.nextCursor;
 
   const onOpenLinkInCast = useCallback(() => {
     setShowEmbedsModal(true);
@@ -198,9 +213,15 @@ export default function Feeds() {
 
   useEffect(() => {
     if (account && inView && nextCursor) {
-      getFeed({ fid: account.platformAccountId!, parentUrl: selectedChannelUrl, selectedListId, cursor: nextCursor });
+      // For trending feed, use React Query's fetchNextPage
+      if (isTrendingFeed && !selectedListId && trendingQuery.hasNextPage && !trendingQuery.isFetchingNextPage) {
+        trendingQuery.fetchNextPage();
+      } else if (!isTrendingFeed || selectedListId) {
+        // For other feeds, use the existing getFeed function
+        getFeed({ fid: account.platformAccountId!, parentUrl: selectedChannelUrl, selectedListId, cursor: nextCursor });
+      }
     }
-  }, [inView, nextCursor, account, selectedChannelUrl, selectedListId]);
+  }, [inView, nextCursor, account, selectedChannelUrl, selectedListId, isTrendingFeed, trendingQuery]);
 
   const onReply = useCallback(() => {
     if (!selectedCast) return;
@@ -267,12 +288,19 @@ export default function Feeds() {
     parentUrl === CUSTOM_CHANNELS.FOLLOWING || parentUrl === CUSTOM_CHANNELS.TRENDING ? undefined : parentUrl;
 
   const refreshFeed = useCallback(() => {
+    // For trending feed, use React Query's refetch
+    if (isTrendingFeed && !selectedListId) {
+      trendingQuery.refetch();
+      lastUpdateTimeRef.current = Date.now();
+      return;
+    }
+
     if (account?.platformAccountId && !showCastThreadView && feedKey) {
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
       lastUpdateTimeRef.current = Date.now();
     }
-  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey]);
+  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey, isTrendingFeed, trendingQuery]);
 
   const getFeed = async ({
     fid,
@@ -387,12 +415,18 @@ export default function Feeds() {
   };
 
   useEffect(() => {
+    // Skip manual fetching for TRENDING feed - React Query handles it
+    if (isTrendingFeed && !selectedListId) {
+      lastUpdateTimeRef.current = Date.now();
+      return;
+    }
+
     if (account?.platformAccountId && !showCastThreadView && feedKey) {
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
       lastUpdateTimeRef.current = Date.now();
     }
-  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey]);
+  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey, isTrendingFeed]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -449,7 +483,11 @@ export default function Feeds() {
   };
 
   const getButtonText = (): string => {
-    if (isLoadingFeed) {
+    const isFetching = isTrendingFeed && !selectedListId
+      ? trendingQuery.isFetchingNextPage || trendingQuery.isLoading
+      : isLoadingFeed;
+
+    if (isFetching) {
       return 'Loading...';
     } else if (casts.length === 0) {
       return 'Load feed';
@@ -458,18 +496,28 @@ export default function Feeds() {
     }
   };
 
+  const handleLoadMore = () => {
+    if (isTrendingFeed && !selectedListId) {
+      // Use React Query for trending feed
+      if (trendingQuery.hasNextPage && !trendingQuery.isFetchingNextPage) {
+        trendingQuery.fetchNextPage();
+      }
+    } else {
+      // Use legacy fetch for other feeds
+      getFeed({
+        fid: account.platformAccountId!,
+        parentUrl: selectedChannelUrl,
+        selectedListId,
+        cursor: nextCursor,
+      });
+    }
+  };
+
   const renderLoadMoreButton = () => (
     <div className="px-4 py-4">
       <Button
         ref={buttonRef}
-        onClick={() =>
-          getFeed({
-            fid: account.platformAccountId!,
-            parentUrl: selectedChannelUrl,
-            selectedListId,
-            cursor: nextCursor,
-          })
-        }
+        onClick={handleLoadMore}
         variant="outline"
       >
         {getButtonText()}
