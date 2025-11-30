@@ -10,6 +10,11 @@ const IDB_STORE_NAME = 'notification-read-states';
 const IDB_VERSION = 1;
 const SYNC_INTERVAL = 5000; // 5 seconds
 
+// Memory management constants
+const MAX_READ_STATES = 1000; // Maximum number of read states to keep
+const MAX_SYNC_QUEUE = 1000; // Maximum sync queue size
+const READ_STATE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+
 // Mutative middleware
 const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
 
@@ -36,6 +41,7 @@ interface NotificationStore {
   getUnreadCount: (type: string, allIds: string[]) => number;
   hydrate: () => Promise<void>;
   syncToSupabase: () => Promise<void>;
+  cleanup: () => void;
 }
 
 // Create or get the database connection
@@ -147,6 +153,12 @@ const store = (set: StoreSet, get) => ({
       state.syncQueue.push(readState);
     });
 
+    // Cleanup if exceeding thresholds
+    const state = get();
+    if (Object.keys(state.readStates).length > MAX_READ_STATES || state.syncQueue.length > MAX_SYNC_QUEUE) {
+      get().cleanup();
+    }
+
     // Trigger debounced sync
     debouncedSync();
   },
@@ -171,6 +183,12 @@ const store = (set: StoreSet, get) => ({
       });
       state.lastReadTimestamp[type] = now;
     });
+
+    // Cleanup if exceeding thresholds
+    const state = get();
+    if (Object.keys(state.readStates).length > MAX_READ_STATES || state.syncQueue.length > MAX_SYNC_QUEUE) {
+      get().cleanup();
+    }
 
     // Trigger debounced sync
     debouncedSync();
@@ -213,18 +231,52 @@ const store = (set: StoreSet, get) => ({
 
           state.isHydrated = true;
         });
+
+        // Run cleanup after hydration to enforce bounds
+        get().cleanup();
       } else {
         // If error or no data, just mark as hydrated
         set((state) => {
           state.isHydrated = true;
         });
+
+        // Still run cleanup on local data
+        get().cleanup();
       }
     } catch (error) {
       console.error('Error hydrating notification states:', error);
       set((state) => {
         state.isHydrated = true;
       });
+
+      // Still run cleanup on local data
+      get().cleanup();
     }
+  },
+
+  cleanup: () => {
+    set((state) => {
+      const now = Date.now();
+      const cutoffTime = now - READ_STATE_TTL_MS;
+
+      // Get all entries and filter by TTL
+      const entries = Object.entries(state.readStates);
+      const validEntries = entries.filter(([, value]) => value.readAt > cutoffTime);
+
+      // If still over limit, keep only the most recent MAX_READ_STATES
+      let entriesToKeep = validEntries;
+      if (validEntries.length > MAX_READ_STATES) {
+        entriesToKeep = validEntries.sort((a, b) => b[1].readAt - a[1].readAt).slice(0, MAX_READ_STATES);
+      }
+
+      // Rebuild readStates from filtered entries
+      state.readStates = Object.fromEntries(entriesToKeep);
+
+      // Cap syncQueue with FIFO removal (keep most recent)
+      if (state.syncQueue.length > MAX_SYNC_QUEUE) {
+        state.syncQueue = state.syncQueue.slice(-MAX_SYNC_QUEUE);
+      }
+    });
   },
 
   syncToSupabase: async () => {
