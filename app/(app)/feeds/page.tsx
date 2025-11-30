@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { useRouter } from 'next/router';
 import get from 'lodash.get';
 import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
@@ -239,30 +239,20 @@ export default function Feeds() {
     });
   }, [selectedCast, setCastModalView, updateSelectedCast, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
 
-  useHotkeys(
+  // Escape handler to close thread view (only when no modal is open)
+  useAppHotkeys(
     [Key.Escape, '§'],
     () => {
       setShowCastThreadView(false);
     },
-    [showCastThreadView, isNewCastModalOpen, showEmbedsModal],
     {
+      scopes: [HotkeyScopes.FEED],
       enableOnFormTags: true,
       enableOnContentEditable: true,
       enabled: showCastThreadView && !isNewCastModalOpen && !showEmbedsModal,
-    }
+    },
+    [showCastThreadView, isNewCastModalOpen, showEmbedsModal, setShowCastThreadView]
   );
-
-  useHotkeys('r', onReply, [openNewCastModal, selectedCast], {
-    enabled: !isNewCastModalOpen,
-    enableOnFormTags: false,
-    preventDefault: true,
-  });
-
-  useHotkeys('q', onQuote, [openNewCastModal, selectedCast], {
-    enabled: !isNewCastModalOpen,
-    enableOnFormTags: false,
-    preventDefault: true,
-  });
 
   const getFeedType = (parentUrl: string | undefined) =>
     parentUrl === CUSTOM_CHANNELS.FOLLOWING ? FeedType.Following : FeedType.Filter;

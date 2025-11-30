@@ -128,11 +128,40 @@ export function useGlobalHotkeys() {
 
       addNewPostDraft({
         parentCastId: {
-          fid: selectedCast.author.fid.toString(),
-          hash: selectedCast.hash,
+          fid: selectedCast.author.fid,
+          hash: new TextEncoder().encode(selectedCast.hash),
         },
         onSuccess: (draftId) => {
           setCastModalView(CastModalView.Reply);
+          setCastModalDraftId(draftId);
+          openNewCastModal();
+        },
+      });
+    },
+    {
+      scopes: HotkeyScopes.CAST_SELECTED,
+      enabled: !!selectedCast,
+    },
+    [selectedCast, addNewPostDraft, setCastModalView, setCastModalDraftId, openNewCastModal]
+  );
+
+  // Quote shortcut (when cast is selected)
+  useAppHotkeys(
+    'q',
+    () => {
+      if (!selectedCast) return;
+
+      addNewPostDraft({
+        embeds: [
+          {
+            castId: {
+              fid: selectedCast.author.fid,
+              hash: new TextEncoder().encode(selectedCast.hash),
+            },
+          },
+        ],
+        onSuccess: (draftId) => {
+          setCastModalView(CastModalView.Quote);
           setCastModalDraftId(draftId);
           openNewCastModal();
         },

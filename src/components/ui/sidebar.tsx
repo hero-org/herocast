@@ -75,6 +75,8 @@ const SidebarProvider = React.forwardRef<
   }, [isMobile, setOpen, setOpenMobile]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
+  // Note: Using native addEventListener here because this provider runs early in the tree
+  // before the HotkeysProvider is available. The shortcut is documented in hotkeyDefinitions.ts.
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {

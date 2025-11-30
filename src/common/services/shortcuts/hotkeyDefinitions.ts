@@ -77,6 +77,15 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     scopes: [HotkeyScopes.GLOBAL],
   },
   {
+    id: 'toggle-sidebar',
+    keys: ['meta+b', 'ctrl+b'],
+    name: 'Toggle Sidebar',
+    description: 'Show or hide the sidebar',
+    category: hotkeyCategories.navigation,
+    scopes: [HotkeyScopes.GLOBAL],
+    preventDefault: true,
+  },
+  {
     id: 'your-profile',
     keys: 'meta+shift+p',
     name: 'Your Profile',
@@ -146,6 +155,15 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     category: hotkeyCategories.actions,
     scopes: [HotkeyScopes.CAST_SELECTED],
     icon: ChatBubbleLeftIcon,
+  },
+  {
+    id: 'quote',
+    keys: 'q',
+    name: 'Quote',
+    description: 'Quote selected cast',
+    category: hotkeyCategories.actions,
+    scopes: [HotkeyScopes.CAST_SELECTED],
+    icon: ArrowPathRoundedSquareIcon,
   },
   {
     id: 'manage-lists',
