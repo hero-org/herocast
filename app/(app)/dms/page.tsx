@@ -40,6 +40,7 @@ import {
   truncateText,
   getAvatarFallback,
 } from '@/common/helpers/dmProfiles';
+import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
 import { toast } from 'sonner';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 
@@ -62,13 +63,8 @@ const DirectMessages = () => {
     enabled: !showOnboarding,
   });
 
-  // Get cached user data and fetch function
-  const { fidToData, fetchBulkProfiles, updateSelectedProfileFid } = useDataStore((state) => ({
-    fidToData: state.fidToData,
-    fetchBulkProfiles: state.fetchBulkProfiles,
-    updateSelectedProfileFid: state.updateSelectedProfileFid,
-  }));
-  const getProfileByFid = (fid: number) => fidToData[fid];
+  // Keep UI state management
+  const updateSelectedProfileFid = useDataStore((state) => state.updateSelectedProfileFid);
 
   // Helper to get unique ID for an item
   const getItemId = (item: DirectCastConversation | DirectCastGroup) => {
@@ -163,22 +159,18 @@ const DirectMessages = () => {
     );
   }, [conversations, groups, messages, viewerFid, activeTab]);
 
-  // Prefetch profiles for all visible fids using existing dataStore
-  const [profilesLoading, setProfilesLoading] = useState(false);
+  // Fetch profiles using React Query
+  const {
+    data: profiles = [],
+    isLoading: profilesLoading,
+    isError: profilesError,
+  } = useBulkProfiles(allFidsToFetch, {
+    viewerFid: Number(viewerFid),
+    enabled: !showOnboarding && allFidsToFetch.length > 0 && !!viewerFid,
+  });
 
-  useEffect(() => {
-    if (!showOnboarding && !isLoading && allFidsToFetch.length > 0 && viewerFid) {
-      console.log('[DMs Profile Fetch Debug]', {
-        allFidsToFetch,
-        viewerFid,
-        conversationsCount: conversations.length,
-        groupsCount: groups.length,
-        messagesCount: messages.length,
-      });
-      setProfilesLoading(true);
-      fetchBulkProfiles(allFidsToFetch, viewerFid, true).finally(() => setProfilesLoading(false));
-    }
-  }, [allFidsToFetch, viewerFid, showOnboarding, isLoading, fetchBulkProfiles]);
+  // Helper to get profile by FID from bulk results
+  const getProfileByFid = (fid: number) => getProfileFromBulk(profiles, fid);
 
   // Tab switching callback
   const changeTab = useCallback((tab: DMTab) => {
