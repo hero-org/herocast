@@ -121,14 +121,10 @@ export default function Feeds() {
     enabled: isFollowingFeed && !selectedListId && !!account?.platformAccountId,
   });
 
-  const channelQuery = useChannelFeedInfinite(
-    selectedChannelUrl || '',
-    account?.platformAccountId || '',
-    {
-      limit: DEFAULT_FEED_PAGE_SIZE,
-      enabled: isChannelFeed && !selectedListId && !!account?.platformAccountId && !!selectedChannelUrl,
-    }
-  );
+  const channelQuery = useChannelFeedInfinite(selectedChannelUrl || '', account?.platformAccountId || '', {
+    limit: DEFAULT_FEED_PAGE_SIZE,
+    enabled: isChannelFeed && !selectedListId && !!account?.platformAccountId && !!selectedChannelUrl,
+  });
 
   // Handle URL query parameter for channel switching
   useEffect(() => {
@@ -268,7 +264,20 @@ export default function Feeds() {
         getFeed({ fid: account.platformAccountId!, parentUrl: selectedChannelUrl, selectedListId, cursor: nextCursor });
       }
     }
-  }, [inView, nextCursor, account, selectedChannelUrl, selectedListId, shouldUseReactQuery, isTrendingFeed, isFollowingFeed, isChannelFeed, trendingQuery, followingQuery, channelQuery]);
+  }, [
+    inView,
+    nextCursor,
+    account,
+    selectedChannelUrl,
+    selectedListId,
+    shouldUseReactQuery,
+    isTrendingFeed,
+    isFollowingFeed,
+    isChannelFeed,
+    trendingQuery,
+    followingQuery,
+    channelQuery,
+  ]);
 
   const onReply = useCallback(() => {
     if (!selectedCast) return;
@@ -354,7 +363,20 @@ export default function Feeds() {
       getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
       lastUpdateTimeRef.current = Date.now();
     }
-  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey, shouldUseReactQuery, isTrendingFeed, isFollowingFeed, isChannelFeed, trendingQuery, followingQuery, channelQuery]);
+  }, [
+    account,
+    selectedChannelUrl,
+    showCastThreadView,
+    selectedListId,
+    feedKey,
+    shouldUseReactQuery,
+    isTrendingFeed,
+    isFollowingFeed,
+    isChannelFeed,
+    trendingQuery,
+    followingQuery,
+    channelQuery,
+  ]);
 
   const getFeed = async ({
     fid,

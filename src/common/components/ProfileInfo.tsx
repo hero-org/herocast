@@ -1,7 +1,4 @@
-import React, { useEffect } from 'react';
-import { fetchAndAddUserProfile, shouldUpdateProfile } from '../helpers/profileUtils';
-import { useDataStore } from '@/stores/useDataStore';
-import get from 'lodash.get';
+import React from 'react';
 import Link from 'next/link';
 import ProfileInfoContent from './ProfileInfoContent';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -10,6 +7,7 @@ import { take } from 'lodash';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatLargeNumber } from '../helpers/text';
+import { useProfileByFid } from '@/hooks/queries/useProfile';
 
 const priorityChannels = ['email', 'linkedin', 'telegram', 'twitter', 'github'];
 
@@ -30,14 +28,10 @@ const ProfileInfo = ({
   wideFormat?: boolean;
   compact?: boolean;
 }) => {
-  const profile = useDataStore((state) => get(state.fidToData, fid));
-
-  useEffect(() => {
-    if (shouldUpdateProfile(profile)) {
-      // Only fetch additional info if showFullInfo is true
-      fetchAndAddUserProfile({ fid, viewerFid, skipAdditionalInfo: !showFullInfo });
-    }
-  }, [fid, viewerFid, profile, showFullInfo]);
+  const { data: profile } = useProfileByFid(fid, {
+    viewerFid,
+    includeAdditionalInfo: showFullInfo,
+  });
 
   const shouldRenderFullInfo = showFullInfo && profile?.icebreakerSocialInfo;
 

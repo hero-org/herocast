@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Parse FIDs from comma-separated string
-    const fids = fidsParam.split(',').map((fid) => parseInt(fid.trim(), 10)).filter((fid) => !isNaN(fid));
+    const fids = fidsParam
+      .split(',')
+      .map((fid) => parseInt(fid.trim(), 10))
+      .filter((fid) => !isNaN(fid));
 
     if (fids.length === 0) {
       return NextResponse.json({ error: 'No valid FIDs provided' }, { status: 400 });

@@ -1,18 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import React, { useState } from 'react';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import { CastRow } from '@/common/components/CastRow';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
-import { fetchAndAddUserProfile, getProfile, shouldUpdateProfile } from '@/common/helpers/profileUtils';
 import { useParams } from 'next/navigation';
 import { Loading } from '@/common/components/Loading';
 import ProfileInfo from '@/common/components/ProfileInfo';
+import { useProfile } from '@/hooks/queries/useProfile';
+import { useProfileFeed, ProfileFeedType } from '@/hooks/queries/useProfileFeed';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -27,10 +25,10 @@ const getUsernameAndFidFromSlug = (slug?: string) => {
   }
   const fid = slug.startsWith('fid:') ? slug.slice(4) : undefined;
   if (fid) {
-    return { username: undefined, fid };
+    return { username: undefined, fid: Number(fid) };
   }
   const username = slug.startsWith('@') ? slug.slice(1) : slug;
-  return { username, fid };
+  return { username, fid: undefined };
 };
 
 const ProfilePage = () => {
@@ -38,61 +36,50 @@ const ProfilePage = () => {
   const slug = params.slug as string;
   const { username, fid } = getUsernameAndFidFromSlug(slug);
   const [selectedFeedIdx, setSelectedFeedIdx] = useState(0);
-  const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [feedType, setFeedType] = useState<FeedTypeEnum>(FeedTypeEnum.casts);
 
-  const profile = useDataStore((state) => getProfile(state, username, fid));
   const { accounts, selectedAccountIdx } = useAccountStore();
-
   const selectedAccount = accounts[selectedAccountIdx];
   const viewerFid = Number(selectedAccount?.platformAccountId) || APP_FID;
+
+  // Use React Query for profile fetching
+  const {
+    data: profile,
+    isLoading: isLoadingProfile,
+    error: profileError,
+  } = useProfile(
+    { fid, username },
+    {
+      viewerFid,
+      includeAdditionalInfo: true, // Get full profile info for profile page
+      enabled: !!(fid || username),
+    }
+  );
+
+  // Use React Query for feed fetching
+  const feedTypeKey: ProfileFeedType = feedType === FeedTypeEnum.casts ? 'casts' : 'likes';
+  const { data: feedData, isLoading: isLoadingFeed } = useProfileFeed(profile?.fid, feedTypeKey, {
+    enabled: !!profile?.fid,
+  });
+
+  const casts = feedData?.casts ?? [];
 
   const onSelectCast = (idx: number) => {
     setSelectedFeedIdx(idx);
   };
 
-  useEffect(() => {
-    if (shouldUpdateProfile(profile)) {
-      fetchAndAddUserProfile({ username, fid, viewerFid });
-    }
-  }, [profile, fid, slug]);
-
-  useEffect(() => {
-    if (!profile) return;
-
-    const loadFeed = async () => {
-      const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-
-      if (feedType === FeedTypeEnum.casts) {
-        client
-          .fetchFeed('filter', {
-            filterType: 'fids',
-            fids: [profile.fid],
-            withRecasts: true,
-            limit: 25,
-          })
-          .then(({ casts }) => {
-            setCasts(casts);
-          })
-          .catch((err) => console.log(`failed to fetch ${err}`));
-      } else if (feedType === FeedTypeEnum.likes) {
-        client
-          .fetchUserReactions(profile.fid, 'likes', {
-            limit: 25,
-          })
-          .then(({ reactions }) => {
-            setCasts(reactions.map(({ cast }) => cast));
-          });
-      }
-    };
-
-    loadFeed();
-  }, [profile, feedType]);
-
   const renderEmptyState = () => (
     <div className="max-w-7xl px-6 pb-24 sm:pb-32 lg:flex lg:px-8">
       <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
         <Loading />
+      </div>
+    </div>
+  );
+
+  const renderError = () => (
+    <div className="max-w-7xl px-6 pb-24 sm:pb-32 lg:flex lg:px-8">
+      <div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl">
+        <p className="text-foreground/60">Failed to load profile. Please try again.</p>
       </div>
     </div>
   );
@@ -108,7 +95,7 @@ const ProfilePage = () => {
         isSelected={selectedFeedIdx === idx}
         onSelect={() => onSelectCast(idx)}
         showAdminActions={selectedAccount?.status === 'active' && profile?.fid === viewerFid}
-        recastedByFid={item.author.fid !== profile?.fid && profile?.fid}
+        recastedByFid={item.author.fid !== profile?.fid ? profile?.fid : undefined}
       />
     </li>
   );
@@ -121,26 +108,30 @@ const ProfilePage = () => {
             return (
               <TabsTrigger
                 key={key}
-                value={FeedTypeEnum[key]}
+                value={FeedTypeEnum[key as keyof typeof FeedTypeEnum]}
                 className="text-foreground/80 text-center"
-                onClick={() => setFeedType(FeedTypeEnum[key])}
+                onClick={() => setFeedType(FeedTypeEnum[key as keyof typeof FeedTypeEnum])}
               >
-                {FeedTypeEnum[key]}
+                {FeedTypeEnum[key as keyof typeof FeedTypeEnum]}
               </TabsTrigger>
             );
           })}
         </TabsList>
       </Tabs>
       <div className="px-5">
-        <SelectableListWithHotkeys
-          data={casts}
-          selectedIdx={selectedFeedIdx}
-          setSelectedIdx={setSelectedFeedIdx}
-          renderRow={(item: any, idx: number) => renderRow(item, idx)}
-          onExpand={() => null}
-          onSelect={() => null}
-          isActive
-        />
+        {isLoadingFeed ? (
+          <Loading />
+        ) : (
+          <SelectableListWithHotkeys
+            data={casts}
+            selectedIdx={selectedFeedIdx}
+            setSelectedIdx={setSelectedFeedIdx}
+            renderRow={(item: CastWithInteractions, idx: number) => renderRow(item, idx)}
+            onExpand={() => null}
+            onSelect={() => null}
+            isActive
+          />
+        )}
       </div>
     </>
   );
@@ -148,13 +139,21 @@ const ProfilePage = () => {
   const renderProfile = () => (
     <div>
       <div className="m-8 mb-0">
-        <ProfileInfo fid={profile.fid} viewerFid={viewerFid} showFullInfo wideFormat />
+        <ProfileInfo fid={profile!.fid} viewerFid={viewerFid} showFullInfo wideFormat />
       </div>
       {renderFeed()}
     </div>
   );
 
-  return !profile ? renderEmptyState() : renderProfile();
+  if (profileError) {
+    return renderError();
+  }
+
+  if (isLoadingProfile || !profile) {
+    return renderEmptyState();
+  }
+
+  return renderProfile();
 };
 
 export default ProfilePage;
