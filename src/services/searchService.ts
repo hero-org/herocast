@@ -1,4 +1,4 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/api';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Interval } from '../common/types/types';
 import { SearchQueryBuilder } from './searchQueryBuilder';
 
