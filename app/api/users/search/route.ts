@@ -9,8 +9,7 @@ const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 const searchCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
-const getCacheKey = (query: string, viewerFid: string, limit: string) =>
-  `${query}:${viewerFid}:${limit}`;
+const getCacheKey = (query: string, viewerFid: string, limit: string) => `${query}:${viewerFid}:${limit}`;
 
 const getCachedData = (key: string) => {
   const cached = searchCache.get(key);
@@ -84,9 +83,7 @@ export async function GET(request: NextRequest) {
 
       const response = await Promise.race([
         neynarClient.searchUser(query, viewerFidNum, { limit: limitNum }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('AbortError')), timeoutThreshold)
-        ),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('AbortError')), timeoutThreshold)),
       ]);
 
       clearTimeout(timeoutId);

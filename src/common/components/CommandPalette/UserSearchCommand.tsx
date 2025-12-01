@@ -27,9 +27,7 @@ export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) =
     const searchUsers = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `/api/users/search?q=${encodeURIComponent(query)}&viewer_fid=${APP_FID}&limit=5`
-        );
+        const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}&viewer_fid=${APP_FID}&limit=5`);
         if (!response.ok) {
           throw new Error('Failed to search users');
         }

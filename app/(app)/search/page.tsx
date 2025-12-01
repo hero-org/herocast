@@ -305,9 +305,7 @@ export default function SearchPage() {
   useEffect(() => {
     const fetchCasts = async (newCastHashes: string[]) => {
       try {
-        const response = await fetch(
-          `/api/casts?casts=${newCastHashes.join(',')}&viewer_fid=${viewerFid}`
-        );
+        const response = await fetch(`/api/casts?casts=${newCastHashes.join(',')}&viewer_fid=${viewerFid}`);
         if (!response.ok) {
           throw new Error('Failed to fetch casts');
         }

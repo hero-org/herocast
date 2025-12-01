@@ -9,8 +9,7 @@ const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 const feedCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
-const getCacheKey = (fid: number, limit: number, cursor?: string) =>
-  `following:${fid}:${limit}:${cursor || 'initial'}`;
+const getCacheKey = (fid: number, limit: number, cursor?: string) => `following:${fid}:${limit}:${cursor || 'initial'}`;
 
 const getCachedData = (key: string) => {
   const cached = feedCache.get(key);

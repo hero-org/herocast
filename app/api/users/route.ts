@@ -89,9 +89,7 @@ export async function GET(request: NextRequest) {
 
       const response = await Promise.race([
         neynarClient.fetchBulkUsers(fids, options),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('AbortError')), timeoutThreshold)
-        ),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('AbortError')), timeoutThreshold)),
       ]);
 
       clearTimeout(timeoutId);

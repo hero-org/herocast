@@ -120,9 +120,7 @@ export function BulkAddUsersDialog({
       if (fidsToFetch.length > 0) {
         try {
           // Fetch profiles in bulk via server-side API route
-          const response = await fetch(
-            `/api/users?fids=${fidsToFetch.join(',')}&viewer_fid=${viewerFid}`
-          );
+          const response = await fetch(`/api/users?fids=${fidsToFetch.join(',')}&viewer_fid=${viewerFid}`);
 
           if (!response.ok) {
             throw new Error('Failed to fetch users');

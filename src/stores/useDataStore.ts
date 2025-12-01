@@ -218,9 +218,7 @@ const store = (set: StoreSet, get: () => DataStore) => ({
 
       const batchPromise = (async () => {
         try {
-          const response = await fetch(
-            `/api/users?fids=${batch.join(',')}&viewer_fid=${viewerFid}`
-          );
+          const response = await fetch(`/api/users?fids=${batch.join(',')}&viewer_fid=${viewerFid}`);
 
           if (!response.ok) {
             throw new Error(`Failed to fetch users: ${response.status}`);
