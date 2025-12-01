@@ -2,12 +2,12 @@
 
 ## Progress Summary
 
-| Phase    | Status      | Description                                  |
-| -------- | ----------- | -------------------------------------------- |
-| Phase 1  | ✅ Complete | Core infrastructure + TRENDING feed          |
-| Phase 2a | ✅ Complete | FOLLOWING + Channel feeds                    |
-| Phase 2b | ✅ Complete | Profile page + components                    |
-| Phase 3  | 🔲 Pending  | Store integration (useDataStore replacement) |
+| Phase    | Status          | Description                                  |
+| -------- | --------------- | -------------------------------------------- |
+| Phase 1  | ✅ Complete     | Core infrastructure + TRENDING feed          |
+| Phase 2a | ✅ Complete     | FOLLOWING + Channel feeds                    |
+| Phase 2b | ✅ Complete     | Profile page + components                    |
+| Phase 3  | 🔄 In Progress  | Store integration (useDataStore replacement) |
 
 ---
 
@@ -99,25 +99,42 @@
 
 ---
 
-## Phase 3: Store Integration (PENDING)
+## Phase 3: Store Integration 🔄 IN PROGRESS
 
 ### Strategy
 
 Replace `useDataStore` profile caching with React Query entirely.
 
+### Components Migrated ✅
+
+| Component | Before | After |
+|-----------|--------|-------|
+| `FollowButton.tsx` | `useDataStore` selector | `useProfileByUsername` fallback |
+| `UserListsView.tsx` | `fidToData` selector | `useBulkProfiles` |
+| `AutoListsView.tsx` | `fidToData` selector | `useBulkProfiles` |
+| `RecommendedProfilesCard.tsx` | `addUserProfile` | Removed, pass profile to FollowButton |
+| `TopFollowers.tsx` | `getProfileFetchIfNeeded` | `useBulkProfiles` |
+| `RecentUnfollows.tsx` | `getProfileFetchIfNeeded` | `useBulkProfiles` |
+| `BulkAddUsersDialog.tsx` | Cache checks + `fetchAndAddUserProfile` | Direct Neynar API calls |
+| `ProfileInfoContent.tsx` | Pass username only | Pass profile prop to FollowButton |
+
 ### Components Still Using useDataStore
 
-- `src/stores/useDataStore.ts` - `fidToData`, `usernameToFid` maps
-- `src/common/helpers/profileUtils.ts` - `fetchAndAddUserProfile()`, `getProfile()`
-- Various components that import from profileUtils
+| Component | Usage | Complexity |
+|-----------|-------|------------|
+| `app/(app)/dms/page.tsx` | `fidToData`, `fetchBulkProfiles`, `updateSelectedProfileFid` | High |
+| `app/(app)/list/page.tsx` | `fidToData`, `fetchBulkProfiles` | Medium |
+| `CastRow.tsx` | `getProfile` in non-React context | Medium |
+| `CommandPalette/index.tsx` | `selectedCast` (should move to navigation store) | Low |
 
 ### Migration Steps
 
-1. Identify all components using `useDataStore` for profiles
-2. Replace with `useProfile` or `useBulkProfiles` hooks
-3. Remove `fidToData` and `usernameToFid` from useDataStore
-4. Deprecate `profileUtils.ts` functions
-5. Keep useDataStore for non-profile data (tokens, selected cast, etc.)
+1. ~~Identify all components using `useDataStore` for profiles~~ ✅
+2. ~~Replace simple components with `useProfile` or `useBulkProfiles` hooks~~ ✅
+3. Migrate DMs page and List page (complex)
+4. Remove `fidToData` and `usernameToFid` from useDataStore
+5. Deprecate `profileUtils.ts` functions
+6. Keep useDataStore for non-profile data (tokens, selected cast, etc.)
 
 ---
 
@@ -146,6 +163,14 @@ Replace `useDataStore` profile caching with React Query entirely.
 | `src/common/components/ProfileInfo.tsx`      | Uses `useProfileByFid`                 |
 | `src/common/components/ProfileHoverCard.tsx` | Uses `useProfile` with lazy loading    |
 | `app/api/lists/route.ts`                     | Accepts FIDs directly, uses Neynar API |
+| `src/common/components/FollowButton.tsx`     | Uses `useProfileByUsername` fallback   |
+| `src/common/components/ProfileInfoContent.tsx` | Passes profile prop to FollowButton  |
+| `src/common/components/Lists/UserListsView.tsx` | Uses `useBulkProfiles`              |
+| `src/common/components/Lists/AutoListsView.tsx` | Uses `useBulkProfiles`              |
+| `src/common/components/RecommendedProfilesCard.tsx` | Removed `addUserProfile` calls   |
+| `src/common/components/Analytics/TopFollowers.tsx` | Uses `useBulkProfiles`            |
+| `src/common/components/Analytics/RecentUnfollows.tsx` | Uses `useBulkProfiles`          |
+| `src/common/components/BulkAddUsersDialog.tsx` | Removed cache lookups                |
 
 ---
 
