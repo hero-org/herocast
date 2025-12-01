@@ -35,9 +35,7 @@ const convertDraftToFakeCast = (
 const PublishedCastsRightSidebar = () => {
   const { drafts } = useDraftStore();
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
-  const selectedAccountFid = selectedAccount?.platformAccountId
-    ? Number(selectedAccount.platformAccountId)
-    : undefined;
+  const selectedAccountFid = selectedAccount?.platformAccountId ? Number(selectedAccount.platformAccountId) : undefined;
 
   const { data: profile } = useProfileByFid(selectedAccountFid, {
     viewerFid: selectedAccountFid,
