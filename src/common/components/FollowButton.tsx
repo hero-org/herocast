@@ -5,34 +5,48 @@ import clsx from 'clsx';
 import { followUser, unfollowUser } from '../helpers/farcaster';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useRouter } from 'next/router';
-import { useDataStore } from '@/stores/useDataStore';
-import get from 'lodash.get';
 import { AccountPlatformType } from '../constants/accounts';
 import { toastInfoReadOnlyMode } from '../helpers/toast';
+import { useProfileByUsername } from '@/hooks/queries/useProfile';
+
+type ProfileWithViewerContext = {
+  fid: number;
+  username: string;
+  viewer_context?: {
+    following?: boolean;
+  };
+};
 
 type FollowButtonProps = {
   username: string;
+  profile?: ProfileWithViewerContext;
 };
 
-const FollowButton = ({ username }: FollowButtonProps) => {
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
+
+const FollowButton = ({ username, profile: profileProp }: FollowButtonProps) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const router = useRouter();
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
+  const viewerFid = Number(selectedAccount?.platformAccountId) || APP_FID;
 
   const [isPending, setIsPending] = useState(false);
-  const profile = useDataStore((state) => get(state.fidToData, get(state.usernameToFid, username)));
+  // Use passed profile if available, otherwise fetch via React Query
+  const { data: fetchedProfile } = useProfileByUsername(username, {
+    viewerFid,
+    enabled: !profileProp && !!username,
+  });
+  const profile = profileProp || fetchedProfile;
 
   useEffect(() => {
     if (!profile) return;
 
-    if (profile.viewer_context?.following) {
-      setIsFollowing(true);
-    }
+    setIsFollowing(!!profile.viewer_context?.following);
   }, [profile]);
 
   const updateFollowStatus = async () => {
-    if (!selectedAccount || isFollowing === undefined) return;
+    if (!selectedAccount || !profile || isFollowing === undefined) return;
     const canSendReaction = selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
     if (!canSendReaction) {
       toastInfoReadOnlyMode();

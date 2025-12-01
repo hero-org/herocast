@@ -1,15 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useAccountStore } from '@/stores/useAccountStore';
 import Link from 'next/link';
 import ProfileInfoContent from '../ProfileInfoContent';
-import { getProfile, getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
-import { useDataStore } from '@/stores/useDataStore';
 import { Loading } from '../Loading';
+import { useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
 
 const TOP_FOLLOWERS_LIMIT = 12;
-const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 type TopFollowersProps = {
   fid: number;
@@ -17,45 +16,42 @@ type TopFollowersProps = {
 
 const TopFollowers = ({ fid }: TopFollowersProps) => {
   const [topFollowerFids, setTopFollowerFids] = useState<number[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const dataStore = useDataStore.getState();
+  const [isFetchingFids, setIsFetchingFids] = useState(false);
 
   const viewerFid = Number(
     useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId) || APP_FID
   );
 
+  // Fetch FIDs from Neynar API
   useEffect(() => {
     const getData = async () => {
-      setIsLoading(true);
+      setIsFetchingFids(true);
       try {
         const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
         const fids = await neynarClient
           .fetchRelevantFollowers(fid, viewerFid)
           .then((response) => response.all_relevant_followers_dehydrated.map((follower) => follower.user?.fid));
 
-        const topFids = fids.filter((fid) => fid !== undefined).slice(0, TOP_FOLLOWERS_LIMIT);
+        const topFids = fids.filter((fid): fid is number => fid !== undefined).slice(0, TOP_FOLLOWERS_LIMIT);
         setTopFollowerFids(topFids);
-        topFids.forEach((fid) =>
-          getProfileFetchIfNeeded({
-            fid: fid?.toString(),
-            viewerFid: viewerFid.toString(),
-          })
-        );
       } catch (e) {
         console.error(e);
       } finally {
-        setIsLoading(false);
+        setIsFetchingFids(false);
       }
     };
     if (fid) {
       getData();
     }
-  }, [fid]);
+  }, [fid, viewerFid]);
 
-  const profiles = useMemo(
-    () => topFollowerFids.map((fid) => getProfile(dataStore, undefined, fid.toString())).filter(Boolean),
-    [dataStore, topFollowerFids]
-  );
+  // Fetch profiles using React Query
+  const { data: profiles = [], isLoading: isLoadingProfiles } = useBulkProfiles(topFollowerFids, {
+    viewerFid,
+    enabled: topFollowerFids.length > 0,
+  });
+
+  const isLoading = isFetchingFids || isLoadingProfiles;
 
   return (
     <Card className="h-fit py-8 px-4">

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import FollowButton from './FollowButton';
-import { useDataStore } from '@/stores/useDataStore';
 
 const defaultProfiles: User[] = [
   {
@@ -34,8 +33,6 @@ const defaultProfiles: User[] = [
 const RecommendedProfilesCard = () => {
   const [profiles, setProfiles] = useState<User[]>(defaultProfiles);
 
-  const { addUserProfile } = useDataStore();
-
   useEffect(() => {
     const getProfiles = async () => {
       const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
@@ -53,12 +50,6 @@ const RecommendedProfilesCard = () => {
 
     getProfiles();
   }, []);
-
-  useEffect(() => {
-    profiles.forEach((user) => {
-      addUserProfile({ user });
-    });
-  }, [profiles]);
 
   return (
     <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-8">
@@ -80,7 +71,7 @@ const RecommendedProfilesCard = () => {
             <h3 className="my-2 text-base font-semibold leading-7 tracking-tight text-foreground">
               {person.display_name}
             </h3>
-            <FollowButton username={person.username} />
+            <FollowButton username={person.username} profile={person} />
             <p className="mt-2 line-clamp-2 h-18 text-sm leading-6 text-muted-foreground">
               {person?.profile?.bio?.text}
             </p>
