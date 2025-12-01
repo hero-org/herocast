@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { SidebarHeader } from './SidebarHeader';
 import { CastRow } from '../CastRow';
 import { useAccountStore } from '@/stores/useAccountStore';
@@ -6,15 +6,13 @@ import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v1';
 import { useDraftStore } from '@/stores/useDraftStore';
 import orderBy from 'lodash.orderby';
 import filter from 'lodash.filter';
-import { UserProfile } from '@/stores/useDataStore';
-import { getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
 import { UUID } from 'crypto';
-import isEmpty from 'lodash.isempty';
 import uniqBy from 'lodash.uniqby';
+import { useProfileByFid, ProfileData } from '@/hooks/queries/useProfile';
 
 const convertDraftToFakeCast = (
   draft: any,
-  profile: UserProfile
+  profile: ProfileData
 ): Omit<CastWithInteractions, 'reactions' | 'recasts' | 'recasters' | 'replies'> & { accountId: UUID } => ({
   hash: draft.hash,
   text: draft.text,
@@ -37,22 +35,13 @@ const convertDraftToFakeCast = (
 const PublishedCastsRightSidebar = () => {
   const { drafts } = useDraftStore();
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
-  const selectedAccountFid = selectedAccount?.platformAccountId;
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const selectedAccountFid = selectedAccount?.platformAccountId
+    ? Number(selectedAccount.platformAccountId)
+    : undefined;
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const res = await getProfileFetchIfNeeded({
-        fid: selectedAccountFid,
-        viewerFid: selectedAccountFid,
-      });
-      setProfile(res);
-    };
-
-    if (isEmpty(profile) && selectedAccountFid) {
-      fetchProfile();
-    }
-  }, [profile, selectedAccountFid]);
+  const { data: profile } = useProfileByFid(selectedAccountFid, {
+    viewerFid: selectedAccountFid,
+  });
 
   const publishedDraftsAsFakeCasts = profile
     ? drafts

@@ -67,7 +67,7 @@ import {
 import { addToClipboard } from '../helpers/clipboard';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { getProfile } from '../helpers/profileUtils';
+import { useProfileByFid } from '@/hooks/queries/useProfile';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { QuickListManageDialog } from './QuickListManageDialog';
 import { useLikeCast, useUnlikeCast, useRecast, useRemoveRecast } from '@/hooks/mutations/useCastActions';
@@ -222,6 +222,11 @@ const CastRowComponent = ({
   const { setCastModalDraftId, setCastModalView, openNewCastModal } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const { updateSelectedCast } = useDataStore();
+
+  // Fetch recaster profile if this cast was recasted by someone we're following
+  const { data: recasterProfile } = useProfileByFid(recastedByFid, {
+    enabled: !!recastedByFid,
+  });
 
   const [didLike, setDidLike] = useState(false);
   const [didRecast, setDidRecast] = useState(false);
@@ -599,12 +604,12 @@ const CastRowComponent = ({
 
     if (!recastedByFid && !shouldShowBadge) return null;
 
-    let recaster;
-    if (recastedByFid) {
-      recaster = getProfile(useDataStore.getState(), undefined, recastedByFid.toString());
-    } else {
-      recaster = cast.reactions?.recasts?.find((recast) => recast?.viewer_context?.following === true);
-    }
+    // Use recasterProfile from React Query hook if recastedByFid is provided,
+    // otherwise find the recaster from reaction data
+    const recaster = recastedByFid
+      ? recasterProfile
+      : cast.reactions?.recasts?.find((recast) => recast?.viewer_context?.following === true);
+
     const badge = (
       <span
         className={cn('ml-10', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/40 hover:underline')}

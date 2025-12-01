@@ -4,7 +4,7 @@ import { QueryClient } from '@tanstack/react-query';
  * Centralized QueryClient configuration for React Query
  *
  * Configuration rationale:
- * - staleTime: 5 minutes - matches existing PROFILE_UPDATE_INTERVAL in useDataStore
+ * - staleTime: 5 minutes - standard cache duration for profile data
  * - gcTime: 30 minutes - longer retention to prevent re-fetching on navigation
  * - retry: 3 with exponential backoff - resilience for API failures
  * - refetchOnWindowFocus: true - aligns with current visibility-based refresh pattern

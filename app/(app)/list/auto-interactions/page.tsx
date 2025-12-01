@@ -40,7 +40,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDistanceToNow } from 'date-fns';
 import ProfileInfo from '@/common/components/ProfileInfo';
-import { useDataStore } from '@/stores/useDataStore';
+import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
 import { useAccountStore, AccountObjectType } from '@/stores/useAccountStore';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -57,7 +57,6 @@ export default function AutoInteractionsPage() {
     removeFidFromList,
     removeList,
   } = useListStore();
-  const fidToData = useDataStore((state) => state.fidToData);
   const { accounts, selectedAccountIdx } = useAccountStore();
   const currentAccount = accounts[selectedAccountIdx];
   const viewerFid = currentAccount?.platformAccountId ? Number(currentAccount.platformAccountId) : 3;
@@ -80,6 +79,10 @@ export default function AutoInteractionsPage() {
   const [requiredKeywords, setRequiredKeywords] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Fetch profiles for all FIDs used in the UI (targetFids + requireMentions)
+  const allFids = [...new Set([...targetFids, ...requireMentions])].map(Number).filter(Boolean);
+  const { data: profiles } = useBulkProfiles(allFids, { viewerFid });
 
   const autoInteractionLists = getAutoInteractionLists();
   const activeList = activeListId ? lists.find((list) => list.id === activeListId) : null;
@@ -395,7 +398,7 @@ export default function AutoInteractionsPage() {
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                       {targetFids.map((fid) => {
-                                        const profile = fidToData[parseInt(fid)];
+                                        const profile = getProfileFromBulk(profiles, parseInt(fid));
                                         return (
                                           <Badge key={fid} variant="secondary">
                                             @{profile?.username || `fid:${fid}`}
@@ -451,7 +454,7 @@ export default function AutoInteractionsPage() {
                               {requireMentions.length > 0 && (
                                 <div className="mt-2 flex flex-wrap gap-2">
                                   {requireMentions.map((fid) => {
-                                    const profile = fidToData[parseInt(fid)];
+                                    const profile = getProfileFromBulk(profiles, parseInt(fid));
                                     return (
                                       <Badge key={fid} variant="secondary">
                                         @{profile?.username || `fid:${fid}`}

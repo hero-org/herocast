@@ -121,7 +121,7 @@ export function useProfileByFid(fid: number | undefined, options?: UseProfileOpt
     queryKey: queryKeys.profiles.byFid(fid ?? 0),
     queryFn: () => fetchProfileByFid(fid!, viewerFid, includeAdditionalInfo),
     enabled: enabled && !!fid && fid > 0,
-    staleTime: 1000 * 60 * 5, // 5 minutes (matches PROFILE_UPDATE_INTERVAL)
+    staleTime: 1000 * 60 * 5, // 5 minutes - standard cache duration
   });
 }
 

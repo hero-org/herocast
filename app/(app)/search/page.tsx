@@ -9,10 +9,9 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDataStore } from '@/stores/useDataStore';
-import { getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
 import isEmpty from 'lodash.isempty';
 import { useListStore } from '@/stores/useListStore';
-import { map, uniq, debounce } from 'lodash';
+import { map, uniq } from 'lodash';
 import { Interval } from '@/common/types/types';
 import { cn } from '@/lib/utils';
 import { usePostHog } from 'posthog-js/react';
@@ -73,23 +72,6 @@ export default function SearchPage() {
 
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const viewerFid = selectedAccount?.platformAccountId || APP_FID;
-
-  const debouncedUserSearch = useCallback(
-    debounce(async (term: string) => {
-      if (term.length > 2 && viewerFid) {
-        try {
-          // This is handled by SearchService now
-        } catch (error) {
-          console.error('Error searching for users:', error);
-        }
-      }
-    }, 300),
-    [viewerFid]
-  );
-
-  useEffect(() => {
-    debouncedUserSearch(searchTerm);
-  }, [searchTerm, debouncedUserSearch]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

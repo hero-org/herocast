@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import { SearchQueryBuilder } from '@/services/searchQueryBuilder';
-import { getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
 
 const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes within 20 seconds
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
@@ -78,15 +77,8 @@ export async function GET(request: NextRequest) {
 
       clearTimeout(timeoutId);
 
-      // Post-process results if needed
-      const results = response.data;
-
-      if (results.result?.casts && priorityMode) {
-        // Fetch additional profile data for priority mode
-        await getProfileFetchIfNeeded(results.result.casts.map((cast: any) => cast.author));
-      }
-
-      return NextResponse.json(results);
+      // Return search results - cast data from Neynar already includes author information
+      return NextResponse.json(response.data);
     } catch (error: any) {
       clearTimeout(timeoutId);
 

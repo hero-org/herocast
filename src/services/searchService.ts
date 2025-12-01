@@ -1,5 +1,4 @@
 import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/api';
-import { getProfileFetchIfNeeded } from '../common/helpers/profileUtils';
 import { Interval } from '../common/types/types';
 import { SearchQueryBuilder } from './searchQueryBuilder';
 
@@ -82,15 +81,19 @@ export class SearchService {
         if (fromUsername) {
           console.log('SearchService - Looking up user:', fromUsername);
           try {
-            const profile = await getProfileFetchIfNeeded({
-              username: fromUsername,
-              viewerFid: params.viewerFid,
-            });
-            console.log('SearchService - Profile lookup result:', profile);
-            if (profile?.fid) {
-              authorFid = profile.fid;
-            } else {
-              console.warn('SearchService - Could not find user:', fromUsername);
+            const baseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_URL || '';
+            const response = await fetch(
+              `${baseUrl}/api/users?username=${encodeURIComponent(fromUsername)}&viewer_fid=${params.viewerFid}`
+            );
+            if (response.ok) {
+              const data = await response.json();
+              const profile = data.users?.[0];
+              console.log('SearchService - Profile lookup result:', profile);
+              if (profile?.fid) {
+                authorFid = profile.fid;
+              } else {
+                console.warn('SearchService - Could not find user:', fromUsername);
+              }
             }
           } catch (error) {
             console.error('SearchService - Error looking up user:', fromUsername, error);
