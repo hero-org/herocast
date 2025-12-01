@@ -37,7 +37,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BulkAddUsersDialog } from '@/common/components/BulkAddUsersDialog';
 import { UsersIcon } from 'lucide-react';
-import { supabaseClient } from '@/common/helpers/supabase';
 
 export default function ListPage() {
   const router = useRouter();
@@ -144,9 +143,9 @@ export default function ListPage() {
       return;
     }
 
-    try {
-      await addFidList(newListName, []);
+    const result = await addFidList(newListName, []);
 
+    if (result.success) {
       // Get the newly created list and set it as active
       const updatedLists = getFidLists();
       const newList = updatedLists[updatedLists.length - 1]; // New list is added at the end
@@ -160,10 +159,10 @@ export default function ListPage() {
         title: 'Success',
         description: 'List created successfully',
       });
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to create list: ${error.message}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -173,17 +172,18 @@ export default function ListPage() {
   const handleAddUser = async () => {
     if (!selectedProfile || !activeListId) return;
 
-    try {
-      await addFidToList(activeListId, selectedProfile.fid.toString(), selectedProfile.username);
+    const result = await addFidToList(activeListId, selectedProfile.fid.toString(), selectedProfile.username);
+
+    if (result.success) {
       setSelectedProfile(undefined);
       toast({
         title: 'Success',
         description: `Added ${selectedProfile.username} to list`,
       });
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to add user to list: ${error.message}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -193,16 +193,17 @@ export default function ListPage() {
   const handleRemoveUser = async (fid: string, username: string) => {
     if (!activeListId) return;
 
-    try {
-      await removeFidFromList(activeListId, fid);
+    const result = await removeFidFromList(activeListId, fid);
+
+    if (result.success) {
       toast({
         title: 'Success',
         description: `Removed ${username} from list`,
       });
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to remove user from list: ${error.message}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -212,9 +213,9 @@ export default function ListPage() {
   const handleDeleteList = async () => {
     if (!listToDelete) return;
 
-    try {
-      await removeList(listToDelete.id);
+    const result = await removeList(listToDelete.id);
 
+    if (result.success) {
       // If the deleted list was active, set a new active list
       if (activeListId === listToDelete.id) {
         const remainingLists = getFidLists();
@@ -232,10 +233,10 @@ export default function ListPage() {
 
       setDeleteConfirmOpen(false);
       setListToDelete(null);
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to delete list: ${error.message}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -285,17 +286,17 @@ export default function ListPage() {
       };
 
       // Use the store's update method which properly handles RLS
-      try {
-        await updateList({
-          id: activeListId,
-          name: activeList.name,
-          contents: updatedContent,
-        });
-      } catch (updateError) {
-        console.error('Failed to update list:', updateError);
+      const updateResult = await updateList({
+        id: activeListId,
+        name: activeList.name,
+        contents: updatedContent,
+      });
+
+      if (!updateResult.success) {
+        console.error('Failed to update list:', updateResult.error);
         return {
           success: false,
-          error: `Failed to update list: ${updateError.message}. Please try again.`,
+          error: updateResult.error,
         };
       }
 
@@ -308,7 +309,7 @@ export default function ListPage() {
       console.error('Failed to bulk add users:', error);
       return {
         success: false,
-        error: error.message || 'Failed to add users to the list',
+        error: error instanceof Error ? error.message : 'Failed to add users to the list',
       };
     }
   };

@@ -270,7 +270,7 @@ export default function SearchPage() {
       enabled_daily_email: false,
     };
 
-    await addList({
+    const result = await addList({
       name: searchTerm,
       type: 'search',
       contents,
@@ -278,16 +278,24 @@ export default function SearchPage() {
       account_id: selectedAccount?.id || undefined,
     });
 
-    posthog.capture('user_save_list', {
-      contents,
-    });
+    if (result.success) {
+      posthog.capture('user_save_list', {
+        contents,
+      });
 
-    toast({
-      title: 'Search saved',
-      description: `"${searchTerm}" has been saved to your lists`,
-    });
+      toast({
+        title: 'Search saved',
+        description: `"${searchTerm}" has been saved to your lists`,
+      });
 
-    router.push('/lists?tab=search');
+      router.push('/lists?tab=search');
+    } else {
+      toast({
+        title: 'Error',
+        description: result.error,
+        variant: 'destructive',
+      });
+    }
   };
 
   useHotkeys([Key.Enter, 'meta+enter'], () => onSearch(), [onSearch], {

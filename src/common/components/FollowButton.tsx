@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
-import { followUser, unfollowUser } from '../helpers/farcaster';
+import { useFollow, useUnfollow } from '@/hooks/mutations/useFollow';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useRouter } from 'next/router';
 import { AccountPlatformType } from '../constants/accounts';
@@ -25,13 +25,11 @@ type FollowButtonProps = {
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 const FollowButton = ({ username, profile: profileProp }: FollowButtonProps) => {
-  const [isFollowing, setIsFollowing] = useState(false);
   const router = useRouter();
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
   const viewerFid = Number(selectedAccount?.platformAccountId) || APP_FID;
 
-  const [isPending, setIsPending] = useState(false);
   // Use passed profile if available, otherwise fetch via React Query
   const { data: fetchedProfile } = useProfileByUsername(username, {
     viewerFid,
@@ -39,28 +37,33 @@ const FollowButton = ({ username, profile: profileProp }: FollowButtonProps) => 
   });
   const profile = profileProp || fetchedProfile;
 
-  useEffect(() => {
-    if (!profile) return;
+  // Get follow/unfollow mutations
+  const follow = useFollow();
+  const unfollow = useUnfollow();
 
-    setIsFollowing(!!profile.viewer_context?.following);
-  }, [profile]);
+  // Get following state from profile's viewer_context
+  const isFollowing = profile?.viewer_context?.following ?? false;
+  const isPending = follow.isPending || unfollow.isPending;
 
   const updateFollowStatus = async () => {
-    if (!selectedAccount || !profile || isFollowing === undefined) return;
+    if (!selectedAccount || !profile) return;
     const canSendReaction = selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
     if (!canSendReaction) {
       toastInfoReadOnlyMode();
       return;
     }
 
-    setIsPending(true);
+    const mutationParams = {
+      targetFid: Number(profile.fid),
+      viewerFid: Number(selectedAccount.platformAccountId),
+      signerPrivateKey: selectedAccount.privateKey!,
+    };
+
     if (isFollowing) {
-      unfollowUser(Number(profile.fid), Number(selectedAccount.platformAccountId), selectedAccount.privateKey!);
+      unfollow.mutate(mutationParams);
     } else {
-      followUser(Number(profile.fid), Number(selectedAccount.platformAccountId), selectedAccount.privateKey!);
+      follow.mutate(mutationParams);
     }
-    setIsPending(false);
-    setIsFollowing(!isFollowing);
   };
 
   const getButtonText = () => {

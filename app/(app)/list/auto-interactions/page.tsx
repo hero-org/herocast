@@ -38,11 +38,10 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Account } from '@/common/types/database.types';
 import { formatDistanceToNow } from 'date-fns';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { useDataStore } from '@/stores/useDataStore';
-import { useAccountStore } from '@/stores/useAccountStore';
+import { useAccountStore, AccountObjectType } from '@/stores/useAccountStore';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AutoInteractionsPage() {
@@ -119,19 +118,19 @@ export default function AutoInteractionsPage() {
       return;
     }
 
-    try {
-      await addAutoInteractionList(
-        newListName,
-        targetFids,
-        sourceAccountId,
-        actionType,
-        onlyTopCasts,
-        requireMentions.length > 0 ? requireMentions : undefined,
-        feedSource,
-        requiredUrls.length > 0 ? requiredUrls : undefined,
-        requiredKeywords.length > 0 ? requiredKeywords : undefined
-      );
+    const result = await addAutoInteractionList(
+      newListName,
+      targetFids,
+      sourceAccountId,
+      actionType,
+      onlyTopCasts,
+      requireMentions.length > 0 ? requireMentions : undefined,
+      feedSource,
+      requiredUrls.length > 0 ? requiredUrls : undefined,
+      requiredKeywords.length > 0 ? requiredKeywords : undefined
+    );
 
+    if (result.success) {
       // Reset form
       setNewListName('');
       setTargetFids([]);
@@ -145,10 +144,10 @@ export default function AutoInteractionsPage() {
         title: 'Success',
         description: 'Auto-interaction list created successfully',
       });
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to create list: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -170,17 +169,17 @@ export default function AutoInteractionsPage() {
     setIsSaving(true);
     setSaveSuccess(false);
 
-    try {
-      await updateAutoInteractionSettings(activeList.id as UUID, {
-        sourceAccountId,
-        actionType,
-        onlyTopCasts,
-        requireMentions: requireMentions.length > 0 ? requireMentions : undefined,
-        feedSource,
-        requiredUrls: requiredUrls.length > 0 ? requiredUrls : undefined,
-        requiredKeywords: requiredKeywords.length > 0 ? requiredKeywords : undefined,
-      });
+    const result = await updateAutoInteractionSettings(activeList.id as UUID, {
+      sourceAccountId,
+      actionType,
+      onlyTopCasts,
+      requireMentions: requireMentions.length > 0 ? requireMentions : undefined,
+      feedSource,
+      requiredUrls: requiredUrls.length > 0 ? requiredUrls : undefined,
+      requiredKeywords: requiredKeywords.length > 0 ? requiredKeywords : undefined,
+    });
 
+    if (result.success) {
       setSaveSuccess(true);
       toast({
         title: 'Success',
@@ -191,20 +190,21 @@ export default function AutoInteractionsPage() {
       setTimeout(() => {
         setSaveSuccess(false);
       }, 2000);
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to update settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: result.error,
         variant: 'destructive',
       });
-    } finally {
-      setIsSaving(false);
     }
+
+    setIsSaving(false);
   };
 
   const handleDeleteList = async (listId: string) => {
-    try {
-      await removeList(listId as UUID);
+    const result = await removeList(listId as UUID);
+
+    if (result.success) {
       if (activeListId === listId) {
         setActiveListId(null);
       }
@@ -212,10 +212,10 @@ export default function AutoInteractionsPage() {
         title: 'Success',
         description: 'List deleted successfully',
       });
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to delete list: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -367,7 +367,7 @@ export default function AutoInteractionsPage() {
                                   <SelectValue placeholder="Select an account" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {accounts.map((account: Account) => (
+                                  {accounts.map((account: AccountObjectType) => (
                                     <SelectItem key={account.id} value={account.id}>
                                       {account.name || `Account ${account.id.slice(0, 8)}`}
                                     </SelectItem>
@@ -688,11 +688,18 @@ export default function AutoInteractionsPage() {
                                   selectedProfile={selectedProfile}
                                   setSelectedProfile={async (profile) => {
                                     if (profile) {
-                                      await addFidToList(
+                                      const result = await addFidToList(
                                         activeList.id as UUID,
                                         profile.fid.toString(),
                                         profile.username
                                       );
+                                      if (!result.success) {
+                                        toast({
+                                          title: 'Error',
+                                          description: result.error,
+                                          variant: 'destructive',
+                                        });
+                                      }
                                       setSelectedProfile(undefined);
                                     }
                                   }}
@@ -716,7 +723,16 @@ export default function AutoInteractionsPage() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => removeFidFromList(activeList.id as UUID, fid)}
+                                      onClick={async () => {
+                                        const result = await removeFidFromList(activeList.id as UUID, fid);
+                                        if (!result.success) {
+                                          toast({
+                                            title: 'Error',
+                                            description: result.error,
+                                            variant: 'destructive',
+                                          });
+                                        }
+                                      }}
                                     >
                                       <TrashIcon className="h-4 w-4" />
                                     </Button>
@@ -835,7 +851,7 @@ export default function AutoInteractionsPage() {
                               <SelectValue placeholder="Select an account to perform actions" />
                             </SelectTrigger>
                             <SelectContent>
-                              {accounts.map((account: Account) => (
+                              {accounts.map((account: AccountObjectType) => (
                                 <SelectItem key={account.id} value={account.id}>
                                   {account.name || `Account ${account.id.slice(0, 8)}`}
                                 </SelectItem>
