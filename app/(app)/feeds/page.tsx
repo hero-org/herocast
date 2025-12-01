@@ -37,6 +37,8 @@ import { orderBy } from 'lodash';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
 import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 import { useTrendingFeedInfinite, flattenTrendingFeedPages } from '@/hooks/queries/useTrendingFeed';
+import { useFollowingFeedInfinite, flattenFollowingFeedPages } from '@/hooks/queries/useFollowingFeed';
+import { useChannelFeedInfinite, flattenChannelFeedPages } from '@/hooks/queries/useChannelFeed';
 
 type Feed = {
   casts: CastWithInteractions[];
@@ -104,12 +106,29 @@ export default function Feeds() {
   const { selectedCast, updateSelectedCast, updateSelectedProfileFid } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
-  // React Query hook for TRENDING feed - provides automatic caching & deduplication
+  // React Query hooks for different feed types - provides automatic caching & deduplication
   const isTrendingFeed = selectedChannelUrl === CUSTOM_CHANNELS.TRENDING;
+  const isFollowingFeed = selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING;
+  const isChannelFeed = Boolean(selectedChannelUrl) && !isTrendingFeed && !isFollowingFeed;
+
   const trendingQuery = useTrendingFeedInfinite({
     limit: 10,
     enabled: isTrendingFeed && !selectedListId,
   });
+
+  const followingQuery = useFollowingFeedInfinite(account?.platformAccountId || '', {
+    limit: DEFAULT_FEED_PAGE_SIZE,
+    enabled: isFollowingFeed && !selectedListId && !!account?.platformAccountId,
+  });
+
+  const channelQuery = useChannelFeedInfinite(
+    selectedChannelUrl || '',
+    account?.platformAccountId || '',
+    {
+      limit: DEFAULT_FEED_PAGE_SIZE,
+      enabled: isChannelFeed && !selectedListId && !!account?.platformAccountId && !!selectedChannelUrl,
+    }
+  );
 
   // Handle URL query parameter for channel switching
   useEffect(() => {
@@ -159,13 +178,35 @@ export default function Feeds() {
   const feedKey = getFeedKey({ selectedChannelUrl, account, selectedListId });
   const feed = feedKey ? get(feeds, feedKey, EMPTY_FEED) : EMPTY_FEED;
 
-  // For TRENDING feed, use React Query data; for other feeds, use local state
-  const trendingCasts = flattenTrendingFeedPages(trendingQuery.data);
-  const casts = isTrendingFeed && !selectedListId ? trendingCasts : feed.casts;
-  const isLoadingFeed = isTrendingFeed && !selectedListId ? trendingQuery.isLoading : feed.isLoading;
-  const nextCursor = isTrendingFeed && !selectedListId
-    ? (trendingQuery.hasNextPage ? 'has-more' : '')
-    : feed.nextCursor;
+  // Determine which data source to use based on feed type
+  const shouldUseReactQuery = !selectedListId && (isTrendingFeed || isFollowingFeed || isChannelFeed);
+
+  // Extract data from appropriate React Query hook or local state
+  let casts: CastWithInteractions[];
+  let isLoadingFeed: boolean;
+  let nextCursor: string;
+
+  if (shouldUseReactQuery) {
+    if (isTrendingFeed) {
+      casts = flattenTrendingFeedPages(trendingQuery.data);
+      isLoadingFeed = trendingQuery.isLoading;
+      nextCursor = trendingQuery.hasNextPage ? 'has-more' : '';
+    } else if (isFollowingFeed) {
+      casts = flattenFollowingFeedPages(followingQuery.data);
+      isLoadingFeed = followingQuery.isLoading;
+      nextCursor = followingQuery.hasNextPage ? 'has-more' : '';
+    } else {
+      // Channel feed
+      casts = flattenChannelFeedPages(channelQuery.data);
+      isLoadingFeed = channelQuery.isLoading;
+      nextCursor = channelQuery.hasNextPage ? 'has-more' : '';
+    }
+  } else {
+    // List feeds use local state
+    casts = feed.casts;
+    isLoadingFeed = feed.isLoading;
+    nextCursor = feed.nextCursor;
+  }
 
   const onOpenLinkInCast = useCallback(() => {
     setShowEmbedsModal(true);
@@ -213,15 +254,21 @@ export default function Feeds() {
 
   useEffect(() => {
     if (account && inView && nextCursor) {
-      // For trending feed, use React Query's fetchNextPage
-      if (isTrendingFeed && !selectedListId && trendingQuery.hasNextPage && !trendingQuery.isFetchingNextPage) {
-        trendingQuery.fetchNextPage();
-      } else if (!isTrendingFeed || selectedListId) {
-        // For other feeds, use the existing getFeed function
+      if (shouldUseReactQuery) {
+        // For React Query feeds, use fetchNextPage
+        if (isTrendingFeed && trendingQuery.hasNextPage && !trendingQuery.isFetchingNextPage) {
+          trendingQuery.fetchNextPage();
+        } else if (isFollowingFeed && followingQuery.hasNextPage && !followingQuery.isFetchingNextPage) {
+          followingQuery.fetchNextPage();
+        } else if (isChannelFeed && channelQuery.hasNextPage && !channelQuery.isFetchingNextPage) {
+          channelQuery.fetchNextPage();
+        }
+      } else {
+        // For list feeds, use the existing getFeed function
         getFeed({ fid: account.platformAccountId!, parentUrl: selectedChannelUrl, selectedListId, cursor: nextCursor });
       }
     }
-  }, [inView, nextCursor, account, selectedChannelUrl, selectedListId, isTrendingFeed, trendingQuery]);
+  }, [inView, nextCursor, account, selectedChannelUrl, selectedListId, shouldUseReactQuery, isTrendingFeed, isFollowingFeed, isChannelFeed, trendingQuery, followingQuery, channelQuery]);
 
   const onReply = useCallback(() => {
     if (!selectedCast) return;
@@ -288,19 +335,26 @@ export default function Feeds() {
     parentUrl === CUSTOM_CHANNELS.FOLLOWING || parentUrl === CUSTOM_CHANNELS.TRENDING ? undefined : parentUrl;
 
   const refreshFeed = useCallback(() => {
-    // For trending feed, use React Query's refetch
-    if (isTrendingFeed && !selectedListId) {
-      trendingQuery.refetch();
+    // For React Query feeds, use refetch
+    if (shouldUseReactQuery) {
+      if (isTrendingFeed) {
+        trendingQuery.refetch();
+      } else if (isFollowingFeed) {
+        followingQuery.refetch();
+      } else if (isChannelFeed) {
+        channelQuery.refetch();
+      }
       lastUpdateTimeRef.current = Date.now();
       return;
     }
 
+    // For list feeds, use legacy getFeed
     if (account?.platformAccountId && !showCastThreadView && feedKey) {
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
       lastUpdateTimeRef.current = Date.now();
     }
-  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey, isTrendingFeed, trendingQuery]);
+  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey, shouldUseReactQuery, isTrendingFeed, isFollowingFeed, isChannelFeed, trendingQuery, followingQuery, channelQuery]);
 
   const getFeed = async ({
     fid,
@@ -334,19 +388,27 @@ export default function Feeds() {
 
         // Handle FID lists differently from search lists
         if (selectedList.type === 'fids') {
-          // Use our custom API endpoint for FID lists
-          const response = await fetch(
-            `/api/lists?listId=${selectedListId}&viewerFid=${fid}&limit=${DEFAULT_FEED_PAGE_SIZE}${cursor ? `&cursor=${cursor}` : ''}`
-          );
-          if (!response.ok) {
-            throw new Error('Failed to fetch feed from list');
-          }
+          const fidListContent = selectedList.contents as unknown as FidListContent;
+          const listFids = fidListContent.fids || [];
 
-          const data = await response.json();
-          newFeed = {
-            casts: data.casts,
-            next: data.next ? { cursor: data.next } : undefined,
-          };
+          if (listFids.length === 0) {
+            newFeed = { casts: [], next: undefined };
+          } else {
+            // Pass FIDs directly to avoid Supabase auth issues
+            const fidsParam = listFids.join(',');
+            const response = await fetch(
+              `/api/lists?fids=${encodeURIComponent(fidsParam)}&viewerFid=${fid}&limit=${DEFAULT_FEED_PAGE_SIZE}${cursor ? `&cursor=${cursor}` : ''}`
+            );
+            if (!response.ok) {
+              throw new Error('Failed to fetch feed from list');
+            }
+
+            const data = await response.json();
+            newFeed = {
+              casts: data.casts,
+              next: data.next?.cursor ? { cursor: data.next.cursor } : undefined,
+            };
+          }
         } else {
           // Handle search lists as before
           const { term } = selectedList.contents as { term: string };
@@ -415,18 +477,19 @@ export default function Feeds() {
   };
 
   useEffect(() => {
-    // Skip manual fetching for TRENDING feed - React Query handles it
-    if (isTrendingFeed && !selectedListId) {
+    // Skip manual fetching for React Query feeds - they handle it automatically
+    if (shouldUseReactQuery) {
       lastUpdateTimeRef.current = Date.now();
       return;
     }
 
+    // For list feeds, use legacy getFeed
     if (account?.platformAccountId && !showCastThreadView && feedKey) {
       const fid = account.platformAccountId!;
       getFeed({ parentUrl: selectedChannelUrl, fid, selectedListId });
       lastUpdateTimeRef.current = Date.now();
     }
-  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey, isTrendingFeed]);
+  }, [account, selectedChannelUrl, showCastThreadView, selectedListId, feedKey, shouldUseReactQuery]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -483,9 +546,19 @@ export default function Feeds() {
   };
 
   const getButtonText = (): string => {
-    const isFetching = isTrendingFeed && !selectedListId
-      ? trendingQuery.isFetchingNextPage || trendingQuery.isLoading
-      : isLoadingFeed;
+    let isFetching: boolean;
+
+    if (shouldUseReactQuery) {
+      if (isTrendingFeed) {
+        isFetching = trendingQuery.isFetchingNextPage || trendingQuery.isLoading;
+      } else if (isFollowingFeed) {
+        isFetching = followingQuery.isFetchingNextPage || followingQuery.isLoading;
+      } else {
+        isFetching = channelQuery.isFetchingNextPage || channelQuery.isLoading;
+      }
+    } else {
+      isFetching = isLoadingFeed;
+    }
 
     if (isFetching) {
       return 'Loading...';
@@ -497,13 +570,17 @@ export default function Feeds() {
   };
 
   const handleLoadMore = () => {
-    if (isTrendingFeed && !selectedListId) {
-      // Use React Query for trending feed
-      if (trendingQuery.hasNextPage && !trendingQuery.isFetchingNextPage) {
+    if (shouldUseReactQuery) {
+      // Use React Query for trending, following, and channel feeds
+      if (isTrendingFeed && trendingQuery.hasNextPage && !trendingQuery.isFetchingNextPage) {
         trendingQuery.fetchNextPage();
+      } else if (isFollowingFeed && followingQuery.hasNextPage && !followingQuery.isFetchingNextPage) {
+        followingQuery.fetchNextPage();
+      } else if (isChannelFeed && channelQuery.hasNextPage && !channelQuery.isFetchingNextPage) {
+        channelQuery.fetchNextPage();
       }
     } else {
-      // Use legacy fetch for other feeds
+      // Use legacy fetch for list feeds
       getFeed({
         fid: account.platformAccountId!,
         parentUrl: selectedChannelUrl,
@@ -515,11 +592,7 @@ export default function Feeds() {
 
   const renderLoadMoreButton = () => (
     <div className="px-4 py-4">
-      <Button
-        ref={buttonRef}
-        onClick={handleLoadMore}
-        variant="outline"
-      >
+      <Button ref={buttonRef} onClick={handleLoadMore} variant="outline">
         {getButtonText()}
       </Button>
     </div>

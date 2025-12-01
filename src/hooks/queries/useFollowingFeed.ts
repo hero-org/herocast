@@ -5,14 +5,14 @@ import { queryKeys } from '@/lib/queryKeys';
 
 const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 15;
 
-interface TrendingFeedOptions {
+interface FollowingFeedOptions {
   limit?: number;
   enabled?: boolean;
 }
 
-interface TrendingFeedResponse {
+interface FollowingFeedResponse {
   casts: CastWithInteractions[];
   next?: {
     cursor: string;
@@ -20,19 +20,22 @@ interface TrendingFeedResponse {
 }
 
 /**
- * Fetches the trending feed from Neynar API
+ * Fetches the following feed for a specific user from Neynar API
  *
- * This is a Phase 1 validation hook to test React Query integration.
- * Benefits over current implementation:
+ * Phase 2 migration - replaces legacy getFeed logic for FOLLOWING feed.
+ * Benefits:
  * - Automatic request deduplication
  * - Built-in caching with configurable staleness
  * - Automatic retry on failure
  * - Loading/error states managed automatically
  */
-async function fetchTrendingFeed(options?: { cursor?: string; limit?: number }): Promise<TrendingFeedResponse> {
+async function fetchFollowingFeed(
+  fid: string,
+  options?: { cursor?: string; limit?: number }
+): Promise<FollowingFeedResponse> {
   const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
 
-  const response = await neynarClient.fetchTrendingFeed({
+  const response = await neynarClient.fetchUserFollowingFeed(Number(fid), {
     limit,
     cursor,
   });
@@ -44,45 +47,47 @@ async function fetchTrendingFeed(options?: { cursor?: string; limit?: number }):
 }
 
 /**
- * Hook for fetching a single page of trending feed
+ * Hook for fetching a single page of following feed
  *
  * Use this for simple cases where pagination is handled manually.
  */
-export function useTrendingFeed(options?: TrendingFeedOptions) {
+export function useFollowingFeed(fid: string, options?: FollowingFeedOptions) {
   const { limit = DEFAULT_LIMIT, enabled = true } = options ?? {};
 
   return useQuery({
-    queryKey: queryKeys.feeds.trending({ limit }),
-    queryFn: () => fetchTrendingFeed({ limit }),
-    enabled,
+    queryKey: queryKeys.feeds.following(fid, { limit }),
+    queryFn: () => fetchFollowingFeed(fid, { limit }),
+    enabled: enabled && !!fid,
     // Override defaults for feed data which changes frequently
-    staleTime: 1000 * 60 * 2, // 2 minutes for trending feed
+    staleTime: 1000 * 60 * 2, // 2 minutes for following feed
   });
 }
 
 /**
- * Hook for infinite scrolling trending feed
+ * Hook for infinite scrolling following feed
  *
  * Use this for the main feed view with cursor-based pagination.
  * Provides automatic page merging and deduplication.
  */
-export function useTrendingFeedInfinite(options?: TrendingFeedOptions) {
+export function useFollowingFeedInfinite(fid: string, options?: FollowingFeedOptions) {
   const { limit = DEFAULT_LIMIT, enabled = true } = options ?? {};
 
   return useInfiniteQuery({
-    queryKey: queryKeys.feeds.trending({ limit }),
-    queryFn: ({ pageParam }) => fetchTrendingFeed({ cursor: pageParam, limit }),
+    queryKey: queryKeys.feeds.following(fid, { limit }),
+    queryFn: ({ pageParam }) => fetchFollowingFeed(fid, { cursor: pageParam, limit }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
-    enabled,
-    staleTime: 1000 * 60 * 2, // 2 minutes for trending feed
+    enabled: enabled && !!fid,
+    staleTime: 1000 * 60 * 2, // 2 minutes for following feed
   });
 }
 
 /**
  * Helper to flatten infinite query pages into a single cast array
  */
-export function flattenTrendingFeedPages(data: { pages: TrendingFeedResponse[] } | undefined): CastWithInteractions[] {
+export function flattenFollowingFeedPages(
+  data: { pages: FollowingFeedResponse[] } | undefined
+): CastWithInteractions[] {
   if (!data?.pages) return [];
 
   // Flatten all pages and deduplicate by hash

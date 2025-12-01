@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
 
       // Post-process results if needed
       const results = response.data;
+
       if (results.result?.casts && priorityMode) {
         // Fetch additional profile data for priority mode
         await getProfileFetchIfNeeded(results.result.casts.map((cast: any) => cast.author));

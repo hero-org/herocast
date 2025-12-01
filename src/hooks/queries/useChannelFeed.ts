@@ -1,18 +1,18 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { FilterType, NeynarAPIClient, FeedType } from '@neynar/nodejs-sdk';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { queryKeys } from '@/lib/queryKeys';
 
 const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = 15;
 
-interface TrendingFeedOptions {
+interface ChannelFeedOptions {
   limit?: number;
   enabled?: boolean;
 }
 
-interface TrendingFeedResponse {
+interface ChannelFeedResponse {
   casts: CastWithInteractions[];
   next?: {
     cursor: string;
@@ -20,22 +20,31 @@ interface TrendingFeedResponse {
 }
 
 /**
- * Fetches the trending feed from Neynar API
+ * Fetches the channel feed for a specific parent URL from Neynar API
  *
- * This is a Phase 1 validation hook to test React Query integration.
- * Benefits over current implementation:
+ * Phase 2 migration - replaces legacy getFeed logic for channel feeds.
+ * Benefits:
  * - Automatic request deduplication
  * - Built-in caching with configurable staleness
  * - Automatic retry on failure
  * - Loading/error states managed automatically
  */
-async function fetchTrendingFeed(options?: { cursor?: string; limit?: number }): Promise<TrendingFeedResponse> {
+async function fetchChannelFeed(
+  parentUrl: string,
+  fid: string,
+  options?: { cursor?: string; limit?: number }
+): Promise<ChannelFeedResponse> {
   const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
 
-  const response = await neynarClient.fetchTrendingFeed({
-    limit,
+  const feedOptions = {
     cursor,
-  });
+    limit,
+    filterType: FilterType.ParentUrl,
+    parentUrl,
+    fid: Number(fid),
+  };
+
+  const response = await neynarClient.fetchFeed(FeedType.Filter, feedOptions);
 
   return {
     casts: response.casts,
@@ -44,45 +53,45 @@ async function fetchTrendingFeed(options?: { cursor?: string; limit?: number }):
 }
 
 /**
- * Hook for fetching a single page of trending feed
+ * Hook for fetching a single page of channel feed
  *
  * Use this for simple cases where pagination is handled manually.
  */
-export function useTrendingFeed(options?: TrendingFeedOptions) {
+export function useChannelFeed(parentUrl: string, fid: string, options?: ChannelFeedOptions) {
   const { limit = DEFAULT_LIMIT, enabled = true } = options ?? {};
 
   return useQuery({
-    queryKey: queryKeys.feeds.trending({ limit }),
-    queryFn: () => fetchTrendingFeed({ limit }),
-    enabled,
+    queryKey: queryKeys.feeds.channel(parentUrl, fid, { limit }),
+    queryFn: () => fetchChannelFeed(parentUrl, fid, { limit }),
+    enabled: enabled && !!parentUrl && !!fid,
     // Override defaults for feed data which changes frequently
-    staleTime: 1000 * 60 * 2, // 2 minutes for trending feed
+    staleTime: 1000 * 60 * 2, // 2 minutes for channel feeds
   });
 }
 
 /**
- * Hook for infinite scrolling trending feed
+ * Hook for infinite scrolling channel feed
  *
  * Use this for the main feed view with cursor-based pagination.
  * Provides automatic page merging and deduplication.
  */
-export function useTrendingFeedInfinite(options?: TrendingFeedOptions) {
+export function useChannelFeedInfinite(parentUrl: string, fid: string, options?: ChannelFeedOptions) {
   const { limit = DEFAULT_LIMIT, enabled = true } = options ?? {};
 
   return useInfiniteQuery({
-    queryKey: queryKeys.feeds.trending({ limit }),
-    queryFn: ({ pageParam }) => fetchTrendingFeed({ cursor: pageParam, limit }),
+    queryKey: queryKeys.feeds.channel(parentUrl, fid, { limit }),
+    queryFn: ({ pageParam }) => fetchChannelFeed(parentUrl, fid, { cursor: pageParam, limit }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
-    enabled,
-    staleTime: 1000 * 60 * 2, // 2 minutes for trending feed
+    enabled: enabled && !!parentUrl && !!fid,
+    staleTime: 1000 * 60 * 2, // 2 minutes for channel feeds
   });
 }
 
 /**
  * Helper to flatten infinite query pages into a single cast array
  */
-export function flattenTrendingFeedPages(data: { pages: TrendingFeedResponse[] } | undefined): CastWithInteractions[] {
+export function flattenChannelFeedPages(data: { pages: ChannelFeedResponse[] } | undefined): CastWithInteractions[] {
   if (!data?.pages) return [];
 
   // Flatten all pages and deduplicate by hash
