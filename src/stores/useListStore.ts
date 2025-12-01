@@ -67,7 +67,10 @@ interface ListStoreActions {
     requiredUrls?: string[],
     requiredKeywords?: string[]
   ) => Promise<ListStoreResult>;
-  updateAutoInteractionSettings: (listId: UUID, settings: Partial<AutoInteractionListContent>) => Promise<ListStoreResult>;
+  updateAutoInteractionSettings: (
+    listId: UUID,
+    settings: Partial<AutoInteractionListContent>
+  ) => Promise<ListStoreResult>;
   getAutoInteractionLists: () => List[];
 }
 
