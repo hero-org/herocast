@@ -1,9 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { queryKeys } from '@/lib/queryKeys';
-
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const DEFAULT_LIMIT = 15;
 
@@ -20,7 +17,7 @@ interface FollowingFeedResponse {
 }
 
 /**
- * Fetches the following feed for a specific user from Neynar API
+ * Fetches the following feed for a specific user from the server-side API
  *
  * Phase 2 migration - replaces legacy getFeed logic for FOLLOWING feed.
  * Benefits:
@@ -35,15 +32,15 @@ async function fetchFollowingFeed(
 ): Promise<FollowingFeedResponse> {
   const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
 
-  const response = await neynarClient.fetchUserFollowingFeed(Number(fid), {
-    limit,
-    cursor,
-  });
+  const params = new URLSearchParams();
+  params.append('fid', fid);
+  params.append('limit', limit.toString());
+  if (cursor) params.append('cursor', cursor);
 
-  return {
-    casts: response.casts,
-    next: response.next,
-  };
+  const response = await fetch(`/api/feeds/following?${params.toString()}`);
+  if (!response.ok) throw new Error('Failed to fetch following feed');
+
+  return response.json();
 }
 
 /**

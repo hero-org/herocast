@@ -1,9 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { FilterType, NeynarAPIClient, FeedType } from '@neynar/nodejs-sdk';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { queryKeys } from '@/lib/queryKeys';
-
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const DEFAULT_LIMIT = 15;
 
@@ -20,7 +17,7 @@ interface ChannelFeedResponse {
 }
 
 /**
- * Fetches the channel feed for a specific parent URL from Neynar API
+ * Fetches the channel feed for a specific parent URL from the server-side API
  *
  * Phase 2 migration - replaces legacy getFeed logic for channel feeds.
  * Benefits:
@@ -36,20 +33,16 @@ async function fetchChannelFeed(
 ): Promise<ChannelFeedResponse> {
   const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
 
-  const feedOptions = {
-    cursor,
-    limit,
-    filterType: FilterType.ParentUrl,
-    parentUrl,
-    fid: Number(fid),
-  };
+  const params = new URLSearchParams();
+  params.append('parent_url', parentUrl);
+  params.append('fid', fid);
+  params.append('limit', limit.toString());
+  if (cursor) params.append('cursor', cursor);
 
-  const response = await neynarClient.fetchFeed(FeedType.Filter, feedOptions);
+  const response = await fetch(`/api/feeds/channel?${params.toString()}`);
+  if (!response.ok) throw new Error('Failed to fetch channel feed');
 
-  return {
-    casts: response.casts,
-    next: response.next,
-  };
+  return response.json();
 }
 
 /**

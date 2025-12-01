@@ -1,9 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { queryKeys } from '@/lib/queryKeys';
-
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const DEFAULT_LIMIT = 10;
 
@@ -20,7 +17,7 @@ interface TrendingFeedResponse {
 }
 
 /**
- * Fetches the trending feed from Neynar API
+ * Fetches the trending feed from the server-side API
  *
  * This is a Phase 1 validation hook to test React Query integration.
  * Benefits over current implementation:
@@ -32,15 +29,14 @@ interface TrendingFeedResponse {
 async function fetchTrendingFeed(options?: { cursor?: string; limit?: number }): Promise<TrendingFeedResponse> {
   const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
 
-  const response = await neynarClient.fetchTrendingFeed({
-    limit,
-    cursor,
-  });
+  const params = new URLSearchParams();
+  params.append('limit', limit.toString());
+  if (cursor) params.append('cursor', cursor);
 
-  return {
-    casts: response.casts,
-    next: response.next,
-  };
+  const response = await fetch(`/api/feeds/trending?${params.toString()}`);
+  if (!response.ok) throw new Error('Failed to fetch trending feed');
+
+  return response.json();
 }
 
 /**

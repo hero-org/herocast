@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CastRow } from '../CastRow';
 import isEmpty from 'lodash.isempty';
-import { CastParamType, NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { CastResponse } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 type CastEmbedProps = {
   url?: string;
@@ -17,17 +15,30 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+        let identifier: string;
+        let type: 'hash' | 'url';
 
-        let res: CastResponse | null;
         if (url) {
-          res = await neynarClient.lookUpCastByHashOrWarpcastUrl(url, CastParamType.Url);
+          identifier = url;
+          type = 'url';
         } else if (castId) {
-          res = await neynarClient.lookUpCastByHashOrWarpcastUrl(castId.hash, CastParamType.Hash);
+          identifier = castId.hash;
+          type = 'hash';
         } else {
           return;
         }
 
+        const params = new URLSearchParams({
+          identifier,
+          type,
+        });
+
+        const response = await fetch(`/api/casts/lookup?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const res = await response.json();
         if (res && res.cast) {
           setCast(res.cast);
         }

@@ -4,7 +4,6 @@ import { UserDataType } from '@farcaster/hub-web';
 import { setUserDataInProtocol } from '@/common/helpers/farcaster';
 import { AccountObjectType } from '@/stores/useAccountStore';
 import { Cog6ToothIcon } from '@heroicons/react/20/solid';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { toast } from 'sonner';
 import ImgurUpload from '../ImgurUpload';
@@ -27,11 +26,19 @@ const ChangeProfilePictureForm = ({ account, onSuccess }: ChangeProfilePictureFo
 
   useEffect(() => {
     const getUserInProtocol = async () => {
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-      const user = (await neynarClient.fetchBulkUsers([Number(account.platformAccountId!)], { viewerFid: APP_FID }))
-        .users[0];
-      if (user) {
-        setUserInProtocol(user);
+      try {
+        const response = await fetch(`/api/users?fids=${account.platformAccountId}&viewer_fid=${APP_FID}`);
+        if (!response.ok) {
+          console.error('Failed to fetch user:', response.status);
+          return;
+        }
+        const data = await response.json();
+        const user = data.users?.[0];
+        if (user) {
+          setUserInProtocol(user);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
       }
     };
 

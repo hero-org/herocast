@@ -207,11 +207,8 @@ const store = (set: StoreSet, get: () => DataStore) => ({
       return cachedProfiles;
     }
 
-    // Dynamically import NeynarAPIClient to avoid circular dependencies
-    const { NeynarAPIClient } = await import('@neynar/nodejs-sdk');
-    const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
     const fetchedProfiles: UserProfile[] = [];
-    const batchSize = 100; // Increased batch size for better efficiency
+    const batchSize = 100; // Maximum batch size for API route
 
     // Batch fetch uncached profiles with parallel processing
     const batchPromises: Promise<UserProfile[]>[] = [];
@@ -221,24 +218,31 @@ const store = (set: StoreSet, get: () => DataStore) => ({
 
       const batchPromise = (async () => {
         try {
-          const response = await neynarClient.fetchBulkUsers(batch, {
-            viewerFid: parseInt(viewerFid),
-          });
+          const response = await fetch(
+            `/api/users?fids=${batch.join(',')}&viewer_fid=${viewerFid}`
+          );
 
-          if (response.users) {
+          if (!response.ok) {
+            throw new Error(`Failed to fetch users: ${response.status}`);
+          }
+
+          const data = await response.json();
+          const users = data.users || [];
+
+          if (users.length > 0) {
             // Add basic profiles to store immediately
             const addUserProfiles = get().addUserProfiles;
-            addUserProfiles(response.users);
+            addUserProfiles(users);
 
             // Create UserProfile objects
-            const userProfiles = response.users.map((user) => ({
+            const userProfiles = users.map((user: User) => ({
               ...user,
               updatedAt: Date.now(),
             }));
 
             // Fetch additional info if requested (in parallel)
             if (!skipAdditionalInfo) {
-              const additionalPromises = response.users.map(async (user) => {
+              const additionalPromises = users.map(async (user: User) => {
                 try {
                   const additionalResponse = await fetch(
                     `/api/additionalProfileInfo?fid=${user.fid}&addresses=${user.verified_addresses.eth_addresses}`

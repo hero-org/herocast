@@ -1,9 +1,6 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
-import { NeynarAPIClient, FeedType, FilterType } from '@neynar/nodejs-sdk';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { queryKeys } from '@/lib/queryKeys';
-
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const DEFAULT_LIMIT = 25;
 
@@ -22,7 +19,7 @@ interface ProfileFeedResponse {
 }
 
 /**
- * Fetches casts authored by a specific user
+ * Fetches casts authored by a specific user from the server-side API
  */
 async function fetchUserCasts(
   fid: number,
@@ -30,22 +27,20 @@ async function fetchUserCasts(
 ): Promise<ProfileFeedResponse> {
   const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
 
-  const response = await neynarClient.fetchFeed(FeedType.Filter, {
-    filterType: FilterType.Fids,
-    fids: [fid],
-    withRecasts: true,
-    limit,
-    cursor,
-  });
+  const params = new URLSearchParams();
+  params.append('fid', fid.toString());
+  params.append('type', 'casts');
+  params.append('limit', limit.toString());
+  if (cursor) params.append('cursor', cursor);
 
-  return {
-    casts: response.casts,
-    next: response.next,
-  };
+  const response = await fetch(`/api/feeds/profile?${params.toString()}`);
+  if (!response.ok) throw new Error('Failed to fetch user casts');
+
+  return response.json();
 }
 
 /**
- * Fetches casts liked by a specific user
+ * Fetches casts liked by a specific user from the server-side API
  */
 async function fetchUserLikes(
   fid: number,
@@ -53,15 +48,16 @@ async function fetchUserLikes(
 ): Promise<ProfileFeedResponse> {
   const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
 
-  const response = await neynarClient.fetchUserReactions(fid, 'likes', {
-    limit,
-    cursor,
-  });
+  const params = new URLSearchParams();
+  params.append('fid', fid.toString());
+  params.append('type', 'likes');
+  params.append('limit', limit.toString());
+  if (cursor) params.append('cursor', cursor);
 
-  return {
-    casts: response.reactions.map(({ cast }) => cast),
-    next: response.next,
-  };
+  const response = await fetch(`/api/feeds/profile?${params.toString()}`);
+  if (!response.ok) throw new Error('Failed to fetch user likes');
+
+  return response.json();
 }
 
 /**

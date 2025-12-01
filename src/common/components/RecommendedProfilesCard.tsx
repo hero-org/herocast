@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import FollowButton from './FollowButton';
 
@@ -35,17 +34,22 @@ const RecommendedProfilesCard = () => {
 
   useEffect(() => {
     const getProfiles = async () => {
-      const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+      try {
+        const response = await fetch('/api/users/active?limit=14');
+        if (!response.ok) {
+          console.error('Failed to fetch active users:', response.statusText);
+          return;
+        }
 
-      const relevantFollowers = await client.fetchActiveUsers({
-        limit: 14,
-      });
+        const data = await response.json();
+        if (!data || !data.users) {
+          return;
+        }
 
-      if (!relevantFollowers || !relevantFollowers.users) {
-        return;
+        setProfiles([...defaultProfiles, ...data.users]);
+      } catch (err) {
+        console.error('Error fetching active users:', err);
       }
-
-      setProfiles([...defaultProfiles, ...relevantFollowers.users]);
     };
 
     getProfiles();

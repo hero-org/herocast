@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { CommandItem } from '@/components/ui/command';
 import { UserCircleIcon } from '@heroicons/react/20/solid';
 import { useRouter } from 'next/router';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,7 +11,7 @@ interface UserSearchCommandProps {
   query: string;
 }
 
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
 export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) => {
   const router = useRouter();
@@ -28,8 +27,14 @@ export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) =
     const searchUsers = async () => {
       setIsLoading(true);
       try {
-        const result = await neynarClient.searchUser(query, 5);
-        setUsers(result.result.users || []);
+        const response = await fetch(
+          `/api/users/search?q=${encodeURIComponent(query)}&viewer_fid=${APP_FID}&limit=5`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to search users');
+        }
+        const data = await response.json();
+        setUsers(data.users || []);
       } catch (error) {
         console.error('Failed to search users:', error);
         setUsers([]);

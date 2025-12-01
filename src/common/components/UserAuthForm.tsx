@@ -14,7 +14,6 @@ import { useForm } from 'react-hook-form';
 import { usePostHog } from 'posthog-js/react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
@@ -236,25 +235,38 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
       account = localAccounts.find((a) => a.platformAccountId === fid.toString());
     } else {
       setUserMessage('Setting up local account...');
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
-      const users = (await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID })).users;
-      if (!users.length) {
-        console.error('No users found for fid: ', fid);
+      try {
+        const response = await fetch(`/api/users?fids=${fid}&viewer_fid=${APP_FID}`);
+        if (!response.ok) {
+          console.error('Failed to fetch user:', response.status);
+          setIsLoading(false);
+          return;
+        }
+        const data = await response.json();
+        const users = data.users || [];
+        if (!users.length) {
+          console.error('No users found for fid: ', fid);
+          setIsLoading(false);
+          return;
+        }
+
+        account = {
+          name: username,
+          status: AccountStatusType.active,
+          platform: AccountPlatformType.farcaster_local_readonly,
+          platformAccountId: fid.toString(),
+          user: users?.[0],
+        };
+        await addAccount({
+          account,
+          localOnly: true,
+        });
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        setIsLoading(false);
         return;
       }
-
-      account = {
-        name: username,
-        status: AccountStatusType.active,
-        platform: AccountPlatformType.farcaster_local_readonly,
-        platformAccountId: fid.toString(),
-        user: users?.[0],
-      };
-      await addAccount({
-        account,
-        localOnly: true,
-      });
     }
 
     const { data, error } = await supabase.auth.signInAnonymously();

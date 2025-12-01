@@ -7,7 +7,6 @@ import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Button } from '@/components/ui/button';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDataStore } from '@/stores/useDataStore';
 import { getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
@@ -306,10 +305,13 @@ export default function SearchPage() {
   useEffect(() => {
     const fetchCasts = async (newCastHashes: string[]) => {
       try {
-        const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-        const apiResponse = await neynarClient.fetchBulkCasts(newCastHashes, {
-          viewerFid: Number(viewerFid),
-        });
+        const response = await fetch(
+          `/api/casts?casts=${newCastHashes.join(',')}&viewer_fid=${viewerFid}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch casts');
+        }
+        const apiResponse = await response.json();
         const allCasts = [...casts, ...apiResponse.result.casts];
         const sortedCasts = allCasts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         setCasts(sortedCasts);

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useAccountStore } from '@/stores/useAccountStore';
 import Link from 'next/link';
 import ProfileInfoContent from '../ProfileInfoContent';
@@ -22,17 +21,17 @@ const TopFollowers = ({ fid }: TopFollowersProps) => {
     useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId) || APP_FID
   );
 
-  // Fetch FIDs from Neynar API
+  // Fetch FIDs from API
   useEffect(() => {
     const getData = async () => {
       setIsFetchingFids(true);
       try {
-        const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-        const fids = await neynarClient
-          .fetchRelevantFollowers(fid, viewerFid)
-          .then((response) => response.all_relevant_followers_dehydrated.map((follower) => follower.user?.fid));
-
-        const topFids = fids.filter((fid): fid is number => fid !== undefined).slice(0, TOP_FOLLOWERS_LIMIT);
+        const response = await fetch(`/api/users/relevant-followers?target_fid=${fid}&viewer_fid=${viewerFid}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch relevant followers');
+        }
+        const data = await response.json();
+        const topFids = (data.fids || []).slice(0, TOP_FOLLOWERS_LIMIT);
         setTopFollowerFids(topFids);
       } catch (e) {
         console.error(e);

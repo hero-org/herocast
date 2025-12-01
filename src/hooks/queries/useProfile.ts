@@ -1,11 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { queryKeys } from '@/lib/queryKeys';
 import { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
 import { CoordinapeAttestation } from '@/common/helpers/coordinapeAttestations';
-
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 export type AdditionalUserInfo = {
   icebreakerSocialInfo?: IcebreakerSocialInfo;
@@ -21,18 +18,26 @@ interface UseProfileOptions {
 }
 
 /**
- * Fetches a single profile by FID from Neynar API
+ * Fetches a single profile by FID from server-side API
  */
 async function fetchProfileByFid(
   fid: number,
   viewerFid?: number,
   includeAdditionalInfo = false
 ): Promise<ProfileData | null> {
-  const response = await neynarClient.fetchBulkUsers([fid], {
-    viewerFid: viewerFid ?? fid,
-  });
+  const params = new URLSearchParams();
+  params.append('fids', fid.toString());
+  if (viewerFid) {
+    params.append('viewer_fid', viewerFid.toString());
+  }
 
-  const user = response?.users?.[0];
+  const response = await fetch(`/api/users?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch profile');
+  }
+
+  const data = await response.json();
+  const user = data.users?.[0];
   if (!user) return null;
 
   if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {
@@ -53,7 +58,7 @@ async function fetchProfileByFid(
 }
 
 /**
- * Fetches a profile by username from Neynar API
+ * Fetches a profile by username from server-side API
  */
 async function fetchProfileByUsername(
   username: string,
@@ -63,8 +68,17 @@ async function fetchProfileByUsername(
   // Remove @ prefix if present
   const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
 
-  const response = await neynarClient.searchUser(cleanUsername, viewerFid);
-  const users = response?.result?.users;
+  const params = new URLSearchParams();
+  params.append('q', cleanUsername);
+  params.append('viewer_fid', viewerFid.toString());
+
+  const response = await fetch(`/api/users/search?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error('Failed to search profile');
+  }
+
+  const data = await response.json();
+  const users = data.users;
 
   if (!users?.length) return null;
 

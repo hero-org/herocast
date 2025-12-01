@@ -1,10 +1,7 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { queryKeys } from '@/lib/queryKeys';
 import { ProfileData } from './useProfile';
-
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const BATCH_SIZE = 100; // Neynar API limit per request
 
@@ -15,7 +12,7 @@ interface UseBulkProfilesOptions {
 }
 
 /**
- * Fetches multiple profiles in batches from Neynar API
+ * Fetches multiple profiles in batches from server-side API
  */
 async function fetchBulkProfiles(
   fids: number[],
@@ -31,15 +28,23 @@ async function fetchBulkProfiles(
     const batch = fids.slice(i, i + BATCH_SIZE);
 
     try {
-      const response = await neynarClient.fetchBulkUsers(batch, {
-        viewerFid,
-      });
+      const params = new URLSearchParams();
+      params.append('fids', batch.join(','));
+      params.append('viewer_fid', viewerFid.toString());
 
-      if (response?.users) {
+      const response = await fetch(`/api/users?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch bulk profiles');
+      }
+
+      const data = await response.json();
+      const users = data.users || [];
+
+      if (users.length > 0) {
         if (includeAdditionalInfo) {
           // Fetch additional info for each user in parallel
           const enrichedUsers = await Promise.all(
-            response.users.map(async (user) => {
+            users.map(async (user) => {
               if (user.verified_addresses?.eth_addresses?.length) {
                 try {
                   const additionalResponse = await fetch(
@@ -58,7 +63,7 @@ async function fetchBulkProfiles(
           );
           allProfiles.push(...enrichedUsers);
         } else {
-          allProfiles.push(...response.users);
+          allProfiles.push(...users);
         }
       }
     } catch (error) {
@@ -105,8 +110,17 @@ export function useProfiles(fids: number[], options: UseBulkProfilesOptions) {
     queries: fids.map((fid) => ({
       queryKey: queryKeys.profiles.byFid(fid),
       queryFn: async (): Promise<ProfileData | null> => {
-        const response = await neynarClient.fetchBulkUsers([fid], { viewerFid });
-        const user = response?.users?.[0];
+        const params = new URLSearchParams();
+        params.append('fids', fid.toString());
+        params.append('viewer_fid', viewerFid.toString());
+
+        const response = await fetch(`/api/users?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile');
+        }
+
+        const data = await response.json();
+        const user = data.users?.[0];
 
         if (!user) return null;
 

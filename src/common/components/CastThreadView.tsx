@@ -5,7 +5,6 @@ import { SelectableListWithHotkeys } from './SelectableListWithHotkeys';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { Button } from '@/components/ui/button';
-import { CastParamType, NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { cn } from '@/lib/utils';
 import { useDataStore } from '@/stores/useDataStore';
@@ -65,12 +64,19 @@ export const CastThreadView = ({ hash, cast, onBack, isActive }: CastThreadViewP
       const threadHash = cast?.hash || hash;
       if (!threadHash) return;
 
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
       try {
-        const { conversation } = await neynarClient.lookupCastConversation(threadHash, CastParamType.Hash, {
-          replyDepth: 1,
-          includeChronologicalParentCasts: true,
+        const params = new URLSearchParams({
+          identifier: threadHash,
+          reply_depth: '1',
+          include_chronological_parent_casts: 'true',
         });
+
+        const response = await fetch(`/api/casts/conversation?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch cast conversation: ${response.statusText}`);
+        }
+
+        const { conversation } = await response.json();
         if (conversation?.cast?.direct_replies) {
           const { direct_replies: replies, ...castObjectWithoutReplies } = conversation.cast;
           setCasts((conversation.chronological_parent_casts || []).concat([castObjectWithoutReplies].concat(replies)));

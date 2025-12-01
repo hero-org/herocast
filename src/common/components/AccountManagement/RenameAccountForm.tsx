@@ -20,7 +20,6 @@ import { getAddress } from 'viem';
 import { AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
 import { AccountPlatformType } from '@/common/constants/accounts';
 import { Cog6ToothIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { mainnet } from 'viem/chains';
 import { switchChain } from 'viem/actions';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
@@ -64,11 +63,19 @@ const RenameAccountForm = ({
   const hasUsernameInProtocol = !userInProtocol?.username.startsWith('!');
   useEffect(() => {
     const getUserInProtocol = async () => {
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-      const user = (await neynarClient.fetchBulkUsers([Number(account.platformAccountId!)], { viewerFid: APP_FID }))
-        ?.users?.[0];
-      if (user) {
-        setUserInProtocol(user);
+      try {
+        const response = await fetch(`/api/users?fids=${account.platformAccountId}&viewer_fid=${APP_FID}`);
+        if (!response.ok) {
+          console.error('Failed to fetch user:', response.status);
+          return;
+        }
+        const data = await response.json();
+        const user = data.users?.[0];
+        if (user) {
+          setUserInProtocol(user);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
       }
     };
 
@@ -98,18 +105,25 @@ const RenameAccountForm = ({
           console.log('wallet owns fid');
           return true;
         } else {
-          const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-          const walletsResponse = await neynarClient.fetchBulkUsers([Number(account.platformAccountId)], {
-            viewerFid: APP_FID,
-          });
-          const custodyAddress = walletsResponse?.users?.[0]?.custody_address;
-          const message = `Your connected wallet does not own the Farcaster account. Please connect with ${custodyAddress}. You are connected with ${address}`;
-          console.log(message);
-          form.setError('username', {
-            type: 'manual',
-            message,
-          });
-          return false;
+          try {
+            const response = await fetch(`/api/users?fids=${account.platformAccountId}&viewer_fid=${APP_FID}`);
+            if (!response.ok) {
+              console.error('Failed to fetch user:', response.status);
+              return false;
+            }
+            const data = await response.json();
+            const custodyAddress = data.users?.[0]?.custody_address;
+            const message = `Your connected wallet does not own the Farcaster account. Please connect with ${custodyAddress}. You are connected with ${address}`;
+            console.log(message);
+            form.setError('username', {
+              type: 'manual',
+              message,
+            });
+            return false;
+          } catch (error) {
+            console.error('Error fetching user:', error);
+            return false;
+          }
         }
       });
     }

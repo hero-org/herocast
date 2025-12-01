@@ -14,7 +14,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -88,7 +87,6 @@ export function BulkAddUsersDialog({
 
     setIsProcessing(true);
     const items = parseInput(input);
-    const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
     const results: ParsedUser[] = [];
     setProcessingProgress({ current: 0, total: items.length });
@@ -106,7 +104,7 @@ export function BulkAddUsersDialog({
     });
 
     // Process FIDs in batches using bulk API
-    const fidBatchSize = 50; // Neynar bulk API supports up to 100, using 50 to be safe
+    const fidBatchSize = 50; // API supports up to 100, using 50 to be safe
     for (let i = 0; i < fidItems.length; i += fidBatchSize) {
       const batch = fidItems.slice(i, i + fidBatchSize);
 
@@ -117,18 +115,24 @@ export function BulkAddUsersDialog({
       });
 
       // Get non-duplicate FIDs to fetch
-      const fidsToFetch = batch.filter((item) => !existingFids.includes(item.fid)).map((item) => parseInt(item.fid));
+      const fidsToFetch = batch.filter((item) => !existingFids.includes(item.fid)).map((item) => item.fid);
 
       if (fidsToFetch.length > 0) {
         try {
-          // Fetch profiles in bulk from Neynar
-          const response = await neynarClient.fetchBulkUsers(fidsToFetch, {
-            viewerFid: parseInt(viewerFid),
-          });
+          // Fetch profiles in bulk via server-side API route
+          const response = await fetch(
+            `/api/users?fids=${fidsToFetch.join(',')}&viewer_fid=${viewerFid}`
+          );
 
-          if (response.users) {
+          if (!response.ok) {
+            throw new Error('Failed to fetch users');
+          }
+
+          const data = await response.json();
+
+          if (data.users) {
             // Add fetched users to results
-            response.users.forEach((user) => {
+            data.users.forEach((user: User) => {
               const fidItem = batch.find((item) => parseInt(item.fid) === user.fid)!;
               results.push({
                 input: fidItem.input,
@@ -139,10 +143,10 @@ export function BulkAddUsersDialog({
             });
 
             // Handle not found FIDs
-            const foundFids = new Set(response.users.map((u) => u.fid));
+            const foundFids = new Set(data.users.map((u: User) => u.fid));
             fidsToFetch.forEach((fid) => {
-              if (!foundFids.has(fid)) {
-                const fidItem = batch.find((item) => parseInt(item.fid) === fid)!;
+              if (!foundFids.has(parseInt(fid))) {
+                const fidItem = batch.find((item) => item.fid === fid)!;
                 results.push({
                   input: fidItem.input,
                   error: 'User not found',
@@ -174,11 +178,19 @@ export function BulkAddUsersDialog({
       const username = usernameItems[i];
 
       try {
-        // Search for username via Neynar API
-        const response = await neynarClient.searchUser(username, parseInt(viewerFid));
+        // Search for username via server-side API route
+        const response = await fetch(
+          `/api/users/search?q=${encodeURIComponent(username)}&viewer_fid=${viewerFid}&limit=1`
+        );
 
-        if (response.result?.users && response.result.users.length > 0) {
-          const user = response.result.users[0];
+        if (!response.ok) {
+          throw new Error('Failed to search user');
+        }
+
+        const data = await response.json();
+
+        if (data.users && data.users.length > 0) {
+          const user = data.users[0];
           const fid = user.fid.toString();
 
           results.push({
