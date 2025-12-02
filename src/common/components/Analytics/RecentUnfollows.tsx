@@ -1,15 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAccountStore } from '@/stores/useAccountStore';
 import Link from 'next/link';
 import ProfileInfoContent from '../ProfileInfoContent';
-import { getProfile, getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
-import { useDataStore } from '@/stores/useDataStore';
 import { Loading } from '../Loading';
 import { UnfollowData } from '@/common/types/types';
+import { useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
 
 const RECENT_UNFOLLOWERS_LIMIT = 12;
-const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 type RecentUnfollowsProps = {
   fid: number;
@@ -17,41 +16,25 @@ type RecentUnfollowsProps = {
 };
 
 const RecentUnfollows = ({ fid, unfollows }: RecentUnfollowsProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const dataStore = useDataStore.getState();
   const viewerFid = Number(
     useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId) || APP_FID
   );
 
-  useEffect(() => {
-    const getData = async () => {
-      setIsLoading(true);
-      try {
-        const recentUnfollows = unfollows
-          .filter((unfollow) => unfollow.target_fid !== undefined)
-          .slice(0, RECENT_UNFOLLOWERS_LIMIT);
-
-        recentUnfollows.forEach((unfollow) =>
-          getProfileFetchIfNeeded({
-            fid: unfollow.target_fid.toString(),
-            viewerFid: viewerFid.toString(),
-          })
-        );
-      } catch (e) {
-        console.error('Error fetching recent unfollows:', e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if (fid && unfollows.length > 0) {
-      getData();
-    }
-  }, [fid, unfollows]);
-
-  const profiles = useMemo(
-    () => unfollows.map((unfollow) => getProfile(dataStore, undefined, unfollow.target_fid.toString())).filter(Boolean),
-    [dataStore, unfollows]
+  // Get FIDs from unfollows prop
+  const unfollowFids = useMemo(
+    () =>
+      unfollows
+        .filter((unfollow) => unfollow.target_fid !== undefined)
+        .slice(0, RECENT_UNFOLLOWERS_LIMIT)
+        .map((unfollow) => unfollow.target_fid),
+    [unfollows]
   );
+
+  // Fetch profiles using React Query
+  const { data: profiles = [], isLoading } = useBulkProfiles(unfollowFids, {
+    viewerFid,
+    enabled: unfollowFids.length > 0,
+  });
 
   return (
     <Card className="h-fit py-8 px-4">

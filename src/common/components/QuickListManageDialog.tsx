@@ -77,51 +77,42 @@ export function QuickListManageDialog({
     setIsSaving(true);
     const errors: string[] = [];
 
-    try {
-      // Process all pending changes
-      for (const [listId, shouldBeInList] of pendingChanges.entries()) {
-        const isCurrentlyInList = userLists.has(listId);
+    // Process all pending changes
+    for (const [listId, shouldBeInList] of pendingChanges.entries()) {
+      const isCurrentlyInList = userLists.has(listId);
 
-        if (shouldBeInList && !isCurrentlyInList) {
-          // Add to list
-          const success = await addFidToList(listId, authorFid, authorDisplayName);
-          if (!success) {
-            const list = fidLists.find((l) => l.id === listId);
-            errors.push(`Failed to add to "${list?.name || 'list'}"`);
-          }
-        } else if (!shouldBeInList && isCurrentlyInList) {
-          // Remove from list
-          const success = await removeFidFromList(listId, authorFid);
-          if (!success) {
-            const list = fidLists.find((l) => l.id === listId);
-            errors.push(`Failed to remove from "${list?.name || 'list'}"`);
-          }
+      if (shouldBeInList && !isCurrentlyInList) {
+        // Add to list
+        const result = await addFidToList(listId, authorFid, authorDisplayName);
+        if (!result.success) {
+          const list = fidLists.find((l) => l.id === listId);
+          errors.push(`Failed to add to "${list?.name || 'list'}": ${result.error}`);
+        }
+      } else if (!shouldBeInList && isCurrentlyInList) {
+        // Remove from list
+        const result = await removeFidFromList(listId, authorFid);
+        if (!result.success) {
+          const list = fidLists.find((l) => l.id === listId);
+          errors.push(`Failed to remove from "${list?.name || 'list'}": ${result.error}`);
         }
       }
+    }
 
-      if (errors.length > 0) {
-        toast({
-          title: 'Some changes failed',
-          description: errors.join(', '),
-          variant: 'destructive',
-        });
-      } else if (pendingChanges.size > 0) {
-        toast({
-          title: 'Lists updated',
-          description: `Successfully updated list memberships for @${authorUsername}`,
-        });
-      }
-
-      onOpenChange(false);
-    } catch (error) {
+    if (errors.length > 0) {
       toast({
-        title: 'Error updating lists',
-        description: 'An unexpected error occurred. Please try again.',
+        title: 'Some changes failed',
+        description: errors.join(', '),
         variant: 'destructive',
       });
-    } finally {
-      setIsSaving(false);
+    } else if (pendingChanges.size > 0) {
+      toast({
+        title: 'Lists updated',
+        description: `Successfully updated list memberships for @${authorUsername}`,
+      });
     }
+
+    onOpenChange(false);
+    setIsSaving(false);
   };
 
   const isChecked = (listId: string) => {

@@ -41,7 +41,6 @@ import { getThemeCommands } from '@/getThemeCommands';
 import { formatShortcut } from '@/common/helpers/text';
 import { DraftType } from '@/common/constants/farcaster';
 import { useDataStore } from '@/stores/useDataStore';
-import { getProfile } from '@/common/helpers/profileUtils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
 import { cn } from '@/lib/utils';

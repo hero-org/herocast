@@ -14,7 +14,6 @@ import findIndex from 'lodash.findindex';
 import sortBy from 'lodash.sortby';
 import cloneDeep from 'lodash.clonedeep';
 import { UUID } from 'crypto';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { createClient } from '@/common/helpers/supabase/component';
 import includes from 'lodash.includes';
@@ -668,17 +667,21 @@ export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Pr
     return { ...account, channels };
   });
 
-  // Add user metadata from Neynar
+  // Add user metadata from API route
   const fids = accountsWithChannels
     .filter((account) => account.platformAccountId)
     .map((account) => Number(account.platformAccountId));
 
   if (fids.length) {
-    const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
     try {
-      const users = (await neynarClient.fetchBulkUsers(fids, { viewerFid: APP_FID })).users;
+      const response = await fetch(`/api/users?fids=${fids.join(',')}&viewer_fid=${APP_FID}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.status}`);
+      }
+      const data = await response.json();
+      const users = data.users || [];
       return accountsWithChannels.map((account) => {
-        const user = users.find((user) => user.fid === Number(account.platformAccountId));
+        const user = users.find((user: User) => user.fid === Number(account.platformAccountId));
         if (user) {
           account.user = user;
         }

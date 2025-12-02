@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { List } from '@/common/types/database.types';
 import { AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
@@ -10,7 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BoltIcon, PlusIcon, HeartIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
+import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
+
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 interface AutoListsViewProps {
   lists: List[];
@@ -19,8 +21,23 @@ interface AutoListsViewProps {
 
 export function AutoListsView({ lists, isLoading }: AutoListsViewProps) {
   const router = useRouter();
-  const { accounts } = useAccountStore();
-  const fidToData = useDataStore((state) => state.fidToData);
+  const { accounts, selectedAccountIdx } = useAccountStore();
+  const viewerFid = Number(accounts[selectedAccountIdx]?.platformAccountId) || APP_FID;
+
+  // Collect all preview FIDs from all lists (max 3 per list)
+  const allPreviewFids = useMemo(() => {
+    const fids = new Set<number>();
+    lists.forEach((list) => {
+      const content = list.contents as AutoInteractionListContent;
+      content.fids.slice(0, 3).forEach((fid) => fids.add(parseInt(fid)));
+    });
+    return Array.from(fids);
+  }, [lists]);
+
+  const { data: profiles } = useBulkProfiles(allPreviewFids, {
+    viewerFid,
+    enabled: allPreviewFids.length > 0,
+  });
 
   if (isLoading) {
     return (
@@ -100,7 +117,7 @@ export function AutoListsView({ lists, isLoading }: AutoListsViewProps) {
                   <p className="text-xs text-muted-foreground mb-1">Monitoring {content.fids.length} accounts:</p>
                   <div className="flex -space-x-2">
                     {previewFids.map((fid) => {
-                      const userData = fidToData[parseInt(fid)];
+                      const userData = getProfileFromBulk(profiles, parseInt(fid));
                       return (
                         <Avatar key={fid} className="h-6 w-6 border-2 border-background">
                           <AvatarImage src={userData?.pfp_url} />

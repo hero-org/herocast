@@ -4,15 +4,12 @@ import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { useRouter } from 'next/router';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChannelSearchCommandProps {
   query: string;
 }
-
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 export const ChannelSearchCommand: React.FC<ChannelSearchCommandProps> = ({ query }) => {
   const router = useRouter();
@@ -29,7 +26,11 @@ export const ChannelSearchCommand: React.FC<ChannelSearchCommandProps> = ({ quer
     const searchChannels = async () => {
       setIsLoading(true);
       try {
-        const result = await neynarClient.searchChannels(query);
+        const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        const result = await response.json();
         setChannels(result.channels || []);
       } catch (error) {
         console.error('Failed to search channels:', error);

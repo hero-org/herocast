@@ -12,7 +12,6 @@ import { writeContract } from '@wagmi/core';
 import SwitchWalletButton from './SwitchWalletButton';
 import { KEY_GATEWAY } from '../constants/contracts/key-gateway';
 import { getSignedKeyRequestMetadataFromAppAccount } from '../helpers/farcaster';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { Label } from '@/components/ui/label';
 import { optimismChainId } from '../helpers/env';
 import { Cog6ToothIcon, CheckCircleIcon } from '@heroicons/react/20/solid';
@@ -97,16 +96,25 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
     const setupAccount = async () => {
       if (!isAddKeyTxLoading || !isWalletOwnerOfFid) return;
 
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-      const user = (
-        await neynarClient.fetchBulkUsers([Number(idOfUser)], {
-          viewerFid: Number(APP_FID),
-        })
-      ).users[0];
-      await setAccountActive(account.id, user.username, {
-        platform_account_id: user.fid.toString(),
-      });
-      await hydrateAccounts();
+      try {
+        const response = await fetch(`/api/users?fids=${idOfUser}&viewer_fid=${APP_FID}`);
+        if (!response.ok) {
+          console.error('Failed to fetch user:', response.status);
+          return;
+        }
+        const data = await response.json();
+        const user = data.users?.[0];
+        if (!user) {
+          console.error('No user found for FID:', idOfUser);
+          return;
+        }
+        await setAccountActive(account.id, user.username, {
+          platform_account_id: user.fid.toString(),
+        });
+        await hydrateAccounts();
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
     };
     if (isAddKeyTxSuccess) {
       setupAccount();

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { fetchAndAddUserProfile, getProfileFetchIfNeeded, getProfile } from '@/common/helpers/profileUtils';
-import { useDataStore } from '@/stores/useDataStore';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
+import { useAccountStore } from '@/stores/useAccountStore';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BulkAddUsersDialog } from '@/common/components/BulkAddUsersDialog';
 import { UsersIcon } from 'lucide-react';
-import { supabaseClient } from '@/common/helpers/supabase';
 
 export default function ListPage() {
   const router = useRouter();
@@ -66,28 +65,50 @@ export default function ListPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<{ id: string; name: string } | null>(null);
   const USERS_PER_PAGE = 30;
-  const fidToData = useDataStore((state) => state.fidToData);
+
+  // Get viewer FID from selected account
+  const accounts = useAccountStore((state) => state.accounts);
+  const selectedAccountIdx = useAccountStore((state) => state.selectedAccountIdx);
+  const viewerFid = accounts[selectedAccountIdx]?.platformAccountId
+    ? parseInt(accounts[selectedAccountIdx].platformAccountId!)
+    : parseInt(process.env.NEXT_PUBLIC_APP_FID || '3');
 
   // Get active list
   const activeList = activeListId ? lists.find((list) => list.id === activeListId) : null;
   const fidLists = getFidLists();
 
-  // Load profile data for users in the active list
-  const loadProfileData = async (fidList: FidListContent, onlyFirstPage: boolean = false) => {
-    if (!fidList.fids || fidList.fids.length === 0) return;
+  // Collect all FIDs that need to be loaded for the current view
+  const fidsToLoad = useMemo(() => {
+    if (!activeList || !isFidListContent(activeList.contents)) return [];
 
-    const viewerFid = process.env.NEXT_PUBLIC_APP_FID!;
+    const content = activeList.contents as FidListContent;
+    if (!content.fids || content.fids.length === 0) return [];
 
-    // If only loading first page, limit the FIDs
-    const fidsToProcess = onlyFirstPage ? fidList.fids.slice(0, USERS_PER_PAGE) : fidList.fids;
+    // Filter by search term if present
+    let filteredFids = content.fids;
+    if (searchTerm) {
+      filteredFids = content.fids.filter((fid) => {
+        const displayName = content.displayNames?.[fid] || '';
+        const searchLower = searchTerm.toLowerCase();
+        return fid.includes(searchTerm) || displayName.toLowerCase().includes(searchLower);
+      });
+    }
 
-    // Convert string FIDs to numbers
-    const numericFids = fidsToProcess.map((fid) => parseInt(fid));
+    // Get FIDs for current page
+    const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+    const endIndex = startIndex + USERS_PER_PAGE;
+    const pageFids = filteredFids.slice(startIndex, endIndex);
 
-    // Use the store's bulk fetch function that checks cache first
-    const { fetchBulkProfiles } = useDataStore.getState();
-    await fetchBulkProfiles(numericFids, viewerFid, true);
-  };
+    // Convert to numbers
+    return pageFids.map((fid) => parseInt(fid));
+  }, [activeList, currentPage, searchTerm]);
+
+  // Fetch profiles using React Query
+  const { data: profiles, isLoading: isLoadingProfiles } = useBulkProfiles(fidsToLoad, {
+    viewerFid,
+    includeAdditionalInfo: false,
+    enabled: fidsToLoad.length > 0,
+  });
 
   useEffect(() => {
     const initializeData = async () => {
@@ -96,11 +117,6 @@ export default function ListPage() {
       const fidLists = getFidLists();
       if (fidLists.length > 0 && !activeListId) {
         setActiveListId(fidLists[0].id);
-
-        // Load profile data for the first page only
-        if (fidLists[0] && isFidListContent(fidLists[0].contents)) {
-          await loadProfileData(fidLists[0].contents as FidListContent, true);
-        }
       }
       setIsLoading(false);
     };
@@ -108,32 +124,13 @@ export default function ListPage() {
     initializeData();
   }, []);
 
-  // Load profile data when active list changes
+  // Reset to page 1 when switching lists
   useEffect(() => {
     if (activeList && isFidListContent(activeList.contents)) {
-      // Reset to page 1 when switching lists
       setCurrentPage(1);
       setSearchTerm('');
-      // Only load first page of profiles
-      loadProfileData(activeList.contents as FidListContent, true);
     }
   }, [activeList]);
-
-  // Load profile data when page changes
-  useEffect(() => {
-    if (activeList && isFidListContent(activeList.contents)) {
-      const content = activeList.contents as FidListContent;
-      if (!content.fids || content.fids.length === 0) return;
-
-      // Get FIDs for current page
-      const startIndex = (currentPage - 1) * USERS_PER_PAGE;
-      const endIndex = startIndex + USERS_PER_PAGE;
-      const pageFids = content.fids.slice(startIndex, endIndex);
-
-      // Load profiles for current page
-      loadProfileData({ fids: pageFids, displayNames: {} }, false);
-    }
-  }, [currentPage, activeList]);
 
   // Create a new list
   const handleCreateList = async () => {
@@ -146,9 +143,9 @@ export default function ListPage() {
       return;
     }
 
-    try {
-      await addFidList(newListName, []);
+    const result = await addFidList(newListName, []);
 
+    if (result.success) {
       // Get the newly created list and set it as active
       const updatedLists = getFidLists();
       const newList = updatedLists[updatedLists.length - 1]; // New list is added at the end
@@ -162,10 +159,10 @@ export default function ListPage() {
         title: 'Success',
         description: 'List created successfully',
       });
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to create list: ${error.message}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -175,17 +172,18 @@ export default function ListPage() {
   const handleAddUser = async () => {
     if (!selectedProfile || !activeListId) return;
 
-    try {
-      await addFidToList(activeListId, selectedProfile.fid.toString(), selectedProfile.username);
+    const result = await addFidToList(activeListId, selectedProfile.fid.toString(), selectedProfile.username);
+
+    if (result.success) {
       setSelectedProfile(undefined);
       toast({
         title: 'Success',
         description: `Added ${selectedProfile.username} to list`,
       });
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to add user to list: ${error.message}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -195,16 +193,17 @@ export default function ListPage() {
   const handleRemoveUser = async (fid: string, username: string) => {
     if (!activeListId) return;
 
-    try {
-      await removeFidFromList(activeListId, fid);
+    const result = await removeFidFromList(activeListId, fid);
+
+    if (result.success) {
       toast({
         title: 'Success',
         description: `Removed ${username} from list`,
       });
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to remove user from list: ${error.message}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -214,9 +213,9 @@ export default function ListPage() {
   const handleDeleteList = async () => {
     if (!listToDelete) return;
 
-    try {
-      await removeList(listToDelete.id);
+    const result = await removeList(listToDelete.id);
 
+    if (result.success) {
       // If the deleted list was active, set a new active list
       if (activeListId === listToDelete.id) {
         const remainingLists = getFidLists();
@@ -234,10 +233,10 @@ export default function ListPage() {
 
       setDeleteConfirmOpen(false);
       setListToDelete(null);
-    } catch (error) {
+    } else {
       toast({
         title: 'Error',
-        description: `Failed to delete list: ${error.message}`,
+        description: result.error,
         variant: 'destructive',
       });
     }
@@ -287,44 +286,30 @@ export default function ListPage() {
       };
 
       // Use the store's update method which properly handles RLS
-      try {
-        await updateList({
-          id: activeListId,
-          name: activeList.name,
-          contents: updatedContent,
-        });
-      } catch (updateError) {
-        console.error('Failed to update list:', updateError);
+      const updateResult = await updateList({
+        id: activeListId,
+        name: activeList.name,
+        contents: updatedContent,
+      });
+
+      if (!updateResult.success) {
+        console.error('Failed to update list:', updateResult.error);
         return {
           success: false,
-          error: `Failed to update list: ${updateError.message}. Please try again.`,
+          error: updateResult.error,
         };
       }
 
       // Refresh the list to ensure consistency
       await hydrate();
 
-      // Load profile data for the newly added users
-      const newUserFids = users.map((u) => u.fid);
-      await Promise.all(
-        newUserFids.map((fid) =>
-          getProfileFetchIfNeeded({
-            fid,
-            viewerFid: process.env.NEXT_PUBLIC_APP_FID!,
-            skipAdditionalInfo: true,
-          }).catch((err) => {
-            console.error(`Failed to load profile for FID ${fid}:`, err);
-            return null;
-          })
-        )
-      );
-
+      // React Query will automatically fetch profiles when they're rendered
       return { success: true };
     } catch (error) {
       console.error('Failed to bulk add users:', error);
       return {
         success: false,
-        error: error.message || 'Failed to add users to the list',
+        error: error instanceof Error ? error.message : 'Failed to add users to the list',
       };
     }
   };
@@ -350,7 +335,7 @@ export default function ListPage() {
     if (searchTerm) {
       filteredFids = content.fids.filter((fid) => {
         const displayName = content.displayNames?.[fid] || '';
-        const profile = fidToData[parseInt(fid)];
+        const profile = getProfileFromBulk(profiles, parseInt(fid));
         const username = profile?.username || '';
         const searchLower = searchTerm.toLowerCase();
         return (
@@ -398,7 +383,7 @@ export default function ListPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentPageFids.map((fid) => {
             const displayName = content.displayNames?.[fid] || `FID: ${fid}`;
-            const profile = fidToData[parseInt(fid)];
+            const profile = getProfileFromBulk(profiles, parseInt(fid));
 
             return (
               <Card key={`list-user-${fid}`} className="overflow-hidden">
@@ -408,7 +393,7 @@ export default function ListPage() {
                       {profile ? (
                         <ProfileInfo
                           fid={parseInt(fid)}
-                          viewerFid={parseInt(process.env.NEXT_PUBLIC_APP_FID || '0')}
+                          viewerFid={viewerFid}
                           hideBio={true}
                           showFollowButton={false}
                           wideFormat={false}
@@ -703,7 +688,7 @@ export default function ListPage() {
           onOpenChange={setIsBulkAddOpen}
           onAddUsers={handleBulkAddUsers}
           existingFids={(activeList.contents as FidListContent).fids || []}
-          viewerFid={process.env.NEXT_PUBLIC_APP_FID || '3'}
+          viewerFid={viewerFid.toString()}
         />
       )}
 

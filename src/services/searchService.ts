@@ -1,8 +1,11 @@
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import { CastsResponseResult } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { getProfileFetchIfNeeded } from '../common/helpers/profileUtils';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Interval } from '../common/types/types';
 import { SearchQueryBuilder } from './searchQueryBuilder';
+
+// Type representing the result of cast lookups (matches Neynar API response structure)
+export type CastsResult = {
+  casts: CastWithInteractions[];
+};
 
 export type RawSearchResult = {
   hash: string;
@@ -57,14 +60,6 @@ export type SearchResponse = {
 };
 
 export class SearchService {
-  private neynarClient: NeynarAPIClient | null = null;
-
-  constructor() {
-    if (typeof window === 'undefined' && process.env.NEXT_PUBLIC_NEYNAR_API_KEY) {
-      this.neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY);
-    }
-  }
-
   async search(params: SearchParams): Promise<SearchResponse> {
     try {
       // Validate query syntax only if we have a search term
@@ -86,15 +81,19 @@ export class SearchService {
         if (fromUsername) {
           console.log('SearchService - Looking up user:', fromUsername);
           try {
-            const profile = await getProfileFetchIfNeeded({
-              username: fromUsername,
-              viewerFid: params.viewerFid,
-            });
-            console.log('SearchService - Profile lookup result:', profile);
-            if (profile?.fid) {
-              authorFid = profile.fid;
-            } else {
-              console.warn('SearchService - Could not find user:', fromUsername);
+            const baseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_URL || '';
+            const response = await fetch(
+              `${baseUrl}/api/users?username=${encodeURIComponent(fromUsername)}&viewer_fid=${params.viewerFid}`
+            );
+            if (response.ok) {
+              const data = await response.json();
+              const profile = data.users?.[0];
+              console.log('SearchService - Profile lookup result:', profile);
+              if (profile?.fid) {
+                authorFid = profile.fid;
+              } else {
+                console.warn('SearchService - Could not find user:', fromUsername);
+              }
             }
           } catch (error) {
             console.error('SearchService - Error looking up user:', fromUsername, error);
@@ -130,7 +129,7 @@ export class SearchService {
     }
   }
 
-  async searchWithCasts(params: SearchParams): Promise<CastsResponseResult> {
+  async searchWithCasts(params: SearchParams): Promise<CastsResult> {
     const searchResponse = await this.search(params);
     const castHashes = searchResponse.results?.map((result) => result.hash) || [];
 
@@ -141,14 +140,24 @@ export class SearchService {
       };
     }
 
-    if (!this.neynarClient) {
-      this.neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+    // Build URL for /api/casts route
+    const urlParams = new URLSearchParams();
+    urlParams.append('casts', castHashes.join(','));
+    if (params.viewerFid) {
+      urlParams.append('viewer_fid', params.viewerFid);
     }
 
-    const apiResponse = await this.neynarClient.fetchBulkCasts(castHashes, {
-      viewerFid: Number(params.viewerFid),
-    });
-    return apiResponse.result;
+    const baseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_URL || '';
+    const response = await fetch(`${baseUrl}/api/casts?${urlParams.toString()}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Error fetching casts:', data.error);
+      return { casts: [] };
+    }
+
+    // The API returns { result: { casts: [...] } }
+    return data.result || { casts: [] };
   }
 
   private buildSearchUrl(params: SearchParams): string {

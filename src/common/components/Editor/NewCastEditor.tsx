@@ -21,7 +21,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import map from 'lodash.map';
 import { renderEmbedForUrl } from '../Embeds';
 import { CalendarDaysIcon, PhotoIcon } from '@heroicons/react/20/solid';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { ChannelList } from '../ChannelList';
 import isEmpty from 'lodash.isempty';
@@ -43,18 +42,30 @@ import { format, startOfToday } from 'date-fns';
 
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
-const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
 
 const getChannels = async (query: string): Promise<Channel[]> => {
-  let channels: Channel[] = [];
   if (query.length < 2) return [];
-  channels = (await neynarClient.searchChannels(query))?.channels ?? [];
-  return take(channels, 10);
+  try {
+    const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    const data = await response.json();
+    return take(data?.channels ?? [], 10);
+  } catch (e) {
+    console.error(`Error searching channels: ${e}`);
+    return [];
+  }
 };
 
 const getAllChannels = async (): Promise<Channel[]> => {
   try {
-    return (await neynarClient.fetchAllChannels())?.channels ?? [];
+    const response = await fetch('/api/channels');
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    const data = await response.json();
+    return data?.channels ?? [];
   } catch (e) {
     console.error(`Error fetching all channels: ${e}`);
     return [];

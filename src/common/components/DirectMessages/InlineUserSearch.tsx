@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, User } from 'lucide-react';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User as NeynarUser } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { debounce } from 'lodash';
 import { formatLargeNumber } from '@/common/helpers/text';
+
+const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
 interface InlineUserSearchProps {
   onSelect: (user: NeynarUser) => void;
@@ -39,14 +40,18 @@ export function InlineUserSearch({
         setHasSearched(true);
 
         try {
-          const appFid = process.env.NEXT_PUBLIC_APP_FID!;
-          const client = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
+          const cleanQuery = searchQuery.replace('@', '');
+          const fid = viewerFid || APP_FID;
+          const response = await fetch(
+            `/api/users/search?q=${encodeURIComponent(cleanQuery)}&viewer_fid=${fid}&limit=10`
+          );
 
-          const response = await client.searchUser(searchQuery.replace('@', ''), Number(viewerFid || appFid), {
-            limit: 10,
-          });
+          if (!response.ok) {
+            throw new Error('Failed to search users');
+          }
 
-          setResults(response.result.users || []);
+          const data = await response.json();
+          setResults(data.users || []);
         } catch (error) {
           console.error('Error searching users:', error);
           setResults([]);

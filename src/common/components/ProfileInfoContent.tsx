@@ -34,7 +34,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
 
   const renderFollowButton = () => {
     if (!showFollowButton || !profile.username || isOwnProfile) return null;
-    return <FollowButton username={profile.username} />;
+    return <FollowButton username={profile.username} profile={profile} />;
   };
 
   return (

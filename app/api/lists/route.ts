@@ -1,67 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FidListContent, isFidListContent } from '@/common/types/list.types';
-import { Database } from '@/common/types/database.types';
-import createClient from '@/common/helpers/supabase/api';
+import { NeynarAPIClient, FeedType, FilterType } from '@neynar/nodejs-sdk';
 import { NEYNAR_API_MAX_FIDS_PER_REQUEST } from '@/common/constants/listLimits';
 
 const apiKey = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 
+/**
+ * GET /api/lists - Fetch feed for a FID list
+ *
+ * Query params:
+ * - fids: Comma-separated list of FIDs (required)
+ * - viewerFid: Viewer's FID for personalization (required)
+ * - limit: Number of casts to return (default 25)
+ * - cursor: Pagination cursor
+ *
+ * Note: We pass FIDs directly from the client since they're already loaded
+ * in useListStore. This avoids Supabase auth complexity in App Router.
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const listId = searchParams.get('listId');
+    const fidsParam = searchParams.get('fids');
     const viewerFid = searchParams.get('viewerFid');
     const limit = parseInt(searchParams.get('limit') || '25', 10);
-    const cursor = searchParams.get('cursor');
+    const cursor = searchParams.get('cursor') || undefined;
 
-    if (!listId) {
-      return NextResponse.json({ error: 'Missing listId parameter' }, { status: 400 });
+    if (!fidsParam) {
+      return NextResponse.json({ error: 'Missing fids parameter' }, { status: 400 });
+    }
+
+    if (!viewerFid) {
+      return NextResponse.json({ error: 'Missing viewerFid parameter' }, { status: 400 });
     }
 
     if (!apiKey) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
     }
 
-    // Create authenticated Supabase client
-    const supabase = createClient(request);
+    // Parse FIDs from comma-separated string
+    const fids = fidsParam
+      .split(',')
+      .map((fid) => parseInt(fid.trim(), 10))
+      .filter((fid) => !isNaN(fid));
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (fids.length === 0) {
+      return NextResponse.json({ error: 'No valid FIDs provided' }, { status: 400 });
     }
 
-    // Get list details
-    const { data: list, error: listError } = await supabase
-      .from('lists')
-      .select('*')
-      .eq('id', listId)
-      .eq('user_id', user.id)
-      .single();
+    // Use Neynar API to fetch feed for these FIDs
+    const neynarClient = new NeynarAPIClient(apiKey);
 
-    if (listError || !list) {
-      return NextResponse.json({ error: 'List not found' }, { status: 404 });
-    }
+    // Limit FIDs to Neynar's max per request
+    const limitedFids = fids.slice(0, NEYNAR_API_MAX_FIDS_PER_REQUEST);
 
-    // Handle different list types
-    if (isFidListContent(list.content)) {
-      const fidListContent = list.content as FidListContent;
+    // Fetch feed filtered by these FIDs
+    const response = await neynarClient.fetchFeed(FeedType.Filter, {
+      filterType: FilterType.Fids,
+      fids: limitedFids,
+      limit,
+      cursor,
+      fid: parseInt(viewerFid, 10),
+    });
 
-      // For now, return a basic response - the full implementation would
-      // fetch user data from Neynar API using the FIDs
-      return NextResponse.json({
-        users: [],
-        next: { cursor: null },
-      });
-    }
-
-    // Handle other list types (search lists, etc.)
     return NextResponse.json({
-      casts: [],
-      next: { cursor: null },
+      casts: response.casts || [],
+      next: response.next || { cursor: null },
     });
   } catch (error) {
     console.error('Error in lists route:', error);

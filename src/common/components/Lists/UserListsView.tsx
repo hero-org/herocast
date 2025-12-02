@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { List } from '@/common/types/database.types';
 import { FidListContent, isFidListContent } from '@/common/types/list.types';
@@ -9,7 +9,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { UserGroupIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { useListStore } from '@/stores/useListStore';
-import { useDataStore } from '@/stores/useDataStore';
+import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
+import { useAccountStore } from '@/stores/useAccountStore';
+
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 interface UserListsViewProps {
   lists: List[];
@@ -19,7 +22,23 @@ interface UserListsViewProps {
 export function UserListsView({ lists, isLoading }: UserListsViewProps) {
   const router = useRouter();
   const { setSelectedListId } = useListStore();
-  const fidToData = useDataStore((state) => state.fidToData);
+  const { accounts, selectedAccountIdx } = useAccountStore();
+  const viewerFid = Number(accounts[selectedAccountIdx]?.platformAccountId) || APP_FID;
+
+  // Collect all preview FIDs from all lists (max 5 per list)
+  const allPreviewFids = useMemo(() => {
+    const fids = new Set<number>();
+    lists.forEach((list) => {
+      const content = list.contents as FidListContent;
+      content.fids.slice(0, 5).forEach((fid) => fids.add(parseInt(fid)));
+    });
+    return Array.from(fids);
+  }, [lists]);
+
+  const { data: profiles } = useBulkProfiles(allPreviewFids, {
+    viewerFid,
+    enabled: allPreviewFids.length > 0,
+  });
 
   const handleListClick = (listId: string) => {
     setSelectedListId(listId);
@@ -80,7 +99,7 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
               <CardContent>
                 <div className="flex -space-x-2">
                   {previewFids.map((fid) => {
-                    const userData = fidToData[parseInt(fid)];
+                    const userData = getProfileFromBulk(profiles, parseInt(fid));
                     return (
                       <Avatar key={fid} className="h-8 w-8 border-2 border-background">
                         <AvatarImage src={userData?.pfp_url} />

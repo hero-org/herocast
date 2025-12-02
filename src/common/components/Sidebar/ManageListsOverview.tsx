@@ -49,10 +49,10 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
     if (onItemClick) onItemClick();
   };
 
-  const onClickSaveLastSearch = () => {
+  const onClickSaveLastSearch = async () => {
     const lastSearch = searches[searches.length - 1];
     if (lastSearch && selectedAccountId) {
-      addList({
+      await addList({
         name: lastSearch.term,
         account_id: selectedAccountId,
         contents: {

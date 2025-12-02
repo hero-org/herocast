@@ -7,13 +7,11 @@ import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Button } from '@/components/ui/button';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDataStore } from '@/stores/useDataStore';
-import { getProfileFetchIfNeeded } from '@/common/helpers/profileUtils';
 import isEmpty from 'lodash.isempty';
 import { useListStore } from '@/stores/useListStore';
-import { map, uniq, debounce } from 'lodash';
+import { map, uniq } from 'lodash';
 import { Interval } from '@/common/types/types';
 import { cn } from '@/lib/utils';
 import { usePostHog } from 'posthog-js/react';
@@ -74,23 +72,6 @@ export default function SearchPage() {
 
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const viewerFid = selectedAccount?.platformAccountId || APP_FID;
-
-  const debouncedUserSearch = useCallback(
-    debounce(async (term: string) => {
-      if (term.length > 2 && viewerFid) {
-        try {
-          // This is handled by SearchService now
-        } catch (error) {
-          console.error('Error searching for users:', error);
-        }
-      }
-    }, 300),
-    [viewerFid]
-  );
-
-  useEffect(() => {
-    debouncedUserSearch(searchTerm);
-  }, [searchTerm, debouncedUserSearch]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -270,7 +251,7 @@ export default function SearchPage() {
       enabled_daily_email: false,
     };
 
-    await addList({
+    const result = await addList({
       name: searchTerm,
       type: 'search',
       contents,
@@ -278,16 +259,24 @@ export default function SearchPage() {
       account_id: selectedAccount?.id || undefined,
     });
 
-    posthog.capture('user_save_list', {
-      contents,
-    });
+    if (result.success) {
+      posthog.capture('user_save_list', {
+        contents,
+      });
 
-    toast({
-      title: 'Search saved',
-      description: `"${searchTerm}" has been saved to your lists`,
-    });
+      toast({
+        title: 'Search saved',
+        description: `"${searchTerm}" has been saved to your lists`,
+      });
 
-    router.push('/lists?tab=search');
+      router.push('/lists?tab=search');
+    } else {
+      toast({
+        title: 'Error',
+        description: result.error,
+        variant: 'destructive',
+      });
+    }
   };
 
   useHotkeys([Key.Enter, 'meta+enter'], () => onSearch(), [onSearch], {
@@ -298,10 +287,11 @@ export default function SearchPage() {
   useEffect(() => {
     const fetchCasts = async (newCastHashes: string[]) => {
       try {
-        const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-        const apiResponse = await neynarClient.fetchBulkCasts(newCastHashes, {
-          viewerFid: Number(viewerFid),
-        });
+        const response = await fetch(`/api/casts?casts=${newCastHashes.join(',')}&viewer_fid=${viewerFid}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch casts');
+        }
+        const apiResponse = await response.json();
         const allCasts = [...casts, ...apiResponse.result.casts];
         const sortedCasts = allCasts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         setCasts(sortedCasts);

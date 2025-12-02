@@ -32,9 +32,16 @@ const ManageListModal = ({ open, onClose }) => {
       newSearchTerm !== list.contents?.term ||
       isDailyEmailEnabled !== list.contents?.enabled_daily_email);
 
-  const onClickDelete = (id: UUID) => {
-    removeList(id);
-    posthog.capture('user_delete_list');
+  const onClickDelete = async (id: UUID) => {
+    const result = await removeList(id);
+    if (result.success) {
+      posthog.capture('user_delete_list');
+    } else {
+      toast.error('Failed to delete search', {
+        description: result.error,
+        duration: 5000,
+      });
+    }
   };
 
   useEffect(() => {
@@ -54,22 +61,23 @@ const ManageListModal = ({ open, onClose }) => {
       enabled_daily_email: isDailyEmailEnabled,
     };
 
-    try {
-      await updateList({
-        ...list,
-        name: newName,
-        contents: newContents,
-      });
+    const result = await updateList({
+      ...list,
+      name: newName,
+      contents: newContents,
+    });
+
+    if (result.success) {
       toastSuccessSavedSearchUpdate(newName);
       onClose();
-    } catch (error) {
-      console.error('Error saving list:', error);
+      posthog.capture('user_save_list');
+    } else {
+      console.error('Error saving list:', result.error);
       toast.error('Failed to save search', {
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
+        description: result.error,
         duration: 5000,
       });
     }
-    posthog.capture('user_save_list');
   };
 
   if (!list) return null;

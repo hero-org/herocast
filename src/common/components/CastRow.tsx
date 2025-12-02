@@ -15,7 +15,7 @@ import {
   DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
-import { publishReaction, removeCast, removeReaction } from '../helpers/farcaster';
+import { removeCast } from '../helpers/farcaster';
 import includes from 'lodash.includes';
 import map from 'lodash.map';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
@@ -67,9 +67,10 @@ import {
 import { addToClipboard } from '../helpers/clipboard';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { getProfile } from '../helpers/profileUtils';
+import { useProfileByFid } from '@/hooks/queries/useProfile';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { QuickListManageDialog } from './QuickListManageDialog';
+import { useLikeCast, useUnlikeCast, useRecast, useRemoveRecast } from '@/hooks/mutations/useCastActions';
 
 // Register linkify plugins once globally to avoid hot reload warnings
 if (typeof window !== 'undefined' && !window.__linkify_plugins_registered) {
@@ -222,6 +223,11 @@ const CastRowComponent = ({
   const { addNewPostDraft } = useDraftStore();
   const { updateSelectedCast } = useDataStore();
 
+  // Fetch recaster profile if this cast was recasted by someone we're following
+  const { data: recasterProfile } = useProfileByFid(recastedByFid, {
+    enabled: !!recastedByFid,
+  });
+
   const [didLike, setDidLike] = useState(false);
   const [didRecast, setDidRecast] = useState(false);
   const [isListDialogOpen, setIsListDialogOpen] = useState(false);
@@ -230,6 +236,12 @@ const CastRowComponent = ({
   const userFid = Number(selectedAccount?.platformAccountId);
   const authorFid = cast?.author.fid;
   const canSendReaction = selectedAccount?.platform !== AccountPlatformType.farcaster_local_readonly;
+
+  // Initialize mutation hooks
+  const likeCast = useLikeCast();
+  const unlikeCast = useUnlikeCast();
+  const recastMutation = useRecast();
+  const removeRecastMutation = useRemoveRecast();
 
   const onReply = () => {
     setCastModalView(CastModalView.Reply);
@@ -368,27 +380,47 @@ const CastRowComponent = ({
         return;
       }
 
-      const reactionBodyType: 'like' | 'recast' = key === CastReactionType.likes ? 'like' : 'recast';
-      const reaction = {
-        type: reactionBodyType,
-        target: { fid: Number(authorFid), hash: cast.hash },
+      // Use mutation hooks for likes and recasts
+      const mutationParams = {
+        castHash: cast.hash,
+        authorFid: Number(authorFid),
       };
 
-      if (isActive) {
-        await removeReaction({
-          authorFid: userFid,
-          privateKey: selectedAccount.privateKey!,
-          reaction,
-        });
-      } else {
-        await publishReaction({
-          authorFid: userFid,
-          privateKey: selectedAccount.privateKey!,
-          reaction,
-        });
+      if (key === CastReactionType.likes) {
+        if (isActive) {
+          unlikeCast.mutate(mutationParams, {
+            onError: () => {
+              // Rollback local state on error
+              setDidLike(true);
+            },
+          });
+        } else {
+          likeCast.mutate(mutationParams, {
+            onError: () => {
+              // Rollback local state on error
+              setDidLike(false);
+            },
+          });
+        }
+      } else if (key === CastReactionType.recasts) {
+        if (isActive) {
+          removeRecastMutation.mutate(mutationParams, {
+            onError: () => {
+              // Rollback local state on error
+              setDidRecast(true);
+            },
+          });
+        } else {
+          recastMutation.mutate(mutationParams, {
+            onError: () => {
+              // Rollback local state on error
+              setDidRecast(false);
+            },
+          });
+        }
       }
 
-      // Success: No need to update state as the optimistic update was correct
+      // Success: mutations handle cache updates automatically
     } catch (error) {
       console.error(`Error in onClickReaction: ${error}`);
 
@@ -572,12 +604,12 @@ const CastRowComponent = ({
 
     if (!recastedByFid && !shouldShowBadge) return null;
 
-    let recaster;
-    if (recastedByFid) {
-      recaster = getProfile(useDataStore.getState(), undefined, recastedByFid.toString());
-    } else {
-      recaster = cast.reactions?.recasts?.find((recast) => recast?.viewer_context?.following === true);
-    }
+    // Use recasterProfile from React Query hook if recastedByFid is provided,
+    // otherwise find the recaster from reaction data
+    const recaster = recastedByFid
+      ? recasterProfile
+      : cast.reactions?.recasts?.find((recast) => recast?.viewer_context?.following === true);
+
     const badge = (
       <span
         className={cn('ml-10', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/40 hover:underline')}

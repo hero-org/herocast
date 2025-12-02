@@ -1,4 +1,3 @@
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 type GetUserDataForFidOrUsernameProps = {
@@ -17,16 +16,30 @@ export const getUserDataForFidOrUsername = async ({
       return [];
     }
 
-    const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-
     if (username) {
-      const resp = await neynarClient.searchUser(username, Number(viewerFid));
-      return resp?.result?.users || [];
-    } else if (fid) {
-      const resp = await neynarClient.fetchBulkUsers([Number(fid)], {
-        viewerFid: Number(viewerFid),
+      const params = new URLSearchParams({
+        q: username,
+        viewer_fid: viewerFid,
       });
-      return resp?.users || [];
+      const response = await fetch(`/api/users/search?${params.toString()}`);
+      if (!response.ok) {
+        console.error('Failed to search users:', response.statusText);
+        return [];
+      }
+      const data = await response.json();
+      return data?.users || [];
+    } else if (fid) {
+      const params = new URLSearchParams({
+        fids: fid,
+        viewer_fid: viewerFid,
+      });
+      const response = await fetch(`/api/users?${params.toString()}`);
+      if (!response.ok) {
+        console.error('Failed to fetch users:', response.statusText);
+        return [];
+      }
+      const data = await response.json();
+      return data?.users || [];
     }
 
     return [];
