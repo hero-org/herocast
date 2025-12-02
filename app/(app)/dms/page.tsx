@@ -58,10 +58,16 @@ const DirectMessages = () => {
 
   // Fetch DMs based on active tab
   const category = activeTab === DMTab.archived ? 'archived' : 'default';
-  const { conversations, groups, isLoading, error, refresh, retryAfterError } = useDirectMessages({
+  const { conversations, groups, isLoading, error, errorCode, refresh, retryAfterError } = useDirectMessages({
     category,
     enabled: !showOnboarding,
   });
+
+  useEffect(() => {
+    if (errorCode === 'NO_API_KEY' || errorCode === 'INVALID_API_KEY') {
+      setShowOnboarding(true);
+    }
+  }, [errorCode]);
 
   // Keep UI state management
   const updateSelectedProfileFid = useDataStore((state) => state.updateSelectedProfileFid);
@@ -262,47 +268,22 @@ const DirectMessages = () => {
     [selectedAccount, refresh]
   );
 
-  // Select/open conversation
   const onSelect = useCallback(() => {
-    if (selectedDMIdx >= 0 && currentList.length > selectedDMIdx) {
-      const item = currentList[selectedDMIdx];
-      // TODO: Implement actual navigation or show conversation
-      console.log('Selected:', item);
-    }
-  }, [selectedDMIdx, currentList]);
+    // Selection is handled by the list - this is a placeholder for future navigation
+  }, []);
 
-  // Check if account has Farcaster API key
   useEffect(() => {
     const checkApiKey = async () => {
       if (selectedAccount) {
-        console.log('[DMs Debug] Selected account:', {
-          id: selectedAccount.id,
-          name: selectedAccount.name,
-          hasApiKey: !!selectedAccount.farcasterApiKey,
-          platformAccountId: selectedAccount.platformAccountId,
-        });
-
-        // First check if API key is already loaded in memory
         if (selectedAccount.farcasterApiKey) {
-          console.log('[DMs Debug] API key already in memory');
           setShowOnboarding(false);
           return;
         }
 
-        console.log('[DMs Debug] API key not in memory, attempting to load from Supabase...');
-
-        // Otherwise, try to load it from Supabase
         const { loadFarcasterApiKey } = useAccountStore.getState();
         await loadFarcasterApiKey(selectedAccount.id);
 
-        // Check again after loading
         const updatedAccount = useAccountStore.getState().accounts[useAccountStore.getState().selectedAccountIdx];
-
-        console.log('[DMs Debug] After loading attempt:', {
-          hasApiKey: !!updatedAccount?.farcasterApiKey,
-          showOnboarding: !updatedAccount?.farcasterApiKey,
-        });
-
         setShowOnboarding(!updatedAccount?.farcasterApiKey);
       }
     };
@@ -310,39 +291,15 @@ const DirectMessages = () => {
     checkApiKey();
   }, [selectedAccount]);
 
-  // Convert DirectCastMessage to Message format for MessageThread
   const convertedMessages: Message[] = messages.map((msg) => {
     const profile = getProfileByFid(msg.senderFid);
 
-    // Debug timestamp issues
-    if (msg.creationTimestamp) {
-      console.log('Message timestamp debug:', {
-        messageId: msg.messageId,
-        creationTimestamp: msg.creationTimestamp,
-        timestampInMs: msg.creationTimestamp * 1000,
-        date: new Date(msg.creationTimestamp * 1000),
-        isoString: new Date(msg.creationTimestamp * 1000).toISOString(),
-      });
-    } else {
-      console.log('Message has no timestamp:', {
-        messageId: msg.messageId,
-        creationTimestamp: msg.creationTimestamp,
-        message: msg,
-      });
-    }
-
-    // Handle edge cases for timestamp
     let timestamp: string;
     if (!msg.creationTimestamp || msg.creationTimestamp === 0) {
-      // Fallback to current time if timestamp is missing
       timestamp = new Date().toISOString();
-      console.warn('Message has no timestamp, using current time:', msg.messageId);
     } else if (msg.creationTimestamp > 10000000000) {
-      // If timestamp is already in milliseconds (has more than 10 digits)
       timestamp = new Date(msg.creationTimestamp).toISOString();
-      console.warn('Timestamp appears to be in milliseconds already:', msg.messageId);
     } else {
-      // Normal case: timestamp is in seconds
       timestamp = new Date(msg.creationTimestamp * 1000).toISOString();
     }
 
@@ -586,13 +543,7 @@ const DirectMessages = () => {
                       Refresh
                     </DropdownMenuItem>
                   </KeyboardShortcutTooltip>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      // Placeholder for future implementation
-                      console.log('Mark all as read clicked');
-                    }}
-                    disabled={isEmpty(currentList)}
-                  >
+                  <DropdownMenuItem onClick={() => {}} disabled={isEmpty(currentList)}>
                     <CheckCheck className="mr-2 h-4 w-4" />
                     Mark all as read
                   </DropdownMenuItem>

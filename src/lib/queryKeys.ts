@@ -20,7 +20,7 @@ export const queryKeys = {
       ['feeds', 'following', fid, options ?? {}] as const,
     channel: (parentUrl: string, fid: string, options?: { cursor?: string; limit?: number }) =>
       ['feeds', 'channel', parentUrl, fid, options ?? {}] as const,
-    list: (listId: string, options?: { cursor?: string; limit?: number }) =>
+    list: (listId: string, options?: { cursor?: string; limit?: number; contentsHash?: string }) =>
       ['feeds', 'list', listId, options ?? {}] as const,
   },
 

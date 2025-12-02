@@ -19,9 +19,18 @@ interface UseDirectMessagesOptions {
 enum ErrorType {
   RATE_LIMIT = 'RATE_LIMIT',
   AUTH = 'AUTH',
+  NO_API_KEY = 'NO_API_KEY',
   NETWORK = 'NETWORK',
   UNKNOWN = 'UNKNOWN',
 }
+
+// Error codes returned by the API
+const API_ERROR_CODES = {
+  NO_API_KEY: 'NO_API_KEY',
+  INVALID_API_KEY: 'INVALID_API_KEY',
+  RATE_LIMITED: 'RATE_LIMITED',
+  SERVER_ERROR: 'SERVER_ERROR',
+} as const;
 
 interface RetryState {
   attempts: number;
@@ -30,8 +39,24 @@ interface RetryState {
 }
 
 // Helper to classify errors
-function classifyError(error: any): { type: ErrorType; retryable: boolean; waitTime?: number } {
+function classifyError(error: any): { type: ErrorType; retryable: boolean; waitTime?: number; code?: string } {
   if (!error) return { type: ErrorType.UNKNOWN, retryable: false };
+
+  // Check for API error codes (returned in response body)
+  const errorCode = error.code || error.apiError?.code;
+
+  if (errorCode === API_ERROR_CODES.NO_API_KEY) {
+    return { type: ErrorType.NO_API_KEY, retryable: false, code: errorCode };
+  }
+
+  if (errorCode === API_ERROR_CODES.INVALID_API_KEY) {
+    return { type: ErrorType.AUTH, retryable: false, code: errorCode };
+  }
+
+  if (errorCode === API_ERROR_CODES.RATE_LIMITED) {
+    const waitTime = error.apiError?.retryAfter || 60000;
+    return { type: ErrorType.RATE_LIMIT, retryable: true, waitTime, code: errorCode };
+  }
 
   // Check for rate limit errors
   if (error.statusCode === 429 || error.message?.toLowerCase().includes('rate limit')) {
@@ -83,6 +108,7 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
   const [groups, setGroups] = useState<DirectCastGroup[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [retryState, setRetryState] = useState<RetryState>({
@@ -134,10 +160,23 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
         });
         const data = await response.json();
 
+        // Check for HTTP errors
         if (!response.ok) {
           const error = {
             message: data.error || 'Failed to fetch messages',
             statusCode: response.status,
+            code: data.code,
+            apiError: data,
+          };
+          throw error;
+        }
+
+        // Check for API error codes even on 200 responses
+        if (data.code && (data.code === API_ERROR_CODES.NO_API_KEY || data.code === API_ERROR_CODES.INVALID_API_KEY)) {
+          const error = {
+            message: data.error || 'API key error',
+            statusCode: 200,
+            code: data.code,
             apiError: data,
           };
           throw error;
@@ -165,14 +204,18 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
 
         console.error('Error fetching DMs:', err);
 
-        const { type, retryable, waitTime } = classifyError(err);
+        const { type, retryable, waitTime, code } = classifyError(err);
         const errorMessage = err.message || 'Failed to fetch messages';
 
         setError(errorMessage);
+        setErrorCode(code || err.code || null);
 
-        // Handle auth errors - clear API key from memory
+        if (type === ErrorType.NO_API_KEY) {
+          setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
+          return;
+        }
+
         if (type === ErrorType.AUTH) {
-          console.error('Auth error detected, clearing API key');
           if (selectedAccount?.id) {
             updateAccountProperty(selectedAccount.id as UUID, 'farcasterApiKey', undefined);
           }
@@ -209,8 +252,6 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
           retryTimeoutRef.current = setTimeout(() => {
             fetchDMsInternal(append, true);
           }, delay);
-
-          console.log(`Retrying in ${delay}ms (attempt ${nextAttempt}/${maxRetries})`);
         } else {
           // Max retries reached or non-retryable error
           setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
@@ -310,6 +351,7 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
     groups,
     isLoading,
     error,
+    errorCode,
     hasMore,
     loadMore,
     refresh,
@@ -411,9 +453,7 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
 
         setError(errorMessage);
 
-        // Handle auth errors - clear API key from memory
         if (type === ErrorType.AUTH) {
-          console.error('Auth error detected, clearing API key');
           if (selectedAccount?.id) {
             updateAccountProperty(selectedAccount.id as UUID, 'farcasterApiKey', undefined);
           }
@@ -450,8 +490,6 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
           retryTimeoutRef.current = setTimeout(() => {
             fetchMessagesInternal(append, true);
           }, delay);
-
-          console.log(`Retrying in ${delay}ms (attempt ${nextAttempt}/${maxRetries})`);
         } else {
           // Max retries reached or non-retryable error
           setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
