@@ -24,7 +24,7 @@ import { useAccountStore } from '@/stores/useAccountStore';
 import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
 import { cn } from '@/lib/utils';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 type ListsOverviewProps = {
   hideHeader?: boolean;

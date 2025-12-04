@@ -5,8 +5,8 @@ import TweetEmbed from './TweetEmbed';
 import NounsBuildEmbed from './NounsBuildEmbed';
 import ParagraphXyzEmbed from './ParagraphXyzEmbed';
 import VideoEmbed from './VideoEmbed';
+import OpenGraphImage from './OpenGraphImage';
 import { WarpcastImage } from '../PostEmbeddedContent';
-import FrameEmbed from './FrameEmbed';
 import { isImageUrl } from '@/common/helpers/text';
 import { MinusCircleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,7 @@ const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
   } else if (url.includes('paragraph.xyz') || url.includes('pgrph.xyz')) {
     return <ParagraphXyzEmbed url={url} />;
   } else {
-    return null;
+    return <OpenGraphImage url={url} />;
   }
 };
 

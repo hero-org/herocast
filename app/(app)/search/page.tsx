@@ -28,7 +28,7 @@ import { SearchResultsView } from '@/common/components/SearchResultsView';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { UUID } from 'crypto';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 

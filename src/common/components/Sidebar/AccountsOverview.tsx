@@ -4,7 +4,7 @@ import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { SidebarHeader } from './SidebarHeader';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import HotkeyTooltipWrapper from '../HotkeyTooltipWrapper';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
 import { cn } from '@/lib/utils';
 

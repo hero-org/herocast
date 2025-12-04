@@ -10,7 +10,7 @@ import {
   UserGroupIcon,
   ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/solid';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
 import ShadcnRightSidebar from '@/common/components/Sidebar/ShadcnRightSidebar';
@@ -60,9 +60,9 @@ type HeaderAction = {
 const Home = ({ children }: { children: React.ReactNode }) => {
   useInitializeStores();
 
-  const router = useRouter();
-
-  const { asPath, pathname } = router;
+  const pathname = usePathname() || '/';
+  // In App Router, asPath is equivalent to pathname (no query string access from usePathname)
+  const asPath = pathname;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { allChannels, selectedChannelUrl, isHydrated, addPinnedChannel, removePinnedChannel } = useAccountStore();
   const {

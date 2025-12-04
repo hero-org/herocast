@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CastRow } from '@/common/components/CastRow';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { useRouter } from 'next/router';
+import { useRouter, useSearchParams } from 'next/navigation';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -108,6 +108,7 @@ const CompactFollowerProfile = ({ user, viewerFid }: { user: any; viewerFid: str
 
 const Inbox = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isNewCastModalOpen, setCastModalView, openNewCastModal, setCastModalDraftId } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
@@ -283,7 +284,7 @@ const Inbox = () => {
 
   // Handle URL query parameter for tab switching
   useEffect(() => {
-    const { tab } = router.query;
+    const tab = searchParams.get('tab');
     if (tab && typeof tab === 'string') {
       // Validate the tab value is a valid NotificationTab
       const validTabs = Object.values(NotificationTab);
@@ -293,7 +294,7 @@ const Inbox = () => {
         changeTab(newTab);
       }
     }
-  }, [router.query.tab, changeTab]);
+  }, [searchParams, changeTab]);
 
   // Initial load and account changes
   useEffect(() => {

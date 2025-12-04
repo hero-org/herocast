@@ -16,7 +16,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
 import map from 'lodash.map';
 import { AccountPlatformType } from '@/common/constants/accounts';

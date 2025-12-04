@@ -10,7 +10,7 @@ const DM_ERROR_CODES = {
   SERVER_ERROR: 'SERVER_ERROR',
 } as const;
 
-export const config = { maxDuration: 20 };
+export const maxDuration = 20;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

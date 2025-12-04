@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAppHotkeys, useMultipleHotkeys } from './useAppHotkeys';
 import { HotkeyScopes } from '../constants/hotkeys';
 import { useListStore } from '@/stores/useListStore';
@@ -15,6 +15,7 @@ interface UseSidebarHotkeysProps {
 
 export const useSidebarHotkeys = ({ searchLists, fidLists, onItemClick }: UseSidebarHotkeysProps) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { setSelectedListId } = useListStore();
   const { setSelectedChannelUrl } = useAccountStore();
 
@@ -27,7 +28,7 @@ export const useSidebarHotkeys = ({ searchLists, fidLists, onItemClick }: UseSid
         if (onItemClick) onItemClick();
 
         // Navigate to feed if not already there
-        if (router.pathname !== '/feeds') {
+        if (pathname !== '/feeds') {
           router.push('/feeds');
         }
       }
@@ -44,7 +45,7 @@ export const useSidebarHotkeys = ({ searchLists, fidLists, onItemClick }: UseSid
         if (onItemClick) onItemClick();
 
         // Navigate to feed if not already there
-        if (router.pathname !== '/feeds') {
+        if (pathname !== '/feeds') {
           router.push('/feeds');
         }
       }

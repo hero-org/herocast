@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Head from 'next/head';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,6 +48,7 @@ function ListTypeCard({ icon, title, description, count, onClick, isLoading }: L
 
 export default function ListsHub() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { lists, isHydrated, hydrate } = useListStore();
   const [activeTab, setActiveTab] = useState('all');
 
@@ -57,11 +58,11 @@ export default function ListsHub() {
 
   // Initialize from query params
   useEffect(() => {
-    const { tab } = router.query;
+    const tab = searchParams.get('tab');
     if (tab && typeof tab === 'string' && ['all', 'search', 'users', 'auto'].includes(tab)) {
       setActiveTab(tab);
     }
-  }, [router.query]);
+  }, [searchParams]);
 
   // Hydrate store on mount
   useEffect(() => {

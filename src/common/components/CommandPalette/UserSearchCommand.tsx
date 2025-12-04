@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CommandItem } from '@/components/ui/command';
 import { UserCircleIcon } from '@heroicons/react/20/solid';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Skeleton } from '@/components/ui/skeleton';

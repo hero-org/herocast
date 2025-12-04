@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useSidebar } from '@/components/ui/sidebar';
 import isEmpty from 'lodash.isempty';

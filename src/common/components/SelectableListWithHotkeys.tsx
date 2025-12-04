@@ -3,7 +3,7 @@ import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Key } from 'ts-key-enum';
 import isEmpty from 'lodash.isempty';
 import { HotkeyScopes, HotkeyScope } from '@/common/constants/hotkeys';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import { getScopesForPage } from '@/common/constants/hotkeys';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -48,8 +48,8 @@ export const SelectableListWithHotkeys = ({
   estimatedItemHeight = 150,
 }: SelectableListWithHotkeysProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const pageScopes = scopes ?? getScopesForPage(router.pathname);
+  const pathname = usePathname() || '/';
+  const pageScopes = scopes ?? getScopesForPage(pathname);
 
   // Set up virtualizer for efficient rendering of large lists
   const virtualizer = useVirtualizer({

@@ -34,7 +34,7 @@ import { KeyboardShortcutSingle } from '@/components/ui/keyboard-shortcut-single
 import { ChartBarIcon, MagnifyingGlassCircleIcon, UserCircleIcon, ArrowsUpDownIcon } from '@heroicons/react/20/solid';
 import Image from 'next/image';
 import commandScore from 'command-score';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { getNavigationCommands } from '@/getNavigationCommands';
 import { useTheme } from 'next-themes';
 import { getThemeCommands } from '@/getThemeCommands';
@@ -113,6 +113,7 @@ const getFarcasterBotCommands = (): CommandType[] => {
 
 export default function CommandPalette() {
   const router = useRouter();
+  const pathname = usePathname() || '/';
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
@@ -167,7 +168,7 @@ export default function CommandPalette() {
 
   // Memoize expensive command generation with granular dependencies
   const themeCommands = useMemo(() => getThemeCommands(theme, setTheme), [theme, setTheme]);
-  const navigationCommands = useMemo(() => getNavigationCommands({ router }), [router.pathname]);
+  const navigationCommands = useMemo(() => getNavigationCommands({ router }), [pathname]);
 
   // Cache profile commands since they rarely change
   const profileCommands = useMemo(
@@ -330,7 +331,7 @@ export default function CommandPalette() {
 
   const setupHotkeysForCommands = useCallback(
     (commands: CommandType[]) => {
-      const currentPage = router.pathname.split('/')[1];
+      const currentPage = pathname.split('/')[1];
 
       // Group commands by shortcut to avoid duplicate registrations
       const shortcutToCommands = new Map<string, CommandType[]>();
@@ -743,7 +744,7 @@ export default function CommandPalette() {
       'Quick Actions': filteredCommands.filter((cmd) => {
         if (!cmd?.name) return false;
         // Hide quick actions on settings page
-        if (router.pathname === '/settings') return false;
+        if (pathname === '/settings') return false;
         const matches =
           newPostCommands.some((pc) => pc.name === cmd.name) ||
           cmd.name.includes('Create') ||

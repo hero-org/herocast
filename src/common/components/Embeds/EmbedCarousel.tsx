@@ -69,31 +69,31 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
 
   return (
     <div className="max-w-lg self-start">
-      <div className="relative overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-900" style={{ height: '280px' }}>
-        {/* Embed container */}
+      {/* Embed container - auto height */}
+      <div className="overflow-hidden rounded-lg">
         <div
-          className="flex transition-transform duration-300 ease-in-out h-full cursor-pointer"
+          className="flex transition-transform duration-300 ease-in-out cursor-pointer"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           onClick={onEmbedClick}
         >
           {embeds.map((embed, index) => (
             <div
               key={`embed-${embed?.cast_id?.hash || embed?.castId?.hash || embed?.url || index}`}
-              className="w-full flex-shrink-0 flex items-center justify-center p-2"
+              className="w-full flex-shrink-0"
             >
-              <div className="max-w-full max-h-full overflow-hidden">
-                {renderEmbedForUrl({ ...embed, hideReactions })}
-              </div>
+              {renderEmbedForUrl({ ...embed, hideReactions })}
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Navigation buttons */}
+      {/* Navigation - compact row below content */}
+      <div className="flex items-center justify-between mt-2 px-1">
         <Button
-          variant="secondary"
+          variant="ghost"
           size="sm"
           className={cn(
-            'absolute left-2 top-1/2 -translate-y-1/2 opacity-75 hover:opacity-100',
+            'h-7 px-2 text-muted-foreground hover:text-foreground',
             currentIndex === 0 && 'opacity-30 cursor-not-allowed'
           )}
           onClick={(e) => {
@@ -102,14 +102,34 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
           }}
           disabled={currentIndex === 0}
         >
-          <ChevronLeftIcon className="h-4 w-4" />
+          <ChevronLeftIcon className="h-4 w-4 mr-1" />
+          Prev
         </Button>
 
+        {/* Indicators */}
+        <div className="flex items-center gap-1.5">
+          {embeds.map((_, index) => (
+            <button
+              key={index}
+              className={cn(
+                'w-1.5 h-1.5 rounded-full transition-colors',
+                index === currentIndex
+                  ? 'bg-foreground'
+                  : 'bg-muted-foreground/40 hover:bg-muted-foreground/60'
+              )}
+              onClick={() => setCurrentIndex(index)}
+            />
+          ))}
+          <span className="ml-1 text-xs text-muted-foreground">
+            {currentIndex + 1}/{embeds.length}
+          </span>
+        </div>
+
         <Button
-          variant="secondary"
+          variant="ghost"
           size="sm"
           className={cn(
-            'absolute right-2 top-1/2 -translate-y-1/2 opacity-75 hover:opacity-100',
+            'h-7 px-2 text-muted-foreground hover:text-foreground',
             currentIndex === embeds.length - 1 && 'opacity-30 cursor-not-allowed'
           )}
           onClick={(e) => {
@@ -118,27 +138,9 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
           }}
           disabled={currentIndex === embeds.length - 1}
         >
-          <ChevronRightIcon className="h-4 w-4" />
+          Next
+          <ChevronRightIcon className="h-4 w-4 ml-1" />
         </Button>
-      </div>
-
-      {/* Indicators */}
-      <div className="flex justify-center mt-2 gap-1">
-        {embeds.map((_, index) => (
-          <button
-            key={index}
-            className={cn(
-              'w-2 h-2 rounded-full transition-colors',
-              index === currentIndex
-                ? 'bg-blue-500'
-                : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-            )}
-            onClick={() => setCurrentIndex(index)}
-          />
-        ))}
-        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-          {currentIndex + 1}/{embeds.length}
-        </span>
       </div>
     </div>
   );

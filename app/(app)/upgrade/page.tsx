@@ -7,7 +7,7 @@ import { CheckIcon } from '@heroicons/react/24/outline';
 import { XCircleIcon } from '@heroicons/react/24/solid';
 import { cn } from '@/lib/utils';
 import { isPaidUser, useUserStore } from '@/stores/useUserStore';
-import { useRouter } from 'next/router';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon } from '@heroicons/react/20/solid';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -292,6 +292,7 @@ export function Pricing() {
 
 export default function UpgradePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addUnsafeCustomerForUser } = useUserStore();
   const isPayingUser = isPaidUser();
 
@@ -304,12 +305,13 @@ export default function UpgradePage() {
       });
     };
 
-    const { success, product } = router.query;
+    const success = searchParams.get('success');
+    const product = searchParams.get('product');
     const hasPaidViaStripe = success === 'true';
     if (hasPaidViaStripe && !isPayingUser && product) {
-      onAddCustomer(typeof product === 'string' ? product : product[0]);
+      onAddCustomer(product);
     }
-  }, [router.query, isPayingUser]);
+  }, [searchParams, isPayingUser, addUnsafeCustomerForUser]);
 
   const renderUpgradeContent = () => (
     <div className="flex min-h-full flex-1 flex-col px-6 py-8 lg:px-8 space-y-4">

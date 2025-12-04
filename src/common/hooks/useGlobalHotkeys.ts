@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAppHotkeys, useMultipleHotkeys } from './useAppHotkeys';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { useAccountStore } from '@/stores/useAccountStore';
@@ -12,6 +12,7 @@ import { useListStore } from '@/stores/useListStore';
 // Hook that registers all global hotkeys for the app
 export function useGlobalHotkeys() {
   const router = useRouter();
+  const pathname = usePathname() || '/';
   const { theme, setTheme } = useTheme();
   const { toggleCommandPalette, openNewCastModal, setCastModalView, setCastModalDraftId } = useNavigationStore();
   const { accounts, selectedAccountIdx, setCurrentAccountIdx, setSelectedChannelUrl } = useAccountStore();
@@ -189,7 +190,7 @@ export function useGlobalHotkeys() {
   );
 
   // Feed switching (only on feeds page)
-  const isFeedsPage = router.pathname === '/feeds';
+  const isFeedsPage = pathname === '/feeds';
 
   useAppHotkeys(
     'shift+0',

@@ -7,7 +7,7 @@ import { Card, CardDescription, CardFooter, CardHeader } from '@/components/ui/c
 import { useAccountStore } from '@/stores/useAccountStore';
 import { Button } from '@/components/ui/button';
 import { generateWarpcastSigner, callCreateSignerRequest } from '@/common/helpers/warpcastLogin';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 export const CreateAccountPage = () => {
   const [isLoading, setIsLoading] = useState(false);
