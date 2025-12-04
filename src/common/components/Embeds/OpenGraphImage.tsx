@@ -54,32 +54,18 @@ const UrlEmbed = ({ url }: { url: string }) => {
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center gap-1">
           <span className="text-sm font-medium text-foreground truncate">{domain}</span>
-          {path && (
-            <span className="text-sm text-muted-foreground truncate">{path}</span>
-          )}
+          {path && <span className="text-sm text-muted-foreground truncate">{path}</span>}
         </div>
       </div>
       <div className="flex items-center gap-1 flex-shrink-0">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-7 p-0"
-          onClick={handleCopy}
-          title="Copy URL"
-        >
+        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleCopy} title="Copy URL">
           {copied ? (
             <CheckIcon className="h-4 w-4 text-green-500" />
           ) : (
             <ClipboardIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
           )}
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-7 p-0"
-          onClick={handleOpen}
-          title="Open in new tab"
-        >
+        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleOpen} title="Open in new tab">
           <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
         </Button>
       </div>
@@ -136,9 +122,7 @@ const OpenGraphImage = ({ url }: { url: string }) => {
           )}
           <div className="flex items-center gap-1 pt-1">
             <LinkIcon className="h-3 w-3 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground truncate">
-              {new URL(url).hostname.replace('www.', '')}
-            </span>
+            <span className="text-xs text-muted-foreground truncate">{new URL(url).hostname.replace('www.', '')}</span>
           </div>
         </CardHeader>
       </Card>

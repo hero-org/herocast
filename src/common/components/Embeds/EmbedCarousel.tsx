@@ -113,9 +113,7 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
               key={index}
               className={cn(
                 'w-1.5 h-1.5 rounded-full transition-colors',
-                index === currentIndex
-                  ? 'bg-foreground'
-                  : 'bg-muted-foreground/40 hover:bg-muted-foreground/60'
+                index === currentIndex ? 'bg-foreground' : 'bg-muted-foreground/40 hover:bg-muted-foreground/60'
               )}
               onClick={() => setCurrentIndex(index)}
             />

@@ -150,7 +150,11 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
   return (
     <div className="flex flex-col h-full w-full text-foreground/80 text-lg">
       {!isLoading && onBack && renderGoBackButton()}
-      {isLoading ? <SkeletonCastRow className="m-4" /> : <div className="flex-1 w-full ml-3 min-h-0">{renderFeed()}</div>}
+      {isLoading ? (
+        <SkeletonCastRow className="m-4" />
+      ) : (
+        <div className="flex-1 w-full ml-3 min-h-0">{renderFeed()}</div>
+      )}
     </div>
   );
 };
