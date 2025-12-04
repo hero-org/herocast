@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { renderEmbedForUrl } from './index';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
 
 type EmbedCarouselProps = {
   embeds: Array<{
@@ -28,25 +30,38 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
     setCurrentIndex(0);
   }, [embeds]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLElement && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-        return;
-      }
+  const goToPreviousEmbed = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  }, [currentIndex]);
 
-      if (e.key === 'ArrowLeft' && currentIndex > 0) {
-        e.preventDefault();
-        setCurrentIndex(currentIndex - 1);
-      } else if (e.key === 'ArrowRight' && currentIndex < embeds.length - 1) {
-        e.preventDefault();
-        setCurrentIndex(currentIndex + 1);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+  const goToNextEmbed = useCallback(() => {
+    if (currentIndex < embeds.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
   }, [currentIndex, embeds.length]);
+
+  // Keyboard navigation using app hotkey infrastructure
+  useAppHotkeys(
+    'left',
+    goToPreviousEmbed,
+    {
+      scopes: HotkeyScopes.FEED,
+      enableOnFormTags: false,
+    },
+    [goToPreviousEmbed]
+  );
+
+  useAppHotkeys(
+    'right',
+    goToNextEmbed,
+    {
+      scopes: HotkeyScopes.FEED,
+      enableOnFormTags: false,
+    },
+    [goToNextEmbed]
+  );
 
   if (!embeds || embeds.length === 0) return null;
 
@@ -59,13 +74,6 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
     );
   }
 
-  const goToPrevious = () => {
-    setCurrentIndex(currentIndex > 0 ? currentIndex - 1 : 0);
-  };
-
-  const goToNext = () => {
-    setCurrentIndex(currentIndex < embeds.length - 1 ? currentIndex + 1 : embeds.length - 1);
-  };
 
   return (
     <div className="max-w-lg self-start">
@@ -98,7 +106,7 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
           )}
           onClick={(e) => {
             e.stopPropagation();
-            goToPrevious();
+            goToPreviousEmbed();
           }}
           disabled={currentIndex === 0}
         >
@@ -132,7 +140,7 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
           )}
           onClick={(e) => {
             e.stopPropagation();
-            goToNext();
+            goToNextEmbed();
           }}
           disabled={currentIndex === embeds.length - 1}
         >

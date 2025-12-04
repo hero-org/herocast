@@ -34,6 +34,8 @@ import { useListStore } from '@/stores/useListStore';
 import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Inbox } from 'lucide-react';
+import LeftSidebarNav from '@/common/components/Sidebar/LeftSidebarNav';
+import AuthorContextPanel from '@/common/components/Sidebar/AuthorContextPanel';
 
 type NavigationGroupType = {
   name: string;
@@ -343,13 +345,11 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   const renderRightSidebar = () => {
     switch (sidebarType) {
       case RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR:
-        return <ShadcnRightSidebar showFeeds showLists showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.CAST_INFO:
-        return <ShadcnRightSidebar showAuthorInfo />;
+      case RIGHT_SIDEBAR_ENUM.SEARCH:
+        return <AuthorContextPanel />;
       case RIGHT_SIDEBAR_ENUM.PUBLISHED_CASTS:
         return <PublishedCastsRightSidebar />;
-      case RIGHT_SIDEBAR_ENUM.SEARCH:
-        return <ShadcnRightSidebar showManageLists showSearches showAuthorInfo />;
       case RIGHT_SIDEBAR_ENUM.NONE:
       default:
         return null;
@@ -475,58 +475,22 @@ const Home = ({ children }: { children: React.ReactNode }) => {
             </div>
           </Dialog>
         </Transition.Root>
-        <div className="h-full lg:ml-40 flex-1">
+        <div className="h-full lg:ml-[200px] flex-1">
           <div className="h-full">
             {/* Static sidebar for desktop */}
             {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-            <div className="hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-40 lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted">
-              {/* Sidebar component, swap this element with another sidebar if you like */}
-              <div className="flex grow flex-col flex-1 gap-y-5 overflow-y-auto bg-background px-4">
-                <Link href="/post" className="flex h-16 shrink-0 items-center hover:cursor-pointer">
-                  <h2 className="text-2xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+            <div className="hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted">
+              {/* Sidebar component */}
+              <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3">
+                <Link href="/post" className="flex h-14 shrink-0 items-center hover:cursor-pointer">
+                  <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
                     herocast
                   </h2>
                 </Link>
-                <div className="flex flex-col justify-between">
-                  <nav className="mt-0 divide-y divide-muted-foreground/20">
-                    {navigationGroups.map((group) => {
-                      const navigation = group.items;
-                      return (
-                        <div key={`nav-group-${group.name}`}>
-                          {navigation.map(
-                            (item) =>
-                              !item.hide && (
-                                <ul
-                                  key={`nav-item-${item.name}`}
-                                  role="list"
-                                  className="flex flex-col items-left space-y-1"
-                                >
-                                  <li key={item.name}>
-                                    <Link href={item.router}>
-                                      <div
-                                        className={cn(
-                                          item.router === pathname || item.additionalPaths?.includes(pathname)
-                                            ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-                                          'group flex gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold cursor-pointer'
-                                        )}
-                                      >
-                                        {item.icon}
-                                        <span className="truncate">{item.name}</span>
-                                      </div>
-                                    </Link>
-                                  </li>
-                                </ul>
-                              )
-                          )}
-                        </div>
-                      );
-                    })}
-                  </nav>
-                </div>
+                <LeftSidebarNav />
                 {isReadOnlyUser && renderUpgradeCard()}
                 {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
-                <div className="mt-auto py-4">
+                <div className="mt-auto py-3">
                   <AccountSwitcher />
                 </div>
               </div>
@@ -574,7 +538,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </div>
               </div>
               {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && (
-                <div className="hidden lg:block w-64 flex-shrink-0 overflow-y-auto border-l border-muted">
+                <div className="hidden lg:block flex-shrink-0">
                   {renderRightSidebar()}
                 </div>
               )}
