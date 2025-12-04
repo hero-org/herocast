@@ -20,14 +20,21 @@ export const renderShortcut = (shortcut: string, isSelected: boolean) => {
       return (
         <KbdGroup className={cn('transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60')}>
           {[...modifiers].map((mod, i) => (
-            <Kbd key={i} className="h-4 min-w-4 text-[10px]">{mod}</Kbd>
+            <Kbd key={i} className="h-4 min-w-4 text-[10px]">
+              {mod}
+            </Kbd>
           ))}
           <Kbd className="h-4 min-w-4 text-[10px]">{rest}</Kbd>
         </KbdGroup>
       );
     }
     return (
-      <Kbd className={cn('h-4 min-w-4 text-[10px] transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60')}>
+      <Kbd
+        className={cn(
+          'h-4 min-w-4 text-[10px] transition-opacity',
+          isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60'
+        )}
+      >
         {key}
       </Kbd>
     );
@@ -37,7 +44,9 @@ export const renderShortcut = (shortcut: string, isSelected: boolean) => {
   return (
     <KbdGroup className={cn('transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60')}>
       {parts.map((part, i) => (
-        <Kbd key={i} className="h-4 min-w-4 text-[10px]">{part}</Kbd>
+        <Kbd key={i} className="h-4 min-w-4 text-[10px]">
+          {part}
+        </Kbd>
       ))}
     </KbdGroup>
   );
@@ -113,10 +122,12 @@ const CollapsibleNavSection: React.FC<CollapsibleNavSectionProps> = ({
   return (
     <Collapsible open={!isCollapsed} onOpenChange={() => onToggle()}>
       <CollapsibleTrigger asChild>
-        <button className={cn(
-          "w-full flex items-center gap-x-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors",
-          !isCollapsed ? 'text-foreground bg-muted/30' : 'text-foreground/60 hover:text-foreground/80'
-        )}>
+        <button
+          className={cn(
+            'w-full flex items-center gap-x-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors',
+            !isCollapsed ? 'text-foreground bg-muted/30' : 'text-foreground/60 hover:text-foreground/80'
+          )}
+        >
           {isCollapsed ? (
             <ChevronRight className="h-3 w-3 flex-shrink-0" />
           ) : (
