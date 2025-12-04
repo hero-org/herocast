@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -24,11 +24,40 @@ type EmbedCarouselProps = {
 
 const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [containerHeight, setContainerHeight] = useState<number | 'auto'>('auto');
+  const embedRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Reset to first embed when embeds change
+  // Reset state when embeds change
   useEffect(() => {
     setCurrentIndex(0);
+    setContainerHeight('auto');
+    embedRefs.current = [];
   }, [embeds]);
+
+  // Track height of current embed with ResizeObserver
+  useEffect(() => {
+    const currentRef = embedRefs.current[currentIndex];
+    if (!currentRef) return;
+
+    const updateHeight = () => {
+      const height = currentRef.offsetHeight;
+      if (height > 0) {
+        setContainerHeight(height);
+      }
+    };
+
+    // Initial measurement with small delay for render
+    const timer = setTimeout(updateHeight, 50);
+
+    // Watch for size changes (async content loading like tweets)
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(currentRef);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [currentIndex]);
 
   const goToPreviousEmbed = useCallback(() => {
     if (currentIndex > 0) {
@@ -76,8 +105,11 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
 
   return (
     <div className="max-w-lg self-start">
-      {/* Embed container - auto height */}
-      <div className="overflow-hidden rounded-lg">
+      {/* Embed container with animated height */}
+      <div
+        className="overflow-hidden rounded-lg transition-[height] duration-300 ease-in-out"
+        style={{ height: containerHeight === 'auto' ? 'auto' : `${containerHeight}px` }}
+      >
         <div
           className="flex transition-transform duration-300 ease-in-out cursor-pointer"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -86,6 +118,9 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
           {embeds.map((embed, index) => (
             <div
               key={`embed-${embed?.cast_id?.hash || embed?.castId?.hash || embed?.url || index}`}
+              ref={(el) => {
+                embedRefs.current[index] = el;
+              }}
               className="w-full flex-shrink-0"
             >
               {renderEmbedForUrl({ ...embed, hideReactions })}
