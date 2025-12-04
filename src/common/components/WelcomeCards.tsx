@@ -1,7 +1,7 @@
 import React from 'react';
 import BigOptionSelector from '@/common/components/BigOptionSelector';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
 
 const WelcomeCards = () => {

@@ -23,7 +23,7 @@ import {
 } from '@/common/helpers/warpcastLogin';
 import HelpCard from '@/common/components/HelpCard';
 import { useIsMounted } from '@/common/helpers/hooks';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { openWindow } from '@/common/helpers/navigation';
 import ConfirmOnchainSignerButton from '@/common/components/ConfirmOnchainSignerButton';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { List } from '@/common/types/database.types';
 import { SearchListContent, isSearchListContent } from '@/common/types/list.types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';

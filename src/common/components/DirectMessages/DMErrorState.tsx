@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, Clock, Key, RefreshCw, WifiOff, ExternalLink, Loader2 } from 'lucide-react';
 import { getErrorInfo, DMErrorType, DMErrorInfo } from '@/common/utils/dmErrors';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface RetryButtonProps {
   onRetry: () => void | Promise<void>;

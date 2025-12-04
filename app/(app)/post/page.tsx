@@ -30,7 +30,7 @@ import { renderEmbedForUrl } from '@/common/components/Embeds';
 import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date';
 import { ChannelDisplay } from '@/common/components/ChannelDisplay';
 import { UUID } from 'crypto';
-import { useRouter } from 'next/router';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import EmptyStateWithAction from '@/common/components/EmptyStateWithAction';
 import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
@@ -85,7 +85,8 @@ export default function NewPost() {
   const selectedAccount = accounts[selectedAccountIdx];
   const [activeTab, setActiveTab] = useState<DraftListTab>(DraftListTab.writing);
   const router = useRouter();
-  const pathname = router.pathname;
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const savedPathname = useRef(pathname);
 
   // 1024px is the default starting breakpoint for  tailwindcss' XL screen. This should be updated if the breakpoint values is updated in tailwind.config.js
@@ -129,21 +130,18 @@ export default function NewPost() {
   }, [isBelowLgScreen, isDraftsModalOpen, closeDraftsModal]);
 
   useEffect(() => {
-    const { text } = router.query;
+    const text = searchParams.get('text');
     if (text) {
-      const textValue = Array.isArray(text) ? text.join('. ') : text;
-      if (textValue) {
-        addNewPostDraft({ text: textValue });
-      }
+      addNewPostDraft({ text: text });
     }
     // Removed automatic draft creation when drafts.length === 0
-  }, [router.query, addNewPostDraft]);
+  }, [searchParams, addNewPostDraft]);
 
   useEffect(() => {
     if (savedPathname.current !== pathname && drafts.length > 0) {
       removeEmptyDrafts();
     }
-  }, [pathname, router.query, drafts.length, removeEmptyDrafts]);
+  }, [pathname, searchParams, drafts.length, removeEmptyDrafts]);
 
   useEffect(() => {
     // when drafts change, we want to make sure that selectedDraftId is always a valid draft id

@@ -62,8 +62,8 @@ export default function ConversationPage() {
   }, [slug]);
 
   return (
-    <div className="w-full">
-      <CastThreadView cast={cast} />
+    <div className="h-full w-full">
+      <CastThreadView cast={cast} containerHeight="100%" />
     </div>
   );
 }

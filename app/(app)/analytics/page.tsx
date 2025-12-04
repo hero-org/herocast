@@ -7,7 +7,7 @@ import { createClient } from '@/common/helpers/supabase/component';
 import { AnalyticsData } from '@/common/types/types';
 import { useAccountStore } from '@/stores/useAccountStore';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import get from 'lodash.get';
 import { Loading } from '@/common/components/Loading';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';

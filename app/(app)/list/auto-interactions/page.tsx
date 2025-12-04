@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 
 // Force dynamic rendering since we use useRouter which uses useSearchParams

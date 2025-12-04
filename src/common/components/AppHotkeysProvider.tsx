@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { HotkeysProvider, useHotkeysContext } from 'react-hotkeys-hook';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import { getScopesForPage, HotkeyScopes } from '@/common/constants/hotkeys';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { useDataStore } from '@/stores/useDataStore';
@@ -13,13 +13,10 @@ interface AppHotkeysProviderProps {
 
 // Component to manage scope changes based on app state
 function ScopeManager() {
-  const router = useRouter();
+  const pathname = usePathname() || '/';
   const { enableScope, disableScope, enabledScopes } = useHotkeysContext();
   const { isCommandPaletteOpen, isNewCastModalOpen } = useNavigationStore();
   const { selectedCast } = useDataStore();
-
-  // Use pathname safely with fallback
-  const pathname = router?.pathname || '/';
 
   // Ensure global scope is always enabled on mount
   useEffect(() => {

@@ -9,7 +9,7 @@ import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { cn } from '@/lib/utils';
 import { useDataStore } from '@/stores/useDataStore';
 import SkeletonCastRow from './SkeletonCastRow';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 type CastThreadViewProps = {
   hash?: string;
@@ -18,9 +18,10 @@ type CastThreadViewProps = {
   isActive?: boolean;
   onReply?: () => void;
   onQuote?: () => void;
+  containerHeight?: string;
 };
 
-export const CastThreadView = ({ hash, cast, onBack, isActive }: CastThreadViewProps) => {
+export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight = '100%' }: CastThreadViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
@@ -140,13 +141,20 @@ export const CastThreadView = ({ hash, cast, onBack, isActive }: CastThreadViewP
       setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: CastWithInteractions, idx: number) => renderRow(item, idx)}
       isActive={isActive}
+      containerHeight={containerHeight}
+      pinnedNavigation={true}
+      footer={<div className="h-32" />}
     />
   );
 
   return (
-    <div className="flex flex-col text-foreground/80 text-lg">
+    <div className="flex flex-col h-full w-full text-foreground/80 text-lg">
       {!isLoading && onBack && renderGoBackButton()}
-      {isLoading ? <SkeletonCastRow className="m-4" /> : <div className="flow-root ml-3">{renderFeed()}</div>}
+      {isLoading ? (
+        <SkeletonCastRow className="m-4" />
+      ) : (
+        <div className="flex-1 w-full ml-3 min-h-0">{renderFeed()}</div>
+      )}
     </div>
   );
 };
