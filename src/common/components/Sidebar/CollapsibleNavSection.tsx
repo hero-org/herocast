@@ -3,6 +3,45 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
+import { Kbd, KbdGroup } from '@/components/ui/kbd';
+
+// Helper to render shortcut as individual keys
+export const renderShortcut = (shortcut: string, isSelected: boolean) => {
+  // Split by spaces for multi-key shortcuts like "g s 1"
+  const parts = shortcut.split(' ').filter(Boolean);
+
+  if (parts.length === 1) {
+    // Single key or combined modifier like "⇧1" or "⌘⇧A"
+    const key = parts[0];
+    // Check if it's a modifier + key combo (starts with ⇧, ⌘, ⌥, ⌃)
+    const modifierMatch = key.match(/^([⇧⌘⌥⌃]+)(.+)$/);
+    if (modifierMatch) {
+      const [, modifiers, rest] = modifierMatch;
+      return (
+        <KbdGroup className={cn('transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60')}>
+          {[...modifiers].map((mod, i) => (
+            <Kbd key={i} className="h-4 min-w-4 text-[10px]">{mod}</Kbd>
+          ))}
+          <Kbd className="h-4 min-w-4 text-[10px]">{rest}</Kbd>
+        </KbdGroup>
+      );
+    }
+    return (
+      <Kbd className={cn('h-4 min-w-4 text-[10px] transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60')}>
+        {key}
+      </Kbd>
+    );
+  }
+
+  // Multi-key sequence like "g s 1"
+  return (
+    <KbdGroup className={cn('transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60')}>
+      {parts.map((part, i) => (
+        <Kbd key={i} className="h-4 min-w-4 text-[10px]">{part}</Kbd>
+      ))}
+    </KbdGroup>
+  );
+};
 
 export type NavItem = {
   id: string;
@@ -51,9 +90,6 @@ const CollapsibleNavSection: React.FC<CollapsibleNavSectionProps> = ({
 
     return (
       <div key={item.id} className="relative group">
-        {isSelected && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
-        )}
         <div
           onClick={() => {
             item.onClick?.();
@@ -68,18 +104,7 @@ const CollapsibleNavSection: React.FC<CollapsibleNavSectionProps> = ({
         >
           {item.icon && <span className="flex-shrink-0 w-4 h-4">{item.icon}</span>}
           <span className="flex-1 truncate">{item.name}</span>
-          {shortcut && (
-            <kbd
-              className={cn(
-                'px-1 py-0.5 rounded text-[10px] font-mono transition-opacity whitespace-nowrap',
-                isSelected
-                  ? 'opacity-70 bg-primary/20 text-primary'
-                  : 'opacity-0 group-hover:opacity-60 bg-muted text-muted-foreground'
-              )}
-            >
-              {shortcut}
-            </kbd>
-          )}
+          {shortcut && renderShortcut(shortcut, isSelected)}
         </div>
       </div>
     );
@@ -88,7 +113,10 @@ const CollapsibleNavSection: React.FC<CollapsibleNavSectionProps> = ({
   return (
     <Collapsible open={!isCollapsed} onOpenChange={() => onToggle()}>
       <CollapsibleTrigger asChild>
-        <button className="w-full flex items-center gap-x-2 px-3 py-1.5 text-xs font-semibold text-foreground/60 uppercase tracking-wider hover:text-foreground/80 transition-colors">
+        <button className={cn(
+          "w-full flex items-center gap-x-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors",
+          !isCollapsed ? 'text-foreground bg-muted/30' : 'text-foreground/60 hover:text-foreground/80'
+        )}>
           {isCollapsed ? (
             <ChevronRight className="h-3 w-3 flex-shrink-0" />
           ) : (

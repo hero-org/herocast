@@ -74,7 +74,6 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
     );
   }
 
-
   return (
     <div className="max-w-lg self-start">
       {/* Embed container - auto height */}

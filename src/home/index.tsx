@@ -479,9 +479,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           <div className="h-full">
             {/* Static sidebar for desktop */}
             {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-            <div className="hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted">
+            <div className="hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted no-scrollbar">
               {/* Sidebar component */}
-              <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3">
+              <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
                 <Link href="/post" className="flex h-14 shrink-0 items-center hover:cursor-pointer">
                   <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
                     herocast
@@ -538,9 +538,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </div>
               </div>
               {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && (
-                <div className="hidden lg:block flex-shrink-0">
-                  {renderRightSidebar()}
-                </div>
+                <div className="hidden lg:block flex-shrink-0">{renderRightSidebar()}</div>
               )}
             </div>
             {renderNewCastModal()}

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useAccountStore, CUSTOM_CHANNELS } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
 import { useSidebarCollapseState } from '@/common/hooks/useSidebarCollapseState';
-import CollapsibleNavSection, { NavItem } from './CollapsibleNavSection';
+import CollapsibleNavSection, { NavItem, renderShortcut } from './CollapsibleNavSection';
 import { Button } from '@/components/ui/button';
 import {
   Inbox,
@@ -96,8 +96,6 @@ const LeftSidebarNav = () => {
   const pathname = usePathname() || '/';
   const router = useRouter();
   const { collapseState, toggleSection } = useSidebarCollapseState();
-
-  // Get data from stores
   const { selectedChannelUrl, setSelectedChannelUrl } = useAccountStore();
   const channels = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels || []);
   const { selectedListId, setSelectedListId, getSearchLists, getFidLists } = useListStore();
@@ -105,7 +103,6 @@ const LeftSidebarNav = () => {
   const searchLists = getSearchLists();
   const fidLists = getFidLists();
 
-  // Check if a nav item is active
   const isNavItemActive = (item: MainNavItem) => {
     if (pathname === item.href) return true;
     if (item.additionalPaths) {
@@ -114,7 +111,6 @@ const LeftSidebarNav = () => {
     return false;
   };
 
-  // Handle feed selection
   const handleFeedSelect = (feedUrl: string) => {
     setSelectedChannelUrl(feedUrl);
     setSelectedListId(undefined);
@@ -123,7 +119,6 @@ const LeftSidebarNav = () => {
     }
   };
 
-  // Handle list selection
   const handleListSelect = (listId: string) => {
     setSelectedListId(listId as any);
     setSelectedChannelUrl(null);
@@ -132,7 +127,6 @@ const LeftSidebarNav = () => {
     }
   };
 
-  // Handle channel selection
   const handleChannelSelect = (channelUrl: string) => {
     setSelectedChannelUrl(channelUrl);
     setSelectedListId(undefined);
@@ -141,7 +135,6 @@ const LeftSidebarNav = () => {
     }
   };
 
-  // Build feed items
   const feedItems: NavItem[] = [
     {
       id: CUSTOM_CHANNELS.FOLLOWING,
@@ -159,23 +152,18 @@ const LeftSidebarNav = () => {
     },
   ];
 
-  // Build search list items
   const searchItems: NavItem[] = searchLists.map((list) => ({
     id: list.id,
     name: list.name,
-    icon: <Search className="h-4 w-4" />,
     onClick: () => handleListSelect(list.id),
   }));
 
-  // Build fid list items
   const listItems: NavItem[] = fidLists.map((list) => ({
     id: list.id,
     name: list.name,
-    icon: <Users className="h-4 w-4" />,
     onClick: () => handleListSelect(list.id),
   }));
 
-  // Build channel items
   const channelItems: NavItem[] = channels.map((channel) => ({
     id: channel.url,
     name: channel.name,
@@ -187,7 +175,6 @@ const LeftSidebarNav = () => {
     onClick: () => handleChannelSelect(channel.url),
   }));
 
-  // Determine what's selected
   const getSelectedFeedId = () => {
     if (selectedListId) return undefined;
     return selectedChannelUrl || undefined;
@@ -216,23 +203,14 @@ const LeftSidebarNav = () => {
         >
           {item.icon}
           <span className="flex-1 truncate">{item.name}</span>
-          {item.shortcut && (
-            <kbd
-              className={cn(
-                'px-1 py-0.5 rounded text-[10px] font-mono transition-opacity',
-                isActive ? 'opacity-60' : 'opacity-0 group-hover:opacity-50'
-              )}
-            >
-              {item.shortcut}
-            </kbd>
-          )}
+          {item.shortcut && renderShortcut(item.shortcut, isActive)}
         </div>
       </Link>
     );
   };
 
   return (
-    <nav className="flex flex-col flex-1 gap-y-1 overflow-y-auto">
+    <nav className="flex flex-col flex-1 gap-y-1 overflow-y-auto no-scrollbar">
       {/* Main navigation */}
       <div className="space-y-0.5">{mainNavItems.map(renderMainNavItem)}</div>
 
@@ -262,7 +240,11 @@ const LeftSidebarNav = () => {
         selectedId={getSelectedListId()}
         emptyState={
           <Link href="/lists?tab=search" className="block px-3">
-            <Button variant="ghost" size="sm" className="w-full h-7 text-xs text-muted-foreground hover:text-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+            >
               + Add search
             </Button>
           </Link>
@@ -294,7 +276,11 @@ const LeftSidebarNav = () => {
         selectedId={getSelectedListId()}
         emptyState={
           <Link href="/lists?tab=users" className="block px-3">
-            <Button variant="ghost" size="sm" className="w-full h-7 text-xs text-muted-foreground hover:text-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+            >
               + Add list
             </Button>
           </Link>
@@ -336,7 +322,11 @@ const LeftSidebarNav = () => {
         selectedId={getSelectedFeedId()}
         emptyState={
           <Link href="/channels" className="block px-3">
-            <Button variant="ghost" size="sm" className="w-full h-7 text-xs text-muted-foreground hover:text-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+            >
               + Pin channels
             </Button>
           </Link>

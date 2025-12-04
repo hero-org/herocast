@@ -66,7 +66,7 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
         <div className="space-y-2 text-sm">
           {!hideBio && profile.profile?.bio?.text && (
             <div
-              className={`text-sm break-words text-foreground/80 leading-relaxed ${isHoverCard ? '' : 'pr-2 overflow-x-hidden'}`}
+              className={`text-sm break-words text-foreground/80 leading-relaxed line-clamp-3 min-h-[60px] ${isHoverCard ? '' : 'pr-2 overflow-x-hidden'}`}
             >
               <Linkify
                 as="p"
