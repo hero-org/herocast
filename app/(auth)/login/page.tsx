@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useAuth } from '@/common/context/AuthContext';
+import { Loading } from '@/common/components/Loading';
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
@@ -19,6 +20,15 @@ const authKitConfig = {
 
 function AuthFormSkeleton() {
   return <div className="h-[380px] w-full animate-pulse rounded-lg bg-muted/40" />;
+}
+
+function LoggingInMessage() {
+  return (
+    <div className="h-[380px] w-full flex flex-col items-center justify-center gap-3">
+      <Loading />
+      <p className="text-sm text-muted-foreground">Logging you in...</p>
+    </div>
+  );
 }
 
 function LoginContent() {
@@ -51,9 +61,9 @@ function LoginContent() {
       return <AuthFormSkeleton />;
     }
 
-    // If logged in and not resetting password, skeleton is shown but redirect happens
+    // If logged in and not resetting password, show logging in message while redirect happens
     if (user && view !== 'reset') {
-      return <AuthFormSkeleton />;
+      return <LoggingInMessage />;
     }
 
     // Show the actual form
