@@ -7,6 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
+  didLoad: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -48,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user, pathname, didLoad]);
 
-  return <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, didLoad }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

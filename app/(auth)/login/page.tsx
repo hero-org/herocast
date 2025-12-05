@@ -4,11 +4,12 @@ import '@farcaster/auth-kit/styles.css';
 import React, { useEffect, useState, Suspense } from 'react';
 import { UserAuthForm } from '@/common/components/UserAuthForm';
 import { AuthKitProvider } from '@farcaster/auth-kit';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useAuth } from '@/common/context/AuthContext';
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
@@ -16,8 +17,14 @@ const authKitConfig = {
   // siweUri: `${process.env.NEXT_PUBLIC_URL}/api/auth/siwe`,
 };
 
+function AuthFormSkeleton() {
+  return <div className="h-[380px] w-full animate-pulse rounded-lg bg-muted/40" />;
+}
+
 function LoginContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user, didLoad } = useAuth();
   const signupOnly = searchParams.get('signupOnly');
   const view = searchParams.get('view');
   const error = searchParams.get('error');
@@ -31,11 +38,31 @@ function LoginContent() {
     }
   }, [error, error_description]);
 
-  const renderAuthForm = () => (
-    <div className="text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
-      <UserAuthForm signupOnly={showOnlySignup} />
-    </div>
-  );
+  // Redirect logged-in users to /feeds or /post
+  useEffect(() => {
+    if (didLoad && user && view !== 'reset') {
+      router.replace('/feeds');
+    }
+  }, [didLoad, user, view, router]);
+
+  const renderAuthForm = () => {
+    // Show skeleton while auth state is loading
+    if (!didLoad) {
+      return <AuthFormSkeleton />;
+    }
+
+    // If logged in and not resetting password, skeleton is shown but redirect happens
+    if (user && view !== 'reset') {
+      return <AuthFormSkeleton />;
+    }
+
+    // Show the actual form
+    return (
+      <div className="text-lg text-foreground sm:mx-auto sm:w-full sm:max-w-sm">
+        <UserAuthForm signupOnly={showOnlySignup} />
+      </div>
+    );
+  };
 
   return (
     <div className="w-full min-h-screen">
