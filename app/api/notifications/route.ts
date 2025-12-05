@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const fid = searchParams.get('fid');
     const cursor = searchParams.get('cursor');
     const limit = searchParams.get('limit') || '25';
+    const type = searchParams.get('type'); // Type filter: follows, recasts, likes, mentions, replies, quotes
 
     if (!fid) {
       return NextResponse.json({ error: 'Missing fid parameter' }, { status: 400 });
@@ -27,6 +28,9 @@ export async function GET(request: NextRequest) {
     params.append('limit', limit);
     if (cursor) {
       params.append('cursor', cursor);
+    }
+    if (type) {
+      params.append('type', type);
     }
 
     // Set up timeout
