@@ -795,7 +795,7 @@ const CastRowComponent = ({
         {renderRecastBadge()}
         {isThreadView && <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />}
         <div
-          className={cn('flex items-top gap-x-4')}
+          className={cn('flex items-top gap-x-2')}
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -818,7 +818,7 @@ const CastRowComponent = ({
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 {hideAuthor ? (
-                  <span className="text-sm leading-5 text-foreground/50">@{authorInfo.username}</span>
+                  <span className="text-sm leading-5 text-foreground/50">{authorInfo.username}</span>
                 ) : (
                   <MemoizedProfileHoverCard fid={cast.author.fid} viewerFid={userFid} username={authorInfo.username}>
                     <span className="items-center flex font-semibold text-foreground truncate cursor-pointer w-full max-w-54 lg:max-w-full">
@@ -828,19 +828,7 @@ const CastRowComponent = ({
                           <AvatarFallback>{cast.author.username?.slice(0, 2)}</AvatarFallback>
                         </Avatar>
                       )}
-                      {authorInfo.displayName}
-                      <span className="hidden text-muted-foreground font-normal lg:ml-1 lg:block">
-                        @{authorInfo.username}
-                      </span>
-                      <span>
-                        {cast.author.power_badge && (
-                          <img
-                            src="/images/ActiveBadge.webp"
-                            className="ml-1 mt-0.5 h-[14px] w-[14px]"
-                            alt="power badge"
-                          />
-                        )}
-                      </span>
+                      {authorInfo.username}
                     </span>
                   </MemoizedProfileHoverCard>
                 )}

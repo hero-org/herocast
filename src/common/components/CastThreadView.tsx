@@ -45,12 +45,12 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
   }, [selectedCastIdx]);
 
   const renderGoBackButton = () => (
-    <Button size="sm" variant="outline" onClick={() => onBack && onBack()} className="ml-2 w-16 group my-2">
+    <Button size="sm" variant="outline" onClick={() => onBack && onBack()} className="ml-2 max-w-fit group my-2">
       <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
         <HotkeyTooltipWrapper hotkey="Esc" side="right">
           <>
             <ArrowLeftIcon
-              className="mr-1 h-4 w-4 text-foreground/70 group-hover:text-foreground/80"
+              className="mr-1 mt-0.5 h-4 w-4 text-foreground/70 group-hover:text-foreground/80"
               aria-hidden="true"
             />
             Back
@@ -107,7 +107,7 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
         className={cn(idx === selectedCastIdx ? '' : '')}
         onClick={() => setSelectedCastIdx(idx)}
       >
-        <div className="relative pl-4">
+        <div className="relative pl-7">
           {/* this is the left line */}
           <div className={cn(idx === 0 ? '-ml-[31px]' : 'border-l-2', 'relative flex items-start border-muted')}>
             <div className="min-w-0 flex-1">
@@ -150,11 +150,7 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
   return (
     <div className="flex flex-col h-full w-full text-foreground/80 text-lg">
       {!isLoading && onBack && renderGoBackButton()}
-      {isLoading ? (
-        <SkeletonCastRow className="m-4" />
-      ) : (
-        <div className="flex-1 w-full ml-3 min-h-0">{renderFeed()}</div>
-      )}
+      {isLoading ? <SkeletonCastRow className="m-4" /> : <div className="flex-1 w-full min-h-0">{renderFeed()}</div>}
     </div>
   );
 };
