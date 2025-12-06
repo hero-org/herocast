@@ -483,11 +483,12 @@ export default function NewPostEntry({
         <div className="flex flex-row py-2 gap-1 overflow-x-auto no-scrollbar">
           {!isReply && !hideChannel && (
             <>
+              {/* @ts-expect-error - channel types differ between mod-protocol and neynar */}
               <ChannelPicker
                 value={channel || undefined}
-                onSelect={setChannel}
-                channels={userChannels}
-                // @ts-expect-error - channel type from mod protocol has different shape
+                onSelect={(ch) => setChannel(ch ?? null)}
+                initialChannels={userChannels}
+                getChannels={getChannels}
                 getAllChannels={getAllChannels}
                 disabled={isPublishing}
               />
@@ -503,7 +504,7 @@ export default function NewPostEntry({
             Media
           </Button>
           {!hideSchedule && (
-            <Popover open={schedulePopoverOpen} onOpenChange={setSchedulePopoverOpen}>
+            <Popover open={schedulePopoverOpen} onOpenChange={setSchedulePopoverOpen} modal={true}>
               <PopoverTrigger asChild>
                 <Button
                   size="sm"
@@ -524,7 +525,7 @@ export default function NewPostEntry({
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[520px] p-0" align="center">
+              <PopoverContent className="w-[520px] p-0 z-[100]" align="center">
                 <div className="flex">
                   {/* Calendar Section */}
                   <div className="p-3 border-r">

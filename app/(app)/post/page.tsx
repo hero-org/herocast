@@ -150,8 +150,18 @@ export default function NewPost() {
     }
   }, [draftsForTab, selectedDraftId]);
 
+  // Memoize parentCastIds - only recomputes when drafts change
+  const parentCastIds = useMemo(
+    () => drafts.map((draft) => draft?.parentCastId?.hash).filter(Boolean) as string[],
+    [drafts]
+  );
+
+  // Create a stable string key for the effect dependency
+  // This only changes when the actual hash values change, not on every drafts reference change
+  const parentCastIdsKey = useMemo(() => parentCastIds.join(','), [parentCastIds]);
+
   useEffect(() => {
-    const parentCastIds = drafts.map((draft) => draft?.parentCastId?.hash).filter(Boolean) as string[];
+    if (parentCastIds.length === 0) return;
 
     const fetchParentCasts = async () => {
       const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
@@ -160,10 +170,9 @@ export default function NewPost() {
       });
       setParentCasts(res?.result?.casts || []);
     };
-    if (parentCastIds.length > 0) {
-      fetchParentCasts();
-    }
-  }, [drafts, selectedAccount?.platformAccountId]);
+
+    fetchParentCasts();
+  }, [parentCastIdsKey, selectedAccount?.platformAccountId]);
 
   const renderContent = () => {
     const draft = draftsForTab.find((draft) => draft.id === selectedDraftId);
