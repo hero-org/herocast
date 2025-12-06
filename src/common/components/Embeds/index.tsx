@@ -23,9 +23,10 @@ type CastEmbedType = {
   };
   onRemove?: () => void;
   hideReactions?: boolean;
+  skipIntersection?: boolean;
 };
 
-const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
+const getEmbedForUrl = (url: string, hideReactions?: boolean, skipIntersection?: boolean) => {
   if (url.includes('i.imgur.com') || url.startsWith('https://imagedelivery.net') || isImageUrl(url)) {
     return <WarpcastImage url={url} />;
   } else if (url.startsWith('"chain:')) {
@@ -42,17 +43,24 @@ const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
   } else if (url.includes('paragraph.xyz') || url.includes('pgrph.xyz')) {
     return <ParagraphXyzEmbed url={url} />;
   } else {
-    return <OpenGraphImage url={url} />;
+    return <OpenGraphImage url={url} skipIntersection={skipIntersection} />;
   }
 };
 
-export const renderEmbedForUrl = ({ url, cast_id, castId, onRemove, hideReactions }: CastEmbedType) => {
+export const renderEmbedForUrl = ({
+  url,
+  cast_id,
+  castId,
+  onRemove,
+  hideReactions,
+  skipIntersection,
+}: CastEmbedType) => {
   if (castId || cast_id) {
     return <CastEmbed castId={castId || cast_id} hideReactions={hideReactions} />;
   }
   if (!url) return null;
 
-  const embed = getEmbedForUrl(url, hideReactions);
+  const embed = getEmbedForUrl(url, hideReactions, skipIntersection);
   if (!embed) return null;
 
   return (

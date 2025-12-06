@@ -94,7 +94,7 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
 
   if (!embeds || embeds.length === 0) return null;
 
-  // Single embed - no carousel UI needed
+  // Single embed - no carousel UI needed (no transform, so intersection observer works)
   if (embeds.length === 1) {
     return (
       <div className="max-w-lg self-start cursor-pointer" onClick={onEmbedClick}>
@@ -123,7 +123,7 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
               }}
               className="w-full flex-shrink-0"
             >
-              {renderEmbedForUrl({ ...embed, hideReactions })}
+              {renderEmbedForUrl({ ...embed, hideReactions, skipIntersection: true })}
             </div>
           ))}
         </div>

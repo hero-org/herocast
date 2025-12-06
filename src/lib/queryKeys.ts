@@ -78,6 +78,12 @@ export const queryKeys = {
     byUrl: (url: string) => ['channels', 'byUrl', url] as const,
     search: (query: string) => ['channels', 'search', query] as const,
   },
+
+  // Embed queries
+  embeds: {
+    all: ['embeds'] as const,
+    urlMetadata: (url: string) => ['embeds', 'urlMetadata', url] as const,
+  },
 } as const;
 
 // Type helpers for query key inference
