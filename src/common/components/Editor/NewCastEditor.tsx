@@ -36,7 +36,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { isPaidUser } from '@/stores/useUserStore';
 import { MentionList } from '../MentionsList';
-import { useImgurUpload } from '@/common/hooks/useImgurUpload';
+import { useCloudinaryUpload } from '@/common/hooks/useCloudinaryUpload';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
 import { format, startOfToday } from 'date-fns';
 
@@ -200,7 +200,7 @@ export default function NewPostEntry({
     [onSubmitPost, draft, account, isHydrated]
   );
 
-  const { uploadImage, isUploading, error, image } = useImgurUpload();
+  const { uploadImage, isUploading, error, image } = useCloudinaryUpload();
 
   useEffect(() => {
     if (isUploading) {
@@ -229,7 +229,7 @@ export default function NewPostEntry({
         ]);
       }
     } else if (error) {
-      console.error('failed uploading to imgur', error);
+      console.error('failed uploading to cloudinary', error);
       toast.error(error, {
         id: 'image-upload',
       });

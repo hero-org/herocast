@@ -26,8 +26,13 @@ type CastEmbedType = {
   skipIntersection?: boolean;
 };
 
-const getEmbedForUrl = (url: string, hideReactions?: boolean, skipIntersection?: boolean) => {
-  if (url.includes('i.imgur.com') || url.startsWith('https://imagedelivery.net') || isImageUrl(url)) {
+const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
+  if (
+    url.includes('i.imgur.com') ||
+    url.includes('res.cloudinary.com') ||
+    url.startsWith('https://imagedelivery.net') ||
+    isImageUrl(url)
+  ) {
     return <WarpcastImage url={url} />;
   } else if (url.startsWith('"chain:')) {
     return <OnchainEmbed url={url} />;
