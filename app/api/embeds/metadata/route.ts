@@ -72,12 +72,20 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null> {
 
         // Only return if we got at least a title
         if (title) {
+          // Convert relative favicon to absolute URL
+          let faviconUrl = html.favicon;
+          if (faviconUrl && !faviconUrl.startsWith('http')) {
+            try {
+              faviconUrl = new URL(faviconUrl, url).href;
+            } catch {}
+          }
+
           return {
             url,
             title,
             description: html.ogDescription || html.description,
             image: html.ogImage?.[0]?.url,
-            favicon: html.favicon,
+            favicon: faviconUrl,
           };
         }
       }
