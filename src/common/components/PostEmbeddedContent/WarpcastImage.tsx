@@ -5,8 +5,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 
 const getImageViaCdnUrl = (imgUrl: string, skipCdn: boolean) => {
+  // Cloudinary URLs are already CDN-optimized, return as-is
+  if (imgUrl.includes('res.cloudinary.com')) return imgUrl;
   if (imgUrl.startsWith('https://imagedelivery.net')) return imgUrl;
 
+  // Legacy imgur URLs: proxy through Cloudinary for reliability
   if (!skipCdn && imgUrl.includes('imgur.com')) {
     const fileSuffix = imgUrl.split('.').slice(-1)[0];
     return `https://res.cloudinary.com/merkle-manufactory/image/fetch/c_fill,f_${fileSuffix}/${imgUrl}`;

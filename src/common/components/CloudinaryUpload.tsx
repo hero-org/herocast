@@ -2,15 +2,15 @@ import React, { useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useImgurUpload } from '@/common/hooks/useImgurUpload';
+import { useCloudinaryUpload } from '@/common/hooks/useCloudinaryUpload';
 
-type ImgurUploadProps = {
-  onSuccess?: (string) => void;
+type CloudinaryUploadProps = {
+  onSuccess?: (url: string) => void;
 };
 
-const ImgurUpload = ({ onSuccess }: ImgurUploadProps) => {
+const CloudinaryUpload = ({ onSuccess }: CloudinaryUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadImage, isUploading, error, uploadProgress, image } = useImgurUpload();
+  const { uploadImage, isUploading, error, uploadProgress, image } = useCloudinaryUpload();
 
   const handleUpload = async (e: React.FormEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -30,8 +30,9 @@ const ImgurUpload = ({ onSuccess }: ImgurUploadProps) => {
     <div className="grid w-full max-w-sm items-center gap-1.5">
       <div className="flex w-full max-w-sm items-center space-x-2">
         <Input
-          id="imgurUpload"
+          id="cloudinaryUpload"
           type="file"
+          accept="image/gif,image/jpeg,image/png,image/webp"
           ref={fileInputRef}
           className="h-9 pt-1.5"
           onInput={handleUpload}
@@ -49,4 +50,4 @@ const ImgurUpload = ({ onSuccess }: ImgurUploadProps) => {
   );
 };
 
-export default ImgurUpload;
+export default CloudinaryUpload;
