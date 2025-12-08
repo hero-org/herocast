@@ -26,7 +26,7 @@ type CastEmbedType = {
   skipIntersection?: boolean;
 };
 
-const getEmbedForUrl = (url: string, hideReactions?: boolean) => {
+const getEmbedForUrl = (url: string, hideReactions?: boolean, skipIntersection?: boolean) => {
   if (
     url.includes('i.imgur.com') ||
     url.includes('res.cloudinary.com') ||
