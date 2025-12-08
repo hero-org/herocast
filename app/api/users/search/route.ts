@@ -1,3 +1,4 @@
+import { cacheLife } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
@@ -5,36 +6,53 @@ const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes wit
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 
-// In-memory cache for user search (2 minute TTL)
-const searchCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+async function searchUsers(query: string, viewerFid: number, limit: number) {
+  'use cache';
+  cacheLife({
+    stale: 60 * 2, // 2 minutes - serve stale content
+    revalidate: 60 * 5, // 5 minutes - revalidate
+    expire: 60 * 30, // 30 minutes - purge from cache
+  });
 
-const getCacheKey = (query: string, viewerFid: string, limit: string) => `${query}:${viewerFid}:${limit}`;
-
-const getCachedData = (key: string) => {
-  const cached = searchCache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.data;
+  if (!API_KEY) {
+    throw new Error('API key not configured');
   }
-  if (cached) {
-    searchCache.delete(key); // Remove expired cache
-  }
-  return null;
-};
 
-const setCachedData = (key: string, data: any) => {
-  searchCache.set(key, { data, timestamp: Date.now() });
-  // Clean up old cache entries periodically (keep cache size reasonable)
-  if (searchCache.size > 1000) {
-    const now = Date.now();
-    const entries = Array.from(searchCache.entries());
-    for (const [k, v] of entries) {
-      if (now - v.timestamp > CACHE_TTL) {
-        searchCache.delete(k);
-      }
+  // Set up timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutThreshold);
+
+  try {
+    const neynarClient = new NeynarAPIClient(API_KEY);
+
+    const response = await Promise.race([
+      neynarClient.searchUser(query, viewerFid, { limit }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('AbortError')), timeoutThreshold)),
+    ]);
+
+    clearTimeout(timeoutId);
+
+    // Extract users array from response
+    const users = (response as any)?.result?.users || [];
+
+    return { users };
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+
+    if (error.message === 'AbortError' || error.name === 'AbortError') {
+      throw new Error(TIMEOUT_ERROR_MESSAGE);
     }
+
+    // Handle Neynar SDK errors
+    if (error.response) {
+      const apiError = new Error(error.response.data?.message || 'External API error');
+      (apiError as any).status = error.response.status;
+      throw apiError;
+    }
+
+    throw error;
   }
-};
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,10 +69,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing viewer_fid parameter' }, { status: 400 });
     }
 
-    if (!API_KEY) {
-      return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
-    }
-
     // Validate viewer_fid
     const viewerFidNum = parseInt(viewerFid, 10);
     if (isNaN(viewerFidNum) || viewerFidNum <= 0) {
@@ -67,57 +81,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid limit (must be 1-100)' }, { status: 400 });
     }
 
-    // Check cache first
-    const cacheKey = getCacheKey(query, viewerFid, limit);
-    const cachedData = getCachedData(cacheKey);
-    if (cachedData) {
-      return NextResponse.json(cachedData);
+    const result = await searchUsers(query, viewerFidNum, limitNum);
+
+    return NextResponse.json(result);
+  } catch (error: any) {
+    console.error('Error searching users:', error);
+
+    // Handle timeout errors
+    if (error.message === TIMEOUT_ERROR_MESSAGE) {
+      return NextResponse.json({ error: TIMEOUT_ERROR_MESSAGE }, { status: 408 });
     }
 
-    // Set up timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutThreshold);
-
-    try {
-      const neynarClient = new NeynarAPIClient(API_KEY);
-
-      const response = await Promise.race([
-        neynarClient.searchUser(query, viewerFidNum, { limit: limitNum }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('AbortError')), timeoutThreshold)),
-      ]);
-
-      clearTimeout(timeoutId);
-
-      // Extract users array from response
-      const users = (response as any)?.result?.users || [];
-
-      // Cache the response
-      const responseData = { users };
-      setCachedData(cacheKey, responseData);
-
-      return NextResponse.json(responseData);
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-
-      if (error.message === 'AbortError' || error.name === 'AbortError') {
-        return NextResponse.json({ error: TIMEOUT_ERROR_MESSAGE }, { status: 408 });
-      }
-
-      console.error('Error searching users:', error);
-
-      // Handle Neynar SDK errors
-      if (error.response) {
-        return NextResponse.json(
-          { error: error.response.data?.message || 'External API error' },
-          { status: error.response.status }
-        );
-      }
-
-      return NextResponse.json({ error: 'Failed to search users' }, { status: 500 });
+    // Handle API errors with status code
+    if (error.status) {
+      return NextResponse.json({ error: error.message || 'External API error' }, { status: error.status });
     }
-  } catch (error) {
-    console.error('Error in user search route:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+
+    // Handle API key configuration error
+    if (error.message === 'API key not configured') {
+      return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+    }
+
+    return NextResponse.json({ error: 'Failed to search users' }, { status: 500 });
   }
 }
 
