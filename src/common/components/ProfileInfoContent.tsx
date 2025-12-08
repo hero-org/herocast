@@ -1,5 +1,6 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Loading } from './Loading';
 import { formatLargeNumber } from '../helpers/text';
 import FollowButton from './FollowButton';
@@ -16,6 +17,22 @@ type ProfileInfoContentProps = {
   hideBio?: boolean;
   wideFormat?: boolean;
   compact?: boolean;
+};
+
+const RelationshipBadge = ({ viewerContext }: { viewerContext?: { following?: boolean; followed_by?: boolean } }) => {
+  if (!viewerContext) return null;
+
+  const { following, followed_by } = viewerContext;
+
+  if (following && followed_by) {
+    return <Badge variant="secondary">Mutual</Badge>;
+  }
+
+  if (followed_by) {
+    return <Badge variant="outline">Follows you</Badge>;
+  }
+
+  return null;
 };
 
 const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
@@ -51,11 +68,14 @@ const ProfileInfoContent: React.FC<ProfileInfoContentProps> = ({
             <h2 className="font-semibold text-foreground break-all overflow-x-hidden line-clamp-1 text-sm">
               {profile.display_name}
             </h2>
-            <h3 className="flex items-center text-sm text-foreground/70 font-medium">
-              @{profile.username}
-              {profile?.power_badge && (
-                <img src="/images/ActiveBadge.webp" className="ml-1 h-[14px] w-[14px]" alt="Power badge" />
-              )}
+            <h3 className="flex items-center gap-1.5 text-sm text-foreground/70 font-medium">
+              <span className="flex items-center">
+                @{profile.username}
+                {profile?.power_badge && (
+                  <img src="/images/ActiveBadge.webp" className="ml-1 h-[14px] w-[14px]" alt="Power badge" />
+                )}
+              </span>
+              {!isOwnProfile && <RelationshipBadge viewerContext={profile.viewer_context} />}
             </h3>
           </div>
         </div>

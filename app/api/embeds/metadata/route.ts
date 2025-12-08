@@ -77,7 +77,9 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null> {
           if (faviconUrl && !faviconUrl.startsWith('http')) {
             try {
               faviconUrl = new URL(faviconUrl, url).href;
-            } catch {}
+            } catch {
+              // Ignore invalid URL
+            }
           }
 
           return {
