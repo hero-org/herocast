@@ -1,4 +1,4 @@
-import { unstable_cacheLife as cacheLife } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
@@ -11,13 +11,8 @@ export type UrlMetadata = {
   favicon?: string;
 };
 
-async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null> {
-  'use cache';
-  cacheLife({
-    stale: 60 * 60 * 24, // 1 day - serve stale content
-    revalidate: 60 * 60 * 24, // 1 day - revalidate after 1 day
-    expire: 60 * 60 * 24 * 5, // 5 days - purge from cache
-  });
+async function fetchUrlMetadataUncached(url: string): Promise<UrlMetadata | null> {
+  console.log('[embeds/metadata] Fetching URL:', url);
 
   // Try Microlink first (free, no auth)
   try {
@@ -99,6 +94,13 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null> {
   return null;
 }
 
+// Create cached version with unstable_cache (works in Next.js 15 stable)
+const getCachedUrlMetadata = (url: string) =>
+  unstable_cache(() => fetchUrlMetadataUncached(url), [`url-metadata-${url}`], {
+    revalidate: 86400, // 1 day
+    tags: ['url-metadata'],
+  })();
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -115,7 +117,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
     }
 
-    const metadata = await fetchUrlMetadata(url);
+    const metadata = await getCachedUrlMetadata(url);
 
     // Return empty metadata if both fail (will use fallback UI)
     return NextResponse.json({ metadata: metadata || { url } });
