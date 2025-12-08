@@ -1,4 +1,4 @@
-import { cacheLife } from 'next/cache';
+import { unstable_cacheLife as cacheLife } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { getIcebreakerSocialInfoForFid } from '@/common/helpers/icebreaker';
 import { getCoordinapeInfoForAddresses } from '@/common/helpers/coordinapeAttestations';

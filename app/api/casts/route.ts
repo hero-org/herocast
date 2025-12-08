@@ -1,4 +1,4 @@
-import { cacheLife } from 'next/cache';
+import { unstable_cacheLife as cacheLife } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
