@@ -21,10 +21,9 @@ async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null> {
 
   // Try Microlink first (free, no auth)
   try {
-    const response = await fetch(
-      `https://api.microlink.io?url=${encodeURIComponent(url)}`,
-      { signal: AbortSignal.timeout(5000) }
-    );
+    const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`, {
+      signal: AbortSignal.timeout(5000),
+    });
 
     if (response.ok) {
       const data = await response.json();
