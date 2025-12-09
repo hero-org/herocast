@@ -1,12 +1,13 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { UUID } from 'crypto';
 import { List } from '@/common/types/database.types';
 import { SearchListContent, isSearchListContent } from '@/common/types/list.types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MagnifyingGlassIcon, BellIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, BellIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { useListStore } from '@/stores/useListStore';
 
@@ -20,7 +21,7 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
   const { setSelectedListId } = useListStore();
 
   const handleListClick = (listId: string) => {
-    setSelectedListId(listId);
+    setSelectedListId(listId as UUID);
     router.push('/feeds');
   };
 
@@ -52,15 +53,22 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">Monitor keywords and get notified about new casts</p>
-        <Button size="sm" onClick={() => router.push('/search')}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          New Search
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => router.push('/list/search')}>
+            <PencilIcon className="h-4 w-4 mr-2" />
+            Manage
+          </Button>
+          <Button size="sm" onClick={() => router.push('/search')}>
+            <PlusIcon className="h-4 w-4 mr-2" />
+            New Search
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {lists.map((list) => {
-          const content = list.contents as SearchListContent;
+          if (!isSearchListContent(list.contents)) return null;
+          const content = list.contents;
           const hasEmailEnabled = content.enabled_daily_email;
 
           return (
@@ -84,7 +92,7 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
                 <div className="flex flex-wrap gap-2">
                   {content.filters?.interval && <Badge variant="secondary">{content.filters.interval}</Badge>}
                   {content.filters?.channelId && <Badge variant="secondary">/{content.filters.channelId}</Badge>}
-                  {hasEmailEnabled && <Badge variant="outline">Daily emails</Badge>}
+                  {/*{hasEmailEnabled && <Badge variant="outline">Daily emails</Badge>}*/}
                 </div>
               </CardContent>
               <CardFooter className="text-xs text-muted-foreground">

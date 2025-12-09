@@ -34,12 +34,11 @@ export const EmbedsEditor = ({ embeds, setEmbeds }: EmbedsEditorProps) => {
             {embed.status === 'loading' ? (
               <Skeleton className="h-[100px] w-full items-center flex justify-center">Loading...</Skeleton>
             ) : isImageEmbed(embed) && 'url' in embed ? (
-              <div className="border rounded">
+              <div className="border rounded max-w-md">
                 <img
                   src={(embed as { url: string }).url}
                   alt={(embed.metadata as any)?.alt}
-                  className="rounded"
-                  style={{ width: '100%' }}
+                  className="rounded w-full"
                 />
               </div>
             ) : null}

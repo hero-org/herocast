@@ -77,8 +77,18 @@ export async function GET(request: NextRequest) {
 
       clearTimeout(timeoutId);
 
-      // Return search results - cast data from Neynar already includes author information
-      return NextResponse.json(response.data);
+      // Transform Neynar response to match frontend SearchResponse type
+      // Neynar returns: { result: { casts: [...] } }
+      // Frontend expects: { results: [{ hash, fid, text, timestamp }] }
+      const neynarCasts = response.data?.result?.casts || [];
+      const results = neynarCasts.map((cast: any) => ({
+        hash: cast.hash,
+        fid: cast.author?.fid,
+        text: cast.text,
+        timestamp: cast.timestamp,
+      }));
+
+      return NextResponse.json({ results, isTimeout: false });
     } catch (error: any) {
       clearTimeout(timeoutId);
 

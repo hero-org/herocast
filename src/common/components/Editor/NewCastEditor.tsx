@@ -20,8 +20,6 @@ import { take } from 'lodash';
 import { useMemo, useCallback } from 'react';
 import { ChannelPicker } from '../ChannelPicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import map from 'lodash.map';
-import { renderEmbedForUrl } from '../Embeds';
 import { CalendarDaysIcon, PhotoIcon } from '@heroicons/react/20/solid';
 import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { ChannelList } from '../ChannelList';
@@ -110,7 +108,6 @@ export default function NewPostEntry({
   const [schedulePopoverOpen, setSchedulePopoverOpen] = React.useState(false);
   const [editorKey, setEditorKey] = React.useState(0);
 
-  const hasEmbeds = draft.embeds && !!draft.embeds.length;
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const hasMultipleActiveAccounts =
     useAccountStore(
@@ -470,7 +467,6 @@ export default function NewPostEntry({
         ) : (
           <div className="p-2 border-slate-200 rounded-lg border">
             <EditorContent editor={editor} autoFocus className="w-full h-full min-h-[150px] text-foreground/80" />
-            <EmbedsEditor embeds={[...embeds]} setEmbeds={setEmbeds} RichEmbed={() => <div />} />
           </div>
         )}
 
@@ -689,18 +685,9 @@ export default function NewPostEntry({
           </Button>
         </div>
       </div>
-      {hasEmbeds && (
-        <div className="flex flex-col md:flex-row items-center my-4 w-full gap-2 flex-wrap">
-          {map(draft.embeds, (embed, idx) => (
-            <div className="max-w-xl rounded-md border border-gray-200" key={`embed-preview-${idx}`}>
-              {renderEmbedForUrl({
-                url: embed.url,
-                castEmbedData: {
-                  cast_id: embed.cast_id ?? undefined,
-                },
-              })}
-            </div>
-          ))}
+      {embeds.length > 0 && (
+        <div className="mt-4 w-full max-w-md">
+          <EmbedsEditor embeds={[...embeds]} setEmbeds={setEmbeds} RichEmbed={() => <div />} />
         </div>
       )}
     </div>

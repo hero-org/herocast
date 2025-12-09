@@ -289,9 +289,14 @@ export default function NewPost() {
           {draft.text}
         </div>
         {hasEmbeds && (
-          <div className="mt-8 rounded-md bg-muted p-2 w-full break-all">
-            {map(draft.embeds, (embed: any) => (
-              <div key={`cast-embed-${embed.url || embed.hash}`}>{renderEmbedForUrl(embed)}</div>
+          <div className="flex flex-col md:flex-row items-center mt-4 w-full gap-2 flex-wrap">
+            {map(draft.embeds, (embed: any, idx: number) => (
+              <div className="max-w-xl rounded-md border border-foreground/10" key={`embed-preview-${idx}`}>
+                {renderEmbedForUrl({
+                  url: embed.url,
+                  cast_id: embed.cast_id ?? undefined,
+                })}
+              </div>
             ))}
           </div>
         )}
