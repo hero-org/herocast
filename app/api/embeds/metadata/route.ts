@@ -11,7 +11,18 @@ export type UrlMetadata = {
   favicon?: string;
 };
 
+// Only allow http/https URLs - skip custom URI schemes like zoraCoin://, chain:, etc.
+function isValidHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 async function fetchUrlMetadataUncached(url: string): Promise<UrlMetadata | null> {
+  const startTime = Date.now();
   console.log('[embeds/metadata] Fetching URL:', url);
 
   // Try Microlink first (free, no auth)
@@ -28,6 +39,7 @@ async function fetchUrlMetadataUncached(url: string): Promise<UrlMetadata | null
 
         // Only return if we got at least a title
         if (title) {
+          console.log(`[embeds/metadata] Microlink success for ${url} in ${Date.now() - startTime}ms`);
           return {
             url,
             title,
@@ -38,16 +50,19 @@ async function fetchUrlMetadataUncached(url: string): Promise<UrlMetadata | null
         }
       }
     }
+    console.log(`[embeds/metadata] Microlink no result for ${url}, trying Neynar...`);
   } catch (error) {
-    console.error('Microlink fetch error:', error);
+    console.error(`[embeds/metadata] Microlink error for ${url} after ${Date.now() - startTime}ms:`, error);
   }
 
   // Fall back to Neynar
   if (!API_KEY) {
+    console.log(`[embeds/metadata] No Neynar API key, returning null for ${url}`);
     return null;
   }
 
   try {
+    const neynarStart = Date.now();
     const response = await fetch(
       `https://api.neynar.com/v2/farcaster/cast/embed/crawl?url=${encodeURIComponent(url)}`,
       {
@@ -77,6 +92,7 @@ async function fetchUrlMetadataUncached(url: string): Promise<UrlMetadata | null
             }
           }
 
+          console.log(`[embeds/metadata] Neynar success for ${url} in ${Date.now() - neynarStart}ms (total: ${Date.now() - startTime}ms)`);
           return {
             url,
             title,
@@ -87,10 +103,12 @@ async function fetchUrlMetadataUncached(url: string): Promise<UrlMetadata | null
         }
       }
     }
+    console.log(`[embeds/metadata] Neynar no result for ${url} after ${Date.now() - neynarStart}ms`);
   } catch (error) {
-    console.error('Neynar fetch error:', error);
+    console.error(`[embeds/metadata] Neynar error for ${url} after ${Date.now() - startTime}ms:`, error);
   }
 
+  console.log(`[embeds/metadata] No metadata found for ${url} (total: ${Date.now() - startTime}ms)`);
   return null;
 }
 
@@ -110,11 +128,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
     }
 
-    // Validate URL format
-    try {
-      new URL(url);
-    } catch {
-      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
+    // Validate URL format and ensure it's an HTTP(S) URL
+    if (!isValidHttpUrl(url)) {
+      console.log(`[embeds/metadata] Skipping non-HTTP URL: ${url}`);
+      // Return empty metadata for non-HTTP URLs (custom URI schemes like zoraCoin://, chain:, etc.)
+      return NextResponse.json({ metadata: { url } });
     }
 
     const metadata = await getCachedUrlMetadata(url);
