@@ -644,9 +644,7 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
           (currentGroupId && currentGroupId === groupId)
         ) {
           setMessages((prev) => {
-            const filtered = prev.filter((msg) => msg.messageId !== optimisticMessage.messageId);
-            // If we have a valid message from the server, add it
-            // Validate that the message has required fields to prevent rendering issues
+            // If we have a valid message from the server, replace the optimistic one
             const serverMessage = result.message;
             if (
               serverMessage &&
@@ -655,18 +653,24 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
               serverMessage.senderFid &&
               typeof serverMessage.message === 'string'
             ) {
+              const filtered = prev.filter((msg) => msg.messageId !== optimisticMessage.messageId);
               return [serverMessage, ...filtered];
             }
-            // Otherwise just remove the optimistic one and refresh will get the new message
-            return filtered;
+            // If server didn't return valid message, just mark optimistic as sent
+            // This keeps the message visible until refresh brings the real one
+            return prev.map((msg) =>
+              msg.messageId === optimisticMessage.messageId
+                ? { ...msg, _status: 'sent' as any, _optimistic: false }
+                : msg
+            );
           });
         }
 
-        // Refresh to ensure we have the latest messages
-        // Small delay to allow server to process
+        // Refresh to get the actual message from server
+        // Longer delay to ensure server has processed and to avoid flash
         setTimeout(() => {
           refresh();
-        }, 500);
+        }, 1500);
 
         return result;
       } catch (error) {
