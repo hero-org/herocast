@@ -15,7 +15,6 @@ import {
   Search,
   User,
   Settings,
-  ArrowUpCircle,
   UserPlus,
   Home,
   TrendingUp,
@@ -71,11 +70,6 @@ const settingsNavItems: MainNavItem[] = [
     href: '/profile',
     icon: <User className="h-5 w-5" />,
     additionalPaths: ['/profile/'],
-  },
-  {
-    name: 'Upgrade',
-    href: '/upgrade',
-    icon: <ArrowUpCircle className="h-5 w-5" />,
   },
   {
     name: 'Accounts',
