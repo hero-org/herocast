@@ -96,6 +96,11 @@ git clone https://github.com/hellno/herocast.git
   supabase start
   ```
   This may take a while to download all the containers and get started.
+- When the containers finish booting, grant Supabase roles access to the `pgsodium` helpers:
+  ```bash
+  pnpm supabase:setup
+  ```
+  If you run Supabase on a non-default port, set `SUPABASE_LOCAL_DB_URL` before running the command (for example `postgresql://postgres:postgres@localhost:54323/postgres`).
 - Once it's done, find the 'API KEY' and 'anon key' by running the command:
   ```bash
   supabase status
@@ -106,22 +111,15 @@ git clone https://github.com/hellno/herocast.git
   NEXT_PUBLIC_SUPABASE_ANON_KEY = '<anon key>'
   ```
 
-6. Set up accounts table signer encryption in your SQL Editor:
+6. Encryption key primer (optional but recommended):
 
-- Open the Studio URL in the browser and navigate to the SQL Editor tab
-- Generate a private encryption key:
+- `pnpm supabase:setup` applies the grants **and** seeds the deterministic key that production uses to encrypt `accounts.private_key`. We hard-code the UUID (`dcd0dca7-c03a-40c5-b348-fefb87be2845`) because the trigger in our migration already references it; keeping the same ID locally means migrations and sample data behave exactly like production.
+- You can verify the seed by running:
   ```sql
-  SELECT * FROM pgsodium.create_key();
+  SELECT id FROM pgsodium.valid_key WHERE id = 'dcd0dca7-c03a-40c5-b348-fefb87be2845';
   ```
-- Get the key ID (copy the id obtained, as it is needed in the next command):
-  ```sql
-  SELECT id FROM pgsodium.valid_key LIMIT 1;
-  ```
-- Run the following command (replace <PG_SODIUM_KEY> with the id from the previous command):
-  ```sql
-  SECURITY LABEL FOR "pgsodium" ON COLUMN "public"."accounts"."private_key" IS 'ENCRYPT WITH KEY ID <PG_SODIUM_KEY> SECURITY INVOKER';
-  ```
-  You should get the response "Success. No rows returned" indicating that the command was successful and returned no rows.
+  If the key is missing (for example after `supabase db reset`), just run `pnpm supabase:setup` again—it's idempotent.
+- Want to experiment with a different key in your own fork? Update both `supabase/setup/pgsodium_seed_key.sql` and the `SECURITY LABEL` inside `supabase/migrations/20231201175719_schema_test.sql` to use your UUID, then re-run the setup script.
 
 7. Run the local app in development mode:
 
@@ -140,6 +138,34 @@ $ next dev
 ```
 
 Click the localhost link to open the app in your browser. If the compilation fails due to missing .env variables, double-check the spelling of the variable names.
+
+#### Optional: sanity check Supabase encryption
+
+If you want to prove the Supabase side is behaving like production, connect with `psql postgresql://postgres:postgres@127.0.0.1:54322/postgres` and:
+
+1. Insert a temporary auth user:
+   ```sql
+   INSERT INTO auth.users (id, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+   VALUES (gen_random_uuid(), 'dev@example.com', '{}'::jsonb, '{}'::jsonb, now(), now())
+   RETURNING id;
+   ```
+2. Use the returned `id` when inserting an account and view the decrypted row:
+
+   ```sql
+   INSERT INTO public.accounts (user_id, private_key, platform)
+   VALUES ('<id>', 's3cr3t', 'farcaster') RETURNING id;
+
+   SELECT private_key FROM public.accounts WHERE id = '<account-id>';
+   SELECT decrypted_private_key FROM public.decrypted_accounts WHERE id = '<account-id>';
+   ```
+
+   The stored column should be unreadable base64 while the view returns `s3cr3t`.
+
+3. Clean up the throwaway data once you’re done:
+   ```sql
+   DELETE FROM public.accounts WHERE id = '<account-id>';
+   DELETE FROM auth.users WHERE id = '<id>';
+   ```
 
 Congratulations! You now have a local version of herocast working.
 

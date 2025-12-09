@@ -17,7 +17,8 @@
     "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx src",
     "format": "prettier --log-level warn --write .",
     "test": "jest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "supabase:setup": "node scripts/apply-pgsodium-grants.js"
   },
   "browserslist": {
     "production": [

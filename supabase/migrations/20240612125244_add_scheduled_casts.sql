@@ -21,25 +21,5 @@ GRANT ALL ON TABLE "public"."draft" TO "anon";
 GRANT ALL ON TABLE "public"."draft" TO "authenticated";
 GRANT ALL ON TABLE "public"."draft" TO "service_role";
 
-
-GRANT
-EXECUTE
-  ON FUNCTION pgsodium.crypto_aead_det_encrypt (bytea, bytea, bytea, bytea) TO authenticated;
-
-GRANT
-EXECUTE
-  ON FUNCTION pgsodium.crypto_aead_det_encrypt (bytea, bytea, uuid, bytea) TO authenticated;
-
-GRANT
-EXECUTE
-  ON FUNCTION pgsodium.crypto_aead_det_decrypt (bytea, bytea, bytea, bytea) TO authenticated;
-
-GRANT
-EXECUTE
-  ON FUNCTION pgsodium.crypto_aead_det_decrypt (bytea, bytea, uuid, bytea) TO authenticated;
-
-GRANT
-  pgsodium_keyiduser TO authenticated;
-
 create or replace trigger handle_updated_at before update on draft
   for each row execute procedure moddatetime (updated_at);
