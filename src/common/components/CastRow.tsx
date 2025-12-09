@@ -589,7 +589,7 @@ const CastRowComponent = ({
 
     return (
       <ErrorBoundary>
-        <EmbedCarousel embeds={cast.embeds} hideReactions={hideReactions} onEmbedClick={onEmbedClick} />
+        <EmbedCarousel embeds={cast.embeds} hideReactions={hideReactions} onEmbedClick={onEmbedClick} isSelected={isSelected} />
       </ErrorBoundary>
     );
   };

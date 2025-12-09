@@ -20,9 +20,10 @@ type EmbedCarouselProps = {
   }>;
   hideReactions?: boolean;
   onEmbedClick?: () => void;
+  isSelected?: boolean;
 };
 
-const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselProps) => {
+const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick, isSelected }: EmbedCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [containerHeight, setContainerHeight] = useState<number | 'auto'>('auto');
   const embedRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -72,14 +73,16 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
   }, [currentIndex, embeds.length]);
 
   // Keyboard navigation using app hotkey infrastructure
+  // Only enable when this carousel's parent cast is selected
   useAppHotkeys(
     'left',
     goToPreviousEmbed,
     {
       scopes: HotkeyScopes.FEED,
       enableOnFormTags: false,
+      enabled: isSelected && embeds.length > 1,
     },
-    [goToPreviousEmbed]
+    [goToPreviousEmbed, isSelected, embeds.length]
   );
 
   useAppHotkeys(
@@ -88,8 +91,9 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick }: EmbedCarouselPro
     {
       scopes: HotkeyScopes.FEED,
       enableOnFormTags: false,
+      enabled: isSelected && embeds.length > 1,
     },
-    [goToNextEmbed]
+    [goToNextEmbed, isSelected, embeds.length]
   );
 
   if (!embeds || embeds.length === 0) return null;
