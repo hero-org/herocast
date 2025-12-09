@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 
 // Dynamic import with loading fallback
 const NewPostEntry = dynamic(() => import('./Editor/NewCastEditor'), {
-  loading: () => <Loading loadingMessage="Loading editor..." />,
+  loading: () => <Loading loadingMessage="Loading editor" />,
   ssr: false,
 });
 import { useDraftStore } from '@/stores/useDraftStore';

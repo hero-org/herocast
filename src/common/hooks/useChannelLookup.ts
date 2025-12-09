@@ -24,7 +24,7 @@ export const useChannelLookup = (url?: string) => {
       setIsLoading(true);
       try {
         const supabase = createClient();
-        const { data, error } = await supabase.from('channel').select('*').eq('url', url).single();
+        const { data, error } = await supabase.from('channel').select('*').eq('url', url).maybeSingle();
 
         if (data && !error) {
           // Add to cache (LRU eviction when full)
