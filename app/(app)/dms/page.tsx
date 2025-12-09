@@ -292,7 +292,18 @@ const DirectMessages = () => {
   }, [selectedAccount]);
 
   const convertedMessages: Message[] = messages.map((msg) => {
-    const profile = getProfileByFid(msg.senderFid);
+    // For optimistic messages from the viewer, use the selected account's profile
+    // This prevents the "undefined user" flash before profiles load
+    const isViewerMessage = msg.senderFid === Number(viewerFid);
+    const isOptimistic = (msg as any)._optimistic;
+
+    let profile;
+    if (isViewerMessage && isOptimistic && selectedAccount?.user) {
+      // Use the viewer's account profile directly for optimistic messages
+      profile = selectedAccount.user;
+    } else {
+      profile = getProfileByFid(msg.senderFid);
+    }
 
     let timestamp: string;
     if (!msg.creationTimestamp || msg.creationTimestamp === 0) {
@@ -303,18 +314,21 @@ const DirectMessages = () => {
       timestamp = new Date(msg.creationTimestamp * 1000).toISOString();
     }
 
+    // Safety check for invalid senderFid
+    const safeSenderFid = msg.senderFid && !isNaN(msg.senderFid) ? msg.senderFid : 0;
+
     return {
-      id: msg.messageId,
-      text: msg.message,
-      senderFid: msg.senderFid,
-      senderUsername: profile?.username || `fid:${msg.senderFid}`,
-      senderDisplayName: profile?.display_name || profile?.username || `User ${msg.senderFid}`,
+      id: msg.messageId || `msg-${Date.now()}`,
+      text: msg.message || '',
+      senderFid: safeSenderFid,
+      senderUsername: profile?.username || (safeSenderFid ? `fid:${safeSenderFid}` : 'unknown'),
+      senderDisplayName: profile?.display_name || profile?.username || (safeSenderFid ? `User ${safeSenderFid}` : 'Unknown'),
       senderPfpUrl: profile?.pfp_url || '',
       timestamp,
       isRead: true, // API doesn't provide read status, so we assume all are read
       isDeleted: msg.isDeleted,
       // Include optimistic message properties if they exist
-      _optimistic: (msg as any)._optimistic,
+      _optimistic: isOptimistic,
       _status: (msg as any)._status,
       _error: (msg as any)._error,
     };

@@ -645,9 +645,17 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
         ) {
           setMessages((prev) => {
             const filtered = prev.filter((msg) => msg.messageId !== optimisticMessage.messageId);
-            // If we have a new message from the server, add it
-            if (result.message) {
-              return [result.message, ...filtered];
+            // If we have a valid message from the server, add it
+            // Validate that the message has required fields to prevent rendering issues
+            const serverMessage = result.message;
+            if (
+              serverMessage &&
+              typeof serverMessage === 'object' &&
+              serverMessage.messageId &&
+              serverMessage.senderFid &&
+              typeof serverMessage.message === 'string'
+            ) {
+              return [serverMessage, ...filtered];
             }
             // Otherwise just remove the optimistic one and refresh will get the new message
             return filtered;
