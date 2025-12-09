@@ -1,20 +1,13 @@
-import { unstable_cacheLife as cacheLife } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { getIcebreakerSocialInfoForFid } from '@/common/helpers/icebreaker';
 import { getCoordinapeInfoForAddresses } from '@/common/helpers/coordinapeAttestations';
 
-async function fetchAdditionalProfileInfo(fid: number, addresses: string) {
-  'use cache';
-  cacheLife({
-    stale: 60 * 60, // 1 hour - serve stale content
-    revalidate: 60 * 60 * 6, // 6 hours - revalidate
-    expire: 60 * 60 * 24, // 1 day - purge from cache
-  });
-
+async function fetchAdditionalProfileInfoUncached(fid: number, addresses: string) {
   // Get additional profile info in parallel
   const [icebreakerInfo, coordinapeInfo] = await Promise.allSettled([
-    getIcebreakerSocialInfoForFid(fid),
-    addresses ? getCoordinapeInfoForAddresses(addresses.split(',')) : Promise.resolve(null),
+    getIcebreakerSocialInfoForFid(String(fid)),
+    addresses ? getCoordinapeInfoForAddresses(addresses) : Promise.resolve(null),
   ]);
 
   const result: any = {};
@@ -29,6 +22,13 @@ async function fetchAdditionalProfileInfo(fid: number, addresses: string) {
 
   return result;
 }
+
+// Create cached version with unstable_cache (works in Next.js 15 stable)
+const getCachedAdditionalProfileInfo = (fid: number, addresses: string) =>
+  unstable_cache(() => fetchAdditionalProfileInfoUncached(fid, addresses), [`profile-info-${fid}-${addresses}`], {
+    revalidate: 21600, // 6 hours
+    tags: ['profile-info'],
+  })();
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid fid parameter' }, { status: 400 });
     }
 
-    const result = await fetchAdditionalProfileInfo(fidNum, addresses || '');
+    const result = await getCachedAdditionalProfileInfo(fidNum, addresses || '');
 
     return NextResponse.json(result);
   } catch (error) {

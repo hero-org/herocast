@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 
 // Dynamic import with loading fallback
 const NewPostEntry = dynamic(() => import('@/common/components/Editor/NewCastEditor'), {
-  loading: () => <Loading loadingMessage="Loading editor..." />,
+  loading: () => <Loading loadingMessage="Loading editor" />,
   ssr: false,
 });
 import { ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';

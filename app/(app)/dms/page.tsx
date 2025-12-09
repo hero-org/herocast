@@ -471,8 +471,8 @@ const DirectMessages = () => {
           </div>
         </div>
 
-        {/* Messages area - explicit height constraint using viewport calculation */}
-        <div className="flex-1 min-h-0 h-0 max-h-[calc(100vh-10rem)]">
+        {/* Messages area - flex-1 fills remaining space, min-h-0 allows shrinking */}
+        <div className="flex-1 min-h-0 overflow-hidden">
           {isConversationChanging || (messagesLoading && messages.length === 0) ? (
             <MessageSkeleton />
           ) : (

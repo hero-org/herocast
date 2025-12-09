@@ -71,7 +71,11 @@ const ChangeProfilePictureForm = ({ account, onSuccess }: ChangeProfilePictureFo
     <div className="flex flex-col gap-y-2 max-w-sm">
       {' '}
       <CloudinaryUpload onSuccess={setNewPfpUrl} />
-      <Input variantSize="sm" placeholder="https://res.cloudinary.com/..." onChange={(e) => setNewPfpUrl(e.target.value)} />
+      <Input
+        variantSize="sm"
+        placeholder="https://res.cloudinary.com/..."
+        onChange={(e) => setNewPfpUrl(e.target.value)}
+      />
       <Button variant="default" type="submit" className="w-74" disabled={!canSubmit} onClick={changeProfilePicture}>
         {isPending && <Cog6ToothIcon className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
         <p>Update profile picture</p>

@@ -52,7 +52,8 @@ export const useCloudinaryUpload = () => {
     if (!cloudName || !uploadPreset) {
       setUploadState({
         isUploading: false,
-        error: 'Cloudinary configuration is missing. Please set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.',
+        error:
+          'Cloudinary configuration is missing. Please set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.',
         uploadProgress: 0,
         image: null,
       });

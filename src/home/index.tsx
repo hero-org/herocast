@@ -527,7 +527,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 )}
                 <div className="flex-1 overflow-hidden">
                   {pageRequiresHydrate && !isHydrated ? (
-                    <div className="p-8">
+                    <div className="pl-4">
                       <Loading loadingMessage="Loading herocast" />
                     </div>
                   ) : (

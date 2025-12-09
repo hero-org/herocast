@@ -12,7 +12,7 @@ export const Loading = ({ className, isInline = false, loadingMessage = 'Loading
     <span
       role="status"
       aria-live="polite"
-      className={clsx(className, 'my-4 whitespace-nowrap font-semibold text-foreground')}
+      className={clsx(className, 'my-4 whitespace-nowrap font-semibold text-foreground/80')}
     >
       {loadingMessage}
       <span className="animate-pulse">...</span>
@@ -21,7 +21,7 @@ export const Loading = ({ className, isInline = false, loadingMessage = 'Loading
     <p
       role="status"
       aria-live="polite"
-      className={clsx(className, 'my-4 whitespace-nowrap font-semibold text-foreground')}
+      className={clsx(className, 'my-4 whitespace-nowrap font-semibold text-foreground/80')}
     >
       {loadingMessage}
       <span className="animate-pulse">...</span>
