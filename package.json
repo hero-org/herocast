@@ -68,7 +68,6 @@
     "@mod-protocol/mod-registry": "^0.1.1",
     "@mod-protocol/react": "^0.2.0",
     "@mod-protocol/react-editor": "^0.1.0",
-    "@mod-protocol/react-ui-shadcn": "^0.3.1",
     "@neynar/nodejs-sdk": "1.21.1",
     "@noble/ed25519": "^2.2.3",
     "@paywithglide/glide-js": "^0.8.0",
