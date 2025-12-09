@@ -1,12 +1,14 @@
-import React, { RefObject, useEffect } from 'react';
+import React, { RefObject, useEffect, useRef } from 'react';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useChannelLookup } from '@/common/hooks/useChannelLookup';
 import { DraftStatus, DraftType } from '../../constants/farcaster';
+import { toNeynarChannels } from '@/common/helpers/channels';
+import { TOP_CHANNELS } from '@/common/constants/topChannels';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { useEditor, EditorContent } from '@mod-protocol/react-editor';
-import { EmbedsEditor } from '@mod-protocol/react-ui-shadcn/dist/lib/embeds';
+import { EmbedsEditor } from './EmbedsEditor';
 
 import { fetchUrlMetadata, handleAddEmbed, handleOpenFile, handleSetInput } from '@mod-protocol/core';
 import { getFarcasterMentions } from '@mod-protocol/farcaster';
@@ -54,20 +56,6 @@ const getChannels = async (query: string): Promise<Channel[]> => {
     return take(data?.channels ?? [], 10);
   } catch (e) {
     console.error(`Error searching channels: ${e}`);
-    return [];
-  }
-};
-
-const getAllChannels = async (): Promise<Channel[]> => {
-  try {
-    const response = await fetch('/api/channels');
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    const data = await response.json();
-    return data?.channels ?? [];
-  } catch (e) {
-    console.error(`Error fetching all channels: ${e}`);
     return [];
   }
 };
@@ -403,7 +391,11 @@ export default function NewPostEntry({
     updatePostDraft,
   ]);
 
+  // Track whether initial channel has been set to prevent overwriting user selections
+  const hasSetInitialChannel = useRef(false);
+
   useEffect(() => {
+    if (hasSetInitialChannel.current) return;
     if (!draft || !draft.parentUrl) return;
 
     // First try user's pinned channels for performance
@@ -422,6 +414,7 @@ export default function NewPostEntry({
         // @ts-expect-error - mod protocol channel type mismatch
         lead: {},
       });
+      hasSetInitialChannel.current = true;
     } else if (draftChannel) {
       // Use the on-demand loaded channel
       setChannel({
@@ -437,6 +430,7 @@ export default function NewPostEntry({
         // @ts-expect-error - mod protocol channel type mismatch
         lead: {},
       });
+      hasSetInitialChannel.current = true;
     }
   }, [draft.parentUrl, userChannels, draftChannel]);
 
@@ -483,13 +477,32 @@ export default function NewPostEntry({
         <div className="flex flex-row py-2 gap-1 overflow-x-auto no-scrollbar">
           {!isReply && !hideChannel && (
             <>
-              {/* @ts-expect-error - channel types differ between mod-protocol and neynar */}
               <ChannelPicker
-                value={channel || undefined}
-                onSelect={(ch) => setChannel(ch ?? null)}
-                initialChannels={userChannels}
+                value={channel ? (channel as unknown as Channel) : undefined}
+                onSelect={(ch) => {
+                  if (ch) {
+                    // Convert Neynar Channel to mod-protocol channel format
+                    setChannel({
+                      id: ch.id,
+                      url: ch.parent_url ?? '',
+                      name: ch.name ?? ch.id,
+                      object: 'channel',
+                      image_url: ch.image_url ?? '',
+                      parent_url: ch.parent_url ?? '',
+                      description: '',
+                      created_at: 0,
+                      // @ts-expect-error - mod protocol channel type mismatch
+                      lead: {},
+                    });
+                  } else {
+                    // @ts-expect-error - mod protocol expects null for clearing
+                    setChannel(null);
+                  }
+                  // Return focus to editor after channel selection
+                  setTimeout(() => editor?.commands.focus(), 0);
+                }}
+                initialChannels={[...toNeynarChannels(userChannels), ...(TOP_CHANNELS as Channel[])]}
                 getChannels={getChannels}
-                getAllChannels={getAllChannels}
                 disabled={isPublishing}
               />
             </>
