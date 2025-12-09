@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { getUrlsInText, isImageUrl } from '@/common/helpers/text';
 
 interface MessageBubbleProps {
   text: string;
@@ -50,31 +51,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     );
   }
 
-  // Detect URL and treat as image if:
-  // - it has an image extension, or
-  // - it's from imagedelivery.net (Cloudflare images)
-  const urlRegex = /(https?:\/\/[^\s]+)/i;
-  const urlMatch = trimmedText.match(urlRegex);
-
-  let imageUrl: string | null = null;
-
-  if (urlMatch) {
-    const candidate = urlMatch[1];
-
-    try {
-      const url = new URL(candidate);
-      const hasImageExt = /\.(png|jpe?g|gif|webp|avif)$/i.test(url.pathname);
-      const isImageHost = /imagedelivery\.net$/i.test(url.hostname);
-
-      if (hasImageExt || isImageHost) {
-        imageUrl = candidate;
-      }
-    } catch {
-      // ignore invalid URLs
-    }
-  }
-
-  const isImageMessage = Boolean(imageUrl && urlMatch);
+  // Detect image URLs using shared helper
+  const urls = getUrlsInText(trimmedText);
+  const imageUrl = urls.find((u) => isImageUrl(u.url))?.url || null;
+  const isImageMessage = Boolean(imageUrl);
 
   // Check if message is emoji-only (up to 3 emojis)
   const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F){1,3}$/u;
@@ -87,12 +67,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   let content: React.ReactNode;
 
-  if (isImageMessage && imageUrl && urlMatch) {
-    const caption = trimmedText.replace(urlMatch[0], '').trim();
+  if (isImageMessage && imageUrl) {
+    const caption = trimmedText.replace(imageUrl, '').trim();
 
     content = (
       <>
-        <img src={imageUrl} alt="" className="rounded-lg max-w-full h-auto" />
+        <img
+          src={imageUrl}
+          alt=""
+          className="rounded-lg max-w-full h-auto"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
         {caption && (
           <p
             className="mt-1 text-sm whitespace-pre-wrap"
@@ -149,7 +138,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         {content}
 
         {showTimestamp && timestamp && (
-                    <p className={cn('text-xs mt-1', isViewer ? 'text-blue-200' : 'text-foreground/60')}>{timestamp}</p>
+          <p className={cn('text-xs mt-1', isViewer ? 'text-blue-200' : 'text-foreground/60')}>{timestamp}</p>
         )}
       </div>
     </div>
