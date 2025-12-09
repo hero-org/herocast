@@ -13,7 +13,6 @@ import {
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
-import ShadcnRightSidebar from '@/common/components/Sidebar/ShadcnRightSidebar';
 import RightSidebarTrigger from '@/common/components/Sidebar/RightSidebarTrigger';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
 import { Toaster } from '@/components/ui/sonner';

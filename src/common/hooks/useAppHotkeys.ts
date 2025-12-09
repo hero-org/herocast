@@ -66,18 +66,6 @@ export function useAppHotkeys(keys: string | string[], callback: () => void, opt
   });
 }
 
-// Hook for registering multiple hotkeys at once
-export function useMultipleHotkeys(
-  hotkeys: Array<{
-    keys: string | string[];
-    callback: () => void;
-    options?: AppHotkeyOptions;
-  }>,
-  deps?: any[]
-) {
-  // IMPORTANT: We must call hooks in a consistent order
-  // Create stable references for all hotkeys
-  hotkeys.forEach(({ keys, callback, options }, index) => {
-    useAppHotkeys(keys, callback, options, deps);
-  });
-}
+// NOTE: useMultipleHotkeys has been removed.
+// It violated React's Rules of Hooks by calling useAppHotkeys in a forEach loop.
+// All hotkeys should be registered with individual useAppHotkeys calls.
