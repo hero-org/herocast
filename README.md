@@ -12,23 +12,6 @@ herocast is Farcaster’s leading open source client. Our goal is to decentraliz
 
 a protocol for decentralized social apps: https://www.farcaster.xyz
 
-## Partners
-
-<p>
-  <a href="https://paywithglide.xyz">
-    <img alt="glide logo" src="https://github.com/hero-org/.github/blob/main/assets/glide.png?raw=true" width="auto" height="50" />
-  </a>
-  <a href="https://www.bountycaster.xyz/">
-    <img alt="Bountycaster logo" src="https://github.com/hero-org/.github/blob/main/assets/Bountycaster.png?raw=true" width="auto" height="50"/ >
-  </a>
-  <a href="https://launchcaster.xyz/">
-    <img alt="Launchcaster logo" src="https://github.com/hero-org/.github/blob/main/assets/Launchcaster.png?raw=true" width="auto" height="50" />
-  </a>
-   <a href="https://warpcast.com/remindme">
-    <img alt="Launchcaster logo" src="https://github.com/hero-org/.github/blob/main/assets/remindmebot.png?raw=true" width="auto" height="50" />
-  </a>
- </p>
-
 #### Troubleshooting local DB errors
 
 ```psql
