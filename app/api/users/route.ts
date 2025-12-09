@@ -1,4 +1,4 @@
-import { unstable_cacheLife as cacheLife } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
@@ -6,14 +6,7 @@ const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes wit
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 
-async function fetchUsers(fids: string, viewerFid: number | null) {
-  'use cache';
-  cacheLife({
-    stale: 60 * 5, // 5 minutes - serve stale content
-    revalidate: 60 * 10, // 10 minutes - revalidate
-    expire: 60 * 60, // 1 hour - purge from cache
-  });
-
+async function fetchUsersUncached(fids: string, viewerFid: number | null) {
   if (!API_KEY) {
     throw new Error('API key not configured');
   }
@@ -67,6 +60,13 @@ async function fetchUsers(fids: string, viewerFid: number | null) {
   }
 }
 
+// Create cached version with unstable_cache (works in Next.js 15 stable)
+const getCachedUsers = (fids: string, viewerFid: number | null) =>
+  unstable_cache(() => fetchUsersUncached(fids, viewerFid), [`users-${fids}-${viewerFid ?? 'anon'}`], {
+    revalidate: 600, // 10 minutes
+    tags: ['users'],
+  })();
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const result = await fetchUsers(fidsParam, viewerFid);
+    const result = await getCachedUsers(fidsParam, viewerFid);
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Error in users route:', error);

@@ -1,4 +1,4 @@
-import { unstable_cacheLife as cacheLife } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
@@ -16,14 +16,7 @@ class FetchError extends Error {
   }
 }
 
-async function fetchAllChannels(): Promise<any> {
-  'use cache';
-  cacheLife({
-    stale: 60 * 60, // 1 hour - serve stale content
-    revalidate: 60 * 60 * 2, // 2 hours - background revalidation
-    expire: 60 * 60 * 24, // 1 day - purge from cache
-  });
-
+async function fetchAllChannelsUncached(): Promise<any> {
   if (!API_KEY) {
     throw new FetchError('API key not configured', 500);
   }
@@ -38,9 +31,16 @@ async function fetchAllChannels(): Promise<any> {
   return response;
 }
 
+// Create cached version with unstable_cache (works in Next.js 15 stable)
+const getCachedAllChannels = () =>
+  unstable_cache(() => fetchAllChannelsUncached(), ['all-channels'], {
+    revalidate: 7200, // 2 hours
+    tags: ['channels'],
+  })();
+
 export async function GET(request: NextRequest) {
   try {
-    const response = await fetchAllChannels();
+    const response = await getCachedAllChannels();
     return NextResponse.json(response);
   } catch (error: any) {
     if (error instanceof FetchError) {

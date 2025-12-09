@@ -1,4 +1,4 @@
-import { unstable_cacheLife as cacheLife } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 
@@ -6,14 +6,7 @@ const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes wit
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 
-async function searchChannels(query: string) {
-  'use cache';
-  cacheLife({
-    stale: 60 * 5, // 5 minutes - serve stale content
-    revalidate: 60 * 15, // 15 minutes - revalidate
-    expire: 60 * 60, // 1 hour - purge from cache
-  });
-
+async function searchChannelsUncached(query: string) {
   if (!API_KEY) {
     throw new Error('API key not configured');
   }
@@ -37,6 +30,13 @@ async function searchChannels(query: string) {
   }
 }
 
+// Create cached version with unstable_cache (works in Next.js 15 stable)
+const getCachedSearchChannels = (query: string) =>
+  unstable_cache(() => searchChannelsUncached(query), [`channels-search-${query}`], {
+    revalidate: 900, // 15 minutes
+    tags: ['channels-search'],
+  })();
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     // Normalize query to lowercase for better cache hits
     const normalizedQuery = query.toLowerCase();
 
-    const response = await searchChannels(normalizedQuery);
+    const response = await getCachedSearchChannels(normalizedQuery);
     return NextResponse.json(response);
   } catch (error: any) {
     if (error.message === 'AbortError' || error.name === 'AbortError') {
