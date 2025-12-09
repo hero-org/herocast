@@ -84,11 +84,6 @@ export const queryKeys = {
     all: ['embeds'] as const,
     urlMetadata: (url: string) => ['embeds', 'urlMetadata', url] as const,
   },
-
-  // User interaction queries
-  interactions: {
-    between: (viewerFid: number, targetFid: number) => ['interactions', viewerFid, targetFid] as const,
-  },
 } as const;
 
 // Type helpers for query key inference

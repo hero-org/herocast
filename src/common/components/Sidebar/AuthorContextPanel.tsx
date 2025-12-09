@@ -2,15 +2,12 @@ import React from 'react';
 import { useDataStore } from '@/stores/useDataStore';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useProfile } from '@/hooks/queries/useProfile';
-import { useUserInteractions } from '@/hooks/queries/useUserInteractions';
 import ProfileInfoContent from '@/common/components/ProfileInfoContent';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Copy, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { UserInteractionsSection } from './UserInteractionsSection';
 
 const AuthorContextPanel = () => {
   const { selectedCast } = useDataStore();
@@ -27,10 +24,6 @@ const AuthorContextPanel = () => {
       enabled: !!targetFid,
     }
   );
-
-  const { data: interactions, isLoading: interactionsLoading } = useUserInteractions(currentUserFid, targetFid, {
-    enabled: !(!selectedCast && !!currentUserFid) && !!targetFid,
-  });
 
   const isShowingCurrentUser = !selectedCast && !!currentUserFid;
   const displayProfile = profile || selectedCast?.author;
@@ -86,10 +79,6 @@ const AuthorContextPanel = () => {
             </div>
           ) : null}
         </div>
-
-        {!isShowingCurrentUser && targetFid && (
-          <UserInteractionsSection interactions={interactions} isLoading={interactionsLoading} />
-        )}
 
         {displayProfile?.verified_addresses?.eth_addresses &&
           displayProfile.verified_addresses.eth_addresses.length > 0 && (
