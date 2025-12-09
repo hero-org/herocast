@@ -322,7 +322,8 @@ const DirectMessages = () => {
       text: msg.message || '',
       senderFid: safeSenderFid,
       senderUsername: profile?.username || (safeSenderFid ? `fid:${safeSenderFid}` : 'unknown'),
-      senderDisplayName: profile?.display_name || profile?.username || (safeSenderFid ? `User ${safeSenderFid}` : 'Unknown'),
+      senderDisplayName:
+        profile?.display_name || profile?.username || (safeSenderFid ? `User ${safeSenderFid}` : 'Unknown'),
       senderPfpUrl: profile?.pfp_url || '',
       timestamp,
       isRead: true, // API doesn't provide read status, so we assume all are read
