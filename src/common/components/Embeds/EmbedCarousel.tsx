@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { renderEmbedForUrl } from './index';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { openWindow } from '@/common/helpers/navigation';
 
 type EmbedCarouselProps = {
   embeds: Array<{
@@ -19,11 +20,10 @@ type EmbedCarouselProps = {
     };
   }>;
   hideReactions?: boolean;
-  onEmbedClick?: () => void;
   isSelected?: boolean;
 };
 
-const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick, isSelected }: EmbedCarouselProps) => {
+const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [containerHeight, setContainerHeight] = useState<number | 'auto'>('auto');
   const embedRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -72,6 +72,18 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick, isSelected }: Embe
     }
   }, [currentIndex, embeds.length]);
 
+  const handleEmbedClick = useCallback(
+    (event: React.MouseEvent, embedIndex?: number) => {
+      event.stopPropagation();
+      const index = embedIndex ?? currentIndex;
+      const embed = embeds[index];
+      if (embed?.url) {
+        openWindow(embed.url);
+      }
+    },
+    [embeds, currentIndex]
+  );
+
   // Keyboard navigation using app hotkey infrastructure
   // Only enable when this carousel's parent cast is selected
   useAppHotkeys(
@@ -101,7 +113,7 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick, isSelected }: Embe
   // Single embed - no carousel UI needed (no transform, so intersection observer works)
   if (embeds.length === 1) {
     return (
-      <div className="max-w-lg self-start cursor-pointer" onClick={onEmbedClick}>
+      <div className="max-w-lg self-start cursor-pointer" onClick={(e) => handleEmbedClick(e, 0)}>
         {renderEmbedForUrl({ ...embeds[0], hideReactions })}
       </div>
     );
@@ -117,7 +129,7 @@ const EmbedCarousel = ({ embeds, hideReactions, onEmbedClick, isSelected }: Embe
         <div
           className="flex transition-transform duration-300 ease-in-out cursor-pointer"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-          onClick={onEmbedClick}
+          onClick={handleEmbedClick}
         >
           {embeds.map((embed, index) => (
             <div

@@ -108,7 +108,6 @@ interface CastRowProps {
   showAdminActions?: boolean;
   recastedByFid?: number;
   onCastClick?: () => void;
-  onEmbedClick?: () => void;
 }
 
 const renderMention = ({ attributes, content }) => {
@@ -215,7 +214,6 @@ const CastRowComponent = ({
   showAdminActions = false,
   recastedByFid,
   onCastClick,
-  onEmbedClick,
 }: CastRowProps) => {
   const { accounts, selectedAccountIdx, setSelectedChannelByName, setSelectedChannelUrl } = useAccountStore();
 
@@ -589,12 +587,7 @@ const CastRowComponent = ({
 
     return (
       <ErrorBoundary>
-        <EmbedCarousel
-          embeds={cast.embeds}
-          hideReactions={hideReactions}
-          onEmbedClick={onEmbedClick}
-          isSelected={isSelected}
-        />
+        <EmbedCarousel embeds={cast.embeds} hideReactions={hideReactions} isSelected={isSelected} />
       </ErrorBoundary>
     );
   };

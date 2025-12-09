@@ -10,7 +10,6 @@ import isEmpty from 'lodash.isempty';
 import { CastThreadView } from '@/common/components/CastThreadView';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import { Key } from 'ts-key-enum';
-import EmbedsModal from '@/common/components/EmbedsModal';
 import { useInView } from 'react-intersection-observer';
 import { Button } from '@/components/ui/button';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
@@ -62,7 +61,6 @@ export default function Feeds() {
   const [isRefreshingPage, setIsRefreshingPage] = useState(false);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
-  const [showEmbedsModal, setShowEmbedsModal] = useState(false);
   const lastUpdateTimeRef = useRef(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -183,10 +181,6 @@ export default function Feeds() {
     nextCursor = channelQuery.hasNextPage ? 'has-more' : '';
   }
 
-  const onOpenLinkInCast = useCallback(() => {
-    setShowEmbedsModal(true);
-  }, []);
-
   const onSelectCast = useCallback((idx: number) => {
     setSelectedCastIdx(idx);
     setShowCastThreadView(true);
@@ -302,9 +296,9 @@ export default function Feeds() {
       scopes: [HotkeyScopes.FEED],
       enableOnFormTags: true,
       enableOnContentEditable: true,
-      enabled: showCastThreadView && !isNewCastModalOpen && !showEmbedsModal,
+      enabled: showCastThreadView && !isNewCastModalOpen,
     },
-    [showCastThreadView, isNewCastModalOpen, showEmbedsModal, setShowCastThreadView]
+    [showCastThreadView, isNewCastModalOpen, setShowCastThreadView]
   );
 
   const refreshFeed = useCallback(() => {
@@ -379,7 +373,6 @@ export default function Feeds() {
           cast={item}
           isSelected={selectedCastIdx === idx}
           onSelect={() => onSelectCast(idx)}
-          onEmbedClick={onOpenLinkInCast}
           showChannel={
             selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
           }
@@ -440,9 +433,8 @@ export default function Feeds() {
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
-      onExpand={onOpenLinkInCast}
       onSelect={onSelectCast}
-      isActive={!(showCastThreadView || isNewCastModalOpen || showEmbedsModal)}
+      isActive={!(showCastThreadView || isNewCastModalOpen)}
       pinnedNavigation={true}
       containerHeight="100%"
       scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
@@ -458,10 +450,6 @@ export default function Feeds() {
       onQuote={onQuote}
     />
   );
-
-  const renderEmbedsModal = () => {
-    return <EmbedsModal open={showEmbedsModal} setOpen={() => setShowEmbedsModal(false)} cast={selectedCast!} />;
-  };
 
   const renderWelcomeMessage = () => {
     if (
@@ -549,7 +537,6 @@ export default function Feeds() {
           {renderWelcomeMessage()}
         </div>
       )}
-      {renderEmbedsModal()}
     </main>
   );
 
