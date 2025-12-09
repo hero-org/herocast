@@ -1,6 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
-import { UrlMetadata } from '@/app/api/embeds/metadata/route';
+
+export type UrlMetadata = {
+  url: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  favicon?: string;
+};
 
 interface UrlMetadataResponse {
   metadata: UrlMetadata | null;

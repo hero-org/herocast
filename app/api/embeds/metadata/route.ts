@@ -92,7 +92,9 @@ async function fetchUrlMetadataUncached(url: string): Promise<UrlMetadata | null
             }
           }
 
-          console.log(`[embeds/metadata] Neynar success for ${url} in ${Date.now() - neynarStart}ms (total: ${Date.now() - startTime}ms)`);
+          console.log(
+            `[embeds/metadata] Neynar success for ${url} in ${Date.now() - neynarStart}ms (total: ${Date.now() - startTime}ms)`
+          );
           return {
             url,
             title,
