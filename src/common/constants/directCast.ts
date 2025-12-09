@@ -1,7 +1,7 @@
 // Direct Cast API Constants
 
 export const DIRECT_CAST_API = {
-  BASE_URL: 'https://api.warpcast.com',
+  BASE_URL: 'https://api.farcaster.xyz',
 
   // API Endpoints
   ENDPOINTS: {
