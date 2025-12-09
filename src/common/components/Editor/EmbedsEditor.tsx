@@ -15,33 +15,37 @@ export const EmbedsEditor = ({ embeds, setEmbeds }: EmbedsEditorProps) => {
 
   return (
     <>
-      {embeds.map((embed, i) => (
-        <div key={i} className="relative mt-2">
-          <Button
-            className="rounded-full text-foreground hover:text-muted-foreground absolute -top-2 -left-2 border z-50 h-6 w-6"
-            size="icon"
-            variant="outline"
-            type="button"
-            onClick={() => {
-              setEmbeds(embeds.filter((_, j) => j !== i));
-            }}
-          >
-            <Cross1Icon className="h-3 w-3" />
-          </Button>
-          {embed.status === 'loading' ? (
-            <Skeleton className="h-[100px] w-full items-center flex justify-center">Loading...</Skeleton>
-          ) : isImageEmbed(embed) && 'url' in embed ? (
-            <div className="border rounded">
-              <img
-                src={(embed as { url: string }).url}
-                alt={(embed.metadata as any)?.alt}
-                className="rounded"
-                style={{ width: '100%' }}
-              />
-            </div>
-          ) : null}
-        </div>
-      ))}
+      {embeds.map((embed, i) => {
+        // Use URL or metadata as stable key, fallback to index for loading embeds
+        const embedKey = 'url' in embed ? embed.url : `embed-${i}`;
+        return (
+          <div key={embedKey} className="relative mt-2">
+            <Button
+              className="rounded-full text-foreground hover:text-muted-foreground absolute -top-2 -left-2 border z-50 h-6 w-6"
+              size="icon"
+              variant="outline"
+              type="button"
+              onClick={() => {
+                setEmbeds(embeds.filter((_, j) => j !== i));
+              }}
+            >
+              <Cross1Icon className="h-3 w-3" />
+            </Button>
+            {embed.status === 'loading' ? (
+              <Skeleton className="h-[100px] w-full items-center flex justify-center">Loading...</Skeleton>
+            ) : isImageEmbed(embed) && 'url' in embed ? (
+              <div className="border rounded">
+                <img
+                  src={(embed as { url: string }).url}
+                  alt={(embed.metadata as any)?.alt}
+                  className="rounded"
+                  style={{ width: '100%' }}
+                />
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
     </>
   );
 };

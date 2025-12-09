@@ -322,9 +322,9 @@ export function BulkAddUsersDialog({
 
             <ScrollArea className="h-[300px] rounded-md border p-4">
               <div className="space-y-2">
-                {parsedUsers.map((parsedUser, index) => (
+                {parsedUsers.map((parsedUser) => (
                   <div
-                    key={index}
+                    key={`${parsedUser.input}-${parsedUser.fid || 'pending'}`}
                     className={`flex items-center justify-between p-2 rounded-md text-sm ${
                       parsedUser.error
                         ? 'bg-destructive/10 text-destructive'
