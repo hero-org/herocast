@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 import { useChannelLookup } from '../hooks/useChannelLookup';
 import { castTextStyle } from '@/common/helpers/css';
-import { CastReactionType } from '@/common/constants/farcaster';
+import { CastReactionType, createParentCastId, createEmbedCastId } from '@/common/constants/farcaster';
 import { ChannelType } from '@/common/constants/channels';
 import { useAccountStore } from '@/stores/useAccountStore';
 import {
@@ -247,10 +247,7 @@ const CastRowComponent = ({
     setCastModalView(CastModalView.Reply);
     updateSelectedCast(cast);
     addNewPostDraft({
-      parentCastId: {
-        hash: cast.hash,
-        fid: cast.author.fid.toString(),
-      },
+      parentCastId: createParentCastId(cast.author.fid, cast.hash, 'CastRow.onReply'),
       onSuccess(draftId) {
         setCastModalDraftId(draftId);
         openNewCastModal();
@@ -264,9 +261,10 @@ const CastRowComponent = ({
     addNewPostDraft({
       embeds: [
         {
-          castId: {
-            hash: cast.hash,
-            fid: cast.author.fid.toString(),
+          // Store hash as string for JSON serialization - will be converted to bytes in prepareCastBody
+          castId: createEmbedCastId(cast.author.fid, cast.hash, 'CastRow.onQuote') as unknown as {
+            fid: number;
+            hash: Uint8Array;
           },
         },
       ],

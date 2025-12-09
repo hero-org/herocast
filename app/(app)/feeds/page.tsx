@@ -28,6 +28,7 @@ import includes from 'lodash.includes';
 import { useListStore } from '@/stores/useListStore';
 import { FidListContent, SearchListContent, isFidListContent, isSearchListContent } from '@/common/types/list.types';
 import { useTrendingFeedInfinite, flattenTrendingFeedPages } from '@/hooks/queries/useTrendingFeed';
+import { createParentCastId, createEmbedCastId } from '@/common/constants/farcaster';
 import { useFollowingFeedInfinite, flattenFollowingFeedPages } from '@/hooks/queries/useFollowingFeed';
 import { useChannelFeedInfinite, flattenChannelFeedPages } from '@/hooks/queries/useChannelFeed';
 import { useFidListFeedInfinite, flattenFidListFeedPages } from '@/hooks/queries/useFidListFeed';
@@ -261,10 +262,7 @@ export default function Feeds() {
 
     setCastModalView(CastModalView.Reply);
     addNewPostDraft({
-      parentCastId: {
-        hash: new TextEncoder().encode(selectedCast.hash),
-        fid: selectedCast.author.fid,
-      },
+      parentCastId: createParentCastId(selectedCast.author.fid, selectedCast.hash, 'feeds.onReply'),
       onSuccess(draftId) {
         setCastModalDraftId(draftId);
         openNewCastModal();
@@ -280,9 +278,10 @@ export default function Feeds() {
     addNewPostDraft({
       embeds: [
         {
-          castId: {
-            hash: new TextEncoder().encode(selectedCast.hash),
-            fid: selectedCast.author.fid,
+          // Store hash as string for JSON serialization - will be converted to bytes in prepareCastBody
+          castId: createEmbedCastId(selectedCast.author.fid, selectedCast.hash, 'feeds.onQuote') as unknown as {
+            fid: number;
+            hash: Uint8Array;
           },
         },
       ],

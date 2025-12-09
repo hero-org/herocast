@@ -9,7 +9,7 @@ import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { AccountObjectType, useAccountStore } from './useAccountStore';
 import { DraftStatus, DraftType, ParentCastIdType } from '@/common/constants/farcaster';
 import { formatPlaintextToHubCastMessage, getMentionFidsByUsernames, submitCast } from '@/common/helpers/farcaster';
-import { toBytes, toHex } from 'viem';
+import { toBytes } from 'viem';
 import { CastAddBody, CastId, Embed, makeCastAdd, Message, NobleEd25519Signer } from '@farcaster/hub-web';
 import { AccountPlatformType } from '@/common/constants/accounts';
 import {
@@ -29,18 +29,33 @@ import { CastModalView, useNavigationStore } from './useNavigationStore';
 const prepareCastBodyForDB = (castBody) => {
   if (castBody.embeds) {
     castBody.embeds.forEach((embed) => {
-      if ('castId' in embed) {
-        embed.castId = {
-          fid: embed.castId.fid,
-          hash: embed?.castId?.hash.toString(),
-        };
+      if ('castId' in embed && embed.castId) {
+        // Hash should already be a hex string - validate and pass through
+        const hash = embed.castId.hash;
+        if (typeof hash === 'string' && hash.startsWith('0x')) {
+          embed.castId = {
+            fid: Number(embed.castId.fid),
+            hash: hash,
+          };
+        } else {
+          console.error('[prepareCastBodyForDB] Invalid embed castId hash format:', hash);
+          throw new Error('Invalid embed castId hash format - expected hex string with 0x prefix');
+        }
       }
     });
   }
   return castBody;
 };
 
-export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
+// Custom type for prepared cast body - uses string hash for parentCastId to match submitCast expectations
+type PreparedCastBody = Omit<CastAddBody, 'parentCastId'> & {
+  parentCastId?: {
+    fid: number;
+    hash: string; // Hex string - submitCast will convert to bytes
+  };
+};
+
+export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => {
   const castBody = await formatPlaintextToHubCastMessage({
     text: draft.text,
     embeds: draft.embeds || [],
@@ -53,24 +68,82 @@ export const prepareCastBody = async (draft: any): Promise<CastAddBody> => {
   if (!castBody) {
     throw new Error('Failed to prepare cast');
   }
+
+  // Build result with proper types
+  const result: PreparedCastBody = {
+    text: castBody.text,
+    embeds: castBody.embeds,
+    embedsDeprecated: castBody.embedsDeprecated,
+    mentions: castBody.mentions,
+    mentionsPositions: castBody.mentionsPositions,
+    parentUrl: castBody.parentUrl,
+    type: castBody.type,
+  };
+
   if (castBody.parentCastId) {
-    castBody.parentCastId = {
+    // Validate hash format - it should be a hex string at this point
+    const hash = castBody.parentCastId.hash;
+    let hashString: string;
+
+    if (typeof hash === 'string') {
+      hashString = hash;
+    } else if (hash instanceof Uint8Array) {
+      // Convert Uint8Array back to hex string (shouldn't happen but handle it)
+      hashString = '0x' + Buffer.from(hash).toString('hex');
+    } else {
+      console.error('[prepareCastBody] Invalid parentCastId hash format:', hash);
+      throw new Error('Invalid parentCastId hash format - expected hex string or Uint8Array');
+    }
+
+    if (!hashString.startsWith('0x')) {
+      console.error('[prepareCastBody] Hash missing 0x prefix:', hashString);
+      throw new Error('Invalid parentCastId hash format - missing 0x prefix');
+    }
+
+    result.parentCastId = {
       fid: Number(castBody.parentCastId.fid),
-      hash: toHex(castBody.parentCastId.hash),
+      hash: hashString,
     };
-  }
-  if (castBody.embeds) {
-    castBody.embeds.forEach((embed) => {
-      if ('castId' in embed) {
-        embed.castId = {
-          fid: Number(embed?.castId?.fid),
-          hash: toBytes(embed?.castId?.hash),
-        };
-      }
+    console.log('[prepareCastBody] parentCastId prepared:', {
+      fid: result.parentCastId.fid,
+      hash: result.parentCastId.hash.slice(0, 12) + '...',
     });
   }
 
-  return castBody;
+  // Handle embed castIds - convert string hashes to bytes for Hub API
+  if (result.embeds) {
+    result.embeds = result.embeds.map((embed) => {
+      if ('castId' in embed && embed.castId) {
+        // Type assertion needed because embed types are complex
+        const castIdEmbed = embed as { castId: { fid: number; hash: string | Uint8Array } };
+        const hash = castIdEmbed.castId.hash;
+        let hashBytes: Uint8Array;
+
+        if (typeof hash === 'string') {
+          if (!hash.startsWith('0x')) {
+            console.error('[prepareCastBody] Invalid embed castId hash format:', hash);
+            throw new Error('Invalid embed castId hash format - expected hex string with 0x prefix');
+          }
+          hashBytes = toBytes(hash);
+        } else if (hash instanceof Uint8Array) {
+          hashBytes = hash;
+        } else {
+          console.error('[prepareCastBody] Invalid embed castId hash type:', typeof hash);
+          throw new Error('Invalid embed castId hash format');
+        }
+
+        return {
+          castId: {
+            fid: Number(castIdEmbed.castId.fid),
+            hash: hashBytes,
+          },
+        };
+      }
+      return embed;
+    });
+  }
+
+  return result;
 };
 
 // todo: get this from supabase DB type
@@ -93,7 +166,7 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
       parentUrl?: string;
       parentCastId?: {
         fid: number;
-        hash: Uint8Array;
+        hash: string; // Stored as hex string in DB
       };
       embeds?: Embed[];
     };
@@ -105,7 +178,7 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
     parentCastId: data.parentCastId
       ? {
           fid: data.parentCastId.fid,
-          hash: data.parentCastId.hash,
+          hash: data.parentCastId.hash, // Already a hex string from DB
         }
       : undefined,
     embeds: data.embeds
@@ -362,6 +435,11 @@ const store = (set: StoreSet) => ({
           status: DraftStatus.publishing,
         });
         const castBody = await prepareCastBody(draft);
+        console.log('[publishPostDraft] Cast body prepared:', {
+          hasParentCastId: !!castBody.parentCastId,
+          parentHash: castBody.parentCastId?.hash ? 'present' : 'none',
+          embedCount: castBody.embeds?.length || 0,
+        });
         const isPro = account?.user?.pro?.status === 'subscribed';
         const hash = await submitCast({
           ...castBody,

@@ -8,6 +8,7 @@ import { useDataStore } from '@/stores/useDataStore';
 import { useTheme } from 'next-themes';
 import { CUSTOM_CHANNELS } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
+import { createParentCastId } from '@/common/constants/farcaster';
 
 // Hook that registers all global hotkeys for the app
 export function useGlobalHotkeys() {
@@ -128,10 +129,7 @@ export function useGlobalHotkeys() {
       if (!selectedCast) return;
 
       addNewPostDraft({
-        parentCastId: {
-          fid: selectedCast.author.fid,
-          hash: new TextEncoder().encode(selectedCast.hash),
-        },
+        parentCastId: createParentCastId(selectedCast.author.fid, selectedCast.hash, 'useGlobalHotkeys.reply'),
         onSuccess: (draftId) => {
           setCastModalView(CastModalView.Reply);
           setCastModalDraftId(draftId);

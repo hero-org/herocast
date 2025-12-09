@@ -30,6 +30,7 @@ import {
 import { MoreHorizontal, RefreshCw, Cloud } from 'lucide-react';
 import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { createParentCastId } from '@/common/constants/farcaster';
 
 // Client-side cache for parent casts (prevents repeated API calls)
 const parentCastCache = new Map<string, { cast: CastWithInteractions; timestamp: number }>();
@@ -442,10 +443,7 @@ const Inbox = () => {
         setCastModalView(CastModalView.Reply);
         updateSelectedCast(notification.cast);
         addNewPostDraft({
-          parentCastId: {
-            hash: notification.cast.hash as any,
-            fid: notification.cast.author.fid as any,
-          },
+          parentCastId: createParentCastId(notification.cast.author.fid, notification.cast.hash, 'inbox.replyHotkey'),
           onSuccess(draftId) {
             console.log('✅ Draft created successfully:', draftId);
             setCastModalDraftId(draftId);

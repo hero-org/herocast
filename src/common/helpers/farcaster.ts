@@ -106,7 +106,10 @@ type SubmitCastParams = {
   embeds?: Embed[];
   mentions?: number[];
   mentionsPositions?: number[];
-  parentCastId?: CastId;
+  parentCastId?: {
+    fid: number;
+    hash: string; // Hex string with 0x prefix - will be converted to bytes before submission
+  };
   parentUrl?: string;
   fid: number;
   signerPrivateKey: string;
@@ -151,17 +154,31 @@ export const submitCast = async ({
     type: castType,
   };
   if (parentCastId !== undefined) {
+    console.log('[submitCast] Processing parentCastId:', {
+      fid: parentCastId.fid,
+      hashType: typeof parentCastId.hash,
+      hashValue: typeof parentCastId.hash === 'string' ? parentCastId.hash.slice(0, 12) + '...' : 'not-string',
+    });
+
+    // Validate hash format
+    if (typeof parentCastId.hash !== 'string' || !parentCastId.hash.startsWith('0x')) {
+      const errorMsg = `Invalid parentCastId.hash format: expected hex string with 0x prefix, got ${typeof parentCastId.hash}`;
+      console.error('[submitCast]', errorMsg, parentCastId.hash);
+      throw new Error(errorMsg);
+    }
+
     const parentHashBytes = hexStringToBytes(parentCastId.hash);
     const parentFid = parentCastId.fid;
     parentHashBytes.match(
       (bytes) => {
+        console.log('[submitCast] parentCastId hash converted to bytes, length:', bytes.length);
         castAdd.parentCastId = {
           fid: parentFid,
           hash: bytes,
         };
       },
       (err) => {
-        console.log('submitCast parentCastId error', err);
+        console.error('[submitCast] parentCastId hash conversion failed:', err);
         throw err;
       }
     );
@@ -455,7 +472,17 @@ export const updateBio = async () => {};
 
 // Utility function to convert hex string to Uint8Array
 export function stringHashToUint(hash: string): Uint8Array {
-  return new Uint8Array(Buffer.from(hash.slice(2), 'hex'));
+  if (!hash || typeof hash !== 'string') {
+    throw new Error(`stringHashToUint: invalid hash - expected string, got ${typeof hash}`);
+  }
+  if (!hash.startsWith('0x')) {
+    throw new Error(`stringHashToUint: hash must start with 0x prefix, got: ${hash.slice(0, 10)}`);
+  }
+  const bytes = new Uint8Array(Buffer.from(hash.slice(2), 'hex'));
+  if (bytes.length !== 20) {
+    console.warn(`[stringHashToUint] Unexpected hash length: ${bytes.length} bytes (expected 20)`, hash);
+  }
+  return bytes;
 }
 
 // Types needed for structured cast
@@ -677,7 +704,21 @@ export async function formatPlaintextToHubCastMessage({
   });
 
   // Process parent cast if provided
-  const targetHashBytes = parentCastHash ? stringHashToUint(parentCastHash) : false;
+  let targetHashBytes: Uint8Array | false = false;
+  if (parentCastHash) {
+    console.log('[formatPlaintextToHubCastMessage] Converting parentCastHash:', {
+      type: typeof parentCastHash,
+      value: parentCastHash.slice(0, 12) + '...',
+    });
+
+    if (typeof parentCastHash !== 'string' || !parentCastHash.startsWith('0x')) {
+      console.error('[formatPlaintextToHubCastMessage] Invalid parentCastHash format:', parentCastHash);
+      throw new Error('Invalid parentCastHash format - expected hex string with 0x prefix');
+    }
+
+    targetHashBytes = stringHashToUint(parentCastHash);
+    console.log('[formatPlaintextToHubCastMessage] parentCastHash converted, bytes length:', targetHashBytes.length);
+  }
 
   // Build the final cast body
   const castBody = {

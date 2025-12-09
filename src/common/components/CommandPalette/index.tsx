@@ -39,7 +39,7 @@ import { getNavigationCommands } from '@/getNavigationCommands';
 import { useTheme } from 'next-themes';
 import { getThemeCommands } from '@/getThemeCommands';
 import { formatShortcut } from '@/common/helpers/text';
-import { DraftType } from '@/common/constants/farcaster';
+import { DraftType, createParentCastId } from '@/common/constants/farcaster';
 import { useDataStore } from '@/stores/useDataStore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
@@ -76,10 +76,11 @@ const getFarcasterBotCommands = (): CommandType[] => {
     const { addNewPostDraft } = useDraftStore.getState();
     addNewPostDraft({
       ...draft,
-      parentCastId: {
-        fid: selectedCast.author.fid.toString(),
-        hash: selectedCast.hash,
-      },
+      parentCastId: createParentCastId(
+        selectedCast.author.fid,
+        selectedCast.hash,
+        'CommandPalette.addNewPostDraftWithSelectedCast'
+      ),
     });
 
     const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
