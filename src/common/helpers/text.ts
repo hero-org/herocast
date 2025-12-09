@@ -7,7 +7,14 @@ export const getUrlsInText = (text: string): { url: string }[] => {
 };
 
 export const isImageUrl = (url: string): boolean => {
-  return url.match(/\.(jpeg|jpg|gif|png)$/) != null;
+  try {
+    const parsed = new URL(url);
+    const hasImageExt = /\.(jpeg|jpg|gif|png|webp|avif)$/i.test(parsed.pathname);
+    const isImageHost = /imagedelivery\.net$/i.test(parsed.hostname);
+    return hasImageExt || isImageHost;
+  } catch {
+    return false;
+  }
 };
 
 export const formatLargeNumber = (num?: number): string => {

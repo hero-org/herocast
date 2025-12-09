@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { getUrlsInText, isImageUrl } from '@/common/helpers/text';
 
 interface MessageBubbleProps {
   text: string;
@@ -50,6 +51,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     );
   }
 
+  // Detect image URLs using shared helper
+  const urls = getUrlsInText(trimmedText);
+  const imageUrl = urls.find((u) => isImageUrl(u.url))?.url || null;
+  const isImageMessage = Boolean(imageUrl);
+
   // Check if message is emoji-only (up to 3 emojis)
   const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F){1,3}$/u;
   const isEmojiOnly = emojiRegex.test(trimmedText);
@@ -58,15 +64,36 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const needsExpansion = trimmedText.length > MAX_MESSAGE_LENGTH;
   const displayText = needsExpansion && !isExpanded ? trimmedText.slice(0, MAX_MESSAGE_LENGTH) + '...' : trimmedText;
 
-  return (
-    <div>
-      <div
-        className={cn(
-          'rounded-2xl px-4 py-2 overflow-hidden',
-          isViewer ? 'bg-blue-500 text-white' : 'bg-muted text-foreground',
-          isEmojiOnly && 'px-3 py-1' // Smaller padding for emoji-only messages
+  let content: React.ReactNode;
+
+  if (isImageMessage && imageUrl) {
+    const caption = trimmedText.replace(imageUrl, '').trim();
+
+    content = (
+      <>
+        <img
+          src={imageUrl}
+          alt=""
+          className="rounded-2xl max-w-full h-auto"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+        {caption && (
+          <p
+            className="mt-1 text-sm whitespace-pre-wrap px-2"
+            style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+          >
+            {caption}
+          </p>
         )}
-      >
+      </>
+    );
+  } else {
+    content = (
+      <>
         <p
           className={cn('whitespace-pre-wrap', isEmojiOnly ? 'text-3xl' : 'text-sm')}
           style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
@@ -93,9 +120,30 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
           </button>
         )}
+      </>
+    );
+  }
+
+  return (
+    <div>
+      <div
+        className={cn(
+          'rounded-2xl px-4 py-2 overflow-hidden',
+          isViewer ? 'bg-blue-500 text-white' : 'bg-muted text-foreground',
+          // keep your smaller padding only for emoji-only *text* messages
+          isEmojiOnly && 'px-3 py-1',
+          isImageMessage && 'px-0.5 py-0.5',
+          isImageMessage && showTimestamp && timestamp && 'pb-2'
+        )}
+      >
+        {content}
 
         {showTimestamp && timestamp && (
-          <p className={cn('text-xs mt-1', isViewer ? 'text-blue-200' : 'text-foreground/60')}>{timestamp}</p>
+          <p
+            className={cn('text-xs mt-1', isViewer ? 'text-blue-200' : 'text-foreground/60', isImageMessage && 'px-2')}
+          >
+            {timestamp}
+          </p>
         )}
       </div>
     </div>
