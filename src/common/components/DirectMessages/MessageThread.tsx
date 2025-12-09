@@ -122,10 +122,12 @@ const MessageThreadContent: React.FC<MessageThreadProps> = ({
         )}
 
         {/* Message groups */}
-        {messageGroups.map((group, groupIdx) => {
+        {messageGroups.map((group) => {
           const isViewer = group.sender.senderFid === viewerFid;
+          // Use first message ID as stable key for the group
+          const groupKey = `group-${group.messages[0].id}`;
           return (
-            <div key={`group-${groupIdx}`} className={cn('flex gap-3', isViewer ? 'flex-row-reverse' : 'flex-row')}>
+            <div key={groupKey} className={cn('flex gap-3', isViewer ? 'flex-row-reverse' : 'flex-row')}>
               {/* Avatar */}
               {!isViewer && (
                 <ProfileHoverCard

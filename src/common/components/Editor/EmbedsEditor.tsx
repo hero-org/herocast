@@ -15,8 +15,11 @@ export const EmbedsEditor = ({ embeds, setEmbeds }: EmbedsEditorProps) => {
 
   return (
     <>
-      {embeds.map((embed, i) => (
-        <div key={i} className="relative mt-2">
+      {embeds.map((embed, i) => {
+        // Use URL or metadata as stable key, fallback to index for loading embeds
+        const embedKey = 'url' in embed ? embed.url : `embed-${i}`;
+        return (
+        <div key={embedKey} className="relative mt-2">
           <Button
             className="rounded-full text-foreground hover:text-muted-foreground absolute -top-2 -left-2 border z-50 h-6 w-6"
             size="icon"
@@ -41,7 +44,8 @@ export const EmbedsEditor = ({ embeds, setEmbeds }: EmbedsEditorProps) => {
             </div>
           ) : null}
         </div>
-      ))}
+        );
+      })}
     </>
   );
 };
