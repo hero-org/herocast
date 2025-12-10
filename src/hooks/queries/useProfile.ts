@@ -3,6 +3,7 @@ import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { queryKeys } from '@/lib/queryKeys';
 import { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
 import { CoordinapeAttestation } from '@/common/helpers/coordinapeAttestations';
+import { profileBatcher } from './profileBatcher';
 
 export type AdditionalUserInfo = {
   icebreakerSocialInfo?: IcebreakerSocialInfo;
@@ -119,7 +120,16 @@ export function useProfileByFid(fid: number | undefined, options?: UseProfileOpt
 
   return useQuery({
     queryKey: queryKeys.profiles.byFid(fid ?? 0),
-    queryFn: () => fetchProfileByFid(fid!, viewerFid, includeAdditionalInfo),
+    // Use batcher for automatic request batching (solves N+1 problem)
+    // Falls back to direct fetch when additional info is needed
+    queryFn: async (): Promise<ProfileData | null> => {
+      if (includeAdditionalInfo) {
+        return fetchProfileByFid(fid!, viewerFid, includeAdditionalInfo);
+      }
+      // Batcher returns ProfileData or undefined if not found
+      const profile = await profileBatcher.fetch(fid!);
+      return profile ?? null;
+    },
     enabled: enabled && !!fid && fid > 0,
     staleTime: 1000 * 60 * 5, // 5 minutes - standard cache duration
   });
