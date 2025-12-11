@@ -268,47 +268,58 @@ export default function NewPostEntry({
     });
   }, []);
 
-  const { editor, getText, setText, embeds, getEmbeds, setEmbeds, addEmbed, channel, getChannel, setChannel, handleSubmit } =
-    useCastEditor({
-      onError,
-      onSubmit: onSubmitPost,
-      linkClassName: 'text-blue-500',
-      renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
-        getResults: getChannels,
-        RenderList: ChannelList,
-      }),
-      renderMentionsSuggestionConfig: mentionConfig,
-      editorOptions: {
-        editorProps: {
-          handlePaste: (view, event) => {
-            const { state } = view;
-            const isFullSelection = state.selection.from === 0 && state.selection.to === state.doc.content.size;
+  const {
+    editor,
+    getText,
+    setText,
+    embeds,
+    getEmbeds,
+    setEmbeds,
+    addEmbed,
+    channel,
+    getChannel,
+    setChannel,
+    handleSubmit,
+  } = useCastEditor({
+    onError,
+    onSubmit: onSubmitPost,
+    linkClassName: 'text-blue-500',
+    renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
+      getResults: getChannels,
+      RenderList: ChannelList,
+    }),
+    renderMentionsSuggestionConfig: mentionConfig,
+    editorOptions: {
+      editorProps: {
+        handlePaste: (view, event) => {
+          const { state } = view;
+          const isFullSelection = state.selection.from === 0 && state.selection.to === state.doc.content.size;
 
-            // Fix for TipTap bug: select-all + paste throws position error
-            if (isFullSelection && event.clipboardData?.getData('text/plain') && editor) {
-              editor.commands.setContent(event.clipboardData.getData('text/plain'));
-              return true;
-            }
+          // Fix for TipTap bug: select-all + paste throws position error
+          if (isFullSelection && event.clipboardData?.getData('text/plain') && editor) {
+            editor.commands.setContent(event.clipboardData.getData('text/plain'));
+            return true;
+          }
 
-            // Handle image uploads
-            const handled = extractImageAndUpload({
-              data: event.clipboardData,
-              uploadImage,
-            });
+          // Handle image uploads
+          const handled = extractImageAndUpload({
+            data: event.clipboardData,
+            uploadImage,
+          });
 
-            return handled;
-          },
-          handleDrop: (view, event) => {
-            const handled = extractImageAndUpload({
-              data: event.dataTransfer,
-              uploadImage,
-            });
+          return handled;
+        },
+        handleDrop: (view, event) => {
+          const handled = extractImageAndUpload({
+            data: event.dataTransfer,
+            uploadImage,
+          });
 
-            return handled;
-          },
+          return handled;
         },
       },
-    });
+    },
+  });
 
   // Track the draft.id to detect when switching between drafts
   const lastDraftIdRef = useRef<string | undefined>(undefined);
