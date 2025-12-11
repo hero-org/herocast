@@ -17,13 +17,12 @@ const getImageViaCdnUrl = (imgUrl: string, skipCdn: boolean) => {
   return imgUrl;
 };
 
-export const WarpcastImage = ({ url }: { url: string }) => {
+export const ImageEmbed = ({ url }: { url: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [skipCdn, setSkipCdn] = useState(false);
 
-  const onImageLoad = (e: any) => {
+  const onImageLoad = () => {
     setIsLoading(false);
-    e.currentTarget.style.display = 'block';
   };
 
   const renderLoadingPlaceholder = () => {
@@ -39,7 +38,7 @@ export const WarpcastImage = ({ url }: { url: string }) => {
     <div>
       <img
         className="max-h-48 md:max-h-72 object-left rounded-md"
-        style={{ display: 'none' }}
+        style={{ display: isLoading ? 'none' : 'block' }}
         src={getImageViaCdnUrl(url, skipCdn)}
         alt=""
         referrerPolicy="no-referrer"
@@ -49,7 +48,7 @@ export const WarpcastImage = ({ url }: { url: string }) => {
           console.log('error loading image, retry without CDN', url);
           setSkipCdn(true);
         }}
-        onLoad={(e) => onImageLoad(e)}
+        onLoad={onImageLoad}
       />
       {isLoading && renderLoadingPlaceholder()}
     </div>

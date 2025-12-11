@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Key } from 'ts-key-enum';
 import isEmpty from 'lodash.isempty';
@@ -25,7 +25,7 @@ type SelectableListWithHotkeysProps = {
   scopes?: HotkeyScope[];
   // Optional footer to render inside scroll container
   footer?: React.ReactNode;
-  // Estimated item height for virtualization (defaults to 150px for cast rows)
+  // Estimated item height for virtualization (defaults to 250px for cast rows)
   estimatedItemHeight?: number;
 };
 
@@ -45,17 +45,27 @@ export const SelectableListWithHotkeys = ({
   containerHeight = '80vh',
   scopes,
   footer,
-  estimatedItemHeight = 150,
+  estimatedItemHeight = 250,
 }: SelectableListWithHotkeysProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname() || '/';
   const pageScopes = scopes ?? getScopesForPage(pathname);
 
   // Set up virtualizer for efficient rendering of large lists
+  // Use content-aware height estimation for better accuracy
   const virtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => containerRef.current,
-    estimateSize: () => estimatedItemHeight,
+    estimateSize: (index) => {
+      const item = data[index];
+      // Check if item has embeds (cast embeds, images, links)
+      const hasEmbeds = item?.embeds?.length > 0;
+      const hasCastEmbed = item?.embeds?.some((e: any) => e.cast_id || e.castId);
+
+      if (hasCastEmbed) return 450; // Embedded casts are tallest
+      if (hasEmbeds) return 350; // Images/links
+      return 180; // Text-only casts
+    },
     overscan: 5, // Render 5 items above and below the visible area for smooth scrolling
   });
 

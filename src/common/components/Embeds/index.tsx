@@ -6,7 +6,7 @@ import NounsBuildEmbed from './NounsBuildEmbed';
 import ParagraphXyzEmbed from './ParagraphXyzEmbed';
 import VideoEmbed from './VideoEmbed';
 import OpenGraphImage from './OpenGraphImage';
-import { WarpcastImage } from '../PostEmbeddedContent';
+import { ImageEmbed } from '../PostEmbeddedContent';
 import { isImageUrl } from '@/common/helpers/text';
 import { MinusCircleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,7 @@ const getEmbedForUrl = (url: string, hideReactions?: boolean, skipIntersection?:
     url.startsWith('https://imagedelivery.net') ||
     isImageUrl(url)
   ) {
-    return <WarpcastImage url={url} />;
+    return <ImageEmbed url={url} />;
   } else if (url.startsWith('"chain:')) {
     return <OnchainEmbed url={url} />;
   } else if (url.startsWith('https://stream.warpcast.com')) {
