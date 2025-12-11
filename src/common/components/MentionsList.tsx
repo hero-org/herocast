@@ -2,7 +2,7 @@
 
 import React, { forwardRef, useImperativeHandle, useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FarcasterMention } from '@mod-protocol/farcaster';
+import { FarcasterMention } from '@/common/types/embeds';
 import { cn } from '@/lib/utils';
 import { useIsMounted } from '../helpers/hooks';
 

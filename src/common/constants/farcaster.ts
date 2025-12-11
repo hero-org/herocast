@@ -1,4 +1,4 @@
-import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import type { FarcasterEmbed } from '@/common/types/embeds';
 import { UUID } from 'crypto';
 
 export type ParentCastIdType = {

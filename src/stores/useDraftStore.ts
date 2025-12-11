@@ -19,7 +19,7 @@ import {
   toastSuccessCastScheduled,
 } from '@/common/helpers/toast';
 import { NewPostDraft } from '@/common/constants/postDrafts';
-import type { FarcasterEmbed } from '@mod-protocol/farcaster';
+import type { FarcasterEmbed } from '@/common/types/embeds';
 import { createClient } from '@/common/helpers/supabase/component';
 import { UUID } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';

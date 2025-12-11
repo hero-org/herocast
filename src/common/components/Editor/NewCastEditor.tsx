@@ -7,10 +7,11 @@ import { toNeynarChannels } from '@/common/helpers/channels';
 import { TOP_CHANNELS } from '@/common/constants/topChannels';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
-import { useEditor, EditorContent } from '@mod-protocol/react-editor';
+import { EditorContent } from '@tiptap/react';
 import { EmbedsEditor } from './EmbedsEditor';
+import { useCastEditor } from '@/common/hooks/useCastEditor';
+import type { FarcasterEmbed } from '@/common/types/embeds';
 
-import { fetchUrlMetadata, handleAddEmbed, handleOpenFile, handleSetInput } from '@mod-protocol/core';
 import { getFarcasterMentions } from '@mod-protocol/farcaster';
 // import { createRenderMentionsSuggestionConfig } from '@mod-protocol/react-ui-shadcn/dist/lib/mentions';
 import { createFixedMentionsSuggestionConfig as createRenderMentionsSuggestionConfig } from '@/lib/mentions/fixedMentions';
@@ -25,7 +26,6 @@ import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { ChannelList } from '../ChannelList';
 import isEmpty from 'lodash.isempty';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { FarcasterEmbed } from '@mod-protocol/farcaster';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +43,17 @@ import { format, startOfToday } from 'date-fns';
 const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
 const getMentions = getFarcasterMentions(API_URL);
 
+// fetchUrlMetadata - simplified version (we don't use this for now, images go direct to cloudinary)
+const fetchUrlMetadata = async (url: string): Promise<Record<string, unknown>> => {
+  try {
+    const response = await fetch(`/api/embeds/metadata?url=${encodeURIComponent(url)}`);
+    if (!response.ok) return {};
+    return await response.json();
+  } catch {
+    return {};
+  }
+};
+
 const getChannels = async (query: string): Promise<Channel[]> => {
   if (query.length < 2) return [];
   try {
@@ -57,8 +68,6 @@ const getChannels = async (query: string): Promise<Channel[]> => {
     return [];
   }
 };
-
-const getUrlMetadata = fetchUrlMetadata(API_URL);
 
 const getDefaultScheduleTime = (): Date => {
   // Returns date 1 hour from now, rounded to nearest 5 minutes
@@ -103,7 +112,6 @@ export default function NewPostEntry({
 }: NewPostEntryProps) {
   const posthog = usePostHog();
   const { addScheduledDraft, updatePostDraft, publishPostDraft } = useDraftStore();
-  const [initialEmbeds, setInitialEmbeds] = React.useState<FarcasterEmbed[]>();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
   const [schedulePopoverOpen, setSchedulePopoverOpen] = React.useState(false);
   const [editorKey, setEditorKey] = React.useState(0);
@@ -260,74 +268,80 @@ export default function NewPostEntry({
     });
   }, []);
 
-  const { editor, getText, addEmbed, getEmbeds, setEmbeds, setChannel, getChannel, handleSubmit, setText } = useEditor({
-    fetchUrlMetadata: getUrlMetadata,
-    onError,
-    onSubmit: onSubmitPost,
-    linkClassName: 'text-blue-500',
-    renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
-      getResults: getChannels,
-      RenderList: ChannelList,
-    }),
-    renderMentionsSuggestionConfig: mentionConfig,
-    editorOptions: {
-      editorProps: {
-        handlePaste: (view, event) => {
-          const { state } = view;
-          const isFullSelection = state.selection.from === 0 && state.selection.to === state.doc.content.size;
+  const { editor, getText, setText, embeds, getEmbeds, setEmbeds, addEmbed, channel, getChannel, setChannel, handleSubmit } =
+    useCastEditor({
+      onError,
+      onSubmit: onSubmitPost,
+      linkClassName: 'text-blue-500',
+      renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
+        getResults: getChannels,
+        RenderList: ChannelList,
+      }),
+      renderMentionsSuggestionConfig: mentionConfig,
+      editorOptions: {
+        editorProps: {
+          handlePaste: (view, event) => {
+            const { state } = view;
+            const isFullSelection = state.selection.from === 0 && state.selection.to === state.doc.content.size;
 
-          // Fix for TipTap bug: select-all + paste throws position error
-          if (isFullSelection && event.clipboardData?.getData('text/plain') && editor) {
-            editor.commands.setContent(event.clipboardData.getData('text/plain'));
-            return true;
-          }
+            // Fix for TipTap bug: select-all + paste throws position error
+            if (isFullSelection && event.clipboardData?.getData('text/plain') && editor) {
+              editor.commands.setContent(event.clipboardData.getData('text/plain'));
+              return true;
+            }
 
-          // Handle image uploads
-          const handled = extractImageAndUpload({
-            data: event.clipboardData,
-            uploadImage,
-          });
+            // Handle image uploads
+            const handled = extractImageAndUpload({
+              data: event.clipboardData,
+              uploadImage,
+            });
 
-          return handled;
-        },
-        handleDrop: (view, event) => {
-          const handled = extractImageAndUpload({
-            data: event.dataTransfer,
-            uploadImage,
-          });
+            return handled;
+          },
+          handleDrop: (view, event) => {
+            const handled = extractImageAndUpload({
+              data: event.dataTransfer,
+              uploadImage,
+            });
 
-          return handled;
+            return handled;
+          },
         },
       },
+    });
 
-      parseOptions: {
-        preserveWhitespace: 'full',
-      },
-    },
-  });
+  // Track the draft.id to detect when switching between drafts
+  const lastDraftIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!editor) return;
 
-    // Only set initial content once when editor is ready
-    if (!text && draft.text && isEmpty(draft.mentionsToFids)) {
-      try {
-        editor.commands.setContent(`<p>${draft.text.replace(/\n/g, '<br>')}</p>`, true, {
-          preserveWhitespace: 'full',
-        });
-      } catch (error) {
-        console.error('Error setting initial editor content:', error);
+    // Detect draft switch - reset embeds when draft.id changes
+    if (draft.id !== lastDraftIdRef.current) {
+      lastDraftIdRef.current = draft.id;
+
+      // Set text content from draft
+      if (draft.text) {
+        try {
+          editor.commands.setContent(`<p>${draft.text.replace(/\n/g, '<br>')}</p>`, {
+            emitUpdate: true,
+            parseOptions: { preserveWhitespace: 'full' },
+          });
+        } catch (error) {
+          console.error('Error setting initial editor content:', error);
+        }
+      }
+
+      // Set embeds from draft - single source of truth, no merge
+      if (draft.embeds && draft.embeds.length > 0) {
+        setEmbeds(draft.embeds);
+      } else {
+        setEmbeds([]);
       }
     }
-
-    if (draft.embeds && !initialEmbeds) {
-      setInitialEmbeds(draft.embeds);
-    }
-  }, [editor, draft.text, draft.embeds, initialEmbeds]);
+  }, [editor, draft.id, draft.text, draft.embeds, setEmbeds]);
 
   const text = getText();
-  const embeds = getEmbeds();
-  const channel = getChannel();
 
   const {
     label: textLengthWarning,
@@ -362,31 +376,18 @@ export default function NewPostEntry({
 
     // Debounce draft updates to avoid rapid state changes
     const timeoutId = setTimeout(() => {
-      const newEmbeds = initialEmbeds ? [...embeds, ...initialEmbeds] : embeds;
-
-      // Use the original draft data with only the changed fields
+      // embeds is now the single source of truth - no more merge with initialEmbeds
       updatePostDraft(draftIdx, {
         ...draft,
         text,
-        embeds: newEmbeds,
+        embeds,
         parentUrl: channel?.parent_url || undefined,
         mentionsToFids: extractMentionsFromText,
       });
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [
-    text,
-    embeds,
-    initialEmbeds,
-    channel,
-    isPublishing,
-    editor,
-    extractMentionsFromText,
-    draftIdx,
-    draft,
-    updatePostDraft,
-  ]);
+  }, [text, embeds, channel, isPublishing, editor, extractMentionsFromText, draftIdx, draft, updatePostDraft]);
 
   // Track whether initial channel has been set to prevent overwriting user selections
   const hasSetInitialChannel = useRef(false);
@@ -403,12 +404,10 @@ export default function NewPostEntry({
         url: pinnedChannel.url,
         name: pinnedChannel.name,
         object: 'channel',
-        // @ts-expect-error - mod protocol channel type mismatch
         image_url: pinnedChannel.icon_url,
         parent_url: pinnedChannel.url,
         description: '',
         created_at: 0,
-        // @ts-expect-error - mod protocol channel type mismatch
         lead: {},
       });
       hasSetInitialChannel.current = true;
@@ -419,12 +418,10 @@ export default function NewPostEntry({
         url: draftChannel.url,
         name: draftChannel.name,
         object: 'channel',
-        // @ts-expect-error - mod protocol channel type mismatch
         image_url: draftChannel.icon_url,
         parent_url: draftChannel.url,
         description: '',
         created_at: 0,
-        // @ts-expect-error - mod protocol channel type mismatch
         lead: {},
       });
       hasSetInitialChannel.current = true;
@@ -477,7 +474,7 @@ export default function NewPostEntry({
                 value={channel ? (channel as unknown as Channel) : undefined}
                 onSelect={(ch) => {
                   if (ch) {
-                    // Convert Neynar Channel to mod-protocol channel format
+                    // Convert Neynar Channel to our channel format
                     setChannel({
                       id: ch.id,
                       url: ch.parent_url ?? '',
@@ -487,11 +484,9 @@ export default function NewPostEntry({
                       parent_url: ch.parent_url ?? '',
                       description: '',
                       created_at: 0,
-                      // @ts-expect-error - mod protocol channel type mismatch
                       lead: {},
                     });
                   } else {
-                    // @ts-expect-error - mod protocol expects null for clearing
                     setChannel(null);
                   }
                   // Return focus to editor after channel selection
@@ -505,7 +500,16 @@ export default function NewPostEntry({
           )}
           <Button
             size="sm"
-            onClick={() => handleOpenFile({ addEmbed: (e) => addEmbed(e.url) })}
+            onClick={() => {
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = 'image/*,video/*';
+              input.onchange = (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) uploadImage(file);
+              };
+              input.click();
+            }}
             variant="outline"
             disabled={isPublishing}
           >
