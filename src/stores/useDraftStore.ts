@@ -150,9 +150,9 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
 export type DraftObjectType = {
   id: UUID;
   data: object;
-  createdAt: string;
-  scheduledFor?: string;
-  publishedAt?: string;
+  created_at: string;
+  scheduled_for?: string | null;
+  published_at?: string | null;
   status: DraftStatus;
   account_id: UUID;
 };
@@ -182,13 +182,13 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
         }
       : undefined,
     embeds: data.embeds
-      ? data.embeds.map((embed) => ({
+      ? (data.embeds.map((embed) => ({
           url: embed.url,
-        }))
+        })) as FarcasterEmbed[])
       : undefined,
     // todo: embeds can also be an array of FarcasterEmbed
     // can also be cast_ids etc all of this stuff needs to work
-    createdAt: draft.created_at,
+    createdAt: new Date(draft.created_at).getTime(),
     scheduledFor: draft?.scheduled_for,
     publishedAt: draft?.published_at,
     status: draft.status,
@@ -226,7 +226,7 @@ const preEncodeCastMessage = async (castBody: CastAddBody, account: AccountObjec
     console.log('preEncodeCastMessage: dataOptions:', dataOptions);
 
     // Clean private key
-    let cleanPrivateKey = account.privateKey;
+    let cleanPrivateKey: string = account.privateKey;
     if (cleanPrivateKey.startsWith('0x')) {
       cleanPrivateKey = cleanPrivateKey.slice(2);
     }
@@ -234,7 +234,7 @@ const preEncodeCastMessage = async (castBody: CastAddBody, account: AccountObjec
     console.log('preEncodeCastMessage: privateKey length:', cleanPrivateKey.length);
     console.log('preEncodeCastMessage: privateKey format valid:', /^[0-9a-fA-F]{64}$/.test(cleanPrivateKey));
 
-    const privateKeyBytes = toBytes(`0x${cleanPrivateKey}`);
+    const privateKeyBytes = toBytes(`0x${cleanPrivateKey}` as `0x${string}`);
     console.log('preEncodeCastMessage: privateKeyBytes length:', privateKeyBytes.length);
 
     const signer = new NobleEd25519Signer(privateKeyBytes);
@@ -256,7 +256,7 @@ const preEncodeCastMessage = async (castBody: CastAddBody, account: AccountObjec
     return result; // Convert to array for JSON storage
   } catch (error) {
     console.error('preEncodeCastMessage: Failed to pre-encode cast message:', error);
-    console.error('preEncodeCastMessage: Error stack:', error.stack);
+    console.error('preEncodeCastMessage: Error stack:', error instanceof Error ? error.stack : 'unknown');
     throw error;
   }
 };
@@ -270,12 +270,6 @@ type addNewPostDraftProps = {
   force?: boolean;
 };
 
-type addScheduledDraftProps = {
-  draftIdx: number;
-  scheduledFor: Date;
-  onSuccess?: () => void;
-};
-
 interface NewPostStoreProps {
   drafts: DraftType[];
   isHydrated: boolean;
@@ -283,16 +277,19 @@ interface NewPostStoreProps {
 }
 
 interface DraftStoreActions {
-  updatePostDraft: (draftIdx: number, post: DraftType) => void;
-  updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => void;
+  // New ID-based methods
+  getDraftById: (draftId: UUID) => DraftType | undefined;
+  updateDraftById: (draftId: UUID, updates: Partial<DraftType>) => void;
+  publishDraftById: (draftId: UUID, account: AccountObjectType, onPost?: () => void) => Promise<string | null>;
+  scheduleDraftById: (draftId: UUID, scheduledFor: Date, onSuccess?: () => void) => Promise<void>;
+
+  // Keep these methods
   addNewPostDraft: ({ text, parentCastId, parentUrl, embeds, onSuccess, force }: addNewPostDraftProps) => void;
-  addScheduledDraft: ({ draftIdx, scheduledFor, onSuccess }: addScheduledDraftProps) => void;
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => void;
-  removePostDraftById: (draftId: UUID) => void;
+  removePostDraftById: (draftId: UUID) => Promise<void>;
   removeScheduledDraftFromDB: (draftId: UUID) => Promise<boolean>;
   removeAllPostDrafts: () => void;
   removeEmptyDrafts: () => void;
-  publishPostDraft: (draftIdx: number, account: AccountObjectType, onPost?: () => void) => Promise<string | null>;
   hydrate: () => void;
   openDraftsModal: () => void;
   closeDraftsModal: () => void;
@@ -338,8 +335,8 @@ const store = (set: StoreSet) => ({
       }
 
       const createdAt = Date.now();
-      const id = uuidv4();
-      const newDraft = {
+      const id = uuidv4() as UUID;
+      const newDraft: DraftType = {
         ...NewPostDraft,
         text: text || '',
         id,
@@ -348,32 +345,184 @@ const store = (set: StoreSet) => ({
         embeds,
         createdAt,
       };
-      state.drafts = [...state.drafts, newDraft];
+      state.drafts = [...state.drafts, newDraft] as typeof state.drafts;
       onSuccess?.(id);
     });
   },
-  updatePostDraft: (draftIdx: number, draft: DraftType) => {
+  getDraftById: (draftId: UUID) => {
+    const state = useDraftStore.getState();
+    return state.drafts.find((draft) => draft.id === draftId);
+  },
+  updateDraftById: (draftId: UUID, updates: Partial<DraftType>) => {
     set((state) => {
-      state.drafts = [
-        ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
-        draft,
-        ...state.drafts.slice(draftIdx + 1),
-      ];
+      const idx = state.drafts.findIndex((draft) => draft.id === draftId);
+      if (idx !== -1) {
+        state.drafts[idx] = { ...state.drafts[idx], ...updates };
+      }
     });
   },
-  updateMentionsToFids: (draftIdx: number, mentionsToFids: { [key: string]: string }) => {
-    set((state) => {
-      const draft = state.drafts[draftIdx];
-      state.drafts = [
-        ...(draftIdx > 0 ? state.drafts.slice(0, draftIdx) : []),
-        { ...draft, mentionsToFids },
-        ...state.drafts.slice(draftIdx + 1),
-      ];
+  publishDraftById: async (draftId: UUID, account: AccountObjectType, onPost?: () => void): Promise<string | null> => {
+    // Get current state snapshot outside set()
+    const draft = useDraftStore.getState().drafts.find((d) => d.id === draftId);
+    if (!draft) {
+      console.error('Draft not found:', draftId);
+      return null;
+    }
 
-      const copy = [...state.drafts];
-      copy.splice(draftIdx, 1, { ...draft, mentionsToFids });
-      state.drafts = copy;
+    if (account.platform === AccountPlatformType.farcaster_local_readonly) {
+      toastInfoReadOnlyMode();
+      return null;
+    }
+
+    // Update status to publishing (sync)
+    set((state) => {
+      const idx = state.drafts.findIndex((d) => d.id === draftId);
+      if (idx !== -1) {
+        state.drafts[idx] = { ...state.drafts[idx], status: DraftStatus.publishing };
+      }
     });
+
+    try {
+      // Do async work OUTSIDE set()
+      const castBody = await prepareCastBody(draft);
+      console.log('[publishDraftById] Cast body prepared:', {
+        hasParentCastId: !!castBody.parentCastId,
+        parentHash: castBody.parentCastId?.hash ? 'present' : 'none',
+        embedCount: castBody.embeds?.length || 0,
+      });
+      const isPro = account?.user?.pro?.status === 'subscribed';
+      const hash = await submitCast({
+        ...castBody,
+        signerPrivateKey: account.privateKey!,
+        fid: Number(account.platformAccountId),
+        isPro,
+      });
+
+      // Update with result (sync)
+      set((state) => {
+        const idx = state.drafts.findIndex((d) => d.id === draftId);
+        if (idx !== -1) {
+          state.drafts[idx] = {
+            ...state.drafts[idx],
+            hash,
+            status: DraftStatus.published,
+            timestamp: new Date().toISOString(),
+            accountId: account.id,
+          };
+        }
+      });
+
+      toastSuccessCastPublished(draft.text);
+      onPost?.();
+      return hash;
+    } catch (error) {
+      console.error('caught error in publishDraftById', error);
+      // Handle error (sync)
+      set((state) => {
+        const idx = state.drafts.findIndex((d) => d.id === draftId);
+        if (idx !== -1) {
+          state.drafts[idx] = { ...state.drafts[idx], status: DraftStatus.writing };
+        }
+      });
+      toastErrorCastPublish(error instanceof Error ? error.message : String(error));
+      return null;
+    }
+  },
+  scheduleDraftById: async (draftId: UUID, scheduledFor: Date, onSuccess?: () => void): Promise<void> => {
+    // Get current state snapshot outside set()
+    const draft = useDraftStore.getState().drafts.find((d) => d.id === draftId);
+    if (!draft) {
+      console.error('Draft not found:', draftId);
+      return;
+    }
+
+    try {
+      // Prepare cast body (async OUTSIDE set)
+      let castBody;
+      try {
+        castBody = await prepareCastBody(draft);
+        console.log('scheduleDraftById: castBody after prepareCastBody:', castBody);
+      } catch (error) {
+        console.error('Failed to prepare cast body:', error);
+        return;
+      }
+
+      if (!castBody) {
+        console.error('prepareCastBody returned null/undefined');
+        return;
+      }
+
+      castBody = prepareCastBodyForDB(castBody);
+      console.log('scheduleDraftById: castBody after prepareCastBodyForDB:', castBody);
+
+      const accountState = useAccountStore.getState();
+      const account = accountState.accounts[accountState.selectedAccountIdx];
+
+      if (!account) {
+        console.error('No account selected');
+        return;
+      }
+
+      let encodedMessageBytes: number[] | null = null;
+
+      try {
+        // Pre-encode the message using the working client-side packages
+        console.log('scheduleDraftById: Starting pre-encoding...');
+        console.log('scheduleDraftById: castBody for pre-encoding:', JSON.stringify(castBody, null, 2));
+        console.log('scheduleDraftById: account for pre-encoding:', {
+          id: account.id,
+          platformAccountId: account.platformAccountId,
+          hasPrivateKey: !!account.privateKey,
+        });
+
+        encodedMessageBytes = await preEncodeCastMessage(castBody, account);
+        console.log('scheduleDraftById: Successfully pre-encoded message, bytes length:', encodedMessageBytes.length);
+        console.log('scheduleDraftById: First 10 bytes:', encodedMessageBytes.slice(0, 10));
+      } catch (error) {
+        console.warn('scheduleDraftById: Failed to pre-encode message, will fallback to runtime encoding:', error);
+        console.warn('scheduleDraftById: Error details:', error instanceof Error ? error.message : String(error));
+        // Continue without pre-encoded bytes - the Supabase function will handle it
+      }
+
+      // Insert into DB (async OUTSIDE set)
+      const { data, error } = await supabaseClient
+        .from('draft')
+        .insert({
+          account_id: account.id,
+          data: { ...castBody, rawText: draft.text },
+          // Only include encoded_message_bytes if we have them
+          ...(encodedMessageBytes ? { encoded_message_bytes: encodedMessageBytes } : {}),
+          scheduled_for: scheduledFor.toISOString(),
+          status: DraftStatus.scheduled,
+        })
+        .select();
+
+      if (error || !data) {
+        console.error('Failed to add scheduled draft', error, data);
+        return;
+      }
+
+      // Update state with DB result (sync)
+      const draftInDb = data[0] as unknown as DraftObjectType;
+      set((state) => {
+        const idx = state.drafts.findIndex((d) => d.id === draftId);
+        if (idx !== -1) {
+          state.drafts[idx] = tranformDBDraftForLocalStore(draftInDb);
+        }
+      });
+
+      if (encodedMessageBytes) {
+        console.log('scheduleDraftById: Draft scheduled with pre-encoded bytes');
+        toastSuccessCastScheduled(`${draft.text} (pre-encoded for reliable publishing)`);
+      } else {
+        console.log('scheduleDraftById: Draft scheduled without pre-encoded bytes');
+        toastSuccessCastScheduled(`${draft.text} (will encode at publish time)`);
+      }
+
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error in scheduleDraftById:', error);
+    }
   },
   removeEmptyDrafts: () => {
     set((state) => {
@@ -399,162 +548,31 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  removePostDraftById: (draftId: UUID) => {
-    set(async (state) => {
-      const draftIdx = state.drafts.findIndex((draft) => draft.id === draftId);
-      const draft = state.drafts[draftIdx];
-      if (!draft) {
+  removePostDraftById: async (draftId: UUID) => {
+    // Get current state snapshot outside set()
+    const state = useDraftStore.getState();
+    const draftIdx = state.drafts.findIndex((draft) => draft.id === draftId);
+    const draft = state.drafts[draftIdx];
+    if (!draft) {
+      return;
+    }
+
+    // Handle scheduled drafts (async OUTSIDE set)
+    if (draft.status === DraftStatus.scheduled) {
+      const didRemove = await state.removeScheduledDraftFromDB(draftId);
+      if (!didRemove) {
         return;
       }
+      // removeScheduledDraftFromDB already updates the state, so we're done
+      return;
+    }
 
-      if (draft.status === DraftStatus.scheduled) {
-        const didRemove = await state.removeScheduledDraftFromDB(draftId);
-        if (!didRemove) {
-          return;
-        }
-      }
-      state.removePostDraft(draftIdx);
-    });
+    // Remove non-scheduled draft (sync)
+    state.removePostDraft(draftIdx);
   },
   removeAllPostDrafts: () => {
     set((state) => {
       state.drafts = [];
-    });
-  },
-  publishPostDraft: async (draftIdx: number, account: AccountObjectType, onPost?: () => null): Promise<void> => {
-    set(async (state) => {
-      if (account.platform === AccountPlatformType.farcaster_local_readonly) {
-        toastInfoReadOnlyMode();
-        return;
-      }
-      const draft = state.drafts[draftIdx];
-
-      try {
-        await state.updatePostDraft(draftIdx, {
-          ...draft,
-          status: DraftStatus.publishing,
-        });
-        const castBody = await prepareCastBody(draft);
-        console.log('[publishPostDraft] Cast body prepared:', {
-          hasParentCastId: !!castBody.parentCastId,
-          parentHash: castBody.parentCastId?.hash ? 'present' : 'none',
-          embedCount: castBody.embeds?.length || 0,
-        });
-        const isPro = account?.user?.pro?.status === 'subscribed';
-        const hash = await submitCast({
-          ...castBody,
-          signerPrivateKey: account.privateKey!,
-          fid: Number(account.platformAccountId),
-          isPro,
-        });
-
-        await state.updatePostDraft(draftIdx, {
-          ...draft,
-          hash,
-          status: DraftStatus.published,
-          timestamp: new Date().toISOString(),
-          accountId: account.id,
-        });
-        toastSuccessCastPublished(draft.text);
-
-        if (onPost) onPost();
-      } catch (error) {
-        console.error('caught error in useDraftStore', error);
-        toastErrorCastPublish(error instanceof Error ? error.message : String(error));
-      }
-    });
-  },
-  addScheduledDraft: async ({ draftIdx, scheduledFor, onSuccess }) => {
-    set(async (state) => {
-      try {
-        const draft = state.drafts[draftIdx];
-        console.log('addScheduledDraft: draft:', draft);
-
-        if (!draft) {
-          console.error('Draft not found at index:', draftIdx);
-          return;
-        }
-
-        let castBody;
-        try {
-          castBody = await prepareCastBody(draft);
-          console.log('addScheduledDraft: castBody after prepareCastBody:', castBody);
-        } catch (error) {
-          console.error('Failed to prepare cast body:', error);
-          return;
-        }
-
-        if (!castBody) {
-          console.error('prepareCastBody returned null/undefined');
-          return;
-        }
-
-        castBody = prepareCastBodyForDB(castBody);
-        console.log('addScheduledDraft: castBody after prepareCastBodyForDB:', castBody);
-
-        const accountState = useAccountStore.getState();
-        const account = accountState.accounts[accountState.selectedAccountIdx];
-
-        if (!account) {
-          console.error('No account selected');
-          return;
-        }
-
-        let encodedMessageBytes = null;
-
-        try {
-          // Pre-encode the message using the working client-side packages
-          console.log('addScheduledDraft: Starting pre-encoding...');
-          console.log('addScheduledDraft: castBody for pre-encoding:', JSON.stringify(castBody, null, 2));
-          console.log('addScheduledDraft: account for pre-encoding:', {
-            id: account.id,
-            platformAccountId: account.platformAccountId,
-            hasPrivateKey: !!account.privateKey,
-          });
-
-          encodedMessageBytes = await preEncodeCastMessage(castBody, account);
-          console.log('addScheduledDraft: Successfully pre-encoded message, bytes length:', encodedMessageBytes.length);
-          console.log('addScheduledDraft: First 10 bytes:', encodedMessageBytes.slice(0, 10));
-        } catch (error) {
-          console.warn('addScheduledDraft: Failed to pre-encode message, will fallback to runtime encoding:', error);
-          console.warn('addScheduledDraft: Error details:', error.message);
-          console.warn('addScheduledDraft: Error stack:', error.stack);
-          // Continue without pre-encoded bytes - the Supabase function will handle it
-        }
-
-        await supabaseClient
-          .from('draft')
-          .insert({
-            account_id: account.id,
-            data: { ...castBody, rawText: draft.text },
-            // Only include encoded_message_bytes if we have them
-            ...(encodedMessageBytes ? { encoded_message_bytes: encodedMessageBytes } : {}),
-            scheduled_for: scheduledFor,
-            status: DraftStatus.scheduled,
-          })
-          .select()
-          .then(({ data, error }) => {
-            if (error || !data) {
-              console.error('Failed to add scheduled draft', error, data);
-              return;
-            }
-
-            const draftInDb = data[0];
-            state.updatePostDraft(draftIdx, tranformDBDraftForLocalStore(draftInDb));
-
-            if (encodedMessageBytes) {
-              console.log('addScheduledDraft: Draft scheduled with pre-encoded bytes');
-              toastSuccessCastScheduled(`${draft.text} (pre-encoded for reliable publishing)`);
-            } else {
-              console.log('addScheduledDraft: Draft scheduled without pre-encoded bytes');
-              toastSuccessCastScheduled(`${draft.text} (will encode at publish time)`);
-            }
-
-            onSuccess?.();
-          });
-      } catch (error) {
-        console.error('Error in addScheduledDraft:', error);
-      }
     });
   },
   removeScheduledDraftFromDB: async (draftId: UUID): Promise<boolean> => {
@@ -586,7 +604,7 @@ const store = (set: StoreSet) => ({
           return;
         }
         const state = useDraftStore.getState();
-        const dbDrafts = data.map(tranformDBDraftForLocalStore);
+        const dbDrafts = (data as unknown as DraftObjectType[]).map(tranformDBDraftForLocalStore);
         state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
         state.isHydrated = true;
       });

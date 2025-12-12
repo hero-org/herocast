@@ -17,7 +17,8 @@ import { getFarcasterMentions } from '@mod-protocol/farcaster';
 import { createFixedMentionsSuggestionConfig as createRenderMentionsSuggestionConfig } from '@/lib/mentions/fixedMentions';
 import { convertCastPlainTextToStructured } from '@/common/helpers/farcaster';
 import { Button } from '@/components/ui/button';
-import { take } from 'lodash';
+import { take, debounce } from 'lodash';
+import type { DebouncedFunc } from 'lodash';
 import { useMemo, useCallback } from 'react';
 import { ChannelPicker } from '../ChannelPicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -94,7 +95,6 @@ const onError = (err) => {
 
 type NewPostEntryProps = {
   draft: DraftType;
-  draftIdx: number;
   onPost?: () => void;
   onRemove?: () => void;
   hideChannel?: boolean;
@@ -102,16 +102,9 @@ type NewPostEntryProps = {
   disableAutofocus?: boolean;
 };
 
-export default function NewPostEntry({
-  draft,
-  draftIdx,
-  onPost,
-  onRemove,
-  hideChannel,
-  hideSchedule,
-}: NewPostEntryProps) {
+export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hideSchedule }: NewPostEntryProps) {
   const posthog = usePostHog();
-  const { addScheduledDraft, updatePostDraft, publishPostDraft } = useDraftStore();
+  const { updateDraftById, publishDraftById, scheduleDraftById } = useDraftStore();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
   const [schedulePopoverOpen, setSchedulePopoverOpen] = React.useState(false);
   const [editorKey, setEditorKey] = React.useState(0);
@@ -126,12 +119,31 @@ export default function NewPostEntry({
     ) > 1;
   const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
 
+  // Debounced sync function ref for reliable auto-save with flush capability
+  const debouncedSyncRef = useRef<DebouncedFunc<(id: string, updates: any) => void> | null>(null);
+
   // Use on-demand channel lookup for draft's parent URL
   const { channel: draftChannel } = useChannelLookup(draft.parentUrl);
 
   // Use pinned channels instead of all channels for better performance
   const userChannels = accounts[selectedAccountIdx]?.channels || [];
   const isReply = draft.parentCastId !== undefined;
+
+  // Initialize debounce function (stable across renders)
+  useEffect(() => {
+    debouncedSyncRef.current = debounce(
+      (id: string, updates: any) => {
+        updateDraftById(id, updates);
+      },
+      300,
+      { leading: false, trailing: true }
+    );
+
+    return () => {
+      // FLUSH on unmount to preserve user's pending work
+      debouncedSyncRef.current?.flush();
+    };
+  }, [updateDraftById]);
 
   const validateScheduledDateTime = (date: Date) => {
     if (!scheduleDateTime) return true;
@@ -147,32 +159,33 @@ export default function NewPostEntry({
     try {
       if (!isHydrated) return false;
 
-      if (!draft.text && !draft.embeds?.length) return false;
+      // Validate using EDITOR content (store may be stale before flush)
+      const currentText = getText();
+      if (!currentText && !embeds.length) return false;
 
       if (scheduleDateTime && !validateScheduledDateTime(scheduleDateTime)) {
         return false;
       }
 
-      // Close the modal immediately by calling onPost
+      // CRITICAL: Flush FIRST - guarantees store has latest content
+      debouncedSyncRef.current?.flush();
+
+      // Close modal immediately for better UX flow (optimistic close)
       onPost?.();
 
       if (scheduleDateTime) {
         posthog.capture('user_schedule_cast');
-        await updatePostDraft(draftIdx, {
-          ...draft,
+        await updateDraftById(draft.id, {
           status: DraftStatus.publishing,
         });
-        await addScheduledDraft({
-          draftIdx,
-          scheduledFor: scheduleDateTime,
-          onSuccess: () => {
-            console.log('onSuccess after addScheduledDraft');
-            setScheduleDateTime(undefined);
-          },
+        await scheduleDraftById(draft.id, scheduleDateTime, () => {
+          console.log('onSuccess after scheduleDraftById');
+          setScheduleDateTime(undefined);
         });
       } else {
         posthog.capture('user_post_cast');
-        await publishPostDraft(draftIdx, account);
+        // Don't pass onPost - we already called it above (optimistic close)
+        publishDraftById(draft.id, account);
       }
       return true;
     } catch (error) {
@@ -189,6 +202,7 @@ export default function NewPostEntry({
       scopes: [HotkeyScopes.EDITOR],
       enableOnFormTags: true,
       enableOnContentEditable: true,
+      preventDefault: true, // Prevent TipTap's HardBreak from inserting newline
     },
     [onSubmitPost, draft, account, isHydrated]
   );
@@ -382,23 +396,17 @@ export default function NewPostEntry({
   }, [text, capturedMentions, draft.mentionsToFids]);
 
   useEffect(() => {
-    if (!editor) return; // no updates before editor is initialized
+    if (!editor) return;
     if (isPublishing) return;
 
-    // Debounce draft updates to avoid rapid state changes
-    const timeoutId = setTimeout(() => {
-      // embeds is now the single source of truth - no more merge with initialEmbeds
-      updatePostDraft(draftIdx, {
-        ...draft,
-        text,
-        embeds,
-        parentUrl: channel?.parent_url || undefined,
-        mentionsToFids: extractMentionsFromText,
-      });
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [text, embeds, channel, isPublishing, editor, extractMentionsFromText, draftIdx, draft, updatePostDraft]);
+    // Call debounced sync - NO cleanup (let debounce batch changes)
+    debouncedSyncRef.current?.(draft.id, {
+      text,
+      embeds,
+      parentUrl: channel?.parent_url || undefined,
+      mentionsToFids: extractMentionsFromText,
+    });
+  }, [text, embeds, channel, isPublishing, editor, extractMentionsFromText, draft.id]);
 
   // Track whether initial channel has been set to prevent overwriting user selections
   const hasSetInitialChannel = useRef(false);

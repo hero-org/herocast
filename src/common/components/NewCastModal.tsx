@@ -4,6 +4,7 @@ import { Loading } from './Loading';
 import dynamic from 'next/dynamic';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DraftStatus } from '@/common/constants/farcaster';
 
 // Dynamic import with loading fallback
 const NewPostEntry = dynamic(() => import('./Editor/NewCastEditor'), {
@@ -74,18 +75,26 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
   const { castModalView } = useNavigationStore();
   const { selectedCast } = useDataStore();
   const { drafts, removePostDraftById } = useDraftStore();
-  const draftIdx = useMemo(() => drafts.findIndex((draft) => draft.id === draftId), [draftId, drafts]);
-  const draft = draftIdx !== -1 ? drafts[draftIdx] : undefined;
+  const draft = useMemo(() => drafts.find((d) => d.id === draftId), [draftId, drafts]);
 
   useEffect(() => {
     // Add a small delay before removing draft to allow editor to finish any pending updates
     if (!open && draftId !== undefined) {
       const timeoutId = setTimeout(() => {
-        removePostDraftById(draftId);
+        const draft = drafts.find((d) => d.id === draftId);
+
+        // Only delete if: no draft, empty content, or already published
+        const isEmpty = !draft?.text?.trim() && !draft?.embeds?.length;
+        const isPublished = draft?.status === DraftStatus.published;
+
+        if (!draft || isEmpty || isPublished) {
+          removePostDraftById(draftId);
+        }
+        // If draft has content, keep it (user can find it in /post page)
       }, 100);
       return () => clearTimeout(timeoutId);
     }
-  }, [open, draftId, removePostDraftById]);
+  }, [open, draftId, drafts, removePostDraftById]);
   useAppHotkeys(
     'esc',
     () => setOpen(false),
@@ -132,10 +141,9 @@ const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) =
             )}
             <div className="flex">
               <CastEditorErrorBoundary onReset={() => window.location.reload()}>
-                {draft && draftIdx !== -1 ? (
+                {draft ? (
                   <NewPostEntry
                     draft={draft}
-                    draftIdx={draftIdx}
                     onPost={() => {
                       setOpen(false);
                     }}

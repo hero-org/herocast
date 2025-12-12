@@ -94,6 +94,9 @@ export type DraftType = {
   accountId?: UUID;
   timestamp?: string;
   hash?: string;
+  scheduledFor?: string | null;
+  publishedAt?: string | null;
+  updatedAt?: string;
 };
 
 // drafttype without createdAt

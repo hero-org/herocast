@@ -249,11 +249,7 @@ export default function NewPost() {
     return (
       <div key={draft.id} className="pt-2 pb-6">
         {parentCast && <CastRow cast={parentCast} />}
-        <NewPostEntry
-          draft={draft}
-          draftIdx={drafts.findIndex((d) => d.id === draft.id)}
-          onPost={() => resetSelectedDraftId()}
-        />
+        <NewPostEntry draft={draft} onPost={() => resetSelectedDraftId()} />
       </div>
     );
   };
