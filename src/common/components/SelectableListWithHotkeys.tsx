@@ -27,6 +27,8 @@ type SelectableListWithHotkeysProps = {
   footer?: React.ReactNode;
   // Estimated item height for virtualization (defaults to 250px for cast rows)
   estimatedItemHeight?: number;
+  // Optional function to generate unique keys for items
+  getItemKey?: (item: any, index: number) => string;
 };
 
 export const SelectableListWithHotkeys = ({
@@ -46,6 +48,7 @@ export const SelectableListWithHotkeys = ({
   scopes,
   footer,
   estimatedItemHeight = 250,
+  getItemKey,
 }: SelectableListWithHotkeysProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname() || '/';
@@ -156,7 +159,7 @@ export const SelectableListWithHotkeys = ({
 
         return (
           <div
-            key={`row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`}
+            key={getItemKey ? getItemKey(item, idx) : `row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`}
             data-index={virtualItem.index}
             ref={virtualizer.measureElement}
             style={{

@@ -33,8 +33,8 @@ import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { createParentCastId } from '@/common/constants/farcaster';
 
 // Client-side cache for parent casts (prevents repeated API calls)
-const parentCastCache = new Map<string, { cast: CastWithInteractions; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const parentCastCache = new Map<string, { cast: CastWithInteractions | null; timestamp: number }>();
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 1 day
 
 enum NotificationTab {
   mentions = 'mentions',
@@ -257,21 +257,21 @@ const Inbox = () => {
         if (data.result?.casts?.length > 0) {
           const cast = data.result.casts[0];
           setParentCast(cast);
-
-          // Cache the result
           parentCastCache.set(cacheKey, { cast, timestamp: Date.now() });
-
-          // Clean up cache periodically
-          if (parentCastCache.size > 100) {
-            const now = Date.now();
-            for (const [k, v] of parentCastCache.entries()) {
-              if (now - v.timestamp > CACHE_TTL) {
-                parentCastCache.delete(k);
-              }
-            }
-          }
         } else {
           setParentCast(null);
+          // Cache "not found" to prevent infinite retry loops for deleted casts
+          parentCastCache.set(cacheKey, { cast: null, timestamp: Date.now() });
+        }
+
+        // Clean up expired cache entries periodically
+        if (parentCastCache.size > 1000) {
+          const now = Date.now();
+          for (const [k, v] of parentCastCache.entries()) {
+            if (now - v.timestamp > CACHE_TTL) {
+              parentCastCache.delete(k);
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching parent cast:', error);
@@ -1157,6 +1157,8 @@ const Inbox = () => {
                 pinnedNavigation={true}
                 containerHeight="100%"
                 scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.INBOX]}
+                getItemKey={(item) => getNotificationId(item)}
+                estimatedItemHeight={100}
               />
             )}
           </div>
