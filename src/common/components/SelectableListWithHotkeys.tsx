@@ -159,7 +159,11 @@ export const SelectableListWithHotkeys = ({
 
         return (
           <div
-            key={getItemKey ? getItemKey(item, idx) : `row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`}
+            key={
+              getItemKey
+                ? getItemKey(item, idx)
+                : `row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`
+            }
             data-index={virtualItem.index}
             ref={virtualizer.measureElement}
             style={{
