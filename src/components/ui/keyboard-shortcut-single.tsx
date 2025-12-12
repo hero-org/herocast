@@ -79,6 +79,12 @@ const MODIFIER_KEYS = ['meta', 'cmd', 'command', 'ctrl', 'control', 'shift', 'al
 
 export function KeyboardShortcutSingle({ shortcut, size = 'sm', className, ...props }: KeyboardShortcutSingleProps) {
   const platform = detectPlatform();
+
+  // Defensive check - return null if shortcut is undefined or empty
+  if (!shortcut) {
+    return null;
+  }
+
   const parts = shortcut.split('+').map((part) => part.trim());
 
   // Separate modifiers and main keys

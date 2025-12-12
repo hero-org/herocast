@@ -74,8 +74,14 @@ export function formatKey(key: string, platform?: 'mac' | 'windows' | 'linux'): 
 }
 
 export function KeyboardShortcut({ keys, size = 'md', className, ...props }: KeyboardShortcutProps) {
-  const keyArray = Array.isArray(keys) ? keys : keys.split('+').map((k) => k.trim());
   const platform = detectPlatform();
+
+  // Defensive check - return null if keys is undefined or empty
+  if (!keys || (Array.isArray(keys) && keys.length === 0)) {
+    return null;
+  }
+
+  const keyArray = Array.isArray(keys) ? keys : keys.split('+').map((k) => k.trim());
 
   return (
     <kbd

@@ -65,6 +65,11 @@ function formatKeyPart(key: string): string {
 }
 
 export function KeyboardShortcutDisplay({ shortcut, size = 'sm', className, ...props }: KeyboardShortcutDisplayProps) {
+  // Defensive check - return null if shortcut is undefined or empty
+  if (!shortcut) {
+    return null;
+  }
+
   // Parse the shortcut string
   const parts = shortcut.split('+').map((part) => part.trim());
 

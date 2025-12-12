@@ -5,6 +5,11 @@ import { formatKey } from '@/components/ui/keyboard-shortcut';
  * Converts shortcut strings like "meta+k" to formatted arrays like ["⌘", "K"]
  */
 export function formatShortcutKeys(shortcut: string): string[] {
+  // Defensive check - return empty array if shortcut is undefined or empty
+  if (!shortcut) {
+    return [];
+  }
+
   const platform =
     typeof window !== 'undefined' ? (navigator.platform.toLowerCase().includes('mac') ? 'mac' : 'other') : 'other';
 

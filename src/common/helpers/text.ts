@@ -29,4 +29,10 @@ export const formatLargeNumber = (num?: number): string => {
   }
 };
 
-export const formatShortcut = (shortcut: string): string => shortcut.replace(/\+/g, ' ').replace('cmd', '⌘');
+export const formatShortcut = (shortcut: string): string => {
+  // Defensive check - return empty string if shortcut is undefined or empty
+  if (!shortcut) {
+    return '';
+  }
+  return shortcut.replace(/\+/g, ' ').replace('cmd', '⌘');
+};

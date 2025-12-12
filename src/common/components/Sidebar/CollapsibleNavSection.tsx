@@ -7,6 +7,11 @@ import { Kbd, KbdGroup } from '@/components/ui/kbd';
 
 // Helper to render shortcut as individual keys
 export const renderShortcut = (shortcut: string, isSelected: boolean) => {
+  // Defensive check - return null if shortcut is undefined or empty
+  if (!shortcut) {
+    return null;
+  }
+
   // Split by spaces for multi-key shortcuts like "g s 1"
   const parts = shortcut.split(' ').filter(Boolean);
 
