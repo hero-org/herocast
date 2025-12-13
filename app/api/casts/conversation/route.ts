@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient, CastParamType } from '@neynar/nodejs-sdk';
 
 const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes within 20 seconds
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
@@ -44,6 +43,8 @@ export async function GET(request: NextRequest) {
     const replyDepthParam = searchParams.get('reply_depth') || '1';
     const includeParentsParam = searchParams.get('include_chronological_parent_casts') || 'true';
     const viewerFid = searchParams.get('viewer_fid');
+    const fold = searchParams.get('fold') || 'above'; // Quality filtering: hide low-quality replies below the fold
+    const sortType = searchParams.get('sort_type') || 'algorithmic'; // Rank replies by quality
 
     if (!identifier) {
       return NextResponse.json({ error: 'Missing identifier parameter' }, { status: 400 });
@@ -61,8 +62,8 @@ export async function GET(request: NextRequest) {
 
     const includeParents = includeParentsParam === 'true';
 
-    // Check cache first
-    const cacheKey = getCacheKey(identifier, replyDepth, includeParents, viewerFid || undefined);
+    // Check cache first (include fold and sortType in cache key)
+    const cacheKey = `${getCacheKey(identifier, replyDepth, includeParents, viewerFid || undefined)}:${fold}:${sortType}`;
     const cachedData = getCachedData(cacheKey);
     if (cachedData) {
       return NextResponse.json(cachedData);
@@ -73,22 +74,50 @@ export async function GET(request: NextRequest) {
     const timeoutId = setTimeout(() => controller.abort(), timeoutThreshold);
 
     try {
-      const neynarClient = new NeynarAPIClient(API_KEY);
-
-      const options: { replyDepth?: number; includeChronologicalParentCasts?: boolean; viewerFid?: number } = {
-        replyDepth,
-        includeChronologicalParentCasts: includeParents,
-      };
+      // Build query parameters manually since SDK doesn't support fold and sortType yet
+      const queryParams = new URLSearchParams({
+        identifier,
+        type: 'hash',
+        reply_depth: replyDepth.toString(),
+        include_chronological_parent_casts: includeParents.toString(),
+      });
 
       if (viewerFid) {
         const viewerFidNum = parseInt(viewerFid, 10);
         if (!isNaN(viewerFidNum) && viewerFidNum > 0) {
-          options.viewerFid = viewerFidNum;
+          queryParams.append('viewer_fid', viewerFidNum.toString());
         }
       }
 
+      // Add quality filtering parameters
+      if (fold) {
+        queryParams.append('fold', fold);
+      }
+      if (sortType) {
+        queryParams.append('sort_type', sortType);
+      }
+
+      // Make direct API call to support new quality filtering parameters
+      const apiUrl = `https://api.neynar.com/v2/farcaster/cast/conversation?${queryParams.toString()}`;
+
+      const fetchPromise = fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          api_key: API_KEY,
+          'x-neynar-experimental': 'true', // Enable score-based filtering
+        },
+        signal: controller.signal,
+      }).then(async (res) => {
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || `API error: ${res.status}`);
+        }
+        return res.json();
+      });
+
       const response = await Promise.race([
-        neynarClient.lookupCastConversation(identifier, CastParamType.Hash, options),
+        fetchPromise,
         new Promise((_, reject) => setTimeout(() => reject(new Error('AbortError')), timeoutThreshold)),
       ]);
 
@@ -101,13 +130,13 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
       clearTimeout(timeoutId);
 
-      if (error.message === 'AbortError' || error.name === 'AbortError') {
+      if (error.message === 'AbortError' || error.name === 'AbortError' || error.name === 'AbortError') {
         return NextResponse.json({ error: TIMEOUT_ERROR_MESSAGE }, { status: 408 });
       }
 
       console.error('Error looking up cast conversation:', error);
 
-      // Handle Neynar SDK errors
+      // Handle API errors
       if (error.response) {
         return NextResponse.json(
           { error: error.response.data?.message || 'External API error' },

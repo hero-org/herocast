@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
         headers: {
           accept: 'application/json',
           api_key: API_KEY,
+          'x-neynar-experimental': 'true',
         },
         signal: controller.signal,
       });

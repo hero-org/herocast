@@ -161,7 +161,7 @@ const Inbox = () => {
   const loadMoreCursor = cursorsByType.current[activeTab];
 
   const fetchNotifications = useCallback(
-    async (tab: NotificationTab, reset = false, priorityMode = true, limit = 25) => {
+    async (tab: NotificationTab, reset = false, limit = 25) => {
       if (!viewerFid) return;
 
       // Set loading state for this specific tab
@@ -170,7 +170,6 @@ const Inbox = () => {
       try {
         const params = new URLSearchParams({
           fid: viewerFid,
-          priorityMode: priorityMode.toString(),
           limit: limit.toString(),
         });
 
@@ -218,7 +217,7 @@ const Inbox = () => {
 
       // If this tab has no notifications loaded yet, fetch them
       if (notificationsByType[tab].length === 0 && !loadingByType[tab]) {
-        await fetchNotifications(tab, true, true, 25);
+        await fetchNotifications(tab, true, 25);
       }
     },
     [notificationsByType, loadingByType, fetchNotifications]
@@ -321,7 +320,7 @@ const Inbox = () => {
 
     // Load notifications for the active tab
     console.log(`🚀 Loading notifications for ${activeTab} tab...`);
-    fetchNotifications(activeTab, true, true, 25);
+    fetchNotifications(activeTab, true, 25);
   }, [viewerFid, activeTab, fetchNotifications]);
 
   // Auto-refresh every 2 minutes for active tab
@@ -330,7 +329,7 @@ const Inbox = () => {
 
     const intervalId = setInterval(
       () => {
-        fetchNotifications(activeTab, true, true, 20); // Refresh active tab
+        fetchNotifications(activeTab, true, 20); // Refresh active tab
       },
       2 * 60 * 1000
     );
@@ -554,11 +553,11 @@ const Inbox = () => {
     }));
 
     // Fetch fresh notifications
-    await fetchNotifications(activeTab, true, true, 25);
+    await fetchNotifications(activeTab, true, 25);
   }, [fetchNotifications, activeTab, updateSelectedCast]);
   const loadMoreNotifications = useCallback(() => {
     if (cursorsByType.current[activeTab] && !loadingByType[activeTab]) {
-      fetchNotifications(activeTab, false, true, 25);
+      fetchNotifications(activeTab, false, 25);
     }
   }, [activeTab, loadingByType, fetchNotifications]);
 
@@ -579,7 +578,7 @@ const Inbox = () => {
         // 1.5 second throttle, 85% trigger
         console.log(`🔄 Auto-loading more notifications (${(scrollPercentage * 100).toFixed(1)}% scrolled)`);
         setLastAutoLoadTime(now);
-        fetchNotifications(activeTab, false, true, 25);
+        fetchNotifications(activeTab, false, 25);
       }
     },
     [activeTab, loadingByType, lastAutoLoadTime, fetchNotifications]
@@ -622,7 +621,7 @@ const Inbox = () => {
           `📈 Sparse tab auto-load: ${activeTab} has only ${notifications.length} notifications, loading more...`
         );
         setLastAutoLoadTime(now);
-        fetchNotifications(activeTab, false, true, 25);
+        fetchNotifications(activeTab, false, 25);
       }
     }
   }, [notifications, activeTab, loadingByType, lastAutoLoadTime, fetchNotifications]);
