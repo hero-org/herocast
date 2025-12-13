@@ -22,7 +22,7 @@ import type { DebouncedFunc } from 'lodash';
 import { useMemo, useCallback } from 'react';
 import { ChannelPicker } from '../ChannelPicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarDaysIcon, PhotoIcon } from '@heroicons/react/20/solid';
+import { CalendarDaysIcon, PhotoIcon, LinkIcon } from '@heroicons/react/20/solid';
 import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { ChannelList } from '../ChannelList';
 import isEmpty from 'lodash.isempty';
@@ -107,6 +107,8 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
   const { updateDraftById, publishDraftById, scheduleDraftById } = useDraftStore();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
   const [schedulePopoverOpen, setSchedulePopoverOpen] = React.useState(false);
+  const [replyToUrl, setReplyToUrl] = React.useState<string>('');
+  const [replyToUrlPopoverOpen, setReplyToUrlPopoverOpen] = React.useState(false);
   const [editorKey, setEditorKey] = React.useState(0);
 
   const account = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
@@ -400,13 +402,15 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     if (isPublishing) return;
 
     // Call debounced sync - NO cleanup (let debounce batch changes)
+    // Priority: replyToUrl takes precedence over channel.parent_url (mutual exclusivity)
+    const effectiveParentUrl = replyToUrl || channel?.parent_url || undefined;
     debouncedSyncRef.current?.(draft.id, {
       text,
       embeds,
-      parentUrl: channel?.parent_url || undefined,
+      parentUrl: effectiveParentUrl,
       mentionsToFids: extractMentionsFromText,
     });
-  }, [text, embeds, channel, isPublishing, editor, extractMentionsFromText, draft.id]);
+  }, [text, embeds, channel, replyToUrl, isPublishing, editor, extractMentionsFromText, draft.id]);
 
   // Track whether initial channel has been set to prevent overwriting user selections
   const hasSetInitialChannel = useRef(false);
@@ -492,6 +496,8 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
               <ChannelPicker
                 value={channel ? (channel as unknown as Channel) : undefined}
                 onSelect={(ch) => {
+                  // Clear reply URL when channel is selected (mutual exclusivity)
+                  setReplyToUrl('');
                   if (ch) {
                     // Convert Neynar Channel to our channel format
                     setChannel({
@@ -515,6 +521,67 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
                 getChannels={getChannels}
                 disabled={isPublishing}
               />
+              <Popover open={replyToUrlPopoverOpen} onOpenChange={setReplyToUrlPopoverOpen} modal={true}>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={isPublishing}
+                    className={cn(replyToUrl && 'border-primary bg-primary/10')}
+                    title={replyToUrl ? `Reply to: ${replyToUrl}` : 'Reply to URL'}
+                  >
+                    <LinkIcon className={cn('h-4 w-4', replyToUrl && 'text-primary')} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-3 z-[100]" align="start">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Reply to URL</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://..."
+                      value={replyToUrl}
+                      onChange={(e) => {
+                        setReplyToUrl(e.target.value);
+                        // Clear channel when URL is set (mutual exclusivity)
+                        if (e.target.value) {
+                          setChannel(null);
+                        }
+                      }}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setReplyToUrlPopoverOpen(false);
+                          editor?.commands.focus();
+                        }
+                      }}
+                    />
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setReplyToUrl('');
+                          setReplyToUrlPopoverOpen(false);
+                          editor?.commands.focus();
+                        }}
+                      >
+                        Clear
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setReplyToUrlPopoverOpen(false);
+                          editor?.commands.focus();
+                        }}
+                      >
+                        Done
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </>
           )}
           <Button

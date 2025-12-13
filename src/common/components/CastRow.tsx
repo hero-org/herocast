@@ -13,6 +13,7 @@ import {
   ChatBubbleLeftRightIcon,
   TrashIcon,
   DocumentDuplicateIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
 import { removeCast } from '../helpers/farcaster';
@@ -26,6 +27,7 @@ import Linkify from 'linkify-react';
 import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
 import EmbedCarousel from './Embeds/EmbedCarousel';
+import OpenGraphImage from './Embeds/OpenGraphImage';
 import ProfileHoverCard from './ProfileHoverCard';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { registerPlugin } from 'linkifyjs';
@@ -307,6 +309,9 @@ const CastRowComponent = ({
   // Use on-demand channel lookup instead of loading all channels
   const parentUrl = 'parent_url' in cast ? cast.parent_url : null;
   const { channel: parentChannel } = useChannelLookup(parentUrl);
+
+  // Detect if this cast is replying to an external URL (not a channel, not a cast)
+  const isExternalUrlReply = Boolean(parentUrl && !parentChannel && !cast.parent_hash);
 
   const getChannelForParentUrl = useCallback(
     (url: string | null): ChannelType | undefined => (url === parentUrl ? parentChannel : undefined),
@@ -592,6 +597,31 @@ const CastRowComponent = ({
     );
   };
 
+  const renderExternalUrlReply = () => {
+    if (!isExternalUrlReply || !parentUrl) return null;
+
+    return (
+      <div className="flex items-start gap-x-2 mb-4">
+        {/* Left column: Link icon with connecting line - matches avatar column width */}
+        {!isEmbed && !hideAuthor && (
+          <div className="relative flex flex-col items-center shrink-0 mr-1" style={{ width: '40px' }}>
+            {/* Link icon container - solid background with border */}
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted border border-muted-foreground/20">
+              <LinkIcon className="h-4 w-4 text-muted-foreground" />
+            </div>
+            {/* Vertical connecting line from icon to avatar below */}
+            <div className="flex-1 w-0.5 bg-foreground/10 min-h-[8px]" />
+          </div>
+        )}
+
+        {/* OpenGraph card - aligned with link icon */}
+        <div className={cn('flex items-center flex-1 min-w-0', (isEmbed || hideAuthor) && 'ml-0')}>
+          <OpenGraphImage url={parentUrl} />
+        </div>
+      </div>
+    );
+  };
+
   const renderRecastBadge = () => {
     const shouldShowBadge =
       'inclusion_context' in cast &&
@@ -789,7 +819,15 @@ const CastRowComponent = ({
         )}
       >
         {renderRecastBadge()}
-        {isThreadView && <div className="absolute bg-foreground/10 -ml-3 mt-[1.2rem] h-[1.5px] w-6" />}
+        {isThreadView && (
+          <div
+            className={cn(
+              'absolute bg-foreground/10 -ml-3 h-[1.5px] w-6',
+              isExternalUrlReply ? 'mt-[0.5rem]' : 'mt-[1.2rem]'
+            )}
+          />
+        )}
+        {renderExternalUrlReply()}
         <div
           className={cn('flex items-top gap-x-2')}
           onClick={(event) => {
