@@ -28,6 +28,8 @@ import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
 import EmbedCarousel from './Embeds/EmbedCarousel';
 import OpenGraphImage from './Embeds/OpenGraphImage';
+import NftSaleEmbed from './Embeds/NftSaleEmbed';
+import { isNftSaleUrl } from '@/common/helpers/onchain';
 import ProfileHoverCard from './ProfileHoverCard';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { registerPlugin } from 'linkifyjs';
@@ -600,6 +602,13 @@ const CastRowComponent = ({
   const renderExternalUrlReply = () => {
     if (!isExternalUrlReply || !parentUrl) return null;
 
+    // Route custom URI schemes to appropriate embed component
+    const embedComponent = isNftSaleUrl(parentUrl) ? (
+      <NftSaleEmbed url={parentUrl} />
+    ) : (
+      <OpenGraphImage url={parentUrl} />
+    );
+
     return (
       <div className="flex items-start gap-x-2 mb-4">
         {/* Left column: Link icon with connecting line - matches avatar column width */}
@@ -614,9 +623,9 @@ const CastRowComponent = ({
           </div>
         )}
 
-        {/* OpenGraph card - aligned with link icon */}
+        {/* Embed card - aligned with link icon */}
         <div className={cn('flex items-center flex-1 min-w-0', (isEmbed || hideAuthor) && 'ml-0')}>
-          <OpenGraphImage url={parentUrl} />
+          {embedComponent}
         </div>
       </div>
     );

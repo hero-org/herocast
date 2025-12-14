@@ -83,6 +83,8 @@ export const queryKeys = {
   embeds: {
     all: ['embeds'] as const,
     urlMetadata: (url: string) => ['embeds', 'urlMetadata', url] as const,
+    nftMetadata: (chainId: number, contractAddress: string, tokenId: string) =>
+      ['embeds', 'nftMetadata', chainId, contractAddress, tokenId] as const,
   },
 } as const;
 
