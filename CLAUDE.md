@@ -147,6 +147,7 @@ The application supports multiple feed types through a unified feed system:
 - **CastRow**: Individual cast rendering with interactions
 - **CastThreadView**: Threaded conversation view
 - **SelectableListWithHotkeys**: Keyboard navigation for feed items
+- **Layout Constants**: `src/common/constants/layout.ts` defines spacing values (avatar size, padding, thread line positions) - use these instead of magic numbers when modifying CastRow or CastThreadView
 
 ### List System
 

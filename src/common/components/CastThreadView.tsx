@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useDataStore } from '@/stores/useDataStore';
 import SkeletonCastRow from './SkeletonCastRow';
 import { useRouter } from 'next/navigation';
+import { CAST_THREAD_LINE_LEFT, CAST_AVATAR_CENTER } from '@/common/constants/layout';
 
 type CastThreadViewProps = {
   hash?: string;
@@ -100,6 +101,8 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
 
   const renderRow = (cast: CastWithInteractions, idx: number) => {
     const isRowSelected = selectedCastIdx === idx;
+    const isRootCast = idx === 0;
+    const isReply = idx > 0;
 
     return (
       <li
@@ -107,27 +110,43 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
         className={cn(idx === selectedCastIdx ? '' : '')}
         onClick={() => setSelectedCastIdx(idx)}
       >
-        <div className="relative pl-7">
-          {/* this is the left line */}
-          <div className={cn(idx === 0 ? '-ml-[31px]' : 'border-l-2', 'relative flex items-start border-muted')}>
-            <div className="min-w-0 flex-1">
-              {idx === 0 && (
-                <div
-                  className={cn(
-                    isRowSelected ? 'bg-muted-foreground/50' : 'bg-foreground/10',
-                    'absolute top-8 left-[31px] h-[calc(100%-32px)] w-0.5'
-                  )}
-                />
+        <div className="relative">
+          {/* Vertical thread line for root cast - connects avatar to replies below */}
+          {isRootCast && (
+            <div
+              className={cn(
+                isRowSelected ? 'bg-muted-foreground/50' : 'bg-foreground/10',
+                'absolute w-0.5 h-[calc(100%-32px)]'
               )}
-              <CastRow
-                cast={cast}
-                showChannel
-                isSelected={selectedCastIdx === idx}
-                isThreadView={idx > 0}
-                onSelect={() => setSelectedCastIdx(idx)}
-                onCastClick={() => handleCastClick(cast)}
-              />
-            </div>
+              style={{
+                left: `${CAST_THREAD_LINE_LEFT}px`,
+                top: `${CAST_AVATAR_CENTER}px`,
+              }}
+            />
+          )}
+
+          {/* Horizontal connector line for replies - connects vertical line to reply content */}
+          {isReply && (
+            <div
+              className="absolute bg-foreground/10 h-0.5"
+              style={{
+                left: `${CAST_THREAD_LINE_LEFT}px`,
+                top: '1.2rem',
+                width: '1.5rem',
+              }}
+            />
+          )}
+
+          {/* Border line for replies - visual separator on the left */}
+          <div className={cn(isReply && 'border-l-2 border-muted')}>
+            <CastRow
+              cast={cast}
+              showChannel
+              isSelected={selectedCastIdx === idx}
+              isThreadView={isReply}
+              onSelect={() => setSelectedCastIdx(idx)}
+              onCastClick={() => handleCastClick(cast)}
+            />
           </div>
         </div>
       </li>

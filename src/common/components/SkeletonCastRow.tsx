@@ -11,7 +11,7 @@ const SkeletonCastRow = ({ text, className }: SkeletonCastRowProps) => {
   const randomDelay = Math.floor(Math.random() * 2000);
   return (
     <div className={cn('border-b border-foreground/20 relative w-full pr-4', className)}>
-      <div className="flex items-start space-x-4 p-3">
+      <div className="flex items-start gap-x-2 p-3">
         <Skeleton className="h-10 w-10 rounded-full shrink-0" style={{ animationDelay: `${randomDelay + 100}ms` }} />
         <div className="flex-1 space-y-2 min-h-[80px]">
           <div className="flex justify-between items-center">

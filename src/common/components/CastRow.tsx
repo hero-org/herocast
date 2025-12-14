@@ -604,7 +604,7 @@ const CastRowComponent = ({
       <div className="flex items-start gap-x-2 mb-4">
         {/* Left column: Link icon with connecting line - matches avatar column width */}
         {!isEmbed && !hideAuthor && (
-          <div className="relative flex flex-col items-center shrink-0 mr-1" style={{ width: '40px' }}>
+          <div className="relative flex flex-col items-center shrink-0 w-10">
             {/* Link icon container - solid background with border */}
             <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted border border-muted-foreground/20">
               <LinkIcon className="h-4 w-4 text-muted-foreground" />
@@ -819,17 +819,9 @@ const CastRowComponent = ({
         )}
       >
         {renderRecastBadge()}
-        {isThreadView && (
-          <div
-            className={cn(
-              'absolute bg-foreground/10 -ml-3 h-[1.5px] w-6',
-              isExternalUrlReply ? 'mt-[0.5rem]' : 'mt-[1.2rem]'
-            )}
-          />
-        )}
         {renderExternalUrlReply()}
         <div
-          className={cn('flex items-top gap-x-2')}
+          className={cn('flex items-start gap-x-2')}
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
