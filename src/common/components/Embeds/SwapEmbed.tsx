@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { openWindow } from '@/common/helpers/navigation';
 import { ArrowTopRightOnSquareIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type SwapMetadataResponse = {
   symbol: string;
@@ -102,11 +103,12 @@ function useSwapMetadata(chain: string, tokenAddress: string, txHash: string, en
 
 // Skeleton for loading state
 const SwapSkeleton = () => (
-  <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg">
+  <div className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg">
     <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
     <div className="flex-1 min-w-0 space-y-2">
-      <Skeleton className="h-4 w-3/4 rounded" />
-      <Skeleton className="h-3 w-1/2 rounded" />
+      <Skeleton className="h-4 w-32 rounded" />
+      <Skeleton className="h-4 w-40 rounded" />
+      <Skeleton className="h-3 w-48 rounded" />
     </div>
   </div>
 );
@@ -153,43 +155,51 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
   const { symbol, logo, sender } = metadata;
 
   // Format sender display: prefer username, fallback to abbreviated address
-  const senderDisplay = farcasterUser
-    ? `@${farcasterUser.username}`
-    : sender
-      ? abbreviateAddress(sender)
-      : null;
+  const senderDisplay = farcasterUser ? `@${farcasterUser.username}` : sender ? abbreviateAddress(sender) : 'Unknown';
+
+  // Get avatar: prefer Farcaster PFP, fallback to swap icon
+  const avatarSrc = farcasterUser?.pfp_url;
+  const avatarFallback = senderDisplay.slice(0, 2).toUpperCase();
 
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
+      className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
       onClick={(e) => {
         e.stopPropagation();
         openWindow(zapperUrl);
       }}
     >
-      {/* Token Logo */}
-      {logo ? (
-        <img
-          src={logo}
-          alt={symbol}
-          className="h-10 w-10 rounded-full object-cover flex-shrink-0 bg-muted"
-          onError={(e) => {
-            // Hide broken images
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
-      ) : (
-        <div className="h-10 w-10 rounded-full bg-muted flex-shrink-0 flex items-center justify-center">
-          <ArrowsRightLeftIcon className="h-5 w-5 text-muted-foreground" />
-        </div>
-      )}
+      {/* User Avatar */}
+      <Avatar className="h-10 w-10 flex-shrink-0">
+        <AvatarImage src={avatarSrc} />
+        <AvatarFallback>
+          {avatarSrc ? avatarFallback : <ArrowsRightLeftIcon className="h-5 w-5 text-muted-foreground" />}
+        </AvatarFallback>
+      </Avatar>
 
-      {/* Swap Info */}
+      {/* Swap Content */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-foreground truncate">
-          {senderDisplay ? `${senderDisplay} swapped ${symbol}` : `Swapped ${symbol}`}
+        {/* Author line */}
+        <div className="text-sm font-semibold text-foreground truncate">{senderDisplay}</div>
+
+        {/* Swap action line */}
+        <div className="flex items-center gap-1.5 mt-0.5 text-sm text-foreground/80">
+          <ArrowsRightLeftIcon className="h-4 w-4 flex-shrink-0" />
+          <span>swapped {symbol}</span>
+          {logo && (
+            <img
+              src={logo}
+              alt={symbol}
+              className="h-4 w-4 rounded-full object-cover inline-block ml-0.5"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          )}
         </div>
-        <div className="flex items-center gap-2 mt-1">
+
+        {/* Links line */}
+        <div className="flex items-center gap-2 mt-1.5">
           {explorerUrl && <LinkButton href={explorerUrl} label="View tx" />}
           {tokenUrl && (
             <>
@@ -219,18 +229,31 @@ function FallbackCard({
 }) {
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
+      className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
       onClick={(e) => {
         e.stopPropagation();
         openWindow(zapperUrl);
       }}
     >
-      <div className="h-10 w-10 rounded-full bg-muted flex-shrink-0 flex items-center justify-center">
-        <ArrowsRightLeftIcon className="h-5 w-5 text-muted-foreground" />
-      </div>
+      {/* Fallback avatar with swap icon */}
+      <Avatar className="h-10 w-10 flex-shrink-0">
+        <AvatarFallback>
+          <ArrowsRightLeftIcon className="h-5 w-5 text-muted-foreground" />
+        </AvatarFallback>
+      </Avatar>
+
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-foreground">Token Swap{chainName ? ` · ${chainName}` : ''}</div>
-        <div className="flex items-center gap-2 mt-1">
+        {/* Author line - generic for fallback */}
+        <div className="text-sm font-semibold text-foreground truncate">Unknown</div>
+
+        {/* Swap action line */}
+        <div className="flex items-center gap-1.5 mt-0.5 text-sm text-foreground/80">
+          <ArrowsRightLeftIcon className="h-4 w-4 flex-shrink-0" />
+          <span>Token Swap{chainName ? ` · ${chainName}` : ''}</span>
+        </div>
+
+        {/* Links line */}
+        <div className="flex items-center gap-2 mt-1.5">
           {explorerUrl && <LinkButton href={explorerUrl} label="View tx" />}
           {tokenUrl && (
             <>
