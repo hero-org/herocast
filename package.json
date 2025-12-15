@@ -66,6 +66,7 @@
     "@mod-protocol/react-editor": "^0.1.0",
     "@neynar/nodejs-sdk": "1.21.1",
     "@noble/ed25519": "^2.2.3",
+    "@officialunofficial/trek": "^0.2.1",
     "@paywithglide/glide-js": "^0.8.0",
     "@radix-ui/colors": "^3.0.0",
     "@radix-ui/react-alert-dialog": "^1.1.6",

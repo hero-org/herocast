@@ -287,3 +287,15 @@ export function getExplorerTokenUrl(chain: string, tokenAddress: string): string
   if (!explorer) return null;
   return `${explorer}/token/${tokenAddress}`;
 }
+
+/**
+ * Check if URL is a Zapper OG URL for swap or nft-sale
+ * These are filtered when we already show custom SwapEmbed/NftSaleEmbed
+ */
+export function isZapperTransactionUrl(url: string | undefined): boolean {
+  if (!url || typeof url !== 'string') return false;
+  return (
+    url.startsWith('https://zapper.xyz/swap/') ||
+    url.startsWith('https://zapper.xyz/nft-sale/')
+  );
+}
