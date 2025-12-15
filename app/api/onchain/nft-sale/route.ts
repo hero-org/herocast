@@ -44,6 +44,9 @@ async function fetchTokenIdFromTx(chainId: number, contractAddress: string, txHa
   const network = ALCHEMY_NETWORKS[chainId] || 'eth-mainnet';
   const url = `https://${network}.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
 
+  // Debug: Log API key status (not the key itself)
+  console.log(`[nft/metadata] Using Alchemy network: ${network}, API key length: ${ALCHEMY_API_KEY.length}`);
+
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -56,11 +59,21 @@ async function fetchTokenIdFromTx(chainId: number, contractAddress: string, txHa
     signal: AbortSignal.timeout(10000),
   });
 
+  // Handle non-OK responses (Alchemy returns plain text for errors like 403)
   if (!response.ok) {
-    throw new Error(`RPC error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`[nft/metadata] Alchemy RPC error ${response.status}:`, errorText);
+    throw new Error(`RPC error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
+
+  // Handle JSON-RPC errors
+  if (data.error) {
+    console.error(`[nft/metadata] Alchemy JSON-RPC error:`, data.error);
+    throw new Error(`RPC error: ${data.error.message || JSON.stringify(data.error)}`);
+  }
+
   const receipt = data.result;
 
   if (!receipt?.logs) {
@@ -104,12 +117,15 @@ async function fetchNftMetadataFromAlchemy(
   });
 
   if (!response.ok) {
-    throw new Error(`Alchemy NFT API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`[nft/metadata] Alchemy NFT API error ${response.status}:`, errorText);
+    throw new Error(`Alchemy NFT API error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
 
   if (data.error) {
+    console.error(`[nft/metadata] Alchemy NFT API JSON error:`, data.error);
     throw new Error(data.error.message);
   }
 
