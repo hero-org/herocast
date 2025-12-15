@@ -1,6 +1,7 @@
 import { initializeStores, initializeStoresProgressive } from '@/stores/initializeStores';
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 
 enum InitStatus {
   uninitialized = 'uninitialized',
@@ -20,6 +21,9 @@ const useInitializeStores = () => {
         try {
           setStatus(InitStatus.pending);
           prevUserIdRef.current = user.id;
+
+          // Initialize sidebar state from localStorage
+          useNavigationStore.getState().initializeSidebarState();
 
           // Use progressive hydration for better performance
           await initializeStoresProgressive();
