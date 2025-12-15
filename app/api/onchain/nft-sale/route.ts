@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
@@ -44,14 +45,11 @@ async function fetchTokenIdFromTx(chainId: number, contractAddress: string, txHa
   const network = ALCHEMY_NETWORKS[chainId] || 'eth-mainnet';
   const url = `https://${network}.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
 
-  // Debug: Log API key status (not the key itself)
-  console.log(`[nft/metadata] Using Alchemy network: ${network}, API key length: ${ALCHEMY_API_KEY.length}`);
-
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Origin: 'https://app.herocast.xyz',
+      Origin: process.env.NEXT_PUBLIC_APP_URL || 'https://app.herocast.xyz',
     },
     body: JSON.stringify({
       jsonrpc: '2.0',
@@ -80,11 +78,8 @@ async function fetchTokenIdFromTx(chainId: number, contractAddress: string, txHa
   const receipt = data.result;
 
   if (!receipt?.logs) {
-    console.log(`[nft/metadata] No receipt or logs found for tx ${txHash}`);
     return null;
   }
-
-  console.log(`[nft/metadata] Found ${receipt.logs.length} logs in tx`);
 
   // Find Transfer event for the specific contract
   const transferLog = receipt.logs.find(
@@ -95,14 +90,6 @@ async function fetchTokenIdFromTx(chainId: number, contractAddress: string, txHa
   );
 
   if (!transferLog) {
-    // Debug: show what contracts emitted Transfer events
-    const transferLogs = receipt.logs.filter(
-      (log: { address: string; topics: string[] }) => log.topics[0] === TRANSFER_EVENT_SIGNATURE
-    );
-    console.log(
-      `[nft/metadata] No Transfer event for contract ${contractAddress}. Transfer events found from:`,
-      transferLogs.map((l: { address: string }) => l.address)
-    );
     return null;
   }
 
@@ -128,7 +115,7 @@ async function fetchNftMetadataFromAlchemy(
 
   const response = await fetch(url, {
     headers: {
-      Origin: 'https://app.herocast.xyz',
+      Origin: process.env.NEXT_PUBLIC_APP_URL || 'https://app.herocast.xyz',
     },
     signal: AbortSignal.timeout(10000),
   });
@@ -161,27 +148,16 @@ async function fetchNftSaleMetadataUncached(
   contractAddress: string,
   txHash: string
 ): Promise<NftMetadataResponse | null> {
-  const startTime = Date.now();
-  console.log(`[nft/metadata] Fetching NFT metadata for chain=${chainId}, contract=${contractAddress}, tx=${txHash}`);
-
   try {
     // Step 1: Get the actual token ID from the transaction
-    console.log(`[nft/metadata] Step 1: Fetching token ID from tx...`);
     const tokenId = await fetchTokenIdFromTx(chainId, contractAddress, txHash);
 
     if (!tokenId) {
-      console.log(
-        `[nft/metadata] FAILED: Could not extract token ID from tx ${txHash} - no matching Transfer event found`
-      );
       return null;
     }
 
-    console.log(`[nft/metadata] Step 1 SUCCESS: Found token ID: ${tokenId} in ${Date.now() - startTime}ms`);
-
     // Step 2: Get NFT metadata from Alchemy
-    console.log(`[nft/metadata] Step 2: Fetching NFT metadata from Alchemy...`);
     const metadata = await fetchNftMetadataFromAlchemy(chainId, contractAddress, tokenId);
-    console.log(`[nft/metadata] Step 2 result:`, metadata ? 'success' : 'null');
 
     // Step 3: Generate OpenSea URL
     const network = OPENSEA_NETWORKS[chainId] || 'ethereum';
@@ -195,10 +171,10 @@ async function fetchNftSaleMetadataUncached(
       openSeaUrl,
     };
 
-    console.log(`[nft/metadata] Success for tx ${txHash} in ${Date.now() - startTime}ms`);
     return result;
   } catch (error) {
     console.error(`[nft/metadata] Error fetching NFT metadata:`, error);
+    Sentry.captureException(error);
     return null;
   }
 }
@@ -260,7 +236,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ metadata });
   } catch (error) {
     console.error('[nft/metadata] Error in route handler:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    Sentry.captureException(error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 

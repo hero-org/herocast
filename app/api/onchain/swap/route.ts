@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
@@ -46,7 +47,7 @@ async function fetchTxSender(chain: string, txHash: string): Promise<string | nu
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Origin: 'https://app.herocast.xyz',
+        Origin: process.env.NEXT_PUBLIC_APP_URL || 'https://app.herocast.xyz',
       },
       body: JSON.stringify({
         jsonrpc: '2.0',
@@ -78,7 +79,7 @@ async function fetchTxSender(chain: string, txHash: string): Promise<string | nu
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Origin: 'https://app.herocast.xyz',
+        Origin: process.env.NEXT_PUBLIC_APP_URL || 'https://app.herocast.xyz',
       },
       body: JSON.stringify({
         jsonrpc: '2.0',
@@ -118,12 +119,8 @@ async function fetchTxSender(chain: string, txHash: string): Promise<string | nu
  * Fetch token metadata from Alchemy
  */
 async function fetchTokenMetadataUncached(chain: string, tokenAddress: string): Promise<SwapMetadataResponse | null> {
-  const startTime = Date.now();
-  console.log(`[onchain/swap] Fetching token metadata for chain=${chain}, token=${tokenAddress}`);
-
   const network = CHAIN_TO_ALCHEMY[chain.toLowerCase()];
   if (!network) {
-    console.log(`[onchain/swap] Chain ${chain} not supported by Alchemy`);
     return null;
   }
 
@@ -139,7 +136,7 @@ async function fetchTokenMetadataUncached(chain: string, tokenAddress: string): 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Origin: 'https://app.herocast.xyz',
+        Origin: process.env.NEXT_PUBLIC_APP_URL || 'https://app.herocast.xyz',
       },
       body: JSON.stringify({
         jsonrpc: '2.0',
@@ -162,11 +159,8 @@ async function fetchTokenMetadataUncached(chain: string, tokenAddress: string): 
 
     const result = data.result;
     if (!result || !result.symbol) {
-      console.log(`[onchain/swap] No token metadata found for ${tokenAddress}`);
       return null;
     }
-
-    console.log(`[onchain/swap] Success for ${tokenAddress} in ${Date.now() - startTime}ms`);
 
     return {
       symbol: result.symbol,
@@ -176,6 +170,7 @@ async function fetchTokenMetadataUncached(chain: string, tokenAddress: string): 
     };
   } catch (error) {
     console.error(`[onchain/swap] Error fetching token metadata:`, error);
+    Sentry.captureException(error);
     return null;
   }
 }
@@ -243,7 +238,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[onchain/swap] Error in route handler:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    Sentry.captureException(error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
