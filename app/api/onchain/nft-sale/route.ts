@@ -51,7 +51,7 @@ async function fetchTokenIdFromTx(chainId: number, contractAddress: string, txHa
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Referer': 'https://app.herocast.xyz',
+      Origin: 'https://app.herocast.xyz',
     },
     body: JSON.stringify({
       jsonrpc: '2.0',
@@ -117,7 +117,7 @@ async function fetchNftMetadataFromAlchemy(
 
   const response = await fetch(url, {
     headers: {
-      'Referer': 'https://app.herocast.xyz',
+      Origin: 'https://app.herocast.xyz',
     },
     signal: AbortSignal.timeout(10000),
   });

@@ -45,7 +45,7 @@ async function fetchTokenMetadataUncached(chain: string, tokenAddress: string): 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Referer': 'https://app.herocast.xyz',
+        Origin: 'https://app.herocast.xyz',
       },
       body: JSON.stringify({
         jsonrpc: '2.0',
