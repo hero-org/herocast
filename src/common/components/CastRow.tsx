@@ -313,8 +313,10 @@ const CastRowComponent = ({
   const parentUrl = 'parent_url' in cast ? cast.parent_url : null;
   const { channel: parentChannel } = useChannelLookup(parentUrl);
 
-  // Detect if this cast is replying to an external URL (not a channel, not a cast)
-  const isExternalUrlReply = Boolean(parentUrl && !parentChannel && !cast.parent_hash);
+  // Detect if this cast is replying to an external URL (swap:// or nft-sale://)
+  const isExternalUrlReply = Boolean(
+    parentUrl && !cast.parent_hash && (isNftSaleUrl(parentUrl) || isSwapUrl(parentUrl))
+  );
 
   const getChannelForParentUrl = useCallback(
     (url: string | null): ChannelType | undefined => (url === parentUrl ? parentChannel : undefined),
