@@ -9,11 +9,11 @@ import {
   NewspaperIcon,
   UserGroupIcon,
   ChatBubbleLeftRightIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
-import RightSidebarTrigger from '@/common/components/Sidebar/RightSidebarTrigger';
 import LeftSidebarToggle from '@/common/components/Sidebar/LeftSidebarToggle';
 import RightSidebarToggle from '@/common/components/Sidebar/RightSidebarToggle';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
@@ -436,47 +436,30 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 leaveFrom="translate-x-0"
                 leaveTo="-translate-x-full"
               >
-                <Dialog.Panel className="relative mr-2 flex w-full max-w-40 flex-1">
-                  {/* Sidebar component, swap this element with another sidebar if you like */}
-                  <div className="mt-16 z-100 flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
-                    <nav className="flex flex-1 flex-col divide-y divide-muted-foreground/20">
-                      {navigationGroups.map((group) => {
-                        const navigation = group.items;
-                        return (
-                          <div key={`nav-group-mobile-${group.name}`}>
-                            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                              <li>
-                                <ul role="list" className="-mx-2 space-y-1">
-                                  {navigation.map(
-                                    (item) =>
-                                      !item.hide && (
-                                        <li key={item.name}>
-                                          <Link href={item.router} onClick={() => setSidebarOpen(false)}>
-                                            <p
-                                              className={cn(
-                                                item.router === pathname || item.additionalPaths?.includes(pathname)
-                                                  ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
-                                                  : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-                                                'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
-                                              )}
-                                            >
-                                              {item.icon}
-                                              {item.name}
-                                            </p>
-                                          </Link>
-                                        </li>
-                                      )
-                                  )}
-                                </ul>
-                              </li>
-                            </ul>
-                          </div>
-                        );
-                      })}
-                      <div className="w-full py-4">
-                        <AccountSwitcher />
-                      </div>
-                    </nav>
+                <Dialog.Panel className="relative mr-2 flex w-full max-w-xs flex-1">
+                  {/* Mobile Sidebar */}
+                  <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
+                    <div className="flex h-14 shrink-0 items-center">
+                      <Link href="/post" className="flex items-center hover:cursor-pointer">
+                        <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+                          herocast
+                        </h2>
+                      </Link>
+                      <button
+                        type="button"
+                        className="ml-auto -m-2.5 p-2.5 text-foreground"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="sr-only">Close sidebar</span>
+                        <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                      </button>
+                    </div>
+                    <LeftSidebarNav onNavigate={() => setSidebarOpen(false)} />
+                    {isReadOnlyUser && renderUpgradeCard()}
+                    {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
+                    <div className="mt-auto py-3">
+                      <AccountSwitcher />
+                    </div>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
@@ -543,12 +526,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                           {action.name}
                         </Button>
                       ))}
-                      {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && (
-                        <>
-                          <RightSidebarToggle className="hidden lg:flex" />
-                          <RightSidebarTrigger />
-                        </>
-                      )}
+                      {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && <RightSidebarToggle className="hidden lg:flex" />}
                     </div>
                   </div>
                 )}
