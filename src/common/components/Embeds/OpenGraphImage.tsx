@@ -8,18 +8,23 @@ import { useUrlMetadata } from '@/hooks/queries/useUrlMetadata';
 import { cn } from '@/lib/utils';
 
 // Skeleton for loading state - matches final card height
-const UrlMetadataSkeleton = () => (
-  <div className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg">
-    <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
-    <div className="flex-1 min-w-0 space-y-2">
-      <Skeleton className="h-3.5 w-3/4 rounded" />
-      <Skeleton className="h-4 w-full rounded" />
+const UrlMetadataSkeleton = ({ compact = false }: { compact?: boolean }) => (
+  <div
+    className={cn(
+      'flex items-center rounded-lg bg-muted/50 border border-muted',
+      compact ? 'gap-2 px-2.5 py-2' : 'gap-3 px-3 py-2.5 max-w-lg'
+    )}
+  >
+    <Skeleton className={cn('rounded-md flex-shrink-0', compact ? 'h-5 w-5' : 'h-8 w-8')} />
+    <div className="flex-1 min-w-0 space-y-1.5">
+      <Skeleton className={cn('rounded', compact ? 'h-3 w-full' : 'h-3.5 w-3/4')} />
+      {!compact && <Skeleton className="h-4 w-full rounded" />}
     </div>
   </div>
 );
 
 // Simple URL display (fallback when no metadata)
-const UrlEmbed = ({ url }: { url: string }) => {
+const UrlEmbed = ({ url, compact = false }: { url: string; compact?: boolean }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (e: React.MouseEvent) => {
@@ -53,32 +58,49 @@ const UrlEmbed = ({ url }: { url: string }) => {
   const { domain, path } = getDisplayUrl(url);
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-muted max-w-lg group">
-      <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+    <div
+      className={cn(
+        'flex items-center rounded-lg bg-muted/50 border border-muted group',
+        compact ? 'gap-2 px-2.5 py-2' : 'gap-2 px-3 py-2 max-w-lg'
+      )}
+    >
+      <LinkIcon className={cn('text-muted-foreground flex-shrink-0', compact ? 'h-5 w-5' : 'h-4 w-4')} />
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center gap-1">
-          <span className="text-sm font-medium text-foreground truncate">{domain}</span>
-          {path && <span className="text-sm text-muted-foreground truncate">{path}</span>}
+          <span className={cn('font-medium text-foreground truncate', compact ? 'text-xs' : 'text-sm')}>{domain}</span>
+          {path && !compact && <span className="text-sm text-muted-foreground truncate">{path}</span>}
         </div>
       </div>
-      <div className="flex items-center gap-1 flex-shrink-0">
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleCopy} title="Copy URL">
-          {copied ? (
-            <CheckIcon className="h-4 w-4 text-green-500" />
-          ) : (
-            <ClipboardIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-          )}
-        </Button>
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleOpen} title="Open in new tab">
-          <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-        </Button>
-      </div>
+      {!compact && (
+        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleCopy} title="Copy URL">
+            {copied ? (
+              <CheckIcon className="h-4 w-4 text-green-500" />
+            ) : (
+              <ClipboardIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            )}
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleOpen} title="Open in new tab">
+            <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
 
 // Rich link card with favicon, URL, and title
-const RichLinkCard = ({ url, title, favicon }: { url: string; title: string; favicon?: string }) => {
+const RichLinkCard = ({
+  url,
+  title,
+  favicon,
+  compact = false,
+}: {
+  url: string;
+  title: string;
+  favicon?: string;
+  compact?: boolean;
+}) => {
   const [copied, setCopied] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
 
@@ -113,40 +135,67 @@ const RichLinkCard = ({ url, title, favicon }: { url: string; title: string; fav
   const showFavicon = favicon && !faviconError;
 
   return (
-    <div className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg group">
-      {/* Favicon or link icon */}
-      <div className="flex-shrink-0">
+    <div
+      className={cn(
+        'flex items-center rounded-lg bg-muted/50 border border-muted group',
+        compact ? 'gap-2 px-2.5 py-2' : 'gap-3 px-3 py-2.5 max-w-lg'
+      )}
+    >
+      {/* Favicon or link icon - fixed size container for consistent height */}
+      <div className={cn('flex-shrink-0 flex items-center justify-center', compact ? 'h-5 w-5' : 'h-8 w-8')}>
         {showFavicon ? (
-          <img src={favicon} alt="" className="h-8 w-8 rounded-md" onError={() => setFaviconError(true)} />
+          <img
+            src={favicon}
+            alt=""
+            className={cn('rounded object-contain', compact ? 'max-h-5 max-w-5' : 'max-h-8 max-w-8')}
+            onError={() => setFaviconError(true)}
+          />
         ) : (
-          <LinkIcon className="h-8 w-8 text-muted-foreground" />
+          <LinkIcon className={cn('text-muted-foreground', compact ? 'h-5 w-5' : 'h-8 w-8')} />
         )}
       </div>
 
       {/* URL and title */}
       <div className="flex-1 min-w-0 overflow-hidden">
-        <p className="text-[11px] text-muted-foreground truncate leading-tight">{displayUrl}</p>
-        <p className="text-sm font-medium text-foreground truncate leading-snug">{title}</p>
+        {!compact && <p className="text-[11px] text-muted-foreground truncate leading-tight">{displayUrl}</p>}
+        <p
+          className={cn(
+            'font-medium text-foreground truncate',
+            compact ? 'text-xs leading-tight' : 'text-sm leading-snug'
+          )}
+        >
+          {title}
+        </p>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleCopy} title="Copy URL">
-          {copied ? (
-            <CheckIcon className="h-4 w-4 text-green-500" />
-          ) : (
-            <ClipboardIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-          )}
-        </Button>
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleOpen} title="Open in new tab">
-          <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-        </Button>
-      </div>
+      {/* Actions - only show in non-compact mode */}
+      {!compact && (
+        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleCopy} title="Copy URL">
+            {copied ? (
+              <CheckIcon className="h-4 w-4 text-green-500" />
+            ) : (
+              <ClipboardIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            )}
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleOpen} title="Open in new tab">
+            <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
 
-const OpenGraphImage = ({ url, skipIntersection = false }: { url: string; skipIntersection?: boolean }) => {
+const OpenGraphImage = ({
+  url,
+  skipIntersection = false,
+  compact = false,
+}: {
+  url: string;
+  skipIntersection?: boolean;
+  compact?: boolean;
+}) => {
   // Intersection observer for lazy loading
   const { ref, inView } = useInView({
     threshold: 0,
@@ -170,7 +219,7 @@ const OpenGraphImage = ({ url, skipIntersection = false }: { url: string; skipIn
   if (!shouldFetch || isLoading) {
     return (
       <div ref={ref}>
-        <UrlMetadataSkeleton />
+        <UrlMetadataSkeleton compact={compact} />
       </div>
     );
   }
@@ -179,7 +228,7 @@ const OpenGraphImage = ({ url, skipIntersection = false }: { url: string; skipIn
   if (isError || !metadata?.title) {
     return (
       <div ref={ref}>
-        <UrlEmbed url={url} />
+        <UrlEmbed url={url} compact={compact} />
       </div>
     );
   }
@@ -187,7 +236,7 @@ const OpenGraphImage = ({ url, skipIntersection = false }: { url: string; skipIn
   // Show rich card with metadata
   return (
     <div ref={ref} className={cn('animate-in fade-in duration-200')}>
-      <RichLinkCard url={url} title={metadata.title} favicon={metadata.favicon} />
+      <RichLinkCard url={url} title={metadata.title} favicon={metadata.favicon} compact={compact} />
     </div>
   );
 };
