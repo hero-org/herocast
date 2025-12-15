@@ -39,7 +39,11 @@ async function fetchUserByEthereumAddressUncached(address: string): Promise<User
       display_name: user.display_name || user.username,
       pfp_url: user.pfp_url,
     };
-  } catch (error) {
+  } catch (error: any) {
+    // Neynar returns 404 when no users found - this is expected, not an error
+    if (error?.response?.status === 404 || error?.status === 404) {
+      return null;
+    }
     console.error('[users/by-address] Error fetching user:', error);
     throw error;
   }
