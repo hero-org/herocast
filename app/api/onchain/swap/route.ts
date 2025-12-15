@@ -43,7 +43,10 @@ async function fetchTokenMetadataUncached(chain: string, tokenAddress: string): 
 
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Referer': 'https://app.herocast.xyz',
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
         method: 'alchemy_getTokenMetadata',
