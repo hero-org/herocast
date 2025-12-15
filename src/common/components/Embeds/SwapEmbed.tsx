@@ -73,8 +73,9 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
     return <FallbackCard zapperUrl={getZapperSwapUrl(base64)} />;
   }
 
-  const { chain, tokenAddress, rawBase64 } = parsed;
+  const { chain, tokenAddress, txHash, rawBase64 } = parsed;
   const zapperUrl = getZapperSwapUrl(rawBase64);
+  const explorerUrl = `https://txha.sh/${txHash}`;
 
   // Check if chain is supported by Alchemy
   const isChainSupported = !!getAlchemyNetworkForSwapChain(chain);
@@ -83,7 +84,7 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 
   // Show fallback for unsupported chains
   if (!isChainSupported) {
-    return <FallbackCard zapperUrl={zapperUrl} chainName={chain} />;
+    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} chainName={chain} />;
   }
 
   if (isLoading) {
@@ -91,7 +92,7 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
   }
 
   if (isError || !metadata) {
-    return <FallbackCard zapperUrl={zapperUrl} />;
+    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} />;
   }
 
   const { symbol, logo } = metadata;
@@ -125,7 +126,9 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-foreground truncate">Swapped {symbol}</div>
         <div className="flex items-center gap-2 mt-1">
-          <LinkButton href={zapperUrl} label="View on Zapper" />
+          <LinkButton href={explorerUrl} label="View tx" />
+          <span className="text-muted-foreground">·</span>
+          <LinkButton href={zapperUrl} label="Zapper" />
         </div>
       </div>
     </div>
@@ -133,7 +136,15 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 }
 
 // Fallback when metadata unavailable or chain not supported
-function FallbackCard({ zapperUrl, chainName }: { zapperUrl: string; chainName?: string }) {
+function FallbackCard({
+  zapperUrl,
+  explorerUrl,
+  chainName,
+}: {
+  zapperUrl: string;
+  explorerUrl?: string;
+  chainName?: string;
+}) {
   return (
     <div
       className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
@@ -146,10 +157,17 @@ function FallbackCard({ zapperUrl, chainName }: { zapperUrl: string; chainName?:
         <ArrowsRightLeftIcon className="h-5 w-5 text-muted-foreground" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-foreground">Token Swap</div>
-        <div className="text-xs text-muted-foreground">{chainName ? `${chainName} · ` : ''}View on Zapper</div>
+        <div className="text-sm font-medium text-foreground">Token Swap{chainName ? ` · ${chainName}` : ''}</div>
+        <div className="flex items-center gap-2 mt-1">
+          {explorerUrl && (
+            <>
+              <LinkButton href={explorerUrl} label="View tx" />
+              <span className="text-muted-foreground">·</span>
+            </>
+          )}
+          <LinkButton href={zapperUrl} label="Zapper" />
+        </div>
       </div>
-      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
     </div>
   );
 }
