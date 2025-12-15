@@ -29,7 +29,8 @@ import { renderEmbedForUrl } from './Embeds';
 import EmbedCarousel from './Embeds/EmbedCarousel';
 import OpenGraphImage from './Embeds/OpenGraphImage';
 import NftSaleEmbed from './Embeds/NftSaleEmbed';
-import { isNftSaleUrl } from '@/common/helpers/onchain';
+import SwapEmbed from './Embeds/SwapEmbed';
+import { isNftSaleUrl, isSwapUrl } from '@/common/helpers/onchain';
 import ProfileHoverCard from './ProfileHoverCard';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { registerPlugin } from 'linkifyjs';
@@ -605,6 +606,8 @@ const CastRowComponent = ({
     // Route custom URI schemes to appropriate embed component
     const embedComponent = isNftSaleUrl(parentUrl) ? (
       <NftSaleEmbed url={parentUrl} />
+    ) : isSwapUrl(parentUrl) ? (
+      <SwapEmbed url={parentUrl} />
     ) : (
       <OpenGraphImage url={parentUrl} />
     );

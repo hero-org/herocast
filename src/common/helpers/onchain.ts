@@ -173,3 +173,89 @@ export function getExplorerTxUrl(chainId: number, txHash: string): string {
       return `https://etherscan.io/tx/${txHash}`;
   }
 }
+
+// =============================================================================
+// Swap URI Scheme (swap://)
+// =============================================================================
+
+// Chain name (from URL) to Alchemy network mapping
+const SWAP_CHAIN_TO_ALCHEMY: Record<string, string> = {
+  base: 'base-mainnet',
+  ethereum: 'eth-mainnet',
+  optimism: 'opt-mainnet',
+  polygon: 'polygon-mainnet',
+  arbitrum: 'arb-mainnet',
+  // Note: 'hyperevm' is NOT supported by Alchemy - will return null
+};
+
+export type SwapData = {
+  chain: string; // e.g., "hyperevm", "base"
+  txHash: string;
+  blockNumber: number;
+  timestamp: number;
+  tokenAddress: string;
+  rawBase64: string;
+};
+
+/**
+ * Check if a URL is a swap:// URI scheme
+ */
+export function isSwapUrl(url: string | null | undefined): boolean {
+  return typeof url === 'string' && url.startsWith('swap://');
+}
+
+/**
+ * Parse a swap:// URL into structured data
+ *
+ * Format: swap://BASE64_DATA
+ * Decoded: ChannelFeedSwap-{chain}|txHash|blockNumber|timestamp|tokenAddress|boolean
+ *
+ * Example:
+ * ChannelFeedSwap-hyperevm|0x34bdd163...|337987|1765250439000|0x94e8396e...|true
+ */
+export function parseSwapUrl(url: string): SwapData | null {
+  if (!isSwapUrl(url)) return null;
+
+  try {
+    const base64 = url.replace('swap://', '');
+    const decoded = atob(base64);
+    const parts = decoded.split('|');
+
+    if (parts.length < 5) {
+      console.warn('[onchain] Invalid swap URL format:', url);
+      return null;
+    }
+
+    const [typeChain, txHash, blockNumberStr, timestampStr, tokenAddress] = parts;
+
+    // Extract chain from "ChannelFeedSwap-{chain}" format
+    const chain = typeChain.replace('ChannelFeedSwap-', '');
+
+    return {
+      chain,
+      txHash,
+      blockNumber: parseInt(blockNumberStr, 10),
+      timestamp: parseInt(timestampStr, 10),
+      tokenAddress,
+      rawBase64: base64,
+    };
+  } catch (error) {
+    console.error('[onchain] Failed to parse swap URL:', error);
+    return null;
+  }
+}
+
+/**
+ * Generate Zapper swap URL
+ */
+export function getZapperSwapUrl(base64: string): string {
+  return `https://zapper.xyz/swap/${base64}`;
+}
+
+/**
+ * Get Alchemy network for a swap chain name
+ * Returns null if chain is not supported by Alchemy
+ */
+export function getAlchemyNetworkForSwapChain(chain: string): string | null {
+  return SWAP_CHAIN_TO_ALCHEMY[chain.toLowerCase()] || null;
+}

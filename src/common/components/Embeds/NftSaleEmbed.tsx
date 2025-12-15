@@ -28,7 +28,7 @@ async function fetchNftMetadata(
     txHash,
   });
 
-  const response = await fetch(`/api/nft/metadata?${params.toString()}`);
+  const response = await fetch(`/api/onchain/nft-sale?${params.toString()}`);
 
   if (!response.ok) {
     if (response.status === 404) {
