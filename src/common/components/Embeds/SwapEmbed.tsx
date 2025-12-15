@@ -20,12 +20,43 @@ type SwapMetadataResponse = {
   sender?: string;
 };
 
+type FarcasterUser = {
+  fid: number;
+  username: string;
+  display_name: string;
+  pfp_url: string;
+};
+
 /**
  * Abbreviate an address to 0x1234...5678 format
  */
 function abbreviateAddress(address: string): string {
   if (!address || address.length < 10) return address;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+/**
+ * Fetch Farcaster user by Ethereum address
+ */
+async function fetchUserByAddress(address: string): Promise<FarcasterUser | null> {
+  const response = await fetch(`/api/users/by-address?address=${address}`);
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data.user;
+}
+
+/**
+ * Hook to fetch Farcaster user by address
+ */
+function useFarcasterUser(address: string | undefined) {
+  return useQuery({
+    queryKey: ['user', 'by-address', address],
+    queryFn: () => fetchUserByAddress(address!),
+    enabled: !!address,
+    staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days
+    gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
+    retry: false, // Don't retry - if no user found, that's final
+  });
 }
 
 /**
@@ -103,6 +134,9 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 
   const { data: metadata, isLoading, isError } = useSwapMetadata(chain, tokenAddress, txHash, isChainSupported);
 
+  // Fetch Farcaster user for the sender address
+  const { data: farcasterUser } = useFarcasterUser(metadata?.sender);
+
   // Show fallback for unsupported chains
   if (!isChainSupported) {
     return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} tokenUrl={tokenUrl} chainName={chain} />;
@@ -117,6 +151,13 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
   }
 
   const { symbol, logo, sender } = metadata;
+
+  // Format sender display: prefer username, fallback to abbreviated address
+  const senderDisplay = farcasterUser
+    ? `@${farcasterUser.username}`
+    : sender
+      ? abbreviateAddress(sender)
+      : null;
 
   return (
     <div
@@ -146,7 +187,7 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
       {/* Swap Info */}
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-foreground truncate">
-          {sender ? `${abbreviateAddress(sender)} swapped ${symbol}` : `Swapped ${symbol}`}
+          {senderDisplay ? `${senderDisplay} swapped ${symbol}` : `Swapped ${symbol}`}
         </div>
         <div className="flex items-center gap-2 mt-1">
           {explorerUrl && <LinkButton href={explorerUrl} label="View tx" />}
