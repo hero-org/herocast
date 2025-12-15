@@ -7,6 +7,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const nextConfig = {
+  // Include WASM files in serverless bundle for Vercel deployment
+  // See: https://vercel.com/docs/functions/runtimes/wasm
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/embeds/metadata': ['./node_modules/@officialunofficial/trek/*.wasm'],
+    },
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
