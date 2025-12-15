@@ -12,20 +12,34 @@ import { openWindow } from '@/common/helpers/navigation';
 import { ArrowTopRightOnSquareIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 
-type TokenMetadataResponse = {
+type SwapMetadataResponse = {
   symbol: string;
   name: string;
   logo?: string;
   decimals: number;
+  sender?: string;
 };
 
 /**
- * Fetch token metadata from our server-side cached API
+ * Abbreviate an address to 0x1234...5678 format
  */
-async function fetchTokenMetadata(chain: string, tokenAddress: string): Promise<TokenMetadataResponse | null> {
+function abbreviateAddress(address: string): string {
+  if (!address || address.length < 10) return address;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+/**
+ * Fetch swap metadata from our server-side cached API
+ */
+async function fetchSwapMetadata(
+  chain: string,
+  tokenAddress: string,
+  txHash: string
+): Promise<SwapMetadataResponse | null> {
   const params = new URLSearchParams({
     chain,
     tokenAddress,
+    txHash,
   });
 
   const response = await fetch(`/api/onchain/swap?${params.toString()}`);
@@ -42,13 +56,13 @@ async function fetchTokenMetadata(chain: string, tokenAddress: string): Promise<
 }
 
 /**
- * Hook to fetch token metadata with client-side caching
+ * Hook to fetch swap metadata with client-side caching
  */
-function useTokenMetadata(chain: string, tokenAddress: string, enabled: boolean) {
+function useSwapMetadata(chain: string, tokenAddress: string, txHash: string, enabled: boolean) {
   return useQuery({
-    queryKey: ['token', 'metadata', chain, tokenAddress],
-    queryFn: () => fetchTokenMetadata(chain, tokenAddress),
-    enabled: enabled && !!tokenAddress,
+    queryKey: ['swap', 'metadata', chain, tokenAddress, txHash],
+    queryFn: () => fetchSwapMetadata(chain, tokenAddress, txHash),
+    enabled: enabled && !!tokenAddress && !!txHash,
     staleTime: 1000 * 60 * 60 * 24 * 7, // 7 days - server caches for 30 days
     gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days
     retry: 1,
@@ -87,7 +101,7 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
   // Check if chain is supported by Alchemy
   const isChainSupported = !!getAlchemyNetworkForSwapChain(chain);
 
-  const { data: metadata, isLoading, isError } = useTokenMetadata(chain, tokenAddress, isChainSupported);
+  const { data: metadata, isLoading, isError } = useSwapMetadata(chain, tokenAddress, txHash, isChainSupported);
 
   // Show fallback for unsupported chains
   if (!isChainSupported) {
@@ -102,7 +116,7 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
     return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} tokenUrl={tokenUrl} />;
   }
 
-  const { symbol, logo } = metadata;
+  const { symbol, logo, sender } = metadata;
 
   return (
     <div
@@ -131,7 +145,9 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 
       {/* Swap Info */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-foreground truncate">Swapped {symbol}</div>
+        <div className="text-sm font-medium text-foreground truncate">
+          {sender ? `${abbreviateAddress(sender)} swapped ${symbol}` : `Swapped ${symbol}`}
+        </div>
         <div className="flex items-center gap-2 mt-1">
           {explorerUrl && <LinkButton href={explorerUrl} label="View tx" />}
           {tokenUrl && (

@@ -13,17 +13,51 @@ const CHAIN_TO_ALCHEMY: Record<string, string> = {
   // Note: 'hyperevm' is NOT supported - will return 404
 };
 
-export type TokenMetadataResponse = {
+export type SwapMetadataResponse = {
   symbol: string;
   name: string;
   logo?: string;
   decimals: number;
+  sender?: string; // Address that initiated the swap
 };
+
+/**
+ * Fetch transaction sender from Alchemy
+ */
+async function fetchTxSender(chain: string, txHash: string): Promise<string | null> {
+  const network = CHAIN_TO_ALCHEMY[chain.toLowerCase()];
+  if (!network || !ALCHEMY_API_KEY) return null;
+
+  try {
+    const url = `https://${network}.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://app.herocast.xyz',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_getTransactionByHash',
+        params: [txHash],
+        id: 1,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    return data.result?.from || null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Fetch token metadata from Alchemy
  */
-async function fetchTokenMetadataUncached(chain: string, tokenAddress: string): Promise<TokenMetadataResponse | null> {
+async function fetchTokenMetadataUncached(chain: string, tokenAddress: string): Promise<SwapMetadataResponse | null> {
   const startTime = Date.now();
   console.log(`[onchain/swap] Fetching token metadata for chain=${chain}, token=${tokenAddress}`);
 
@@ -96,11 +130,21 @@ const getCachedTokenMetadata = (chain: string, tokenAddress: string) =>
     tags: ['token-metadata'],
   })();
 
+/**
+ * Cached version for tx sender (also immutable)
+ */
+const getCachedTxSender = (chain: string, txHash: string) =>
+  unstable_cache(() => fetchTxSender(chain, txHash), [`tx-sender-${chain}-${txHash}`], {
+    revalidate: 2592000, // 30 days (tx sender is immutable)
+    tags: ['tx-sender'],
+  })();
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const chain = searchParams.get('chain');
     const tokenAddress = searchParams.get('tokenAddress');
+    const txHash = searchParams.get('txHash'); // Optional
 
     // Validate required parameters
     if (!chain || !tokenAddress) {
@@ -121,13 +165,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Alchemy API key not configured' }, { status: 500 });
     }
 
-    const metadata = await getCachedTokenMetadata(chain.toLowerCase(), tokenAddress.toLowerCase());
+    // Fetch token metadata and sender in parallel if txHash is provided
+    const [metadata, sender] = await Promise.all([
+      getCachedTokenMetadata(chain.toLowerCase(), tokenAddress.toLowerCase()),
+      txHash ? getCachedTxSender(chain.toLowerCase(), txHash.toLowerCase()) : Promise.resolve(null),
+    ]);
 
     if (!metadata) {
       return NextResponse.json({ error: 'Could not fetch token metadata' }, { status: 404 });
     }
 
-    return NextResponse.json({ metadata });
+    return NextResponse.json({
+      metadata: {
+        ...metadata,
+        sender: sender || undefined,
+      },
+    });
   } catch (error) {
     console.error('[onchain/swap] Error in route handler:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
