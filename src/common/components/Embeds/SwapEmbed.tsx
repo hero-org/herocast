@@ -1,6 +1,12 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { parseSwapUrl, getZapperSwapUrl, getAlchemyNetworkForSwapChain } from '@/common/helpers/onchain';
+import {
+  parseSwapUrl,
+  getZapperSwapUrl,
+  getAlchemyNetworkForSwapChain,
+  getExplorerTxUrlByChain,
+  getExplorerTokenUrl,
+} from '@/common/helpers/onchain';
 import { Skeleton } from '@/components/ui/skeleton';
 import { openWindow } from '@/common/helpers/navigation';
 import { ArrowTopRightOnSquareIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
@@ -75,7 +81,8 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 
   const { chain, tokenAddress, txHash, rawBase64 } = parsed;
   const zapperUrl = getZapperSwapUrl(rawBase64);
-  const explorerUrl = `https://txha.sh/${txHash}`;
+  const explorerUrl = getExplorerTxUrlByChain(chain, txHash);
+  const tokenUrl = getExplorerTokenUrl(chain, tokenAddress);
 
   // Check if chain is supported by Alchemy
   const isChainSupported = !!getAlchemyNetworkForSwapChain(chain);
@@ -84,7 +91,7 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 
   // Show fallback for unsupported chains
   if (!isChainSupported) {
-    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} chainName={chain} />;
+    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} tokenUrl={tokenUrl} chainName={chain} />;
   }
 
   if (isLoading) {
@@ -92,7 +99,7 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
   }
 
   if (isError || !metadata) {
-    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} />;
+    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} tokenUrl={tokenUrl} />;
   }
 
   const { symbol, logo } = metadata;
@@ -126,7 +133,13 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-foreground truncate">Swapped {symbol}</div>
         <div className="flex items-center gap-2 mt-1">
-          <LinkButton href={explorerUrl} label="View tx" />
+          {explorerUrl && <LinkButton href={explorerUrl} label="View tx" />}
+          {tokenUrl && (
+            <>
+              {explorerUrl && <span className="text-muted-foreground">·</span>}
+              <LinkButton href={tokenUrl} label="Token" />
+            </>
+          )}
           <span className="text-muted-foreground">·</span>
           <LinkButton href={zapperUrl} label="Zapper" />
         </div>
@@ -139,10 +152,12 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 function FallbackCard({
   zapperUrl,
   explorerUrl,
+  tokenUrl,
   chainName,
 }: {
   zapperUrl: string;
-  explorerUrl?: string;
+  explorerUrl?: string | null;
+  tokenUrl?: string | null;
   chainName?: string;
 }) {
   return (
@@ -159,12 +174,14 @@ function FallbackCard({
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-foreground">Token Swap{chainName ? ` · ${chainName}` : ''}</div>
         <div className="flex items-center gap-2 mt-1">
-          {explorerUrl && (
+          {explorerUrl && <LinkButton href={explorerUrl} label="View tx" />}
+          {tokenUrl && (
             <>
-              <LinkButton href={explorerUrl} label="View tx" />
-              <span className="text-muted-foreground">·</span>
+              {explorerUrl && <span className="text-muted-foreground">·</span>}
+              <LinkButton href={tokenUrl} label="Token" />
             </>
           )}
+          {(explorerUrl || tokenUrl) && <span className="text-muted-foreground">·</span>}
           <LinkButton href={zapperUrl} label="Zapper" />
         </div>
       </div>

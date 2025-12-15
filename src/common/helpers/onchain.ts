@@ -259,3 +259,31 @@ export function getZapperSwapUrl(base64: string): string {
 export function getAlchemyNetworkForSwapChain(chain: string): string | null {
   return SWAP_CHAIN_TO_ALCHEMY[chain.toLowerCase()] || null;
 }
+
+// Chain name to block explorer base URL mapping
+const CHAIN_EXPLORERS: Record<string, string> = {
+  base: 'https://basescan.org',
+  ethereum: 'https://etherscan.io',
+  optimism: 'https://optimistic.etherscan.io',
+  polygon: 'https://polygonscan.com',
+  arbitrum: 'https://arbiscan.io',
+  hyperevm: 'https://explorer.hyperliquid.xyz',
+};
+
+/**
+ * Generate block explorer URL for a transaction by chain name
+ */
+export function getExplorerTxUrlByChain(chain: string, txHash: string): string | null {
+  const explorer = CHAIN_EXPLORERS[chain.toLowerCase()];
+  if (!explorer) return null;
+  return `${explorer}/tx/${txHash}`;
+}
+
+/**
+ * Generate block explorer URL for a token by chain name
+ */
+export function getExplorerTokenUrl(chain: string, tokenAddress: string): string | null {
+  const explorer = CHAIN_EXPLORERS[chain.toLowerCase()];
+  if (!explorer) return null;
+  return `${explorer}/token/${tokenAddress}`;
+}
