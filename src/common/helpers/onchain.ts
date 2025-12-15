@@ -294,8 +294,5 @@ export function getExplorerTokenUrl(chain: string, tokenAddress: string): string
  */
 export function isZapperTransactionUrl(url: string | undefined): boolean {
   if (!url || typeof url !== 'string') return false;
-  return (
-    url.startsWith('https://zapper.xyz/swap/') ||
-    url.startsWith('https://zapper.xyz/nft-sale/')
-  );
+  return url.startsWith('https://zapper.xyz/swap/') || url.startsWith('https://zapper.xyz/nft-sale/');
 }
