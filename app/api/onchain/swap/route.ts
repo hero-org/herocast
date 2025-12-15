@@ -13,6 +13,15 @@ const CHAIN_TO_ALCHEMY: Record<string, string> = {
   // Note: 'hyperevm' is NOT supported - will return 404
 };
 
+// ERC-4337 EntryPoint contract addresses
+const ENTRYPOINT_ADDRESSES = [
+  '0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789', // v0.6.0
+  '0x0576a174d229e3cfa37253523e645a78a0c91b57', // v0.7.0
+];
+
+// keccak256("UserOperationEvent(bytes32,address,address,uint256,bool,uint256,uint256)")
+const USER_OPERATION_EVENT_SIGNATURE = '0x49628fd1471006c1482da88028e9ce4dbb080b815c9b0344d39e5a8e6ec1419f';
+
 export type SwapMetadataResponse = {
   symbol: string;
   name: string;
@@ -23,6 +32,7 @@ export type SwapMetadataResponse = {
 
 /**
  * Fetch transaction sender from Alchemy
+ * Handles both regular EOA transactions and ERC-4337 smart account transactions
  */
 async function fetchTxSender(chain: string, txHash: string): Promise<string | null> {
   const network = CHAIN_TO_ALCHEMY[chain.toLowerCase()];
@@ -30,7 +40,9 @@ async function fetchTxSender(chain: string, txHash: string): Promise<string | nu
 
   try {
     const url = `https://${network}.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
-    const response = await fetch(url, {
+
+    // First, fetch the transaction to get 'from' and 'to' addresses
+    const txResponse = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,10 +57,58 @@ async function fetchTxSender(chain: string, txHash: string): Promise<string | nu
       signal: AbortSignal.timeout(10000),
     });
 
-    if (!response.ok) return null;
+    if (!txResponse.ok) return null;
 
-    const data = await response.json();
-    return data.result?.from || null;
+    const txData = await txResponse.json();
+    const from = txData.result?.from;
+    const to = txData.result?.to;
+
+    if (!from || !to) return null;
+
+    // Check if the transaction is sent to an ERC-4337 EntryPoint contract
+    const isEntryPoint = ENTRYPOINT_ADDRESSES.includes(to.toLowerCase());
+
+    if (!isEntryPoint) {
+      // Regular transaction - return the 'from' address
+      return from;
+    }
+
+    // ERC-4337 transaction - fetch receipt to extract actual sender from UserOperationEvent
+    const receiptResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://app.herocast.xyz',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_getTransactionReceipt',
+        params: [txHash],
+        id: 2,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!receiptResponse.ok) return from; // Fallback to bundler address
+
+    const receiptData = await receiptResponse.json();
+    const logs = receiptData.result?.logs;
+
+    if (!logs || !Array.isArray(logs)) return from;
+
+    // Find the UserOperationEvent log
+    const userOpEvent = logs.find(
+      (log: any) => log.topics?.[0]?.toLowerCase() === USER_OPERATION_EVENT_SIGNATURE.toLowerCase()
+    );
+
+    if (!userOpEvent || !userOpEvent.topics?.[2]) {
+      // UserOperationEvent not found, fallback to bundler address
+      return from;
+    }
+
+    // Extract sender from topics[2] (32-byte padded address, take last 20 bytes)
+    const sender = '0x' + userOpEvent.topics[2].slice(26);
+    return sender;
   } catch {
     return null;
   }
