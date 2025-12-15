@@ -292,6 +292,7 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     getEmbeds,
     setEmbeds,
     addEmbed,
+    removeEmbed,
     channel,
     getChannel,
     setChannel,
@@ -774,12 +775,12 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
             {getButtonText()}
           </Button>
         </div>
+        {embeds.length > 0 && (
+          <div className="w-full overflow-hidden pt-3 mt-1 border-t border-muted">
+            <EmbedsEditor embeds={[...embeds]} setEmbeds={setEmbeds} removeEmbed={removeEmbed} />
+          </div>
+        )}
       </div>
-      {embeds.length > 0 && (
-        <div className="mt-4 w-full max-w-md">
-          <EmbedsEditor embeds={[...embeds]} setEmbeds={setEmbeds} RichEmbed={() => <div />} />
-        </div>
-      )}
     </div>
   );
 }

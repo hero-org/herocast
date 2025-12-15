@@ -86,7 +86,11 @@ const settingsNavItems: MainNavItem[] = [
   },
 ];
 
-const LeftSidebarNav = () => {
+type LeftSidebarNavProps = {
+  onNavigate?: () => void;
+};
+
+const LeftSidebarNav = ({ onNavigate }: LeftSidebarNavProps) => {
   const pathname = usePathname() || '/';
   const router = useRouter();
   const { collapseState, toggleSection } = useSidebarCollapseState();
@@ -111,6 +115,7 @@ const LeftSidebarNav = () => {
     if (pathname !== '/feeds') {
       router.push('/feeds');
     }
+    onNavigate?.();
   };
 
   const handleListSelect = (listId: string) => {
@@ -119,6 +124,7 @@ const LeftSidebarNav = () => {
     if (pathname !== '/feeds') {
       router.push('/feeds');
     }
+    onNavigate?.();
   };
 
   const handleChannelSelect = (channelUrl: string) => {
@@ -127,6 +133,7 @@ const LeftSidebarNav = () => {
     if (pathname !== '/feeds') {
       router.push('/feeds');
     }
+    onNavigate?.();
   };
 
   const feedItems: NavItem[] = [
@@ -186,7 +193,7 @@ const LeftSidebarNav = () => {
   const renderMainNavItem = (item: MainNavItem) => {
     const isActive = isNavItemActive(item);
     return (
-      <Link key={item.href} href={item.href}>
+      <Link key={item.href} href={item.href} onClick={onNavigate}>
         <div
           className={cn(
             'group flex items-center gap-x-3 rounded-md px-2 py-1.5 text-sm font-medium cursor-pointer transition-colors',

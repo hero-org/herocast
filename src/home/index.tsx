@@ -9,11 +9,13 @@ import {
   NewspaperIcon,
   UserGroupIcon,
   ChatBubbleLeftRightIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
-import RightSidebarTrigger from '@/common/components/Sidebar/RightSidebarTrigger';
+import LeftSidebarToggle from '@/common/components/Sidebar/LeftSidebarToggle';
+import RightSidebarToggle from '@/common/components/Sidebar/RightSidebarToggle';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
 import { Toaster } from '@/components/ui/sonner';
 import AccountSwitcher from '@/common/components/Sidebar/AccountSwitcher';
@@ -73,6 +75,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     closeNewCastModal,
     setCastModalView,
     setCastModalDraftId,
+    leftSidebarOpen,
+    rightSidebarOpen,
   } = useNavigationStore();
   const selectedList = useListStore((state) => state.lists.find((l) => l.id === state.selectedListId));
   const { addNewPostDraft } = useDraftStore();
@@ -291,6 +295,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   ];
 
   const getSidebarForPathname = (pathname: string): RIGHT_SIDEBAR_ENUM => {
+    // Handle dynamic routes first
+    if (pathname.startsWith('/profile/')) {
+      return RIGHT_SIDEBAR_ENUM.CAST_INFO;
+    }
+    if (pathname.startsWith('/conversation/')) {
+      return RIGHT_SIDEBAR_ENUM.CAST_INFO;
+    }
+
     switch (pathname) {
       case '/feeds':
         return RIGHT_SIDEBAR_ENUM.CAST_INFO_AND_CHANNEL_SELECTOR;
@@ -304,9 +316,6 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       case '/search':
         return RIGHT_SIDEBAR_ENUM.SEARCH;
-      case '/profile/[slug]':
-      case '/conversation/[...slug]':
-        return RIGHT_SIDEBAR_ENUM.CAST_INFO;
       default:
         return RIGHT_SIDEBAR_ENUM.NONE;
     }
@@ -316,9 +325,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     if (navItem) {
       return navItem.getTitle ? navItem.getTitle() : navItem.name;
     } else {
-      if (pathname === '/profile/[slug]') {
+      if (pathname.startsWith('/profile/')) {
         return 'Profile';
-      } else if (pathname === '/conversation/[...slug]') {
+      } else if (pathname.startsWith('/conversation/')) {
         return 'Conversation';
       }
     }
@@ -427,65 +436,61 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 leaveFrom="translate-x-0"
                 leaveTo="-translate-x-full"
               >
-                <Dialog.Panel className="relative mr-2 flex w-full max-w-40 flex-1">
-                  {/* Sidebar component, swap this element with another sidebar if you like */}
-                  <div className="mt-16 z-100 flex grow flex-col gap-y-5 overflow-y-auto bg-background px-6 ring-1 ring-gray-700/10">
-                    <nav className="flex flex-1 flex-col divide-y divide-muted-foreground/20">
-                      {navigationGroups.map((group) => {
-                        const navigation = group.items;
-                        return (
-                          <div key={`nav-group-mobile-${group.name}`}>
-                            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                              <li>
-                                <ul role="list" className="-mx-2 space-y-1">
-                                  {navigation.map(
-                                    (item) =>
-                                      !item.hide && (
-                                        <li key={item.name}>
-                                          <Link href={item.router} onClick={() => setSidebarOpen(false)}>
-                                            <p
-                                              className={cn(
-                                                item.router === pathname || item.additionalPaths?.includes(pathname)
-                                                  ? 'text-background bg-foreground dark:text-foreground/60 dark:bg-foreground/10 dark:hover:text-foreground'
-                                                  : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-                                                'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold cursor-pointer'
-                                              )}
-                                            >
-                                              {item.icon}
-                                              {item.name}
-                                            </p>
-                                          </Link>
-                                        </li>
-                                      )
-                                  )}
-                                </ul>
-                              </li>
-                            </ul>
-                          </div>
-                        );
-                      })}
-                      <div className="w-full py-4">
-                        <AccountSwitcher />
-                      </div>
-                    </nav>
+                <Dialog.Panel className="relative mr-2 flex w-full max-w-xs flex-1">
+                  {/* Mobile Sidebar */}
+                  <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
+                    <div className="flex h-14 shrink-0 items-center">
+                      <Link href="/post" className="flex items-center hover:cursor-pointer">
+                        <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+                          herocast
+                        </h2>
+                      </Link>
+                      <button
+                        type="button"
+                        className="ml-auto -m-2.5 p-2.5 text-foreground"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="sr-only">Close sidebar</span>
+                        <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                      </button>
+                    </div>
+                    <LeftSidebarNav onNavigate={() => setSidebarOpen(false)} />
+                    {isReadOnlyUser && renderUpgradeCard()}
+                    {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
+                    <div className="mt-auto py-3">
+                      <AccountSwitcher />
+                    </div>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>
           </Dialog>
         </Transition.Root>
-        <div className="h-full lg:ml-[200px] flex-1">
+        <div
+          className={cn(
+            'h-full transition-[margin-left] duration-200 ease-linear flex-1',
+            leftSidebarOpen ? 'lg:ml-[200px]' : 'lg:ml-0'
+          )}
+        >
           <div className="h-full">
             {/* Static sidebar for desktop */}
             {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-            <div className="hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted no-scrollbar">
+            <div
+              className={cn(
+                'hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted no-scrollbar transition-transform duration-200 ease-linear',
+                leftSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+              )}
+            >
               {/* Sidebar component */}
               <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
-                <Link href="/post" className="flex h-14 shrink-0 items-center hover:cursor-pointer">
-                  <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
-                    herocast
-                  </h2>
-                </Link>
+                <div className="flex h-14 shrink-0 items-center">
+                  <Link href="/post" className="flex items-center hover:cursor-pointer">
+                    <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+                      herocast
+                    </h2>
+                  </Link>
+                  <LeftSidebarToggle className="ml-auto" />
+                </div>
                 <LeftSidebarNav />
                 {isReadOnlyUser && renderUpgradeCard()}
                 {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
@@ -507,6 +512,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                       <span className="sr-only">Open sidebar</span>
                       <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                     </button>
+                    {!leftSidebarOpen && <LeftSidebarToggle className="hidden lg:flex" />}
                     <h1 className="md:ml-2 text-xl font-bold leading-7 text-foreground truncate min-w-0">{title}</h1>
                     <div className="flex-grow min-w-[40px]" />
                     <div className="flex gap-x-2 flex-shrink-0">
@@ -520,7 +526,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                           {action.name}
                         </Button>
                       ))}
-                      {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && <RightSidebarTrigger />}
+                      {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && <RightSidebarToggle className="hidden lg:flex" />}
                     </div>
                   </div>
                 )}
@@ -537,7 +543,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 </div>
               </div>
               {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && (
-                <div className="hidden lg:block flex-shrink-0">{renderRightSidebar()}</div>
+                <div
+                  className={cn(
+                    'hidden lg:block flex-shrink-0 transition-[width,opacity] duration-200 ease-linear overflow-hidden',
+                    rightSidebarOpen ? 'w-[280px] opacity-100' : 'w-0 opacity-0'
+                  )}
+                >
+                  {renderRightSidebar()}
+                </div>
               )}
             </div>
             {renderNewCastModal()}

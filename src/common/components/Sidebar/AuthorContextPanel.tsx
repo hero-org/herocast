@@ -75,7 +75,7 @@ const AuthorContextPanel = () => {
 
   if (!targetFid) {
     return (
-      <Sidebar side="right" collapsible="none" className="border-l border-sidebar-border/50 w-[280px] hidden lg:flex">
+      <Sidebar side="right" collapsible="none" className="border-l border-sidebar-border/50 w-full hidden lg:flex">
         <SidebarContent className="p-4">
           <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
             <p className="text-sm">Connect an account to see profile information</p>
@@ -86,7 +86,7 @@ const AuthorContextPanel = () => {
   }
 
   return (
-    <Sidebar side="right" collapsible="none" className="border-l border-sidebar-border/50 w-[280px] hidden lg:flex">
+    <Sidebar side="right" collapsible="none" className="border-l border-sidebar-border/50 w-full hidden lg:flex">
       <SidebarContent className="p-4 overflow-y-auto">
         {isShowingCurrentUser && (
           <div className="text-xs font-semibold text-foreground/50 uppercase tracking-wider mb-3">Your Profile</div>

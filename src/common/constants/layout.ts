@@ -24,3 +24,8 @@ export const CAST_AVATAR_CENTER = CAST_CONTENT_PADDING + CAST_AVATAR_SIZE / 2;
 // Computed: Thread line left position (centers under avatar)
 // = padding + avatar/2 - lineWidth/2 = 12 + 20 - 1 = 31px
 export const CAST_THREAD_LINE_LEFT = CAST_CONTENT_PADDING + CAST_AVATAR_SIZE / 2 - CAST_THREAD_LINE_WIDTH / 2;
+
+// Sidebar dimensions and transitions
+export const LEFT_SIDEBAR_WIDTH = 200;
+export const RIGHT_SIDEBAR_WIDTH = 280;
+export const SIDEBAR_TRANSITION_DURATION = 200;

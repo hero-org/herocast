@@ -17,7 +17,14 @@ export function useGlobalHotkeys() {
   const router = useRouter();
   const pathname = usePathname() || '/';
   const { theme, setTheme } = useTheme();
-  const { toggleCommandPalette, openNewCastModal, setCastModalView, setCastModalDraftId } = useNavigationStore();
+  const {
+    toggleCommandPalette,
+    openNewCastModal,
+    setCastModalView,
+    setCastModalDraftId,
+    toggleLeftSidebar,
+    toggleRightSidebar,
+  } = useNavigationStore();
   const { accounts, selectedAccountIdx, setCurrentAccountIdx, setSelectedChannelUrl } = useAccountStore();
   const { setSelectedListId, getSearchLists, getFidLists } = useListStore();
   const { addNewPostDraft } = useDraftStore();
@@ -90,6 +97,29 @@ export function useGlobalHotkeys() {
   useAppHotkeys('meta+shift+l', () => setTheme('light'), { scopes: HotkeyScopes.GLOBAL }, [setTheme]);
 
   useAppHotkeys('meta+shift+d', () => setTheme('dark'), { scopes: HotkeyScopes.GLOBAL }, [setTheme]);
+
+  // ============================================
+  // Sidebar toggle
+  // ============================================
+  useAppHotkeys(
+    ['meta+b', 'ctrl+b'],
+    () => toggleLeftSidebar(),
+    {
+      scopes: HotkeyScopes.GLOBAL,
+      preventDefault: true,
+    },
+    [toggleLeftSidebar]
+  );
+
+  useAppHotkeys(
+    ['meta+shift+b', 'ctrl+shift+b'],
+    () => toggleRightSidebar(),
+    {
+      scopes: HotkeyScopes.GLOBAL,
+      preventDefault: true,
+    },
+    [toggleRightSidebar]
+  );
 
   // ============================================
   // Post creation

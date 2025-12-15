@@ -28,6 +28,9 @@ import { ErrorBoundary } from '@sentry/react';
 import { renderEmbedForUrl } from './Embeds';
 import EmbedCarousel from './Embeds/EmbedCarousel';
 import OpenGraphImage from './Embeds/OpenGraphImage';
+import NftSaleEmbed from './Embeds/NftSaleEmbed';
+import SwapEmbed from './Embeds/SwapEmbed';
+import { isNftSaleUrl, isSwapUrl, isZapperTransactionUrl } from '@/common/helpers/onchain';
 import ProfileHoverCard from './ProfileHoverCard';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { registerPlugin } from 'linkifyjs';
@@ -578,7 +581,7 @@ const CastRowComponent = ({
               attributes: { userFid, setSelectedChannelByName },
             }}
           >
-            {cast.text}{' '}
+            {cast.text.trimEnd()}{' '}
           </Linkify>
         </ErrorBoundary>
       ) : null,
@@ -590,9 +593,15 @@ const CastRowComponent = ({
       return null;
     }
 
+    // Filter out Zapper transaction URLs (we show custom embeds for those via renderExternalUrlReply)
+    const filteredEmbeds = cast.embeds.filter((embed) => !isZapperTransactionUrl(embed.url));
+    if (filteredEmbeds.length === 0) {
+      return null;
+    }
+
     return (
       <ErrorBoundary>
-        <EmbedCarousel embeds={cast.embeds} hideReactions={hideReactions} isSelected={isSelected} />
+        <EmbedCarousel embeds={filteredEmbeds} hideReactions={hideReactions} isSelected={isSelected} />
       </ErrorBoundary>
     );
   };
@@ -600,8 +609,17 @@ const CastRowComponent = ({
   const renderExternalUrlReply = () => {
     if (!isExternalUrlReply || !parentUrl) return null;
 
+    // Route custom URI schemes to appropriate embed component
+    const embedComponent = isNftSaleUrl(parentUrl) ? (
+      <NftSaleEmbed url={parentUrl} isSelected={isSelected} />
+    ) : isSwapUrl(parentUrl) ? (
+      <SwapEmbed url={parentUrl} isSelected={isSelected} />
+    ) : (
+      <OpenGraphImage url={parentUrl} />
+    );
+
     return (
-      <div className="flex items-start gap-x-2 mb-4">
+      <div className="flex items-start gap-x-2 mb-2">
         {/* Left column: Link icon with connecting line - matches avatar column width */}
         {!isEmbed && !hideAuthor && (
           <div className="relative flex flex-col items-center shrink-0 w-10">
@@ -614,9 +632,9 @@ const CastRowComponent = ({
           </div>
         )}
 
-        {/* OpenGraph card - aligned with link icon */}
+        {/* Embed card - aligned with link icon */}
         <div className={cn('flex items-center flex-1 min-w-0', (isEmbed || hideAuthor) && 'ml-0')}>
-          <OpenGraphImage url={parentUrl} />
+          {embedComponent}
         </div>
       </div>
     );

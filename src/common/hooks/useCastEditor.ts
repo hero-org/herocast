@@ -7,6 +7,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { FarcasterEmbed } from '@/common/types/embeds';
 import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import type { EditorOptions } from '@tiptap/react';
+import { getUrlsInText } from '@/common/helpers/text';
+import { debounce } from 'lodash';
 
 // Mod-protocol channel type (simplified for our needs)
 export type ModChannel = {
@@ -43,6 +45,7 @@ type UseCastEditorReturn = {
   getEmbeds: () => FarcasterEmbed[];
   setEmbeds: (embeds: FarcasterEmbed[]) => void;
   addEmbed: (url: string) => void;
+  removeEmbed: (url: string) => void;
   channel: ModChannel | null;
   getChannel: () => ModChannel | null;
   setChannel: (channel: ModChannel | null) => void;
@@ -60,10 +63,13 @@ export function useCastEditor({
   // State managed HERE - single source of truth
   const [embeds, setEmbedsState] = useState<FarcasterEmbed[]>([]);
   const [channel, setChannelState] = useState<ModChannel | null>(null);
+  const [removedUrls, setRemovedUrls] = useState<Set<string>>(new Set());
 
   // Refs for stable callbacks
   const embedsRef = useRef<FarcasterEmbed[]>([]);
   const channelRef = useRef<ModChannel | null>(null);
+  const removedUrlsRef = useRef<Set<string>>(new Set());
+  const debouncedDetectUrlsRef = useRef<ReturnType<typeof debounce> | null>(null);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -73,6 +79,10 @@ export function useCastEditor({
   useEffect(() => {
     channelRef.current = channel;
   }, [channel]);
+
+  useEffect(() => {
+    removedUrlsRef.current = removedUrls;
+  }, [removedUrls]);
 
   // Build extensions array
   const extensions = [
@@ -189,6 +199,16 @@ export function useCastEditor({
     });
   }, []);
 
+  // removeEmbed - remove an embed and track it in removedUrls
+  const removeEmbed = useCallback((url: string) => {
+    setEmbedsState((prev) => prev.filter((e) => !('url' in e && e.url === url)));
+    setRemovedUrls((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(url);
+      return newSet;
+    });
+  }, []);
+
   // getChannel - return current channel
   const getChannel = useCallback(() => {
     return channelRef.current;
@@ -207,6 +227,39 @@ export function useCastEditor({
     return false;
   }, [onSubmit]);
 
+  // Setup URL auto-detection
+  useEffect(() => {
+    if (!editor) return;
+
+    const detectUrls = () => {
+      const text = editor.getText({ blockSeparator: '\n' });
+      const detectedUrls = getUrlsInText(text);
+      const currentUrls = new Set(embedsRef.current.filter((e) => 'url' in e).map((e) => (e as any).url));
+
+      detectedUrls.forEach(({ url }) => {
+        if (!currentUrls.has(url) && !removedUrlsRef.current.has(url)) {
+          addEmbed(url);
+        }
+      });
+    };
+
+    debouncedDetectUrlsRef.current = debounce(detectUrls, 500, {
+      leading: false,
+      trailing: true,
+    });
+
+    const handleUpdate = () => {
+      debouncedDetectUrlsRef.current?.();
+    };
+
+    editor.on('update', handleUpdate);
+
+    return () => {
+      editor.off('update', handleUpdate);
+      debouncedDetectUrlsRef.current?.cancel();
+    };
+  }, [editor, addEmbed]);
+
   return {
     editor,
     getText,
@@ -215,6 +268,7 @@ export function useCastEditor({
     getEmbeds,
     setEmbeds,
     addEmbed,
+    removeEmbed,
     channel,
     getChannel,
     setChannel,
