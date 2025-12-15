@@ -80,8 +80,11 @@ async function fetchTokenIdFromTx(chainId: number, contractAddress: string, txHa
   const receipt = data.result;
 
   if (!receipt?.logs) {
+    console.log(`[nft/metadata] No receipt or logs found for tx ${txHash}`);
     return null;
   }
+
+  console.log(`[nft/metadata] Found ${receipt.logs.length} logs in tx`);
 
   // Find Transfer event for the specific contract
   const transferLog = receipt.logs.find(
@@ -92,6 +95,14 @@ async function fetchTokenIdFromTx(chainId: number, contractAddress: string, txHa
   );
 
   if (!transferLog) {
+    // Debug: show what contracts emitted Transfer events
+    const transferLogs = receipt.logs.filter(
+      (log: { address: string; topics: string[] }) => log.topics[0] === TRANSFER_EVENT_SIGNATURE
+    );
+    console.log(
+      `[nft/metadata] No Transfer event for contract ${contractAddress}. Transfer events found from:`,
+      transferLogs.map((l: { address: string }) => l.address)
+    );
     return null;
   }
 
@@ -155,17 +166,22 @@ async function fetchNftSaleMetadataUncached(
 
   try {
     // Step 1: Get the actual token ID from the transaction
+    console.log(`[nft/metadata] Step 1: Fetching token ID from tx...`);
     const tokenId = await fetchTokenIdFromTx(chainId, contractAddress, txHash);
 
     if (!tokenId) {
-      console.log(`[nft/metadata] Could not extract token ID from tx ${txHash}`);
+      console.log(
+        `[nft/metadata] FAILED: Could not extract token ID from tx ${txHash} - no matching Transfer event found`
+      );
       return null;
     }
 
-    console.log(`[nft/metadata] Found token ID: ${tokenId} in ${Date.now() - startTime}ms`);
+    console.log(`[nft/metadata] Step 1 SUCCESS: Found token ID: ${tokenId} in ${Date.now() - startTime}ms`);
 
     // Step 2: Get NFT metadata from Alchemy
+    console.log(`[nft/metadata] Step 2: Fetching NFT metadata from Alchemy...`);
     const metadata = await fetchNftMetadataFromAlchemy(chainId, contractAddress, tokenId);
+    console.log(`[nft/metadata] Step 2 result:`, metadata ? 'success' : 'null');
 
     // Step 3: Generate OpenSea URL
     const network = OPENSEA_NETWORKS[chainId] || 'ethereum';
