@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -6,7 +6,6 @@ import { renderEmbedForUrl } from './index';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { openWindow } from '@/common/helpers/navigation';
-import { isZapperTransactionUrl } from '@/common/helpers/onchain';
 
 type EmbedCarouselProps = {
   embeds: Array<{
@@ -29,17 +28,12 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
   const [containerHeight, setContainerHeight] = useState<number | 'auto'>('auto');
   const embedRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Filter out Zapper transaction URLs (we show custom embeds for those)
-  const filteredEmbeds = useMemo(() => {
-    return embeds.filter((embed) => !isZapperTransactionUrl(embed.url));
-  }, [embeds]);
-
   // Reset state when embeds change
   useEffect(() => {
     setCurrentIndex(0);
     setContainerHeight('auto');
     embedRefs.current = [];
-  }, [filteredEmbeds]);
+  }, [embeds]);
 
   // Track height of current embed with ResizeObserver
   useEffect(() => {
@@ -73,21 +67,21 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
   }, [currentIndex]);
 
   const goToNextEmbed = useCallback(() => {
-    if (currentIndex < filteredEmbeds.length - 1) {
+    if (currentIndex < embeds.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
-  }, [currentIndex, filteredEmbeds.length]);
+  }, [currentIndex, embeds.length]);
 
   const handleEmbedClick = useCallback(
     (event: React.MouseEvent, embedIndex?: number) => {
       event.stopPropagation();
       const index = embedIndex ?? currentIndex;
-      const embed = filteredEmbeds[index];
+      const embed = embeds[index];
       if (embed?.url) {
         openWindow(embed.url);
       }
     },
-    [filteredEmbeds, currentIndex]
+    [embeds, currentIndex]
   );
 
   // Keyboard navigation using app hotkey infrastructure
@@ -98,9 +92,9 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
     {
       scopes: HotkeyScopes.FEED,
       enableOnFormTags: false,
-      enabled: isSelected && filteredEmbeds.length > 1,
+      enabled: isSelected && embeds.length > 1,
     },
-    [goToPreviousEmbed, isSelected, filteredEmbeds.length]
+    [goToPreviousEmbed, isSelected, embeds.length]
   );
 
   useAppHotkeys(
@@ -109,18 +103,18 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
     {
       scopes: HotkeyScopes.FEED,
       enableOnFormTags: false,
-      enabled: isSelected && filteredEmbeds.length > 1,
+      enabled: isSelected && embeds.length > 1,
     },
-    [goToNextEmbed, isSelected, filteredEmbeds.length]
+    [goToNextEmbed, isSelected, embeds.length]
   );
 
-  if (!filteredEmbeds || filteredEmbeds.length === 0) return null;
+  if (!embeds || embeds.length === 0) return null;
 
   // Single embed - no carousel UI needed (no transform, so intersection observer works)
-  if (filteredEmbeds.length === 1) {
+  if (embeds.length === 1) {
     return (
       <div className="max-w-lg self-start cursor-pointer" onClick={(e) => handleEmbedClick(e, 0)}>
-        {renderEmbedForUrl({ ...filteredEmbeds[0], hideReactions })}
+        {renderEmbedForUrl({ ...embeds[0], hideReactions })}
       </div>
     );
   }
@@ -137,7 +131,7 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           onClick={handleEmbedClick}
         >
-          {filteredEmbeds.map((embed, index) => (
+          {embeds.map((embed, index) => (
             <div
               key={`embed-${embed?.cast_id?.hash || embed?.castId?.hash || embed?.url || index}`}
               ref={(el) => {
@@ -172,7 +166,7 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
 
         {/* Indicators */}
         <div className="flex items-center gap-1.5">
-          {filteredEmbeds.map((_, index) => (
+          {embeds.map((_, index) => (
             <button
               key={index}
               className={cn(
@@ -183,7 +177,7 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
             />
           ))}
           <span className="ml-1 text-xs text-muted-foreground">
-            {currentIndex + 1}/{filteredEmbeds.length}
+            {currentIndex + 1}/{embeds.length}
           </span>
         </div>
 
@@ -192,13 +186,13 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
           size="sm"
           className={cn(
             'h-7 px-2 text-muted-foreground hover:text-foreground',
-            currentIndex === filteredEmbeds.length - 1 && 'opacity-30 cursor-not-allowed'
+            currentIndex === embeds.length - 1 && 'opacity-30 cursor-not-allowed'
           )}
           onClick={(e) => {
             e.stopPropagation();
             goToNextEmbed();
           }}
-          disabled={currentIndex === filteredEmbeds.length - 1}
+          disabled={currentIndex === embeds.length - 1}
         >
           Next
           <ChevronRightIcon className="h-4 w-4 ml-1" />

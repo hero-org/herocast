@@ -68,15 +68,16 @@ const NftSaleSkeleton = () => (
 
 type NftSaleEmbedProps = {
   url: string;
+  isSelected?: boolean;
 };
 
-export default function NftSaleEmbed({ url }: NftSaleEmbedProps) {
+export default function NftSaleEmbed({ url, isSelected }: NftSaleEmbedProps) {
   const parsed = parseNftSaleUrl(url);
 
   // If parsing fails, show fallback link to Zapper
   if (!parsed) {
     const base64 = url.replace('nft-sale://', '');
-    return <FallbackCard zapperUrl={getZapperNftSaleUrl(base64)} />;
+    return <FallbackCard zapperUrl={getZapperNftSaleUrl(base64)} isSelected={isSelected} />;
   }
 
   const { chainId, contractAddress, txHash, rawBase64 } = parsed;
@@ -89,7 +90,7 @@ export default function NftSaleEmbed({ url }: NftSaleEmbedProps) {
   }
 
   if (isError || !metadata) {
-    return <FallbackCard zapperUrl={zapperUrl} />;
+    return <FallbackCard zapperUrl={zapperUrl} isSelected={isSelected} />;
   }
 
   const { tokenId, name, collectionName, imageUrl, openSeaUrl } = metadata;
@@ -98,7 +99,10 @@ export default function NftSaleEmbed({ url }: NftSaleEmbedProps) {
 
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
+      className={cn(
+        'flex items-center gap-3 px-3 py-2.5 rounded-lg border max-w-lg cursor-pointer transition-colors',
+        isSelected ? 'bg-muted/70 border-foreground/20' : 'bg-muted/50 border-muted hover:bg-muted/70'
+      )}
       onClick={(e) => {
         e.stopPropagation();
         openWindow(zapperUrl);
@@ -135,10 +139,13 @@ export default function NftSaleEmbed({ url }: NftSaleEmbedProps) {
 }
 
 // Fallback when metadata unavailable
-function FallbackCard({ zapperUrl }: { zapperUrl: string }) {
+function FallbackCard({ zapperUrl, isSelected }: { zapperUrl: string; isSelected?: boolean }) {
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
+      className={cn(
+        'flex items-center gap-3 px-3 py-2.5 rounded-lg border max-w-lg cursor-pointer transition-colors',
+        isSelected ? 'bg-muted/70 border-foreground/20' : 'bg-muted/50 border-muted hover:bg-muted/70'
+      )}
       onClick={(e) => {
         e.stopPropagation();
         openWindow(zapperUrl);

@@ -115,15 +115,16 @@ const SwapSkeleton = () => (
 
 type SwapEmbedProps = {
   url: string;
+  isSelected?: boolean;
 };
 
-export default function SwapEmbed({ url }: SwapEmbedProps) {
+export default function SwapEmbed({ url, isSelected }: SwapEmbedProps) {
   const parsed = parseSwapUrl(url);
 
   // If parsing fails, show fallback link to Zapper
   if (!parsed) {
     const base64 = url.replace('swap://', '');
-    return <FallbackCard zapperUrl={getZapperSwapUrl(base64)} />;
+    return <FallbackCard zapperUrl={getZapperSwapUrl(base64)} isSelected={isSelected} />;
   }
 
   const { chain, tokenAddress, txHash, rawBase64 } = parsed;
@@ -141,7 +142,15 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 
   // Show fallback for unsupported chains
   if (!isChainSupported) {
-    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} tokenUrl={tokenUrl} chainName={chain} />;
+    return (
+      <FallbackCard
+        zapperUrl={zapperUrl}
+        explorerUrl={explorerUrl}
+        tokenUrl={tokenUrl}
+        chainName={chain}
+        isSelected={isSelected}
+      />
+    );
   }
 
   if (isLoading) {
@@ -149,7 +158,7 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
   }
 
   if (isError || !metadata) {
-    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} tokenUrl={tokenUrl} />;
+    return <FallbackCard zapperUrl={zapperUrl} explorerUrl={explorerUrl} tokenUrl={tokenUrl} isSelected={isSelected} />;
   }
 
   const { symbol, logo, sender } = metadata;
@@ -163,7 +172,10 @@ export default function SwapEmbed({ url }: SwapEmbedProps) {
 
   return (
     <div
-      className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
+      className={cn(
+        'flex items-start gap-3 px-3 py-2.5 rounded-lg border max-w-lg cursor-pointer transition-colors',
+        isSelected ? 'bg-muted/70 border-foreground/20' : 'bg-muted/50 border-muted hover:bg-muted/70'
+      )}
       onClick={(e) => {
         e.stopPropagation();
         openWindow(zapperUrl);
@@ -221,15 +233,20 @@ function FallbackCard({
   explorerUrl,
   tokenUrl,
   chainName,
+  isSelected,
 }: {
   zapperUrl: string;
   explorerUrl?: string | null;
   tokenUrl?: string | null;
   chainName?: string;
+  isSelected?: boolean;
 }) {
   return (
     <div
-      className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-muted/50 border border-muted max-w-lg cursor-pointer hover:bg-muted/70 transition-colors"
+      className={cn(
+        'flex items-start gap-3 px-3 py-2.5 rounded-lg border max-w-lg cursor-pointer transition-colors',
+        isSelected ? 'bg-muted/70 border-foreground/20' : 'bg-muted/50 border-muted hover:bg-muted/70'
+      )}
       onClick={(e) => {
         e.stopPropagation();
         openWindow(zapperUrl);
