@@ -9,10 +9,46 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   // Include WASM files in serverless bundle for Vercel deployment
   // See: https://vercel.com/docs/functions/runtimes/wasm
+  outputFileTracingIncludes: {
+    '/api/embeds/metadata': ['./node_modules/@officialunofficial/trek/*.wasm'],
+  },
   experimental: {
-    outputFileTracingIncludes: {
-      '/api/embeds/metadata': ['./node_modules/@officialunofficial/trek/*.wasm'],
-    },
+    webpackBuildWorker: true,
+    parallelServerCompiles: true,
+    parallelServerBuildTraces: true,
+    cpus: 12,
+    // Optimize imports for packages that aren't auto-optimized
+    optimizePackageImports: [
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-label',
+      '@radix-ui/react-progress',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-toggle',
+      '@radix-ui/react-hover-card',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-aspect-ratio',
+      '@radix-ui/react-collapsible',
+      '@radix-ui/themes',
+      '@tiptap/react',
+      '@tiptap/starter-kit',
+      '@tanstack/react-query',
+      '@tanstack/react-virtual',
+    ],
+  },
+  // Limit ESLint to specific directories for faster builds
+  eslint: {
+    dirs: ['src', 'app', 'pages'],
   },
   webpack: (config) => {
     config.resolve.alias = {
@@ -35,6 +71,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60 * 60 * 24 * 60, // 60 days
     remotePatterns: [
       {
         hostname: '*',
@@ -45,6 +83,12 @@ const nextConfig = {
         protocol: 'https',
       },
     ],
+  },
+  // SWC compiler optimizations
+  compiler: {
+    removeConsole: {
+      exclude: ['error', 'warn'],
+    },
   },
   async redirects() {
     return [
@@ -108,7 +152,8 @@ export default withSentryConfig(
     widenClientFileUpload: true,
 
     // Transpiles SDK to be compatible with IE11 (increases bundle size)
-    transpileClientSDK: true,
+    // Disabled - IE11 not needed, saves build time
+    transpileClientSDK: false,
 
     // Uncomment to route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
     // This can increase your server load as well as your hosting bill.

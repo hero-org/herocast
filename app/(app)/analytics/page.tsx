@@ -1,7 +1,6 @@
 'use client';
 
-import NewFollowersCard from '@/common/components/Analytics/NewFollowersCard';
-import ReactionsCard from '@/common/components/Analytics/ReactionsCard';
+import dynamic from 'next/dynamic';
 import CastReactionsTable from '@/common/components/Analytics/CastReactionsTable';
 import { createClient } from '@/common/helpers/supabase/component';
 import { AnalyticsData } from '@/common/types/types';
@@ -20,10 +19,8 @@ import Link from 'next/link';
 import ClickToCopyText from '@/common/components/ClickToCopyText';
 import { Interval } from '@/common/types/types';
 import { IntervalFilter } from '@/common/components/IntervalFilter';
-import DynamicChartCard from '@/common/components/Analytics/DynamicChartCard';
 import { addDays, formatDistanceToNow, isBefore } from 'date-fns';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext } from '@/components/ui/carousel';
-import CastsCard from '@/common/components/Analytics/CastsCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TopFollowers from '@/common/components/Analytics/TopFollowers';
 import { UTCDate } from '@date-fns/utc';
@@ -32,6 +29,27 @@ import { isPaidUser } from '@/stores/useUserStore';
 import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 import { ArrowRightIcon } from '@heroicons/react/24/solid';
 import RecentUnfollows from '@/common/components/Analytics/RecentUnfollows';
+
+// Lazy load chart components that use recharts
+const NewFollowersCard = dynamic(() => import('@/common/components/Analytics/NewFollowersCard'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded-lg" />,
+});
+
+const ReactionsCard = dynamic(() => import('@/common/components/Analytics/ReactionsCard'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded-lg" />,
+});
+
+const DynamicChartCard = dynamic(() => import('@/common/components/Analytics/DynamicChartCard'), {
+  ssr: false,
+  loading: () => <div className="h-[400px] animate-pulse bg-muted rounded-lg" />,
+});
+
+const CastsCard = dynamic(() => import('@/common/components/Analytics/CastsCard'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded-lg" />,
+});
 
 type FidToAnalyticsData = Record<string, AnalyticsData>;
 const intervals = [Interval.d7, Interval.d30, Interval.d90];

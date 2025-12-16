@@ -1,25 +1,23 @@
 'use client';
 
-import '@rainbow-me/rainbowkit/styles.css';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { ThemeProvider } from '@/common/hooks/ThemeProvider';
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { WagmiProvider } from 'wagmi';
-import { rainbowKitTheme, config } from '@/common/helpers/rainbowkit';
 import { PostHogProvider } from 'posthog-js/react';
 import { loadPosthogAnalytics } from '@/lib/analytics';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { AppHotkeysProvider } from '@/common/components/AppHotkeysProvider';
 import { usePathname } from 'next/navigation';
-import { getQueryClient } from '@/lib/queryClient';
+
+const WalletProviders = dynamic(() => import('./WalletProviders'), {
+  ssr: false,
+  loading: () => null,
+});
 
 const posthog = loadPosthogAnalytics();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [queryClient] = useState(() => getQueryClient());
 
   useEffect(() => {
     posthog?.capture('$pageview');
@@ -32,16 +30,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   const content = (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={rainbowKitTheme}>
-          <AuthProvider>
-            <AppHotkeysProvider>{children}</AppHotkeysProvider>
-          </AuthProvider>
-        </RainbowKitProvider>
-        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
-      </QueryClientProvider>
-    </WagmiProvider>
+    <WalletProviders>
+      <AuthProvider>
+        <AppHotkeysProvider>{children}</AppHotkeysProvider>
+      </AuthProvider>
+    </WalletProviders>
   );
 
   return (
