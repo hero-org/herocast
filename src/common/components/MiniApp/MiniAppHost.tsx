@@ -281,17 +281,22 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
               minWidth: '424px',
               minHeight: '695px',
             }}
-            // Permissions API - restrict capabilities
-            allow="clipboard-write"
+            // Permissions Policy - explicitly restrict powerful APIs
+            // Only allow clipboard-write which mini apps may need for copy functionality
+            allow="clipboard-write 'src'"
             // Sandbox: Required for mini apps to function
             // - allow-scripts: Required for JS execution
             // - allow-same-origin: Required for mini app to make authenticated requests to its backend
+            //   NOTE: This is safe because the iframe is CROSS-ORIGIN to herocast.
+            //   The iframe can only access ITS OWN origin's cookies/storage, not herocast's.
             // - allow-forms: Required for form submissions
             // - allow-popups: Required for wallet connections (they open popups)
-            // Note: allow-popups-to-escape-sandbox removed for security - wallet popups inherit sandbox
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            // - allow-modals: Allow alert/confirm/prompt (some apps use these)
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
             // Referrer policy - limit information sent to mini app
             referrerPolicy="strict-origin-when-cross-origin"
+            // Prevent the iframe from navigating the top-level window
+            // Note: This is implicit in sandbox without allow-top-navigation
             title={safeTitle}
           />
         </div>
