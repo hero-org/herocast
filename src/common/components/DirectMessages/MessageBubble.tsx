@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { getUrlsInText, isImageUrl } from '@/common/helpers/text';
+import { LinkifiedText } from '@/common/components/LinkifiedText';
+import OpenGraphImage from '@/common/components/Embeds/OpenGraphImage';
 
 interface MessageBubbleProps {
   text: string;
@@ -56,6 +58,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const imageUrl = urls.find((u) => isImageUrl(u.url))?.url || null;
   const isImageMessage = Boolean(imageUrl);
 
+  // Get non-image URLs for embeds
+  const linkUrls = urls.filter((u) => !isImageUrl(u.url)).map((u) => u.url);
+
   // Check if message is emoji-only (up to 3 emojis)
   const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F){1,3}$/u;
   const isEmojiOnly = emojiRegex.test(trimmedText);
@@ -82,24 +87,26 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           }}
         />
         {caption && (
-          <p
+          <LinkifiedText
+            as="p"
             className="mt-1 text-sm whitespace-pre-wrap px-2"
             style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
           >
             {caption}
-          </p>
+          </LinkifiedText>
         )}
       </>
     );
   } else {
     content = (
       <>
-        <p
+        <LinkifiedText
+          as="p"
           className={cn('whitespace-pre-wrap', isEmojiOnly ? 'text-3xl' : 'text-sm')}
           style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
         >
           {displayText}
-        </p>
+        </LinkifiedText>
 
         {needsExpansion && (
           <button
@@ -137,6 +144,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         )}
       >
         {content}
+
+        {/* Compact URL embeds */}
+        {linkUrls.length > 0 && (
+          <div className="mt-2 space-y-1.5">
+            {linkUrls.slice(0, 2).map((url) => (
+              <div
+                key={url}
+                onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+                className="cursor-pointer"
+              >
+                <OpenGraphImage url={url} compact />
+              </div>
+            ))}
+          </div>
+        )}
 
         {showTimestamp && timestamp && (
           <p

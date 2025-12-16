@@ -32,11 +32,7 @@ export const renderShortcut = (shortcut: string, isSelected: boolean) => {
   }
 
   // Single key
-  return (
-    <Kbd className={cn(kbdClassName, opacityClass)}>
-      {shortcut}
-    </Kbd>
-  );
+  return <Kbd className={cn(kbdClassName, opacityClass)}>{shortcut}</Kbd>;
 };
 
 export type NavItem = {

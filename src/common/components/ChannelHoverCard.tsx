@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loading } from './Loading';
 import { Button } from '@/components/ui/button';
 import { formatLargeNumber } from '../helpers/text';
+import { LinkifiedText } from './LinkifiedText';
 
 type ProfileHoverCardProps = {
   channelName: string;
@@ -78,7 +79,9 @@ const ChannelHoverCard = memo(({ channelName, children, className }: ProfileHove
           </p>
         </div>
         {channel.description && (
-          <p className="flex pt-2 pr-2 text-sm break-words overflow-x-hidden">{channel.description}</p>
+          <LinkifiedText as="p" className="flex pt-2 pr-2 text-sm break-words overflow-x-hidden">
+            {channel.description}
+          </LinkifiedText>
         )}
       </div>
     );

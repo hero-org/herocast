@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import FollowButton from './FollowButton';
+import { LinkifiedText } from './LinkifiedText';
 
 const defaultProfiles: User[] = [
   {
@@ -76,9 +77,13 @@ const RecommendedProfilesCard = () => {
               {person.display_name}
             </h3>
             <FollowButton username={person.username} profile={person} />
-            <p className="mt-2 line-clamp-2 h-18 text-sm leading-6 text-muted-foreground">
-              {person?.profile?.bio?.text}
-            </p>
+            <LinkifiedText
+              as="p"
+              className="mt-2 line-clamp-2 h-18 text-sm leading-6 text-muted-foreground"
+              filterCashtags={true}
+            >
+              {person?.profile?.bio?.text || ''}
+            </LinkifiedText>
           </li>
         ))}
       </ul>
