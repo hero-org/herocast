@@ -57,6 +57,7 @@
     "@farcaster/core": "^0.16.4",
     "@farcaster/frame-sdk": "^0.0.64",
     "@farcaster/hub-web": "^0.9.7",
+    "@farcaster/miniapp-host": "^0.2.14",
     "@gumlet/react-hls-player": "^1.0.1",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
