@@ -1,12 +1,19 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '11.1.0 (1f13e43)';
+  };
   public: {
     Tables: {
       accounts: {
         Row: {
           created_at: string;
           data: Json | null;
+          display_order: number | null;
+          farcaster_api_key: string | null;
           id: string;
           name: string | null;
           platform: string | null;
@@ -19,6 +26,8 @@ export type Database = {
         Insert: {
           created_at?: string;
           data?: Json | null;
+          display_order?: number | null;
+          farcaster_api_key?: string | null;
           id?: string;
           name?: string | null;
           platform?: string | null;
@@ -31,6 +40,8 @@ export type Database = {
         Update: {
           created_at?: string;
           data?: Json | null;
+          display_order?: number | null;
+          farcaster_api_key?: string | null;
           id?: string;
           name?: string | null;
           platform?: string | null;
@@ -40,15 +51,7 @@ export type Database = {
           status?: string | null;
           user_id?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'accounts_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       accounts_to_channel: {
         Row: {
@@ -91,6 +94,13 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
+            foreignKeyName: 'accounts_to_channel_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'decrypted_dm_accounts';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'accounts_to_channel_channel_id_fkey';
             columns: ['channel_id'];
             isOneToOne: false;
@@ -119,6 +129,41 @@ export type Database = {
           updated_at?: string | null;
         };
         Relationships: [];
+      };
+      auto_interaction_history: {
+        Row: {
+          action: string;
+          cast_hash: string;
+          error_message: string | null;
+          list_id: string;
+          processed_at: string | null;
+          status: string | null;
+        };
+        Insert: {
+          action: string;
+          cast_hash: string;
+          error_message?: string | null;
+          list_id: string;
+          processed_at?: string | null;
+          status?: string | null;
+        };
+        Update: {
+          action?: string;
+          cast_hash?: string;
+          error_message?: string | null;
+          list_id?: string;
+          processed_at?: string | null;
+          status?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'auto_interaction_history_list_id_fkey';
+            columns: ['list_id'];
+            isOneToOne: false;
+            referencedRelation: 'list';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       channel: {
         Row: {
@@ -178,21 +223,14 @@ export type Database = {
           stripe_customer_id?: string | null;
           user_id?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'customers_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: true;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       draft: {
         Row: {
           account_id: string;
           created_at: string;
           data: Json | null;
+          encoded_message_bytes: number[] | null;
           id: string;
           published_at: string | null;
           scheduled_for: string | null;
@@ -203,6 +241,7 @@ export type Database = {
           account_id: string;
           created_at?: string;
           data?: Json | null;
+          encoded_message_bytes?: number[] | null;
           id?: string;
           published_at?: string | null;
           scheduled_for?: string | null;
@@ -213,6 +252,7 @@ export type Database = {
           account_id?: string;
           created_at?: string;
           data?: Json | null;
+          encoded_message_bytes?: number[] | null;
           id?: string;
           published_at?: string | null;
           scheduled_for?: string | null;
@@ -232,6 +272,13 @@ export type Database = {
             columns: ['account_id'];
             isOneToOne: false;
             referencedRelation: 'decrypted_accounts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_draft_account_id_fkey';
+            columns: ['account_id'];
+            isOneToOne: false;
+            referencedRelation: 'decrypted_dm_accounts';
             referencedColumns: ['id'];
           },
         ];
@@ -283,10 +330,10 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'list_user_id_fkey';
-            columns: ['user_id'];
+            foreignKeyName: 'list_account_id_fkey';
+            columns: ['account_id'];
             isOneToOne: false;
-            referencedRelation: 'users';
+            referencedRelation: 'decrypted_dm_accounts';
             referencedColumns: ['id'];
           },
           {
@@ -297,6 +344,33 @@ export type Database = {
             referencedColumns: ['user_id'];
           },
         ];
+      };
+      notification_read_states: {
+        Row: {
+          created_at: string;
+          id: string;
+          notification_id: string;
+          notification_type: string;
+          read_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          notification_id: string;
+          notification_type: string;
+          read_at: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          notification_id?: string;
+          notification_type?: string;
+          read_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       profile: {
         Row: {
@@ -311,15 +385,7 @@ export type Database = {
           email?: string | null;
           user_id?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'profile_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: true;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
     };
     Views: {
@@ -327,7 +393,10 @@ export type Database = {
         Row: {
           created_at: string | null;
           data: Json | null;
+          decrypted_farcaster_api_key: string | null;
           decrypted_private_key: string | null;
+          display_order: number | null;
+          farcaster_api_key: string | null;
           id: string | null;
           name: string | null;
           platform: string | null;
@@ -340,7 +409,10 @@ export type Database = {
         Insert: {
           created_at?: string | null;
           data?: Json | null;
+          decrypted_farcaster_api_key?: never;
           decrypted_private_key?: never;
+          display_order?: number | null;
+          farcaster_api_key?: string | null;
           id?: string | null;
           name?: string | null;
           platform?: string | null;
@@ -353,7 +425,10 @@ export type Database = {
         Update: {
           created_at?: string | null;
           data?: Json | null;
+          decrypted_farcaster_api_key?: never;
           decrypted_private_key?: never;
+          display_order?: number | null;
+          farcaster_api_key?: string | null;
           id?: string | null;
           name?: string | null;
           platform?: string | null;
@@ -363,35 +438,52 @@ export type Database = {
           status?: string | null;
           user_id?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'accounts_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
+      };
+      decrypted_dm_accounts: {
+        Row: {
+          decrypted_farcaster_api_key: string | null;
+          id: string | null;
+          platform_account_id: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          decrypted_farcaster_api_key?: never;
+          id?: string | null;
+          platform_account_id?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          decrypted_farcaster_api_key?: never;
+          id?: string | null;
+          platform_account_id?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
       };
     };
     Functions: {
-      is_account_of_user: {
-        Args: {
-          _user_id: string;
-          _account_id: string;
-        };
-        Returns: boolean;
-      };
       decrypted_account: {
-        Args: {
-          account_id: string;
-        };
+        Args: { account_id: string };
         Returns: {
+          created_at: string;
+          data: Json;
+          decrypted_private_key: string;
           id: string;
-          platform_account_id: string | null;
-          decrypted_private_key: string | null;
+          name: string;
+          platform: string;
+          platform_account_id: string;
+          private_key: string;
+          public_key: string;
+          status: string;
+          user_id: string;
         }[];
       };
+      is_account_of_user: {
+        Args: { _account_id: string; _user_id: string };
+        Returns: boolean;
+      };
+      trigger_process_auto_interactions: { Args: never; Returns: undefined };
     };
     Enums: {
       list_type: 'fids' | 'search' | 'auto_interaction';
@@ -402,23 +494,31 @@ export type Database = {
   };
 };
 
-type PublicSchema = Database[Extract<keyof Database, 'public'>];
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>];
 
 export type Tables<
-  PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] & PublicSchema['Views']) | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-        Database[PublicTableNameOrOptions['schema']]['Views'])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-      Database[PublicTableNameOrOptions['schema']]['Views'])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R;
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] & PublicSchema['Views'])
-    ? (PublicSchema['Tables'] & PublicSchema['Views'])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R;
       }
       ? R
@@ -426,18 +526,22 @@ export type Tables<
     : never;
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I;
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I;
       }
       ? I
@@ -445,18 +549,22 @@ export type TablesInsert<
     : never;
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+  DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U;
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U;
       }
       ? U
@@ -464,23 +572,41 @@ export type TablesUpdate<
     : never;
 
 export type Enums<
-  PublicEnumNameOrOptions extends keyof PublicSchema['Enums'] | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
+  DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
-    ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never;
 
-// above is the generated types from the database schema
-// below is the types that are manually written, don't overwrite them
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema['CompositeTypes']
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+    : never;
 
-export type List = Database['public']['Tables']['list']['Row'];
-export type InsertList = Database['public']['Tables']['list']['Insert'];
-export type UpdateList = Database['public']['Tables']['list']['Update'];
-export type Customer = Database['public']['Tables']['customers']['Row'];
-export type InsertCustomer = Database['public']['Tables']['customers']['Insert'];
-
-export type Analytics = Database['public']['Tables']['analytics']['Row'];
+export const Constants = {
+  public: {
+    Enums: {
+      list_type: ['fids', 'search', 'auto_interaction'],
+    },
+  },
+} as const;
