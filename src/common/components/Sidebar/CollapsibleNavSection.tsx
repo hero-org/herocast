@@ -5,6 +5,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 
+// Compact styling for sidebar context
+const kbdClassName = 'h-4 min-w-4 text-[10px]';
+
 // Helper to render shortcut as individual keys
 export const renderShortcut = (shortcut: string, isSelected: boolean) => {
   // Defensive check - return null if shortcut is undefined or empty
@@ -12,48 +15,27 @@ export const renderShortcut = (shortcut: string, isSelected: boolean) => {
     return null;
   }
 
-  // Split by spaces for multi-key shortcuts like "g s 1"
-  const parts = shortcut.split(' ').filter(Boolean);
+  const opacityClass = cn('transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60');
 
-  if (parts.length === 1) {
-    // Single key or combined modifier like "⇧1" or "⌘⇧A"
-    const key = parts[0];
-    // Check if it's a modifier + key combo (starts with ⇧, ⌘, ⌥, ⌃)
-    const modifierMatch = key.match(/^([⇧⌘⌥⌃]+)(.+)$/);
-    if (modifierMatch) {
-      const [, modifiers, rest] = modifierMatch;
-      return (
-        <KbdGroup className={cn('transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60')}>
-          {[...modifiers].map((mod, i) => (
-            <Kbd key={i} className="h-4 min-w-4 text-[10px]">
-              {mod}
-            </Kbd>
-          ))}
-          <Kbd className="h-4 min-w-4 text-[10px]">{rest}</Kbd>
-        </KbdGroup>
-      );
-    }
+  // Check if shortcut contains " + " separator (e.g., "Shift + R")
+  if (shortcut.includes(' + ')) {
+    const keys = shortcut.split(' + ');
     return (
-      <Kbd
-        className={cn(
-          'h-4 min-w-4 text-[10px] transition-opacity',
-          isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60'
-        )}
-      >
-        {key}
-      </Kbd>
+      <KbdGroup className={cn('gap-1', opacityClass)}>
+        {keys.map((key, index) => (
+          <Kbd key={index} className={kbdClassName}>
+            {key}
+          </Kbd>
+        ))}
+      </KbdGroup>
     );
   }
 
-  // Multi-key sequence like "g s 1"
+  // Single key
   return (
-    <KbdGroup className={cn('transition-opacity', isSelected ? 'opacity-70' : 'opacity-0 group-hover:opacity-60')}>
-      {parts.map((part, i) => (
-        <Kbd key={i} className="h-4 min-w-4 text-[10px]">
-          {part}
-        </Kbd>
-      ))}
-    </KbdGroup>
+    <Kbd className={cn(kbdClassName, opacityClass)}>
+      {shortcut}
+    </Kbd>
   );
 };
 
