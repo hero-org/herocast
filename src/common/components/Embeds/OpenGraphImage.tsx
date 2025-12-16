@@ -7,12 +7,12 @@ import { ClipboardIcon, ArrowTopRightOnSquareIcon, CheckIcon, LinkIcon } from '@
 import { useUrlMetadata } from '@/hooks/queries/useUrlMetadata';
 import { cn } from '@/lib/utils';
 
-// Skeleton for loading state - matches final card height
+// Skeleton for loading state - matches final card dimensions
 const UrlMetadataSkeleton = ({ compact = false }: { compact?: boolean }) => (
   <div
     className={cn(
       'flex items-center rounded-lg bg-muted/50 border border-muted',
-      compact ? 'gap-2 px-2.5 py-2' : 'gap-3 px-3 py-2.5 max-w-lg'
+      compact ? 'gap-2 px-2.5 py-2 w-40' : 'gap-3 px-3 py-2.5 w-72 max-w-lg'
     )}
   >
     <Skeleton className={cn('rounded-md flex-shrink-0', compact ? 'h-5 w-5' : 'h-8 w-8')} />

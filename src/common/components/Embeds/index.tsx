@@ -36,7 +36,11 @@ const getEmbedForUrl = (url: string, hideReactions?: boolean, skipIntersection?:
     return <ImageEmbed url={url} />;
   } else if (url.startsWith('"chain:')) {
     return <OnchainEmbed url={url} />;
-  } else if (url.startsWith('https://stream.warpcast.com')) {
+  } else if (
+    url.startsWith('https://stream.warpcast.com') ||
+    url.startsWith('https://stream.farcaster.xyz') ||
+    url.endsWith('.m3u8')
+  ) {
     return <VideoEmbed url={url} />;
   } else if (url.startsWith('https://warpcast.com') && !url.includes('/~/')) {
     return <CastEmbed url={url} hideReactions={hideReactions} />;
