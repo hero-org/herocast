@@ -15,9 +15,7 @@ export default function WalletProviders({ children }: { children: React.ReactNod
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={rainbowKitTheme}>
-          {children}
-        </RainbowKitProvider>
+        <RainbowKitProvider theme={rainbowKitTheme}>{children}</RainbowKitProvider>
         <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
       </QueryClientProvider>
     </WagmiProvider>
