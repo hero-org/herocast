@@ -1,0 +1,271 @@
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import { exposeToIframe, Context, Manifest } from '@farcaster/miniapp-host';
+import type { MiniAppHost as MiniAppHostSDK } from '@farcaster/miniapp-host';
+import { useAccount, useWalletClient } from 'wagmi';
+import { MiniAppSplash } from './MiniAppSplash';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { cn } from '@/lib/utils';
+
+export interface MiniAppHostProps {
+  url: string;
+  manifest?: Partial<Manifest.MiniAppConfig>;
+  className?: string;
+}
+
+const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // Get current Farcaster account
+  const { accounts, selectedAccountIdx } = useAccountStore();
+  const currentAccount = accounts?.[selectedAccountIdx];
+
+  // Get wallet client for Ethereum provider
+  const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    // Determine the mini app origin from URL or manifest homeUrl
+    const miniAppUrl = manifest?.homeUrl || url;
+    let miniAppOrigin: string;
+    try {
+      const urlObj = new URL(miniAppUrl);
+      miniAppOrigin = urlObj.origin;
+    } catch (e) {
+      setError('Invalid mini app URL');
+      return;
+    }
+
+    // Build the context for the mini app
+    const context: Context.MiniAppContext = {
+      client: {
+        platformType: 'web',
+        clientFid: currentAccount?.platformAccountId ? parseInt(currentAccount.platformAccountId) : 0,
+        added: false,
+      },
+      user: {
+        fid: currentAccount?.platformAccountId ? parseInt(currentAccount.platformAccountId) : 0,
+        username: currentAccount?.user?.username,
+        displayName: currentAccount?.user?.display_name,
+        pfpUrl: currentAccount?.user?.pfp_url,
+      },
+      location: {
+        type: 'launcher',
+      },
+      features: {
+        haptics: false,
+        cameraAndMicrophoneAccess: false,
+      },
+    };
+
+    // Create SDK implementation with minimal required callbacks
+    const sdk: Omit<MiniAppHostSDK, 'ethProviderRequestV2'> = {
+      context,
+
+      // Required: App signals ready
+      ready: async () => {
+        setIsReady(true);
+      },
+
+      // Required: Close the mini app
+      close: () => {
+        console.log('Mini app requested close');
+        // Parent component should handle this
+      },
+
+      // Required: Open URL
+      openUrl: (openUrl: string) => {
+        window.open(openUrl, '_blank', 'noopener,noreferrer');
+      },
+
+      // Required: Set primary button
+      setPrimaryButton: (options) => {
+        console.log('Set primary button:', options);
+        // TODO: Implement primary button in host UI
+      },
+
+      // Required: Get capabilities
+      getCapabilities: async () => {
+        return [
+          'actions.ready',
+          'actions.close',
+          'actions.openUrl',
+          'actions.setPrimaryButton',
+          'wallet.getEthereumProvider',
+        ];
+      },
+
+      // Required: Get supported chains
+      getChains: async () => {
+        return ['eip155:1', 'eip155:8453', 'eip155:10']; // Ethereum, Base, Optimism
+      },
+
+      // Ethereum provider request (legacy)
+      ethProviderRequest: async () => {
+        throw new Error('Use ethProviderRequestV2 instead');
+      },
+
+      // EIP-6963 provider announcement
+      eip6963RequestProvider: () => {
+        console.log('EIP-6963 provider requested');
+        // TODO: Implement if needed
+      },
+
+      // Sign in
+      signIn: async () => {
+        throw new Error('Sign in not implemented');
+      },
+
+      // Sign manifest
+      signManifest: async () => {
+        throw new Error('Sign manifest not implemented');
+      },
+
+      // Add mini app
+      addFrame: async () => {
+        throw new Error('Add frame not implemented');
+      },
+
+      addMiniApp: async () => {
+        throw new Error('Add mini app not implemented');
+      },
+
+      // View actions
+      viewCast: async () => {
+        console.log('View cast requested');
+      },
+
+      viewProfile: async () => {
+        console.log('View profile requested');
+      },
+
+      viewToken: async () => {
+        console.log('View token requested');
+      },
+
+      // Token actions
+      sendToken: async () => {
+        throw new Error('Send token not implemented');
+      },
+
+      swapToken: async () => {
+        throw new Error('Swap token not implemented');
+      },
+
+      // Open mini app
+      openMiniApp: async () => {
+        console.log('Open mini app requested');
+      },
+
+      // Compose cast
+      composeCast: async () => {
+        throw new Error('Compose cast not implemented');
+      },
+
+      // Camera/microphone access
+      requestCameraAndMicrophoneAccess: async () => {
+        throw new Error('Camera/microphone access not implemented');
+      },
+
+      // Haptics
+      impactOccurred: async () => {
+        // No-op on web
+      },
+
+      notificationOccurred: async () => {
+        // No-op on web
+      },
+
+      selectionChanged: async () => {
+        // No-op on web
+      },
+
+      // Back navigation
+      updateBackState: async () => {
+        console.log('Update back state requested');
+      },
+    };
+
+    // Get Ethereum provider from wallet client
+    const ethProvider = walletClient ? (walletClient.transport as any) : undefined;
+
+    // Expose SDK to iframe
+    try {
+      const { cleanup } = exposeToIframe({
+        iframe,
+        sdk,
+        miniAppOrigin,
+        ethProvider,
+        debug: true, // Enable debug logging during development
+      });
+
+      cleanupRef.current = cleanup;
+    } catch (e) {
+      console.error('Failed to expose SDK to iframe:', e);
+      setError('Failed to initialize mini app');
+    }
+
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+    };
+  }, [url, manifest, currentAccount, walletClient, address]);
+
+  // Determine iframe src
+  const iframeSrc = manifest?.homeUrl || url;
+
+  return (
+    <div className={cn('relative w-full h-full min-h-[695px] flex items-center justify-center', className)}>
+      {/* Splash screen */}
+      {!isReady && !error && (
+        <MiniAppSplash
+          name={manifest?.name}
+          iconUrl={manifest?.iconUrl}
+          splashImageUrl={manifest?.splashImageUrl}
+          splashBackgroundColor={manifest?.splashBackgroundColor}
+        />
+      )}
+
+      {/* Error state */}
+      {error && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background">
+          <div className="text-center space-y-4">
+            <p className="text-destructive font-semibold">Failed to load mini app</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Mini app iframe */}
+      <div className="relative w-full h-full" style={{ aspectRatio: '424 / 695', maxWidth: '100%', maxHeight: '100%' }}>
+        <iframe
+          ref={iframeRef}
+          src={iframeSrc}
+          className={cn(
+            'w-full h-full border-0 rounded-lg',
+            !isReady && 'opacity-0'
+          )}
+          style={{
+            minWidth: '424px',
+            minHeight: '695px',
+          }}
+          allow="camera; microphone; clipboard-write"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+          title={manifest?.name || 'Farcaster Mini App'}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default MiniAppHost;
+export { MiniAppHost };

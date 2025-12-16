@@ -302,6 +302,9 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     if (pathname.startsWith('/conversation/')) {
       return RIGHT_SIDEBAR_ENUM.CAST_INFO;
     }
+    if (pathname.startsWith('/miniapp/')) {
+      return RIGHT_SIDEBAR_ENUM.NONE;
+    }
 
     switch (pathname) {
       case '/feeds':
@@ -329,6 +332,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         return 'Profile';
       } else if (pathname.startsWith('/conversation/')) {
         return 'Conversation';
+      } else if (pathname.startsWith('/miniapp/')) {
+        return 'Mini App';
       }
     }
   };
