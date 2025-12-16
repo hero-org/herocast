@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Loading } from '@/common/components/Loading';
 import MiniAppHost from '@/common/components/MiniApp/MiniAppHost';
 
@@ -22,6 +22,7 @@ type ManifestResponse = {
 
 const MiniAppPage = () => {
   const params = useParams();
+  const searchParams = useSearchParams();
   const [manifest, setManifest] = useState<MiniAppManifest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,21 +31,31 @@ const MiniAppPage = () => {
   useEffect(() => {
     const fetchManifest = async () => {
       try {
-        // Get and decode the URL from the route param
-        const urlParam = params.url as string;
-        if (!urlParam) {
-          setError('Missing URL parameter');
+        // Check for URL in query params first (easier to use), then fall back to path param
+        // Query param: /miniapp?url=https://vibes.engineering (recommended)
+        // Path param: /miniapp/https%3A%2F%2Fvibes.engineering (legacy)
+        const queryUrl = searchParams.get('url');
+        // With catch-all route [[...url]], params.url is an array or undefined
+        const pathSegments = params.url as string[] | undefined;
+        const pathParam = pathSegments?.join('/');
+
+        let decoded: string;
+        if (queryUrl) {
+          // Query param is automatically decoded by browser
+          decoded = queryUrl;
+        } else if (pathParam) {
+          // Path param needs manual decoding
+          decoded = decodeURIComponent(pathParam);
+        } else {
+          setError('Missing URL parameter. Use /miniapp?url=https://example.com');
           setIsLoading(false);
           return;
         }
 
-        const decoded = decodeURIComponent(urlParam);
         setDecodedUrl(decoded);
 
         // Fetch the manifest from the API
-        const response = await fetch(
-          `/api/miniapp/manifest?url=${encodeURIComponent(decoded)}`
-        );
+        const response = await fetch(`/api/miniapp/manifest?url=${encodeURIComponent(decoded)}`);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -64,7 +75,7 @@ const MiniAppPage = () => {
     };
 
     fetchManifest();
-  }, [params.url]);
+  }, [params.url, searchParams]);
 
   // Loading state
   if (isLoading) {
@@ -80,12 +91,8 @@ const MiniAppPage = () => {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-950">
-          <h2 className="mb-2 text-lg font-semibold text-red-900 dark:text-red-100">
-            Failed to Load Mini App
-          </h2>
-          <p className="text-sm text-red-700 dark:text-red-300">
-            {error || 'Invalid URL parameter'}
-          </p>
+          <h2 className="mb-2 text-lg font-semibold text-red-900 dark:text-red-100">Failed to Load Mini App</h2>
+          <p className="text-sm text-red-700 dark:text-red-300">{error || 'Invalid URL parameter'}</p>
         </div>
       </div>
     );

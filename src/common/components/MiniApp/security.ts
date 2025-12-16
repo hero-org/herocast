@@ -17,8 +17,7 @@ export function isValidHttpsUrl(url: string | undefined | null): boolean {
     // Only allow https in production, http allowed for localhost dev
     const isHttps = parsed.protocol === 'https:';
     const isLocalDev =
-      parsed.protocol === 'http:' &&
-      (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1');
+      parsed.protocol === 'http:' && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1');
 
     return isHttps || isLocalDev;
   } catch {
@@ -150,4 +149,35 @@ export function getValidatedOrigin(url: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Generates a list of allowed origins for a URL to handle common redirects
+ * Returns both www and non-www variants to handle server redirects
+ */
+export function getAllowedOrigins(url: string): string[] {
+  const baseOrigin = getValidatedOrigin(url);
+  if (!baseOrigin) return [];
+
+  const origins = [baseOrigin];
+
+  try {
+    const parsed = new URL(baseOrigin);
+
+    if (parsed.hostname.startsWith('www.')) {
+      // If origin has www, also allow without www
+      const hostnameWithoutWww = parsed.hostname.replace(/^www\./, '');
+      const originWithoutWww = `${parsed.protocol}//${hostnameWithoutWww}${parsed.port ? ':' + parsed.port : ''}`;
+      origins.push(originWithoutWww);
+    } else {
+      // If origin doesn't have www, also allow with www
+      const hostnameWithWww = `www.${parsed.hostname}`;
+      const originWithWww = `${parsed.protocol}//${hostnameWithWww}${parsed.port ? ':' + parsed.port : ''}`;
+      origins.push(originWithWww);
+    }
+  } catch (e) {
+    console.warn('Failed to generate www variant for origin:', e);
+  }
+
+  return origins;
 }

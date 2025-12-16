@@ -19,8 +19,7 @@ function isValidSecureUrl(url: string): boolean {
     // Require HTTPS in production, allow HTTP for localhost
     const isHttps = parsed.protocol === 'https:';
     const isLocalDev =
-      parsed.protocol === 'http:' &&
-      (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1');
+      parsed.protocol === 'http:' && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1');
     return isHttps || isLocalDev;
   } catch {
     return false;
@@ -77,11 +76,7 @@ async function fetchMiniAppManifestUncached(url: string): Promise<MiniAppManifes
     console.log(`[miniapp/manifest] Successfully fetched manifest in ${Date.now() - startTime}ms`);
 
     // Validate required fields exist and are strings
-    if (
-      typeof data.name !== 'string' ||
-      typeof data.iconUrl !== 'string' ||
-      typeof data.homeUrl !== 'string'
-    ) {
+    if (typeof data.name !== 'string' || typeof data.iconUrl !== 'string' || typeof data.homeUrl !== 'string') {
       console.log('[miniapp/manifest] Invalid manifest: missing or invalid required fields');
       return null;
     }
@@ -149,17 +144,13 @@ export async function GET(request: NextRequest) {
     const url = searchParams.get('url');
 
     if (!url) {
-      return addSecurityHeaders(
-        NextResponse.json({ error: 'Missing url parameter' }, { status: 400 })
-      );
+      return addSecurityHeaders(NextResponse.json({ error: 'Missing url parameter' }, { status: 400 }));
     }
 
     // Validate URL format and ensure it's a secure HTTPS URL
     if (!isValidSecureUrl(url)) {
       console.log(`[miniapp/manifest] Invalid or insecure URL: ${url}`);
-      return addSecurityHeaders(
-        NextResponse.json({ error: 'Invalid URL format. HTTPS required.' }, { status: 400 })
-      );
+      return addSecurityHeaders(NextResponse.json({ error: 'Invalid URL format. HTTPS required.' }, { status: 400 }));
     }
 
     const manifest = await getCachedMiniAppManifest(url);
@@ -168,9 +159,7 @@ export async function GET(request: NextRequest) {
     return addSecurityHeaders(NextResponse.json({ manifest }));
   } catch (error) {
     console.error('Error in miniapp manifest route:', error);
-    return addSecurityHeaders(
-      NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-    );
+    return addSecurityHeaders(NextResponse.json({ error: 'Internal server error' }, { status: 500 }));
   }
 }
 

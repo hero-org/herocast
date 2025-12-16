@@ -33,11 +33,7 @@ export const MiniAppSplash: React.FC<MiniAppSplashProps> = ({
     >
       <div className="flex flex-col items-center justify-center space-y-6">
         {safeSplashImageUrl ? (
-          <img
-            src={safeSplashImageUrl}
-            alt={safeName || 'Mini App'}
-            className="h-48 w-48 object-contain"
-          />
+          <img src={safeSplashImageUrl} alt={safeName || 'Mini App'} className="h-48 w-48 object-contain" />
         ) : safeIconUrl ? (
           <img
             src={safeIconUrl}
@@ -46,31 +42,21 @@ export const MiniAppSplash: React.FC<MiniAppSplashProps> = ({
           />
         ) : null}
 
-        {safeName && (
-          <h2 className="text-2xl font-semibold text-foreground">
-            {safeName}
-          </h2>
-        )}
+        {safeName && <h2 className="text-2xl font-semibold text-foreground">{safeName}</h2>}
 
         {/* Loading spinner */}
         <div className="flex items-center space-x-2">
-          <div className={cn(
-            "h-2 w-2 rounded-full animate-pulse",
-            "bg-foreground/60"
-          )}
-          style={{ animationDelay: '0ms' }}
+          <div
+            className={cn('h-2 w-2 rounded-full animate-pulse', 'bg-foreground/60')}
+            style={{ animationDelay: '0ms' }}
           />
-          <div className={cn(
-            "h-2 w-2 rounded-full animate-pulse",
-            "bg-foreground/60"
-          )}
-          style={{ animationDelay: '150ms' }}
+          <div
+            className={cn('h-2 w-2 rounded-full animate-pulse', 'bg-foreground/60')}
+            style={{ animationDelay: '150ms' }}
           />
-          <div className={cn(
-            "h-2 w-2 rounded-full animate-pulse",
-            "bg-foreground/60"
-          )}
-          style={{ animationDelay: '300ms' }}
+          <div
+            className={cn('h-2 w-2 rounded-full animate-pulse', 'bg-foreground/60')}
+            style={{ animationDelay: '300ms' }}
           />
         </div>
       </div>

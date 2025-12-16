@@ -1,19 +1,15 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { exposeToIframe, Context, Manifest } from '@farcaster/miniapp-host';
+import { Context, Manifest } from '@farcaster/miniapp-host';
 import type { MiniAppHost as MiniAppHostSDK } from '@farcaster/miniapp-host';
 import { useAccount, useWalletClient } from 'wagmi';
 import { MiniAppSplash } from './MiniAppSplash';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { cn } from '@/lib/utils';
-import {
-  sanitizeManifest,
-  sanitizeIframeSrc,
-  getValidatedOrigin,
-  isValidHttpsUrl,
-  escapeHtml,
-} from './security';
+import { sanitizeManifest, sanitizeIframeSrc, getAllowedOrigins, isValidHttpsUrl, escapeHtml } from './security';
+import { createSiweMessage } from 'viem/siwe';
+import { exposeToIframeWithMultipleOrigins } from './exposeToIframeMultiOrigin';
 
 export interface MiniAppHostProps {
   url: string;
@@ -44,10 +40,11 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
     return sanitizeIframeSrc(candidateUrl);
   }, [safeManifest, url]);
 
-  // Get validated origin for postMessage communication
-  const miniAppOrigin = useMemo(() => {
-    if (!safeSrc) return null;
-    return getValidatedOrigin(safeSrc);
+  // Get validated origins for postMessage communication
+  // Include both www and non-www variants to handle redirects
+  const miniAppOrigins = useMemo(() => {
+    if (!safeSrc) return [];
+    return getAllowedOrigins(safeSrc);
   }, [safeSrc]);
 
   useEffect(() => {
@@ -55,7 +52,7 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
     if (!iframe) return;
 
     // Validate URL before proceeding
-    if (!safeSrc || !miniAppOrigin) {
+    if (!safeSrc || !miniAppOrigins || miniAppOrigins.length === 0) {
       setError('Invalid or insecure mini app URL. Only HTTPS URLs are allowed.');
       return;
     }
@@ -120,6 +117,7 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
           'actions.close',
           'actions.openUrl',
           'actions.setPrimaryButton',
+          'actions.signIn',
           'wallet.getEthereumProvider',
         ];
       },
@@ -140,9 +138,97 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
         // TODO: Implement if needed
       },
 
-      // Sign in
-      signIn: async () => {
-        throw new Error('Sign in not implemented');
+      // Sign in with Farcaster (SIWF) - follows EIP-4361 format
+      signIn: async (options: {
+        nonce: string;
+        notBefore?: string;
+        expirationTime?: string;
+        acceptAuthAddress?: boolean;
+      }) => {
+        const debug = process.env.NODE_ENV === 'development';
+        if (debug) {
+          console.log('signIn:request', {
+            nonce: options.nonce,
+            acceptAuthAddress: options.acceptAuthAddress,
+            hasAccount: !!currentAccount,
+            hasWallet: !!walletClient,
+            address,
+          });
+        }
+
+        // Validate nonce
+        if (!options.nonce || options.nonce.length < 8) {
+          throw new Error('Invalid nonce: must be at least 8 characters');
+        }
+
+        // Check if we have a Farcaster account
+        if (!currentAccount?.platformAccountId) {
+          throw new Error('No Farcaster account connected');
+        }
+
+        // Check if wallet is connected
+        if (!address || !walletClient) {
+          throw new Error('No wallet connected. Please connect your wallet first.');
+        }
+
+        const fid = parseInt(currentAccount.platformAccountId);
+        const miniAppUrl = safeSrc || url;
+        const parsedUrl = new URL(miniAppUrl);
+
+        // Build SIWF message using viem for proper EIP-4361 formatting
+        // https://docs.farcaster.xyz/developers/siwf/
+        // Chain ID 10 = Optimism (used by Farcaster protocol)
+        const now = new Date();
+        const expirationTime = options.expirationTime
+          ? new Date(options.expirationTime)
+          : new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes default
+
+        const message = createSiweMessage({
+          domain: parsedUrl.host,
+          address: address,
+          statement: 'Farcaster Connect',
+          uri: miniAppUrl,
+          version: '1',
+          chainId: 10, // Optimism - required by Farcaster
+          nonce: options.nonce,
+          issuedAt: now,
+          expirationTime,
+          notBefore: options.notBefore ? new Date(options.notBefore) : undefined,
+          resources: [`farcaster://fid/${fid}`],
+        });
+
+        if (debug) {
+          console.log('signIn:message', message);
+        }
+
+        try {
+          // Request signature from user's wallet
+          const signature = await walletClient.signMessage({
+            account: address,
+            message: message,
+          });
+
+          if (debug) {
+            console.log('signIn:signature', signature);
+          }
+
+          // Return with custody authMethod - the connected wallet should be
+          // the user's custody address or an auth address linked to their FID
+          return {
+            signature,
+            message,
+            authMethod: 'custody' as const,
+          };
+        } catch (e: any) {
+          if (debug) {
+            console.log('signIn:error', e);
+          }
+          // User rejected or wallet error
+          if (e?.name === 'UserRejectedRequestError' || e?.code === 4001) {
+            throw new Error('RejectedByUser');
+          }
+          throw e;
+        }
       },
 
       // Sign manifest
@@ -218,14 +304,14 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
     // Get Ethereum provider from wallet client
     const ethProvider = walletClient ? (walletClient.transport as any) : undefined;
 
-    // Expose SDK to iframe
+    // Expose SDK to iframe with multiple allowed origins to handle redirects
     try {
-      const { cleanup } = exposeToIframe({
+      const { cleanup } = exposeToIframeWithMultipleOrigins({
         iframe,
         sdk,
-        miniAppOrigin,
+        allowedOrigins: miniAppOrigins,
         ethProvider,
-        debug: true, // Enable debug logging during development
+        debug: process.env.NODE_ENV === 'development',
       });
 
       cleanupRef.current = cleanup;
@@ -240,7 +326,7 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
         cleanupRef.current = null;
       }
     };
-  }, [safeSrc, miniAppOrigin, currentAccount, walletClient, address]);
+  }, [safeSrc, miniAppOrigins, currentAccount, walletClient, address]);
 
   // Safe title for the iframe (HTML escaped)
   const safeTitle = safeManifest?.name || 'Farcaster Mini App';
@@ -269,21 +355,21 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
 
       {/* Mini app iframe - only render if we have a valid source */}
       {safeSrc && (
-        <div className="relative w-full h-full" style={{ aspectRatio: '424 / 695', maxWidth: '100%', maxHeight: '100%' }}>
+        <div
+          className="relative w-full h-full"
+          style={{ aspectRatio: '424 / 695', maxWidth: '100%', maxHeight: '100%' }}
+        >
           <iframe
             ref={iframeRef}
             src={safeSrc}
-            className={cn(
-              'w-full h-full border-0 rounded-lg',
-              !isReady && 'opacity-0'
-            )}
+            className={cn('w-full h-full border-0 rounded-lg', !isReady && 'opacity-0')}
             style={{
               minWidth: '424px',
               minHeight: '695px',
             }}
             // Permissions Policy - explicitly restrict powerful APIs
             // Only allow clipboard-write which mini apps may need for copy functionality
-            allow="clipboard-write 'src'"
+            allow="clipboard-write"
             // Sandbox: Required for mini apps to function
             // - allow-scripts: Required for JS execution
             // - allow-same-origin: Required for mini app to make authenticated requests to its backend
