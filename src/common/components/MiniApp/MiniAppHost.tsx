@@ -1,12 +1,19 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { exposeToIframe, Context, Manifest } from '@farcaster/miniapp-host';
 import type { MiniAppHost as MiniAppHostSDK } from '@farcaster/miniapp-host';
 import { useAccount, useWalletClient } from 'wagmi';
 import { MiniAppSplash } from './MiniAppSplash';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { cn } from '@/lib/utils';
+import {
+  sanitizeManifest,
+  sanitizeIframeSrc,
+  getValidatedOrigin,
+  isValidHttpsUrl,
+  escapeHtml,
+} from './security';
 
 export interface MiniAppHostProps {
   url: string;
@@ -28,18 +35,28 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
   const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
 
+  // Sanitize manifest data to prevent XSS
+  const safeManifest = useMemo(() => sanitizeManifest(manifest), [manifest]);
+
+  // Validate and sanitize the iframe source URL
+  const safeSrc = useMemo(() => {
+    const candidateUrl = safeManifest?.homeUrl || url;
+    return sanitizeIframeSrc(candidateUrl);
+  }, [safeManifest, url]);
+
+  // Get validated origin for postMessage communication
+  const miniAppOrigin = useMemo(() => {
+    if (!safeSrc) return null;
+    return getValidatedOrigin(safeSrc);
+  }, [safeSrc]);
+
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
-    // Determine the mini app origin from URL or manifest homeUrl
-    const miniAppUrl = manifest?.homeUrl || url;
-    let miniAppOrigin: string;
-    try {
-      const urlObj = new URL(miniAppUrl);
-      miniAppOrigin = urlObj.origin;
-    } catch (e) {
-      setError('Invalid mini app URL');
+    // Validate URL before proceeding
+    if (!safeSrc || !miniAppOrigin) {
+      setError('Invalid or insecure mini app URL. Only HTTPS URLs are allowed.');
       return;
     }
 
@@ -80,9 +97,14 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
         // Parent component should handle this
       },
 
-      // Required: Open URL
-      openUrl: (openUrl: string) => {
-        window.open(openUrl, '_blank', 'noopener,noreferrer');
+      // Required: Open URL - validate before opening
+      openUrl: (targetUrl: string) => {
+        // Only allow http/https URLs to prevent javascript: and other dangerous protocols
+        if (!isValidHttpsUrl(targetUrl)) {
+          console.warn('Mini app attempted to open invalid URL:', targetUrl);
+          return;
+        }
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
       },
 
       // Required: Set primary button
@@ -218,20 +240,20 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
         cleanupRef.current = null;
       }
     };
-  }, [url, manifest, currentAccount, walletClient, address]);
+  }, [safeSrc, miniAppOrigin, currentAccount, walletClient, address]);
 
-  // Determine iframe src
-  const iframeSrc = manifest?.homeUrl || url;
+  // Safe title for the iframe (HTML escaped)
+  const safeTitle = safeManifest?.name || 'Farcaster Mini App';
 
   return (
     <div className={cn('relative w-full h-full min-h-[695px] flex items-center justify-center', className)}>
-      {/* Splash screen */}
+      {/* Splash screen - uses sanitized manifest data */}
       {!isReady && !error && (
         <MiniAppSplash
-          name={manifest?.name}
-          iconUrl={manifest?.iconUrl}
-          splashImageUrl={manifest?.splashImageUrl}
-          splashBackgroundColor={manifest?.splashBackgroundColor}
+          name={safeManifest?.name}
+          iconUrl={safeManifest?.iconUrl}
+          splashImageUrl={safeManifest?.splashImageUrl}
+          splashBackgroundColor={safeManifest?.splashBackgroundColor}
         />
       )}
 
@@ -245,24 +267,35 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
         </div>
       )}
 
-      {/* Mini app iframe */}
-      <div className="relative w-full h-full" style={{ aspectRatio: '424 / 695', maxWidth: '100%', maxHeight: '100%' }}>
-        <iframe
-          ref={iframeRef}
-          src={iframeSrc}
-          className={cn(
-            'w-full h-full border-0 rounded-lg',
-            !isReady && 'opacity-0'
-          )}
-          style={{
-            minWidth: '424px',
-            minHeight: '695px',
-          }}
-          allow="camera; microphone; clipboard-write"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-          title={manifest?.name || 'Farcaster Mini App'}
-        />
-      </div>
+      {/* Mini app iframe - only render if we have a valid source */}
+      {safeSrc && (
+        <div className="relative w-full h-full" style={{ aspectRatio: '424 / 695', maxWidth: '100%', maxHeight: '100%' }}>
+          <iframe
+            ref={iframeRef}
+            src={safeSrc}
+            className={cn(
+              'w-full h-full border-0 rounded-lg',
+              !isReady && 'opacity-0'
+            )}
+            style={{
+              minWidth: '424px',
+              minHeight: '695px',
+            }}
+            // Permissions API - restrict capabilities
+            allow="clipboard-write"
+            // Sandbox: Required for mini apps to function
+            // - allow-scripts: Required for JS execution
+            // - allow-same-origin: Required for mini app to make authenticated requests to its backend
+            // - allow-forms: Required for form submissions
+            // - allow-popups: Required for wallet connections (they open popups)
+            // Note: allow-popups-to-escape-sandbox removed for security - wallet popups inherit sandbox
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            // Referrer policy - limit information sent to mini app
+            referrerPolicy="strict-origin-when-cross-origin"
+            title={safeTitle}
+          />
+        </div>
+      )}
     </div>
   );
 };
