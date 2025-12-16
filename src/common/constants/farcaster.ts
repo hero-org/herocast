@@ -97,10 +97,24 @@ export type DraftType = {
   scheduledFor?: string | null;
   publishedAt?: string | null;
   updatedAt?: string;
+  threadId?: UUID;
+  threadIndex?: number;
 };
 
 // drafttype without createdAt
 export type DraftTemplateType = Omit<DraftType, 'createdAt'>;
+
+// Thread constants
+export const MAX_THREAD_POSTS = 10;
+
+// Thread publish result type
+export type ThreadPublishResult = {
+  success: boolean;
+  publishedPosts: { draftId: UUID; hash: string; index: number }[];
+  failedAt?: number;
+  error?: string;
+  threadId: UUID;
+};
 
 export type AuthorType = {
   fid: string;

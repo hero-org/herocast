@@ -18,6 +18,7 @@ import {
   toastSuccessCastPublished,
   toastSuccessCastScheduled,
 } from '@/common/helpers/toast';
+import { MAX_THREAD_POSTS, ThreadPublishResult } from '@/common/constants/farcaster';
 import { NewPostDraft } from '@/common/constants/postDrafts';
 import type { FarcasterEmbed } from '@/common/types/embeds';
 import { createClient } from '@/common/helpers/supabase/component';
@@ -293,6 +294,15 @@ interface DraftStoreActions {
   hydrate: () => void;
   openDraftsModal: () => void;
   closeDraftsModal: () => void;
+
+  // Thread operations
+  createThread: () => UUID;
+  addPostToThread: (threadId: UUID, afterIndex?: number) => UUID | null;
+  removePostFromThread: (threadId: UUID, draftId: UUID) => void;
+  reorderThreadPost: (threadId: UUID, fromIndex: number, toIndex: number) => void;
+  getThreadDrafts: (threadId: UUID) => DraftType[];
+  isThreadDraft: (draftId: UUID) => boolean;
+  publishThread: (threadId: UUID, account: AccountObjectType) => Promise<ThreadPublishResult>;
 }
 
 export interface DraftStore extends NewPostStoreProps, DraftStoreActions {}
@@ -618,6 +628,190 @@ const store = (set: StoreSet) => ({
     set((state) => {
       state.isDraftsModalOpen = false;
     });
+  },
+  createThread: () => {
+    const threadId = uuidv4() as UUID;
+    const draftId = uuidv4() as UUID;
+    set((state) => {
+      const newDraft: DraftType = {
+        ...NewPostDraft,
+        id: draftId,
+        text: '',
+        createdAt: Date.now(),
+        threadId: threadId,
+        threadIndex: 0,
+      };
+      state.drafts = [...state.drafts, newDraft] as typeof state.drafts;
+    });
+    return threadId;
+  },
+  addPostToThread: (threadId: UUID, afterIndex?: number) => {
+    const state = useDraftStore.getState();
+    const threadDrafts = state.drafts
+      .filter((draft) => draft.threadId === threadId)
+      .sort((a, b) => (a.threadIndex ?? 0) - (b.threadIndex ?? 0));
+
+    if (threadDrafts.length >= MAX_THREAD_POSTS) {
+      return null;
+    }
+
+    const newDraftId = uuidv4() as UUID;
+    let newThreadIndex: number;
+
+    if (afterIndex !== undefined) {
+      // Insert after the specified index
+      newThreadIndex = afterIndex + 1;
+
+      set((state) => {
+        // Create the new draft
+        const newDraft: DraftType = {
+          ...NewPostDraft,
+          id: newDraftId,
+          text: '',
+          createdAt: Date.now(),
+          threadId: threadId,
+          threadIndex: newThreadIndex,
+        };
+
+        // Update indices of subsequent drafts
+        state.drafts = state.drafts.map((draft) => {
+          if (draft.threadId === threadId && draft.threadIndex !== undefined && draft.threadIndex > afterIndex) {
+            return { ...draft, threadIndex: draft.threadIndex + 1 };
+          }
+          return draft;
+        });
+
+        // Add new draft
+        state.drafts = [...state.drafts, newDraft] as typeof state.drafts;
+      });
+    } else {
+      // Append to the end
+      newThreadIndex = threadDrafts.length > 0 ? Math.max(...threadDrafts.map((d) => d.threadIndex ?? 0)) + 1 : 1;
+
+      set((state) => {
+        const newDraft: DraftType = {
+          ...NewPostDraft,
+          id: newDraftId,
+          text: '',
+          createdAt: Date.now(),
+          threadId: threadId,
+          threadIndex: newThreadIndex,
+        };
+        state.drafts = [...state.drafts, newDraft] as typeof state.drafts;
+      });
+    }
+
+    return newDraftId;
+  },
+  removePostFromThread: (threadId: UUID, draftId: UUID) => {
+    set((state) => {
+      // Remove the draft
+      state.drafts = state.drafts.filter((draft) => draft.id !== draftId);
+
+      // Get remaining thread drafts and reindex
+      const remainingDrafts = state.drafts
+        .filter((draft) => draft.threadId === threadId)
+        .sort((a, b) => (a.threadIndex ?? 0) - (b.threadIndex ?? 0));
+
+      // Reassign indices
+      state.drafts = state.drafts.map((draft) => {
+        if (draft.threadId === threadId) {
+          const newIndex = remainingDrafts.findIndex((d) => d.id === draft.id);
+          return { ...draft, threadIndex: newIndex };
+        }
+        return draft;
+      });
+    });
+  },
+  reorderThreadPost: (threadId: UUID, fromIndex: number, toIndex: number) => {
+    set((state) => {
+      const threadDrafts = state.drafts
+        .filter((draft) => draft.threadId === threadId)
+        .sort((a, b) => (a.threadIndex ?? 0) - (b.threadIndex ?? 0));
+
+      if (fromIndex < 0 || fromIndex >= threadDrafts.length || toIndex < 0 || toIndex >= threadDrafts.length) {
+        return;
+      }
+
+      // Perform array reordering
+      const [movedDraft] = threadDrafts.splice(fromIndex, 1);
+      threadDrafts.splice(toIndex, 0, movedDraft);
+
+      // Update threadIndex for all drafts in the thread
+      state.drafts = state.drafts.map((draft) => {
+        if (draft.threadId === threadId) {
+          const newIndex = threadDrafts.findIndex((d) => d.id === draft.id);
+          return { ...draft, threadIndex: newIndex };
+        }
+        return draft;
+      });
+    });
+  },
+  getThreadDrafts: (threadId: UUID) => {
+    const state = useDraftStore.getState();
+    return state.drafts
+      .filter((draft) => draft.threadId === threadId)
+      .sort((a, b) => (a.threadIndex ?? 0) - (b.threadIndex ?? 0));
+  },
+  isThreadDraft: (draftId: UUID) => {
+    const draft = useDraftStore.getState().getDraftById(draftId);
+    return !!draft?.threadId;
+  },
+  publishThread: async (threadId: UUID, account: AccountObjectType): Promise<ThreadPublishResult> => {
+    const { getThreadDrafts, publishDraftById, updateDraftById } = useDraftStore.getState();
+    const posts = getThreadDrafts(threadId);
+
+    if (posts.length === 0) {
+      return { success: false, publishedPosts: [], threadId, error: 'No posts in thread' };
+    }
+
+    const result: ThreadPublishResult = {
+      success: true,
+      publishedPosts: [],
+      threadId,
+    };
+
+    // 1. Publish first post
+    const firstDraft = posts[0];
+    let firstHash: string;
+
+    try {
+      const hash = await publishDraftById(firstDraft.id, account);
+      if (!hash) throw new Error('Failed to publish first post');
+      firstHash = hash;
+      result.publishedPosts.push({ draftId: firstDraft.id, hash: firstHash, index: 0 });
+    } catch (error) {
+      result.success = false;
+      result.failedAt = 0;
+      result.error = error instanceof Error ? error.message : String(error);
+      return result;
+    }
+
+    // 2. Publish remaining posts as replies to first post
+    for (let i = 1; i < posts.length; i++) {
+      const post = posts[i];
+
+      // Set parentCastId to first post
+      updateDraftById(post.id, {
+        parentCastId: {
+          fid: Number(account.platformAccountId),
+          hash: firstHash,
+        },
+      });
+
+      try {
+        const hash = await publishDraftById(post.id, account);
+        if (!hash) throw new Error(`Failed to publish post ${i + 1}`);
+        result.publishedPosts.push({ draftId: post.id, hash, index: i });
+      } catch (error) {
+        result.success = false;
+        result.failedAt = i;
+        result.error = error instanceof Error ? error.message : String(error);
+        break; // Stop on first failure
+      }
+    }
+
+    return result;
   },
 });
 export const useDraftStore = create<DraftStore>()(
