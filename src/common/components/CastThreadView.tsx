@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { CastRow } from './CastRow';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { SelectableListWithHotkeys } from './SelectableListWithHotkeys';
@@ -26,6 +26,7 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
   const [isLoading, setIsLoading] = useState(true);
   const [casts, setCasts] = useState<CastWithInteractions[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
+  const [expandedCasts, setExpandedCasts] = useState<Set<string>>(new Set());
   const { updateSelectedCast } = useDataStore();
   const router = useRouter();
 
@@ -94,6 +95,18 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
     loadData();
   }, [cast?.hash, hash]);
 
+  const toggleCastExpanded = useCallback((castHash: string) => {
+    setExpandedCasts((prev) => {
+      const next = new Set(prev);
+      if (next.has(castHash)) {
+        next.delete(castHash);
+      } else {
+        next.add(castHash);
+      }
+      return next;
+    });
+  }, []);
+
   const handleCastClick = (cast: CastWithInteractions) => {
     // Navigate to the conversation page for this cast
     router.push(`/conversation/${cast.hash}`);
@@ -146,6 +159,8 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
               isThreadView={isReply}
               onSelect={() => setSelectedCastIdx(idx)}
               onCastClick={() => handleCastClick(cast)}
+              isExpanded={expandedCasts.has(cast.hash)}
+              onToggleExpand={() => toggleCastExpanded(cast.hash)}
             />
           </div>
         </div>

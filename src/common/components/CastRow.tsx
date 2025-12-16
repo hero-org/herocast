@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { startTiming, endTiming } from '@/stores/usePerformanceStore';
 import { useChannelLookup } from '../hooks/useChannelLookup';
 import { castTextStyle } from '@/common/helpers/css';
@@ -114,6 +114,8 @@ interface CastRowProps {
   showAdminActions?: boolean;
   recastedByFid?: number;
   onCastClick?: () => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 const renderMention = ({ attributes, content }) => {
@@ -224,6 +226,8 @@ const CastRowComponent = ({
   showAdminActions = false,
   recastedByFid,
   onCastClick,
+  isExpanded = false,
+  onToggleExpand,
 }: CastRowProps) => {
   const router = useRouter();
   const { accounts, selectedAccountIdx, setSelectedChannelByName, setSelectedChannelUrl } = useAccountStore();
@@ -240,6 +244,15 @@ const CastRowComponent = ({
   const [didLike, setDidLike] = useState(false);
   const [didRecast, setDidRecast] = useState(false);
   const [isListDialogOpen, setIsListDialogOpen] = useState(false);
+
+  // For expandable text functionality
+  const textRef = useRef<HTMLDivElement>(null);
+  const [needsTruncation, setNeedsTruncation] = useState(false);
+  // Local expansion state for embeds (when no onToggleExpand provided)
+  const [localExpanded, setLocalExpanded] = useState(false);
+  // Use prop-based expansion if provided, otherwise use local state
+  const effectiveIsExpanded = onToggleExpand ? isExpanded : localExpanded;
+  const handleToggleExpand = onToggleExpand ?? (() => setLocalExpanded((prev) => !prev));
 
   const selectedAccount = accounts[selectedAccountIdx];
   const userFid = Number(selectedAccount?.platformAccountId);
@@ -488,6 +501,43 @@ const CastRowComponent = ({
     },
     [isSelected, cast]
   );
+
+  // Hotkey for expanding/collapsing text (only for non-embeds)
+  useAppHotkeys(
+    'x',
+    () => {
+      if (needsTruncation || effectiveIsExpanded) {
+        handleToggleExpand();
+      }
+    },
+    {
+      scopes: [HotkeyScopes.CAST_SELECTED],
+      enabled: !isEmbed && isSelected && (needsTruncation || effectiveIsExpanded),
+    },
+    [isEmbed, isSelected, needsTruncation, effectiveIsExpanded, handleToggleExpand]
+  );
+
+  // Detect if text overflows (needs truncation)
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+
+    const checkTruncation = () => {
+      // Compare scroll height vs client height to detect overflow
+      // Add small buffer (2px) to avoid false positives from rounding
+      const isTruncated = el.scrollHeight > el.clientHeight + 2;
+      setNeedsTruncation(isTruncated);
+    };
+
+    // Initial check
+    checkTruncation();
+
+    // Use ResizeObserver to detect content changes
+    const resizeObserver = new ResizeObserver(checkTruncation);
+    resizeObserver.observe(el);
+
+    return () => resizeObserver.disconnect();
+  }, [cast.text, effectiveIsExpanded]);
 
   const renderReaction = (key: CastReactionType, isActive: boolean, count?: number | string, icon?: JSX.Element) => {
     return (
@@ -906,6 +956,7 @@ const CastRowComponent = ({
               </div>
             )}
             <div
+              ref={textRef}
               onClick={(e) => {
                 e.stopPropagation();
                 if (onCastClick) {
@@ -914,11 +965,32 @@ const CastRowComponent = ({
                   onSelect && onSelect();
                 }
               }}
-              className="mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal"
+              className={cn(
+                'mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal',
+                !effectiveIsExpanded && 'line-clamp-6'
+              )}
               style={castTextStyle}
             >
               {processedText}
             </div>
+            {(needsTruncation || effectiveIsExpanded) && (
+              <div className="w-full text-left">
+                <TooltipProvider delayDuration={50}>
+                  <HotkeyTooltipWrapper hotkey={isEmbed ? '' : 'X'} side="right">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleExpand();
+                      }}
+                      className="text-muted-foreground hover:text-foreground text-sm hover:underline mt-1"
+                      aria-label={effectiveIsExpanded ? 'Collapse' : 'Expand'}
+                    >
+                      {effectiveIsExpanded ? 'show less' : 'read more...'}
+                    </button>
+                  </HotkeyTooltipWrapper>
+                </TooltipProvider>
+              </div>
+            )}
             {!isEmbed && renderEmbeds()}
             {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
           </div>
