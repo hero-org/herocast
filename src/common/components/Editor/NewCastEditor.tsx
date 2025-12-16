@@ -162,8 +162,11 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
       if (!isHydrated) return false;
 
       // Validate using EDITOR content (store may be stale before flush)
-      const currentText = getText();
-      if (!currentText && !embeds.length) return false;
+      const currentText = getText()?.trim();
+      if (!currentText && !embeds.length) {
+        toast.error('Cannot publish an empty cast');
+        return false;
+      }
 
       if (scheduleDateTime && !validateScheduledDateTime(scheduleDateTime)) {
         return false;

@@ -94,7 +94,7 @@ export function useCastEditor({
       bulletList: false,
       orderedList: false,
       listItem: false,
-      // Keep: document, text, paragraph, hardBreak, history, bold, italic, strike, code
+      // Keep hardBreak enabled - we block Mod-Enter via handleKeyDown instead
       hardBreak: {
         keepMarks: true,
       },
@@ -143,6 +143,20 @@ export function useCastEditor({
         class: 'outline-none min-h-[150px]',
       },
       ...editorOptions.editorProps,
+      // Block Mod-Enter from reaching TipTap's HardBreak extension
+      // Return true to stop ProseMirror processing, but DON'T call onSubmit here
+      // The DOM event still bubbles to react-hotkeys-hook which handles submission
+      handleKeyDown: (view, event) => {
+        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+          return true; // Block ProseMirror, let DOM event bubble to hotkey handler
+        }
+        // Delegate to any custom handler from editorOptions
+        const customHandler = editorOptions.editorProps?.handleKeyDown;
+        if (customHandler) {
+          return customHandler(view, event);
+        }
+        return false;
+      },
     },
     parseOptions: {
       preserveWhitespace: 'full',
