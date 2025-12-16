@@ -282,6 +282,9 @@ const store = (set: StoreSet) => ({
       );
       if (channel) {
         state.selectedChannelUrl = channel.url;
+      } else {
+        // Fallback: construct URL directly if channel not found in allChannels
+        state.selectedChannelUrl = `https://warpcast.com/~/channel/${name}`;
       }
     });
   },

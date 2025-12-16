@@ -5,6 +5,7 @@ import { castTextStyle } from '@/common/helpers/css';
 import { CastReactionType, createParentCastId, createEmbedCastId } from '@/common/constants/farcaster';
 import { ChannelType } from '@/common/constants/channels';
 import { useAccountStore } from '@/stores/useAccountStore';
+import { useRouter } from 'next/navigation';
 import {
   ArrowPathRoundedSquareIcon,
   ArrowTopRightOnSquareIcon,
@@ -148,23 +149,27 @@ const renderLink = ({ attributes, content }) => {
   );
 };
 
-const renderChannel = ({ content }) => {
+const renderChannel = ({ attributes, content }) => {
+  const { router } = attributes;
+  // Trim whitespace - linkify may include leading space in the match
+  const trimmedContent = content.trim();
+  // Extract channel name (remove leading /)
+  const channelName = trimmedContent.startsWith('/') ? trimmedContent.slice(1) : trimmedContent;
+
   return (
     <span
       className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
       onClick={(event) => {
         event.stopPropagation();
-        // Navigate to channel when clicked
         const { setSelectedChannelByName } = useAccountStore.getState();
-        const router = window.location;
-        setSelectedChannelByName(content.slice(1)); // Remove the / prefix
-        if (router.pathname !== '/feeds') {
-          window.location.href = '/feeds';
+        setSelectedChannelByName(channelName);
+        if (router) {
+          router.push('/feeds');
         }
       }}
       rel="noopener noreferrer"
     >
-      {content}
+      {trimmedContent}
     </span>
   );
 };
@@ -220,6 +225,7 @@ const CastRowComponent = ({
   recastedByFid,
   onCastClick,
 }: CastRowProps) => {
+  const router = useRouter();
   const { accounts, selectedAccountIdx, setSelectedChannelByName, setSelectedChannelUrl } = useAccountStore();
 
   const { setCastModalDraftId, setCastModalView, openNewCastModal } = useNavigationStore();
@@ -580,14 +586,14 @@ const CastRowComponent = ({
             as="span"
             options={{
               ...linkifyOptions,
-              attributes: { userFid, setSelectedChannelByName },
+              attributes: { userFid, setSelectedChannelByName, router },
             }}
           >
             {cast.text.trimEnd()}{' '}
           </Linkify>
         </ErrorBoundary>
       ) : null,
-    [cast.text, userFid, setSelectedChannelByName]
+    [cast.text, userFid, setSelectedChannelByName, router]
   );
 
   const renderEmbeds = () => {

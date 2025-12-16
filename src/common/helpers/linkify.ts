@@ -70,28 +70,16 @@ export function cashtagPlugin({ scanner, parser }) {
 export const CashtagToken = createTokenClass('cashtag', { isLink: true });
 
 export function channelPlugin({ scanner, parser }) {
-  const { SLASH, UNDERSCORE, WS } = scanner.tokens;
+  const { SLASH, UNDERSCORE, HYPHEN, WS } = scanner.tokens;
   const { alpha, numeric, alphanumeric, emoji } = scanner.tokens.groups;
 
-  // Initial state transitions for beginning of the text
-  const InitialSlash = parser.start.tt(SLASH);
-  const InitialHashPrefix = InitialSlash.tt(UNDERSCORE);
   const Channel = new State(ChannelToken);
 
-  // Define transitions for channels starting at the beginning of the text
-  InitialSlash.ta(numeric, InitialHashPrefix);
-  InitialSlash.ta(alpha, Channel);
-  InitialSlash.ta(emoji, Channel);
-  InitialHashPrefix.ta(alpha, Channel);
-  InitialHashPrefix.ta(emoji, Channel);
-  InitialHashPrefix.ta(numeric, InitialHashPrefix);
-  InitialHashPrefix.tt(UNDERSCORE, InitialHashPrefix);
-
-  // Transitions for channels preceded by whitespace
+  // Only match channels preceded by whitespace to prevent false positives
+  // like "changes/combines" matching "/combines"
   const BeforeSlash = parser.start.tt(WS).tt(SLASH);
   const HashPrefix = BeforeSlash.tt(UNDERSCORE);
 
-  // Define transitions
   BeforeSlash.ta(numeric, HashPrefix);
   BeforeSlash.ta(alpha, Channel);
   BeforeSlash.ta(emoji, Channel);
@@ -99,8 +87,14 @@ export function channelPlugin({ scanner, parser }) {
   HashPrefix.ta(emoji, Channel);
   HashPrefix.ta(numeric, HashPrefix);
   HashPrefix.tt(UNDERSCORE, HashPrefix);
+
+  // Continue channel with alphanumeric, underscore, hyphen, and emoji
+  Channel.ta(alpha, Channel);
+  Channel.ta(numeric, Channel);
   Channel.ta(alphanumeric, Channel);
   Channel.ta(emoji, Channel);
+  Channel.tt(UNDERSCORE, Channel);
+  Channel.tt(HYPHEN, Channel);
 }
 
 export const ChannelToken = createTokenClass('channel', { isLink: true });
