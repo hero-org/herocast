@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Key } from 'ts-key-enum';
 import isEmpty from 'lodash.isempty';
@@ -18,16 +18,11 @@ type SelectableListWithHotkeysProps = {
   isActive?: boolean;
   onDown?: () => void;
   onUp?: () => void;
-  // New optional props for pinned navigation
   pinnedNavigation?: boolean;
   containerHeight?: string;
-  // Optional scopes for explicit scope injection
   scopes?: HotkeyScope[];
-  // Optional footer to render inside scroll container
   footer?: React.ReactNode;
-  // Estimated item height for virtualization (defaults to 250px for cast rows)
   estimatedItemHeight?: number;
-  // Optional function to generate unique keys for items
   getItemKey?: (item: any, index: number) => string;
 };
 
@@ -42,35 +37,51 @@ export const SelectableListWithHotkeys = ({
   onDown,
   onUp,
   isActive = true,
-  // Default to false for backward compatibility
   pinnedNavigation = false,
   containerHeight = '80vh',
   scopes,
   footer,
   estimatedItemHeight = 250,
-  getItemKey,
+  getItemKey: externalGetItemKey,
 }: SelectableListWithHotkeysProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname() || '/';
   const pageScopes = scopes ?? getScopesForPage(pathname);
 
-  // Set up virtualizer for efficient rendering of large lists
-  // Use content-aware height estimation for better accuracy
+  // Track first item to detect feed refresh (not pagination)
+  const firstItemKey = useMemo(() => {
+    if (data.length === 0) return null;
+    return data[0]?.hash || data[0]?.id || null;
+  }, [data]);
+
   const virtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => containerRef.current,
-    estimateSize: (index) => {
+    estimateSize: () => estimatedItemHeight,
+    overscan: 5,
+    getItemKey: (index) => {
       const item = data[index];
-      // Check if item has embeds (cast embeds, images, links)
-      const hasEmbeds = item?.embeds?.length > 0;
-      const hasCastEmbed = item?.embeds?.some((e: any) => e.cast_id || e.castId);
-
-      if (hasCastEmbed) return 450; // Embedded casts are tallest
-      if (hasEmbeds) return 350; // Images/links
-      return 180; // Text-only casts
+      return item?.hash || item?.id || `idx-${index}`;
     },
-    overscan: 5, // Render 5 items above and below the visible area for smooth scrolling
   });
+
+  // Only reset when first item changes (feed refresh), not on pagination
+  const prevFirstItemKeyRef = useRef<string | null>(null);
+  useLayoutEffect(() => {
+    const shouldReset =
+      prevFirstItemKeyRef.current !== null &&
+      firstItemKey !== null &&
+      prevFirstItemKeyRef.current !== firstItemKey;
+
+    if (shouldReset) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Virtualizer] Feed refreshed, resetting');
+      }
+      virtualizer.scrollToIndex(0, { align: 'start', behavior: 'auto' });
+      virtualizer.measure();
+    }
+    prevFirstItemKeyRef.current = firstItemKey;
+  }, [firstItemKey, virtualizer]);
 
   // Scroll to selected item when selectedIdx changes
   useLayoutEffect(() => {
@@ -142,53 +153,43 @@ export const SelectableListWithHotkeys = ({
 
   const virtualItems = virtualizer.getVirtualItems();
 
-  // Create the virtualized list content
-  const content = (
-    <div
-      role="list"
-      style={{
-        height: `${virtualizer.getTotalSize()}px`,
-        width: '100%',
-        position: 'relative',
-      }}
-    >
-      {virtualItems.map((virtualItem) => {
-        const item = data[virtualItem.index];
-        const idx = virtualItem.index;
-        if (!item) return null;
-
-        return (
-          <div
-            key={
-              getItemKey
-                ? getItemKey(item, idx)
-                : `row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`
-            }
-            data-index={virtualItem.index}
-            ref={virtualizer.measureElement}
-            style={{
-              position: 'absolute',
-              top: `${virtualItem.start}px`,
-              left: 0,
-              width: '100%',
-            }}
-          >
-            {renderRow(item, idx)}
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  // Return either a scrollable container or the direct list based on pinnedNavigation setting
-  return pinnedNavigation ? (
+  return (
     <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight, width: '100%' }}>
-      {content}
-      {footer && footer}
-    </div>
-  ) : (
-    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight, width: '100%' }}>
-      {content}
+      <div
+        role="list"
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualItems.map((virtualItem) => {
+          const item = data[virtualItem.index];
+          const idx = virtualItem.index;
+          if (!item) return null;
+
+          return (
+            <div
+              key={
+                externalGetItemKey
+                  ? externalGetItemKey(item, idx)
+                  : `row-id-${item?.hash || item?.id || item?.url || item?.name || item?.most_recent_timestamp}`
+              }
+              data-index={virtualItem.index}
+              ref={virtualizer.measureElement}
+              style={{
+                position: 'absolute',
+                top: `${virtualItem.start}px`,
+                left: 0,
+                width: '100%',
+              }}
+            >
+              {renderRow(item, idx)}
+            </div>
+          );
+        })}
+      </div>
+      {pinnedNavigation && footer}
     </div>
   );
 };

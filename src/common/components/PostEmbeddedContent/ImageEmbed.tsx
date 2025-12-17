@@ -27,7 +27,7 @@ export const ImageEmbed = ({ url }: { url: string }) => {
 
   const renderLoadingPlaceholder = () => {
     return (
-      <Skeleton className="h-36 w-48 object-left relative block rounded-lg py-10 text-center">
+      <Skeleton className="h-48 md:h-72 w-48 object-left relative block rounded-lg py-10 text-center">
         <PhotoIcon className="mx-auto h-12 w-12 text-foreground/70" />
         <Label>Loading image...</Label>
       </Skeleton>
@@ -35,7 +35,7 @@ export const ImageEmbed = ({ url }: { url: string }) => {
   };
 
   return (
-    <div>
+    <div className="min-h-48 md:min-h-72">
       <img
         className="max-h-48 md:max-h-72 object-left rounded-md"
         style={{ display: isLoading ? 'none' : 'block' }}

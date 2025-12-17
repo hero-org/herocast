@@ -333,6 +333,9 @@ export default function Feeds() {
       if (!document.hidden) {
         const timeSinceLastUpdate = Date.now() - lastUpdateTimeRef.current;
         if (timeSinceLastUpdate >= ONE_MINUTE_IN_MS) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[Feed] Visibility change: refreshing feed after', Math.round(timeSinceLastUpdate / 1000), 'seconds');
+          }
           refreshFeed();
         } else {
           if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
@@ -439,6 +442,7 @@ export default function Feeds() {
       containerHeight="100%"
       scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
       footer={!isEmpty(casts) ? renderLoadMoreButton() : null}
+      estimatedItemHeight={400}
     />
   );
 
