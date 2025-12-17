@@ -21,7 +21,7 @@ export function createClient(): SupabaseClient<Database> {
     }
     throw new Error(
       "Your project's URL and Key are required to create a Supabase client!\n\n" +
-        'Check your Supabase project\'s API settings to find these values\n\n' +
+        "Check your Supabase project's API settings to find these values\n\n" +
         'https://supabase.com/dashboard/project/_/settings/api'
     );
   }

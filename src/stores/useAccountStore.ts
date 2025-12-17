@@ -164,7 +164,9 @@ const store = (set: StoreSet) => ({
       console.log('adding account to DB', account);
 
       // Get the current max display_order for this user
-      const { data: { user } } = await getSupabaseClient().auth.getUser();
+      const {
+        data: { user },
+      } = await getSupabaseClient().auth.getUser();
       const { data: maxOrderData } = await getSupabaseClient()
         .from('accounts')
         .select('display_order')
@@ -485,7 +487,11 @@ const store = (set: StoreSet) => ({
 
     console.log('done hydrating complete 🌊 full functionality ready');
   },
-  updateAccountProperty: (accountId: string, property: keyof AccountObjectType, value: AccountObjectType[keyof AccountObjectType]) => {
+  updateAccountProperty: (
+    accountId: string,
+    property: keyof AccountObjectType,
+    value: AccountObjectType[keyof AccountObjectType]
+  ) => {
     set((state) => {
       const accountIdx = state.accounts.findIndex((acc) => acc.id === accountId);
       if (accountIdx !== -1) {

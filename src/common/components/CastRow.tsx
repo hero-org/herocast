@@ -1001,9 +1001,15 @@ const CastRowComponent = ({
 
   if (isEmbed) {
     return (
-      <Link href={`/conversation/${cast.hash}`} prefetch={false}>
+      <div
+        className="cursor-pointer"
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest('a')) return;
+          router.push(`/conversation/${cast.hash}`);
+        }}
+      >
         {renderCastContent()}
-      </Link>
+      </div>
     );
   }
 

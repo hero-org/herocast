@@ -9,9 +9,11 @@ This document captures the context and implementation plan for fixing the drag-a
 ## Current Status: STILL BROKEN
 
 ### The Core Problem
+
 After @dnd-kit drag-and-drop reorder, TipTap editors don't render the correct content **even though store data is correct**.
 
 **Evidence:**
+
 - Editors appear empty after reorder
 - Page refresh shows content correctly
 - This is a **TipTap/React rendering issue**, not a data loss issue
@@ -21,9 +23,11 @@ After @dnd-kit drag-and-drop reorder, TipTap editors don't render the correct co
 ## All Attempted Solutions (NONE WORKED)
 
 ### Attempt 1: Controlled Editor Pattern
+
 **Idea**: Make store the single source of truth, sync immediately on every keystroke.
 
 **Implementation**:
+
 - Added `onContentChange` callback to `useCastEditor.ts`
 - Used ref to avoid stale closure in TipTap's cached callbacks
 - Removed debounced sync mechanism
@@ -34,9 +38,11 @@ After @dnd-kit drag-and-drop reorder, TipTap editors don't render the correct co
 ---
 
 ### Attempt 2: Key-based Force Remount (Solution A)
+
 **Idea**: Add `key={draft.id}` to force React to recreate editor when draft changes.
 
 **Implementation**:
+
 ```tsx
 <NewCastEditor key={draft.id} draft={draft} ... />
 ```
@@ -46,9 +52,11 @@ After @dnd-kit drag-and-drop reorder, TipTap editors don't render the correct co
 ---
 
 ### Attempt 3: Remove Dynamic Import
+
 **Idea**: Dynamic imports cause component suspension and recreation during drag.
 
 **Implementation**:
+
 ```tsx
 // Changed from:
 const NewCastEditor = dynamic(() => import('...'), { ssr: false });
@@ -62,9 +70,11 @@ import NewCastEditor from '@/common/components/Editor/NewCastEditor';
 ---
 
 ### Attempt 4: Initialization Guard
+
 **Idea**: TipTap fires `onUpdate` with empty content before effect sets content.
 
 **Implementation**:
+
 ```tsx
 const hasSetInitialContentRef = useRef(false);
 
@@ -79,9 +89,11 @@ const handleContentChange = (text: string) => {
 ---
 
 ### Attempt 5: External Change Detection
+
 **Idea**: Detect when store changes externally (from reorder) and update editor.
 
 **Implementation**:
+
 ```tsx
 const lastSetTextRef = useRef(draft.text);
 
@@ -98,9 +110,11 @@ useEffect(() => {
 ---
 
 ### Attempt 6: Stale Closure Fix with Refs
+
 **Idea**: TipTap caches initial `onUpdate`, use ref to always get latest callback.
 
 **Implementation**:
+
 ```tsx
 const onContentChangeRef = useRef(onContentChange);
 useEffect(() => {
@@ -120,6 +134,7 @@ onContentChangeRef.current?.(text);
 ### Why Key-based Approach Fails
 
 With `key={draft.id}`:
+
 1. Draft A at position 0, Draft B at position 1
 2. User drags to reorder: B moves to position 0, A moves to position 1
 3. `getThreadDrafts()` returns [B, A] instead of [A, B]
@@ -132,6 +147,7 @@ With `key={draft.id}`:
 8. Editor appears blank or wrong content
 
 ### The Real Problem
+
 **React's key reconciliation preserves components and moves them in the DOM. TipTap doesn't handle DOM container moves gracefully.**
 
 ---
@@ -139,6 +155,7 @@ With `key={draft.id}`:
 ## NUCLEAR SOLUTION: Force Remount All Editors
 
 ### The Approach
+
 Change keys after EVERY reorder so React DESTROYS and RECREATES all editor components.
 
 ```tsx
@@ -169,6 +186,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 ```
 
 ### Why This Works
+
 1. After reorder, `reorderVersion` increments
 2. ALL keys change: `draftA-0` → `draftA-1`, `draftB-0` → `draftB-1`
 3. React sees completely different keys = DESTROY all old components
@@ -177,6 +195,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 6. Content renders correctly
 
 ### Tradeoffs
+
 - **Pros**: Guaranteed to work, simple to understand
 - **Cons**: Brief flicker during remount, loses focus/cursor position
 
@@ -193,24 +212,27 @@ const handleDragEnd = (event: DragEndEvent) => {
 
 ## Files Modified So Far
 
-| File | Changes |
-|------|---------|
-| `useCastEditor.ts` | Added `onContentChange` callback with ref |
-| `NewCastEditor.tsx` | Removed debounce, added controlled sync, guards |
-| `ThreadComposer/index.tsx` | Simplified handleDragEnd |
-| `ThreadPostCard.tsx` | Removed dynamic import, added key={draft.id} |
+| File                       | Changes                                         |
+| -------------------------- | ----------------------------------------------- |
+| `useCastEditor.ts`         | Added `onContentChange` callback with ref       |
+| `NewCastEditor.tsx`        | Removed debounce, added controlled sync, guards |
+| `ThreadComposer/index.tsx` | Simplified handleDragEnd                        |
+| `ThreadPostCard.tsx`       | Removed dynamic import, added key={draft.id}    |
 
 ---
 
 ## Original Context
 
 ### GitHub Issue #666 Goal
+
 Unify single cast editor and thread composer:
+
 - **Cmd+Enter**: Adds a new cast to the thread
 - **Cmd+Shift+Enter**: Publishes single cast or thread
 - **Scheduling**: Only visible when thread has exactly 1 post
 
 ### What Was Successfully Implemented
+
 1. ✅ Replaced `react-easy-sort` with `@dnd-kit/sortable`
 2. ✅ Added drag handles on avatars
 3. ✅ Publishing overlay dialog with progress
@@ -219,4 +241,5 @@ Unify single cast editor and thread composer:
 6. ✅ Channel selector for first post
 
 ### The Bug We're Fixing
+
 When dragging to reorder posts in a thread, editors don't show the correct content (even though store has correct data).

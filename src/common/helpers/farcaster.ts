@@ -646,7 +646,7 @@ export async function formatPlaintextToHubCastMessage({
   parentUrl?: string;
   parentCastFid?: number;
   parentCastHash?: string;
-}): Promise<CastAddBody | false> {
+}): Promise<Omit<CastAddBody, 'type'> | false> {
   // Check against maximum allowed embeds
   if (embeds.length > FARCASTER_MAX_EMBEDS) {
     return false;
@@ -739,10 +739,10 @@ export async function formatPlaintextToHubCastMessage({
           }
         : {}),
     embeds: embeds.map((embed) => {
-      if (isFarcasterCastIdEmbed(embed) && embed.castId) {
+      if ('castId' in embed && embed.castId) {
         return { castId: embed.castId };
       }
-      if (isFarcasterUrlEmbed(embed) && embed.url) {
+      if ('url' in embed && embed.url) {
         return { url: embed.url };
       }
       return embed;

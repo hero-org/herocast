@@ -2,9 +2,12 @@
 module.exports = {
   testEnvironment: 'node',
   transform: {
-    '^.+.tsx?$': ['ts-jest', {}],
+    '^.+\\.tsx?$': ['ts-jest', {}],
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '\\.(css|less|scss|sass)$': '<rootDir>/__mocks__/styleMock.js',
+    '.*/rainbowkit$': '<rootDir>/__mocks__/rainbowkitMock.js',
+    '^@paywithglide/glide-js$': '<rootDir>/__mocks__/glideMock.js',
   },
 };

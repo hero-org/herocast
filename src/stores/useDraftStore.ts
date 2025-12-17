@@ -47,8 +47,8 @@ const prepareCastBodyForDB = (castBody) => {
   return castBody;
 };
 
-// Custom type for prepared cast body - uses string hash for parentCastId to match submitCast expectations
-type PreparedCastBody = Omit<CastAddBody, 'parentCastId'> & {
+// Custom type for prepared cast body - uses string hash for parentCastId, type is added by submitCast
+type PreparedCastBody = Omit<CastAddBody, 'parentCastId' | 'type'> & {
   parentCastId?: {
     fid: number;
     hash: string; // Hex string - submitCast will convert to bytes
@@ -69,7 +69,7 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
     throw new Error('Failed to prepare cast');
   }
 
-  // Build result with proper types
+  // Build result with proper types (type is added by submitCast based on isPro)
   const result: PreparedCastBody = {
     text: castBody.text,
     embeds: castBody.embeds,
@@ -77,7 +77,6 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
     mentions: castBody.mentions,
     mentionsPositions: castBody.mentionsPositions,
     parentUrl: castBody.parentUrl,
-    type: castBody.type,
   };
 
   if (castBody.parentCastId) {
@@ -388,7 +387,11 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  publishDraftById: async (draftId: string, account: AccountObjectType, onPost?: () => void): Promise<string | null> => {
+  publishDraftById: async (
+    draftId: string,
+    account: AccountObjectType,
+    onPost?: () => void
+  ): Promise<string | null> => {
     // Get current state snapshot outside set()
     const draft = useDraftStore.getState().drafts.find((d) => d.id === draftId);
     if (!draft) {

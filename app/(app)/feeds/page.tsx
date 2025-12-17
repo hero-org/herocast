@@ -334,7 +334,11 @@ export default function Feeds() {
         const timeSinceLastUpdate = Date.now() - lastUpdateTimeRef.current;
         if (timeSinceLastUpdate >= ONE_MINUTE_IN_MS) {
           if (process.env.NODE_ENV === 'development') {
-            console.log('[Feed] Visibility change: refreshing feed after', Math.round(timeSinceLastUpdate / 1000), 'seconds');
+            console.log(
+              '[Feed] Visibility change: refreshing feed after',
+              Math.round(timeSinceLastUpdate / 1000),
+              'seconds'
+            );
           }
           refreshFeed();
         } else {

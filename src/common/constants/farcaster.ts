@@ -100,8 +100,8 @@ export type DraftType = {
   threadIndex?: number;
 };
 
-// drafttype without createdAt
-export type DraftTemplateType = Omit<DraftType, 'createdAt'>;
+// Template type for draft presets - omits runtime-generated fields
+export type DraftTemplateType = Omit<DraftType, 'id' | 'createdAt'>;
 
 // Thread constants
 export const MAX_THREAD_POSTS = 10;

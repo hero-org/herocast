@@ -12,14 +12,7 @@ import { SearchIcon, AtSymbolIcon, ArrowPathRoundedSquareIcon } from '@heroicons
 import { useRecentCommands } from '@/common/hooks/useRecentCommands';
 import { findCommandByAlias } from '@/common/constants/commandAliases';
 import styles from './CommandPalette.module.css';
-import {
-  PayCasterBotPayDraft,
-  PayCasterBotRequestDraft,
-  RemindMeBotDraft,
-  BountyCasterBotDraft,
-  LaunchCasterScoutDraft,
-  NewFeedbackPostDraft,
-} from '@/common/constants/postDrafts';
+import { NewFeedbackPostDraft } from '@/common/constants/postDrafts';
 import {
   Command,
   CommandEmpty,
@@ -39,7 +32,6 @@ import { getNavigationCommands } from '@/getNavigationCommands';
 import { useTheme } from 'next-themes';
 import { getThemeCommands } from '@/getThemeCommands';
 import { formatShortcut } from '@/common/helpers/text';
-import { DraftType, createParentCastId } from '@/common/constants/farcaster';
 import { useDataStore } from '@/stores/useDataStore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
@@ -69,43 +61,11 @@ const createFarcasterBotCommand = (name: string, action: () => void, navigateTo?
 const getFarcasterBotCommands = (): CommandType[] => {
   if (cachedFarcasterBotCommands) return cachedFarcasterBotCommands;
 
-  const addNewPostDraftWithSelectedCast = (draft: DraftType) => {
-    const { selectedCast } = useDataStore.getState();
-    if (!selectedCast) return;
-
-    const { addNewPostDraft } = useDraftStore.getState();
-    addNewPostDraft({
-      ...draft,
-      parentCastId: createParentCastId(
-        selectedCast.author.fid,
-        selectedCast.hash,
-        'CommandPalette.addNewPostDraftWithSelectedCast'
-      ),
-    });
-
-    const { openNewCastModal, setCastModalView } = useNavigationStore.getState();
-    setCastModalView(CastModalView.Reply);
-    openNewCastModal();
-  };
-
   cachedFarcasterBotCommands = [
     createFarcasterBotCommand(
       'Feedback (send cast to @hellno)',
       () => useDraftStore.getState().addNewPostDraft(NewFeedbackPostDraft),
       '/post'
-    ),
-    createFarcasterBotCommand('Launch this cast on Launchcaster', () =>
-      addNewPostDraftWithSelectedCast(LaunchCasterScoutDraft)
-    ),
-    createFarcasterBotCommand(
-      'Post new bounty',
-      () => useDraftStore.getState().addNewPostDraft(BountyCasterBotDraft),
-      '/post'
-    ),
-    createFarcasterBotCommand('Remind me about this', () => addNewPostDraftWithSelectedCast(RemindMeBotDraft)),
-    createFarcasterBotCommand('Pay user via paybot', () => addNewPostDraftWithSelectedCast(PayCasterBotPayDraft)),
-    createFarcasterBotCommand('Request payment via paybot', () =>
-      addNewPostDraftWithSelectedCast(PayCasterBotRequestDraft)
     ),
   ];
 

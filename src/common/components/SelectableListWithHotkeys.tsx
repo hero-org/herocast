@@ -69,9 +69,7 @@ export const SelectableListWithHotkeys = ({
   const prevFirstItemKeyRef = useRef<string | null>(null);
   useLayoutEffect(() => {
     const shouldReset =
-      prevFirstItemKeyRef.current !== null &&
-      firstItemKey !== null &&
-      prevFirstItemKeyRef.current !== firstItemKey;
+      prevFirstItemKeyRef.current !== null && firstItemKey !== null && prevFirstItemKeyRef.current !== firstItemKey;
 
     if (shouldReset) {
       if (process.env.NODE_ENV === 'development') {
