@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { createClient } from '../helpers/supabase/component';
 import { User } from '@supabase/supabase-js';
 import { useRouter, usePathname } from 'next/navigation';
@@ -11,15 +11,24 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-const supabaseClient = createClient();
 
 export const AuthProvider = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [didLoad, setDidLoad] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const supabaseClientRef = useRef<ReturnType<typeof createClient> | null>(null);
+
+  // Lazily initialize Supabase client only on client-side
+  const getSupabaseClient = () => {
+    if (!supabaseClientRef.current) {
+      supabaseClientRef.current = createClient();
+    }
+    return supabaseClientRef.current;
+  };
 
   useEffect(() => {
+    const supabaseClient = getSupabaseClient();
     supabaseClient.auth.getUser().then((res) => {
       setUser(res.data.user || null);
       setDidLoad(true);
