@@ -475,7 +475,7 @@ export default function NewPost() {
           </div>
         </div>
       )}
-      <div className="flex flex-col">
+      <div className="flex flex-col h-full min-h-0">
         {/* This triggers the drafts modal. Should only be rendered on screens below XL */}
         {isBelowLgScreen && (
           <div className="p-4 pb-0 block xl:hidden">

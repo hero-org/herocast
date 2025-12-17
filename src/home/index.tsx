@@ -494,7 +494,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               </div>
             </div>
             <div className="h-full flex">
-              <div className="flex-1 h-full flex flex-col min-w-0">
+              <div className="flex-1 h-full flex flex-col min-w-0 min-h-0">
                 {/* Header */}
                 {!hideTitlebar && (title || headerActions) && (
                   <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4 min-w-0">
@@ -524,7 +524,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                     </div>
                   </div>
                 )}
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 min-h-0 overflow-hidden">
                   {pageRequiresHydrate && !isHydrated ? (
                     <div className="pl-4">
                       <Loading loadingMessage="Loading herocast" />
