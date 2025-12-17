@@ -85,7 +85,7 @@ const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAcc
 };
 
 export default function NewPost() {
-  const { drafts, addNewPostDraft, removePostDraftById, removeEmptyDrafts } = useDraftStore();
+  const { drafts, addNewPostDraft, removePostDraftById, removeEmptyDrafts, getThreadDrafts } = useDraftStore();
   const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
@@ -203,7 +203,13 @@ export default function NewPost() {
   };
 
   const onRemove = (draft: DraftType) => {
-    removePostDraftById(draft.id);
+    // Remove entire thread, not just the single draft
+    if (draft.threadId) {
+      const threadDrafts = getThreadDrafts(draft.threadId);
+      threadDrafts.forEach((d) => removePostDraftById(d.id));
+    } else {
+      removePostDraftById(draft.id);
+    }
   };
 
   const onDuplicate = (draft: DraftType) => {

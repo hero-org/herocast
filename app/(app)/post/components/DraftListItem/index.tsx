@@ -55,17 +55,20 @@ const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSele
               <DocumentDuplicateIcon className="h-4 w-4" />
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
+          <button
+            className={cn(
+              'flex items-center justify-center h-6 w-6 rounded',
+              'text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10',
+              'transition-colors'
+            )}
             onClick={(e) => {
               e.stopPropagation();
               onRemove(draft);
             }}
+            title={isThread ? 'Delete thread' : 'Delete draft'}
           >
             <TrashIcon className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       </div>
       <div className="flex items-center text-xs text-muted-foreground">
