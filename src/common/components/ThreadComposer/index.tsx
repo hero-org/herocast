@@ -348,8 +348,7 @@ export default function ThreadComposer({ threadId, parentCast, onPublishSuccess 
               <DialogHeader>
                 <DialogTitle>Import from notes</DialogTitle>
                 <DialogDescription>
-                  Paste your long text and it will be automatically split into thread posts. Splits on paragraph breaks
-                  or at ~{MAX_POST_LENGTH} characters.
+                  Paste your long text and it will be automatically split into thread posts
                 </DialogDescription>
               </DialogHeader>
               <Textarea
@@ -359,7 +358,7 @@ export default function ThreadComposer({ threadId, parentCast, onPublishSuccess 
                 className="min-h-[200px]"
               />
               <span className="text-sm text-muted-foreground">
-                Splits on paragraph breaks or at ~{MAX_POST_LENGTH} characters.
+                Splits on paragraph breaks or at ~{MAX_POST_LENGTH} characters
               </span>
               <DialogFooter className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
