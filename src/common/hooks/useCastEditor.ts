@@ -35,6 +35,8 @@ type UseCastEditorProps = {
     suggestion: Record<string, unknown>;
   };
   editorOptions?: Partial<EditorOptions>;
+  /** Called immediately on every content change - use for controlled sync to store */
+  onContentChange?: (text: string) => void;
 };
 
 type UseCastEditorReturn = {
@@ -59,11 +61,18 @@ export function useCastEditor({
   renderMentionsSuggestionConfig,
   renderChannelsSuggestionConfig,
   editorOptions = {},
+  onContentChange,
 }: UseCastEditorProps): UseCastEditorReturn {
   // State managed HERE - single source of truth
   const [embeds, setEmbedsState] = useState<FarcasterEmbed[]>([]);
   const [channel, setChannelState] = useState<ModChannel | null>(null);
   const [removedUrls, setRemovedUrls] = useState<Set<string>>(new Set());
+
+  // Ref to avoid stale closure - TipTap caches onUpdate at creation
+  const onContentChangeRef = useRef(onContentChange);
+  useEffect(() => {
+    onContentChangeRef.current = onContentChange;
+  }, [onContentChange]);
 
   // Refs for stable callbacks
   const embedsRef = useRef<FarcasterEmbed[]>([]);
@@ -161,7 +170,13 @@ export function useCastEditor({
     parseOptions: {
       preserveWhitespace: 'full',
     },
-    onUpdate: editorOptions.onUpdate,
+    onUpdate: (props) => {
+      if (onContentChangeRef.current) {
+        const text = props.editor.getText({ blockSeparator: '\n' });
+        onContentChangeRef.current(text);
+      }
+      editorOptions.onUpdate?.(props);
+    },
     onCreate: editorOptions.onCreate,
     onDestroy: editorOptions.onDestroy,
     onFocus: editorOptions.onFocus,

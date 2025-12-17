@@ -215,19 +215,8 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {
           name: 'Post',
           router: '/post',
-          getHeaderActions: () => [
-            {
-              name: (
-                <>
-                  {' '}
-                  <PencilSquareIcon className="w-5 h-5 mr-2" />
-                  New draft
-                </>
-              ),
-              onClick: () => addNewPostDraft({ force: true }),
-            },
-          ],
           icon: <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          hideTitlebar: true,
         },
         {
           name: 'DMs',

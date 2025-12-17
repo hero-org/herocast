@@ -1,18 +1,18 @@
 'use client';
 
 import { useDraftStore } from '@/stores/useDraftStore';
-import React, { useEffect, useMemo, useState, useRef, Suspense } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Loading } from '@/common/components/Loading';
 import dynamic from 'next/dynamic';
+import { UUID } from 'crypto';
 
-// Dynamic import with loading fallback
-const NewPostEntry = dynamic(() => import('@/common/components/Editor/NewCastEditor'), {
-  loading: () => <Loading loadingMessage="Loading editor" />,
+// Dynamic imports with loading fallback
+const ThreadComposer = dynamic(() => import('@/common/components/ThreadComposer'), {
+  loading: () => <Loading loadingMessage="Loading thread composer" />,
   ssr: false,
 });
-import { ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ClockIcon } from '@heroicons/react/24/outline';
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
-import DraftListItem from './components/DraftListItem';
 import DraftList from './components/DraftList';
 import { Button } from '@/components/ui/button';
 import { CastRow } from '@/common/components/CastRow';
@@ -20,18 +20,13 @@ import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { formatDistanceToNow } from 'date-fns';
 import { DraftStatus, DraftType } from '@/common/constants/farcaster';
 import map from 'lodash.map';
 import { renderEmbedForUrl } from '@/common/components/Embeds';
-import { getUserLocaleDateFromIsoString, localize } from '@/common/helpers/date';
+import { getUserLocaleDateFromIsoString } from '@/common/helpers/date';
 import { ChannelDisplay } from '@/common/components/ChannelDisplay';
-import { UUID } from 'crypto';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import { useSearchParams, usePathname } from 'next/navigation';
 import EmptyStateWithAction from '@/common/components/EmptyStateWithAction';
 import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
@@ -61,8 +56,19 @@ const DraftListTabs = [
 
 const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAccountId?: UUID) => {
   switch (activeTab) {
-    case DraftListTab.writing:
-      return drafts.filter((draft) => draft.status === DraftStatus.writing || draft.status === DraftStatus.publishing);
+    case DraftListTab.writing: {
+      // Filter to writing/publishing status, then deduplicate by threadId (show first post of each thread)
+      const writingDrafts = drafts.filter(
+        (draft) => draft.status === DraftStatus.writing || draft.status === DraftStatus.publishing
+      );
+      const seenThreadIds = new Set<string>();
+      return writingDrafts.filter((draft) => {
+        if (!draft.threadId) return true; // Keep drafts without threadId
+        if (seenThreadIds.has(draft.threadId)) return false; // Skip duplicates
+        seenThreadIds.add(draft.threadId);
+        return true;
+      });
+    }
     case DraftListTab.scheduled:
       return drafts
         .filter(
@@ -84,7 +90,7 @@ export default function NewPost() {
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
   const [activeTab, setActiveTab] = useState<DraftListTab>(DraftListTab.writing);
-  const router = useRouter();
+
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const savedPathname = useRef(pathname);
@@ -188,8 +194,12 @@ export default function NewPost() {
   };
 
   const handleNewDraft = () => {
-    addNewPostDraft({});
-    setActiveTab(DraftListTab.writing);
+    addNewPostDraft({
+      onSuccess: (draftId, threadId) => {
+        setSelectedDraftId(draftId);
+        setActiveTab(DraftListTab.writing);
+      },
+    });
   };
 
   const onRemove = (draft: DraftType) => {
@@ -202,7 +212,7 @@ export default function NewPost() {
       text: draft.text,
       parentUrl: draft.parentUrl,
       embeds: draft.embeds,
-      onSuccess: (newDraftId) => {
+      onSuccess: (newDraftId, newThreadId) => {
         // Switch to writing tab and select the new draft
         setActiveTab(DraftListTab.writing);
         setSelectedDraftId(newDraftId);
@@ -220,6 +230,8 @@ export default function NewPost() {
       <span>New draft</span>
     </Button>
   );
+
+  const renderDraftActions = () => <div className="flex items-center gap-2">{renderNewDraftButton()}</div>;
 
   const renderEmptyMainContent = () => (
     <div className="flex flex-col items-center justify-center pt-2 pb-6 w-full h-full min-h-[400px]">
@@ -243,13 +255,17 @@ export default function NewPost() {
   );
 
   const renderWritingDraft = (draft?: DraftType) => {
-    if (!draft) return renderEmptyMainContent();
+    if (!draft || !draft.threadId) return renderEmptyMainContent();
 
     const parentCast = parentCasts.find((cast) => cast.hash === draft.parentCastId?.hash);
+
     return (
-      <div key={draft.id} className="pt-2 pb-6">
-        {parentCast && <CastRow cast={parentCast} />}
-        <NewPostEntry draft={draft} onPost={() => resetSelectedDraftId()} />
+      <div className="h-full min-h-0 flex flex-col">
+        <ThreadComposer
+          threadId={draft.threadId}
+          parentCast={parentCast}
+          onPublishSuccess={() => resetSelectedDraftId()}
+        />
       </div>
     );
   };
@@ -325,7 +341,7 @@ export default function NewPost() {
 
   const renderDraftList = () => {
     if (draftsForTab.length === 0) {
-      return renderScrollableList(<div className="flex justify-center py-4">{renderNewDraftButton()}</div>);
+      return renderScrollableList(<div className="flex justify-center py-4">{renderDraftActions()}</div>);
     }
 
     return renderScrollableList(
@@ -338,7 +354,6 @@ export default function NewPost() {
           onRemove={onRemove}
           isActive={activeTab === DraftListTab.writing}
         />
-        <div className="mt-4 flex justify-center">{renderNewDraftButton()}</div>
       </>
     );
   };
@@ -467,7 +482,7 @@ export default function NewPost() {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto px-4 py-0 flex flex-col">{renderContent()}</div>
+        <div className="flex-1 min-h-0 px-4 py-0 flex flex-col">{renderContent()}</div>
       </div>
       {/* The drafts modal should only be rendered on screens below XL */}
       {isBelowLgScreen && renderDraftsModal()}

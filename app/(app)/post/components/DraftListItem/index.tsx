@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { DraftStatus, DraftType } from '@/common/constants/farcaster';
 import { getUserLocaleDateFromIsoString } from '@/common/helpers/date';
 import { ChannelDisplay } from '@/common/components/ChannelDisplay';
+import { useDraftStore } from '@/stores/useDraftStore';
 
 type DraftListItemProps = {
   draft: DraftType;
@@ -18,6 +19,10 @@ type DraftListItemProps = {
 };
 
 const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSelect, onRemove, onDuplicate }) => {
+  const { getThreadDrafts } = useDraftStore();
+  const threadDrafts = draft.threadId ? getThreadDrafts(draft.threadId) : [];
+  const isThread = threadDrafts.length > 1;
+
   return (
     <div
       className={cn(
@@ -33,6 +38,7 @@ const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSele
           <span className="text-sm font-medium truncate max-w-[180px]">
             {draft.text ? draft.text.substring(0, 30) + (draft.text.length > 30 ? '...' : '') : 'New draft'}
           </span>
+          {isThread && <span className="text-xs text-muted-foreground">({threadDrafts.length} posts)</span>}
         </div>
         <div className="flex items-center gap-1">
           {onDuplicate && (draft.status === DraftStatus.scheduled || draft.status === DraftStatus.published) && (

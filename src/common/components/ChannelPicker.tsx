@@ -32,6 +32,8 @@ type Props = {
   value?: Channel;
   initialChannels?: Channel[];
   disabled?: boolean;
+  /** Show only icon without text label */
+  compact?: boolean;
 };
 
 export function ChannelPicker(props: Props) {
@@ -150,12 +152,13 @@ export function ChannelPicker(props: Props) {
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
-          className="h-9 px-4"
+          className={props.compact ? 'h-8 w-8 p-0' : 'h-9 px-4'}
           disabled={props.disabled}
-          variant="outline"
+          variant={props.compact ? 'ghost' : 'outline'}
           role="combobox"
           aria-expanded={open}
           type="button"
+          title={displayChannel.name}
         >
           {displayChannel.image_url ? (
             <img
@@ -163,16 +166,18 @@ export function ChannelPicker(props: Props) {
               alt={displayChannel.name}
               width={24}
               height={24}
-              className="h-4 w-4 mr-2 -ml-2 rounded"
+              className={props.compact ? 'h-4 w-4 rounded' : 'h-4 w-4 mr-2 -ml-2 rounded'}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
               }}
             />
           ) : null}
-          <div className={`h-4 w-4 mr-2 -ml-2 rounded bg-muted ${displayChannel.image_url ? 'hidden' : ''}`} />
-          {displayChannel.name}
-          {!isHomeChannel && !props.disabled && (
+          <div
+            className={`h-4 w-4 rounded bg-muted ${props.compact ? '' : 'mr-2 -ml-2'} ${displayChannel.image_url ? 'hidden' : ''}`}
+          />
+          {!props.compact && displayChannel.name}
+          {!props.compact && !isHomeChannel && !props.disabled && (
             <Cross2Icon className="ml-2 h-3 w-3 text-muted-foreground hover:text-foreground" onClick={handleClear} />
           )}
         </Button>

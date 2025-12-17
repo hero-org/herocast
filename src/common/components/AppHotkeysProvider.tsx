@@ -77,10 +77,14 @@ function ScopeManager() {
       enableScope(HotkeyScopes.EDITOR);
       enableScope(HotkeyScopes.MODAL);
     } else {
-      disableScope(HotkeyScopes.EDITOR);
+      // Only disable EDITOR scope if not on a page that needs it (like /post)
+      const pageScopes = getScopesForPage(pathname);
+      if (!pageScopes.includes(HotkeyScopes.EDITOR)) {
+        disableScope(HotkeyScopes.EDITOR);
+      }
       disableScope(HotkeyScopes.MODAL);
     }
-  }, [isNewCastModalOpen, enableScope, disableScope]);
+  }, [isNewCastModalOpen, pathname, enableScope, disableScope]);
 
   // Handle cast selection
   useEffect(() => {

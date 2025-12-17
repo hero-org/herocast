@@ -267,7 +267,7 @@ type addNewPostDraftProps = {
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
   embeds?: FarcasterEmbed[];
-  onSuccess?: (draftId) => void;
+  onSuccess?: (draftId: UUID, threadId: UUID) => void;
   force?: boolean;
 };
 
@@ -275,6 +275,8 @@ interface NewPostStoreProps {
   drafts: DraftType[];
   isHydrated: boolean;
   isDraftsModalOpen: boolean;
+  /** Draft ID that should be focused (e.g., after adding a new post to thread) */
+  draftToFocus: UUID | null;
 }
 
 interface DraftStoreActions {
@@ -302,7 +304,18 @@ interface DraftStoreActions {
   reorderThreadPost: (threadId: UUID, fromIndex: number, toIndex: number) => void;
   getThreadDrafts: (threadId: UUID) => DraftType[];
   isThreadDraft: (draftId: UUID) => boolean;
-  publishThread: (threadId: UUID, account: AccountObjectType) => Promise<ThreadPublishResult>;
+  publishThread: (
+    threadId: UUID,
+    account: AccountObjectType,
+    onProgress?: (index: number) => void
+  ) => Promise<ThreadPublishResult>;
+  publishSingleOrThread: (
+    threadId: UUID,
+    account: AccountObjectType,
+    onProgress?: (index: number) => void
+  ) => Promise<{ success: boolean; hash?: string; hashes?: string[]; error?: string }>;
+  /** Clear the draft that should be focused (call after focusing) */
+  clearDraftToFocus: () => void;
 }
 
 export interface DraftStore extends NewPostStoreProps, DraftStoreActions {}
@@ -317,7 +330,16 @@ const store = (set: StoreSet) => ({
   drafts: [],
   isHydrated: false,
   isDraftsModalOpen: false,
+  draftToFocus: null,
+  clearDraftToFocus: () => {
+    set((state) => {
+      state.draftToFocus = null;
+    });
+  },
   addNewPostDraft: ({ text, parentUrl, parentCastId, embeds, onSuccess, force }: addNewPostDraftProps) => {
+    const threadId = uuidv4() as UUID;
+    const draftId = uuidv4() as UUID;
+
     set((state) => {
       const pendingDrafts = state.drafts.filter((draft) => draft.status === DraftStatus.writing);
       if (!force && !text && !parentUrl && !parentCastId && !embeds) {
@@ -325,7 +347,7 @@ const store = (set: StoreSet) => ({
         for (let i = 0; i < pendingDrafts.length; i++) {
           const draft = pendingDrafts[i];
           if (!draft.text && !draft.parentUrl && !draft.parentCastId && !draft.embeds) {
-            onSuccess?.(draft.id);
+            onSuccess?.(draft.id, draft.threadId!);
             return;
           }
         }
@@ -338,25 +360,26 @@ const store = (set: StoreSet) => ({
             (parentUrl && parentUrl === draft.parentUrl) ||
             (parentCastId && parentCastId.hash === draft.parentCastId?.hash)
           ) {
-            onSuccess?.(draft.id);
+            onSuccess?.(draft.id, draft.threadId!);
             return;
           }
         }
       }
 
       const createdAt = Date.now();
-      const id = uuidv4() as UUID;
       const newDraft: DraftType = {
         ...NewPostDraft,
         text: text || '',
-        id,
+        id: draftId,
         parentUrl,
         parentCastId,
         embeds,
         createdAt,
+        threadId,
+        threadIndex: 0,
       };
       state.drafts = [...state.drafts, newDraft] as typeof state.drafts;
-      onSuccess?.(id);
+      onSuccess?.(draftId, threadId);
     });
   },
   getDraftById: (draftId: UUID) => {
@@ -615,7 +638,21 @@ const store = (set: StoreSet) => ({
         }
         const state = useDraftStore.getState();
         const dbDrafts = (data as unknown as DraftObjectType[]).map(tranformDBDraftForLocalStore);
-        state.drafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
+        const allDrafts = uniqBy([...dbDrafts, ...state.drafts], 'id');
+
+        // Migrate any draft without threadId
+        const migratedDrafts = allDrafts.map((draft) => {
+          if (!draft.threadId) {
+            return {
+              ...draft,
+              threadId: uuidv4() as UUID,
+              threadIndex: 0,
+            };
+          }
+          return draft;
+        });
+
+        state.drafts = migratedDrafts;
         state.isHydrated = true;
       });
   },
@@ -683,6 +720,8 @@ const store = (set: StoreSet) => ({
 
         // Add new draft
         state.drafts = [...state.drafts, newDraft] as typeof state.drafts;
+        // Set focus to new draft
+        state.draftToFocus = newDraftId;
       });
     } else {
       // Append to the end
@@ -698,6 +737,8 @@ const store = (set: StoreSet) => ({
           threadIndex: newThreadIndex,
         };
         state.drafts = [...state.drafts, newDraft] as typeof state.drafts;
+        // Set focus to new draft
+        state.draftToFocus = newDraftId;
       });
     }
 
@@ -757,7 +798,11 @@ const store = (set: StoreSet) => ({
     const draft = useDraftStore.getState().getDraftById(draftId);
     return !!draft?.threadId;
   },
-  publishThread: async (threadId: UUID, account: AccountObjectType): Promise<ThreadPublishResult> => {
+  publishThread: async (
+    threadId: UUID,
+    account: AccountObjectType,
+    onProgress?: (index: number) => void
+  ): Promise<ThreadPublishResult> => {
     const { getThreadDrafts, publishDraftById, updateDraftById } = useDraftStore.getState();
     const posts = getThreadDrafts(threadId);
 
@@ -775,6 +820,8 @@ const store = (set: StoreSet) => ({
     const firstDraft = posts[0];
     let firstHash: string;
 
+    onProgress?.(0);
+
     try {
       const hash = await publishDraftById(firstDraft.id, account);
       if (!hash) throw new Error('Failed to publish first post');
@@ -790,6 +837,11 @@ const store = (set: StoreSet) => ({
     // 2. Publish remaining posts as replies to first post
     for (let i = 1; i < posts.length; i++) {
       const post = posts[i];
+
+      // Small delay between posts for reliability and visual feedback
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      onProgress?.(i);
 
       // Set parentCastId to first post
       updateDraftById(post.id, {
@@ -812,6 +864,33 @@ const store = (set: StoreSet) => ({
     }
 
     return result;
+  },
+  publishSingleOrThread: async (
+    threadId: UUID,
+    account: AccountObjectType,
+    onProgress?: (index: number) => void
+  ): Promise<{ success: boolean; hash?: string; hashes?: string[]; error?: string }> => {
+    const { getThreadDrafts, publishDraftById, publishThread } = useDraftStore.getState();
+    const posts = getThreadDrafts(threadId);
+
+    if (posts.length === 0) {
+      return { success: false, error: 'No posts in thread' };
+    }
+
+    if (posts.length === 1) {
+      // Single post - use regular publish
+      const hash = await publishDraftById(posts[0].id, account);
+      return hash ? { success: true, hash } : { success: false, error: 'Failed to publish' };
+    }
+
+    // Multiple posts - use thread publish
+    const result = await publishThread(threadId, account, onProgress);
+    return {
+      success: result.success,
+      hash: result.publishedPosts[0]?.hash,
+      hashes: result.publishedPosts.map((p) => p.hash),
+      error: result.error,
+    };
   },
 });
 export const useDraftStore = create<DraftStore>()(

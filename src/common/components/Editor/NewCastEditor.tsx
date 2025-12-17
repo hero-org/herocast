@@ -13,12 +13,10 @@ import { useCastEditor } from '@/common/hooks/useCastEditor';
 import type { FarcasterEmbed } from '@/common/types/embeds';
 
 import { getFarcasterMentions } from '@mod-protocol/farcaster';
-// import { createRenderMentionsSuggestionConfig } from '@mod-protocol/react-ui-shadcn/dist/lib/mentions';
 import { createFixedMentionsSuggestionConfig as createRenderMentionsSuggestionConfig } from '@/lib/mentions/fixedMentions';
 import { convertCastPlainTextToStructured } from '@/common/helpers/farcaster';
 import { Button } from '@/components/ui/button';
-import { take, debounce } from 'lodash';
-import type { DebouncedFunc } from 'lodash';
+import { take } from 'lodash';
 import { useMemo, useCallback } from 'react';
 import { ChannelPicker } from '../ChannelPicker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -97,12 +95,30 @@ type NewPostEntryProps = {
   draft: DraftType;
   onPost?: () => void;
   onRemove?: () => void;
+  onAddCast?: () => void;
   hideChannel?: boolean;
   hideSchedule?: boolean;
+  hideSubmit?: boolean;
+  /** Hide the entire toolbar row (channel/link/media/schedule) */
+  hideToolbar?: boolean;
+  borderless?: boolean;
   disableAutofocus?: boolean;
+  /** Callback to trigger media upload from external component */
+  onUploadMedia?: () => void;
 };
 
-export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hideSchedule }: NewPostEntryProps) {
+export default function NewPostEntry({
+  draft,
+  onPost,
+  onRemove,
+  onAddCast,
+  hideChannel,
+  hideSchedule,
+  hideSubmit,
+  hideToolbar,
+  borderless,
+  onUploadMedia,
+}: NewPostEntryProps) {
   const posthog = usePostHog();
   const { updateDraftById, publishDraftById, scheduleDraftById } = useDraftStore();
   const [scheduleDateTime, setScheduleDateTime] = React.useState<Date>();
@@ -121,8 +137,7 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     ) > 1;
   const { isHydrated, accounts, selectedAccountIdx } = useAccountStore();
 
-  // Debounced sync function ref for reliable auto-save with flush capability
-  const debouncedSyncRef = useRef<DebouncedFunc<(id: string, updates: any) => void> | null>(null);
+  const lastSetTextRef = useRef<string | undefined>(draft.text);
 
   // Use on-demand channel lookup for draft's parent URL
   const { channel: draftChannel } = useChannelLookup(draft.parentUrl);
@@ -130,22 +145,6 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
   // Use pinned channels instead of all channels for better performance
   const userChannels = accounts[selectedAccountIdx]?.channels || [];
   const isReply = draft.parentCastId !== undefined;
-
-  // Initialize debounce function (stable across renders)
-  useEffect(() => {
-    debouncedSyncRef.current = debounce(
-      (id: string, updates: any) => {
-        updateDraftById(id, updates);
-      },
-      300,
-      { leading: false, trailing: true }
-    );
-
-    return () => {
-      // FLUSH on unmount to preserve user's pending work
-      debouncedSyncRef.current?.flush();
-    };
-  }, [updateDraftById]);
 
   const validateScheduledDateTime = (date: Date) => {
     if (!scheduleDateTime) return true;
@@ -156,6 +155,19 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     }
     return true;
   };
+
+  const handleAddCast = useCallback(() => {
+    // No need to flush - controlled pattern keeps store in sync immediately
+    if (draft.threadId) {
+      const { addPostToThread } = useDraftStore.getState();
+      // Pass current draft's threadIndex to insert after this draft
+      const newDraftId = addPostToThread(draft.threadId, draft.threadIndex);
+      if (newDraftId) {
+        // Could optionally focus new editor here via onAddCast callback
+      }
+    }
+    onAddCast?.();
+  }, [draft.threadId, draft.threadIndex, onAddCast]);
 
   const onSubmitPost = async (): Promise<boolean> => {
     try {
@@ -172,8 +184,7 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
         return false;
       }
 
-      // CRITICAL: Flush FIRST - guarantees store has latest content
-      debouncedSyncRef.current?.flush();
+      // No need to flush - controlled pattern keeps store in sync immediately
 
       // Close modal immediately for better UX flow (optimistic close)
       onPost?.();
@@ -200,14 +211,28 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     }
   };
 
+  // Cmd+Enter: Add another cast to thread
   const ref = useAppHotkeys(
     'meta+enter',
+    handleAddCast,
+    {
+      scopes: [HotkeyScopes.EDITOR],
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+      preventDefault: true,
+    },
+    [handleAddCast]
+  );
+
+  // Cmd+Shift+Enter: Publish single cast or thread
+  useAppHotkeys(
+    'meta+shift+enter',
     onSubmitPost,
     {
       scopes: [HotkeyScopes.EDITOR],
       enableOnFormTags: true,
       enableOnContentEditable: true,
-      preventDefault: true, // Prevent TipTap's HardBreak from inserting newline
+      preventDefault: true,
     },
     [onSubmitPost, draft, account, isHydrated]
   );
@@ -287,6 +312,15 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     });
   }, []);
 
+  const handleContentChange = useCallback(
+    (text: string) => {
+      if (!hasSetInitialContentRef.current) return;
+      lastSetTextRef.current = text;
+      updateDraftById(draft.id, { text });
+    },
+    [draft.id, updateDraftById]
+  );
+
   const {
     editor,
     getText,
@@ -304,6 +338,7 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     onError,
     onSubmit: onSubmitPost,
     linkClassName: 'text-blue-500',
+    onContentChange: handleContentChange,
     renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
       getResults: getChannels,
       RenderList: ChannelList,
@@ -341,36 +376,59 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     },
   });
 
-  // Track the draft.id to detect when switching between drafts
   const lastDraftIdRef = useRef<string | undefined>(undefined);
+  const hasSetInitialContentRef = useRef(false);
 
   useEffect(() => {
     if (!editor) return;
 
-    // Detect draft switch - reset embeds when draft.id changes
-    if (draft.id !== lastDraftIdRef.current) {
-      lastDraftIdRef.current = draft.id;
+    const isDraftSwitch = draft.id !== lastDraftIdRef.current;
+    const isExternalStoreChange =
+      !isDraftSwitch &&
+      draft.text !== undefined &&
+      lastSetTextRef.current !== undefined &&
+      draft.text !== lastSetTextRef.current;
 
-      // Set text content from draft
-      if (draft.text) {
-        try {
-          editor.commands.setContent(`<p>${draft.text.replace(/\n/g, '<br>')}</p>`, {
-            emitUpdate: true,
-            parseOptions: { preserveWhitespace: 'full' },
-          });
-        } catch (error) {
-          console.error('Error setting initial editor content:', error);
-        }
+    if (isDraftSwitch) {
+      hasSetInitialContentRef.current = false;
+      lastDraftIdRef.current = draft.id;
+      lastSetTextRef.current = draft.text;
+
+      try {
+        editor.commands.setContent(draft.text ? `<p>${draft.text.replace(/\n/g, '<br>')}</p>` : '<p></p>', {
+          emitUpdate: false,
+          parseOptions: { preserveWhitespace: 'full' },
+        });
+      } catch (error) {
+        console.error('Error setting editor content:', error);
       }
 
-      // Set embeds from draft - single source of truth, no merge
-      if (draft.embeds && draft.embeds.length > 0) {
-        setEmbeds(draft.embeds);
-      } else {
-        setEmbeds([]);
+      hasSetInitialContentRef.current = true;
+      setEmbeds(draft.embeds?.length ? draft.embeds : []);
+    } else if (isExternalStoreChange) {
+      lastSetTextRef.current = draft.text;
+      try {
+        editor.commands.setContent(draft.text ? `<p>${draft.text.replace(/\n/g, '<br>')}</p>` : '<p></p>', {
+          emitUpdate: false,
+          parseOptions: { preserveWhitespace: 'full' },
+        });
+      } catch (error) {
+        console.error('Error setting editor content:', error);
       }
     }
   }, [editor, draft.id, draft.text, draft.embeds, setEmbeds]);
+
+  // Auto-focus when this draft is marked as draftToFocus
+  const { draftToFocus, clearDraftToFocus } = useDraftStore();
+  useEffect(() => {
+    if (editor && draftToFocus === draft.id) {
+      // Small delay to ensure the editor is fully mounted
+      setTimeout(() => {
+        editor.commands.focus('end');
+        clearDraftToFocus();
+      }, 50);
+    }
+  }, [editor, draftToFocus, draft.id, clearDraftToFocus]);
 
   const text = getText();
 
@@ -401,20 +459,41 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
     );
   }, [text, capturedMentions, draft.mentionsToFids]);
 
+  // Track previous metadata values to prevent infinite loops
+  const prevMetadataRef = useRef<{
+    embeds: typeof embeds;
+    parentUrl: string | undefined;
+    mentionsToFids: typeof extractMentionsFromText;
+  } | null>(null);
+
+  // Sync metadata (embeds, channel, mentions) when they change
+  // Text is synced separately via onContentChange callback
   useEffect(() => {
     if (!editor) return;
     if (isPublishing) return;
 
-    // Call debounced sync - NO cleanup (let debounce batch changes)
     // Priority: replyToUrl takes precedence over channel.parent_url (mutual exclusivity)
     const effectiveParentUrl = replyToUrl || channel?.parent_url || undefined;
-    debouncedSyncRef.current?.(draft.id, {
-      text,
-      embeds,
-      parentUrl: effectiveParentUrl,
-      mentionsToFids: extractMentionsFromText,
-    });
-  }, [text, embeds, channel, replyToUrl, isPublishing, editor, extractMentionsFromText, draft.id]);
+
+    // Check if metadata actually changed to prevent infinite loops
+    const prev = prevMetadataRef.current;
+    const embedsChanged = !prev || JSON.stringify(prev.embeds) !== JSON.stringify(embeds);
+    const parentUrlChanged = !prev || prev.parentUrl !== effectiveParentUrl;
+    const mentionsChanged = !prev || JSON.stringify(prev.mentionsToFids) !== JSON.stringify(extractMentionsFromText);
+
+    if (embedsChanged || parentUrlChanged || mentionsChanged) {
+      prevMetadataRef.current = {
+        embeds,
+        parentUrl: effectiveParentUrl,
+        mentionsToFids: extractMentionsFromText,
+      };
+      updateDraftById(draft.id, {
+        embeds,
+        parentUrl: effectiveParentUrl,
+        mentionsToFids: extractMentionsFromText,
+      });
+    }
+  }, [embeds, channel, replyToUrl, isPublishing, editor, extractMentionsFromText, draft.id, updateDraftById]);
 
   // Track whether initial channel has been set to prevent overwriting user selections
   const hasSetInitialChannel = useRef(false);
@@ -458,7 +537,7 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
   const getButtonText = () => {
     if (isPublishing) return scheduleDateTime ? 'Scheduling...' : 'Publishing...';
 
-    return `${scheduleDateTime ? 'Schedule' : 'Cast'}${account && hasMultipleActiveAccounts ? ` as ${account.name}` : ''}`;
+    return `${scheduleDateTime ? 'Schedule' : 'Post'}${account && hasMultipleActiveAccounts ? ` as ${account.name}` : ''}`;
   };
 
   const scheduledCastCount =
@@ -483,303 +562,339 @@ export default function NewPostEntry({ draft, onPost, onRemove, hideChannel, hid
       tabIndex={-1}
       key={`${draft.id}-${editorKey}`}
     >
-      <div className="flex flex-col rounded-lg w-full p-4 pb-4 gap-y-2 border">
+      <div
+        className={cn(
+          'flex flex-col rounded-lg w-full',
+          borderless ? 'p-0' : 'p-4 pb-2',
+          'gap-y-1',
+          !borderless && 'border'
+        )}
+      >
         {!editor ? (
-          <div className="px-2 py-1 w-full h-full min-h-[150px] text-foreground/80">
-            <Skeleton className="px-2 py-1 w-full h-full min-h-[150px] text-foreground/80">{draft.text}</Skeleton>
+          <div className="px-2 py-1 w-full h-full min-h-[60px] text-foreground/80">
+            <Skeleton className="px-2 py-1 w-full h-full min-h-[60px] text-foreground/80">{draft.text}</Skeleton>
           </div>
         ) : (
-          <div className="p-2 border-slate-200 rounded-lg border">
-            <EditorContent editor={editor} autoFocus className="w-full h-full min-h-[150px] text-foreground/80" />
+          <div className={borderless ? '' : 'px-1'}>
+            <EditorContent editor={editor} autoFocus className="w-full h-full min-h-[40px] text-foreground/80" />
           </div>
         )}
 
-        <div className="flex flex-row py-2 gap-1 overflow-x-auto no-scrollbar">
-          {!isReply && !hideChannel && (
-            <>
-              <ChannelPicker
-                value={channel ? (channel as unknown as Channel) : undefined}
-                onSelect={(ch) => {
-                  // Clear reply URL when channel is selected (mutual exclusivity)
-                  setReplyToUrl('');
-                  if (ch) {
-                    // Convert Neynar Channel to our channel format
-                    setChannel({
-                      id: ch.id,
-                      url: ch.parent_url ?? '',
-                      name: ch.name ?? ch.id,
-                      object: 'channel',
-                      image_url: ch.image_url ?? '',
-                      parent_url: ch.parent_url ?? '',
-                      description: '',
-                      created_at: 0,
-                      lead: {},
-                    });
-                  } else {
-                    setChannel(null);
-                  }
-                  // Return focus to editor after channel selection
-                  setTimeout(() => editor?.commands.focus(), 0);
-                }}
-                initialChannels={[...toNeynarChannels(userChannels), ...(TOP_CHANNELS as Channel[])]}
-                getChannels={getChannels}
-                disabled={isPublishing}
-              />
-              <Popover open={replyToUrlPopoverOpen} onOpenChange={setReplyToUrlPopoverOpen} modal={true}>
+        {!hideToolbar && (
+          <div className="flex flex-row py-2 gap-1 overflow-x-auto no-scrollbar">
+            {!isReply && !hideChannel && (
+              <>
+                <ChannelPicker
+                  value={channel ? (channel as unknown as Channel) : undefined}
+                  onSelect={(ch) => {
+                    // Clear reply URL when channel is selected (mutual exclusivity)
+                    setReplyToUrl('');
+                    if (ch) {
+                      // Convert Neynar Channel to our channel format
+                      setChannel({
+                        id: ch.id,
+                        url: ch.parent_url ?? '',
+                        name: ch.name ?? ch.id,
+                        object: 'channel',
+                        image_url: ch.image_url ?? '',
+                        parent_url: ch.parent_url ?? '',
+                        description: '',
+                        created_at: 0,
+                        lead: {},
+                      });
+                    } else {
+                      setChannel(null);
+                    }
+                    // Return focus to editor after channel selection
+                    setTimeout(() => editor?.commands.focus(), 0);
+                  }}
+                  initialChannels={[...toNeynarChannels(userChannels), ...(TOP_CHANNELS as Channel[])]}
+                  getChannels={getChannels}
+                  disabled={isPublishing}
+                  compact
+                />
+                <Popover open={replyToUrlPopoverOpen} onOpenChange={setReplyToUrlPopoverOpen} modal={true}>
+                  <PopoverTrigger asChild>
+                    <button
+                      disabled={isPublishing}
+                      className={cn(
+                        'flex items-center justify-center w-8 h-8 rounded',
+                        'text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/50',
+                        'transition-colors disabled:opacity-50',
+                        replyToUrl && 'text-primary bg-primary/10'
+                      )}
+                      title={replyToUrl ? `Reply to: ${replyToUrl}` : 'Reply to URL'}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-3 z-[100]" align="start">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Reply to URL</Label>
+                      <Input
+                        type="url"
+                        placeholder="https://..."
+                        value={replyToUrl}
+                        onChange={(e) => {
+                          setReplyToUrl(e.target.value);
+                          // Clear channel when URL is set (mutual exclusivity)
+                          if (e.target.value) {
+                            setChannel(null);
+                          }
+                        }}
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            setReplyToUrlPopoverOpen(false);
+                            editor?.commands.focus();
+                          }
+                        }}
+                      />
+                      <div className="flex gap-2 pt-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            setReplyToUrl('');
+                            setReplyToUrlPopoverOpen(false);
+                            editor?.commands.focus();
+                          }}
+                        >
+                          Clear
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            setReplyToUrlPopoverOpen(false);
+                            editor?.commands.focus();
+                          }}
+                        >
+                          Done
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </>
+            )}
+            <button
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*,video/*';
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (file) uploadImage(file);
+                };
+                input.click();
+              }}
+              disabled={isPublishing}
+              className={cn(
+                'flex items-center justify-center w-8 h-8 rounded',
+                'text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/50',
+                'transition-colors disabled:opacity-50'
+              )}
+              title="Add media"
+            >
+              <PhotoIcon className="h-4 w-4" />
+            </button>
+            {!hideSchedule && (
+              <Popover open={schedulePopoverOpen} onOpenChange={setSchedulePopoverOpen} modal={true}>
                 <PopoverTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  <button
                     disabled={isPublishing}
-                    className={cn(replyToUrl && 'border-primary bg-primary/10')}
-                    title={replyToUrl ? `Reply to: ${replyToUrl}` : 'Reply to URL'}
+                    onClick={() => {
+                      if (!scheduleDateTime) {
+                        setScheduleDateTime(getDefaultScheduleTime());
+                      }
+                      setSchedulePopoverOpen(true);
+                    }}
+                    className={cn(
+                      'flex items-center justify-center rounded transition-colors disabled:opacity-50',
+                      scheduleDateTime
+                        ? 'h-8 px-2 gap-1 text-primary bg-primary/10 hover:bg-primary/20'
+                        : 'w-8 h-8 text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/50'
+                    )}
+                    title={scheduleDateTime ? format(scheduleDateTime, 'MMM d, yyyy HH:mm') : 'Schedule'}
                   >
-                    <LinkIcon className={cn('h-4 w-4', replyToUrl && 'text-primary')} />
-                  </Button>
+                    <CalendarDaysIcon className="h-4 w-4" />
+                    {scheduleDateTime && (
+                      <span className="font-mono text-xs">{format(scheduleDateTime, 'MMM d HH:mm')}</span>
+                    )}
+                  </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80 p-3 z-[100]" align="start">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Reply to URL</Label>
-                    <Input
-                      type="url"
-                      placeholder="https://..."
-                      value={replyToUrl}
-                      onChange={(e) => {
-                        setReplyToUrl(e.target.value);
-                        // Clear channel when URL is set (mutual exclusivity)
-                        if (e.target.value) {
-                          setChannel(null);
-                        }
-                      }}
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          setReplyToUrlPopoverOpen(false);
-                          editor?.commands.focus();
-                        }
-                      }}
-                    />
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
-                          setReplyToUrl('');
-                          setReplyToUrlPopoverOpen(false);
-                          editor?.commands.focus();
+                <PopoverContent className="w-[520px] p-0 z-[100]" align="center">
+                  <div className="flex">
+                    {/* Calendar Section */}
+                    <div className="p-3 border-r">
+                      <Calendar
+                        mode="single"
+                        selected={scheduleDateTime}
+                        onSelect={(date: Date | undefined) => {
+                          if (date) {
+                            const newDate = new Date(date);
+                            if (scheduleDateTime) {
+                              newDate.setHours(scheduleDateTime.getHours(), scheduleDateTime.getMinutes(), 0, 0);
+                            } else {
+                              newDate.setHours(14, 0, 0, 0); // Default 14:00 UTC
+                            }
+                            setScheduleDateTime(newDate);
+                          }
                         }}
-                      >
-                        Clear
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
-                          setReplyToUrlPopoverOpen(false);
-                          editor?.commands.focus();
-                        }}
-                      >
-                        Done
-                      </Button>
+                        disabled={{ before: startOfToday() }}
+                      />
+                    </div>
+
+                    {/* Time + Presets Section */}
+                    <div className="p-3 w-[240px] space-y-3">
+                      {/* Time Input */}
+                      {scheduleDateTime && (
+                        <div>
+                          <Label className="text-sm font-medium mb-2 block">Time (24h)</Label>
+                          <Input
+                            type="time"
+                            value={format(scheduleDateTime, 'HH:mm')}
+                            onChange={(e) => {
+                              const [hours, minutes] = e.target.value.split(':').map(Number);
+                              const newDate = new Date(scheduleDateTime);
+                              newDate.setHours(hours, minutes, 0, 0);
+                              setScheduleDateTime(newDate);
+                            }}
+                            step="300"
+                            className="w-full"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {format(scheduleDateTime, "MMM d, yyyy 'at' HH:mm")}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Quick Presets */}
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Quick presets</Label>
+                        <div className="space-y-1">
+                          {[
+                            { label: 'US Morning', hour: 14, desc: '9 AM ET' },
+                            { label: 'US Afternoon', hour: 18, desc: '1 PM ET' },
+                            { label: 'US Evening', hour: 23, desc: '6 PM ET' },
+                            { label: 'EU Morning', hour: 8, desc: '9 AM CET' },
+                            { label: 'Asia Evening', hour: 9, desc: '6 PM JST' },
+                          ].map((preset) => (
+                            <Button
+                              key={preset.label}
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-between text-xs"
+                              onClick={() => {
+                                const newDate = scheduleDateTime
+                                  ? new Date(scheduleDateTime)
+                                  : getDefaultScheduleTime();
+                                newDate.setHours(preset.hour, 0, 0, 0);
+                                if (newDate < new Date()) {
+                                  newDate.setDate(newDate.getDate() + 1);
+                                }
+                                setScheduleDateTime(newDate);
+                              }}
+                            >
+                              <span>{preset.label}</span>
+                              <span className="text-muted-foreground">{preset.desc}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="flex gap-2 border-t pt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            setScheduleDateTime(undefined);
+                            setSchedulePopoverOpen(false);
+                          }}
+                        >
+                          Clear
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => setSchedulePopoverOpen(false)}
+                          disabled={!scheduleDateTime || scheduleDateTime < new Date()}
+                        >
+                          Done
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </PopoverContent>
               </Popover>
-            </>
-          )}
-          <Button
-            size="sm"
-            onClick={() => {
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.accept = 'image/*,video/*';
-              input.onchange = (e) => {
-                const file = (e.target as HTMLInputElement).files?.[0];
-                if (file) uploadImage(file);
-              };
-              input.click();
-            }}
-            variant="outline"
-            disabled={isPublishing}
-          >
-            <PhotoIcon className="mr-1 h-4 w-4" />
-            Media
-          </Button>
-          {!hideSchedule && (
-            <Popover open={schedulePopoverOpen} onOpenChange={setSchedulePopoverOpen} modal={true}>
-              <PopoverTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={isPublishing}
-                  onClick={() => {
-                    if (!scheduleDateTime) {
-                      setScheduleDateTime(getDefaultScheduleTime());
-                    }
-                    setSchedulePopoverOpen(true);
-                  }}
-                >
-                  <CalendarDaysIcon className="mr-1 h-4 w-4" />
-                  {scheduleDateTime ? (
-                    <span className="font-mono">{format(scheduleDateTime, 'MM/dd/yyyy hh:mm a')}</span>
-                  ) : (
-                    'Schedule'
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[520px] p-0 z-[100]" align="center">
-                <div className="flex">
-                  {/* Calendar Section */}
-                  <div className="p-3 border-r">
-                    <Calendar
-                      mode="single"
-                      selected={scheduleDateTime}
-                      onSelect={(date: Date | undefined) => {
-                        if (date) {
-                          const newDate = new Date(date);
-                          if (scheduleDateTime) {
-                            newDate.setHours(scheduleDateTime.getHours(), scheduleDateTime.getMinutes(), 0, 0);
-                          } else {
-                            newDate.setHours(14, 0, 0, 0); // Default 14:00 UTC
-                          }
-                          setScheduleDateTime(newDate);
-                        }
-                      }}
-                      disabled={{ before: startOfToday() }}
-                    />
-                  </div>
+            )}
+            <div className="flex-grow"></div>
+            {textLengthWarning && (
+              <label className={cn('flex items-center text-xs', `text-${textLengthTailwind}`)}>
+                {textLengthWarning}
+              </label>
+            )}
+            {hasReachedFreePlanLimit && (
+              <p className="text-xs text-yellow-600 flex items-center">
+                Free accounts are limited to {openSourcePlanLimits.maxScheduledCasts} scheduled casts.{' '}
+                <Link href="/upgrade" className="underline">
+                  Upgrade to schedule more
+                </Link>
+                .
+              </p>
+            )}
+          </div>
+        )}
+        {hideToolbar && textLengthWarning && (
+          <div className="flex flex-row py-2 gap-1 justify-end">
+            <label className={cn('flex items-center text-xs', `text-${textLengthTailwind}`)}>{textLengthWarning}</label>
+          </div>
+        )}
 
-                  {/* Time + Presets Section */}
-                  <div className="p-3 w-[240px] space-y-3">
-                    {/* Time Input */}
-                    {scheduleDateTime && (
-                      <div>
-                        <Label className="text-sm font-medium mb-2 block">Time (24h)</Label>
-                        <Input
-                          type="time"
-                          value={format(scheduleDateTime, 'HH:mm')}
-                          onChange={(e) => {
-                            const [hours, minutes] = e.target.value.split(':').map(Number);
-                            const newDate = new Date(scheduleDateTime);
-                            newDate.setHours(hours, minutes, 0, 0);
-                            setScheduleDateTime(newDate);
-                          }}
-                          step="300"
-                          className="w-full"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {format(scheduleDateTime, "MMM d, yyyy 'at' HH:mm")}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Quick Presets */}
-                    <div>
-                      <Label className="text-sm font-medium mb-2 block">Quick presets</Label>
-                      <div className="space-y-1">
-                        {[
-                          { label: 'US Morning', hour: 14, desc: '9 AM ET' },
-                          { label: 'US Afternoon', hour: 18, desc: '1 PM ET' },
-                          { label: 'US Evening', hour: 23, desc: '6 PM ET' },
-                          { label: 'EU Morning', hour: 8, desc: '9 AM CET' },
-                          { label: 'Asia Evening', hour: 9, desc: '6 PM JST' },
-                        ].map((preset) => (
-                          <Button
-                            key={preset.label}
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-between text-xs"
-                            onClick={() => {
-                              const newDate = scheduleDateTime ? new Date(scheduleDateTime) : getDefaultScheduleTime();
-                              newDate.setHours(preset.hour, 0, 0, 0);
-                              if (newDate < new Date()) {
-                                newDate.setDate(newDate.getDate() + 1);
-                              }
-                              setScheduleDateTime(newDate);
-                            }}
-                          >
-                            <span>{preset.label}</span>
-                            <span className="text-muted-foreground">{preset.desc}</span>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="flex gap-2 border-t pt-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
-                          setScheduleDateTime(undefined);
-                          setSchedulePopoverOpen(false);
-                        }}
-                      >
-                        Clear
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setSchedulePopoverOpen(false)}
-                        disabled={!scheduleDateTime || scheduleDateTime < new Date()}
-                      >
-                        Done
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-          <div className="flex-grow"></div>
-          <label className={cn('flex items-center text-xs', `text-${textLengthTailwind}`)}>{textLengthWarning}</label>
-          {hasReachedFreePlanLimit && (
-            <p className="text-xs text-yellow-600 flex items-center">
-              Free accounts are limited to {openSourcePlanLimits.maxScheduledCasts} scheduled casts.{' '}
-              <Link href="/upgrade" className="underline">
-                Upgrade to schedule more
-              </Link>
-              .
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-row">
-          {onRemove && (
-            <div
-              onClick={() => {
-                onRemove && onRemove();
-              }}
-              className="flex items-center cursor-pointer"
-            >
-              <Button
-                size="sm"
-                variant="outline"
+        {/* Action buttons - only render when there's content */}
+        {(onRemove || !hideSubmit) && (
+          <div className="flex flex-row">
+            {onRemove && (
+              <div
                 onClick={() => {
                   onRemove && onRemove();
                 }}
-                disabled={isPublishing}
+                className="flex items-center cursor-pointer"
               >
-                Remove
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    onRemove && onRemove();
+                  }}
+                  disabled={isPublishing}
+                >
+                  Remove
+                </Button>
+              </div>
+            )}
+            <div className="grow"></div>
+            {!hideSubmit && (
+              <Button
+                size="sm"
+                disabled={isButtonDisabled}
+                className="float-right"
+                onClick={() => {
+                  onSubmitPost();
+                }}
+              >
+                {getButtonText()}
               </Button>
-            </div>
-          )}
-          <div className="grow"></div>
-          <Button
-            size="sm"
-            disabled={isButtonDisabled}
-            className="float-right"
-            onClick={() => {
-              onSubmitPost();
-            }}
-          >
-            {getButtonText()}
-          </Button>
-        </div>
+            )}
+          </div>
+        )}
+        {/* Embeds section */}
         {embeds.length > 0 && (
-          <div className="w-full overflow-hidden pt-3 mt-1 border-t border-muted">
+          <div className="w-full overflow-hidden pt-2 mt-2 border-t border-muted/50">
             <EmbedsEditor embeds={[...embeds]} setEmbeds={setEmbeds} removeEmbed={removeEmbed} />
           </div>
         )}
