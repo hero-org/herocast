@@ -4,6 +4,7 @@
 import { AccountPlatformType, AccountStatusType } from '../../src/common/constants/accounts';
 import { ChannelType } from '../../src/common/constants/channels';
 import { CommandType } from '../../src/common/constants/commands';
+import { Json } from '@/common/types/database.types';
 import { randomNumberBetween } from '../../src/common/helpers/math';
 import { getAccountsForUser } from '../../src/common/helpers/supabase';
 import { Draft, create as mutativeCreate } from 'mutative';
@@ -132,7 +133,14 @@ export const mutative = (config) => (set, get) => config((fn) => set(mutativeCre
 
 type StoreSet = (fn: (draft: Draft<AccountStore>) => void) => void;
 
-const supabaseClient = createClient();
+// Lazily initialize Supabase client to avoid issues during SSR/testing
+let supabaseClientInstance: ReturnType<typeof createClient> | null = null;
+const getSupabaseClient = () => {
+  if (!supabaseClientInstance) {
+    supabaseClientInstance = createClient();
+  }
+  return supabaseClientInstance;
+};
 
 const store = (set: StoreSet) => ({
   ...initialState,
@@ -149,7 +157,7 @@ const store = (set: StoreSet) => ({
         state.accounts.push({
           ...account,
           ...{ channels: accountChannels },
-          ...{ id: uuidv4() },
+          ...{ id: uuidv4() as UUID },
         });
       });
       return;
@@ -157,24 +165,25 @@ const store = (set: StoreSet) => ({
       console.log('adding account to DB', account);
 
       // Get the current max display_order for this user
-      const { data: maxOrderData } = await supabaseClient
+      const { data: { user } } = await getSupabaseClient().auth.getUser();
+      const { data: maxOrderData } = await getSupabaseClient()
         .from('accounts')
         .select('display_order')
-        .eq('user_id', (await supabaseClient.auth.getUser()).data.user?.id)
+        .eq('user_id', user?.id ?? '')
         .order('display_order', { ascending: false })
         .limit(1);
 
       const nextDisplayOrder = maxOrderData && maxOrderData[0]?.display_order ? maxOrderData[0].display_order + 1 : 1;
 
-      await supabaseClient
+      await getSupabaseClient()
         .from('accounts')
         .insert({
           name: account.name,
           status: account.status,
-          public_key: account.publicKey,
+          public_key: account.publicKey ?? null,
           platform: account.platform,
           data: account.data || {},
-          private_key: account.privateKey,
+          private_key: account.privateKey ?? '',
           display_order: nextDisplayOrder,
         })
         .select()
@@ -183,7 +192,7 @@ const store = (set: StoreSet) => ({
 
           if (!data || error) return;
           set((state) => {
-            state.accounts.push({ ...account, ...{ id: data[0].id } });
+            state.accounts.push({ ...account, channels: [], id: data[0].id as UUID });
           });
         });
     }
@@ -191,9 +200,14 @@ const store = (set: StoreSet) => ({
   },
   setAccountActive: async (accountId: UUID, name: string, data: { platform_account_id: string; data?: object }) => {
     set(async (state) => {
-      const { error } = await supabaseClient
+      const { error } = await getSupabaseClient()
         .from('accounts')
-        .update({ name, status: AccountStatusType.active, ...data })
+        .update({
+          name,
+          status: AccountStatusType.active,
+          platform_account_id: data.platform_account_id,
+          ...(data.data ? { data: data.data as unknown as Record<string, Json> } : {}),
+        })
         .eq('id', accountId)
         .select();
 
@@ -219,7 +233,7 @@ const store = (set: StoreSet) => ({
         if (fid && account.status === 'active') {
           const username = await getUsernameForFid(Number(fid));
           if (username && username !== account.name) {
-            const { data, error } = await supabaseClient
+            const { data, error } = await getSupabaseClient()
               .from('accounts')
               .update({ name: username })
               .eq('id', accountId)
@@ -239,7 +253,7 @@ const store = (set: StoreSet) => ({
     await new Promise((resolve) => setTimeout(resolve, 500)); // sleep to avoid rate limiting
   },
   removeAccount: async (id: string) => {
-    await supabaseClient
+    await getSupabaseClient()
       .from('accounts')
       .update({ status: AccountStatusType.removed })
       .eq('id', id)
@@ -309,7 +323,7 @@ const store = (set: StoreSet) => ({
       state.accounts[state.selectedAccountIdx] = account;
 
       if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
-        supabaseClient
+        getSupabaseClient()
           .from('accounts_to_channel')
           .insert({
             account_id: account.id,
@@ -338,7 +352,7 @@ const store = (set: StoreSet) => ({
       state.accounts[state.selectedAccountIdx] = account;
 
       if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
-        supabaseClient
+        getSupabaseClient()
           .from('accounts_to_channel')
           .delete()
           .eq('account_id', account.id)
@@ -351,7 +365,7 @@ const store = (set: StoreSet) => ({
   },
   addChannel: ({ name, url, iconUrl, account }: AddChannelProps) => {
     set(async (state) => {
-      await supabaseClient
+      await getSupabaseClient()
         .from('channel')
         .insert({
           name,
@@ -364,11 +378,10 @@ const store = (set: StoreSet) => ({
           // console.log('response - data', data, 'error', error);
           if (!data || error) return;
 
-          state.allChannels = [...state.allChannels, data[0]];
+          const newChannel = { ...data[0], id: data[0].id as UUID } as ChannelType;
+          state.allChannels = [...state.allChannels, newChannel];
 
-          const account = state.accounts[state.selectedAccountIdx];
-          const idx = account.channels.length;
-          state.addPinnedChannel({ ...data[0], idx });
+          state.addPinnedChannel(newChannel);
         });
     });
   },
@@ -382,7 +395,7 @@ const store = (set: StoreSet) => ({
       // console.log(`moving channel ${channels[oldIndex].name} to index ${newIndex}`);
 
       if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
-        supabaseClient
+        getSupabaseClient()
           .from('accounts_to_channel')
           .update({ index: newIndex })
           .eq('account_id', accountId)
@@ -407,7 +420,7 @@ const store = (set: StoreSet) => ({
         newChannels[to] = cloneDeep(channels[from]);
         newChannels[to].idx = to;
         if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
-          supabaseClient
+          getSupabaseClient()
             .from('accounts_to_channel')
             .update({ index: to })
             .eq('account_id', accountId)
@@ -473,11 +486,11 @@ const store = (set: StoreSet) => ({
 
     console.log('done hydrating complete 🌊 full functionality ready');
   },
-  updateAccountProperty: (accountId: UUID, property: keyof AccountObjectType, value: any) => {
+  updateAccountProperty: (accountId: UUID, property: keyof AccountObjectType, value: AccountObjectType[keyof AccountObjectType]) => {
     set((state) => {
       const accountIdx = state.accounts.findIndex((acc) => acc.id === accountId);
       if (accountIdx !== -1) {
-        state.accounts[accountIdx][property] = value;
+        (state.accounts[accountIdx] as Record<string, unknown>)[property] = value;
       }
     });
   },
@@ -488,7 +501,7 @@ const store = (set: StoreSet) => ({
       const {
         data: { user },
         error: userError,
-      } = await supabaseClient.auth.getUser();
+      } = await getSupabaseClient().auth.getUser();
       console.log('[loadFarcasterApiKey Debug] Auth user:', {
         userId: user?.id,
         email: user?.email,
@@ -501,7 +514,7 @@ const store = (set: StoreSet) => ({
       }
 
       console.log('[loadFarcasterApiKey Debug] Querying decrypted_dm_accounts...');
-      const { data, error } = await supabaseClient
+      const { data, error } = await getSupabaseClient()
         .from('decrypted_dm_accounts')
         .select('decrypted_farcaster_api_key')
         .eq('id', accountId)
@@ -518,7 +531,7 @@ const store = (set: StoreSet) => ({
         set((state) => {
           const accountIdx = state.accounts.findIndex((acc) => acc.id === accountId);
           if (accountIdx !== -1) {
-            state.accounts[accountIdx].farcasterApiKey = data.decrypted_farcaster_api_key;
+            state.accounts[accountIdx].farcasterApiKey = data.decrypted_farcaster_api_key ?? undefined;
             console.log('[loadFarcasterApiKey Debug] Successfully set API key for account index:', accountIdx);
           } else {
             console.error('[loadFarcasterApiKey Debug] Account not found in state:', accountId);
@@ -552,14 +565,14 @@ const store = (set: StoreSet) => ({
       }
 
       // Update display_order in database asynchronously
-      const updates = [];
+      const updates: PromiseLike<void>[] = [];
       for (let i = Math.min(oldIndex, newIndex); i <= Math.max(oldIndex, newIndex); i++) {
         const account = accounts[i];
         const newDisplayOrder = i + 1; // 1-indexed for database
 
         if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
           updates.push(
-            supabaseClient
+            getSupabaseClient()
               .from('accounts')
               .update({ display_order: newDisplayOrder })
               .eq('id', account.id)
@@ -598,13 +611,13 @@ export const useAccountStore = create<AccountStore>()(
 );
 
 const fetchAllChannels = async (): Promise<ChannelType[]> => {
-  let channelData = [];
+  let channelData: ChannelType[] = [];
   let hasMoreChannels = false;
   console.log('fetching existing channels in DB');
   do {
     const start = channelData.length;
     const end = start + 999;
-    const { data, error, count } = await supabaseClient
+    const { data, error, count } = await getSupabaseClient()
       .from('channel')
       .select('*', { count: 'exact' })
       .not('data', 'is', null)
@@ -612,16 +625,18 @@ const fetchAllChannels = async (): Promise<ChannelType[]> => {
       .range(start, end);
     console.log('count', count);
     if (error) throw error;
-    channelData = channelData.concat(data);
-    hasMoreChannels = data.length > 0;
+    // Cast database results to ChannelType (id is UUID)
+    const typedData = (data || []).map((d) => ({ ...d, id: d.id as UUID })) as ChannelType[];
+    channelData = channelData.concat(typedData);
+    hasMoreChannels = (data?.length || 0) > 0;
   } while (hasMoreChannels);
   console.log('done fetching channels in DB', channelData.length);
-  return channelData || [];
+  return channelData;
 };
 
 export const hydrateAccountsMinimal = async (): Promise<AccountObjectType[]> => {
   console.log('hydrating accounts minimal 💧');
-  const accountData = await getAccountsForUser(supabaseClient);
+  const accountData = await getAccountsForUser(getSupabaseClient());
   let accounts: AccountObjectType[] = [];
   if (accountData.length === 0) {
     console.log('no accounts found');
@@ -650,7 +665,7 @@ export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Pr
   if (accounts.length === 0) return accounts;
 
   // Re-fetch full account data with channels
-  const fullAccountData = await getAccountsForUser(supabaseClient);
+  const fullAccountData = await getAccountsForUser(getSupabaseClient());
 
   // Add channels data
   const accountsWithChannels = accounts.map((account) => {

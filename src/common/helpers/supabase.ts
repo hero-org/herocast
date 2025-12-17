@@ -1,6 +1,9 @@
 import isEmpty from 'lodash.isempty';
 import { AccountStatusType } from '../constants/accounts';
-import { Customer, InsertCustomer } from '../types/database.types';
+import { Tables, TablesInsert } from '../types/database.types';
+
+type Customer = Tables<'customers'>;
+type InsertCustomer = TablesInsert<'customers'>;
 
 export const getAccountsForUser = async (supabaseClient) => {
   const {
