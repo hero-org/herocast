@@ -10,7 +10,6 @@ import { CUSTOM_CHANNELS } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
 import { createParentCastId } from '@/common/constants/farcaster';
 import { useCallback } from 'react';
-import { UUID } from 'crypto';
 
 // Hook that registers all global hotkeys for the app
 export function useGlobalHotkeys() {
@@ -36,7 +35,7 @@ export function useGlobalHotkeys() {
 
   // Helper to navigate to a list
   const navigateToList = useCallback(
-    (listId: UUID) => {
+    (listId: string) => {
       setSelectedListId(listId);
       setSelectedChannelUrl(null);
       if (pathname !== '/feeds') {
@@ -308,7 +307,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>1',
     () => {
-      if (searchLists[0]) navigateToList(searchLists[0].id as UUID);
+      if (searchLists[0]) navigateToList(searchLists[0].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -316,7 +315,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>2',
     () => {
-      if (searchLists[1]) navigateToList(searchLists[1].id as UUID);
+      if (searchLists[1]) navigateToList(searchLists[1].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -324,7 +323,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>3',
     () => {
-      if (searchLists[2]) navigateToList(searchLists[2].id as UUID);
+      if (searchLists[2]) navigateToList(searchLists[2].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -332,7 +331,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>4',
     () => {
-      if (searchLists[3]) navigateToList(searchLists[3].id as UUID);
+      if (searchLists[3]) navigateToList(searchLists[3].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -340,7 +339,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>5',
     () => {
-      if (searchLists[4]) navigateToList(searchLists[4].id as UUID);
+      if (searchLists[4]) navigateToList(searchLists[4].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -348,7 +347,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>6',
     () => {
-      if (searchLists[5]) navigateToList(searchLists[5].id as UUID);
+      if (searchLists[5]) navigateToList(searchLists[5].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -356,7 +355,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>7',
     () => {
-      if (searchLists[6]) navigateToList(searchLists[6].id as UUID);
+      if (searchLists[6]) navigateToList(searchLists[6].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -364,7 +363,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>8',
     () => {
-      if (searchLists[7]) navigateToList(searchLists[7].id as UUID);
+      if (searchLists[7]) navigateToList(searchLists[7].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -372,7 +371,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>s>9',
     () => {
-      if (searchLists[8]) navigateToList(searchLists[8].id as UUID);
+      if (searchLists[8]) navigateToList(searchLists[8].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [searchLists, navigateToList]
@@ -385,7 +384,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>1',
     () => {
-      if (fidLists[0]) navigateToList(fidLists[0].id as UUID);
+      if (fidLists[0]) navigateToList(fidLists[0].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]
@@ -393,7 +392,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>2',
     () => {
-      if (fidLists[1]) navigateToList(fidLists[1].id as UUID);
+      if (fidLists[1]) navigateToList(fidLists[1].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]
@@ -401,7 +400,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>3',
     () => {
-      if (fidLists[2]) navigateToList(fidLists[2].id as UUID);
+      if (fidLists[2]) navigateToList(fidLists[2].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]
@@ -409,7 +408,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>4',
     () => {
-      if (fidLists[3]) navigateToList(fidLists[3].id as UUID);
+      if (fidLists[3]) navigateToList(fidLists[3].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]
@@ -417,7 +416,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>5',
     () => {
-      if (fidLists[4]) navigateToList(fidLists[4].id as UUID);
+      if (fidLists[4]) navigateToList(fidLists[4].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]
@@ -425,7 +424,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>6',
     () => {
-      if (fidLists[5]) navigateToList(fidLists[5].id as UUID);
+      if (fidLists[5]) navigateToList(fidLists[5].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]
@@ -433,7 +432,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>7',
     () => {
-      if (fidLists[6]) navigateToList(fidLists[6].id as UUID);
+      if (fidLists[6]) navigateToList(fidLists[6].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]
@@ -441,7 +440,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>8',
     () => {
-      if (fidLists[7]) navigateToList(fidLists[7].id as UUID);
+      if (fidLists[7]) navigateToList(fidLists[7].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]
@@ -449,7 +448,7 @@ export function useGlobalHotkeys() {
   useAppHotkeys(
     'g>l>9',
     () => {
-      if (fidLists[8]) navigateToList(fidLists[8].id as UUID);
+      if (fidLists[8]) navigateToList(fidLists[8].id);
     },
     { scopes: HotkeyScopes.GLOBAL, enableOnFormTags: false },
     [fidLists, navigateToList]

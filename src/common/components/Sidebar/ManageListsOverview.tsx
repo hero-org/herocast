@@ -18,7 +18,6 @@ import {
   BellIcon,
   EnvelopeIcon,
 } from '@heroicons/react/24/outline';
-import { UUID } from 'crypto';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAccountStore } from '@/stores/useAccountStore';
 import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
@@ -38,13 +37,13 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccountId = accounts[selectedAccountIdx]?.id;
 
-  const onManageList = (id: UUID) => {
+  const onManageList = (id: string) => {
     updateSelectedList(id);
     router.push('/lists?tab=search');
     if (onItemClick) onItemClick();
   };
 
-  const updateSelectedList = (id: UUID) => {
+  const updateSelectedList = (id: string) => {
     setSelectedListId(id);
     if (onItemClick) onItemClick();
   };
@@ -65,7 +64,7 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
     }
   };
 
-  const renderList = (list: List & { id: UUID }) => {
+  const renderList = (list: List & { id: string }) => {
     const isSelected = selectedListId === list.id;
 
     return (

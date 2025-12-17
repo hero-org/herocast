@@ -1,7 +1,5 @@
-import { UUID } from 'crypto';
-
 export type ChannelType = {
-  id: UUID;
+  id: string;
   name: string;
   url: string;
   icon_url?: string;

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useState, useEffect } from 'react';
-import { UUID } from 'crypto';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { Button } from '@/components/ui/button';
@@ -87,7 +86,7 @@ function splitTextIntoPosts(text: string): string[] {
 }
 
 type ThreadComposerProps = {
-  threadId: UUID;
+  threadId: string;
   parentCast?: CastWithInteractions;
   onPublishSuccess?: () => void;
 };
@@ -98,7 +97,7 @@ export default function ThreadComposer({ threadId, parentCast, onPublishSuccess 
   const [publishingDrafts, setPublishingDrafts] = useState<DraftType[]>([]);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [importText, setImportText] = useState('');
-  const [currentUploadDraftId, setCurrentUploadDraftId] = useState<UUID | null>(null);
+  const [currentUploadDraftId, setCurrentUploadDraftId] = useState<string | null>(null);
   // Increment after reorder to force editor remount (TipTap breaks on DOM moves)
   const [reorderVersion, setReorderVersion] = useState(0);
 
@@ -200,7 +199,7 @@ export default function ThreadComposer({ threadId, parentCast, onPublishSuccess 
   );
 
   const handleRemovePost = useCallback(
-    (draftId: UUID) => {
+    (draftId: string) => {
       if (threadDrafts.length <= 1) {
         toast.error('Thread must have at least one post');
         return;
@@ -229,7 +228,7 @@ export default function ThreadComposer({ threadId, parentCast, onPublishSuccess 
   );
 
   const handleUploadMedia = useCallback(
-    (draftId: UUID, file: File) => {
+    (draftId: string, file: File) => {
       setCurrentUploadDraftId(draftId);
       uploadImage(file);
     },

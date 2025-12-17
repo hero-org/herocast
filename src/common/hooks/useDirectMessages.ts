@@ -7,7 +7,6 @@ import {
   DIRECT_CAST_API,
 } from '@/common/constants/directCast';
 import { DMTab } from '@/common/components/DirectMessages/DMEmptyState';
-import { UUID } from 'crypto';
 import { useDebouncedCallback } from '@/common/helpers/hooks';
 
 interface UseDirectMessagesOptions {
@@ -217,7 +216,7 @@ export function useDirectMessages(options: UseDirectMessagesOptions = {}) {
 
         if (type === ErrorType.AUTH) {
           if (selectedAccount?.id) {
-            updateAccountProperty(selectedAccount.id as UUID, 'farcasterApiKey', undefined);
+            updateAccountProperty(selectedAccount.id, 'farcasterApiKey', undefined);
           }
           setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
           return;
@@ -455,7 +454,7 @@ export function useDirectMessageThread(conversationId?: string, groupId?: string
 
         if (type === ErrorType.AUTH) {
           if (selectedAccount?.id) {
-            updateAccountProperty(selectedAccount.id as UUID, 'farcasterApiKey', undefined);
+            updateAccountProperty(selectedAccount.id, 'farcasterApiKey', undefined);
           }
           setRetryState({ attempts: 0, nextRetryTime: null, isRetrying: false });
           return;

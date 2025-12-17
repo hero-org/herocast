@@ -19,10 +19,9 @@ import { AccountSelector } from './AccountSelector';
 import { AccountStatusType } from '../constants/accounts';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 import { useDataStore } from '@/stores/useDataStore';
-import { UUID } from 'crypto';
 
 type NewCastModalProps = {
-  draftId: UUID;
+  draftId: string;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };

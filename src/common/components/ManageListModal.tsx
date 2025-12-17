@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Modal from './Modal';
 import { usePostHog } from 'posthog-js/react';
 import { useListStore } from '@/stores/useListStore';
-import { UUID } from 'crypto';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,7 +31,7 @@ const ManageListModal = ({ open, onClose }) => {
       newSearchTerm !== list.contents?.term ||
       isDailyEmailEnabled !== list.contents?.enabled_daily_email);
 
-  const onClickDelete = async (id: UUID) => {
+  const onClickDelete = async (id: string) => {
     const result = await removeList(id);
     if (result.success) {
       posthog.capture('user_delete_list');

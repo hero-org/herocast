@@ -1,5 +1,4 @@
 import type { FarcasterEmbed } from '@/common/types/embeds';
-import { UUID } from 'crypto';
 
 export type ParentCastIdType = {
   fid: number;
@@ -83,7 +82,7 @@ export enum DraftStatus {
 }
 
 export type DraftType = {
-  id: UUID;
+  id: string;
   text: string;
   status: DraftStatus;
   createdAt: number;
@@ -91,13 +90,13 @@ export type DraftType = {
   embeds?: FarcasterEmbed[];
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
-  accountId?: UUID;
+  accountId?: string;
   timestamp?: string;
   hash?: string;
   scheduledFor?: string | null;
   publishedAt?: string | null;
   updatedAt?: string;
-  threadId?: UUID;
+  threadId?: string;
   threadIndex?: number;
 };
 
@@ -110,10 +109,10 @@ export const MAX_THREAD_POSTS = 10;
 // Thread publish result type
 export type ThreadPublishResult = {
   success: boolean;
-  publishedPosts: { draftId: UUID; hash: string; index: number }[];
+  publishedPosts: { draftId: string; hash: string; index: number }[];
   failedAt?: number;
   error?: string;
-  threadId: UUID;
+  threadId: string;
 };
 
 export type AuthorType = {

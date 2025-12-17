@@ -22,7 +22,6 @@ import { MAX_THREAD_POSTS, ThreadPublishResult } from '@/common/constants/farcas
 import { NewPostDraft } from '@/common/constants/postDrafts';
 import type { FarcasterEmbed } from '@/common/types/embeds';
 import { createClient } from '@/common/helpers/supabase/component';
-import { UUID } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import uniqBy from 'lodash.uniqby';
 import { CastModalView, useNavigationStore } from './useNavigationStore';
@@ -149,13 +148,13 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
 
 // todo: get this from supabase DB type
 export type DraftObjectType = {
-  id: UUID;
+  id: string;
   data: object;
   created_at: string;
   scheduled_for?: string | null;
   published_at?: string | null;
   status: DraftStatus;
-  account_id: UUID;
+  account_id: string;
 };
 
 const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
@@ -267,7 +266,7 @@ type addNewPostDraftProps = {
   parentUrl?: string;
   parentCastId?: ParentCastIdType;
   embeds?: FarcasterEmbed[];
-  onSuccess?: (draftId: UUID, threadId: UUID) => void;
+  onSuccess?: (draftId: string, threadId: string) => void;
   force?: boolean;
 };
 
@@ -275,46 +274,41 @@ interface NewPostStoreProps {
   drafts: DraftType[];
   isHydrated: boolean;
   isDraftsModalOpen: boolean;
-  /** Draft ID that should be focused (e.g., after adding a new post to thread) */
-  draftToFocus: UUID | null;
+  draftToFocus: string | null;
 }
 
 interface DraftStoreActions {
-  // New ID-based methods
-  getDraftById: (draftId: UUID) => DraftType | undefined;
-  updateDraftById: (draftId: UUID, updates: Partial<DraftType>) => void;
-  publishDraftById: (draftId: UUID, account: AccountObjectType, onPost?: () => void) => Promise<string | null>;
-  scheduleDraftById: (draftId: UUID, scheduledFor: Date, onSuccess?: () => void) => Promise<void>;
+  getDraftById: (draftId: string) => DraftType | undefined;
+  updateDraftById: (draftId: string, updates: Partial<DraftType>) => void;
+  publishDraftById: (draftId: string, account: AccountObjectType, onPost?: () => void) => Promise<string | null>;
+  scheduleDraftById: (draftId: string, scheduledFor: Date, onSuccess?: () => void) => Promise<void>;
 
-  // Keep these methods
   addNewPostDraft: ({ text, parentCastId, parentUrl, embeds, onSuccess, force }: addNewPostDraftProps) => void;
   removePostDraft: (draftIdx: number, onlyIfEmpty?: boolean) => void;
-  removePostDraftById: (draftId: UUID) => Promise<void>;
-  removeScheduledDraftFromDB: (draftId: UUID) => Promise<boolean>;
+  removePostDraftById: (draftId: string) => Promise<void>;
+  removeScheduledDraftFromDB: (draftId: string) => Promise<boolean>;
   removeAllPostDrafts: () => void;
   removeEmptyDrafts: () => void;
   hydrate: () => void;
   openDraftsModal: () => void;
   closeDraftsModal: () => void;
 
-  // Thread operations
-  createThread: () => UUID;
-  addPostToThread: (threadId: UUID, afterIndex?: number) => UUID | null;
-  removePostFromThread: (threadId: UUID, draftId: UUID) => void;
-  reorderThreadPost: (threadId: UUID, fromIndex: number, toIndex: number) => void;
-  getThreadDrafts: (threadId: UUID) => DraftType[];
-  isThreadDraft: (draftId: UUID) => boolean;
+  createThread: () => string;
+  addPostToThread: (threadId: string, afterIndex?: number) => string | null;
+  removePostFromThread: (threadId: string, draftId: string) => void;
+  reorderThreadPost: (threadId: string, fromIndex: number, toIndex: number) => void;
+  getThreadDrafts: (threadId: string) => DraftType[];
+  isThreadDraft: (draftId: string) => boolean;
   publishThread: (
-    threadId: UUID,
+    threadId: string,
     account: AccountObjectType,
     onProgress?: (index: number) => void
   ) => Promise<ThreadPublishResult>;
   publishSingleOrThread: (
-    threadId: UUID,
+    threadId: string,
     account: AccountObjectType,
     onProgress?: (index: number) => void
   ) => Promise<{ success: boolean; hash?: string; hashes?: string[]; error?: string }>;
-  /** Clear the draft that should be focused (call after focusing) */
   clearDraftToFocus: () => void;
 }
 
@@ -337,8 +331,8 @@ const store = (set: StoreSet) => ({
     });
   },
   addNewPostDraft: ({ text, parentUrl, parentCastId, embeds, onSuccess, force }: addNewPostDraftProps) => {
-    const threadId = uuidv4() as UUID;
-    const draftId = uuidv4() as UUID;
+    const threadId = uuidv4();
+    const draftId = uuidv4();
 
     set((state) => {
       const pendingDrafts = state.drafts.filter((draft) => draft.status === DraftStatus.writing);
@@ -382,11 +376,11 @@ const store = (set: StoreSet) => ({
       onSuccess?.(draftId, threadId);
     });
   },
-  getDraftById: (draftId: UUID) => {
+  getDraftById: (draftId: string) => {
     const state = useDraftStore.getState();
     return state.drafts.find((draft) => draft.id === draftId);
   },
-  updateDraftById: (draftId: UUID, updates: Partial<DraftType>) => {
+  updateDraftById: (draftId: string, updates: Partial<DraftType>) => {
     set((state) => {
       const idx = state.drafts.findIndex((draft) => draft.id === draftId);
       if (idx !== -1) {
@@ -394,7 +388,7 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  publishDraftById: async (draftId: UUID, account: AccountObjectType, onPost?: () => void): Promise<string | null> => {
+  publishDraftById: async (draftId: string, account: AccountObjectType, onPost?: () => void): Promise<string | null> => {
     // Get current state snapshot outside set()
     const draft = useDraftStore.getState().drafts.find((d) => d.id === draftId);
     if (!draft) {
@@ -461,7 +455,7 @@ const store = (set: StoreSet) => ({
       return null;
     }
   },
-  scheduleDraftById: async (draftId: UUID, scheduledFor: Date, onSuccess?: () => void): Promise<void> => {
+  scheduleDraftById: async (draftId: string, scheduledFor: Date, onSuccess?: () => void): Promise<void> => {
     // Get current state snapshot outside set()
     const draft = useDraftStore.getState().drafts.find((d) => d.id === draftId);
     if (!draft) {
@@ -581,7 +575,7 @@ const store = (set: StoreSet) => ({
       }
     });
   },
-  removePostDraftById: async (draftId: UUID) => {
+  removePostDraftById: async (draftId: string) => {
     // Get current state snapshot outside set()
     const state = useDraftStore.getState();
     const draftIdx = state.drafts.findIndex((draft) => draft.id === draftId);
@@ -608,7 +602,7 @@ const store = (set: StoreSet) => ({
       state.drafts = [];
     });
   },
-  removeScheduledDraftFromDB: async (draftId: UUID): Promise<boolean> => {
+  removeScheduledDraftFromDB: async (draftId: string): Promise<boolean> => {
     const { data, error } = await supabaseClient
       .from('draft')
       .update({ status: DraftStatus.removed })
@@ -645,7 +639,7 @@ const store = (set: StoreSet) => ({
           if (!draft.threadId) {
             return {
               ...draft,
-              threadId: uuidv4() as UUID,
+              threadId: uuidv4(),
               threadIndex: 0,
             };
           }
@@ -667,8 +661,8 @@ const store = (set: StoreSet) => ({
     });
   },
   createThread: () => {
-    const threadId = uuidv4() as UUID;
-    const draftId = uuidv4() as UUID;
+    const threadId = uuidv4();
+    const draftId = uuidv4();
     set((state) => {
       const newDraft: DraftType = {
         ...NewPostDraft,
@@ -682,7 +676,7 @@ const store = (set: StoreSet) => ({
     });
     return threadId;
   },
-  addPostToThread: (threadId: UUID, afterIndex?: number) => {
+  addPostToThread: (threadId: string, afterIndex?: number) => {
     const state = useDraftStore.getState();
     const threadDrafts = state.drafts
       .filter((draft) => draft.threadId === threadId)
@@ -692,7 +686,7 @@ const store = (set: StoreSet) => ({
       return null;
     }
 
-    const newDraftId = uuidv4() as UUID;
+    const newDraftId = uuidv4();
     let newThreadIndex: number;
 
     if (afterIndex !== undefined) {
@@ -744,7 +738,7 @@ const store = (set: StoreSet) => ({
 
     return newDraftId;
   },
-  removePostFromThread: (threadId: UUID, draftId: UUID) => {
+  removePostFromThread: (threadId: string, draftId: string) => {
     set((state) => {
       // Remove the draft
       state.drafts = state.drafts.filter((draft) => draft.id !== draftId);
@@ -764,7 +758,7 @@ const store = (set: StoreSet) => ({
       });
     });
   },
-  reorderThreadPost: (threadId: UUID, fromIndex: number, toIndex: number) => {
+  reorderThreadPost: (threadId: string, fromIndex: number, toIndex: number) => {
     set((state) => {
       const threadDrafts = state.drafts
         .filter((draft) => draft.threadId === threadId)
@@ -788,18 +782,18 @@ const store = (set: StoreSet) => ({
       });
     });
   },
-  getThreadDrafts: (threadId: UUID) => {
+  getThreadDrafts: (threadId: string) => {
     const state = useDraftStore.getState();
     return state.drafts
       .filter((draft) => draft.threadId === threadId)
       .sort((a, b) => (a.threadIndex ?? 0) - (b.threadIndex ?? 0));
   },
-  isThreadDraft: (draftId: UUID) => {
+  isThreadDraft: (draftId: string) => {
     const draft = useDraftStore.getState().getDraftById(draftId);
     return !!draft?.threadId;
   },
   publishThread: async (
-    threadId: UUID,
+    threadId: string,
     account: AccountObjectType,
     onProgress?: (index: number) => void
   ): Promise<ThreadPublishResult> => {
@@ -866,7 +860,7 @@ const store = (set: StoreSet) => ({
     return result;
   },
   publishSingleOrThread: async (
-    threadId: UUID,
+    threadId: string,
     account: AccountObjectType,
     onProgress?: (index: number) => void
   ): Promise<{ success: boolean; hash?: string; hashes?: string[]; error?: string }> => {

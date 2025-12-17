@@ -4,7 +4,6 @@ import { useDraftStore } from '@/stores/useDraftStore';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Loading } from '@/common/components/Loading';
 import dynamic from 'next/dynamic';
-import { UUID } from 'crypto';
 
 // Dynamic imports with loading fallback
 const ThreadComposer = dynamic(() => import('@/common/components/ThreadComposer'), {
@@ -54,7 +53,7 @@ const DraftListTabs = [
   },
 ];
 
-const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAccountId?: UUID) => {
+const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAccountId?: string) => {
   switch (activeTab) {
     case DraftListTab.writing: {
       // Filter to writing/publishing status, then deduplicate by threadId (show first post of each thread)

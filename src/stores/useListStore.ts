@@ -9,7 +9,6 @@ import {
   AutoInteractionListContent,
   isAutoInteractionListContent,
 } from '@/common/types/list.types';
-import { UUID } from 'crypto';
 import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
 
 export type Search = {
@@ -29,7 +28,7 @@ interface ListStoreProps {
   searches: Search[];
   lists: List[];
   isHydrated: boolean;
-  selectedListId?: UUID;
+  selectedListId?: string;
   currentSearchTerm?: string;
 }
 
@@ -38,24 +37,21 @@ interface ListStoreActions {
   addSearch: (search: Search) => void;
   addFidList: (name: string, fids: string[]) => Promise<ListStoreResult>;
   updateList: (search: UpdateList) => Promise<ListStoreResult>;
-  updateFidList: (listId: UUID, name: string, fids: string[]) => Promise<ListStoreResult>;
+  updateFidList: (listId: string, name: string, fids: string[]) => Promise<ListStoreResult>;
   addList: (newList: AddListType) => Promise<ListStoreResult>;
-  removeList: (listId: UUID) => Promise<ListStoreResult>;
-  setSelectedListId: (id?: UUID) => void;
+  removeList: (listId: string) => Promise<ListStoreResult>;
+  setSelectedListId: (id?: string) => void;
   setCurrentSearchTerm: (term?: string) => void;
 
-  // Helper methods
   getFidLists: () => List[];
   getSearchLists: () => List[];
 
-  // FID list specific methods
-  addFidToList: (listId: UUID, fid: string, displayName?: string) => Promise<ListStoreResult>;
-  removeFidFromList: (listId: UUID, fid: string) => Promise<ListStoreResult>;
-  updateFidDisplayName: (listId: UUID, fid: string, displayName: string) => Promise<ListStoreResult>;
-  isFidInList: (listId: UUID, fid: string) => boolean;
+  addFidToList: (listId: string, fid: string, displayName?: string) => Promise<ListStoreResult>;
+  removeFidFromList: (listId: string, fid: string) => Promise<ListStoreResult>;
+  updateFidDisplayName: (listId: string, fid: string, displayName: string) => Promise<ListStoreResult>;
+  isFidInList: (listId: string, fid: string) => boolean;
   getListsByFid: (fid: string) => List[];
 
-  // Auto-interaction list methods
   addAutoInteractionList: (
     name: string,
     fids: string[],
@@ -68,7 +64,7 @@ interface ListStoreActions {
     requiredKeywords?: string[]
   ) => Promise<ListStoreResult>;
   updateAutoInteractionSettings: (
-    listId: UUID,
+    listId: string,
     settings: Partial<AutoInteractionListContent>
   ) => Promise<ListStoreResult>;
   getAutoInteractionLists: () => List[];
@@ -101,8 +97,7 @@ const store = (set: StoreSet, get: () => ListStore) => ({
       state.currentSearchTerm = term;
     });
   },
-  // Helper methods for working with FIDs in lists
-  addFidToList: async (listId: UUID, fid: string, displayName?: string) => {
+  addFidToList: async (listId: string, fid: string, displayName?: string) => {
     const list = get().lists.find((l) => l.id === listId);
     if (!list || list.type !== 'fids') {
       return { success: false, error: 'FID list not found or invalid list type' };
@@ -146,7 +141,7 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     return { success: true };
   },
 
-  removeFidFromList: async (listId: UUID, fid: string) => {
+  removeFidFromList: async (listId: string, fid: string) => {
     const list = get().lists.find((l) => l.id === listId);
     if (!list || list.type !== 'fids') {
       return { success: false, error: 'FID list not found or invalid list type' };
@@ -184,7 +179,7 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     return { success: true };
   },
 
-  updateFidDisplayName: async (listId: UUID, fid: string, displayName: string) => {
+  updateFidDisplayName: async (listId: string, fid: string, displayName: string) => {
     const list = get().lists.find((l) => l.id === listId);
     if (!list || list.type !== 'fids') {
       return { success: false, error: 'FID list not found or invalid list type' };
@@ -312,7 +307,7 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     });
     return { success: true };
   },
-  updateFidList: async (listId: UUID, name: string, fids: string[]) => {
+  updateFidList: async (listId: string, name: string, fids: string[]) => {
     const existingList = useListStore.getState().lists.find((list) => list.id === listId);
     if (!existingList) {
       return { success: false, error: 'FID list not found' };
@@ -351,7 +346,7 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     });
     return { success: true };
   },
-  removeList: async (listId: UUID) => {
+  removeList: async (listId: string) => {
     const { error } = await supabaseClient.from('list').delete().eq('id', listId);
     if (error) {
       return { success: false, error: 'Failed to remove list' };
@@ -361,7 +356,7 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     });
     return { success: true };
   },
-  setSelectedListId: (id?: UUID) => {
+  setSelectedListId: (id?: string) => {
     set((state) => {
       state.selectedListId = id;
     });
@@ -374,7 +369,7 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     return get().lists.filter((list) => list.type === 'search');
   },
 
-  isFidInList: (listId: UUID, fid: string) => {
+  isFidInList: (listId: string, fid: string) => {
     const list = get().lists.find((l) => l.id === listId);
     if (!list || list.type !== 'fids') return false;
 
@@ -470,7 +465,7 @@ const store = (set: StoreSet, get: () => ListStore) => ({
     return { success: true };
   },
 
-  updateAutoInteractionSettings: async (listId: UUID, settings: Partial<AutoInteractionListContent>) => {
+  updateAutoInteractionSettings: async (listId: string, settings: Partial<AutoInteractionListContent>) => {
     const list = get().lists.find((l) => l.id === listId);
     if (!list || list.type !== 'auto_interaction') {
       return { success: false, error: 'Auto-interaction list not found or invalid list type' };

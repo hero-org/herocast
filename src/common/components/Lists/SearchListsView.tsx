@@ -1,6 +1,5 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { UUID } from 'crypto';
 import { List } from '@/common/types/database.types';
 import { SearchListContent, isSearchListContent } from '@/common/types/list.types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +20,7 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
   const { setSelectedListId } = useListStore();
 
   const handleListClick = (listId: string) => {
-    setSelectedListId(listId as UUID);
+    setSelectedListId(listId);
     router.push('/feeds');
   };
 

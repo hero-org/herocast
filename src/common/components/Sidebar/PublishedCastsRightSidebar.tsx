@@ -6,14 +6,13 @@ import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v1';
 import { useDraftStore } from '@/stores/useDraftStore';
 import orderBy from 'lodash.orderby';
 import filter from 'lodash.filter';
-import { UUID } from 'crypto';
 import uniqBy from 'lodash.uniqby';
 import { useProfileByFid, ProfileData } from '@/hooks/queries/useProfile';
 
 const convertDraftToFakeCast = (
   draft: any,
   profile: ProfileData
-): Omit<CastWithInteractions, 'reactions' | 'recasts' | 'recasters' | 'replies'> & { accountId: UUID } => ({
+): Omit<CastWithInteractions, 'reactions' | 'recasts' | 'recasters' | 'replies'> & { accountId: string } => ({
   hash: draft.hash,
   text: draft.text,
   timestamp: draft.timestamp,

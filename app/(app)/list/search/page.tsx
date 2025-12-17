@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { UUID } from 'crypto';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -215,7 +214,7 @@ export default function SearchListsPage() {
   const handleDeleteList = async () => {
     if (!activeList) return;
 
-    const result = await removeList(activeList.id as UUID);
+    const result = await removeList(activeList.id);
 
     if (result.success) {
       setDeleteConfirmOpen(false);
@@ -243,7 +242,7 @@ export default function SearchListsPage() {
 
   const handleViewFeed = () => {
     if (!activeList) return;
-    setSelectedListId(activeList.id as UUID);
+    setSelectedListId(activeList.id);
     router.push('/feeds');
   };
 

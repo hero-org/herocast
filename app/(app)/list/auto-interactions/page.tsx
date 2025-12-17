@@ -7,7 +7,6 @@ import Head from 'next/head';
 // Force dynamic rendering since we use useRouter which uses useSearchParams
 export const dynamic = 'force-dynamic';
 import Link from 'next/link';
-import { UUID } from 'crypto';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -172,7 +171,7 @@ export default function AutoInteractionsPage() {
     setIsSaving(true);
     setSaveSuccess(false);
 
-    const result = await updateAutoInteractionSettings(activeList.id as UUID, {
+    const result = await updateAutoInteractionSettings(activeList.id, {
       sourceAccountId,
       actionType,
       onlyTopCasts,
@@ -205,7 +204,7 @@ export default function AutoInteractionsPage() {
   };
 
   const handleDeleteList = async (listId: string) => {
-    const result = await removeList(listId as UUID);
+    const result = await removeList(listId);
 
     if (result.success) {
       if (activeListId === listId) {
@@ -640,7 +639,7 @@ export default function AutoInteractionsPage() {
                       <CardTitle>{activeList.name}</CardTitle>
                       <CardDescription>Manage auto-interaction settings and target accounts</CardDescription>
                     </div>
-                    <Button variant="destructive" size="sm" onClick={() => handleDeleteList(activeList.id as string)}>
+                    <Button variant="destructive" size="sm" onClick={() => handleDeleteList(activeList.id)}>
                       <TrashIcon className="h-4 w-4 mr-1" />
                       Delete List
                     </Button>
@@ -692,7 +691,7 @@ export default function AutoInteractionsPage() {
                                   setSelectedProfile={async (profile) => {
                                     if (profile) {
                                       const result = await addFidToList(
-                                        activeList.id as UUID,
+                                        activeList.id,
                                         profile.fid.toString(),
                                         profile.username
                                       );

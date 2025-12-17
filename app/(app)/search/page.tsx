@@ -26,7 +26,6 @@ import {
 import { SearchInterface } from '@/common/components/SearchInterface';
 import { SearchResultsView } from '@/common/components/SearchResultsView';
 import { useNavigationStore } from '@/stores/useNavigationStore';
-import { UUID } from 'crypto';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -83,7 +82,7 @@ export default function SearchPage() {
 
     const listId = urlParams.get('list');
     if (listId) {
-      setSelectedListId(listId as UUID);
+      setSelectedListId(listId);
     }
 
     // if navigating away, reset the selected cast and profile

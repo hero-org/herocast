@@ -74,6 +74,7 @@ All stores use mutative for immutable updates and have different persistence str
 - **Supabase**: User accounts, lists, analytics, scheduled posts, billing
 - **IndexedDB**: Local account storage, settings, offline capability
 - **TypeORM**: Entity definitions in `src/lib/entities/`
+- **IDs**: Use `string` for UUIDs (not `import { UUID } from 'crypto'`) - Supabase returns strings over JSON
 
 ### Styling Patterns
 

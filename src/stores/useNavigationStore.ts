@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { UUID } from 'crypto';
 import { Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -11,7 +10,7 @@ export enum CastModalView {
 }
 
 interface NavigationStoreProps {
-  castModalDraftId?: UUID;
+  castModalDraftId?: string;
   isNewCastModalOpen: boolean;
   castModalView: CastModalView;
   isCommandPaletteOpen: boolean;
@@ -21,7 +20,7 @@ interface NavigationStoreProps {
 }
 
 interface NavigationStoreActions {
-  setCastModalDraftId: (draftId: UUID) => void;
+  setCastModalDraftId: (draftId: string) => void;
   setCastModalView: (view: CastModalView) => void;
   setIsManageListModalOpen: (isOpen: boolean) => void;
   openNewCastModal: () => void;
@@ -84,7 +83,7 @@ const store = (set: StoreSet) => ({
   isManageListModalOpen: false,
   leftSidebarOpen: true,
   rightSidebarOpen: true,
-  setCastModalDraftId: (draftId: UUID) => {
+  setCastModalDraftId: (draftId: string) => {
     set((state) => {
       state.castModalDraftId = draftId;
     });
