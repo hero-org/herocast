@@ -188,6 +188,35 @@ The feed uses `@tanstack/react-virtual` for performance. Key implementation deta
 - `transform` creates a CSS containing block that breaks percentage width calculations
 - Item wrapper must have `width: '100%'` and `position: absolute`
 
+### Scroll Containers (Common Issue)
+
+When content doesn't scroll, check for missing `min-h-0` on flex children. This is a **recurring issue** in this codebase.
+
+**The Pattern:**
+
+```tsx
+// Parent with fixed height
+<div className="h-screen flex flex-col">
+  {/* Fixed header */}
+  <header className="h-16" />
+
+  {/* Scrollable content - MUST have min-h-0 */}
+  <div className="flex-1 min-h-0 overflow-y-auto">{/* Content that needs to scroll */}</div>
+</div>
+```
+
+**Why `min-h-0` is required:**
+
+- By default, flex children have `min-height: auto`, which prevents them from shrinking below their content size
+- This causes `overflow-y-auto` to have no effect because the container grows to fit content
+- Adding `min-h-0` allows the flex child to shrink, enabling overflow scrolling
+
+**Quick fix checklist:**
+
+1. Check all parent containers have constrained height (`h-screen`, `h-full`, fixed px)
+2. Add `min-h-0` to every flex child between the height-constrained parent and the `overflow-y-auto` element
+3. Ensure `flex-1` is present on growing containers
+
 ## Deployment
 
 - Vercel for web deployment
