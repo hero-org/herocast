@@ -1,4 +1,5 @@
-![herocast](https://github.com/hero-org/.github/blob/main/assets/herocast-logo.png?raw=true)
+![herocast](https://github.com/hero-org/.github/blob/main/assets/herocast-logo.png?raw=true#gh-light-mode-only)
+![herocast](https://github.com/hero-org/.github/blob/main/assets/herocast-logo-light.png?raw=true#gh-dark-mode-only)
 
 [![build](https://github.com/hellno/herocast/actions/workflows/build.yaml/badge.svg)](https://github.com/hellno/herocast/actions/workflows/build.yaml)
 [![Docs](https://deepwiki.com/badge.svg)](https://deepwiki.com/hero-org/herocast)
