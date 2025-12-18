@@ -62,7 +62,7 @@ export function AccountSelector({ className, accountFilter }: AccountSelectorPro
           className={cn('w-full max-w-[150px] justify-between', className)}
         >
           {selectedAccount ? (
-            <div className="flex">
+            <div className="flex items-center">
               {selectedAccount?.user?.pfp_url && (
                 <img
                   src={selectedAccount?.user?.pfp_url}
