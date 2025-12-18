@@ -35,7 +35,7 @@ export const ImageEmbed = ({ url }: { url: string }) => {
   };
 
   return (
-    <div className="min-h-48 md:min-h-72">
+    <div>
       <img
         className="max-h-48 md:max-h-72 object-left rounded-md"
         style={{ display: isLoading ? 'none' : 'block' }}

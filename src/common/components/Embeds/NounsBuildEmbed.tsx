@@ -4,6 +4,8 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import get from 'lodash.get';
 import isEmpty from 'lodash.isempty';
 import { openWindow } from '../../helpers/navigation';
+import { EmbedSkeleton } from './EmbedSkeleton';
+import { cn } from '@/lib/utils';
 
 type StatsType = {
   name: string;
@@ -54,6 +56,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
   const [data, setData] = useState<{
     dao: { name: string; proposals: any[]; tokens: any[] };
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getData = async () => {
@@ -97,12 +100,19 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
 
       setData(await makeGraphqlRequest(endpoint, query, variables));
     };
-    try {
-      getData();
-    } catch (e) {
-      console.log('NounsBuildEmbed: ', url, 'error', e);
-    }
-  }, []);
+
+    const fetchData = async () => {
+      try {
+        await getData();
+      } catch (e) {
+        console.log('NounsBuildEmbed: ', url, 'error', e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [url]);
 
   const getProposalStatus = (proposal) => {
     if (proposal.voteEnd * 1000 < Date.now()) {
@@ -139,9 +149,6 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
   };
 
   const renderContent = () => {
-    if (!data || !data.dao || (isEmpty(data.dao.proposals) && isEmpty(data.dao.tokens))) {
-      return null;
-    }
     const proposal = data.dao.proposals[0];
     const token = data.dao.tokens[0];
 
@@ -217,9 +224,17 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
     );
   };
 
+  // Show skeleton during loading
+  if (isLoading) return <EmbedSkeleton variant="default" />;
+
+  // No data or empty data after loading
+  if (!data || !data.dao || (isEmpty(data.dao.proposals) && isEmpty(data.dao.tokens))) {
+    return null;
+  }
+
   return (
     <div className="max-w-fit text-foreground rounded-lg border border-gray-500" key={`nouns-build-embed-${url}`}>
-      {!isEmpty(data) && renderContent()}
+      {renderContent()}
     </div>
   );
 };

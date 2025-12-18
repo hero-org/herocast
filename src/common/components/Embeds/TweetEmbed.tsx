@@ -54,7 +54,7 @@ interface TweetEmbedProps {
 const TweetEmbed: React.FC<TweetEmbedProps> = ({ tweetId }) => {
   const { data, error, isLoading } = useTweet(tweetId);
 
-  if (isLoading) return;
+  if (isLoading) return <TweetSkeleton />;
   if (error || !data) {
     return <TweetSkeleton />;
   }

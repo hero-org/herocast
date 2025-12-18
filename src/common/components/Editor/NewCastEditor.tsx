@@ -700,7 +700,7 @@ export default function NewPostEntry({
             >
               <PhotoIcon className="h-4 w-4" />
             </button>
-            {!hideSchedule && (
+            {!hideSchedule && !onRemove && (
               <Popover open={schedulePopoverOpen} onOpenChange={setSchedulePopoverOpen} modal={true}>
                 <PopoverTrigger asChild>
                   <button
@@ -832,6 +832,11 @@ export default function NewPostEntry({
                 </PopoverContent>
               </Popover>
             )}
+            {onRemove && (
+              <Button size="sm" variant="outline" onClick={() => onRemove()} disabled={isPublishing} className="h-8">
+                Remove
+              </Button>
+            )}
             <div className="flex-grow"></div>
             {textLengthWarning && (
               <label className={cn('flex items-center text-xs', `text-${textLengthTailwind}`)}>
@@ -847,42 +852,10 @@ export default function NewPostEntry({
                 .
               </p>
             )}
-          </div>
-        )}
-        {hideToolbar && textLengthWarning && (
-          <div className="flex flex-row py-2 gap-1 justify-end">
-            <label className={cn('flex items-center text-xs', `text-${textLengthTailwind}`)}>{textLengthWarning}</label>
-          </div>
-        )}
-
-        {/* Action buttons - only render when there's content */}
-        {(onRemove || !hideSubmit) && (
-          <div className="flex flex-row">
-            {onRemove && (
-              <div
-                onClick={() => {
-                  onRemove && onRemove();
-                }}
-                className="flex items-center cursor-pointer"
-              >
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    onRemove && onRemove();
-                  }}
-                  disabled={isPublishing}
-                >
-                  Remove
-                </Button>
-              </div>
-            )}
-            <div className="grow"></div>
             {!hideSubmit && (
               <Button
                 size="sm"
                 disabled={isButtonDisabled}
-                className="float-right"
                 onClick={() => {
                   onSubmitPost();
                 }}
@@ -892,6 +865,12 @@ export default function NewPostEntry({
             )}
           </div>
         )}
+        {hideToolbar && textLengthWarning && (
+          <div className="flex flex-row py-2 gap-1 justify-end">
+            <label className={cn('flex items-center text-xs', `text-${textLengthTailwind}`)}>{textLengthWarning}</label>
+          </div>
+        )}
+
         {/* Embeds section */}
         {embeds.length > 0 && (
           <div className="w-full overflow-hidden pt-2 mt-2 border-t border-muted/50">

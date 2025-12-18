@@ -127,7 +127,7 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
         style={{ height: containerHeight === 'auto' ? 'auto' : `${containerHeight}px` }}
       >
         <div
-          className="flex transition-transform duration-300 ease-in-out cursor-pointer"
+          className="flex items-start transition-transform duration-300 ease-in-out cursor-pointer"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           onClick={handleEmbedClick}
         >

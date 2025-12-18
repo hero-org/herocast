@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CastRow } from '../CastRow';
 import isEmpty from 'lodash.isempty';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { EmbedSkeleton } from './EmbedSkeleton';
 
 type CastEmbedProps = {
   url?: string;
@@ -11,6 +12,7 @@ type CastEmbedProps = {
 
 const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
   const [cast, setCast] = useState<CastWithInteractions | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getData = async () => {
@@ -25,6 +27,7 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
           identifier = castId.hash;
           type = 'hash';
         } else {
+          setIsLoading(false);
           return;
         }
 
@@ -44,13 +47,22 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
         }
       } catch (err) {
         console.log(`Error in CastEmbed: ${err} ${url} ${castId}`);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     getData();
-  }, []);
+  }, [url, castId]);
 
-  if ((!url && !castId) || isEmpty(cast)) return null;
+  // Invalid props - no url AND no castId
+  if (!url && !castId) return null;
+
+  // Loading state - show skeleton
+  if (isLoading) return <EmbedSkeleton variant="social" />;
+
+  // Loaded but no cast found
+  if (isEmpty(cast)) return null;
 
   return (
     <div key={`cast-embed-${url}`} className="border border-foreground/30 rounded-lg">

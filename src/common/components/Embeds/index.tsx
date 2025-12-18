@@ -10,6 +10,9 @@ import { ImageEmbed } from '../PostEmbeddedContent';
 import { isImageUrl } from '@/common/helpers/text';
 import { MinusCircleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
+import { EmbedSkeleton } from './EmbedSkeleton';
+
+export { EmbedSkeleton };
 
 type CastEmbedType = {
   url?: string;
@@ -67,14 +70,19 @@ export const renderEmbedForUrl = ({
   if (castId || cast_id) {
     return <CastEmbed castId={castId || cast_id} hideReactions={hideReactions} />;
   }
+
+  // No URL provided - nothing to render
   if (!url) return null;
 
   const embed = getEmbedForUrl(url, hideReactions, skipIntersection);
-  if (!embed) return null;
+
+  // Fallback: if embed is null/undefined, show skeleton as placeholder
+  // This ensures carousel ResizeObserver always has something to measure
+  const content = embed || <EmbedSkeleton variant="default" />;
 
   return (
     <div className="flex flex-col ">
-      {embed}
+      {content}
       {onRemove && (
         <Button onClick={onRemove} size="sm" className="mx-auto h-7 gap-1">
           <MinusCircleIcon className="h-3.5 w-3.5" />

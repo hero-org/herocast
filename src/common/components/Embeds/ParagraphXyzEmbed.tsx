@@ -3,27 +3,35 @@ import { ParagraphXyzArticleType, getParagraphXyzArticle } from '../../helpers/p
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { openWindow } from '@/common/helpers/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { EmbedSkeleton } from './EmbedSkeleton';
 type ParagraphXyzEmbedProps = {
   url: string;
 };
 
 const ParagraphXyzEmbed: React.FC<ParagraphXyzEmbedProps> = ({ url }) => {
   const [data, setData] = useState<ParagraphXyzArticleType>();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const getData = async () => {
-      const resp = await getParagraphXyzArticle(url);
-      if (resp) {
-        setData(resp);
+      try {
+        const resp = await getParagraphXyzArticle(url);
+        if (resp) {
+          setData(resp);
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     getData();
-  }, []);
+  }, [url]);
 
-  if (!data) {
-    return;
-  }
+  // Show skeleton during loading
+  if (isLoading) return <EmbedSkeleton variant="default" />;
+
+  // No data after loading - show fallback
+  if (!data) return <EmbedSkeleton variant="default" />;
 
   const renderPost = () => (
     <Card>
