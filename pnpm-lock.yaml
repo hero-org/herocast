@@ -243,11 +243,11 @@ importers:
         specifier: ^8.0.3
         version: 8.0.3
       linkify-plugin-mention:
-        specifier: 4.2.0
-        version: 4.2.0(linkifyjs@4.3.2)
+        specifier: 4.3.2
+        version: 4.3.2(linkifyjs@4.3.2)
       linkify-react:
-        specifier: 4.2.0
-        version: 4.2.0(linkifyjs@4.3.2)(react@18.2.0)
+        specifier: 4.3.2
+        version: 4.3.2(linkifyjs@4.3.2)(react@18.2.0)
       linkifyjs:
         specifier: 4.3.2
         version: 4.3.2
@@ -7082,13 +7082,13 @@ packages:
   linkify-it@5.0.0:
     resolution: {integrity: sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==}
 
-  linkify-plugin-mention@4.2.0:
-    resolution: {integrity: sha512-cwe63BtvLCwKRmQJcoEbJILlm+2sj7dB5yhTx+5VQYBshqPuxck1n5x+ZzQGPVOKaavy8pHnK28lmV6+NruVwA==}
+  linkify-plugin-mention@4.3.2:
+    resolution: {integrity: sha512-pPkhuF1iR3on649dg65trgfKVrl0Jjhksyd2eGttpIBJFlGu7s6ZV5mA8fDBuketdkX7P9om3mKtjfMeDAbjsA==}
     peerDependencies:
       linkifyjs: ^4.0.0
 
-  linkify-react@4.2.0:
-    resolution: {integrity: sha512-dIcDGo+n4FP2FPIHDcqB7cUE+omkcEgQJpc7sNNP4+XZ9FUhFAkKjGnHMzsZM+B4yF93sK166z9K5cKTe/JpzA==}
+  linkify-react@4.3.2:
+    resolution: {integrity: sha512-mi744h1hf+WDsr+paJgSBBgYNLMWNSHyM9V9LVUo03RidNGdw1VpI7Twnt+K3pEh3nIzB4xiiAgZxpd61ItKpQ==}
     peerDependencies:
       linkifyjs: ^4.0.0
       react: '>= 15.0.0'
@@ -11002,21 +11002,21 @@ snapshots:
 
   '@nestjs/axios@3.1.3(@nestjs/common@10.4.15(reflect-metadata@0.1.13)(rxjs@7.8.1))(axios@1.8.2)(rxjs@7.8.1)':
     dependencies:
-      '@nestjs/common': 10.4.15(reflect-metadata@0.1.13)(rxjs@7.8.1)
+      '@nestjs/common': 10.4.15(reflect-metadata@0.2.2)(rxjs@7.8.1)
       axios: 1.8.2
       rxjs: 7.8.1
 
-  '@nestjs/common@10.4.15(reflect-metadata@0.1.13)(rxjs@7.8.1)':
+  '@nestjs/common@10.4.15(reflect-metadata@0.2.2)(rxjs@7.8.1)':
     dependencies:
       iterare: 1.2.1
-      reflect-metadata: 0.1.13
+      reflect-metadata: 0.2.2
       rxjs: 7.8.1
       tslib: 2.8.1
       uid: 2.0.2
 
   '@nestjs/core@10.4.15(@nestjs/common@10.4.15(reflect-metadata@0.1.13)(rxjs@7.8.1))(reflect-metadata@0.1.13)(rxjs@7.8.1)':
     dependencies:
-      '@nestjs/common': 10.4.15(reflect-metadata@0.1.13)(rxjs@7.8.1)
+      '@nestjs/common': 10.4.15(reflect-metadata@0.2.2)(rxjs@7.8.1)
       '@nuxtjs/opencollective': 0.3.2
       fast-safe-stringify: 2.1.1
       iterare: 1.2.1
@@ -11144,7 +11144,7 @@ snapshots:
   '@openapitools/openapi-generator-cli@2.18.0':
     dependencies:
       '@nestjs/axios': 3.1.3(@nestjs/common@10.4.15(reflect-metadata@0.1.13)(rxjs@7.8.1))(axios@1.8.2)(rxjs@7.8.1)
-      '@nestjs/common': 10.4.15(reflect-metadata@0.1.13)(rxjs@7.8.1)
+      '@nestjs/common': 10.4.15(reflect-metadata@0.2.2)(rxjs@7.8.1)
       '@nestjs/core': 10.4.15(@nestjs/common@10.4.15(reflect-metadata@0.1.13)(rxjs@7.8.1))(reflect-metadata@0.1.13)(rxjs@7.8.1)
       '@nuxtjs/opencollective': 0.3.2
       axios: 1.8.2
@@ -18568,11 +18568,11 @@ snapshots:
     dependencies:
       uc.micro: 2.1.0
 
-  linkify-plugin-mention@4.2.0(linkifyjs@4.3.2):
+  linkify-plugin-mention@4.3.2(linkifyjs@4.3.2):
     dependencies:
       linkifyjs: 4.3.2
 
-  linkify-react@4.2.0(linkifyjs@4.3.2)(react@18.2.0):
+  linkify-react@4.3.2(linkifyjs@4.3.2)(react@18.2.0):
     dependencies:
       linkifyjs: 4.3.2
       react: 18.2.0
