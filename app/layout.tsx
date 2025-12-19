@@ -47,11 +47,18 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export const metadata: Metadata = {
   title: 'herocast',
   description: 'herocast for Farcaster',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'herocast',
+  },
   icons: {
     icon: [
       { url: '/images/favicon.ico' },
