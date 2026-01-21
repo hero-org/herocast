@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { encodeAbiParameters } from 'viem';
 import { useAccount, useReadContract, useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
 import { Button } from '@/components/ui/button';
-import { mnemonicToAccount } from 'viem/accounts';
 import { AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 import isEmpty from 'lodash.isempty';
 import { useAccountModal } from '@rainbow-me/rainbowkit';
@@ -18,37 +16,6 @@ import { Cog6ToothIcon, CheckCircleIcon } from '@heroicons/react/20/solid';
 import { ID_REGISTRY_ADDRESS, idRegistryABI } from '@farcaster/hub-web';
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
-const APP_MNENOMIC = process.env.NEXT_PUBLIC_APP_MNENOMIC!;
-
-const SIGNED_KEY_REQUEST_TYPE_V2 = [
-  {
-    components: [
-      {
-        internalType: 'uint256',
-        name: 'requestFid',
-        type: 'uint256',
-      },
-      {
-        internalType: 'address',
-        name: 'requestSigner',
-        type: 'address',
-      },
-      {
-        internalType: 'bytes',
-        name: 'signature',
-        type: 'bytes',
-      },
-      {
-        internalType: 'uint256',
-        name: 'deadline',
-        type: 'uint256',
-      },
-    ],
-    internalType: 'struct SignedKeyRequestValidator.SignedKeyRequestMetadata',
-    name: 'metadata',
-    type: 'tuple',
-  },
-] as const;
 
 type ConfirmOnchainSignerButtonType = {
   account: AccountObjectType;
@@ -75,14 +42,15 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
   if (idOfUserError) console.log('idOfUserError', idOfUserError);
 
   const { setAccountActive } = useAccountStore();
-  const appAccount = mnemonicToAccount(APP_MNENOMIC);
   const enabled = !isEmpty(account);
   const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
 
-  const getSignature = useCallback(async () => {
+  const getMetadata = useCallback(async () => {
     if (!account || !account.publicKey) return;
+    // getSignedKeyRequestMetadataFromAppAccount returns fully encoded metadata
+    // ready to be passed to the KeyGateway.add() function
     return getSignedKeyRequestMetadataFromAppAccount(chainId, account.publicKey, deadline);
-  }, [account, deadline]);
+  }, [account, chainId, deadline]);
 
   const {
     data: addKeyTxReceipt,
@@ -141,26 +109,21 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
       openAccountModal?.();
     } else {
       try {
-        const signature = await getSignature();
-        if (!signature) {
-          throw new Error('Failed to get signature to confirm onchain account');
+        // getMetadata returns fully encoded ABI metadata from getSignedKeyRequestMetadataFromAppAccount
+        // which includes requestFid, requestSigner, signature, and deadline - ready to use directly
+        const metadata = await getMetadata();
+        if (!metadata) {
+          throw new Error('Failed to get metadata to confirm onchain account');
         }
-        console.log('signature', signature);
+        console.log('metadata', metadata);
         const addKeyTx = await writeContract(config, {
           ...KEY_GATEWAY,
           functionName: 'add',
           args: [
-            1,
+            1, // keyType: 1 = EdDSA
             account.publicKey as `0x${string}`,
-            1,
-            encodeAbiParameters(SIGNED_KEY_REQUEST_TYPE_V2, [
-              {
-                requestFid: BigInt(APP_FID),
-                requestSigner: appAccount.address,
-                signature: signature,
-                deadline: BigInt(deadline),
-              },
-            ]),
+            1, // metadataType: 1 = SignedKeyRequest
+            metadata, // Already encoded, use directly
           ],
         });
         setAddKeyTx(addKeyTx);
