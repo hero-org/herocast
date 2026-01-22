@@ -10,18 +10,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import {
-  TrendingUp,
-  Layers,
-  Hash,
-  Search,
-  Users,
-  MessageCircle,
-  AtSign,
-  Heart,
-  Repeat2,
-  UserPlus,
-} from 'lucide-react';
+import { TrendingUp, Layers, Hash, Search, Users, MessageCircle, AtSign, Heart, Repeat2, UserPlus } from 'lucide-react';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 import { PanelConfig, FeedPanelConfig, InboxPanelConfig } from '@/common/types/workspace.types';
 import { PanelContent } from './PanelContent';
