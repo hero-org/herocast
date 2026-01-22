@@ -113,14 +113,17 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
   // Single embed - no carousel UI needed (no transform, so intersection observer works)
   if (embeds.length === 1) {
     return (
-      <div className="max-w-lg self-start cursor-pointer" onClick={(e) => handleEmbedClick(e, 0)}>
+      <div
+        className="w-full min-w-0 max-w-lg self-start cursor-pointer overflow-hidden"
+        onClick={(e) => handleEmbedClick(e, 0)}
+      >
         {renderEmbedForUrl({ ...embeds[0], hideReactions })}
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg self-start">
+    <div className="w-full min-w-0 max-w-lg self-start overflow-hidden">
       {/* Embed container with animated height */}
       <div
         className="overflow-hidden rounded-lg transition-[height] duration-300 ease-in-out"
@@ -137,7 +140,7 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
               ref={(el) => {
                 embedRefs.current[index] = el;
               }}
-              className="w-full flex-shrink-0"
+              className="w-full min-w-0 flex-shrink-0 overflow-hidden"
             >
               {renderEmbedForUrl({ ...embed, hideReactions, skipIntersection: true })}
             </div>
