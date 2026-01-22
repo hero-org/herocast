@@ -1,0 +1,11 @@
+{
+  "lock": false,
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.0",
+    "zod": "https://deno.land/x/zod@v3.23.8/mod.ts",
+    "@farcaster/core": "npm:@farcaster/core@0.14.19"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"]
+  }
+}
