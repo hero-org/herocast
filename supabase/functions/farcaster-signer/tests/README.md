@@ -5,11 +5,13 @@ Integration and E2E tests for the Farcaster signing service.
 ## Prerequisites
 
 1. **Local Supabase** running:
+
    ```bash
    supabase start
    ```
 
 2. **Environment variables** - Create a `.env` file or export:
+
    ```bash
    export SUPABASE_URL="http://localhost:54321"
    export SUPABASE_ANON_KEY="<your-local-anon-key>"
@@ -17,6 +19,7 @@ Integration and E2E tests for the Farcaster signing service.
    ```
 
 3. **Signing service** deployed locally:
+
    ```bash
    supabase functions serve farcaster-signer --no-verify-jwt
    ```
@@ -64,6 +67,7 @@ deno test --allow-net --allow-env tests/
 ## Test Categories
 
 ### Auth Tests (`auth.test.ts`)
+
 - Missing authorization header → 401
 - Invalid token → 401
 - Expired token → 401
@@ -73,24 +77,29 @@ deno test --allow-net --allow-env tests/
 - Unknown route → 404
 
 ### Cast Tests (`cast.test.ts`)
+
 - Validation: missing fields, invalid formats, field limits
 - E2E: create cast, idempotency, channel_id, embeds
 
 ### Reaction Tests (`reaction.test.ts`)
+
 - Validation: missing fields, invalid type, invalid target
 - E2E: like, recast
 
 ### Follow Tests (`follow.test.ts`)
+
 - Validation: missing fields, invalid FID
 - E2E: follow, unfollow
 
 ## Test Data Requirements
 
 For **validation tests**, you need:
+
 - Test users created in Supabase Auth
 - At least one active account per user (can have dummy keys)
 
 For **E2E tests**, you need:
+
 - Real Farcaster signer private keys
 - Valid FIDs for those signers
 - Hub connectivity (tests will gracefully skip if Hub unavailable)
@@ -98,13 +107,17 @@ For **E2E tests**, you need:
 ## Troubleshooting
 
 ### "SUPABASE_ANON_KEY must be set"
+
 Run `supabase status` and export the anon key:
+
 ```bash
 export SUPABASE_ANON_KEY="eyJ..."
 ```
 
 ### "Test user has no active account"
+
 Create a test account in Supabase Studio:
+
 1. Go to Table Editor > accounts
 2. Insert a row with:
    - `user_id`: ID of your test user (from Authentication > Users)
@@ -113,11 +126,14 @@ Create a test account in Supabase Studio:
    - `private_key`: A valid Farcaster signer private key
 
 ### "Hub not available" (E2E tests)
+
 E2E tests that hit the Farcaster Hub will log this and pass. This is expected if:
+
 - You don't have Hub connectivity from your machine
 - The test accounts don't have valid signer keys
 
 To actually submit to Farcaster, you need real credentials.
 
 ### Cross-user test skipped
+
 If you only have one test user with an account, the cross-user isolation test will be skipped. Create a second test user with an account to enable it.

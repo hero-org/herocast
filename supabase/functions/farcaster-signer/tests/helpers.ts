@@ -10,7 +10,7 @@
 
 // Try to load environment from .env.local if available (optional)
 try {
-  const { loadSync } = await import("https://deno.land/std@0.224.0/dotenv/mod.ts");
+  const { loadSync } = await import('https://deno.land/std@0.224.0/dotenv/mod.ts');
   loadSync({ export: true, allowEmptyValues: true });
 } catch {
   // Ignore dotenv errors - env vars should be set directly
@@ -30,7 +30,7 @@ export interface TestUser {
 }
 
 // Skip message for tests requiring an account
-export const SKIP_NO_ACCOUNT = "Skipping: Test user has no active account";
+export const SKIP_NO_ACCOUNT = 'Skipping: Test user has no active account';
 
 export interface TestAccount {
   id: string;
@@ -42,13 +42,12 @@ export interface TestAccount {
  * Get test configuration from environment
  */
 export function getTestConfig(): TestConfig {
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "http://localhost:54321";
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("LOCAL_SUPABASE_ANON_KEY") || "";
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'http://localhost:54321';
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('LOCAL_SUPABASE_ANON_KEY') || '';
 
   if (!supabaseAnonKey) {
     throw new Error(
-      "SUPABASE_ANON_KEY or LOCAL_SUPABASE_ANON_KEY must be set. " +
-      "Run 'supabase status' to get your local anon key."
+      'SUPABASE_ANON_KEY or LOCAL_SUPABASE_ANON_KEY must be set. ' + "Run 'supabase status' to get your local anon key."
     );
   }
 
@@ -62,16 +61,12 @@ export function getTestConfig(): TestConfig {
 /**
  * Sign in a test user and get access token
  */
-export async function signInTestUser(
-  config: TestConfig,
-  email: string,
-  password: string
-): Promise<TestUser> {
+export async function signInTestUser(config: TestConfig, email: string, password: string): Promise<TestUser> {
   const response = await fetch(`${config.supabaseUrl}/auth/v1/token?grant_type=password`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "apikey": config.supabaseAnonKey,
+      'Content-Type': 'application/json',
+      apikey: config.supabaseAnonKey,
     },
     body: JSON.stringify({ email, password }),
   });
@@ -93,17 +88,13 @@ export async function signInTestUser(
 /**
  * Create a test user if it doesn't exist
  */
-export async function createTestUser(
-  config: TestConfig,
-  email: string,
-  password: string
-): Promise<TestUser> {
+export async function createTestUser(config: TestConfig, email: string, password: string): Promise<TestUser> {
   // Try to sign up
   const signUpResponse = await fetch(`${config.supabaseUrl}/auth/v1/signup`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "apikey": config.supabaseAnonKey,
+      'Content-Type': 'application/json',
+      apikey: config.supabaseAnonKey,
     },
     body: JSON.stringify({ email, password }),
   });
@@ -124,7 +115,7 @@ export async function makeRequest(
   config: TestConfig,
   path: string,
   options: {
-    method: "POST" | "DELETE";
+    method: 'POST' | 'DELETE';
     accessToken: string;
     body?: Record<string, unknown>;
     headers?: Record<string, string>;
@@ -135,9 +126,9 @@ export async function makeRequest(
   return await fetch(url, {
     method: options.method,
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${options.accessToken}`,
-      "apikey": config.supabaseAnonKey,
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${options.accessToken}`,
+      apikey: config.supabaseAnonKey,
       ...options.headers,
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
@@ -147,15 +138,11 @@ export async function makeRequest(
 /**
  * Parse response and assert success
  */
-export async function expectSuccess<T = Record<string, unknown>>(
-  response: Response
-): Promise<T & { success: true }> {
+export async function expectSuccess<T = Record<string, unknown>>(response: Response): Promise<T & { success: true }> {
   const data = await response.json();
 
   if (!response.ok || !data.success) {
-    throw new Error(
-      `Expected success but got ${response.status}: ${JSON.stringify(data, null, 2)}`
-    );
+    throw new Error(`Expected success but got ${response.status}: ${JSON.stringify(data, null, 2)}`);
   }
 
   return data as T & { success: true };
@@ -172,9 +159,7 @@ export async function expectError(
   const data = await response.json();
 
   if (response.status !== expectedStatus) {
-    throw new Error(
-      `Expected status ${expectedStatus} but got ${response.status}: ${JSON.stringify(data, null, 2)}`
-    );
+    throw new Error(`Expected status ${expectedStatus} but got ${response.status}: ${JSON.stringify(data, null, 2)}`);
   }
 
   if (data.success !== false) {
@@ -207,19 +192,13 @@ export function sleep(ms: number): Promise<void> {
 /**
  * Get a test account ID for a user (queries database)
  */
-export async function getTestAccountId(
-  config: TestConfig,
-  accessToken: string
-): Promise<string | null> {
-  const response = await fetch(
-    `${config.supabaseUrl}/rest/v1/accounts?select=id&status=eq.active&limit=1`,
-    {
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "apikey": config.supabaseAnonKey,
-      },
-    }
-  );
+export async function getTestAccountId(config: TestConfig, accessToken: string): Promise<string | null> {
+  const response = await fetch(`${config.supabaseUrl}/rest/v1/accounts?select=id&status=eq.active&limit=1`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      apikey: config.supabaseAnonKey,
+    },
+  });
 
   if (!response.ok) {
     return null;
