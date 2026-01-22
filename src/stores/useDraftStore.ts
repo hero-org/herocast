@@ -9,8 +9,7 @@ import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { AccountObjectType, useAccountStore } from './useAccountStore';
 import { DraftStatus, DraftType, ParentCastIdType } from '@/common/constants/farcaster';
 import { formatPlaintextToHubCastMessage, getMentionFidsByUsernames, submitCast } from '@/common/helpers/farcaster';
-import { toBytes } from 'viem';
-import { CastAddBody, CastId, Embed, makeCastAdd, Message, NobleEd25519Signer } from '@farcaster/hub-web';
+import { Embed } from '@farcaster/hub-web';
 import { AccountPlatformType } from '@/common/constants/accounts';
 import {
   toastErrorCastPublish,
@@ -47,11 +46,18 @@ const prepareCastBodyForDB = (castBody) => {
   return castBody;
 };
 
-// Custom type for prepared cast body - uses string hash for parentCastId, type is added by submitCast
-type PreparedCastBody = Omit<CastAddBody, 'parentCastId' | 'type'> & {
+type PreparedEmbed = { url: string } | { castId: { fid: number; hash: string } };
+
+// Custom type for prepared cast body - uses string hashes for signer service
+type PreparedCastBody = {
+  text: string;
+  embeds?: PreparedEmbed[];
+  mentions?: number[];
+  mentionsPositions?: number[];
+  parentUrl?: string;
   parentCastId?: {
     fid: number;
-    hash: string; // Hex string - submitCast will convert to bytes
+    hash: string; // Hex string
   };
 };
 
@@ -73,7 +79,6 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
   const result: PreparedCastBody = {
     text: castBody.text,
     embeds: castBody.embeds,
-    embedsDeprecated: castBody.embedsDeprecated,
     mentions: castBody.mentions,
     mentionsPositions: castBody.mentionsPositions,
     parentUrl: castBody.parentUrl,
@@ -109,32 +114,32 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
     });
   }
 
-  // Handle embed castIds - convert string hashes to bytes for Hub API
+  // Handle embed castIds - normalize to hex string for signer service
   if (result.embeds) {
     result.embeds = result.embeds.map((embed) => {
       if ('castId' in embed && embed.castId) {
-        // Type assertion needed because embed types are complex
         const castIdEmbed = embed as { castId: { fid: number; hash: string | Uint8Array } };
         const hash = castIdEmbed.castId.hash;
-        let hashBytes: Uint8Array;
+        let hashString: string;
 
         if (typeof hash === 'string') {
-          if (!hash.startsWith('0x')) {
-            console.error('[prepareCastBody] Invalid embed castId hash format:', hash);
-            throw new Error('Invalid embed castId hash format - expected hex string with 0x prefix');
-          }
-          hashBytes = toBytes(hash);
+          hashString = hash;
         } else if (hash instanceof Uint8Array) {
-          hashBytes = hash;
+          hashString = `0x${Buffer.from(hash).toString('hex')}`;
         } else {
           console.error('[prepareCastBody] Invalid embed castId hash type:', typeof hash);
           throw new Error('Invalid embed castId hash format');
         }
 
+        if (!hashString.startsWith('0x')) {
+          console.error('[prepareCastBody] Invalid embed castId hash format:', hashString);
+          throw new Error('Invalid embed castId hash format - expected hex string with 0x prefix');
+        }
+
         return {
           castId: {
             fid: Number(castIdEmbed.castId.fid),
-            hash: hashBytes,
+            hash: hashString,
           },
         };
       }
@@ -196,69 +201,6 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
 };
 
 const getMentionFids = getMentionFidsByUsernames();
-
-// Pre-encode cast message using the working client-side packages
-const preEncodeCastMessage = async (castBody: CastAddBody, account: AccountObjectType): Promise<number[]> => {
-  try {
-    console.log('preEncodeCastMessage: Starting with castBody:', JSON.stringify(castBody, null, 2));
-    console.log('preEncodeCastMessage: Account platformAccountId:', account.platformAccountId);
-    console.log('preEncodeCastMessage: Account has privateKey:', !!account.privateKey);
-
-    if (!castBody) {
-      throw new Error('castBody is null or undefined');
-    }
-
-    if (!castBody.text && !castBody.embeds?.length) {
-      throw new Error('castBody has no text or embeds');
-    }
-
-    if (!account || !account.platformAccountId || !account.privateKey) {
-      throw new Error(
-        `Invalid account data: platformAccountId=${account.platformAccountId}, hasPrivateKey=${!!account.privateKey}`
-      );
-    }
-
-    const dataOptions = {
-      fid: Number(account.platformAccountId),
-      network: 1, // Farcaster mainnet
-    };
-    console.log('preEncodeCastMessage: dataOptions:', dataOptions);
-
-    // Clean private key
-    let cleanPrivateKey: string = account.privateKey;
-    if (cleanPrivateKey.startsWith('0x')) {
-      cleanPrivateKey = cleanPrivateKey.slice(2);
-    }
-
-    console.log('preEncodeCastMessage: privateKey length:', cleanPrivateKey.length);
-    console.log('preEncodeCastMessage: privateKey format valid:', /^[0-9a-fA-F]{64}$/.test(cleanPrivateKey));
-
-    const privateKeyBytes = toBytes(`0x${cleanPrivateKey}` as `0x${string}`);
-    console.log('preEncodeCastMessage: privateKeyBytes length:', privateKeyBytes.length);
-
-    const signer = new NobleEd25519Signer(privateKeyBytes);
-    console.log('preEncodeCastMessage: signer created successfully');
-
-    console.log('preEncodeCastMessage: calling makeCastAdd...');
-    const msg = await makeCastAdd(castBody, dataOptions, signer);
-    if (msg.isErr()) {
-      console.error('preEncodeCastMessage: makeCastAdd failed:', msg.error);
-      throw msg.error;
-    }
-
-    console.log('preEncodeCastMessage: makeCastAdd succeeded, encoding message...');
-    const messageBytes = Buffer.from(Message.encode(msg.value).finish());
-    console.log('preEncodeCastMessage: encoded message bytes length:', messageBytes.length);
-
-    const result = Array.from(messageBytes);
-    console.log('preEncodeCastMessage: converted to array, final length:', result.length);
-    return result; // Convert to array for JSON storage
-  } catch (error) {
-    console.error('preEncodeCastMessage: Failed to pre-encode cast message:', error);
-    console.error('preEncodeCastMessage: Error stack:', error instanceof Error ? error.stack : 'unknown');
-    throw error;
-  }
-};
 
 type addNewPostDraftProps = {
   text?: string;
@@ -423,9 +365,9 @@ const store = (set: StoreSet) => ({
       const isPro = account?.user?.pro?.status === 'subscribed';
       const hash = await submitCast({
         ...castBody,
-        signerPrivateKey: account.privateKey!,
-        fid: Number(account.platformAccountId),
+        accountId: account.id,
         isPro,
+        idempotencyKey: draft.id,
       });
 
       // Update with result (sync)
@@ -493,35 +435,12 @@ const store = (set: StoreSet) => ({
         return;
       }
 
-      let encodedMessageBytes: number[] | null = null;
-
-      try {
-        // Pre-encode the message using the working client-side packages
-        console.log('scheduleDraftById: Starting pre-encoding...');
-        console.log('scheduleDraftById: castBody for pre-encoding:', JSON.stringify(castBody, null, 2));
-        console.log('scheduleDraftById: account for pre-encoding:', {
-          id: account.id,
-          platformAccountId: account.platformAccountId,
-          hasPrivateKey: !!account.privateKey,
-        });
-
-        encodedMessageBytes = await preEncodeCastMessage(castBody, account);
-        console.log('scheduleDraftById: Successfully pre-encoded message, bytes length:', encodedMessageBytes.length);
-        console.log('scheduleDraftById: First 10 bytes:', encodedMessageBytes.slice(0, 10));
-      } catch (error) {
-        console.warn('scheduleDraftById: Failed to pre-encode message, will fallback to runtime encoding:', error);
-        console.warn('scheduleDraftById: Error details:', error instanceof Error ? error.message : String(error));
-        // Continue without pre-encoded bytes - the Supabase function will handle it
-      }
-
       // Insert into DB (async OUTSIDE set)
       const { data, error } = await supabaseClient
         .from('draft')
         .insert({
           account_id: account.id,
           data: { ...castBody, rawText: draft.text },
-          // Only include encoded_message_bytes if we have them
-          ...(encodedMessageBytes ? { encoded_message_bytes: encodedMessageBytes } : {}),
           scheduled_for: scheduledFor.toISOString(),
           status: DraftStatus.scheduled,
         })
@@ -541,13 +460,8 @@ const store = (set: StoreSet) => ({
         }
       });
 
-      if (encodedMessageBytes) {
-        console.log('scheduleDraftById: Draft scheduled with pre-encoded bytes');
-        toastSuccessCastScheduled(`${draft.text} (pre-encoded for reliable publishing)`);
-      } else {
-        console.log('scheduleDraftById: Draft scheduled without pre-encoded bytes');
-        toastSuccessCastScheduled(`${draft.text} (will encode at publish time)`);
-      }
+      console.log('scheduleDraftById: Draft scheduled (server will encode at publish time)');
+      toastSuccessCastScheduled(draft.text);
 
       onSuccess?.();
     } catch (error) {

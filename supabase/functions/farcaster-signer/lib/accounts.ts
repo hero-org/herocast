@@ -12,20 +12,25 @@ import { ErrorCodes, SignerServiceError } from './errors.ts';
  *
  * @param supabaseClient - Authenticated Supabase client with user's JWT
  * @param accountId - UUID of the account to retrieve
- * @param userId - User ID for additional verification (RLS handles primary access control)
- * @returns SigningAccount containing fid and privateKey
+ * @param userId - User ID for additional verification (optional for service-role calls)
+ * @returns SigningAccount containing fid, privateKey, and userId
  * @throws SignerServiceError if account not found or not active
  */
 export async function getAccountForSigning(
   supabaseClient: SupabaseClient,
   accountId: string,
-  userId: string
+  userId?: string
 ): Promise<SigningAccount> {
-  const { data: accounts, error } = await supabaseClient
+  let query = supabaseClient
     .from('decrypted_accounts')
-    .select('id, platform_account_id, decrypted_private_key, status')
-    .eq('id', accountId)
-    .eq('user_id', userId);
+    .select('id, platform_account_id, decrypted_private_key, status, user_id')
+    .eq('id', accountId);
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data: accounts, error } = await query;
 
   if (error) {
     console.error('Error fetching account:', error);
@@ -56,8 +61,13 @@ export async function getAccountForSigning(
     throw new SignerServiceError(ErrorCodes.ACCOUNT_NOT_FOUND, 'Account has no private key', 404);
   }
 
+  if (!account.user_id) {
+    throw new SignerServiceError(ErrorCodes.ACCOUNT_NOT_FOUND, 'Account has no user', 404);
+  }
+
   return {
     fid: Number(account.platform_account_id),
     privateKey: account.decrypted_private_key,
+    userId: account.user_id,
   };
 }

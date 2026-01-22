@@ -147,23 +147,13 @@ const RegisterFarcasterUsernameForm = ({
       console.log('updateUsername result', result);
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      await setUserDataInProtocol(
-        account.privateKey!,
-        Number(account.platformAccountId!),
-        UserDataType.USERNAME,
-        username
-      );
+      await setUserDataInProtocol(account.id, UserDataType.USERNAME, username);
       updateAccountUsername(account.id);
 
-      await setUserDataInProtocol(
-        account.privateKey!,
-        Number(account.platformAccountId!),
-        UserDataType.DISPLAY,
-        displayName
-      );
+      await setUserDataInProtocol(account.id, UserDataType.DISPLAY, displayName);
 
       if (bio) {
-        await setUserDataInProtocol(account.privateKey!, Number(account.platformAccountId!), UserDataType.BIO, bio);
+        await setUserDataInProtocol(account.id, UserDataType.BIO, bio);
       }
 
       await hydrateAccounts();

@@ -1,4 +1,5 @@
 import { z } from 'https://deno.land/x/zod@v3.23.8/mod.ts';
+import { UserDataType } from 'npm:@farcaster/core@0.14.19';
 
 // Error codes matching the spec
 export const ErrorCodes = {
@@ -37,6 +38,11 @@ const castIdEmbedSchema = z.object({
 
 const embedSchema = z.union([urlEmbedSchema, castIdEmbedSchema]);
 
+const castTypeSchema = z.enum(['cast', 'long_cast']);
+
+const mentionsSchema = z.array(z.number().int().positive()).max(5, 'Maximum 5 mentions allowed');
+const mentionsPositionsSchema = z.array(z.number().int().nonnegative()).max(5, 'Maximum 5 mention positions allowed');
+
 /**
  * Schema for cast signing requests
  *
@@ -52,16 +58,45 @@ const embedSchema = z.union([urlEmbedSchema, castIdEmbedSchema]);
 export const CastRequestSchema = z
   .object({
     account_id: uuidSchema,
-    text: z.string().min(1, 'Text is required').max(1024, 'Text must not exceed 1024 characters'),
+    text: z.string().min(1, 'Text is required'),
     channel_id: z.string().optional(),
     parent_url: z.string().url().optional(),
     parent_cast_id: castIdSchema.optional(),
     embeds: z.array(embedSchema).max(2, 'Maximum 2 embeds allowed').optional(),
     idempotency_key: z.string().optional(),
+    mentions: mentionsSchema.optional(),
+    mentions_positions: mentionsPositionsSchema.optional(),
+    cast_type: castTypeSchema.optional(),
   })
   .refine((data) => !(data.channel_id && data.parent_url), {
     message: 'Use channel_id or parent_url, not both',
     path: ['channel_id'],
+  })
+  .superRefine((data, ctx) => {
+    const maxLength = data.cast_type === 'long_cast' ? 10000 : 1024;
+    if (data.text.length > maxLength) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Text must not exceed ${maxLength} characters`,
+        path: ['text'],
+      });
+    }
+
+    if (data.mentions && data.mentions_positions && data.mentions.length !== data.mentions_positions.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'mentions and mentions_positions must have the same length',
+        path: ['mentions_positions'],
+      });
+    }
+
+    if ((data.mentions && !data.mentions_positions) || (!data.mentions && data.mentions_positions)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'mentions and mentions_positions must be provided together',
+        path: ['mentions_positions'],
+      });
+    }
   });
 
 export type CastRequest = z.infer<typeof CastRequestSchema>;
@@ -123,6 +158,20 @@ export const DeleteReactionRequestSchema = z.object({
   account_id: uuidSchema,
   type: z.enum(['like', 'recast']),
   target: castIdSchema,
+});
+
+/**
+ * Schema for user data (profile) update requests
+ *
+ * Validates:
+ * - account_id: required UUID
+ * - type: UserDataType enum (numeric)
+ * - value: required string
+ */
+export const UserDataRequestSchema = z.object({
+  account_id: uuidSchema,
+  type: z.nativeEnum(UserDataType),
+  value: z.string().min(1, 'Value is required'),
 });
 
 export type DeleteReactionRequest = z.infer<typeof DeleteReactionRequestSchema>;

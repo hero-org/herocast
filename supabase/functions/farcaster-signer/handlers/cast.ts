@@ -70,8 +70,9 @@ function successResponse(data: { success: true; hash: string; fid: number }): Re
  * 9. Return success response
  */
 export async function handlePostCast(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient } = authResult;
   let accountId: string | undefined;
+  let auditUserId: string | undefined = authUserId;
 
   try {
     // 1. Parse JSON body
@@ -115,7 +116,7 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
 
         if (cached.hash) {
           // Previous request succeeded - get account to return fid
-          const account = await getAccountForSigning(supabaseClient, accountId, userId);
+          const account = await getAccountForSigning(supabaseClient, accountId, authUserId);
           return successResponse({
             success: true,
             hash: cached.hash,
@@ -132,7 +133,8 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
     }
 
     // 5. Get account for signing
-    const account = await getAccountForSigning(supabaseClient, accountId, userId);
+    const account = await getAccountForSigning(supabaseClient, accountId, authUserId);
+    auditUserId = account.userId;
 
     // 6. Sign and submit cast
     const hash = await signAndSubmitCast({
@@ -142,6 +144,9 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
       parentUrl,
       parentCastId: validated.parent_cast_id,
       embeds: transformEmbeds(validated.embeds),
+      mentions: validated.mentions,
+      mentionsPositions: validated.mentions_positions,
+      castType: validated.cast_type,
     });
 
     // 8. Store idempotency result if key provided
@@ -150,13 +155,15 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
     }
 
     // 8. Log to audit
-    await logSigningAction({
-      supabaseClient,
-      accountId,
-      userId,
-      action: 'cast',
-      success: true,
-    });
+    if (auditUserId) {
+      await logSigningAction({
+        supabaseClient,
+        accountId,
+        userId: auditUserId,
+        action: 'cast',
+        success: true,
+      });
+    }
 
     // 9. Return success response
     return successResponse({
@@ -176,11 +183,11 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
     }
 
     // Log failed action to audit if we have an account ID
-    if (accountId) {
+    if (accountId && auditUserId) {
       await logSigningAction({
         supabaseClient,
         accountId,
-        userId,
+        userId: auditUserId,
         action: 'cast',
         success: false,
         errorCode,
@@ -218,8 +225,9 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
  * 6. Return success response
  */
 export async function handleDeleteCast(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient } = authResult;
   let accountId: string | undefined;
+  let auditUserId: string | undefined = authUserId;
 
   try {
     // 1. Parse JSON body
@@ -235,7 +243,8 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
     accountId = validated.account_id;
 
     // 3. Get account for signing
-    const account = await getAccountForSigning(supabaseClient, accountId, userId);
+    const account = await getAccountForSigning(supabaseClient, accountId, authUserId);
+    auditUserId = account.userId;
 
     // 4. Remove cast
     await removeCast({
@@ -245,13 +254,15 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
     });
 
     // 5. Log to audit
-    await logSigningAction({
-      supabaseClient,
-      accountId,
-      userId,
-      action: 'remove_cast',
-      success: true,
-    });
+    if (auditUserId) {
+      await logSigningAction({
+        supabaseClient,
+        accountId,
+        userId: auditUserId,
+        action: 'remove_cast',
+        success: true,
+      });
+    }
 
     // 6. Return success response
     return successResponse({
@@ -271,11 +282,11 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
     }
 
     // Log failed action to audit if we have an account ID
-    if (accountId) {
+    if (accountId && auditUserId) {
       await logSigningAction({
         supabaseClient,
         accountId,
-        userId,
+        userId: auditUserId,
         action: 'remove_cast',
         success: false,
         errorCode,

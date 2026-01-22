@@ -11,6 +11,7 @@
  *   DELETE /reaction - Remove a reaction
  *   POST /follow   - Follow a user
  *   DELETE /follow - Unfollow a user
+ *   POST /user-data - Update user data (bio, display name, pfp, username)
  */
 
 import { corsHeaders, handleError } from './lib/errors.ts';
@@ -18,6 +19,7 @@ import { authenticateRequest } from './lib/auth.ts';
 import { handlePostCast, handleDeleteCast } from './handlers/cast.ts';
 import { handlePostReaction, handleDeleteReaction } from './handlers/reaction.ts';
 import { handlePostFollow, handleDeleteFollow } from './handlers/follow.ts';
+import { handlePostUserData } from './handlers/user-data.ts';
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests
@@ -55,6 +57,9 @@ Deno.serve(async (req: Request) => {
 
       case 'DELETE /follow':
         return await handleDeleteFollow(req, authResult);
+
+      case 'POST /user-data':
+        return await handlePostUserData(req, authResult);
 
       default:
         return new Response(

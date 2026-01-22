@@ -4,101 +4,174 @@ import {
   Embed,
   ID_REGISTRY_ADDRESS,
   KEY_GATEWAY_ADDRESS,
-  Message,
-  NobleEd25519Signer,
   SIGNED_KEY_REQUEST_TYPE,
   SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
   SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
   UserDataType,
-  hexStringToBytes,
   idRegistryABI,
   keyGatewayABI,
-  makeCastAdd,
-  makeUserDataAdd,
   signedKeyRequestValidatorABI,
-  CastType,
 } from '@farcaster/hub-web';
-import { CastAdd, CastId, HubRestAPIClient } from '@standard-crypto/farcaster-js-hub-rest';
-import { Address, encodeAbiParameters, toBytes } from 'viem';
+import { Address, encodeAbiParameters } from 'viem';
 import { publicClient, publicClientTestnet } from './rainbowkit';
 import { mnemonicToAccount } from 'viem/accounts';
 import { isDev } from './env';
 import { useTextLength } from '../helpers/editor';
+import { createClient } from './supabase/component';
 
 export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
 
-const axiosInstance = axios.create({
-  headers: {
-    'Content-Type': 'application/json',
-    api_key: process.env.NEXT_PUBLIC_NEYNAR_API_KEY,
-  },
-});
+type CastId = {
+  fid: number;
+  hash: string | Uint8Array;
+};
+
+type SignerServiceSuccess = {
+  success: true;
+  hash: string;
+  fid?: number;
+};
+
+type SignerServiceError = {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, unknown>;
+  };
+};
+
+type SignerServiceResponse = SignerServiceSuccess | SignerServiceError;
+
+const getSignerServiceUrl = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL for signer service.');
+  }
+  return `${supabaseUrl}/functions/v1/farcaster-signer`;
+};
+
+const ensureHexHash = (hash: string | Uint8Array): string => {
+  if (typeof hash === 'string') {
+    return hash.startsWith('0x') ? hash : `0x${hash}`;
+  }
+  return `0x${Buffer.from(hash).toString('hex')}`;
+};
+
+const toSignerEmbed = (embed: Embed) => {
+  if ('castId' in embed && embed.castId) {
+    return {
+      cast_id: {
+        fid: Number(embed.castId.fid),
+        hash: ensureHexHash(embed.castId.hash),
+      },
+    };
+  }
+  if ('url' in embed && embed.url) {
+    return { url: embed.url };
+  }
+  throw new Error('Invalid embed format for signer service');
+};
+
+const callSignerService = async (
+  path: string,
+  method: 'POST' | 'DELETE',
+  body: Record<string, unknown>
+): Promise<SignerServiceSuccess> => {
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!anonKey) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY for signer service.');
+  }
+
+  const supabase = createClient();
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError || !session?.access_token) {
+    throw new Error('You must be signed in to use the signer service.');
+  }
+
+  const response = await fetch(`${getSignerServiceUrl()}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: anonKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  let data: SignerServiceResponse | null = null;
+  try {
+    data = (await response.json()) as SignerServiceResponse;
+  } catch {
+    // Ignore JSON parse errors and handle via response status below.
+  }
+
+  if (!response.ok || !data || data.success === false) {
+    const errorMessage = data?.success === false ? data.error.message : `Signer service failed (${response.status})`;
+    const errorCode = data?.success === false ? data.error.code : undefined;
+    const message = errorCode ? `${errorCode}: ${errorMessage}` : errorMessage;
+    throw new Error(message);
+  }
+
+  return data;
+};
 
 type PublishReactionParams = {
-  authorFid: number;
-  privateKey: string;
+  accountId: string;
   reaction: {
     type: 'like' | 'recast';
-    target:
-      | CastId
-      | {
-          url: string;
-        };
+    target: CastId;
   };
 };
 
 type RemoveReactionParams = {
-  authorFid: number;
-  privateKey: string;
+  accountId: string;
   reaction: {
     type: 'like' | 'recast';
-    target:
-      | CastId
-      | {
-          url: string;
-        };
+    target: CastId;
   };
 };
 
-const getDataOptions = (fid: number) => ({
-  fid: fid,
-  network: 1,
-});
-
-export const removeReaction = async ({ authorFid, privateKey, reaction }: RemoveReactionParams) => {
-  const writeClient = new HubRestAPIClient({
-    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance,
+export const removeReaction = async ({ accountId, reaction }: RemoveReactionParams) => {
+  await callSignerService('/reaction', 'DELETE', {
+    account_id: accountId,
+    type: reaction.type,
+    target: {
+      fid: reaction.target.fid,
+      hash: ensureHexHash(reaction.target.hash),
+    },
   });
-
-  await writeClient.removeReaction(reaction, authorFid, privateKey);
 };
 
-export const publishReaction = async ({ authorFid, privateKey, reaction }: PublishReactionParams) => {
-  const writeClient = new HubRestAPIClient({
-    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance,
+export const publishReaction = async ({ accountId, reaction }: PublishReactionParams) => {
+  await callSignerService('/reaction', 'POST', {
+    account_id: accountId,
+    type: reaction.type,
+    target: {
+      fid: reaction.target.fid,
+      hash: ensureHexHash(reaction.target.hash),
+    },
   });
-
-  await writeClient.submitReaction(reaction, authorFid, privateKey);
 };
 
-export const followUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {
-  const client = new HubRestAPIClient({
-    axiosInstance,
-    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
+export const followUser = async (accountId: string, targetFid: number) => {
+  const response = await callSignerService('/follow', 'POST', {
+    account_id: accountId,
+    target_fid: targetFid,
   });
-  const followResponse = await client.followUser(targetFid, fid, signerPrivateKey);
-  console.log(`follow hash: ${followResponse?.hash}`);
+  console.log(`follow hash: ${response?.hash}`);
 };
 
-export const unfollowUser = async (targetFid: number, fid: number, signerPrivateKey: string) => {
-  const client = new HubRestAPIClient({
-    axiosInstance,
-    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
+export const unfollowUser = async (accountId: string, targetFid: number) => {
+  const response = await callSignerService('/follow', 'DELETE', {
+    account_id: accountId,
+    target_fid: targetFid,
   });
-  const unfollowResponse = await client.unfollowUser(targetFid, fid, signerPrivateKey);
-  console.log(`unfollow hash: ${unfollowResponse?.hash}`);
+  console.log(`unfollow hash: ${response?.hash}`);
 };
 
 type SubmitCastParams = {
@@ -108,12 +181,13 @@ type SubmitCastParams = {
   mentionsPositions?: number[];
   parentCastId?: {
     fid: number;
-    hash: string; // Hex string with 0x prefix - will be converted to bytes before submission
+    hash: string | Uint8Array;
   };
   parentUrl?: string;
-  fid: number;
-  signerPrivateKey: string;
+  accountId: string;
   isPro?: boolean;
+  channelId?: string;
+  idempotencyKey?: string;
 };
 
 export const submitCast = async ({
@@ -123,88 +197,39 @@ export const submitCast = async ({
   mentionsPositions,
   parentCastId,
   parentUrl,
-  signerPrivateKey,
-  fid,
+  accountId,
   isPro = false,
+  channelId,
+  idempotencyKey,
 }: SubmitCastParams) => {
-  const writeClient = new HubRestAPIClient({
-    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance,
-  });
-
-  // const publishCastResponse = await writeClient.submitCast(
-  //   { text, embeds, mentions, mentionsPositions, parentCastId },
-  //   fid,
-  //   signerPrivateKey
-  // );
-
-  // below is copy and adapted from farcaster-js, because the package is missing parentUrl parameter
-  // https://github.com/standard-crypto/farcaster-js/blob/be57dedec70ebadbb55118d3a64143457102adb4/packages/farcaster-js-hub-rest/src/hubRestApiClient.ts#L173
-
-  const castType = useTextLength({ text, isPro }).isLongCast ? CastType.LONG_CAST : CastType.CAST;
-
-  const dataOptions = getDataOptions(fid);
-  const castAdd: CastAddBody = {
+  const castType = useTextLength({ text, isPro }).isLongCast ? 'long_cast' : 'cast';
+  const response = await callSignerService('/cast', 'POST', {
+    account_id: accountId,
     text,
-    embeds: embeds ?? [],
-    embedsDeprecated: [],
-    mentions: mentions ?? [],
-    mentionsPositions: mentionsPositions ?? [],
-    parentUrl,
-    type: castType,
-  };
-  if (parentCastId !== undefined) {
-    console.log('[submitCast] Processing parentCastId:', {
-      fid: parentCastId.fid,
-      hashType: typeof parentCastId.hash,
-      hashValue: typeof parentCastId.hash === 'string' ? parentCastId.hash.slice(0, 12) + '...' : 'not-string',
-    });
-
-    // Validate hash format
-    if (typeof parentCastId.hash !== 'string' || !parentCastId.hash.startsWith('0x')) {
-      const errorMsg = `Invalid parentCastId.hash format: expected hex string with 0x prefix, got ${typeof parentCastId.hash}`;
-      console.error('[submitCast]', errorMsg, parentCastId.hash);
-      throw new Error(errorMsg);
-    }
-
-    const parentHashBytes = hexStringToBytes(parentCastId.hash);
-    const parentFid = parentCastId.fid;
-    parentHashBytes.match(
-      (bytes) => {
-        console.log('[submitCast] parentCastId hash converted to bytes, length:', bytes.length);
-        castAdd.parentCastId = {
-          fid: parentFid,
-          hash: bytes,
-        };
-      },
-      (err) => {
-        console.error('[submitCast] parentCastId hash conversion failed:', err);
-        throw err;
-      }
-    );
-  }
-  const msg = await makeCastAdd(castAdd, dataOptions, new NobleEd25519Signer(toBytes(signerPrivateKey)));
-  if (msg.isErr()) {
-    throw msg.error;
-  }
-  console.log('msg', msg);
-  const messageBytes = Buffer.from(Message.encode(msg.value).finish());
-
-  const response = await writeClient.apis.submitMessage.submitMessage({
-    body: messageBytes,
+    embeds: embeds?.map(toSignerEmbed),
+    mentions,
+    mentions_positions: mentionsPositions,
+    parent_cast_id: parentCastId
+      ? {
+          fid: parentCastId.fid,
+          hash: ensureHexHash(parentCastId.hash),
+        }
+      : undefined,
+    parent_url: parentUrl,
+    channel_id: channelId,
+    idempotency_key: idempotencyKey,
+    cast_type: castType,
   });
-  const publishCastResponse = response.data as CastAdd;
-  console.log(`new cast hash: ${publishCastResponse.hash}`);
-  return publishCastResponse.hash;
+
+  console.log(`new cast hash: ${response.hash}`);
+  return response.hash;
 };
 
-export const removeCast = async (castHash: string, fid: number, signerPrivateKey: string) => {
-  const writeClient = new HubRestAPIClient({
-    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance,
+export const removeCast = async (accountId: string, castHash: string) => {
+  const response = await callSignerService('/cast', 'DELETE', {
+    account_id: accountId,
+    cast_hash: ensureHexHash(castHash),
   });
-
-  const response = await writeClient.removeCast(castHash, fid, signerPrivateKey);
   console.log(`remove cast hash: ${response?.hash}`);
 };
 
@@ -409,24 +434,13 @@ export const updateUsernameOffchain = async ({
   }
 };
 
-export const setUserDataInProtocol = async (privateKey: string, fid: number, type: UserDataType, value: string) => {
-  const signer = new NobleEd25519Signer(toBytes(privateKey));
-  const dataOptions = getDataOptions(fid);
-
-  const msg = await makeUserDataAdd({ type, value }, dataOptions, signer);
-
-  if (msg.isErr()) {
-    throw msg.error;
-  }
-  const messageBytes = Buffer.from(Message.encode(msg.value).finish());
-  const writeClient = new HubRestAPIClient({
-    hubUrl: process.env.NEXT_PUBLIC_HUB_HTTP_URL,
-    axiosInstance,
+export const setUserDataInProtocol = async (accountId: string, type: UserDataType, value: string) => {
+  const response = await callSignerService('/user-data', 'POST', {
+    account_id: accountId,
+    type,
+    value,
   });
-  const response = await writeClient.apis.submitMessage.submitMessage({
-    body: messageBytes,
-  });
-  return response.data;
+  return response.hash;
 };
 
 const EIP_712_USERNAME_PROOF = [

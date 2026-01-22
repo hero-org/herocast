@@ -781,11 +781,9 @@ const CastRowComponent = ({
                       return;
                     }
 
-                    removeCast(cast.hash, Number(selectedAccount.platformAccountId), selectedAccount.privateKey!).then(
-                      () => {
-                        toastSuccessCastDeleted(cast?.text);
-                      }
-                    );
+                    removeCast(selectedAccount.id, cast.hash).then(() => {
+                      toastSuccessCastDeleted(cast?.text);
+                    });
                   }}
                 >
                   Confirm

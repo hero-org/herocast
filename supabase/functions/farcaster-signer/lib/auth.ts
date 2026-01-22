@@ -9,7 +9,7 @@ import { ErrorCodes, SignerServiceError } from './errors.ts';
  * to ensure RLS policies are enforced for all subsequent queries.
  *
  * @param authHeader - The Authorization header value (e.g., "Bearer <token>")
- * @returns AuthResult containing userId and authenticated Supabase client
+ * @returns AuthResult containing userId (if user-authenticated) and Supabase client
  * @throws SignerServiceError if authentication fails
  */
 export async function authenticateRequest(authHeader: string | null): Promise<AuthResult> {
@@ -25,9 +25,19 @@ export async function authenticateRequest(authHeader: string | null): Promise<Au
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables');
+  }
+
+  // Allow internal service-role calls (e.g., cron jobs) to use the signer service
+  if (supabaseServiceRoleKey && token === supabaseServiceRoleKey) {
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceRoleKey);
+    return {
+      userId: undefined,
+      supabaseClient,
+    };
   }
 
   // Create Supabase client with anon key + user's JWT for RLS enforcement

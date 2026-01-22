@@ -5,8 +5,7 @@ import { ProfileData } from '@/hooks/queries/useProfile';
 
 interface FollowParams {
   targetFid: number;
-  viewerFid: number;
-  signerPrivateKey: string;
+  accountId: string;
 }
 
 interface FollowMutationContext {
@@ -26,15 +25,15 @@ interface FollowMutationContext {
  * Usage:
  * ```typescript
  * const follow = useFollow();
- * follow.mutate({ targetFid: 123, viewerFid: 456, signerPrivateKey: '0x...' });
+ * follow.mutate({ targetFid: 123, accountId: 'uuid' });
  * ```
  */
 export function useFollow() {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, FollowParams, FollowMutationContext>({
-    mutationFn: async ({ targetFid, viewerFid, signerPrivateKey }: FollowParams) => {
-      await followUser(targetFid, viewerFid, signerPrivateKey);
+    mutationFn: async ({ targetFid, accountId }: FollowParams) => {
+      await followUser(accountId, targetFid);
     },
 
     onMutate: async ({ targetFid }) => {
@@ -128,15 +127,15 @@ export function useFollow() {
  * Usage:
  * ```typescript
  * const unfollow = useUnfollow();
- * unfollow.mutate({ targetFid: 123, viewerFid: 456, signerPrivateKey: '0x...' });
+ * unfollow.mutate({ targetFid: 123, accountId: 'uuid' });
  * ```
  */
 export function useUnfollow() {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, FollowParams, FollowMutationContext>({
-    mutationFn: async ({ targetFid, viewerFid, signerPrivateKey }: FollowParams) => {
-      await unfollowUser(targetFid, viewerFid, signerPrivateKey);
+    mutationFn: async ({ targetFid, accountId }: FollowParams) => {
+      await unfollowUser(accountId, targetFid);
     },
 
     onMutate: async ({ targetFid }) => {

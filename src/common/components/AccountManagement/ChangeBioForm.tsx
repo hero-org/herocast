@@ -76,7 +76,7 @@ const ChangeBioForm = ({ account, onSuccess }: ChangeBioFormProps) => {
     setIsPending(true);
 
     try {
-      await setUserDataInProtocol(account.privateKey!, Number(account.platformAccountId!), UserDataType.BIO, bio);
+      await setUserDataInProtocol(account.id, UserDataType.BIO, bio);
       toast.success('Bio changed successfully', {
         duration: 5000,
         closeButton: true,

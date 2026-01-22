@@ -177,7 +177,7 @@ export interface IdempotencyEntry {
  * Result of successful authentication
  */
 export interface AuthResult {
-  userId: string;
+  userId?: string;
   supabaseClient: SupabaseClient;
 }
 
@@ -187,6 +187,7 @@ export interface AuthResult {
 export interface SigningAccount {
   fid: number;
   privateKey: string;
+  userId: string;
 }
 
 /**

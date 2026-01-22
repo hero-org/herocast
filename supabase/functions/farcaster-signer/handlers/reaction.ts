@@ -14,8 +14,9 @@ import { corsHeaders, handleError } from '../lib/errors.ts';
  * Handle POST /reaction - Add a reaction (like or recast)
  */
 export async function handlePostReaction(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient } = authResult;
   let accountId: string | undefined;
+  let auditUserId: string | undefined = authUserId;
 
   try {
     // Parse and validate request body
@@ -26,7 +27,8 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
     const { type: reactionType, target } = validatedRequest;
 
     // Get account for signing
-    const signingAccount = await getAccountForSigning(supabaseClient, accountId, userId);
+    const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
+    auditUserId = signingAccount.userId;
 
     // Sign and submit the reaction
     const hash = await signAndSubmitReaction({
@@ -38,13 +40,15 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
     });
 
     // Log success to audit
-    await logSigningAction({
-      supabaseClient,
-      accountId,
-      userId,
-      action: reactionType,
-      success: true,
-    });
+    if (auditUserId) {
+      await logSigningAction({
+        supabaseClient,
+        accountId,
+        userId: auditUserId,
+        action: reactionType,
+        success: true,
+      });
+    }
 
     return new Response(
       JSON.stringify({
@@ -62,11 +66,11 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
     );
   } catch (error) {
     // Log failure to audit if we have an accountId
-    if (accountId) {
+    if (accountId && auditUserId) {
       await logSigningAction({
         supabaseClient,
         accountId,
-        userId,
+        userId: auditUserId,
         action: 'reaction',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',
@@ -81,8 +85,9 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
  * Handle DELETE /reaction - Remove a reaction (like or recast)
  */
 export async function handleDeleteReaction(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient } = authResult;
   let accountId: string | undefined;
+  let auditUserId: string | undefined = authUserId;
 
   try {
     // Parse and validate request body
@@ -93,7 +98,8 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
     const { type: reactionType, target } = validatedRequest;
 
     // Get account for signing
-    const signingAccount = await getAccountForSigning(supabaseClient, accountId, userId);
+    const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
+    auditUserId = signingAccount.userId;
 
     // Remove the reaction
     const hash = await removeReaction({
@@ -105,13 +111,15 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
     });
 
     // Log success to audit
-    await logSigningAction({
-      supabaseClient,
-      accountId,
-      userId,
-      action: `remove_${reactionType}`,
-      success: true,
-    });
+    if (auditUserId) {
+      await logSigningAction({
+        supabaseClient,
+        accountId,
+        userId: auditUserId,
+        action: `remove_${reactionType}`,
+        success: true,
+      });
+    }
 
     return new Response(
       JSON.stringify({
@@ -129,11 +137,11 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
     );
   } catch (error) {
     // Log failure to audit if we have an accountId
-    if (accountId) {
+    if (accountId && auditUserId) {
       await logSigningAction({
         supabaseClient,
         accountId,
-        userId,
+        userId: auditUserId,
         action: 'remove_reaction',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',

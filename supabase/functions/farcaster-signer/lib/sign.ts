@@ -12,11 +12,14 @@ import {
   makeReactionRemove,
   makeLinkAdd,
   makeLinkRemove,
+  makeUserDataAdd,
   Message,
   MessageData,
   NobleEd25519Signer,
   FarcasterNetwork,
   ReactionType,
+  CastType,
+  UserDataType,
   hexStringToBytes,
 } from 'npm:@farcaster/core@0.14.19';
 import { HubSubmissionFailedError } from './errors.ts';
@@ -44,6 +47,9 @@ export interface CastParams {
     hash: string;
   };
   embeds?: Array<{ url: string } | { castId: { fid: number; hash: string } }>;
+  mentions?: number[];
+  mentionsPositions?: number[];
+  castType?: 'cast' | 'long_cast';
 }
 
 export interface ReactionParams {
@@ -64,6 +70,13 @@ export interface RemoveCastParams {
   fid: number;
   privateKey: string;
   castHash: string;
+}
+
+export interface UserDataParams {
+  fid: number;
+  privateKey: string;
+  type: UserDataType;
+  value: string;
 }
 
 // ============================================================================
@@ -156,7 +169,7 @@ async function submitMessageToHub(message: Message, hubUrl: string): Promise<{ h
  * Tries multiple Hub endpoints until one succeeds
  */
 export async function signAndSubmitCast(params: CastParams): Promise<string> {
-  const { fid, privateKey, text, parentUrl, parentCastId, embeds } = params;
+  const { fid, privateKey, text, parentUrl, parentCastId, embeds, mentions, mentionsPositions, castType } = params;
 
   const signer = createSigner(privateKey);
 
@@ -164,6 +177,8 @@ export async function signAndSubmitCast(params: CastParams): Promise<string> {
     fid,
     network: FarcasterNetwork.MAINNET,
   };
+
+  const resolvedCastType = castType === 'long_cast' ? CastType.LONG_CAST : CastType.CAST;
 
   // Build the cast body
   const castAddBody: {
@@ -174,12 +189,14 @@ export async function signAndSubmitCast(params: CastParams): Promise<string> {
     embedsDeprecated: string[];
     parentUrl?: string;
     parentCastId?: { fid: number; hash: Uint8Array };
+    type?: CastType;
   } = {
     text,
-    mentions: [],
-    mentionsPositions: [],
+    mentions: mentions ?? [],
+    mentionsPositions: mentionsPositions ?? [],
     embeds: [],
     embedsDeprecated: [],
+    type: resolvedCastType,
   };
 
   // Process embeds
@@ -247,6 +264,56 @@ export async function signAndSubmitCast(params: CastParams): Promise<string> {
   }
 
   throw new HubSubmissionFailedError(`Failed to submit cast to all Hub endpoints: ${lastError?.message}`, {
+    lastError: lastError?.response?.data || lastError?.message,
+  });
+}
+
+// ============================================================================
+// User Data Operations
+// ============================================================================
+
+/**
+ * Sign and submit a user data update (bio, display name, pfp, username)
+ */
+export async function signAndSubmitUserData(params: UserDataParams): Promise<string> {
+  const { fid, privateKey, type, value } = params;
+
+  const signer = createSigner(privateKey);
+
+  const dataOptions = {
+    fid,
+    network: FarcasterNetwork.MAINNET,
+  };
+
+  const msgResult = await makeUserDataAdd({ type, value }, dataOptions, signer);
+  if (msgResult.isErr()) {
+    throw new HubSubmissionFailedError(`Failed to create user data message: ${msgResult.error.message}`, {
+      error: msgResult.error,
+    });
+  }
+
+  const message = msgResult.value;
+  let lastError: Error | null = null;
+
+  for (const hubUrl of HUB_ENDPOINTS) {
+    try {
+      console.log(`[signAndSubmitUserData] Trying hub: ${hubUrl}`);
+
+      const result = await submitMessageToHub(message, hubUrl);
+
+      console.log(`[signAndSubmitUserData] Success with hub: ${hubUrl}, hash: ${result?.hash}`);
+      return result?.hash;
+    } catch (error) {
+      console.log(
+        `[signAndSubmitUserData] Hub ${hubUrl} failed:`,
+        error?.response?.data?.errCode || error?.message
+      );
+      lastError = error;
+      continue;
+    }
+  }
+
+  throw new HubSubmissionFailedError(`Failed to submit user data to all Hub endpoints: ${lastError?.message}`, {
     lastError: lastError?.response?.data || lastError?.message,
   });
 }

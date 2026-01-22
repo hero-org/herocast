@@ -1,7 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
-import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
-import axios from 'npm:axios';
 
 // console.log("Hello from process-auto-interactions!")
 
@@ -17,6 +15,44 @@ interface AutoInteractionListContent {
   feedSource?: 'specific_users' | 'following';
   requiredUrls?: string[];
   requiredKeywords?: string[];
+}
+
+async function callSignerService(path: string, body: Record<string, unknown>): Promise<{ hash: string }> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  }
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/farcaster-signer${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: serviceRoleKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  let data: { success: boolean; hash?: string; error?: { code: string; message: string } } | null = null;
+  try {
+    data = (await response.json()) as { success: boolean; hash?: string; error?: { code: string; message: string } };
+  } catch {
+    // ignore JSON parse errors
+  }
+
+  if (!response.ok || !data || data.success === false) {
+    const errorMessage = data?.error?.message || `Signer service failed (${response.status})`;
+    const errorCode = data?.error?.code;
+    throw new Error(errorCode ? `${errorCode}: ${errorMessage}` : errorMessage);
+  }
+
+  if (!data.hash) {
+    throw new Error('Signer service response missing hash');
+  }
+
+  return { hash: data.hash };
 }
 
 serve(async (req) => {
@@ -85,7 +121,7 @@ async function processAutoInteractionList(supabase: any, list: any) {
   // Get decrypted account data directly from the view (like publish-cast-from-db does)
   const { data: accounts, error: decryptError } = await supabase
     .from('decrypted_accounts')
-    .select('id, platform_account_id, decrypted_private_key')
+    .select('id, platform_account_id')
     .eq('id', content.sourceAccountId);
 
   if (decryptError || !accounts || accounts.length === 0) {
@@ -93,18 +129,12 @@ async function processAutoInteractionList(supabase: any, list: any) {
   }
 
   const account = accounts[0];
-  const privateKey = account.decrypted_private_key;
 
   console.log(`[List ${list.id}] Decrypted account:`, {
     hasAccount: !!account,
-    hasPrivateKey: !!privateKey,
     accountId: content.sourceAccountId,
     platformAccountId: account.platform_account_id,
   });
-
-  if (!privateKey) {
-    throw new Error(`No private key found for account ${content.sourceAccountId}`);
-  }
 
   // Fetch recent casts based on feed source
   console.log(`[List ${list.id}] Fetching casts...`);
@@ -177,13 +207,13 @@ async function processAutoInteractionList(supabase: any, list: any) {
     if (content.actionType === 'like' || content.actionType === 'both') {
       actions.push({
         type: 'like',
-        action: () => submitReaction('like', cast, privateKey, account.platform_account_id),
+        action: () => submitReaction('like', cast, content.sourceAccountId),
       });
     }
     if (content.actionType === 'recast' || content.actionType === 'both') {
       actions.push({
         type: 'recast',
-        action: () => submitReaction('recast', cast, privateKey, account.platform_account_id),
+        action: () => submitReaction('recast', cast, content.sourceAccountId),
       });
     }
 
@@ -468,35 +498,19 @@ async function fetchAllRecentCasts(
   return allCasts;
 }
 
-async function submitReaction(type: 'like' | 'recast', cast: any, privateKey: string, authorFid: string) {
-  if (!privateKey) {
-    throw new Error('Private key is required to submit reactions');
+async function submitReaction(type: 'like' | 'recast', cast: any, accountId: string) {
+  if (!accountId) {
+    throw new Error('Account ID is required to submit reactions');
   }
 
-  const axiosInstance = axios.create({
-    headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
-  });
-
-  const hubUrl = Deno.env.get('HUB_HTTP_URL') || 'https://snapchain-api.neynar.com';
-  const writeClient = new HubRestAPIClient({
-    hubUrl,
-    axiosInstance,
-  });
-
-  // Clean private key format
-  let cleanPrivateKey = privateKey;
-  if (privateKey.startsWith('0x')) {
-    cleanPrivateKey = privateKey.slice(2);
-  }
-
-  const reaction = {
-    type: type as 'like' | 'recast',
+  const response = await callSignerService('/reaction', {
+    account_id: accountId,
+    type,
     target: {
       fid: cast.author.fid,
       hash: cast.hash,
     },
-  };
+  });
 
-  await writeClient.submitReaction(reaction, Number(authorFid), cleanPrivateKey);
-  console.log(`Successfully submitted ${type} for cast ${cast.hash}`);
+  console.log(`Successfully submitted ${type} for cast ${cast.hash}. Hash: ${response.hash}`);
 }

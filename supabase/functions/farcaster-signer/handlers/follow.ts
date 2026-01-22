@@ -14,8 +14,9 @@ import { corsHeaders, handleError } from '../lib/errors.ts';
  * Handle POST /follow - Follow a user
  */
 export async function handlePostFollow(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient } = authResult;
   let accountId: string | undefined;
+  let auditUserId: string | undefined = authUserId;
 
   try {
     // Parse and validate request body
@@ -26,7 +27,8 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
     const { target_fid: targetFid } = validatedRequest;
 
     // Get account for signing
-    const signingAccount = await getAccountForSigning(supabaseClient, accountId, userId);
+    const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
+    auditUserId = signingAccount.userId;
 
     // Sign and submit the follow
     const hash = await signAndSubmitFollow({
@@ -36,13 +38,15 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
     });
 
     // Log success to audit
-    await logSigningAction({
-      supabaseClient,
-      accountId,
-      userId,
-      action: 'follow',
-      success: true,
-    });
+    if (auditUserId) {
+      await logSigningAction({
+        supabaseClient,
+        accountId,
+        userId: auditUserId,
+        action: 'follow',
+        success: true,
+      });
+    }
 
     return new Response(
       JSON.stringify({
@@ -60,11 +64,11 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
     );
   } catch (error) {
     // Log failure to audit if we have an accountId
-    if (accountId) {
+    if (accountId && auditUserId) {
       await logSigningAction({
         supabaseClient,
         accountId,
-        userId,
+        userId: auditUserId,
         action: 'follow',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',
@@ -79,8 +83,9 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
  * Handle DELETE /follow - Unfollow a user
  */
 export async function handleDeleteFollow(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient } = authResult;
   let accountId: string | undefined;
+  let auditUserId: string | undefined = authUserId;
 
   try {
     // Parse and validate request body
@@ -91,7 +96,8 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
     const { target_fid: targetFid } = validatedRequest;
 
     // Get account for signing
-    const signingAccount = await getAccountForSigning(supabaseClient, accountId, userId);
+    const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
+    auditUserId = signingAccount.userId;
 
     // Remove the follow (unfollow)
     const hash = await removeFollow({
@@ -101,13 +107,15 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
     });
 
     // Log success to audit
-    await logSigningAction({
-      supabaseClient,
-      accountId,
-      userId,
-      action: 'unfollow',
-      success: true,
-    });
+    if (auditUserId) {
+      await logSigningAction({
+        supabaseClient,
+        accountId,
+        userId: auditUserId,
+        action: 'unfollow',
+        success: true,
+      });
+    }
 
     return new Response(
       JSON.stringify({
@@ -125,11 +133,11 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
     );
   } catch (error) {
     // Log failure to audit if we have an accountId
-    if (accountId) {
+    if (accountId && auditUserId) {
       await logSigningAction({
         supabaseClient,
         accountId,
-        userId,
+        userId: auditUserId,
         action: 'unfollow',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',
