@@ -28,11 +28,7 @@ import { HubSubmissionFailedError } from './errors.ts';
 /**
  * Hub endpoints to try in order of preference
  */
-const HUB_ENDPOINTS = [
-  'https://snapchain-api.neynar.com',
-  'https://hub-api.neynar.com',
-  'https://hub.pinata.cloud',
-];
+const HUB_ENDPOINTS = ['https://snapchain-api.neynar.com', 'https://hub-api.neynar.com', 'https://hub.pinata.cloud'];
 
 // ============================================================================
 // Types
@@ -132,7 +128,7 @@ async function submitMessageToHub(message: Message, hubUrl: string): Promise<{ h
     method: 'POST',
     headers: {
       'Content-Type': 'application/octet-stream',
-      'api_key': Deno.env.get('NEYNAR_API_KEY') || '',
+      api_key: Deno.env.get('NEYNAR_API_KEY') || '',
     },
     body: messageBytes,
   });
@@ -241,18 +237,18 @@ export async function signAndSubmitCast(params: CastParams): Promise<string> {
       console.log(`[signAndSubmitCast] Success with hub: ${hubUrl}, hash: ${result.hash}`);
       return result.hash;
     } catch (error) {
-      console.log(`[signAndSubmitCast] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.response?.data?.message || error?.message);
+      console.log(
+        `[signAndSubmitCast] Hub ${hubUrl} failed:`,
+        error?.response?.data?.errCode || error?.response?.data?.message || error?.message
+      );
       lastError = error;
       continue;
     }
   }
 
-  throw new HubSubmissionFailedError(
-    `Failed to submit cast to all Hub endpoints: ${lastError?.message}`,
-    {
-      lastError: lastError?.response?.data || lastError?.message,
-    }
-  );
+  throw new HubSubmissionFailedError(`Failed to submit cast to all Hub endpoints: ${lastError?.message}`, {
+    lastError: lastError?.response?.data || lastError?.message,
+  });
 }
 
 /**
@@ -300,12 +296,9 @@ export async function removeCast(params: RemoveCastParams): Promise<string> {
     }
   }
 
-  throw new HubSubmissionFailedError(
-    `Failed to remove cast from all Hub endpoints: ${lastError?.message}`,
-    {
-      lastError: lastError?.response?.data || lastError?.message,
-    }
-  );
+  throw new HubSubmissionFailedError(`Failed to remove cast from all Hub endpoints: ${lastError?.message}`, {
+    lastError: lastError?.response?.data || lastError?.message,
+  });
 }
 
 // ============================================================================
@@ -365,12 +358,9 @@ export async function signAndSubmitReaction(params: ReactionParams): Promise<str
     }
   }
 
-  throw new HubSubmissionFailedError(
-    `Failed to submit reaction to all Hub endpoints: ${lastError?.message}`,
-    {
-      lastError: lastError?.response?.data || lastError?.message,
-    }
-  );
+  throw new HubSubmissionFailedError(`Failed to submit reaction to all Hub endpoints: ${lastError?.message}`, {
+    lastError: lastError?.response?.data || lastError?.message,
+  });
 }
 
 /**
@@ -426,12 +416,9 @@ export async function removeReaction(params: ReactionParams): Promise<string> {
     }
   }
 
-  throw new HubSubmissionFailedError(
-    `Failed to remove reaction from all Hub endpoints: ${lastError?.message}`,
-    {
-      lastError: lastError?.response?.data || lastError?.message,
-    }
-  );
+  throw new HubSubmissionFailedError(`Failed to remove reaction from all Hub endpoints: ${lastError?.message}`, {
+    lastError: lastError?.response?.data || lastError?.message,
+  });
 }
 
 // ============================================================================
@@ -481,12 +468,9 @@ export async function signAndSubmitFollow(params: FollowParams): Promise<string>
     }
   }
 
-  throw new HubSubmissionFailedError(
-    `Failed to submit follow to all Hub endpoints: ${lastError?.message}`,
-    {
-      lastError: lastError?.response?.data || lastError?.message,
-    }
-  );
+  throw new HubSubmissionFailedError(`Failed to submit follow to all Hub endpoints: ${lastError?.message}`, {
+    lastError: lastError?.response?.data || lastError?.message,
+  });
 }
 
 /**
@@ -532,10 +516,7 @@ export async function removeFollow(params: FollowParams): Promise<string> {
     }
   }
 
-  throw new HubSubmissionFailedError(
-    `Failed to remove follow from all Hub endpoints: ${lastError?.message}`,
-    {
-      lastError: lastError?.response?.data || lastError?.message,
-    }
-  );
+  throw new HubSubmissionFailedError(`Failed to remove follow from all Hub endpoints: ${lastError?.message}`, {
+    lastError: lastError?.response?.data || lastError?.message,
+  });
 }

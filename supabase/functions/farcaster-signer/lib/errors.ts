@@ -10,8 +10,7 @@ import type { ErrorCode, ErrorResponse } from './types.ts';
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-idempotency-key, x-account-id',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-idempotency-key, x-account-id',
   'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
 };
 
@@ -67,12 +66,7 @@ export class SignerServiceError extends Error {
   public readonly statusCode: number;
   public readonly details?: Record<string, unknown>;
 
-  constructor(
-    code: ErrorCode,
-    message: string,
-    statusCode: number = 400,
-    details?: Record<string, unknown>
-  ) {
+  constructor(code: ErrorCode, message: string, statusCode: number = 400, details?: Record<string, unknown>) {
     super(message);
     this.name = 'SignerServiceError';
     this.code = code;
@@ -115,11 +109,7 @@ export class InvalidRequestError extends SignerServiceError {
  */
 export class AccountNotFoundError extends SignerServiceError {
   constructor(accountId?: string) {
-    super(
-      'ACCOUNT_NOT_FOUND',
-      accountId ? `Account ${accountId} not found` : 'Account not found',
-      404
-    );
+    super('ACCOUNT_NOT_FOUND', accountId ? `Account ${accountId} not found` : 'Account not found', 404);
   }
 }
 

@@ -78,11 +78,7 @@ export interface DeleteCastRequest {
 /**
  * Union type for all supported signing requests
  */
-export type SigningRequest =
-  | CastRequest
-  | ReactionRequest
-  | FollowRequest
-  | DeleteCastRequest;
+export type SigningRequest = CastRequest | ReactionRequest | FollowRequest | DeleteCastRequest;
 
 // ============================================================================
 // Response Types

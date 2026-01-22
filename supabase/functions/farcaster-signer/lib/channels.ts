@@ -47,16 +47,13 @@ export async function resolveChannelToUrl(channelId: string): Promise<string> {
   }
 
   try {
-    const response = await fetch(
-      `https://api.neynar.com/v2/farcaster/channel?id=${encodeURIComponent(channelId)}`,
-      {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          api_key: apiKey,
-        },
-      }
-    );
+    const response = await fetch(`https://api.neynar.com/v2/farcaster/channel?id=${encodeURIComponent(channelId)}`, {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        api_key: apiKey,
+      },
+    });
 
     if (!response.ok) {
       if (response.status === 404) {

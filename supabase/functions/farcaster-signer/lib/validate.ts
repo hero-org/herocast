@@ -1,8 +1,8 @@
-import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+import { z } from 'https://deno.land/x/zod@v3.23.8/mod.ts';
 
 // Error codes matching the spec
 export const ErrorCodes = {
-  INVALID_MESSAGE: "INVALID_MESSAGE",
+  INVALID_MESSAGE: 'INVALID_MESSAGE',
 } as const;
 
 // Validation error class
@@ -11,7 +11,7 @@ export class ValidationError extends Error {
 
   constructor(message: string, code: string = ErrorCodes.INVALID_MESSAGE) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
     this.code = code;
   }
 }
@@ -19,9 +19,7 @@ export class ValidationError extends Error {
 // Common schemas
 const uuidSchema = z.string().uuid();
 
-const hexHashSchema = z
-  .string()
-  .regex(/^0x[a-fA-F0-9]+$/, "Hash must start with 0x followed by hex characters");
+const hexHashSchema = z.string().regex(/^0x[a-fA-F0-9]+$/, 'Hash must start with 0x followed by hex characters');
 
 const castIdSchema = z.object({
   fid: z.number().int().positive(),
@@ -54,20 +52,17 @@ const embedSchema = z.union([urlEmbedSchema, castIdEmbedSchema]);
 export const CastRequestSchema = z
   .object({
     account_id: uuidSchema,
-    text: z.string().min(1, "Text is required").max(1024, "Text must not exceed 1024 characters"),
+    text: z.string().min(1, 'Text is required').max(1024, 'Text must not exceed 1024 characters'),
     channel_id: z.string().optional(),
     parent_url: z.string().url().optional(),
     parent_cast_id: castIdSchema.optional(),
-    embeds: z.array(embedSchema).max(2, "Maximum 2 embeds allowed").optional(),
+    embeds: z.array(embedSchema).max(2, 'Maximum 2 embeds allowed').optional(),
     idempotency_key: z.string().optional(),
   })
-  .refine(
-    (data) => !(data.channel_id && data.parent_url),
-    {
-      message: "Use channel_id or parent_url, not both",
-      path: ["channel_id"],
-    }
-  );
+  .refine((data) => !(data.channel_id && data.parent_url), {
+    message: 'Use channel_id or parent_url, not both',
+    path: ['channel_id'],
+  });
 
 export type CastRequest = z.infer<typeof CastRequestSchema>;
 
@@ -81,7 +76,7 @@ export type CastRequest = z.infer<typeof CastRequestSchema>;
  */
 export const ReactionRequestSchema = z.object({
   account_id: uuidSchema,
-  type: z.enum(["like", "recast"]),
+  type: z.enum(['like', 'recast']),
   target: castIdSchema,
 });
 
@@ -126,7 +121,7 @@ export type DeleteCastRequest = z.infer<typeof DeleteCastRequestSchema>;
  */
 export const DeleteReactionRequestSchema = z.object({
   account_id: uuidSchema,
-  type: z.enum(["like", "recast"]),
+  type: z.enum(['like', 'recast']),
   target: castIdSchema,
 });
 
@@ -145,14 +140,11 @@ export function validateRequest<T>(schema: z.ZodSchema<T>, data: unknown): T {
 
   if (!result.success) {
     const errors = result.error.errors.map((err) => {
-      const path = err.path.length > 0 ? `${err.path.join(".")}: ` : "";
+      const path = err.path.length > 0 ? `${err.path.join('.')}: ` : '';
       return `${path}${err.message}`;
     });
 
-    throw new ValidationError(
-      `Invalid request: ${errors.join(", ")}`,
-      ErrorCodes.INVALID_MESSAGE
-    );
+    throw new ValidationError(`Invalid request: ${errors.join(', ')}`, ErrorCodes.INVALID_MESSAGE);
   }
 
   return result.data;

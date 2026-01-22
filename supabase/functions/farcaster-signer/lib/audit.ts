@@ -30,15 +30,13 @@ export async function logSigningAction(params: AuditLogParams): Promise<void> {
   const { supabaseClient, accountId, userId, action, success, errorCode } = params;
 
   try {
-    const { error } = await supabaseClient
-      .from('signing_audit_log')
-      .insert({
-        account_id: accountId,
-        user_id: userId,
-        action,
-        success,
-        error_code: errorCode ?? null,
-      });
+    const { error } = await supabaseClient.from('signing_audit_log').insert({
+      account_id: accountId,
+      user_id: userId,
+      action,
+      success,
+      error_code: errorCode ?? null,
+    });
 
     if (error) {
       // Log to console but don't throw - audit is best-effort

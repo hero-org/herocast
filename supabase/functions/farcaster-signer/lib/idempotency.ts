@@ -79,19 +79,17 @@ export async function storeIdempotency(
   error?: string
 ): Promise<void> {
   try {
-    const { error: upsertError } = await supabaseClient
-      .from('signing_idempotency')
-      .upsert(
-        {
-          idempotency_key: idempotencyKey,
-          account_id: accountId,
-          response_hash: hash ?? null,
-          response_error: error ?? null,
-        },
-        {
-          onConflict: 'idempotency_key,account_id',
-        }
-      );
+    const { error: upsertError } = await supabaseClient.from('signing_idempotency').upsert(
+      {
+        idempotency_key: idempotencyKey,
+        account_id: accountId,
+        response_hash: hash ?? null,
+        response_error: error ?? null,
+      },
+      {
+        onConflict: 'idempotency_key,account_id',
+      }
+    );
 
     if (upsertError) {
       // Log but don't throw - idempotency storage is best-effort

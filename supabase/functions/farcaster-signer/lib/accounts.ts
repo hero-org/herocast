@@ -43,7 +43,7 @@ export async function getAccountForSigning(
     throw new SignerServiceError(
       ErrorCodes.ACCOUNT_PENDING,
       `Account is not active (current status: ${account.status})`,
-      400  // Per spec: ACCOUNT_PENDING returns 400
+      400 // Per spec: ACCOUNT_PENDING returns 400
     );
   }
 
