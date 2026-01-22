@@ -4,11 +4,7 @@
  */
 
 import type { AuthResult } from '../lib/types.ts';
-import {
-  ReactionRequestSchema,
-  DeleteReactionRequestSchema,
-  validateRequest,
-} from '../lib/validate.ts';
+import { ReactionRequestSchema, DeleteReactionRequestSchema, validateRequest } from '../lib/validate.ts';
 import { getAccountForSigning } from '../lib/accounts.ts';
 import { signAndSubmitReaction, removeReaction } from '../lib/sign.ts';
 import { logSigningAction } from '../lib/audit.ts';
@@ -17,10 +13,7 @@ import { corsHeaders, handleError } from '../lib/errors.ts';
 /**
  * Handle POST /reaction - Add a reaction (like or recast)
  */
-export async function handlePostReaction(
-  req: Request,
-  authResult: AuthResult
-): Promise<Response> {
+export async function handlePostReaction(req: Request, authResult: AuthResult): Promise<Response> {
   const { userId, supabaseClient } = authResult;
   let accountId: string | undefined;
 
@@ -33,11 +26,7 @@ export async function handlePostReaction(
     const { type: reactionType, target } = validatedRequest;
 
     // Get account for signing
-    const signingAccount = await getAccountForSigning(
-      supabaseClient,
-      accountId,
-      userId
-    );
+    const signingAccount = await getAccountForSigning(supabaseClient, accountId, userId);
 
     // Sign and submit the reaction
     const hash = await signAndSubmitReaction({
@@ -91,10 +80,7 @@ export async function handlePostReaction(
 /**
  * Handle DELETE /reaction - Remove a reaction (like or recast)
  */
-export async function handleDeleteReaction(
-  req: Request,
-  authResult: AuthResult
-): Promise<Response> {
+export async function handleDeleteReaction(req: Request, authResult: AuthResult): Promise<Response> {
   const { userId, supabaseClient } = authResult;
   let accountId: string | undefined;
 
@@ -107,11 +93,7 @@ export async function handleDeleteReaction(
     const { type: reactionType, target } = validatedRequest;
 
     // Get account for signing
-    const signingAccount = await getAccountForSigning(
-      supabaseClient,
-      accountId,
-      userId
-    );
+    const signingAccount = await getAccountForSigning(supabaseClient, accountId, userId);
 
     // Remove the reaction
     const hash = await removeReaction({

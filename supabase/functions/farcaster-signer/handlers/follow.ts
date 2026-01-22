@@ -13,10 +13,7 @@ import { corsHeaders, handleError } from '../lib/errors.ts';
 /**
  * Handle POST /follow - Follow a user
  */
-export async function handlePostFollow(
-  req: Request,
-  authResult: AuthResult
-): Promise<Response> {
+export async function handlePostFollow(req: Request, authResult: AuthResult): Promise<Response> {
   const { userId, supabaseClient } = authResult;
   let accountId: string | undefined;
 
@@ -29,11 +26,7 @@ export async function handlePostFollow(
     const { target_fid: targetFid } = validatedRequest;
 
     // Get account for signing
-    const signingAccount = await getAccountForSigning(
-      supabaseClient,
-      accountId,
-      userId
-    );
+    const signingAccount = await getAccountForSigning(supabaseClient, accountId, userId);
 
     // Sign and submit the follow
     const hash = await signAndSubmitFollow({
@@ -85,10 +78,7 @@ export async function handlePostFollow(
 /**
  * Handle DELETE /follow - Unfollow a user
  */
-export async function handleDeleteFollow(
-  req: Request,
-  authResult: AuthResult
-): Promise<Response> {
+export async function handleDeleteFollow(req: Request, authResult: AuthResult): Promise<Response> {
   const { userId, supabaseClient } = authResult;
   let accountId: string | undefined;
 
@@ -101,11 +91,7 @@ export async function handleDeleteFollow(
     const { target_fid: targetFid } = validatedRequest;
 
     // Get account for signing
-    const signingAccount = await getAccountForSigning(
-      supabaseClient,
-      accountId,
-      userId
-    );
+    const signingAccount = await getAccountForSigning(supabaseClient, accountId, userId);
 
     // Remove the follow (unfollow)
     const hash = await removeFollow({

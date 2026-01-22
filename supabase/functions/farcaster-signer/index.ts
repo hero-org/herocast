@@ -29,9 +29,8 @@ Deno.serve(async (req: Request) => {
     // Extract path (remove function prefix - handles both local and deployed routing)
     const url = new URL(req.url);
     // Edge runtime may strip /functions/v1/ prefix, so handle both formats
-    const path = url.pathname
-      .replace(/^\/functions\/v1\/farcaster-signer/, '')
-      .replace(/^\/farcaster-signer/, '') || '/';
+    const path =
+      url.pathname.replace(/^\/functions\/v1\/farcaster-signer/, '').replace(/^\/farcaster-signer/, '') || '/';
 
     // Authenticate request before routing
     const authHeader = req.headers.get('Authorization');

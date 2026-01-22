@@ -3,41 +3,34 @@
  * Handles creating and deleting casts with idempotency support
  */
 
-import type { AuthResult } from "../lib/types.ts";
+import type { AuthResult } from '../lib/types.ts';
 import {
   type CastRequest,
   CastRequestSchema,
   DeleteCastRequestSchema,
   validateRequest,
   ValidationError,
-} from "../lib/validate.ts";
-import { getAccountForSigning } from "../lib/accounts.ts";
-import { removeCast, signAndSubmitCast } from "../lib/sign.ts";
-import { logSigningAction } from "../lib/audit.ts";
-import { checkIdempotency, storeIdempotency } from "../lib/idempotency.ts";
-import { resolveChannelToUrl } from "../lib/channels.ts";
-import {
-  corsHeaders,
-  handleError,
-  InvalidRequestError,
-  SignerServiceError,
-} from "../lib/errors.ts";
+} from '../lib/validate.ts';
+import { getAccountForSigning } from '../lib/accounts.ts';
+import { removeCast, signAndSubmitCast } from '../lib/sign.ts';
+import { logSigningAction } from '../lib/audit.ts';
+import { checkIdempotency, storeIdempotency } from '../lib/idempotency.ts';
+import { resolveChannelToUrl } from '../lib/channels.ts';
+import { corsHeaders, handleError, InvalidRequestError, SignerServiceError } from '../lib/errors.ts';
 
 /**
  * Transform embeds from validation schema format (snake_case) to sign.ts format (camelCase)
  */
 function transformEmbeds(
-  embeds?: CastRequest["embeds"],
-):
-  | Array<{ url: string } | { castId: { fid: number; hash: string } }>
-  | undefined {
+  embeds?: CastRequest['embeds']
+): Array<{ url: string } | { castId: { fid: number; hash: string } }> | undefined {
   if (!embeds) return undefined;
 
   return embeds.map((embed) => {
-    if ("url" in embed) {
+    if ('url' in embed) {
       return { url: embed.url };
     }
-    if ("cast_id" in embed) {
+    if ('cast_id' in embed) {
       return {
         castId: {
           fid: embed.cast_id.fid,
@@ -52,14 +45,12 @@ function transformEmbeds(
 /**
  * Creates a successful JSON response with CORS headers
  */
-function successResponse(
-  data: { success: true; hash: string; fid: number },
-): Response {
+function successResponse(data: { success: true; hash: string; fid: number }): Response {
   return new Response(JSON.stringify(data), {
     status: 200,
     headers: {
       ...corsHeaders,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   });
 }
@@ -78,10 +69,7 @@ function successResponse(
  * 8. Log to audit
  * 9. Return success response
  */
-export async function handlePostCast(
-  req: Request,
-  authResult: AuthResult,
-): Promise<Response> {
+export async function handlePostCast(req: Request, authResult: AuthResult): Promise<Response> {
   const { userId, supabaseClient } = authResult;
   let accountId: string | undefined;
 
@@ -91,7 +79,7 @@ export async function handlePostCast(
     try {
       body = await req.json();
     } catch {
-      throw new InvalidRequestError("Invalid JSON body");
+      throw new InvalidRequestError('Invalid JSON body');
     }
 
     // 2. Validate with CastRequestSchema
@@ -99,15 +87,11 @@ export async function handlePostCast(
     accountId = validated.account_id;
 
     // 3. Get idempotency key from header (preferred) or body
-    const idempotencyKey = req.headers.get("X-Idempotency-Key") || validated.idempotency_key;
+    const idempotencyKey = req.headers.get('X-Idempotency-Key') || validated.idempotency_key;
 
     // 4. Check idempotency cache if key provided
     if (idempotencyKey) {
-      const cached = await checkIdempotency(
-        supabaseClient,
-        accountId,
-        idempotencyKey,
-      );
+      const cached = await checkIdempotency(supabaseClient, accountId, idempotencyKey);
 
       if (cached.found) {
         // Return cached response
@@ -117,25 +101,21 @@ export async function handlePostCast(
             JSON.stringify({
               success: false,
               error: cached.error,
-              code: "IDEMPOTENCY_CONFLICT",
+              code: 'IDEMPOTENCY_CONFLICT',
             }),
             {
               status: 409,
               headers: {
                 ...corsHeaders,
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
               },
-            },
+            }
           );
         }
 
         if (cached.hash) {
           // Previous request succeeded - get account to return fid
-          const account = await getAccountForSigning(
-            supabaseClient,
-            accountId,
-            userId,
-          );
+          const account = await getAccountForSigning(supabaseClient, accountId, userId);
           return successResponse({
             success: true,
             hash: cached.hash,
@@ -152,11 +132,7 @@ export async function handlePostCast(
     }
 
     // 5. Get account for signing
-    const account = await getAccountForSigning(
-      supabaseClient,
-      accountId,
-      userId,
-    );
+    const account = await getAccountForSigning(supabaseClient, accountId, userId);
 
     // 6. Sign and submit cast
     const hash = await signAndSubmitCast({
@@ -170,12 +146,7 @@ export async function handlePostCast(
 
     // 8. Store idempotency result if key provided
     if (idempotencyKey) {
-      await storeIdempotency(
-        supabaseClient,
-        accountId,
-        idempotencyKey,
-        hash,
-      );
+      await storeIdempotency(supabaseClient, accountId, idempotencyKey, hash);
     }
 
     // 8. Log to audit
@@ -183,7 +154,7 @@ export async function handlePostCast(
       supabaseClient,
       accountId,
       userId,
-      action: "cast",
+      action: 'cast',
       success: true,
     });
 
@@ -201,7 +172,7 @@ export async function handlePostCast(
     } else if (error instanceof ValidationError) {
       errorCode = error.code;
     } else {
-      errorCode = "INTERNAL_ERROR";
+      errorCode = 'INTERNAL_ERROR';
     }
 
     // Log failed action to audit if we have an account ID
@@ -210,7 +181,7 @@ export async function handlePostCast(
         supabaseClient,
         accountId,
         userId,
-        action: "cast",
+        action: 'cast',
         success: false,
         errorCode,
       });
@@ -224,13 +195,7 @@ export async function handlePostCast(
         const bodyText = await req.clone().text();
         const parsed = JSON.parse(bodyText);
         if (parsed.idempotency_key) {
-          await storeIdempotency(
-            supabaseClient,
-            accountId,
-            parsed.idempotency_key,
-            undefined,
-            errorCode,
-          );
+          await storeIdempotency(supabaseClient, accountId, parsed.idempotency_key, undefined, errorCode);
         }
       } catch {
         // Ignore errors when trying to store idempotency for failed requests
@@ -252,10 +217,7 @@ export async function handlePostCast(
  * 5. Log to audit
  * 6. Return success response
  */
-export async function handleDeleteCast(
-  req: Request,
-  authResult: AuthResult,
-): Promise<Response> {
+export async function handleDeleteCast(req: Request, authResult: AuthResult): Promise<Response> {
   const { userId, supabaseClient } = authResult;
   let accountId: string | undefined;
 
@@ -265,7 +227,7 @@ export async function handleDeleteCast(
     try {
       body = await req.json();
     } catch {
-      throw new InvalidRequestError("Invalid JSON body");
+      throw new InvalidRequestError('Invalid JSON body');
     }
 
     // 2. Validate with DeleteCastRequestSchema
@@ -273,11 +235,7 @@ export async function handleDeleteCast(
     accountId = validated.account_id;
 
     // 3. Get account for signing
-    const account = await getAccountForSigning(
-      supabaseClient,
-      accountId,
-      userId,
-    );
+    const account = await getAccountForSigning(supabaseClient, accountId, userId);
 
     // 4. Remove cast
     await removeCast({
@@ -291,7 +249,7 @@ export async function handleDeleteCast(
       supabaseClient,
       accountId,
       userId,
-      action: "remove_cast",
+      action: 'remove_cast',
       success: true,
     });
 
@@ -309,7 +267,7 @@ export async function handleDeleteCast(
     } else if (error instanceof ValidationError) {
       errorCode = error.code;
     } else {
-      errorCode = "INTERNAL_ERROR";
+      errorCode = 'INTERNAL_ERROR';
     }
 
     // Log failed action to audit if we have an account ID
@@ -318,7 +276,7 @@ export async function handleDeleteCast(
         supabaseClient,
         accountId,
         userId,
-        action: "remove_cast",
+        action: 'remove_cast',
         success: false,
         errorCode,
       });
