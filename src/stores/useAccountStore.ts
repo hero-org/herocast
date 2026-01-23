@@ -655,7 +655,6 @@ export const hydrateAccountsMinimal = async (): Promise<AccountObjectType[]> => 
       platformAccountId: account.platform_account_id,
       createdAt: account.created_at,
       data: account.data,
-      privateKey: account.decrypted_private_key,
       channels: [], // Defer channel loading
       user: undefined, // Defer user metadata
     }));
