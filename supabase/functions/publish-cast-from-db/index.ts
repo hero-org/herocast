@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 import axios from 'npm:axios';
@@ -14,6 +14,14 @@ Sentry.setTag('region', Deno.env.get('SB_REGION'));
 Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
 
 // console.log("Hello from publish-cast-from-db!")
+
+const getSupabaseUrl = () => {
+  return Deno.env.get('SUPABASE_URL') || Deno.env.get('API_URL') || Deno.env.get('SUPABASE_API_URL');
+};
+
+const getServiceRoleKey = () => {
+  return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
+};
 
 function extractUrlsFromText(text: string): string[] {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -125,11 +133,11 @@ function buildSignerPayload(draftData: any) {
 }
 
 async function callSignerService(path: string, body: Record<string, unknown>): Promise<{ hash: string }> {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = getSupabaseUrl();
+  const serviceRoleKey = getServiceRoleKey();
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+    throw new Error('Missing SUPABASE_URL/API_URL or SUPABASE_SERVICE_ROLE_KEY/SERVICE_ROLE_KEY');
   }
 
   const response = await fetch(`${supabaseUrl}/functions/v1/farcaster-signer${path}`, {
@@ -402,10 +410,14 @@ Deno.serve(async (req) => {
     }
 
     try {
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      );
+      const supabaseUrl = getSupabaseUrl();
+      const serviceRoleKey = getServiceRoleKey();
+
+      if (!supabaseUrl || !serviceRoleKey) {
+        throw new Error('Missing SUPABASE_URL/API_URL or SUPABASE_SERVICE_ROLE_KEY/SERVICE_ROLE_KEY');
+      }
+
+      const supabaseClient = createClient(supabaseUrl, serviceRoleKey);
 
       const now = new Date();
       now.setSeconds(0, 0); // Round down to the nearest full minute

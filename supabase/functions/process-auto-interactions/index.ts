@@ -17,12 +17,20 @@ interface AutoInteractionListContent {
   requiredKeywords?: string[];
 }
 
+const getSupabaseUrl = () => {
+  return Deno.env.get('SUPABASE_URL') || Deno.env.get('API_URL') || Deno.env.get('SUPABASE_API_URL');
+};
+
+const getServiceRoleKey = () => {
+  return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
+};
+
 async function callSignerService(path: string, body: Record<string, unknown>): Promise<{ hash: string }> {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = getSupabaseUrl();
+  const serviceRoleKey = getServiceRoleKey();
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+    throw new Error('Missing SUPABASE_URL/API_URL or SUPABASE_SERVICE_ROLE_KEY/SERVICE_ROLE_KEY');
   }
 
   const response = await fetch(`${supabaseUrl}/functions/v1/farcaster-signer${path}`, {
@@ -61,7 +69,14 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const supabaseUrl = getSupabaseUrl();
+    const serviceRoleKey = getServiceRoleKey();
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Missing SUPABASE_URL/API_URL or SUPABASE_SERVICE_ROLE_KEY/SERVICE_ROLE_KEY');
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Fetch all auto-interaction lists
     const { data: lists, error: listsError } = await supabase.from('list').select('*').eq('type', 'auto_interaction');

@@ -23,12 +23,12 @@ export async function authenticateRequest(authHeader: string | null): Promise<Au
     throw new SignerServiceError(ErrorCodes.INVALID_TOKEN, 'Invalid Authorization header format', 401);
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-  const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('API_URL') || Deno.env.get('SUPABASE_API_URL');
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('ANON_KEY');
+  const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables');
+    throw new Error('Missing SUPABASE_URL/API_URL or SUPABASE_ANON_KEY/ANON_KEY environment variables');
   }
 
   // Allow internal service-role calls (e.g., cron jobs) to use the signer service
