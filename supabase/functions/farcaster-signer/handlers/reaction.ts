@@ -8,7 +8,7 @@ import { ReactionRequestSchema, DeleteReactionRequestSchema, validateRequest } f
 import { getAccountForSigning } from '../lib/accounts.ts';
 import { signAndSubmitReaction, removeReaction } from '../lib/sign.ts';
 import { logSigningAction } from '../lib/audit.ts';
-import { corsHeaders, handleError } from '../lib/errors.ts';
+import { corsHeaders, handleError, InvalidRequestError } from '../lib/errors.ts';
 
 /**
  * Handle POST /reaction - Add a reaction (like or recast)
@@ -20,7 +20,12 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
 
   try {
     // Parse and validate request body
-    const body = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      throw new InvalidRequestError('Invalid JSON body');
+    }
     const validatedRequest = validateRequest(ReactionRequestSchema, body);
 
     accountId = validatedRequest.account_id;
@@ -91,7 +96,12 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
 
   try {
     // Parse and validate request body
-    const body = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      throw new InvalidRequestError('Invalid JSON body');
+    }
     const validatedRequest = validateRequest(DeleteReactionRequestSchema, body);
 
     accountId = validatedRequest.account_id;

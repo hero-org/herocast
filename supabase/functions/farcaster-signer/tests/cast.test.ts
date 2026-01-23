@@ -308,7 +308,7 @@ Deno.test({
       return;
     }
 
-    const data = await expectSuccess(response);
+    const data = await expectSuccess<{ hash: string; fid: number }>(response);
     assertEquals(data.success, true);
     assertExists(data.hash);
     assertEquals(typeof data.hash, 'string');
@@ -341,7 +341,7 @@ Deno.test({
       return;
     }
 
-    const data1 = await expectSuccess(response1);
+    const data1 = await expectSuccess<{ hash: string; fid: number }>(response1);
 
     const response2 = await makeRequest(config, '/cast', {
       method: 'POST',
@@ -350,7 +350,7 @@ Deno.test({
       body: { account_id: auth.accountId, text: `Different text ${Date.now()}` },
     });
 
-    const data2 = await expectSuccess(response2);
+    const data2 = await expectSuccess<{ hash: string; fid: number }>(response2);
     assertEquals(data1.hash, data2.hash);
   },
 });
@@ -383,7 +383,7 @@ Deno.test({
       return;
     }
 
-    const data = await expectSuccess(response);
+    const data = await expectSuccess<{ hash: string; fid: number }>(response);
     assertExists(data.hash);
   },
 });
@@ -414,7 +414,7 @@ Deno.test({
       return;
     }
 
-    const data = await expectSuccess(response);
+    const data = await expectSuccess<{ hash: string; fid: number }>(response);
     assertExists(data.hash);
   },
 });
@@ -445,7 +445,7 @@ Deno.test({
       return;
     }
 
-    const data = await expectSuccess(response);
+    const data = await expectSuccess<{ hash: string; fid: number }>(response);
     assertExists(data.hash);
   },
 });

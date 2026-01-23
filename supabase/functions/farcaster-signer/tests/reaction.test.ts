@@ -212,7 +212,7 @@ Deno.test({
       return;
     }
 
-    const data = await expectSuccess(response);
+    const data = await expectSuccess<{ hash: string; fid: number }>(response);
     assertEquals(data.success, true);
     assertExists(data.hash);
   },
@@ -240,7 +240,7 @@ Deno.test({
       return;
     }
 
-    const data = await expectSuccess(response);
+    const data = await expectSuccess<{ hash: string; fid: number }>(response);
     assertEquals(data.success, true);
     assertExists(data.hash);
   },

@@ -27,7 +27,17 @@ fi
 # Get anon key if not set
 if [ -z "$SUPABASE_ANON_KEY" ]; then
     echo -e "${YELLOW}SUPABASE_ANON_KEY not set, trying to get from supabase status...${NC}"
-    SUPABASE_ANON_KEY=$(supabase status 2>/dev/null | grep "anon key:" | awk '{print $3}')
+    STATUS_JSON=$(supabase status --output json 2>/dev/null || true)
+    if [ -n "$STATUS_JSON" ]; then
+        if command -v jq >/dev/null 2>&1; then
+            SUPABASE_ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.anon_key // .api.anon_key')
+        elif command -v node >/dev/null 2>&1; then
+            SUPABASE_ANON_KEY=$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync(0,'utf8'));console.log(data.anon_key || (data.api && data.api.anon_key) || '');" <<< "$STATUS_JSON")
+        fi
+    fi
+    if [ -z "$SUPABASE_ANON_KEY" ]; then
+        SUPABASE_ANON_KEY=$(supabase status 2>/dev/null | grep "anon key:" | awk '{print $3}')
+    fi
     if [ -z "$SUPABASE_ANON_KEY" ]; then
         echo -e "${RED}Error: Could not get anon key. Set SUPABASE_ANON_KEY manually.${NC}"
         exit 1
@@ -37,6 +47,32 @@ if [ -z "$SUPABASE_ANON_KEY" ]; then
 fi
 
 export SUPABASE_URL="http://localhost:54321"
+
+# Apply pgsodium grants and seed key (skip with SKIP_PGSODIUM_SETUP=true)
+if [ "$SKIP_PGSODIUM_SETUP" != "true" ]; then
+    echo -e "${YELLOW}Applying pgsodium grants and key...${NC}"
+    if command -v psql >/dev/null 2>&1; then
+        export PGPASSWORD=postgres
+        psql -h localhost -p 54322 -U postgres -d postgres -f "$SCRIPT_DIR/../../../setup/pgsodium_grants.sql"
+        psql -h localhost -p 54322 -U postgres -d postgres -f "$SCRIPT_DIR/../../../setup/pgsodium_seed_key.sql"
+    elif command -v node >/dev/null 2>&1; then
+        node "$SCRIPT_DIR/../../../../scripts/apply-pgsodium-grants.js"
+    else
+        echo -e "${RED}Error: pgsodium setup skipped (no psql or node). Install one and retry.${NC}"
+        exit 1
+    fi
+fi
+
+# Seed test users/accounts (skip with SKIP_TEST_SEED=true)
+if [ "$SKIP_TEST_SEED" != "true" ]; then
+    echo -e "${YELLOW}Seeding test users/accounts...${NC}"
+    deno run \
+        --config "$SCRIPT_DIR/../deno.json" \
+        --allow-net \
+        --allow-env \
+        --allow-read \
+        "$SCRIPT_DIR/seed.ts"
+fi
 
 # Check for --e2e flag
 if [ "$1" == "--e2e" ]; then
@@ -64,6 +100,7 @@ echo -e "${GREEN}Running tests...${NC}"
 echo
 
 deno test \
+    --config "$SCRIPT_DIR/../deno.json" \
     --allow-net \
     --allow-env \
     --allow-read \
