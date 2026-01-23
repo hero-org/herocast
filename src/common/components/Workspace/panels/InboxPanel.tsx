@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState, forwardRef, useImperativeHandle } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { Notification, NotificationTypeEnum, CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { CastRow } from '@/common/components/CastRow';
@@ -14,6 +14,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { formatLargeNumber } from '@/common/helpers/text';
 import Link from 'next/link';
+
+export interface InboxPanelHandle {
+  refresh: () => void;
+}
 
 const PREFETCH_THRESHOLD = 3;
 const DEFAULT_LIMIT = 25;
@@ -88,7 +92,7 @@ interface InboxPanelProps {
   panelId: string;
 }
 
-const InboxPanel: React.FC<InboxPanelProps> = ({ config, isCollapsed, panelId }) => {
+const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCollapsed, panelId }, ref) => {
   const router = useRouter();
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
 
@@ -161,6 +165,19 @@ const InboxPanel: React.FC<InboxPanelProps> = ({ config, isCollapsed, panelId })
     },
     [viewerFid, config.tab, cursor, isCollapsed]
   );
+
+  // Refresh function for manual refresh
+  const refresh = useCallback(() => {
+    setNotifications([]);
+    setCursor(undefined);
+    setHasMore(true);
+    fetchNotifications(true);
+  }, [fetchNotifications]);
+
+  // Expose refresh method to parent via ref
+  useImperativeHandle(ref, () => ({
+    refresh,
+  }), [refresh]);
 
   // Initial load and tab changes
   useEffect(() => {
@@ -340,11 +357,13 @@ const InboxPanel: React.FC<InboxPanelProps> = ({ config, isCollapsed, panelId })
       <div className="flex flex-col min-h-0 h-full items-center justify-center p-4 w-full">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="text-base">No {config.tab} found</CardTitle>
+            <CardTitle className="text-base">
+              {viewerFid ? `No ${config.tab} found` : 'Account required'}
+            </CardTitle>
             <CardDescription>
               {viewerFid
-                ? 'No notifications yet. Check back later.'
-                : 'Please connect an account to view notifications.'}
+                ? `No ${config.tab} yet. Check back later or click refresh.`
+                : 'Select an account from the dropdown in the sidebar to view notifications.'}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -373,6 +392,8 @@ const InboxPanel: React.FC<InboxPanelProps> = ({ config, isCollapsed, panelId })
       </div>
     </div>
   );
-};
+});
+
+InboxPanel.displayName = 'InboxPanel';
 
 export default InboxPanel;

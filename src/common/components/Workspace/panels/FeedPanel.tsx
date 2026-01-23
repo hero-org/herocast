@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useTrendingFeedInfinite, flattenTrendingFeedPages } from '@/hooks/queries/useTrendingFeed';
@@ -22,13 +22,17 @@ import { isFidListContent, isSearchListContent } from '@/common/types/list.types
 const DEFAULT_FEED_PAGE_SIZE = 10;
 const PREFETCH_THRESHOLD = 3; // Load more when 3 items from end
 
+export interface FeedPanelHandle {
+  refresh: () => void;
+}
+
 interface FeedPanelProps {
   config: FeedPanelConfig;
   isCollapsed: boolean;
   panelId: string;
 }
 
-const FeedPanel: React.FC<FeedPanelProps> = ({ config, isCollapsed, panelId }) => {
+const FeedPanel = forwardRef<FeedPanelHandle, FeedPanelProps>(({ config, isCollapsed, panelId }, ref) => {
   const router = useRouter();
   const lastUpdateTimeRef = useRef(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -167,6 +171,11 @@ const FeedPanel: React.FC<FeedPanelProps> = ({ config, isCollapsed, panelId }) =
     lastUpdateTimeRef.current = Date.now();
   }, [refetch]);
 
+  // Expose refresh method to parent via ref
+  useImperativeHandle(ref, () => ({
+    refresh: refreshFeed,
+  }), [refreshFeed]);
+
   // Auto-load more when scrolling near end
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage && !isCollapsed) {
@@ -233,7 +242,7 @@ const FeedPanel: React.FC<FeedPanelProps> = ({ config, isCollapsed, panelId }) =
   const getEmptyStateMessage = () => {
     // Check if user-specific feed requires a viewer FID
     if ((isFollowingFeed || isChannelFeed || isFidListFeed || isSearchListFeed) && !viewerFid) {
-      return 'Please sign in to view this feed.';
+      return 'Select an account from the dropdown in the sidebar to view this feed.';
     }
 
     switch (config.feedType) {
@@ -253,8 +262,16 @@ const FeedPanel: React.FC<FeedPanelProps> = ({ config, isCollapsed, panelId }) =
           : 'No casts found from the users in this list.';
       case 'trending':
       default:
-        return 'The feed is empty. Pull to refresh or try again later.';
+        return 'The feed is empty. Click the refresh button or try again later.';
     }
+  };
+
+  // Get empty state title
+  const getEmptyStateTitle = () => {
+    if ((isFollowingFeed || isChannelFeed || isFidListFeed || isSearchListFeed) && !viewerFid) {
+      return 'Account required';
+    }
+    return 'No casts found';
   };
 
   // Render empty state
@@ -263,7 +280,7 @@ const FeedPanel: React.FC<FeedPanelProps> = ({ config, isCollapsed, panelId }) =
       <div className="flex flex-col min-h-0 h-full items-center justify-center p-4">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="text-base">No casts found</CardTitle>
+            <CardTitle className="text-base">{getEmptyStateTitle()}</CardTitle>
             <CardDescription>{getEmptyStateMessage()}</CardDescription>
           </CardHeader>
         </Card>
@@ -308,6 +325,8 @@ const FeedPanel: React.FC<FeedPanelProps> = ({ config, isCollapsed, panelId }) =
       </div>
     </div>
   );
-};
+});
+
+FeedPanel.displayName = 'FeedPanel';
 
 export default FeedPanel;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   DndContext,
   KeyboardSensor,
@@ -17,7 +17,6 @@ import {
   horizontalListSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
-  arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -35,11 +34,12 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 import { PanelConfig, FeedPanelConfig, InboxPanelConfig } from '@/common/types/workspace.types';
-import { PanelContent } from './PanelContent';
+import { PanelContent, PanelContentHandle } from './PanelContent';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { AddPanelPlaceholder } from './AddPanelPlaceholder';
 import { cn } from '@/lib/utils';
@@ -141,16 +141,14 @@ interface SortableColumnProps {
  * Uses dnd-kit for drag-to-reorder, CSS for collapse animation
  */
 function SortableColumn({ panel, onToggleCollapse, onClose }: SortableColumnProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: panel.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: panel.id });
+  const panelContentRef = useRef<PanelContentHandle>(null);
 
   const isCollapsed = panel.collapsed;
+
+  const handleRefresh = useCallback(() => {
+    panelContentRef.current?.refresh();
+  }, []);
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -187,11 +185,12 @@ function SortableColumn({ panel, onToggleCollapse, onClose }: SortableColumnProp
             icon={getPanelIcon(panel)}
             onCollapse={onToggleCollapse}
             onClose={onClose}
+            onRefresh={handleRefresh}
             dragHandleProps={{ ...attributes, ...listeners }}
           />
           <div className="flex-1 min-h-0 overflow-hidden">
             <PanelErrorBoundary panelId={panel.id}>
-              <PanelContent panel={panel} isCollapsed={false} />
+              <PanelContent ref={panelContentRef} panel={panel} isCollapsed={false} />
             </PanelErrorBoundary>
           </div>
         </>
@@ -208,12 +207,14 @@ function ColumnHeader({
   icon,
   onCollapse,
   onClose,
+  onRefresh,
   dragHandleProps,
 }: {
   title: string;
   icon: React.ReactNode;
   onCollapse: () => void;
   onClose: () => void;
+  onRefresh: () => void;
   dragHandleProps: Record<string, unknown>;
 }) {
   return (
@@ -229,13 +230,10 @@ function ColumnHeader({
         <span className="truncate text-sm font-medium">{title}</span>
       </div>
       <div className="flex items-center gap-0.5">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={onCollapse}
-          title="Collapse panel"
-        >
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRefresh} title="Refresh">
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCollapse} title="Collapse panel">
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <Button
@@ -369,10 +367,7 @@ export function WorkspaceLayout() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext
-          items={layout.panels.map((p) => p.id)}
-          strategy={horizontalListSortingStrategy}
-        >
+        <SortableContext items={layout.panels.map((p) => p.id)} strategy={horizontalListSortingStrategy}>
           {layout.panels.map((panel) => (
             <SortableColumn
               key={panel.id}
@@ -390,9 +385,7 @@ export function WorkspaceLayout() {
               className="h-full bg-background border border-border rounded shadow-xl opacity-90"
               style={{ width: activePanel.collapsed ? COLLAPSED_WIDTH : MIN_COLUMN_WIDTH }}
             >
-              <div className="p-4 text-sm font-medium">
-                {getPanelTitle(activePanel)}
-              </div>
+              <div className="p-4 text-sm font-medium">{getPanelTitle(activePanel)}</div>
             </div>
           ) : null}
         </DragOverlay>
