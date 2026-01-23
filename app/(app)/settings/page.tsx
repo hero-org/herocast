@@ -23,8 +23,9 @@ import { usePostHog } from 'posthog-js/react';
 import { formatShortcut } from '@/common/helpers/text';
 import { hotkeyDefinitions, hotkeyCategories } from '@/common/services/shortcuts/hotkeyDefinitions';
 import { UserIcon, WalletIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid';
-import { CommandLineIcon, PaintBrushIcon } from '@heroicons/react/24/outline';
+import { CommandLineIcon, PaintBrushIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 import { ThemeToggle } from '@/common/components/ThemeToggle';
+import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 
 type SimpleCommand = {
   name: string;
@@ -39,6 +40,12 @@ export default function Settings() {
   const [user, setUser] = useState<User | null>(null);
 
   const { resetStore } = useAccountStore();
+  const {
+    layout: workspaceLayout,
+    resetStore: resetWorkspace,
+    syncToSupabase: syncWorkspace,
+    isSyncing: isWorkspaceSyncing,
+  } = useWorkspaceStore();
 
   useEffect(() => {
     const getUser = async () => {
@@ -147,6 +154,43 @@ export default function Settings() {
                 <p className="text-sm text-muted-foreground">Choose between light, dark or system theme</p>
               </div>
               <ThemeToggle />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Workspace Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Squares2X2Icon className="h-5 w-5" />
+              Workspace
+            </CardTitle>
+            <CardDescription>Manage your multi-panel workspace layout</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Current Layout</p>
+                <p className="text-sm text-muted-foreground">
+                  {workspaceLayout.panels.length} panel{workspaceLayout.panels.length !== 1 ? 's' : ''} configured
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => syncWorkspace()} disabled={isWorkspaceSyncing}>
+                  {isWorkspaceSyncing ? 'Syncing...' : 'Sync Now'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm('Reset workspace to default? This will remove all panels and start fresh.')) {
+                      resetWorkspace();
+                    }
+                  }}
+                >
+                  Reset
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

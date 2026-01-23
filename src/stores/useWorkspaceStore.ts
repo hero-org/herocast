@@ -36,6 +36,7 @@ interface WorkspaceActions {
   reorderPanels: (oldIndex: number, newIndex: number) => void;
   updatePanelSizes: (sizes: number[]) => void;
   toggleCollapse: (id: string) => void;
+  setCollapsed: (id: string, collapsed: boolean) => void;
   syncToSupabase: () => Promise<void>;
   resetStore: () => void;
 }
@@ -263,6 +264,18 @@ const store = (set: StoreSet, get: () => WorkspaceStore) => ({
       const panel = state.layout.panels.find((p) => p.id === id);
       if (panel) {
         panel.collapsed = !panel.collapsed;
+        state.layout.updatedAt = new Date().toISOString();
+      }
+    });
+
+    debouncedSyncToSupabase();
+  },
+
+  setCollapsed: (id: string, collapsed: boolean) => {
+    set((state) => {
+      const panel = state.layout.panels.find((p) => p.id === id);
+      if (panel && panel.collapsed !== collapsed) {
+        panel.collapsed = collapsed;
         state.layout.updatedAt = new Date().toISOString();
       }
     });

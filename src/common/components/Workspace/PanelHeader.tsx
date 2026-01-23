@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { GripVertical, ChevronRight, ChevronDown, Settings, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { GripVertical, ChevronLeft, X } from 'lucide-react';
 
 interface PanelHeaderProps {
   title: string;
@@ -9,7 +8,6 @@ interface PanelHeaderProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onClose: () => void;
-  onSettings?: () => void;
   dragHandleProps?: any;
 }
 
@@ -19,7 +17,6 @@ const PanelHeader: React.FC<PanelHeaderProps> = ({
   isCollapsed,
   onToggleCollapse,
   onClose,
-  onSettings,
   dragHandleProps,
 }) => {
   return (
@@ -35,21 +32,9 @@ const PanelHeader: React.FC<PanelHeaderProps> = ({
         <span className="truncate text-sm font-medium">{title}</span>
       </div>
       <div className="flex items-center gap-0.5">
-        {onSettings && (
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onSettings} title="Settings">
-            <Settings className="h-4 w-4" />
-            <span className="sr-only">Settings</span>
-          </Button>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={onToggleCollapse}
-          title={isCollapsed ? 'Expand panel' : 'Collapse panel'}
-        >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          <span className="sr-only">{isCollapsed ? 'Expand' : 'Collapse'}</span>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggleCollapse} title="Collapse panel">
+          <ChevronLeft className="h-4 w-4" />
+          <span className="sr-only">Collapse</span>
         </Button>
         <Button
           variant="ghost"
