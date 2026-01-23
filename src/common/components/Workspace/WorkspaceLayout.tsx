@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -10,13 +10,29 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { TrendingUp, Layers, Hash, Search, Users, MessageCircle, AtSign, Heart, Repeat2, UserPlus } from 'lucide-react';
+import { type PanelImperativeHandle } from 'react-resizable-panels';
+import {
+  TrendingUp,
+  Layers,
+  Hash,
+  Search,
+  Users,
+  MessageCircle,
+  AtSign,
+  Heart,
+  Repeat2,
+  UserPlus,
+  GripVertical,
+  X,
+} from 'lucide-react';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 import { PanelConfig, FeedPanelConfig, InboxPanelConfig } from '@/common/types/workspace.types';
 import { PanelContent } from './PanelContent';
 import PanelHeader from './PanelHeader';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { AddPanelPlaceholder } from './AddPanelPlaceholder';
+
+const COLLAPSED_SIZE = 4; // Percentage when collapsed (narrow strip)
 
 /**
  * Get panel title based on config
@@ -105,14 +121,14 @@ interface SortablePanelProps {
   panelSize: number;
   onToggleCollapse: () => void;
   onClose: () => void;
+  panelRef: React.RefObject<PanelImperativeHandle | null>;
 }
 
 /**
  * SortablePanel wraps a ResizablePanel with drag-and-drop functionality
- * Note: dnd-kit transform is applied to the inner wrapper, not ResizablePanel itself,
- * since react-resizable-panels manages its own sizing
+ * Uses react-resizable-panels' built-in collapse for proper width reduction
  */
-function SortablePanel({ panel, panelSize, onToggleCollapse, onClose }: SortablePanelProps) {
+function SortablePanel({ panel, panelSize, onToggleCollapse, onClose, panelRef }: SortablePanelProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: panel.id });
 
   // Combine drag handle props for the header
@@ -121,31 +137,114 @@ function SortablePanel({ panel, panelSize, onToggleCollapse, onClose }: Sortable
     ...listeners,
   };
 
+  const handleToggleCollapse = useCallback(() => {
+    if (panelRef.current) {
+      if (panel.collapsed) {
+        panelRef.current.expand();
+      } else {
+        panelRef.current.collapse();
+      }
+    }
+    onToggleCollapse();
+  }, [panel.collapsed, panelRef, onToggleCollapse]);
+
   return (
-    <ResizablePanel minSize={10} defaultSize={panelSize}>
+    <ResizablePanel
+      ref={panelRef}
+      id={panel.id}
+      minSize={10}
+      defaultSize={panelSize}
+      collapsible
+      collapsedSize={COLLAPSED_SIZE}
+    >
       <div
         ref={setNodeRef}
-        className={`flex flex-col h-full w-full overflow-hidden border-r border-border last:border-r-0 ${isDragging ? 'z-50 opacity-90 ring-2 ring-primary/50' : ''}`}
+        className={`flex h-full w-full overflow-hidden border-r border-border last:border-r-0 ${
+          panel.collapsed ? 'flex-col' : 'flex-col'
+        } ${isDragging ? 'z-50 opacity-90 ring-2 ring-primary/50' : ''}`}
         style={{
           transform: CSS.Transform.toString(transform),
           transition,
         }}
       >
-        <PanelHeader
-          title={getPanelTitle(panel)}
-          icon={getPanelIcon(panel)}
-          isCollapsed={panel.collapsed}
-          onToggleCollapse={onToggleCollapse}
-          onClose={onClose}
-          dragHandleProps={dragHandleProps}
-        />
-        <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
-          <PanelErrorBoundary panelId={panel.id}>
-            <PanelContent panel={panel} isCollapsed={panel.collapsed} />
-          </PanelErrorBoundary>
-        </div>
+        {panel.collapsed ? (
+          // Collapsed state: vertical header
+          <CollapsedPanelHeader
+            title={getPanelTitle(panel)}
+            icon={getPanelIcon(panel)}
+            onExpand={handleToggleCollapse}
+            onClose={onClose}
+            dragHandleProps={dragHandleProps}
+          />
+        ) : (
+          <>
+            <PanelHeader
+              title={getPanelTitle(panel)}
+              icon={getPanelIcon(panel)}
+              isCollapsed={panel.collapsed}
+              onToggleCollapse={handleToggleCollapse}
+              onClose={onClose}
+              dragHandleProps={dragHandleProps}
+            />
+            <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
+              <PanelErrorBoundary panelId={panel.id}>
+                <PanelContent panel={panel} isCollapsed={panel.collapsed} />
+              </PanelErrorBoundary>
+            </div>
+          </>
+        )}
       </div>
     </ResizablePanel>
+  );
+}
+
+/**
+ * Collapsed panel header - vertical strip with rotated title
+ */
+function CollapsedPanelHeader({
+  title,
+  icon,
+  onExpand,
+  onClose,
+  dragHandleProps,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  onExpand: () => void;
+  onClose: () => void;
+  dragHandleProps: any;
+}) {
+  return (
+    <div className="flex flex-col h-full w-full items-center py-2 bg-muted/50">
+      <div
+        {...dragHandleProps}
+        className="flex h-6 w-6 cursor-grab items-center justify-center rounded hover:bg-accent active:cursor-grabbing mb-2"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <button
+        onClick={onExpand}
+        className="flex-1 flex items-center justify-center w-full hover:bg-accent/50 transition-colors"
+        title="Expand panel"
+      >
+        <div className="flex flex-col items-center gap-2">
+          {icon && <div className="text-muted-foreground">{icon}</div>}
+          <span
+            className="text-xs font-medium text-muted-foreground whitespace-nowrap"
+            style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+          >
+            {title}
+          </span>
+        </div>
+      </button>
+      <button
+        onClick={onClose}
+        className="mt-2 p-1 rounded hover:bg-destructive/10 hover:text-destructive transition-colors"
+        title="Close panel"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
   );
 }
 
@@ -154,12 +253,23 @@ const MAX_PANELS = 5;
 /**
  * WorkspaceLayout orchestrates the entire workspace with:
  * - Multi-panel layout with drag-and-drop reordering
- * - Resizable panels
+ * - Resizable panels with proper collapse functionality
  * - Inline add panel UI
  * - Empty state handling
  */
 export function WorkspaceLayout() {
   const { layout, addPanel, removePanel, reorderPanels, updatePanelSizes, toggleCollapse } = useWorkspaceStore();
+
+  // Create refs for each panel to control collapse programmatically
+  const panelRefs = useRef<Map<string, React.RefObject<PanelImperativeHandle | null>>>(new Map());
+
+  // Ensure refs exist for all panels
+  const getPanelRef = useCallback((panelId: string) => {
+    if (!panelRefs.current.has(panelId)) {
+      panelRefs.current.set(panelId, React.createRef<PanelImperativeHandle | null>());
+    }
+    return panelRefs.current.get(panelId)!;
+  }, []);
 
   const canAddPanel = layout.panels.length < MAX_PANELS;
 
@@ -194,7 +304,7 @@ export function WorkspaceLayout() {
    * v4 API returns Layout object { [panelId]: percentage }
    */
   function handleLayoutChanged(layoutMap: { [panelId: string]: number }) {
-    // Convert layout map to array in panel order
+    // Convert layout map to array in panel order, filtering out placeholder
     const sizes = layout.panels.map((panel) => layoutMap[panel.id] || 0);
     updatePanelSizes(sizes);
   }
@@ -208,29 +318,35 @@ export function WorkspaceLayout() {
     );
   }
 
-  // Calculate sizes for panels + placeholder
+  // Calculate sizes - ensure they sum to 100%
   const totalPanels = layout.panels.length + (canAddPanel ? 1 : 0);
-  const placeholderSize = canAddPanel ? Math.floor(100 / totalPanels) : 0;
+  const placeholderSize = canAddPanel ? Math.max(10, Math.floor(100 / totalPanels)) : 0;
+  const availableForPanels = 100 - placeholderSize;
 
   return (
     <div className="h-full w-full overflow-hidden">
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <SortableContext items={layout.panels.map((p) => p.id)} strategy={horizontalListSortingStrategy}>
           <ResizablePanelGroup direction="horizontal" onLayoutChanged={handleLayoutChanged}>
-            {layout.panels.map((panel, index) => (
-              <React.Fragment key={panel.id}>
-                <SortablePanel
-                  panel={panel}
-                  panelSize={layout.panelSizes[index] || 100 / totalPanels}
-                  onToggleCollapse={() => toggleCollapse(panel.id)}
-                  onClose={() => removePanel(panel.id)}
-                />
-                <ResizableHandle withHandle />
-              </React.Fragment>
-            ))}
+            {layout.panels.map((panel, index) => {
+              // Calculate proportional size within available space
+              const baseSize = layout.panelSizes[index] || availableForPanels / layout.panels.length;
+              return (
+                <React.Fragment key={panel.id}>
+                  <SortablePanel
+                    panel={panel}
+                    panelSize={baseSize}
+                    onToggleCollapse={() => toggleCollapse(panel.id)}
+                    onClose={() => removePanel(panel.id)}
+                    panelRef={getPanelRef(panel.id)}
+                  />
+                  <ResizableHandle withHandle />
+                </React.Fragment>
+              );
+            })}
             {/* Inline add panel placeholder */}
             {canAddPanel && (
-              <ResizablePanel minSize={15} defaultSize={placeholderSize}>
+              <ResizablePanel id="add-panel-placeholder" minSize={8} defaultSize={placeholderSize}>
                 <AddPanelPlaceholder onAddPanel={(type, config) => addPanel(type, config)} />
               </ResizablePanel>
             )}

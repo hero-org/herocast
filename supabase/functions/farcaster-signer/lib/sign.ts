@@ -304,10 +304,7 @@ export async function signAndSubmitUserData(params: UserDataParams): Promise<str
       console.log(`[signAndSubmitUserData] Success with hub: ${hubUrl}, hash: ${result?.hash}`);
       return result?.hash;
     } catch (error) {
-      console.log(
-        `[signAndSubmitUserData] Hub ${hubUrl} failed:`,
-        error?.response?.data?.errCode || error?.message
-      );
+      console.log(`[signAndSubmitUserData] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
       lastError = error;
       continue;
     }

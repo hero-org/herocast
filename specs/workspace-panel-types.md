@@ -221,19 +221,76 @@ Each panel type gets appropriate title and icon:
 
 ## Definition of Done
 
-- [ ] Following feed panel works
-- [ ] Channel feed panel works (with channel picker)
-- [ ] Search List feed panel works (with list picker)
-- [ ] FID List feed panel works (with list picker)
-- [ ] Replies inbox panel works
-- [ ] Mentions inbox panel works
-- [ ] Likes inbox panel works
-- [ ] Recasts inbox panel works
-- [ ] Follows inbox panel works
-- [ ] DM panel works (list + thread)
-- [ ] Add Panel modal shows all options organized
-- [ ] Panel headers show correct titles and icons
-- [ ] Interactions (reply, like) work from panels
+- [x] Following feed panel works
+- [x] Channel feed panel works (with channel picker)
+- [x] Search List feed panel works (with list picker)
+- [x] FID List feed panel works (with list picker)
+- [x] Replies inbox panel works
+- [x] Mentions inbox panel works
+- [x] Likes inbox panel works
+- [x] Recasts inbox panel works
+- [x] Follows inbox panel works
+- [ ] DM panel works (list + thread) - **SKIPPED** (needs design thinking)
+- [x] Add Panel modal shows all options organized
+- [x] Panel headers show correct titles and icons
+- [x] Interactions (reply, like) work from panels
+
+---
+
+## Implementation Status (2026-01-22)
+
+### Completed
+
+**Files Created:**
+
+- `src/common/components/Workspace/panels/FeedPanel.tsx` - Extended with all feed types
+- `src/common/components/Workspace/panels/InboxPanel.tsx` - New inbox panel component
+- `src/common/components/Workspace/AddPanelPlaceholder.tsx` - Grid with channel/list pickers
+- `src/common/components/Workspace/PanelContent.tsx` - Routes feed and inbox panels
+- `src/common/components/Workspace/WorkspaceLayout.tsx` - Titles/icons for all types
+- `src/common/types/workspace.types.ts` - Extended with InboxPanelConfig
+
+**React Query Hooks Used:**
+
+- `useTrendingFeedInfinite` - Trending feed
+- `useFollowingFeedInfinite` - Following feed
+- `useChannelFeedInfinite` - Channel feed
+- `useFidListFeedInfinite` - FID list feed
+- `useSearchListFeedInfinite` - Search list feed
+
+**Panel Types Working:**
+| Type | Status | Notes |
+|------|--------|-------|
+| feed:trending | ✅ | Default panel |
+| feed:following | ✅ | Requires logged in user |
+| feed:channel | ✅ | Channel picker in add flow |
+| feed:search-list | ✅ | List picker in add flow |
+| feed:fid-list | ✅ | List picker in add flow |
+| inbox:replies | ✅ | |
+| inbox:mentions | ✅ | |
+| inbox:likes | ✅ | |
+| inbox:recasts | ✅ | |
+| inbox:follows | ✅ | |
+| dms | ❌ | Intentionally skipped |
+
+### Remaining Setup
+
+**Database Migration Required:**
+The `user_preferences` table must be created on the remote Supabase database for cross-device sync to work.
+
+Migration file: `supabase/migrations/20260122100000_user_preferences.sql`
+
+Apply via Supabase Dashboard SQL Editor or:
+
+```bash
+npx supabase db push
+```
+
+**Without the migration:**
+
+- Workspace works locally (IndexedDB persistence)
+- Cross-device sync will fail with 404 error
+- Console shows: `relation "public.user_preferences" does not exist`
 
 ---
 
