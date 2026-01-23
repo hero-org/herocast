@@ -175,9 +175,13 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
   }, [fetchNotifications]);
 
   // Expose refresh method to parent via ref
-  useImperativeHandle(ref, () => ({
-    refresh,
-  }), [refresh]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      refresh,
+    }),
+    [refresh]
+  );
 
   // Initial load and tab changes
   useEffect(() => {
@@ -357,9 +361,7 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
       <div className="flex flex-col min-h-0 h-full items-center justify-center p-4 w-full">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle className="text-base">
-              {viewerFid ? `No ${config.tab} found` : 'Account required'}
-            </CardTitle>
+            <CardTitle className="text-base">{viewerFid ? `No ${config.tab} found` : 'Account required'}</CardTitle>
             <CardDescription>
               {viewerFid
                 ? `No ${config.tab} yet. Check back later or click refresh.`

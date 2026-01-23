@@ -172,9 +172,13 @@ const FeedPanel = forwardRef<FeedPanelHandle, FeedPanelProps>(({ config, isColla
   }, [refetch]);
 
   // Expose refresh method to parent via ref
-  useImperativeHandle(ref, () => ({
-    refresh: refreshFeed,
-  }), [refreshFeed]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      refresh: refreshFeed,
+    }),
+    [refreshFeed]
+  );
 
   // Auto-load more when scrolling near end
   useEffect(() => {
