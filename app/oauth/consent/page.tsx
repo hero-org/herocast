@@ -1,16 +1,16 @@
-import React from 'react';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const dynamic = 'force-dynamic';
 
 type ConsentPageProps = {
-  searchParams: {
+  searchParams: Promise<{
     authorization_id?: string;
-  };
+  }>;
 };
 
 function buildLoginRedirect(authorizationId: string): string {
@@ -19,7 +19,7 @@ function buildLoginRedirect(authorizationId: string): string {
 }
 
 export default async function ConsentPage({ searchParams }: ConsentPageProps) {
-  const authorizationId = searchParams.authorization_id;
+  const { authorization_id: authorizationId } = await searchParams;
 
   if (!authorizationId) {
     return (

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/common/helpers/supabase/route';
+import { type NextRequest, NextResponse } from 'next/server';
 import { DirectCastAPI, DirectCastAPIError } from '@/common/helpers/directCastApi';
+import { createClient } from '@/common/helpers/supabase/route';
 
-export const DM_ERROR_CODES = {
+const DM_ERROR_CODES = {
   NO_API_KEY: 'NO_API_KEY',
   INVALID_API_KEY: 'INVALID_API_KEY',
   RATE_LIMITED: 'RATE_LIMITED',

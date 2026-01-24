@@ -1,17 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import { Radio, RadioGroup } from '@headlessui/react';
-import { Button } from '@/components/ui/button';
+import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon } from '@heroicons/react/20/solid';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { XCircleIcon } from '@heroicons/react/24/solid';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { isPaidUser, useUserStore } from '@/stores/useUserStore';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon } from '@heroicons/react/20/solid';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
-import Image from 'next/image';
 
 function Logo(props: React.ComponentProps<'img'>) {
   return <Image src="/images/logo.png" aria-hidden="true" alt="herocast logo" {...props} />;
@@ -240,7 +241,7 @@ function Plan({
   );
 }
 
-export function Pricing() {
+function Pricing() {
   const [activePeriod, setActivePeriod] = useState<'Monthly' | 'Annually'>('Annually');
 
   return (
