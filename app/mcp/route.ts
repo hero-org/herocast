@@ -58,6 +58,8 @@ function buildProxyHeaders(request: NextRequest): Headers {
   const headers = new Headers(request.headers);
   headers.delete('host');
   headers.delete('content-length');
+  headers.delete('accept-encoding');
+  headers.set('accept-encoding', 'identity');
   return headers;
 }
 
@@ -72,6 +74,9 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
   });
 
   const responseHeaders = new Headers(upstreamResponse.headers);
+  responseHeaders.delete('content-encoding');
+  responseHeaders.delete('content-length');
+  responseHeaders.delete('transfer-encoding');
   return new NextResponse(upstreamResponse.body, {
     status: upstreamResponse.status,
     headers: responseHeaders,
