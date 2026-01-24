@@ -33,6 +33,27 @@ function getAuthChallengeHeaders(request: NextRequest): HeadersInit {
   };
 }
 
+const oauthErrorPayload = JSON.stringify({
+  error: 'invalid_request',
+  error_description: 'MCP endpoint requires POST',
+});
+
+function buildOauthErrorResponse(request: NextRequest, includeBody = true): NextResponse {
+  const encoder = new TextEncoder();
+  const headers = {
+    ...getAuthChallengeHeaders(request),
+    'Cache-Control': 'no-store, no-transform',
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': includeBody ? String(encoder.encode(oauthErrorPayload).length) : '0',
+    'Content-Encoding': 'identity',
+  };
+
+  return new NextResponse(includeBody ? oauthErrorPayload : null, {
+    status: 401,
+    headers,
+  });
+}
+
 function buildProxyHeaders(request: NextRequest): Headers {
   const headers = new Headers(request.headers);
   headers.delete('host');
@@ -62,14 +83,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  return NextResponse.json(
-    { error: 'invalid_request', error_description: 'MCP endpoint requires POST' },
-    { status: 401, headers: getAuthChallengeHeaders(request) }
-  );
+  return buildOauthErrorResponse(request, true);
 }
 
 export async function HEAD(request: NextRequest) {
-  return new NextResponse(null, { status: 401, headers: getAuthChallengeHeaders(request) });
+  return buildOauthErrorResponse(request, false);
 }
 
 export async function OPTIONS() {

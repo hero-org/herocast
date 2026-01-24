@@ -40,9 +40,9 @@ export default async function ConsentPage({ searchParams }: ConsentPageProps) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: async () => cookieStore.getAll(),
-        setAll: async (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        getAll: () => cookieStore.getAll(),
+        setAll: () => {
+          // Server Components cannot mutate cookies; auth refresh should happen in route handlers.
         },
       },
     }
