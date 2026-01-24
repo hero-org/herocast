@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.0",
+    "zod": "https://deno.land/x/zod@v3.23.8/mod.ts"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"]
+  }
+}

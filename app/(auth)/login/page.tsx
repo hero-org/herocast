@@ -22,6 +22,13 @@ function AuthFormSkeleton() {
   return <div className="h-[380px] w-full animate-pulse rounded-lg bg-muted/40" />;
 }
 
+function getSafeRedirect(path: string | null): string | null {
+  if (!path) return null;
+  if (!path.startsWith('/') || path.startsWith('//')) return null;
+  if (path.startsWith('/login')) return null;
+  return path;
+}
+
 function LoggingInMessage() {
   return (
     <div className="h-[380px] w-full flex flex-col items-center justify-center gap-3">
@@ -39,6 +46,8 @@ function LoginContent() {
   const view = searchParams.get('view');
   const error = searchParams.get('error');
   const error_description = searchParams.get('error_description');
+  const redirectParam = searchParams.get('redirect');
+  const safeRedirect = getSafeRedirect(redirectParam);
   const showOnlySignup = signupOnly === 'true' || view === 'reset';
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -51,9 +60,9 @@ function LoginContent() {
   // Redirect logged-in users to /feeds or /post
   useEffect(() => {
     if (didLoad && user && view !== 'reset') {
-      router.replace('/feeds');
+      router.replace(safeRedirect || '/feeds');
     }
-  }, [didLoad, user, view, router]);
+  }, [didLoad, user, view, router, safeRedirect]);
 
   const renderAuthForm = () => {
     // Show skeleton while auth state is loading
