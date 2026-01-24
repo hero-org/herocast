@@ -40,7 +40,7 @@ jobs:
       - name: Export Supabase env
         run: |
           STATUS_JSON=$(supabase status --output json)
-          ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.anon_key // .api.anon_key')
+          ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.ANON_KEY // .anon_key // .api.anon_key')
           if [ -z "$ANON_KEY" ] || [ "$ANON_KEY" = "null" ]; then
             echo "Failed to read anon key from supabase status" >&2
             echo "$STATUS_JSON" >&2

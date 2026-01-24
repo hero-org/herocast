@@ -30,9 +30,9 @@ if [ -z "$SUPABASE_ANON_KEY" ]; then
     STATUS_JSON=$(supabase status --output json 2>/dev/null || true)
     if [ -n "$STATUS_JSON" ]; then
         if command -v jq >/dev/null 2>&1; then
-            SUPABASE_ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.anon_key // .api.anon_key')
+            SUPABASE_ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.ANON_KEY // .anon_key // .api.anon_key')
         elif command -v node >/dev/null 2>&1; then
-            SUPABASE_ANON_KEY=$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync(0,'utf8'));console.log(data.anon_key || (data.api && data.api.anon_key) || '');" <<< "$STATUS_JSON")
+            SUPABASE_ANON_KEY=$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync(0,'utf8'));console.log(data.ANON_KEY || data.anon_key || (data.api && data.api.anon_key) || '');" <<< "$STATUS_JSON")
         fi
     fi
     if [ -z "$SUPABASE_ANON_KEY" ]; then
