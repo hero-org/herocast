@@ -138,7 +138,9 @@ export const SelectableListWithHotkeys = ({
   useAppHotkeys(
     'shift+o',
     () => {
-      onExpand && onExpand(selectedIdx);
+      if (onExpand) {
+        onExpand(selectedIdx);
+      }
     },
     {
       scopes: pageScopes,

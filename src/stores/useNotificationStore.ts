@@ -117,7 +117,9 @@ if (typeof window !== 'undefined') {
       if (state.syncQueue.length > 0) {
         console.log('Page hidden, syncing notifications...');
         // Use sendBeacon for reliability during page unload
-        navigator.sendBeacon && state.syncToSupabase();
+        if (typeof navigator.sendBeacon === 'function') {
+          state.syncToSupabase();
+        }
       }
     }
   });

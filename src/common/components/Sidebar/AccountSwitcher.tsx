@@ -36,8 +36,7 @@ const groups = [
 ];
 
 type PopoverTriggerProps = React.ComponentPropsWithoutRef<typeof PopoverTrigger>;
-
-interface AccountSwitcherProps extends PopoverTriggerProps {}
+type AccountSwitcherProps = PopoverTriggerProps;
 
 export default function AccountSwitcher({ className }: AccountSwitcherProps) {
   const router = useRouter();

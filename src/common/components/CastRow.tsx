@@ -901,8 +901,8 @@ const CastRowComponent = ({
             event.stopPropagation();
             if (onCastClick) {
               onCastClick();
-            } else {
-              onSelect && onSelect();
+            } else if (onSelect) {
+              onSelect();
             }
           }}
         >
@@ -959,8 +959,8 @@ const CastRowComponent = ({
                 e.stopPropagation();
                 if (onCastClick) {
                   onCastClick();
-                } else {
-                  onSelect && onSelect();
+                } else if (onSelect) {
+                  onSelect();
                 }
               }}
               className={cn(
