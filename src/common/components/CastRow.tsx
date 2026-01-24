@@ -781,11 +781,9 @@ const CastRowComponent = ({
                       return;
                     }
 
-                    removeCast(cast.hash, Number(selectedAccount.platformAccountId), selectedAccount.privateKey!).then(
-                      () => {
-                        toastSuccessCastDeleted(cast?.text);
-                      }
-                    );
+                    removeCast(selectedAccount.id, cast.hash).then(() => {
+                      toastSuccessCastDeleted(cast?.text);
+                    });
                   }}
                 >
                   Confirm
@@ -884,7 +882,7 @@ const CastRowComponent = ({
   };
 
   const renderCastContent = () => (
-    <div className="flex flex-col w-full max-w-2xl">
+    <div className="flex flex-col w-full min-w-0">
       <div
         className={cn(
           isEmbed ? 'p-2' : 'p-3',
@@ -916,7 +914,7 @@ const CastRowComponent = ({
               </Avatar>
             </Link>
           )}
-          <div className="flex flex-col w-full space-y-1">
+          <div className="flex flex-col w-full min-w-0 space-y-1">
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 {hideAuthor ? (
@@ -966,7 +964,7 @@ const CastRowComponent = ({
                 }
               }}
               className={cn(
-                'mt-2 w-full max-w-xl text-md text-foreground cursor-pointer break-words lg:break-normal',
+                'mt-2 w-full min-w-0 text-md text-foreground cursor-pointer break-words',
                 !effectiveIsExpanded && 'line-clamp-6'
               )}
               style={castTextStyle}

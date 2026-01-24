@@ -99,13 +99,12 @@ export function useLikeCast() {
 
   return useMutation<void, Error, CastActionParams, CastActionContext>({
     mutationFn: async ({ castHash, authorFid }: CastActionParams) => {
-      if (!selectedAccount?.privateKey) {
-        throw new Error('No private key available');
+      if (!selectedAccount?.id) {
+        throw new Error('No account selected');
       }
 
       await publishReaction({
-        authorFid: userFid,
-        privateKey: selectedAccount.privateKey,
+        accountId: selectedAccount.id,
         reaction: {
           type: 'like',
           target: { fid: authorFid, hash: castHash },
@@ -179,13 +178,12 @@ export function useUnlikeCast() {
 
   return useMutation<void, Error, CastActionParams, CastActionContext>({
     mutationFn: async ({ castHash, authorFid }: CastActionParams) => {
-      if (!selectedAccount?.privateKey) {
-        throw new Error('No private key available');
+      if (!selectedAccount?.id) {
+        throw new Error('No account selected');
       }
 
       await removeReaction({
-        authorFid: userFid,
-        privateKey: selectedAccount.privateKey,
+        accountId: selectedAccount.id,
         reaction: {
           type: 'like',
           target: { fid: authorFid, hash: castHash },
@@ -249,13 +247,12 @@ export function useRecast() {
 
   return useMutation<void, Error, CastActionParams, CastActionContext>({
     mutationFn: async ({ castHash, authorFid }: CastActionParams) => {
-      if (!selectedAccount?.privateKey) {
-        throw new Error('No private key available');
+      if (!selectedAccount?.id) {
+        throw new Error('No account selected');
       }
 
       await publishReaction({
-        authorFid: userFid,
-        privateKey: selectedAccount.privateKey,
+        accountId: selectedAccount.id,
         reaction: {
           type: 'recast',
           target: { fid: authorFid, hash: castHash },
@@ -329,13 +326,12 @@ export function useRemoveRecast() {
 
   return useMutation<void, Error, CastActionParams, CastActionContext>({
     mutationFn: async ({ castHash, authorFid }: CastActionParams) => {
-      if (!selectedAccount?.privateKey) {
-        throw new Error('No private key available');
+      if (!selectedAccount?.id) {
+        throw new Error('No account selected');
       }
 
       await removeReaction({
-        authorFid: userFid,
-        privateKey: selectedAccount.privateKey,
+        accountId: selectedAccount.id,
         reaction: {
           type: 'recast',
           target: { fid: authorFid, hash: castHash },

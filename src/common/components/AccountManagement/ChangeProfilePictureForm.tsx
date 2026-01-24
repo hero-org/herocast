@@ -53,7 +53,7 @@ const ChangeProfilePictureForm = ({ account, onSuccess }: ChangeProfilePictureFo
 
     setIsPending(true);
     try {
-      await setUserDataInProtocol(account.privateKey!, Number(account.platformAccountId!), UserDataType.PFP, newPfpUrl);
+      await setUserDataInProtocol(account.id, UserDataType.PFP, newPfpUrl);
       toast.success('Profile picture changed successfully', {
         duration: 5000,
         closeButton: true,

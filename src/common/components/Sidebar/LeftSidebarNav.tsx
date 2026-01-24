@@ -1,12 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useAccountStore, CUSTOM_CHANNELS } from '@/stores/useAccountStore';
-import { useListStore } from '@/stores/useListStore';
-import { useSidebarCollapseState } from '@/common/hooks/useSidebarCollapseState';
-import CollapsibleNavSection, { NavItem, renderShortcut } from './CollapsibleNavSection';
-import { Button } from '@/components/ui/button';
+import { renderShortcut } from './CollapsibleNavSection';
 import {
   Inbox,
   Newspaper,
@@ -16,14 +12,12 @@ import {
   User,
   Settings,
   UserPlus,
-  Home,
-  TrendingUp,
   Hash,
-  Rss,
-  Users,
+  List,
+  LayoutPanelLeft,
 } from 'lucide-react';
 
-type MainNavItem = {
+type NavItem = {
   name: string;
   href: string;
   icon: React.ReactNode;
@@ -31,7 +25,14 @@ type MainNavItem = {
   additionalPaths?: string[];
 };
 
-const mainNavItems: MainNavItem[] = [
+const mainNavItems: NavItem[] = [
+  {
+    name: 'Feeds',
+    href: '/feeds',
+    icon: <Newspaper className="h-5 w-5" />,
+    shortcut: '⇧F',
+    additionalPaths: ['/conversation'],
+  },
   {
     name: 'Inbox',
     href: '/inbox',
@@ -39,11 +40,10 @@ const mainNavItems: MainNavItem[] = [
     shortcut: '⇧N',
   },
   {
-    name: 'Feeds',
-    href: '/feeds',
-    icon: <Newspaper className="h-5 w-5" />,
-    shortcut: '⇧F',
-    additionalPaths: ['/conversation'],
+    name: 'Workspace',
+    href: '/workspace',
+    icon: <LayoutPanelLeft className="h-5 w-5" />,
+    shortcut: '⇧W',
   },
   {
     name: 'Post',
@@ -62,9 +62,19 @@ const mainNavItems: MainNavItem[] = [
     icon: <Search className="h-5 w-5" />,
     shortcut: '/',
   },
+  {
+    name: 'Lists',
+    href: '/lists',
+    icon: <List className="h-5 w-5" />,
+  },
+  {
+    name: 'Channels',
+    href: '/channels',
+    icon: <Hash className="h-5 w-5" />,
+  },
 ];
 
-const settingsNavItems: MainNavItem[] = [
+const bottomNavItems: NavItem[] = [
   {
     name: 'Profile',
     href: '/profile',
@@ -92,16 +102,8 @@ type LeftSidebarNavProps = {
 
 const LeftSidebarNav = ({ onNavigate }: LeftSidebarNavProps) => {
   const pathname = usePathname() || '/';
-  const router = useRouter();
-  const { collapseState, toggleSection } = useSidebarCollapseState();
-  const { selectedChannelUrl, setSelectedChannelUrl } = useAccountStore();
-  const channels = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.channels || []);
-  const { selectedListId, setSelectedListId, getSearchLists, getFidLists } = useListStore();
 
-  const searchLists = getSearchLists();
-  const fidLists = getFidLists();
-
-  const isNavItemActive = (item: MainNavItem) => {
+  const isActive = (item: NavItem) => {
     if (pathname === item.href) return true;
     if (item.additionalPaths) {
       return item.additionalPaths.some((p) => pathname.startsWith(p));
@@ -109,252 +111,36 @@ const LeftSidebarNav = ({ onNavigate }: LeftSidebarNavProps) => {
     return false;
   };
 
-  const handleFeedSelect = (feedUrl: string) => {
-    setSelectedChannelUrl(feedUrl);
-    setSelectedListId(undefined);
-    if (pathname !== '/feeds') {
-      router.push('/feeds');
-    }
-    onNavigate?.();
-  };
-
-  const handleListSelect = (listId: string) => {
-    setSelectedListId(listId as any);
-    setSelectedChannelUrl(null);
-    if (pathname !== '/feeds') {
-      router.push('/feeds');
-    }
-    onNavigate?.();
-  };
-
-  const handleChannelSelect = (channelUrl: string) => {
-    setSelectedChannelUrl(channelUrl);
-    setSelectedListId(undefined);
-    if (pathname !== '/feeds') {
-      router.push('/feeds');
-    }
-    onNavigate?.();
-  };
-
-  const feedItems: NavItem[] = [
-    {
-      id: CUSTOM_CHANNELS.FOLLOWING,
-      name: 'Following',
-      icon: <Home className="h-4 w-4" />,
-      shortcut: '⇧0',
-      onClick: () => handleFeedSelect(CUSTOM_CHANNELS.FOLLOWING),
-    },
-    {
-      id: CUSTOM_CHANNELS.TRENDING,
-      name: 'Trending',
-      icon: <TrendingUp className="h-4 w-4" />,
-      shortcut: '⇧1',
-      onClick: () => handleFeedSelect(CUSTOM_CHANNELS.TRENDING),
-    },
-  ];
-
-  const searchItems: NavItem[] = searchLists.map((list) => ({
-    id: list.id,
-    name: list.name,
-    onClick: () => handleListSelect(list.id),
-  }));
-
-  const listItems: NavItem[] = fidLists.map((list) => ({
-    id: list.id,
-    name: list.name,
-    onClick: () => handleListSelect(list.id),
-  }));
-
-  const channelItems: NavItem[] = channels.map((channel) => ({
-    id: channel.url,
-    name: channel.name,
-    icon: channel.icon_url ? (
-      <img src={channel.icon_url} alt="" className="h-4 w-4 rounded-full" />
-    ) : (
-      <Hash className="h-4 w-4" />
-    ),
-    onClick: () => handleChannelSelect(channel.url),
-  }));
-
-  const getSelectedFeedId = () => {
-    if (selectedListId) return undefined;
-    return selectedChannelUrl || undefined;
-  };
-
-  const getSelectedListId = () => {
-    if (!selectedListId) return undefined;
-    // Check if it's a search list or fid list
-    const isSearch = searchLists.some((l) => l.id === selectedListId);
-    const isFid = fidLists.some((l) => l.id === selectedListId);
-    if (isSearch || isFid) return selectedListId;
-    return undefined;
-  };
-
-  const renderMainNavItem = (item: MainNavItem) => {
-    const isActive = isNavItemActive(item);
+  const renderNavItem = (item: NavItem) => {
+    const active = isActive(item);
     return (
       <Link key={item.href} href={item.href} onClick={onNavigate}>
         <div
           className={cn(
             'group flex items-center gap-x-3 rounded-md px-2 py-1.5 text-sm font-medium cursor-pointer transition-colors',
-            isActive
+            active
               ? 'bg-foreground text-background dark:bg-foreground/10 dark:text-foreground'
               : 'text-foreground/70 hover:text-foreground hover:bg-muted'
           )}
         >
           {item.icon}
           <span className="flex-1 truncate">{item.name}</span>
-          {item.shortcut && renderShortcut(item.shortcut, isActive)}
+          {item.shortcut && renderShortcut(item.shortcut, active)}
         </div>
       </Link>
     );
   };
 
   return (
-    <nav className="flex flex-col flex-1 gap-y-1 overflow-y-auto no-scrollbar">
+    <nav className="flex flex-col flex-1 gap-y-0.5 overflow-y-auto no-scrollbar">
       {/* Main navigation */}
-      <div className="space-y-0.5">{mainNavItems.map(renderMainNavItem)}</div>
-
-      {/* Separator */}
-      <div className="my-2 border-t border-sidebar-border/20" />
-
-      {/* Feeds section */}
-      <CollapsibleNavSection
-        title="Feeds"
-        icon={<Rss className="h-3 w-3" />}
-        items={feedItems}
-        isCollapsed={collapseState.feeds}
-        onToggle={() => toggleSection('feeds')}
-        onItemClick={() => {}}
-        selectedId={getSelectedFeedId()}
-      />
-
-      {/* Searches section */}
-      <CollapsibleNavSection
-        title="Searches"
-        icon={<Search className="h-3 w-3" />}
-        items={searchItems}
-        isCollapsed={collapseState.searches}
-        onToggle={() => toggleSection('searches')}
-        shortcutPrefix="g s"
-        onItemClick={() => {}}
-        selectedId={getSelectedListId()}
-        emptyState={
-          <Link href="/lists?tab=search" className="block px-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-            >
-              + Add search
-            </Button>
-          </Link>
-        }
-        footer={
-          searchItems.length > 0 && (
-            <Link href="/lists?tab=search">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-              >
-                + Add
-              </Button>
-            </Link>
-          )
-        }
-      />
-
-      {/* Lists section */}
-      <CollapsibleNavSection
-        title="Lists"
-        icon={<Users className="h-3 w-3" />}
-        items={listItems}
-        isCollapsed={collapseState.lists}
-        onToggle={() => toggleSection('lists')}
-        shortcutPrefix="g l"
-        onItemClick={() => {}}
-        selectedId={getSelectedListId()}
-        emptyState={
-          <Link href="/lists?tab=users" className="block px-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-            >
-              + Add list
-            </Button>
-          </Link>
-        }
-        footer={
-          listItems.length > 0 && (
-            <div className="flex gap-x-1">
-              <Link href="/lists" className="flex-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Manage
-                </Button>
-              </Link>
-              <Link href="/lists?tab=users" className="flex-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  + Add
-                </Button>
-              </Link>
-            </div>
-          )
-        }
-      />
-
-      {/* Channels section */}
-      <CollapsibleNavSection
-        title="Channels"
-        icon={<Hash className="h-3 w-3" />}
-        items={channelItems}
-        isCollapsed={collapseState.channels}
-        onToggle={() => toggleSection('channels')}
-        onItemClick={() => {}}
-        selectedId={getSelectedFeedId()}
-        emptyState={
-          <Link href="/channels" className="block px-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-            >
-              + Pin channels
-            </Button>
-          </Link>
-        }
-        footer={
-          channelItems.length > 0 && (
-            <Link href="/channels">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
-              >
-                + Pin
-              </Button>
-            </Link>
-          )
-        }
-      />
+      <div className="space-y-0.5">{mainNavItems.map(renderNavItem)}</div>
 
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Separator */}
-      <div className="my-2 border-t border-sidebar-border/20" />
-
-      {/* Settings navigation */}
-      <div className="space-y-0.5">{settingsNavItems.map(renderMainNavItem)}</div>
+      {/* Bottom navigation */}
+      <div className="space-y-0.5">{bottomNavItems.map(renderNavItem)}</div>
     </nav>
   );
 };

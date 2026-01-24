@@ -80,12 +80,7 @@ const ChangeDisplayNameForm = ({ account, onSuccess }: ChangeDisplayNameFormProp
     setIsPending(true);
 
     try {
-      await setUserDataInProtocol(
-        account.privateKey!,
-        Number(account.platformAccountId!),
-        UserDataType.DISPLAY,
-        displayName
-      );
+      await setUserDataInProtocol(account.id, UserDataType.DISPLAY, displayName);
       toast.success('Display name changed successfully', {
         duration: 5000,
         closeButton: true,

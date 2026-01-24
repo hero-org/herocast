@@ -195,12 +195,7 @@ const RenameAccountForm = ({
       console.log('updateUsername result', result);
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      await setUserDataInProtocol(
-        account.privateKey!,
-        Number(account.platformAccountId!),
-        UserDataType.USERNAME,
-        username
-      );
+      await setUserDataInProtocol(account.id, UserDataType.USERNAME, username);
       updateAccountUsername(account.id);
     } catch (e) {
       console.error('renameAccount error', e);

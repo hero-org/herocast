@@ -1,0 +1,63 @@
+name: Signing Service Tests
+
+on:
+  push:
+    paths:
+      - 'supabase/functions/farcaster-signer/**'
+      - '.github/workflows/signing-service-tests.yml'
+  pull_request:
+    paths:
+      - 'supabase/functions/farcaster-signer/**'
+      - '.github/workflows/signing-service-tests.yml'
+
+jobs:
+  signing-service-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Reset database
+        run: supabase db reset --force
+
+      - name: Apply pgsodium grants
+        run: |
+          export PGPASSWORD=postgres
+          psql -h localhost -p 54322 -U postgres -d postgres -f supabase/setup/pgsodium_grants.sql
+          psql -h localhost -p 54322 -U postgres -d postgres -f supabase/setup/pgsodium_seed_key.sql
+
+      - name: Export Supabase env
+        run: |
+          STATUS_JSON=$(supabase status --output json)
+          ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.ANON_KEY // .anon_key // .api.anon_key')
+          if [ -z "$ANON_KEY" ] || [ "$ANON_KEY" = "null" ]; then
+            echo "Failed to read anon key from supabase status" >&2
+            echo "$STATUS_JSON" >&2
+            exit 1
+          fi
+          echo "SUPABASE_URL=http://localhost:54321" >> "$GITHUB_ENV"
+          echo "SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+
+      - name: Seed test users/accounts
+        run: deno run --config supabase/functions/farcaster-signer/deno.json --allow-net --allow-env --allow-read supabase/functions/farcaster-signer/tests/seed.ts
+
+      - name: Serve signing function
+        run: |
+          supabase functions serve farcaster-signer --no-verify-jwt &
+          sleep 3
+
+      - name: Run signing service tests
+        env:
+          SKIP_E2E_TESTS: 'true'
+        run: deno test --config supabase/functions/farcaster-signer/deno.json --allow-net --allow-env --allow-read supabase/functions/farcaster-signer/tests/

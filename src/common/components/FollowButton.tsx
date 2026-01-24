@@ -55,8 +55,7 @@ const FollowButton = ({ username, profile: profileProp }: FollowButtonProps) => 
 
     const mutationParams = {
       targetFid: Number(profile.fid),
-      viewerFid: Number(selectedAccount.platformAccountId),
-      signerPrivateKey: selectedAccount.privateKey!,
+      accountId: selectedAccount.id,
     };
 
     if (isFollowing) {

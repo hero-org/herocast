@@ -1,0 +1,224 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { z } from 'zod';
+import type { AuthContext, ToolDefinition, ToolResult } from '../lib/types.ts';
+
+const CastIdSchema = z.object({
+  fid: z.number(),
+  hash: z.string().regex(/^0x[a-fA-F0-9]+$/),
+});
+
+const EmbedSchema = z.union([z.object({ url: z.string().url() }), z.object({ cast_id: CastIdSchema })]);
+
+const PostCastSchema = z
+  .object({
+    text: z.string().min(1).max(1024),
+    account_id: z.string().uuid().optional(),
+    account_username: z.string().optional(),
+    channel_id: z.string().optional(),
+    parent_url: z.string().url().optional(),
+    parent_cast_id: CastIdSchema.optional(),
+    embeds: z.array(EmbedSchema).max(2).optional(),
+    idempotency_key: z.string().optional(),
+  })
+  .refine((data) => data.account_id || data.account_username, {
+    message: 'Either account_id or account_username is required',
+  })
+  .refine((data) => !(data.channel_id && data.parent_url), {
+    message: 'Use either channel_id or parent_url, not both',
+  });
+
+type PostCastInput = z.infer<typeof PostCastSchema>;
+
+export const postCastToolDefinition: ToolDefinition = {
+  name: 'post_cast',
+  description: 'Post a Farcaster cast using the authenticated user account.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      text: { type: 'string', description: 'The text content of the cast' },
+      account_id: { type: 'string', description: 'UUID of the account to post from' },
+      account_username: { type: 'string', description: 'Username of the account (alternative to account_id)' },
+      channel_id: { type: 'string', description: "Channel name to post in (e.g., 'neynar')" },
+      parent_url: { type: 'string', description: 'Channel URL to post in (alternative to channel_id)' },
+      parent_cast_id: {
+        type: 'object',
+        properties: {
+          fid: { type: 'number' },
+          hash: { type: 'string' },
+        },
+      },
+      embeds: {
+        type: 'array',
+        maxItems: 2,
+        items: {
+          anyOf: [
+            { type: 'object', properties: { url: { type: 'string' } }, required: ['url'] },
+            {
+              type: 'object',
+              properties: {
+                cast_id: {
+                  type: 'object',
+                  properties: {
+                    fid: { type: 'number' },
+                    hash: { type: 'string' },
+                  },
+                  required: ['fid', 'hash'],
+                },
+              },
+              required: ['cast_id'],
+            },
+          ],
+        },
+      },
+      idempotency_key: { type: 'string', description: 'Unique key to prevent duplicate posts on retry' },
+    },
+    required: ['text'],
+  },
+};
+
+function normalizeUsername(username: string): string {
+  return username.trim().replace(/^@/, '');
+}
+
+async function resolveAccountIdByUsername(
+  supabaseClient: SupabaseClient,
+  userId: string,
+  accountUsername: string
+): Promise<{ accountId: string; status: string | null } | null> {
+  const normalized = normalizeUsername(accountUsername);
+  if (!normalized) return null;
+
+  const { data, error } = await supabaseClient
+    .from('accounts')
+    .select('id, status')
+    .eq('user_id', userId)
+    .ilike('name', normalized)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data?.id) {
+    return null;
+  }
+
+  return { accountId: data.id as string, status: (data.status as string | null) ?? null };
+}
+
+function getSignerServiceUrl(): string {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('API_URL') || Deno.env.get('SUPABASE_API_URL');
+  if (!supabaseUrl) {
+    throw new Error('Missing SUPABASE_URL/API_URL for signer service.');
+  }
+  return `${supabaseUrl}/functions/v1/farcaster-signer`;
+}
+
+function getSupabaseAnonKey(): string {
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('ANON_KEY');
+  if (!anonKey) {
+    throw new Error('Missing SUPABASE_ANON_KEY/ANON_KEY for signer service.');
+  }
+  return anonKey;
+}
+
+export async function postCastTool(auth: AuthContext, input: unknown): Promise<ToolResult> {
+  let parsed: PostCastInput;
+  try {
+    parsed = PostCastSchema.parse(input);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Invalid parameters';
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: message, code: 'INVALID_PARAMS' }) }],
+      isError: true,
+    };
+  }
+
+  const { supabaseClient, userId, token } = auth;
+  let accountId = parsed.account_id;
+  let accountStatus: string | null | undefined;
+
+  if (!accountId && parsed.account_username) {
+    const account = await resolveAccountIdByUsername(supabaseClient, userId, parsed.account_username);
+    if (!account) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ error: 'Account not found or not accessible', code: 'ACCOUNT_NOT_FOUND' }),
+          },
+        ],
+        isError: true,
+      };
+    }
+    accountId = account.accountId;
+    accountStatus = account.status;
+  }
+
+  if (!accountId) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: 'Account not provided', code: 'ACCOUNT_NOT_FOUND' }) }],
+      isError: true,
+    };
+  }
+
+  if (accountStatus && accountStatus !== 'active') {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ error: 'Account is pending activation', code: 'ACCOUNT_PENDING' }),
+        },
+      ],
+      isError: true,
+    };
+  }
+
+  const payload = {
+    account_id: accountId,
+    text: parsed.text,
+    channel_id: parsed.channel_id,
+    parent_url: parsed.parent_url,
+    parent_cast_id: parsed.parent_cast_id,
+    embeds: parsed.embeds,
+    idempotency_key: parsed.idempotency_key,
+  };
+
+  const idempotencyKey = parsed.idempotency_key;
+  const response = await fetch(`${getSignerServiceUrl()}/cast`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      apikey: getSupabaseAnonKey(),
+      ...(idempotencyKey ? { 'X-Idempotency-Key': idempotencyKey } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  let responseJson: { success?: boolean; hash?: string; fid?: number; error?: { message?: string; code?: string } } =
+    {};
+  try {
+    responseJson = (await response.json()) as typeof responseJson;
+  } catch {
+    responseJson = {};
+  }
+
+  if (!response.ok || responseJson.success === false) {
+    const message = responseJson.error?.message || `Signer service failed (${response.status})`;
+    const code = responseJson.error?.code || 'SIGNER_SERVICE_ERROR';
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: message, code }) }],
+      isError: true,
+    };
+  }
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify({ hash: responseJson.hash, fid: responseJson.fid }),
+      },
+    ],
+  };
+}

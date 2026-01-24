@@ -12,8 +12,10 @@ export const getAccountsForUser = async (supabaseClient) => {
   }
 
   const { data: accountData, error: accountError } = await supabaseClient
-    .from('decrypted_accounts')
-    .select('*, accounts_to_channel(*, channel(*))')
+    .from('accounts')
+    .select(
+      'id, name, status, public_key, platform, platform_account_id, created_at, data, display_order, accounts_to_channel(*, channel(*))'
+    )
     .eq('user_id', user?.id)
     .neq('status', AccountStatusType.removed)
     .order('display_order', { ascending: true, nullsLast: true })
