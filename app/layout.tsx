@@ -1,12 +1,12 @@
 import '../src/globals.css';
-import React from 'react';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import { cn } from '@/lib/utils';
-import { Providers } from './providers';
+import type React from 'react';
 import CommandPalette from '@/common/components/CommandPalette';
 import { GlobalHotkeys } from '@/common/components/GlobalHotkeys';
 import { PerfPanel } from '@/common/components/PerfPanel';
+import { cn } from '@/lib/utils';
+import { Providers } from './providers';
 
 const satoshi = localFont({
   src: [
@@ -92,14 +92,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn(satoshi.className)}
-        style={{
-          msOverflowStyle: 'none',
-          scrollbarWidth: 'none',
-          WebkitScrollbar: 'none',
-        }}
-      >
+      <body className={cn(satoshi.className, 'no-scrollbar')}>
         <Providers>
           <GlobalHotkeys />
           <CommandPalette />

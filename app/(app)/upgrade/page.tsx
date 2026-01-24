@@ -7,15 +7,20 @@ import { XCircleIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { isPaidUser, useUserStore } from '@/stores/useUserStore';
 
-function Logo(props: React.ComponentProps<'img'>) {
-  return <Image src="/images/logo.png" aria-hidden="true" alt="herocast logo" {...props} />;
+type LogoProps = {
+  className?: string;
+};
+
+function Logo({ className }: LogoProps) {
+  return (
+    <Image src="/images/logo.png" aria-hidden="true" alt="herocast logo" width={24} height={24} className={className} />
+  );
 }
 
 const plans = [
@@ -115,12 +120,12 @@ type PlanProps = {
   };
   description: string;
   button: {
-    Monthly: { label: string; href: string };
-    Annually: { label: string; href: string };
-    Hypersub?: { href: string };
+    Monthly?: { label: string; href: string };
+    Annually?: { label: string; href: string };
+    Hypersub?: { label: string; href: string };
   };
   features: Array<string>;
-  unavilableFeatures: Array<string>;
+  unavilableFeatures?: Array<string>;
   activePeriod: 'Monthly' | 'Annually';
   logomarkClassName?: string;
   featured?: boolean;
@@ -140,31 +145,39 @@ function Plan({
   const isPayingUser = isPaidUser();
   const isPaidPlan = price.Monthly !== '$0';
 
-  const renderStripeButton = () =>
-    button[activePeriod]?.href && (
-      <Link href={button[activePeriod].href} prefetch={false} className="w-full mx-auto">
+  const renderStripeButton = () => {
+    const activeButton = button[activePeriod];
+    if (!activeButton?.href) {
+      return null;
+    }
+
+    return (
+      <Link href={activeButton.href} prefetch={false} className="w-full mx-auto">
         <Button
           className="w-full"
           disabled={!isPayingUser && !isPaidPlan}
           aria-label={`Get started with the ${name} plan for ${price[activePeriod]}`}
         >
-          {!isPayingUser && isPaidPlan ? button[activePeriod].label : 'Your plan'}
+          {!isPayingUser && isPaidPlan ? activeButton.label : 'Your plan'}
         </Button>
       </Link>
     );
+  };
 
   const renderHypersubButton = () => {
+    if (!button.Hypersub) {
+      return null;
+    }
+
     return (
-      button.Hypersub && (
-        <Link href={button.Hypersub.href} prefetch={false} className="w-full mx-auto">
-          <Button
-            type="button"
-            className="w-full text-white h-9 rounded-lg px-4 py-2 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
-          >
-            Hypersub
-          </Button>
-        </Link>
-      )
+      <Link href={button.Hypersub.href} prefetch={false} className="w-full mx-auto">
+        <Button
+          type="button"
+          className="w-full text-white h-9 rounded-lg px-4 py-2 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+        >
+          {button.Hypersub.label ?? 'Hypersub'}
+        </Button>
+      </Link>
     );
   };
 

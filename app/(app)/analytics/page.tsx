@@ -1,34 +1,33 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import CastReactionsTable from '@/common/components/Analytics/CastReactionsTable';
-import { createClient } from '@/common/helpers/supabase/component';
-import { AnalyticsData } from '@/common/types/types';
-import { useAccountStore } from '@/stores/useAccountStore';
-import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { UTCDate } from '@date-fns/utc';
+import { ChartBarIcon } from '@heroicons/react/20/solid';
+import { ArrowRightIcon } from '@heroicons/react/24/solid';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { addDays, formatDistanceToNow, isBefore } from 'date-fns';
 import get from 'lodash.get';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
+import CastReactionsTable from '@/common/components/Analytics/CastReactionsTable';
+import RecentUnfollows from '@/common/components/Analytics/RecentUnfollows';
+import TopFollowers from '@/common/components/Analytics/TopFollowers';
+import ClickToCopyText from '@/common/components/ClickToCopyText';
+import { IntervalFilter } from '@/common/components/IntervalFilter';
 import { Loading } from '@/common/components/Loading';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
-import { getUserDataForFidOrUsername } from '@/common/helpers/neynar';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 import { useAuth } from '@/common/context/AuthContext';
+import { getUserDataForFidOrUsername } from '@/common/helpers/neynar';
+import { createClient } from '@/common/helpers/supabase/component';
+import { type AnalyticsData, Interval } from '@/common/types/types';
 import { Button } from '@/components/ui/button';
-import { ChartBarIcon } from '@heroicons/react/20/solid';
-import Link from 'next/link';
-import ClickToCopyText from '@/common/components/ClickToCopyText';
-import { Interval } from '@/common/types/types';
-import { IntervalFilter } from '@/common/components/IntervalFilter';
-import { addDays, formatDistanceToNow, isBefore } from 'date-fns';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext } from '@/components/ui/carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import TopFollowers from '@/common/components/Analytics/TopFollowers';
-import { UTCDate } from '@date-fns/utc';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
+import { useAccountStore } from '@/stores/useAccountStore';
 import { isPaidUser } from '@/stores/useUserStore';
-import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
-import { ArrowRightIcon } from '@heroicons/react/24/solid';
-import RecentUnfollows from '@/common/components/Analytics/RecentUnfollows';
 
 // Lazy load chart components that use recharts
 const NewFollowersCard = dynamic(() => import('@/common/components/Analytics/NewFollowersCard'), {
@@ -71,8 +70,7 @@ function timeUntilNextUTCHour(hour: number): string {
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
-  const router = useRouter();
-  const { query } = router;
+  const searchParams = useSearchParams();
   const supabaseClient = createClient();
 
   const [interval, setInterval] = useState<Interval>(intervals[0]);
@@ -149,7 +147,7 @@ export default function AnalyticsPage() {
     }
   }, [fid, user]);
 
-  const fetchAndAddUserProfile = async ({ username, fid }: { username?: string; fid: string }) => {
+  const fetchAndAddUserProfile = async ({ username, fid }: { username?: string; fid?: string }) => {
     getUserDataForFidOrUsername({
       username,
       fid,
@@ -163,21 +161,22 @@ export default function AnalyticsPage() {
   };
 
   useEffect(() => {
-    const fidFromQuery = query.fid as string;
-    const usernameFromQuery = query.username as string;
+    const fidFromQuery = searchParams.get('fid') || undefined;
+    const usernameFromQuery = searchParams.get('username') || undefined;
+
     if (fidFromQuery || usernameFromQuery) {
       fetchAndAddUserProfile({
         username: usernameFromQuery,
         fid: fidFromQuery,
       });
-    } else if (selectedAccountInApp && selectedAccountInApp?.user) {
+    } else if (selectedAccountInApp?.user) {
       setSelectedProfile(selectedAccountInApp.user);
     } else {
       fetchAndAddUserProfile({
         fid: LANDING_PAGE_DEFAULT_FID,
       });
     }
-  }, [query, selectedAccountInApp]);
+  }, [searchParams, selectedAccountInApp]);
 
   const analyticsData = fid ? get(fidToAnalytics, fid) : undefined;
 
