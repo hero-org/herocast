@@ -610,11 +610,3 @@ export const Constants = {
     },
   },
 } as const;
-
-// Convenience type exports - preserve these when regenerating schema
-export type List = Database['public']['Tables']['list']['Row'];
-export type InsertList = Database['public']['Tables']['list']['Insert'];
-export type UpdateList = Database['public']['Tables']['list']['Update'];
-export type Customer = Database['public']['Tables']['customers']['Row'];
-export type InsertCustomer = Database['public']['Tables']['customers']['Insert'];
-export type Account = Database['public']['Tables']['accounts']['Row'];
