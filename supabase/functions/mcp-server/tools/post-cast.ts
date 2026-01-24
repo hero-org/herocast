@@ -80,30 +80,60 @@ function normalizeUsername(username: string): string {
   return username.trim().replace(/^@/, '');
 }
 
-async function resolveAccountIdByUsername(
+type AccountLookupResult = { accountId: string; status: string | null } | { multiple: true } | null;
+
+async function findAccountMatch(
   supabaseClient: SupabaseClient,
   userId: string,
-  accountUsername: string
-): Promise<{ accountId: string; status: string | null } | null> {
-  const normalized = normalizeUsername(accountUsername);
-  if (!normalized) return null;
-
-  const { data, error } = await supabaseClient
-    .from('accounts')
-    .select('id, status')
-    .eq('user_id', userId)
-    .ilike('name', normalized)
-    .maybeSingle();
+  applyFilter: (query: any) => any
+): Promise<AccountLookupResult> {
+  const { data, error } = await applyFilter(
+    supabaseClient
+      .from('accounts')
+      .select('id, status')
+      .eq('user_id', userId)
+      .eq('platform', 'farcaster')
+      .neq('status', 'removed')
+  ).limit(2);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  if (!data?.id) {
+  if (!data || data.length === 0) {
     return null;
   }
 
-  return { accountId: data.id as string, status: (data.status as string | null) ?? null };
+  if (data.length > 1) {
+    return { multiple: true };
+  }
+
+  const [row] = data;
+  if (!row?.id) {
+    return null;
+  }
+
+  return { accountId: row.id as string, status: (row.status as string | null) ?? null };
+}
+
+async function resolveAccountIdByUsername(
+  supabaseClient: SupabaseClient,
+  userId: string,
+  accountUsername: string
+): Promise<AccountLookupResult> {
+  const normalized = normalizeUsername(accountUsername);
+  if (!normalized) return null;
+
+  const normalizedLower = normalized.toLowerCase();
+
+  const exactMatch = await findAccountMatch(supabaseClient, userId, (query) =>
+    query.eq('data->>username', normalizedLower)
+  );
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  return findAccountMatch(supabaseClient, userId, (query) => query.ilike('name', normalizedLower));
 }
 
 function getSignerServiceUrl(): string {
@@ -139,13 +169,36 @@ export async function postCastTool(auth: AuthContext, input: unknown): Promise<T
   let accountStatus: string | null | undefined;
 
   if (!accountId && parsed.account_username) {
-    const account = await resolveAccountIdByUsername(supabaseClient, userId, parsed.account_username);
+    let account: AccountLookupResult;
+    try {
+      account = await resolveAccountIdByUsername(supabaseClient, userId, parsed.account_username);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Account lookup failed';
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ error: message, code: 'ACCOUNT_LOOKUP_FAILED' }) }],
+        isError: true,
+      };
+    }
     if (!account) {
       return {
         content: [
           {
             type: 'text',
             text: JSON.stringify({ error: 'Account not found or not accessible', code: 'ACCOUNT_NOT_FOUND' }),
+          },
+        ],
+        isError: true,
+      };
+    }
+    if ('multiple' in account) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: 'Multiple accounts match this username. Use account_id instead.',
+              code: 'ACCOUNT_AMBIGUOUS',
+            }),
           },
         ],
         isError: true,
