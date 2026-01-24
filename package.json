@@ -8,9 +8,10 @@
     "build": "next build",
     "start": "next start",
     "serve": "serve -s build",
-    "lint": "next lint",
-    "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx src",
-    "format": "prettier --log-level warn --write .",
+    "lint": "biome check . && next lint",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "prepare": "husky",
     "supabase:setup": "node scripts/apply-pgsodium-grants.js"
@@ -27,12 +28,13 @@
       "last 1 safari version"
     ]
   },
-  "prettier": {
-    "singleQuote": true,
-    "trailingComma": "es5",
-    "printWidth": 120,
-    "tabWidth": 2,
-    "semi": true
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "biome check --write --no-errors-on-unmatched"
+    ],
+    "*.{json,md}": [
+      "biome format --write --no-errors-on-unmatched"
+    ]
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -182,6 +184,7 @@
     "zustand": "^4.5.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.12",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@jest/globals": "^29.7.0",
     "@next/eslint-plugin-next": "^13.5.8",
@@ -202,21 +205,20 @@
     "@types/node": "^20.17.24",
     "@types/ramda": "^0.29.12",
     "@types/react-dom": "^18.3.5",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
     "autoprefixer": "^10.4.21",
     "buffer": "^6.0.3",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
-    "eslint-plugin-react": "^7.37.4",
-    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-config-next": "^14.2.35",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "kysely": "^0.27.6",
     "kysely-codegen": "^0.15.0",
+    "lint-staged": "^16.2.7",
     "madge": "^6.1.0",
     "postcss": "^8.5.3",
-    "prettier": "^3.5.3",
     "ramda": "^0.29.1",
     "supabase": "^1.226.4",
     "ts-jest": "^29.2.6"
