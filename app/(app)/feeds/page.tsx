@@ -1,37 +1,36 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
-import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
-import { CastRow } from '@/common/components/CastRow';
-import isEmpty from 'lodash.isempty';
-import { CastThreadView } from '@/common/components/CastThreadView';
-import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
-import { Key } from 'ts-key-enum';
-import { useInView } from 'react-intersection-observer';
-import { Button } from '@/components/ui/button';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import SkeletonCastRow from '@/common/components/SkeletonCastRow';
-import { useDataStore } from '@/stores/useDataStore';
-import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
-
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useDraftStore } from '@/stores/useDraftStore';
-import { CreateAccountPage } from '@/common/components/CreateAccountPage';
-import { AccountStatusType } from '@/common/constants/accounts';
-import { createClient } from '@/common/helpers/supabase/component';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import includes from 'lodash.includes';
+import isEmpty from 'lodash.isempty';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useInView } from 'react-intersection-observer';
+import { Key } from 'ts-key-enum';
+import { CastRow } from '@/common/components/CastRow';
+import { CastThreadView } from '@/common/components/CastThreadView';
+import { CreateAccountPage } from '@/common/components/CreateAccountPage';
+import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import SkeletonCastRow from '@/common/components/SkeletonCastRow';
+import { AccountStatusType } from '@/common/constants/accounts';
+import { createEmbedCastId, createParentCastId } from '@/common/constants/farcaster';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
+import { createClient } from '@/common/helpers/supabase/component';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { isFidListContent, isSearchListContent } from '@/common/types/list.types';
+import { Button } from '@/components/ui/button';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { flattenChannelFeedPages, useChannelFeedInfinite } from '@/hooks/queries/useChannelFeed';
+import { flattenFidListFeedPages, useFidListFeedInfinite } from '@/hooks/queries/useFidListFeed';
+import { flattenFollowingFeedPages, useFollowingFeedInfinite } from '@/hooks/queries/useFollowingFeed';
+import { flattenSearchListFeedPages, useSearchListFeedInfinite } from '@/hooks/queries/useSearchListFeed';
+import { flattenTrendingFeedPages, useTrendingFeedInfinite } from '@/hooks/queries/useTrendingFeed';
+import { type AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { useDraftStore } from '@/stores/useDraftStore';
 import { useListStore } from '@/stores/useListStore';
-import { FidListContent, SearchListContent, isFidListContent, isSearchListContent } from '@/common/types/list.types';
-import { useTrendingFeedInfinite, flattenTrendingFeedPages } from '@/hooks/queries/useTrendingFeed';
-import { createParentCastId, createEmbedCastId } from '@/common/constants/farcaster';
-import { useFollowingFeedInfinite, flattenFollowingFeedPages } from '@/hooks/queries/useFollowingFeed';
-import { useChannelFeedInfinite, flattenChannelFeedPages } from '@/hooks/queries/useChannelFeed';
-import { useFidListFeedInfinite, flattenFidListFeedPages } from '@/hooks/queries/useFidListFeed';
-import { useSearchListFeedInfinite, flattenSearchListFeedPages } from '@/hooks/queries/useSearchListFeed';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 
 const getFeedKey = ({
   selectedChannelUrl,
@@ -273,10 +272,7 @@ export default function Feeds() {
       embeds: [
         {
           // Store hash as string for JSON serialization - will be converted to bytes in prepareCastBody
-          castId: createEmbedCastId(selectedCast.author.fid, selectedCast.hash, 'feeds.onQuote') as unknown as {
-            fid: number;
-            hash: Uint8Array;
-          },
+          castId: createEmbedCastId(selectedCast.author.fid, selectedCast.hash, 'feeds.onQuote'),
         },
       ],
       onSuccess(draftId) {

@@ -1,28 +1,32 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/require-await */
 
+import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import uniqBy from 'lodash.uniqby';
+import { type Draft, create as mutativeCreate } from 'mutative';
+import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { create as mutativeCreate, Draft } from 'mutative';
-import { CommandType } from '@/common/constants/commands';
-import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { AccountObjectType, useAccountStore } from './useAccountStore';
-import { DraftStatus, DraftType, ParentCastIdType } from '@/common/constants/farcaster';
-import { formatPlaintextToHubCastMessage, getMentionFidsByUsernames, submitCast } from '@/common/helpers/farcaster';
-import { Embed } from '@farcaster/hub-web';
 import { AccountPlatformType } from '@/common/constants/accounts';
+import type { CommandType } from '@/common/constants/commands';
+import {
+  DraftStatus,
+  type DraftType,
+  MAX_THREAD_POSTS,
+  type ParentCastIdType,
+  type ThreadPublishResult,
+} from '@/common/constants/farcaster';
+import { NewPostDraft } from '@/common/constants/postDrafts';
+import { formatPlaintextToHubCastMessage, getMentionFidsByUsernames, submitCast } from '@/common/helpers/farcaster';
+import { createClient } from '@/common/helpers/supabase/component';
 import {
   toastErrorCastPublish,
   toastInfoReadOnlyMode,
   toastSuccessCastPublished,
   toastSuccessCastScheduled,
 } from '@/common/helpers/toast';
-import { MAX_THREAD_POSTS, ThreadPublishResult } from '@/common/constants/farcaster';
-import { NewPostDraft } from '@/common/constants/postDrafts';
 import type { FarcasterEmbed } from '@/common/types/embeds';
-import { createClient } from '@/common/helpers/supabase/component';
-import { v4 as uuidv4 } from 'uuid';
-import uniqBy from 'lodash.uniqby';
+import { type AccountObjectType, useAccountStore } from './useAccountStore';
 import { CastModalView, useNavigationStore } from './useNavigationStore';
 
 const prepareCastBodyForDB = (castBody) => {
@@ -78,7 +82,6 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
   // Build result with proper types (type is added by submitCast based on isPro)
   const result: PreparedCastBody = {
     text: castBody.text,
-    embeds: castBody.embeds,
     mentions: castBody.mentions,
     mentionsPositions: castBody.mentionsPositions,
     parentUrl: castBody.parentUrl,
@@ -115,11 +118,10 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
   }
 
   // Handle embed castIds - normalize to hex string for signer service
-  if (result.embeds) {
-    result.embeds = result.embeds.map((embed) => {
+  if (castBody.embeds) {
+    result.embeds = castBody.embeds.map((embed) => {
       if ('castId' in embed && embed.castId) {
-        const castIdEmbed = embed as { castId: { fid: number; hash: string | Uint8Array } };
-        const hash = castIdEmbed.castId.hash;
+        const hash = embed.castId.hash;
         let hashString: string;
 
         if (typeof hash === 'string') {
@@ -138,12 +140,15 @@ export const prepareCastBody = async (draft: any): Promise<PreparedCastBody> => 
 
         return {
           castId: {
-            fid: Number(castIdEmbed.castId.fid),
+            fid: Number(embed.castId.fid),
             hash: hashString,
           },
         };
       }
-      return embed;
+      if ('url' in embed && embed.url) {
+        return { url: embed.url };
+      }
+      throw new Error('Invalid embed format in cast body');
     });
   }
 
@@ -172,7 +177,7 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
         fid: number;
         hash: string; // Stored as hex string in DB
       };
-      embeds?: Embed[];
+      embeds?: FarcasterEmbed[];
     };
   } = draft;
   return {
@@ -186,9 +191,15 @@ const tranformDBDraftForLocalStore = (draft: DraftObjectType): DraftType => {
         }
       : undefined,
     embeds: data.embeds
-      ? (data.embeds.map((embed) => ({
-          url: embed.url,
-        })) as FarcasterEmbed[])
+      ? data.embeds.map((embed) => {
+          if ('url' in embed && embed.url) {
+            return { url: embed.url };
+          }
+          if ('castId' in embed && embed.castId) {
+            return { castId: embed.castId };
+          }
+          return embed;
+        })
       : undefined,
     // todo: embeds can also be an array of FarcasterEmbed
     // can also be cast_ids etc all of this stuff needs to work

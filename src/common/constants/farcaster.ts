@@ -40,9 +40,15 @@ export function validateCastHash(hash: unknown, context: string): string {
   return hash;
 }
 
+function normalizeCastHash(hash: string | Uint8Array, context: string): string {
+  const hashString =
+    typeof hash === 'string' ? (hash.startsWith('0x') ? hash : `0x${hash}`) : `0x${Buffer.from(hash).toString('hex')}`;
+  return validateCastHash(hashString, context);
+}
+
 // Helper to create a valid parent cast ID with validation
-export function createParentCastId(fid: number | string, hash: string, context: string): ParentCastIdType {
-  const validatedHash = validateCastHash(hash, context);
+export function createParentCastId(fid: number | string, hash: string | Uint8Array, context: string): ParentCastIdType {
+  const validatedHash = normalizeCastHash(hash, context);
   const numericFid = typeof fid === 'string' ? parseInt(fid, 10) : fid;
 
   if (isNaN(numericFid) || numericFid <= 0) {
@@ -57,8 +63,8 @@ export function createParentCastId(fid: number | string, hash: string, context: 
 }
 
 // Helper to create a valid embed cast ID with validation
-export function createEmbedCastId(fid: number | string, hash: string, context: string): EmbedCastIdType {
-  const validatedHash = validateCastHash(hash, context);
+export function createEmbedCastId(fid: number | string, hash: string | Uint8Array, context: string): EmbedCastIdType {
+  const validatedHash = normalizeCastHash(hash, context);
   const numericFid = typeof fid === 'string' ? parseInt(fid, 10) : fid;
 
   if (isNaN(numericFid) || numericFid <= 0) {

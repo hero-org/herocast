@@ -1,56 +1,45 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { startTiming, endTiming } from '@/stores/usePerformanceStore';
-import { useChannelLookup } from '../hooks/useChannelLookup';
-import { castTextStyle } from '@/common/helpers/css';
-import { CastReactionType, createParentCastId, createEmbedCastId } from '@/common/constants/farcaster';
-import { ChannelType } from '@/common/constants/channels';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { useRouter } from 'next/navigation';
+import { ArrowPathIcon, EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
 import {
   ArrowPathRoundedSquareIcon,
   ArrowTopRightOnSquareIcon,
   ChatBubbleLeftIcon,
-  HeartIcon,
   ChatBubbleLeftRightIcon,
-  TrashIcon,
   DocumentDuplicateIcon,
+  HeartIcon,
   LinkIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
-import { removeCast } from '../helpers/farcaster';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { ErrorBoundary } from '@sentry/react';
+import { format, formatDistanceToNowStrict } from 'date-fns';
+import Linkify from 'linkify-react';
+import { registerPlugin } from 'linkifyjs';
+import get from 'lodash.get';
 import includes from 'lodash.includes';
 import map from 'lodash.map';
-import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
-import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
-import get from 'lodash.get';
-import Linkify from 'linkify-react';
-import { ErrorBoundary } from '@sentry/react';
-import { renderEmbedForUrl } from './Embeds';
-import EmbedCarousel from './Embeds/EmbedCarousel';
-import OpenGraphImage from './Embeds/OpenGraphImage';
-import NftSaleEmbed from './Embeds/NftSaleEmbed';
-import SwapEmbed from './Embeds/SwapEmbed';
-import { isNftSaleUrl, isSwapUrl, isZapperTransactionUrl } from '@/common/helpers/onchain';
-import ProfileHoverCard from './ProfileHoverCard';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { registerPlugin } from 'linkifyjs';
-import CashtagHoverCard from './CashtagHoverCard';
-import mentionPlugin, { cashtagPlugin, channelPlugin } from '../helpers/linkify';
-import { AccountPlatformType } from '../constants/accounts';
-import {
-  toastCopiedToClipboard,
-  toastInfoReadOnlyMode,
-  toastSuccessCastDeleted,
-  toastUnableToDeleteCast,
-} from '../helpers/toast';
-import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
-import { useDataStore } from '@/stores/useDataStore';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import { useDraftStore } from '@/stores/useDraftStore';
-import { format, formatDistanceToNowStrict, lightFormat } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChannelType } from '@/common/constants/channels';
+import { CastReactionType, createEmbedCastId, createParentCastId } from '@/common/constants/farcaster';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { castTextStyle } from '@/common/helpers/css';
+import { isNftSaleUrl, isSwapUrl, isZapperTransactionUrl } from '@/common/helpers/onchain';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,24 +48,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ArrowPathIcon, EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import { addToClipboard } from '../helpers/clipboard';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useLikeCast, useRecast, useRemoveRecast, useUnlikeCast } from '@/hooks/mutations/useCastActions';
 import { useProfileByFid } from '@/hooks/queries/useProfile';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { endTiming, startTiming } from '@/stores/usePerformanceStore';
+import { AccountPlatformType } from '../constants/accounts';
+import { addToClipboard } from '../helpers/clipboard';
+import { removeCast } from '../helpers/farcaster';
+import mentionPlugin, { cashtagPlugin, channelPlugin } from '../helpers/linkify';
+import {
+  toastCopiedToClipboard,
+  toastInfoReadOnlyMode,
+  toastSuccessCastDeleted,
+  toastUnableToDeleteCast,
+} from '../helpers/toast';
+import { useChannelLookup } from '../hooks/useChannelLookup';
+import CashtagHoverCard from './CashtagHoverCard';
+import EmbedCarousel from './Embeds/EmbedCarousel';
+import NftSaleEmbed from './Embeds/NftSaleEmbed';
+import OpenGraphImage from './Embeds/OpenGraphImage';
+import SwapEmbed from './Embeds/SwapEmbed';
+import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
+import ProfileHoverCard from './ProfileHoverCard';
 import { QuickListManageDialog } from './QuickListManageDialog';
-import { useLikeCast, useUnlikeCast, useRecast, useRemoveRecast } from '@/hooks/mutations/useCastActions';
 
 // Register linkify plugins once globally to avoid hot reload warnings
 if (typeof window !== 'undefined' && !window.__linkify_plugins_registered) {
@@ -86,23 +85,13 @@ if (typeof window !== 'undefined' && !window.__linkify_plugins_registered) {
   window.__linkify_plugins_registered = true;
 }
 
-export type CastToReplyType = {
-  hash: string;
-  author: {
-    fid: number;
-    username: string;
-  };
-};
-
 interface CastRowProps {
-  cast:
-    | (CastWithInteractions & {
-        inclusion_context?: {
-          is_following_recaster: boolean;
-          is_following_author: boolean;
-        };
-      })
-    | CastToReplyType;
+  cast: CastWithInteractions & {
+    inclusion_context?: {
+      is_following_recaster: boolean;
+      is_following_author: boolean;
+    };
+  };
   showChannel?: boolean;
   onSelect?: () => void;
   isSelected?: boolean;
@@ -284,10 +273,7 @@ const CastRowComponent = ({
       embeds: [
         {
           // Store hash as string for JSON serialization - will be converted to bytes in prepareCastBody
-          castId: createEmbedCastId(cast.author.fid, cast.hash, 'CastRow.onQuote') as unknown as {
-            fid: number;
-            hash: Uint8Array;
-          },
+          castId: createEmbedCastId(cast.author.fid, cast.hash, 'CastRow.onQuote'),
         },
       ],
       onSuccess(draftId) {
@@ -299,8 +285,8 @@ const CastRowComponent = ({
 
   const reactions = useMemo(() => {
     const repliesCount = cast.replies?.count || 0;
-    const recastsCount = cast.reactions?.recasts_count || cast.recasts?.count || 0;
-    const likesCount = cast.reactions?.likes_count || cast.reactions?.count || 0;
+    const recastsCount = cast.reactions?.recasts_count || 0;
+    const likesCount = cast.reactions?.likes_count || 0;
 
     const likeFids = map(cast.reactions?.likes, 'fid') || [];
     const recastFids = map(cast.reactions?.recasts, 'fid') || [];
@@ -319,8 +305,6 @@ const CastRowComponent = ({
     cast.replies?.count,
     cast.reactions?.recasts_count,
     cast.reactions?.likes_count,
-    cast.reactions?.count,
-    cast.recasts?.count,
     cast.reactions?.likes,
     cast.reactions?.recasts,
     didRecast,
@@ -329,8 +313,8 @@ const CastRowComponent = ({
   ]);
 
   // Use on-demand channel lookup instead of loading all channels
-  const parentUrl = 'parent_url' in cast ? cast.parent_url : null;
-  const { channel: parentChannel } = useChannelLookup(parentUrl);
+  const parentUrl = cast.parent_url ?? null;
+  const { channel: parentChannel } = useChannelLookup(parentUrl ?? undefined);
 
   // Detect if this cast is replying to an external URL (swap:// or nft-sale://)
   const isExternalUrlReply = Boolean(
@@ -342,7 +326,10 @@ const CastRowComponent = ({
     [parentUrl, parentChannel]
   );
 
-  const getIconForCastReactionType = (reactionType: CastReactionType, isActive?: boolean): JSX.Element | undefined => {
+  const getIconForCastReactionType = (
+    reactionType: CastReactionType,
+    isActive?: boolean
+  ): React.ReactElement | null => {
     const className = cn(isActive ? 'text-foreground/70' : '', 'mt-0.5 w-4 h-4 mr-1');
 
     switch (reactionType) {
@@ -361,7 +348,7 @@ const CastRowComponent = ({
       case CastReactionType.links:
         return <ArrowTopRightOnSquareIcon className={className} aria-hidden="true" />;
       default:
-        return undefined;
+        return null;
     }
   };
 
@@ -539,7 +526,12 @@ const CastRowComponent = ({
     return () => resizeObserver.disconnect();
   }, [cast.text, effectiveIsExpanded]);
 
-  const renderReaction = (key: CastReactionType, isActive: boolean, count?: number | string, icon?: JSX.Element) => {
+  const renderReaction = (
+    key: CastReactionType,
+    isActive: boolean,
+    count?: number | string,
+    icon?: React.ReactElement | null
+  ) => {
     return (
       <div
         key={`cast-${cast.hash}-${key}`}
@@ -652,7 +644,12 @@ const CastRowComponent = ({
     }
 
     // Filter out Zapper transaction URLs (we show custom embeds for those via renderExternalUrlReply)
-    const filteredEmbeds = cast.embeds.filter((embed) => !isZapperTransactionUrl(embed.url));
+    const filteredEmbeds = cast.embeds.filter((embed) => {
+      if ('url' in embed && embed.url) {
+        return !isZapperTransactionUrl(embed.url);
+      }
+      return true;
+    });
     if (filteredEmbeds.length === 0) {
       return null;
     }
@@ -708,22 +705,21 @@ const CastRowComponent = ({
 
     // Use recasterProfile from React Query hook if recastedByFid is provided,
     // otherwise find the recaster from reaction data
-    const recaster = recastedByFid
-      ? recasterProfile
-      : cast.reactions?.recasts?.find((recast) => recast?.viewer_context?.following === true);
+    const recaster = recastedByFid ? recasterProfile : cast.reactions?.recasts?.[0];
+    const recasterLabel = recaster ? ('username' in recaster ? recaster.username : recaster.fname) : null;
 
     const badge = (
       <span
         className={cn('ml-10', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/40 hover:underline')}
       >
         <ArrowPathIcon className="h-4 w-4 mt-0.5 mr-1" />
-        {recaster && `Recasted by ${recaster.fname || recaster.username}`}
+        {recasterLabel && `Recasted by ${recasterLabel}`}
       </span>
     );
 
-    if (recaster) {
+    if (recasterLabel) {
       return (
-        <Link href={`/profile/${recaster.fname}`} prefetch={false}>
+        <Link href={`/profile/${recasterLabel}`} prefetch={false}>
           {badge}
         </Link>
       );
@@ -739,9 +735,9 @@ const CastRowComponent = ({
 
   const authorInfo = useMemo(
     () => ({
-      pfpUrl: cast.author.pfp_url || cast.author?.pfp?.url || cast.author?.avatar_url,
-      username: cast.author.username || cast.author.fname,
-      displayName: cast.author.display_name || cast.author.displayName,
+      pfpUrl: cast.author.pfp_url,
+      username: cast.author.username,
+      displayName: cast.author.display_name || cast.author.username,
     }),
     [cast.author]
   );
@@ -1044,7 +1040,6 @@ export const CastRow = React.memo(CastRowComponent, (prevProps, nextProps) => {
     // Targeted shallow comparisons for reaction counts
     prevReactions?.likes_count === nextReactions?.likes_count &&
     prevReactions?.recasts_count === nextReactions?.recasts_count &&
-    prevReactions?.count === nextReactions?.count &&
     // Compare array lengths for viewer context changes
     prevReactions?.likes?.length === nextReactions?.likes?.length &&
     prevReactions?.recasts?.length === nextReactions?.recasts?.length

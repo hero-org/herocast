@@ -1,15 +1,14 @@
-import { useRouter, usePathname } from 'next/navigation';
-import { useAppHotkeys } from './useAppHotkeys';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { useNavigationStore, CastModalView } from '@/stores/useNavigationStore';
-import { useDraftStore } from '@/stores/useDraftStore';
-import { useDataStore } from '@/stores/useDataStore';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { CUSTOM_CHANNELS } from '@/stores/useAccountStore';
-import { useListStore } from '@/stores/useListStore';
-import { createParentCastId } from '@/common/constants/farcaster';
 import { useCallback } from 'react';
+import { createEmbedCastId, createParentCastId } from '@/common/constants/farcaster';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { useListStore } from '@/stores/useListStore';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { useAppHotkeys } from './useAppHotkeys';
 
 // Hook that registers all global hotkeys for the app
 export function useGlobalHotkeys() {
@@ -169,10 +168,7 @@ export function useGlobalHotkeys() {
       addNewPostDraft({
         embeds: [
           {
-            castId: {
-              fid: selectedCast.author.fid,
-              hash: new TextEncoder().encode(selectedCast.hash),
-            },
+            castId: createEmbedCastId(selectedCast.author.fid, selectedCast.hash, 'useGlobalHotkeys.quote'),
           },
         ],
         onSuccess: (draftId) => {

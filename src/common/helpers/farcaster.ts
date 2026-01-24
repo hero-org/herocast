@@ -1,22 +1,23 @@
-import axios from 'axios';
 import {
-  CastAddBody,
-  Embed,
+  type CastAddBody,
+  type Embed as HubEmbed,
   ID_REGISTRY_ADDRESS,
+  idRegistryABI,
   KEY_GATEWAY_ADDRESS,
+  keyGatewayABI,
   SIGNED_KEY_REQUEST_TYPE,
   SIGNED_KEY_REQUEST_VALIDATOR_ADDRESS,
   SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
-  UserDataType,
-  idRegistryABI,
-  keyGatewayABI,
   signedKeyRequestValidatorABI,
+  type UserDataType,
 } from '@farcaster/hub-web';
-import { Address, encodeAbiParameters } from 'viem';
-import { publicClient, publicClientTestnet } from './rainbowkit';
+import axios from 'axios';
+import { type Address, encodeAbiParameters } from 'viem';
 import { mnemonicToAccount } from 'viem/accounts';
-import { isDev } from './env';
+import type { FarcasterEmbed } from '@/common/types/embeds';
 import { useTextLength } from '../helpers/editor';
+import { isDev } from './env';
+import { publicClient, publicClientTestnet } from './rainbowkit';
 import { createClient } from './supabase/component';
 
 export const WARPCAST_RECOVERY_PROXY: `0x${string}` = '0x00000000FcB080a4D6c39a9354dA9EB9bC104cd7';
@@ -25,6 +26,8 @@ type CastId = {
   fid: number;
   hash: string | Uint8Array;
 };
+
+type FarcasterEmbedInput = FarcasterEmbed | { castId: CastId };
 
 type SignerServiceSuccess = {
   success: true;
@@ -58,7 +61,7 @@ const ensureHexHash = (hash: string | Uint8Array): string => {
   return `0x${Buffer.from(hash).toString('hex')}`;
 };
 
-const toSignerEmbed = (embed: Embed) => {
+const toSignerEmbed = (embed: FarcasterEmbedInput) => {
   if ('castId' in embed && embed.castId) {
     return {
       cast_id: {
@@ -176,7 +179,7 @@ export const unfollowUser = async (accountId: string, targetFid: number) => {
 
 type SubmitCastParams = {
   text: string;
-  embeds?: Embed[];
+  embeds?: FarcasterEmbedInput[];
   mentions?: number[];
   mentionsPositions?: number[];
   parentCastId?: {
@@ -517,28 +520,6 @@ type StructuredCastURL = {
   serializedContent: string;
 };
 
-// Define Farcaster embed types
-export type FarcasterEmbed = FarcasterUrlEmbed | FarcasterCastIdEmbed;
-
-export interface FarcasterUrlEmbed {
-  url: string;
-}
-
-export interface FarcasterCastIdEmbed {
-  castId: {
-    fid: number;
-    hash: Uint8Array | string;
-  };
-}
-
-export const isFarcasterUrlEmbed = (embed: FarcasterEmbed): embed is FarcasterUrlEmbed => {
-  return 'url' in embed;
-};
-
-export const isFarcasterCastIdEmbed = (embed: FarcasterEmbed): embed is FarcasterCastIdEmbed => {
-  return 'castId' in embed;
-};
-
 // Maximum number of embeds allowed in a Farcaster cast
 export const FARCASTER_MAX_EMBEDS = 2;
 
@@ -655,7 +636,7 @@ export async function formatPlaintextToHubCastMessage({
   getMentionFidsByUsernames,
 }: {
   text: string;
-  embeds: Embed[];
+  embeds: FarcasterEmbedInput[];
   getMentionFidsByUsernames: (usernames: string[]) => Promise<Array<{ username: string; fid: number } | null>>;
   parentUrl?: string;
   parentCastFid?: number;
@@ -734,6 +715,23 @@ export async function formatPlaintextToHubCastMessage({
     console.log('[formatPlaintextToHubCastMessage] parentCastHash converted, bytes length:', targetHashBytes.length);
   }
 
+  const normalizedEmbeds: HubEmbed[] = embeds.map((embed) => {
+    if ('castId' in embed && embed.castId) {
+      const hashBytes =
+        typeof embed.castId.hash === 'string' ? stringHashToUint(ensureHexHash(embed.castId.hash)) : embed.castId.hash;
+      return {
+        castId: {
+          fid: Number(embed.castId.fid),
+          hash: hashBytes,
+        },
+      };
+    }
+    if ('url' in embed && embed.url) {
+      return { url: embed.url };
+    }
+    throw new Error('Invalid embed format for cast body');
+  });
+
   // Build the final cast body
   const castBody = {
     text: formattedText,
@@ -752,15 +750,7 @@ export async function formatPlaintextToHubCastMessage({
             parentUrl: parentUrl,
           }
         : {}),
-    embeds: embeds.map((embed) => {
-      if ('castId' in embed && embed.castId) {
-        return { castId: embed.castId };
-      }
-      if ('url' in embed && embed.url) {
-        return { url: embed.url };
-      }
-      return embed;
-    }),
+    embeds: normalizedEmbeds,
   };
 
   return castBody;
