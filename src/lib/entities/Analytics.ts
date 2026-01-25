@@ -1,13 +1,13 @@
-import { Entity, PrimaryColumn, Column, UpdateDateColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity({ name: 'analytics' })
 export class Analytics {
   @PrimaryColumn()
-  fid: number;
+  fid!: number;
 
   @Column('jsonb')
-  data: any;
+  data!: any;
 
   @UpdateDateColumn({ type: 'timestamptz' })
-  updated_at: Date;
+  updated_at!: Date;
 }

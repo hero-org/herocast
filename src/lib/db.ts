@@ -1,75 +1,74 @@
 import 'reflect-metadata';
-import { DataSource } from 'typeorm';
-import { Entity, PrimaryColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, DataSource, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { Analytics } from './entities/Analytics';
 
 @Entity({ name: 'casts' })
 export class Cast {
   @PrimaryColumn()
-  fid: number;
+  fid!: number;
 
   @Column()
-  hash: string;
+  hash!: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  timestamp: Date;
+  timestamp!: Date;
 
   @Column('jsonb', { array: true })
-  embeds: object[];
+  embeds!: object[];
 
   @Column({ nullable: true })
-  parent_cast_url: string;
+  parent_cast_url!: string | null;
 
   @Column({ nullable: true })
-  parent_cast_fid: number;
+  parent_cast_fid!: number | null;
 
   @Column({ nullable: true })
-  parent_cast_hash: string;
+  parent_cast_hash!: string | null;
 
   @Column()
-  text: string;
+  text!: string;
 
   @Column('int', { array: true })
-  mentions: number[];
+  mentions!: number[];
 
   @Column('int', { array: true })
-  mentions_positions: number[];
+  mentions_positions!: number[];
 
   @UpdateDateColumn({ type: 'timestamptz', nullable: true })
-  deleted_at: Date;
+  deleted_at!: Date | null;
 
   @Column({ type: 'tsvector' })
-  tsv: string;
+  tsv!: string;
 }
 
 @Entity({ name: 'powerbadge' })
 class Powerbadge {
   @PrimaryColumn()
-  fid: number;
+  fid!: number;
 
   @CreateDateColumn({ type: 'timestamptz', nullable: false })
-  updated_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz', nullable: false })
-  updated_at: Date;
+  updated_at!: Date;
 }
 
 @Entity({ name: 'reactions' })
 class Reaction {
   @PrimaryColumn()
-  fid: number;
+  fid!: number;
 
   @CreateDateColumn({ type: 'timestamptz', nullable: false })
-  timestamp: Date;
+  timestamp!: Date;
 
   @Column()
-  target_cast_fid: number;
+  target_cast_fid!: number;
 
   @Column()
-  target_cast_hash: string;
+  target_cast_hash!: string;
 
   @Column()
-  type: string;
+  type!: string;
 }
 
 export const initializeDataSourceWithRetry = async (retries = 3) => {

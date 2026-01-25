@@ -1,5 +1,5 @@
-import { ForwardRefExoticComponent, RefAttributes, SVGProps } from 'react';
-import { HotkeysEvent, Options } from 'react-hotkeys-hook/dist/types';
+import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from 'react';
+import type { Options } from 'react-hotkeys-hook';
 
 export type CommandType = {
   name: string;

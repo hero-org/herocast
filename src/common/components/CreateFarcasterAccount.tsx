@@ -1,8 +1,15 @@
-import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Loading } from './Loading';
-import { ArrowPathIcon } from '@heroicons/react/20/solid';
+import {
+  BUNDLER_ADDRESS,
+  bundlerABI,
+  bytesToHexString,
+  ID_GATEWAY_EIP_712_TYPES,
+  KEY_GATEWAY_EIP_712_TYPES,
+} from '@farcaster/hub-web';
+import { ArrowPathIcon, Cog6ToothIcon } from '@heroicons/react/20/solid';
+import type { PaymentOption } from '@paywithglide/glide-js';
+import { NoPaymentOptionsError } from '@paywithglide/glide-js';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { formatEther, type Hex } from 'viem';
 import {
   useAccount,
   useReadContract,
@@ -12,31 +19,23 @@ import {
   useWaitForTransactionReceipt,
   useWalletClient,
 } from 'wagmi';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
+import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
+import { optimismChainId } from '../helpers/env';
 import {
-  BUNDLER_ADDRESS,
-  bundlerABI,
-  ID_GATEWAY_EIP_712_TYPES,
-  KEY_GATEWAY_EIP_712_TYPES,
-  bytesToHexString,
-} from '@farcaster/hub-web';
-import {
-  WARPCAST_RECOVERY_PROXY,
   getDeadline,
   getFidForAddress,
   getSignedKeyRequestMetadataFromAppAccount,
   readNoncesFromKeyGateway,
+  WARPCAST_RECOVERY_PROXY,
 } from '../helpers/farcaster';
-import { Hex, formatEther } from 'viem';
-import { PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
-import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
-import { generateKeyPair } from '../helpers/warpcastLogin';
-import { Cog6ToothIcon } from '@heroicons/react/20/solid';
 import { glideClient } from '../helpers/glide';
-import { NoPaymentOptionsError } from '@paywithglide/glide-js';
-import { PaymentSelector } from './PaymentSelector';
-import { PaymentOption } from '@paywithglide/glide-js/dist/types';
-import { optimismChainId } from '../helpers/env';
 import { config } from '../helpers/rainbowkit';
+import { generateKeyPair } from '../helpers/warpcastLogin';
+import { Loading } from './Loading';
+import { PaymentSelector } from './PaymentSelector';
 
 const PaymentSection: React.FC<{
   state: {
