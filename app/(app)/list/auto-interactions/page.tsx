@@ -1,16 +1,25 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Head from 'next/head';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 // Force dynamic rendering since we use useRouter which uses useSearchParams
 export const dynamic = 'force-dynamic';
+
+import { BoltIcon, CheckIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { AutoInteractionContentFilters } from '@/common/components/Lists/AutoInteractionContentFilters';
+import { AutoInteractionHistory } from '@/common/components/Lists/AutoInteractionHistory';
+import { AutoInteractionSettings } from '@/common/components/Lists/AutoInteractionSettings';
+import ProfileInfo from '@/common/components/ProfileInfo';
+import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
+import { type AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -20,28 +29,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
-import { useListStore, isAutoInteractionList } from '@/stores/useListStore';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { BoltIcon, PlusIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { cn } from '@/lib/utils';
-import { List } from '@/common/types/database.types';
-import { AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { AutoInteractionSettings } from '@/common/components/Lists/AutoInteractionSettings';
-import { AutoInteractionContentFilters } from '@/common/components/Lists/AutoInteractionContentFilters';
-import { AutoInteractionHistory } from '@/common/components/Lists/AutoInteractionHistory';
-import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { formatDistanceToNow } from 'date-fns';
-import ProfileInfo from '@/common/components/ProfileInfo';
-import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
-import { useAccountStore, AccountObjectType } from '@/stores/useAccountStore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { type AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
+import { isAutoInteractionList, useListStore } from '@/stores/useListStore';
 
 export default function AutoInteractionsPage() {
   const router = useRouter();
@@ -726,7 +726,7 @@ export default function AutoInteractionsPage() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={async () => {
-                                        const result = await removeFidFromList(activeList.id as UUID, fid);
+                                        const result = await removeFidFromList(activeList.id, fid);
                                         if (!result.success) {
                                           toast({
                                             title: 'Error',

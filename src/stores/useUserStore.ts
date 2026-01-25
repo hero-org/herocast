@@ -1,10 +1,13 @@
+import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { create as mutativeCreate, Draft } from 'mutative';
-import { Customer, InsertCustomer } from '@/common/types/database.types';
-import { createClient } from '@/common/helpers/supabase/component';
 import { addUnsafeCustomerForUser, getCustomersForUser } from '@/common/helpers/supabase';
+import { createClient } from '@/common/helpers/supabase/component';
 import { toastErrorUpgradeAccount } from '@/common/helpers/toast';
+import type { Tables, TablesInsert } from '@/common/types/database.types';
+
+type Customer = Tables<'customers'>;
+type InsertCustomer = TablesInsert<'customers'>;
 
 interface UserStoreProps {
   customer: Customer | undefined;

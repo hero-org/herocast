@@ -1,17 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { UsersIcon } from 'lucide-react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
-import { useAccountStore } from '@/stores/useAccountStore';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { BulkAddUsersDialog } from '@/common/components/BulkAddUsersDialog';
 import ProfileInfo from '@/common/components/ProfileInfo';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
+import { LIST_SIZE_WARNING_THRESHOLD, MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { type FidListContent, isFidListContent } from '@/common/types/list.types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -21,22 +25,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
-import { useListStore } from '@/stores/useListStore';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { cn } from '@/lib/utils';
-import { List } from '@/common/types/database.types';
-import { FidListContent, isFidListContent } from '@/common/types/list.types';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { MAX_USERS_PER_LIST, LIST_SIZE_WARNING_THRESHOLD } from '@/common/constants/listLimits';
-import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { BulkAddUsersDialog } from '@/common/components/BulkAddUsersDialog';
-import { UsersIcon } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useListStore } from '@/stores/useListStore';
 
 export default function ListPage() {
   const router = useRouter();

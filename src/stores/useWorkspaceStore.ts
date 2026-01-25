@@ -1,9 +1,10 @@
+import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { create as mutativeCreate, Draft } from 'mutative';
 import { createClient } from '@/common/helpers/supabase/component';
+import type { Json } from '@/common/types/database.types';
+import type { PanelConfig, PanelConfigUnion, PanelType, WorkspaceLayout } from '@/common/types/workspace.types';
 import { IndexedDBStorage } from './StoreStorage';
-import { WorkspaceLayout, PanelConfig, PanelType, PanelConfigUnion } from '@/common/types/workspace.types';
 
 const MAX_PANELS = 5;
 
@@ -92,7 +93,7 @@ const syncLayoutToSupabase = async (layout: WorkspaceLayout): Promise<void> => {
       .upsert(
         {
           user_id: user.id,
-          preferences: { workspace: layout },
+          preferences: { workspace: layout } as unknown as Json,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'user_id' }

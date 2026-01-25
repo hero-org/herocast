@@ -1,15 +1,15 @@
+import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { create as mutativeCreate, Draft } from 'mutative';
-import { createClient } from '@/common/helpers/supabase/component';
-import { InsertList, List, UpdateList } from '@/common/types/database.types';
-import {
-  FidListContent,
-  isFidListContent,
-  AutoInteractionListContent,
-  isAutoInteractionListContent,
-} from '@/common/types/list.types';
 import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { createClient } from '@/common/helpers/supabase/component';
+import type { Tables, TablesInsert, TablesUpdate } from '@/common/types/database.types';
+import {
+  type AutoInteractionListContent,
+  type FidListContent,
+  isAutoInteractionListContent,
+  isFidListContent,
+} from '@/common/types/list.types';
 
 export type Search = {
   term: string;
@@ -20,9 +20,13 @@ export type Search = {
 
 // List content types moved to @/common/types/list.types.ts
 
+type List = Omit<Tables<'list'>, 'contents'> & { contents: unknown };
+type InsertList = TablesInsert<'list'>;
+type UpdateList = TablesUpdate<'list'>;
+
 type AddListType = Omit<InsertList, 'user_id'>;
 
-type ListStoreResult = { success: true } | { success: false; error: string };
+type ListStoreResult = { success: boolean; error?: string };
 
 interface ListStoreProps {
   searches: Search[];
@@ -81,7 +85,7 @@ type StoreSet = (fn: (draft: Draft<ListStore>) => void) => void;
 
 const supabaseClient = createClient();
 
-const store = (set: StoreSet, get: () => ListStore) => ({
+const store = (set: StoreSet, get: () => ListStore): ListStore => ({
   lists: [],
   searches: [],
   isHydrated: false,
@@ -238,15 +242,13 @@ const store = (set: StoreSet, get: () => ListStore) => ({
 
     const { data: list, error } = await supabaseClient
       .from('list')
-      .insert([
-        {
-          name,
-          type: 'fids',
-          contents: content,
-          user_id: user.id,
-          idx: highestIdx + 1,
-        },
-      ])
+      .insert({
+        name,
+        type: 'fids',
+        contents: content,
+        user_id: user.id,
+        idx: highestIdx + 1,
+      })
       .select();
 
     if (error || !list) {
@@ -272,13 +274,11 @@ const store = (set: StoreSet, get: () => ListStore) => ({
 
     const { data: list, error } = await supabaseClient
       .from('list')
-      .insert([
-        {
-          ...newList,
-          user_id: user.id,
-          idx: newList.idx || highestIdx + 1,
-        },
-      ])
+      .insert({
+        ...newList,
+        user_id: user.id,
+        idx: newList.idx || highestIdx + 1,
+      })
       .select();
 
     if (error || !list) {
@@ -444,15 +444,13 @@ const store = (set: StoreSet, get: () => ListStore) => ({
 
     const { data: list, error } = await supabaseClient
       .from('list')
-      .insert([
-        {
-          name,
-          type: 'auto_interaction',
-          contents: content,
-          user_id: user.id,
-          idx: highestIdx + 1,
-        },
-      ])
+      .insert({
+        name,
+        type: 'auto_interaction',
+        contents: content,
+        user_id: user.id,
+        idx: highestIdx + 1,
+      })
       .select();
 
     if (error || !list) {

@@ -1,13 +1,17 @@
-import { Json } from './database.types';
+import type { Interval } from '@/common/types/types';
+import type { SearchMode, SortType } from '@/services/searchService';
+import type { Json } from './database.types';
+
+type JsonRecord = { [key: string]: Json | undefined };
 
 /**
  * Search filter options for list content
  */
-export interface SearchFilters {
+export interface SearchFilters extends JsonRecord {
   orderBy?: string;
-  interval?: string;
-  mode?: 'literal' | 'semantic' | 'hybrid';
-  sortType?: 'desc_chron' | 'algorithmic';
+  interval?: Interval;
+  mode?: SearchMode;
+  sortType?: SortType;
   authorFid?: number;
   parentUrl?: string;
   channelId?: string;
@@ -16,7 +20,7 @@ export interface SearchFilters {
 /**
  * Content structure for search-type lists
  */
-export interface SearchListContent {
+export interface SearchListContent extends JsonRecord {
   term: string;
   filters?: SearchFilters;
   enabled_daily_email?: boolean;
@@ -25,7 +29,7 @@ export interface SearchListContent {
 /**
  * Content structure for fids-type lists (user lists)
  */
-export interface FidListContent {
+export interface FidListContent extends JsonRecord {
   fids: string[];
   displayNames?: Record<string, string>; // Optional mapping of FIDs to display names
 }
@@ -33,7 +37,7 @@ export interface FidListContent {
 /**
  * Content structure for auto-interaction lists
  */
-export interface AutoInteractionListContent {
+export interface AutoInteractionListContent extends JsonRecord {
   fids: string[]; // Target accounts to monitor
   displayNames?: Record<string, string>;
   sourceAccountId: string; // Account that will perform actions
@@ -55,26 +59,29 @@ export type ListContent = SearchListContent | FidListContent | AutoInteractionLi
 /**
  * Type guard to check if content is a search list
  */
-export function isSearchListContent(content: Json): content is SearchListContent {
-  return content && typeof content === 'object' && 'term' in content;
+export function isSearchListContent(content: unknown): content is SearchListContent {
+  if (!content || typeof content !== 'object') {
+    return false;
+  }
+  return 'term' in content;
 }
 
 /**
  * Type guard to check if content is a FID list
  */
-export function isFidListContent(content: Json): content is FidListContent {
-  return (
-    content &&
-    typeof content === 'object' &&
-    'fids' in content &&
-    Array.isArray(content.fids) &&
-    !('sourceAccountId' in content)
-  );
+export function isFidListContent(content: unknown): content is FidListContent {
+  if (!content || typeof content !== 'object') {
+    return false;
+  }
+  return 'fids' in content && Array.isArray(content.fids) && !('sourceAccountId' in content);
 }
 
 /**
  * Type guard to check if content is an auto-interaction list
  */
-export function isAutoInteractionListContent(content: Json): content is AutoInteractionListContent {
-  return content && typeof content === 'object' && 'fids' in content && 'sourceAccountId' in content;
+export function isAutoInteractionListContent(content: unknown): content is AutoInteractionListContent {
+  if (!content || typeof content !== 'object') {
+    return false;
+  }
+  return 'fids' in content && 'sourceAccountId' in content;
 }

@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { CheckIcon, EyeIcon, MagnifyingGlassIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { isSearchListContent, type SearchListContent } from '@/common/types/list.types';
+import { Interval } from '@/common/types/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,18 +17,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useListStore } from '@/stores/useListStore';
-import { MagnifyingGlassIcon, PlusIcon, TrashIcon, CheckIcon, EyeIcon } from '@heroicons/react/24/outline';
-import { cn } from '@/lib/utils';
-import { SearchListContent, isSearchListContent } from '@/common/types/list.types';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Interval } from '@/common/types/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import { SearchMode, SortType } from '@/services/searchService';
 import { useAccountStore } from '@/stores/useAccountStore';
+import { useListStore } from '@/stores/useListStore';
 
 export default function SearchListsPage() {
   const router = useRouter();
@@ -49,8 +49,8 @@ export default function SearchListsPage() {
   // Edit form state
   const [editName, setEditName] = useState('');
   const [editTerm, setEditTerm] = useState('');
-  const [editInterval, setEditInterval] = useState<string>(Interval.d7);
-  const [editSortType, setEditSortType] = useState<string>(SortType.DESC_CHRON);
+  const [editInterval, setEditInterval] = useState<Interval>(Interval.d7);
+  const [editSortType, setEditSortType] = useState<SortType>(SortType.DESC_CHRON);
   const [editAuthorFid, setEditAuthorFid] = useState<string>('');
   const [editChannelId, setEditChannelId] = useState<string>('');
   const [editParentUrl, setEditParentUrl] = useState<string>('');
@@ -177,7 +177,7 @@ export default function SearchListsPage() {
       term: editTerm,
       filters: {
         interval: editInterval,
-        sortType: editSortType as 'desc_chron' | 'algorithmic',
+        sortType: editSortType,
         ...(editAuthorFid ? { authorFid: Number(editAuthorFid) } : {}),
         ...(editChannelId ? { channelId: editChannelId } : {}),
         ...(editParentUrl ? { parentUrl: editParentUrl } : {}),
@@ -421,7 +421,7 @@ export default function SearchListsPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="edit-interval">Time Period</Label>
-                        <Select value={editInterval} onValueChange={setEditInterval}>
+                        <Select value={editInterval} onValueChange={(value) => setEditInterval(value as Interval)}>
                           <SelectTrigger id="edit-interval">
                             <SelectValue />
                           </SelectTrigger>
@@ -437,7 +437,7 @@ export default function SearchListsPage() {
 
                       <div className="space-y-2">
                         <Label htmlFor="edit-sort">Sort By</Label>
-                        <Select value={editSortType} onValueChange={setEditSortType}>
+                        <Select value={editSortType} onValueChange={(value) => setEditSortType(value as SortType)}>
                           <SelectTrigger id="edit-sort">
                             <SelectValue />
                           </SelectTrigger>
