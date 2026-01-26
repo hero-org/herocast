@@ -10,4 +10,8 @@ module.exports = {
     '.*/rainbowkit$': '<rootDir>/__mocks__/rainbowkitMock.js',
     '^@paywithglide/glide-js$': '<rootDir>/__mocks__/glideMock.js',
   },
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/supabase/functions/', // Deno-based tests, run separately
+  ],
 };
