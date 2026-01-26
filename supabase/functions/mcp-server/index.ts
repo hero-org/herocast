@@ -16,17 +16,44 @@ import {
   jsonRpcResult,
   noContentResponse,
 } from './lib/errors.ts';
-import type { JsonRpcRequest } from './lib/types.ts';
+import type { JsonRpcRequest, ToolDefinition, ToolHandler } from './lib/types.ts';
+import { addToListTool, addToListToolDefinition } from './tools/add-to-list.ts';
+import { createListTool, createListToolDefinition } from './tools/create-list.ts';
+import { deleteListTool, deleteListToolDefinition } from './tools/delete-list.ts';
 import { getCastsTool, getCastsToolDefinition } from './tools/get-casts.ts';
+import { getListTool, getListToolDefinition } from './tools/get-list.ts';
+import { getUserTool, getUserToolDefinition } from './tools/get-user.ts';
 import { listAccountsTool, listAccountsToolDefinition } from './tools/list-accounts.ts';
+import { listListsTool, listListsToolDefinition } from './tools/list-lists.ts';
 import { postCastTool, postCastToolDefinition } from './tools/post-cast.ts';
+import { removeFromListTool, removeFromListToolDefinition } from './tools/remove-from-list.ts';
+import { searchUsersTool, searchUsersToolDefinition } from './tools/search-users.ts';
+import { updateListTool, updateListToolDefinition } from './tools/update-list.ts';
 
 const MCP_PROTOCOL_VERSION = '2024-11-05';
 const SERVER_NAME = 'herocast-mcp';
 const SERVER_VERSION = '1.0.0';
 const MCP_SESSION_HEADER = 'Mcp-Session-Id';
 
-const toolDefinitions = [postCastToolDefinition, listAccountsToolDefinition, getCastsToolDefinition];
+type Tool = { definition: ToolDefinition; handler: ToolHandler };
+
+const tools: Tool[] = [
+  { definition: postCastToolDefinition, handler: postCastTool },
+  { definition: listAccountsToolDefinition, handler: (auth) => listAccountsTool(auth.supabaseClient, auth.userId) },
+  { definition: getCastsToolDefinition, handler: getCastsTool },
+  { definition: getUserToolDefinition, handler: (_auth, args) => getUserTool(args) },
+  { definition: searchUsersToolDefinition, handler: (_auth, args) => searchUsersTool(args) },
+  { definition: listListsToolDefinition, handler: listListsTool },
+  { definition: getListToolDefinition, handler: getListTool },
+  { definition: createListToolDefinition, handler: createListTool },
+  { definition: updateListToolDefinition, handler: updateListTool },
+  { definition: deleteListToolDefinition, handler: deleteListTool },
+  { definition: addToListToolDefinition, handler: addToListTool },
+  { definition: removeFromListToolDefinition, handler: removeFromListTool },
+];
+
+const toolMap = new Map<string, ToolHandler>(tools.map((t) => [t.definition.name, t.handler]));
+const toolDefinitions = tools.map((t) => t.definition);
 
 function getSessionId(req: Request): string {
   return req.headers.get('mcp-session-id') || crypto.randomUUID();
@@ -134,18 +161,9 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      if (name === postCastToolDefinition.name) {
-        const result = await postCastTool(auth, toolArguments);
-        return jsonRpcResult(id ?? null, result);
-      }
-
-      if (name === listAccountsToolDefinition.name) {
-        const result = await listAccountsTool(auth.supabaseClient, auth.userId);
-        return jsonRpcResult(id ?? null, result);
-      }
-
-      if (name === getCastsToolDefinition.name) {
-        const result = await getCastsTool(auth, toolArguments);
+      const handler = toolMap.get(name);
+      if (handler) {
+        const result = await handler(auth, toolArguments);
         return jsonRpcResult(id ?? null, result);
       }
 

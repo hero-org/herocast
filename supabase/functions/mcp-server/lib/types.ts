@@ -17,6 +17,8 @@ export type ToolResult = {
   isError?: boolean;
 };
 
+export type ToolHandler = (auth: AuthContext, args: unknown) => Promise<ToolResult>;
+
 export type JsonRpcRequest = {
   jsonrpc: '2.0';
   id?: number | string | null;
