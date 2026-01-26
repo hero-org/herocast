@@ -22,7 +22,7 @@ function getMcpUpstreamUrl(): string {
 
 function getResourceMetadataUrl(request: NextRequest): string {
   const origin = new URL(request.url).origin;
-  return new URL('/.well-known/oauth-protected-resource', origin).toString();
+  return new URL('/.well-known/oauth-protected-resource/mcp', origin).toString();
 }
 
 function getAuthChallengeHeaders(request: NextRequest): HeadersInit {
