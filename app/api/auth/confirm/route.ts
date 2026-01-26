@@ -2,8 +2,8 @@ import type { EmailOtpType } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/common/helpers/supabase/route';
 
-function stringOrFirstString(item: string | string[] | undefined) {
-  return Array.isArray(item) ? item[0] : item;
+function stringOrFirstString(item: string | string[] | null | undefined) {
+  return Array.isArray(item) ? item[0] : (item ?? undefined);
 }
 
 export async function GET(request: NextRequest) {

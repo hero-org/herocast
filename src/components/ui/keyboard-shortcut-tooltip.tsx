@@ -3,7 +3,7 @@ import { KeyboardShortcutSingle } from '@/components/ui/keyboard-shortcut-single
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-interface KeyboardShortcutTooltipProps {
+export interface KeyboardShortcutTooltipProps {
   children: React.ReactNode;
   keys: string | string[];
   description?: string;
@@ -14,6 +14,7 @@ interface KeyboardShortcutTooltipProps {
   contentClassName?: string;
   shortcutSize?: 'sm' | 'md' | 'lg';
   showOnFocus?: boolean;
+  disabled?: boolean;
 }
 
 export function KeyboardShortcutTooltip({
@@ -27,7 +28,13 @@ export function KeyboardShortcutTooltip({
   contentClassName,
   shortcutSize = 'sm',
   showOnFocus = true,
+  disabled = false,
 }: KeyboardShortcutTooltipProps) {
+  // If disabled, just render children without tooltip
+  if (disabled) {
+    return <>{children}</>;
+  }
+
   return (
     <TooltipProvider delayDuration={delayDuration}>
       <Tooltip>

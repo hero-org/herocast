@@ -103,7 +103,7 @@ const generateWarpcastSigner = async (): Promise<WarpcastSignerType> => {
   const hexStringPrivateKey = bytesToHexString(privateKey)._unsafeUnwrap();
 
   const appAccount = mnemonicToAccount(APP_MNENOMIC!);
-  const requestFid = APP_FID;
+  const requestFid = Number(APP_FID);
   const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
   const signature = await appAccount.signTypedData({
     domain: SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,

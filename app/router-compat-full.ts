@@ -333,8 +333,7 @@ export default {
   withRouter,
 };
 
-// Re-export types for full compatibility
-export type { TransitionOptions, PrefetchOptions, BeforePopStateCallback, RouterEvents };
+// Types are already exported above (TransitionOptions, PrefetchOptions, BeforePopStateCallback, RouterEvents)
 
 // ROUTER_EVENTS is already exported above
 

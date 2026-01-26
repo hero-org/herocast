@@ -13,6 +13,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { type ComponentType, type SVGProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { findCommandByAlias } from '@/common/constants/commandAliases';
 import type { CommandType } from '@/common/constants/commands';
 import { NewFeedbackPostDraft } from '@/common/constants/postDrafts';
@@ -643,7 +644,7 @@ export default function CommandPalette() {
               value="navigate-feed"
               data-hint="true"
               className={cn('flex items-center justify-between rounded-lg opacity-60 cursor-default', styles.item)}
-              onSelect={(e) => e.preventDefault()}
+              onSelect={() => {}}
             >
               <div className="flex items-center gap-4">
                 <div className="w-6 h-6 flex items-center justify-center">

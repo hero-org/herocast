@@ -26,7 +26,7 @@ export function SearchFiltersPanel({ filters, onFiltersChange, className }: Sear
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
     if (key === 'interval') return value !== Interval.d7;
     if (key === 'sortType') return value !== SortType.DESC_CHRON;
-    return value !== undefined && value !== false;
+    return value !== undefined && !Object.is(value, false) && value !== '';
   }).length;
 
   return (

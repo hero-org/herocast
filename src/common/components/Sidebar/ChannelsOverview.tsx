@@ -2,6 +2,7 @@ import { ArrowTrendingUpIcon, HomeIcon } from '@heroicons/react/24/outline';
 import { Hash, Rss } from 'lucide-react';
 import Link from 'next/link';
 import type React from 'react';
+import type { JSX } from 'react';
 import { useState } from 'react';
 import type { ChannelType } from '@/common/constants/channels';
 import { Button } from '@/components/ui/button';

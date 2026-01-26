@@ -2,6 +2,7 @@
 
 import type React from 'react';
 import {
+  type EnrichedTweet,
   enrichTweet,
   TweetBody,
   TweetContainer,
@@ -31,9 +32,8 @@ export const MyTweet = ({ tweet: t, components }: Props) => {
         {/* {tweet.quoted_tweet && <QuotedTweet tweet={tweet.quoted_tweet} />} */}
         {tweet.quoted_tweet && (
           <TweetContainer className="w-full p-0">
-            <TweetHeader tweet={tweet.quoted_tweet} components={components} />
-            {tweet.quoted_tweet.in_reply_to_status_id_str && <TweetInReplyTo tweet={tweet.quoted_tweet} />}
-            <TweetBody tweet={tweet.quoted_tweet} />
+            <TweetHeader tweet={tweet.quoted_tweet as unknown as EnrichedTweet} components={components} />
+            <TweetBody tweet={tweet.quoted_tweet as unknown as EnrichedTweet} />
           </TweetContainer>
         )}
 

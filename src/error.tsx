@@ -1,7 +1,7 @@
 // import herocastImg from '../public/images/herocast.png';
 
 export default function ErrorPage() {
-  const error = {};
+  const error: { statusText?: string; message?: string } = {};
 
   return (
     <div className="grid min-h-screen grid-cols-1 grid-rows-[1fr,auto,1fr] bg-black lg:grid-cols-[max(50%,36rem),1fr]">

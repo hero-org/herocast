@@ -1,11 +1,11 @@
 import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useState } from 'react';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
-import type { Account } from '@/common/types/database.types';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import type { AccountObjectType } from '@/stores/useAccountStore';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { AutoInteractionContentFilters } from './AutoInteractionContentFilters';
 
@@ -68,7 +68,7 @@ export function AutoInteractionSettings({
             <SelectValue placeholder="Select an account to perform actions" />
           </SelectTrigger>
           <SelectContent>
-            {accounts.map((account: Account) => (
+            {accounts.map((account: AccountObjectType) => (
               <SelectItem key={account.id} value={account.id}>
                 {account.name || `Account ${account.id.slice(0, 8)}`}
               </SelectItem>

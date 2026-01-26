@@ -74,9 +74,9 @@ const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSele
       <div className="flex items-center text-xs text-muted-foreground">
         <span>
           {draft.status === DraftStatus.scheduled
-            ? `Scheduled for ${getUserLocaleDateFromIsoString(draft.scheduledFor)}`
+            ? `Scheduled for ${draft.scheduledFor ? getUserLocaleDateFromIsoString(draft.scheduledFor) : 'unknown'}`
             : draft.status === DraftStatus.published
-              ? `Published ${formatDistanceToNow(new Date(draft.publishedAt), { addSuffix: true })}`
+              ? `Published ${formatDistanceToNow(new Date(draft.publishedAt || Date.now()), { addSuffix: true })}`
               : `Last edited ${formatDistanceToNow(new Date(draft.updatedAt || draft.createdAt), { addSuffix: true })}`}
         </span>
       </div>

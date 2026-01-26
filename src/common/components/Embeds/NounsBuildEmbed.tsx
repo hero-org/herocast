@@ -149,6 +149,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
   };
 
   const renderContent = () => {
+    if (!data) return null;
     const proposal = data.dao.proposals[0];
     const token = data.dao.tokens[0];
 
@@ -173,7 +174,7 @@ const NounsBuildEmbed = ({ url }: { url: string }) => {
               <div className="h-2 w-2 rounded-full bg-current" />
             </div> */}
               <h1 className="flex gap-x-1 text-base leading-7 ">
-                <span className="font-semibold text-foreground">{data.dao.name}</span>
+                <span className="font-semibold text-foreground">{data?.dao.name}</span>
                 <span className="text-gray-600">/</span>
                 <span className="font-semibold text-foreground flex-nowrap">{proposal?.title || token?.name}</span>
               </h1>

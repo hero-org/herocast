@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useListStore } from '@/stores/useListStore';
 import { toastSuccessSavedSearchUpdate } from '../helpers/toast';
+import { isSearchListContent, type SearchListContent } from '../types/list.types';
 import { Interval } from '../types/types';
 import { IntervalFilter } from './IntervalFilter';
 import Modal from './Modal';
@@ -25,11 +26,13 @@ const ManageListModal = ({ open, onClose }) => {
   const list = useListStore((state) =>
     state.selectedListId !== undefined ? state.lists.find((l) => l.id === state.selectedListId) : undefined
   );
+  const searchContent = list && isSearchListContent(list.contents) ? list.contents : null;
   const canSave =
     list &&
+    searchContent &&
     (newName !== list.name ||
-      newSearchTerm !== list.contents?.term ||
-      isDailyEmailEnabled !== list.contents?.enabled_daily_email);
+      newSearchTerm !== searchContent.term ||
+      isDailyEmailEnabled !== searchContent.enabled_daily_email);
 
   const onClickDelete = async (id: string) => {
     const result = await removeList(id);
@@ -46,16 +49,18 @@ const ManageListModal = ({ open, onClose }) => {
   useEffect(() => {
     if (!list) return;
 
-    setNewName(list?.name);
-    setNewSearchTerm(list?.contents?.term);
-    setIsDailyEmailEnabled(list?.contents?.enabled_daily_email);
+    setNewName(list.name);
+    if (isSearchListContent(list.contents)) {
+      setNewSearchTerm(list.contents.term);
+      setIsDailyEmailEnabled(list.contents.enabled_daily_email ?? false);
+    }
   }, [list]);
 
   const onClickSave = async () => {
-    if (!list || !canSave) return;
+    if (!list || !canSave || !searchContent) return;
 
-    const newContents = {
-      ...list.contents,
+    const newContents: SearchListContent = {
+      ...searchContent,
       term: newSearchTerm,
       enabled_daily_email: isDailyEmailEnabled,
     };
@@ -79,9 +84,9 @@ const ManageListModal = ({ open, onClose }) => {
     }
   };
 
-  if (!list) return null;
+  if (!list || !searchContent) return null;
 
-  const searchIntervalKey = Object.keys(Interval).find((key) => Interval[key] === list?.contents?.filters?.interval);
+  const searchIntervalKey = Object.keys(Interval).find((key) => Interval[key] === searchContent.filters?.interval);
   const searchInterval = searchIntervalKey ? Interval[searchIntervalKey] : undefined;
 
   return (
@@ -89,16 +94,11 @@ const ManageListModal = ({ open, onClose }) => {
       <div className="flex flex-col gap-4 mt-4">
         <div>
           <Label htmlFor="list-name">Change Name</Label>
-          <Input id="list-name" label="Name" value={newName} onChange={(e) => setNewName(e.target.value)} />
+          <Input id="list-name" value={newName} onChange={(e) => setNewName(e.target.value)} />
         </div>
         <div>
           <Label htmlFor="list-search">Change search</Label>
-          <Input
-            id="list-search"
-            label="Search"
-            value={newSearchTerm}
-            onChange={(e) => setNewSearchTerm(e.target.value)}
-          />
+          <Input id="list-search" value={newSearchTerm} onChange={(e) => setNewSearchTerm(e.target.value)} />
         </div>
         <div className="flex flex-col">
           <Label htmlFor="daily-email-switch" className="flex">

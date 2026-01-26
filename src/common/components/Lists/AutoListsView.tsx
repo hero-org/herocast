@@ -2,7 +2,6 @@ import { ArrowPathIcon, BoltIcon, HeartIcon, PlusIcon } from '@heroicons/react/2
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
-import type { List } from '@/common/types/database.types';
 import type { AutoInteractionListContent } from '@/common/types/list.types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Skeleton } from '@/components/ui/skeleton';
 import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
 import { useAccountStore } from '@/stores/useAccountStore';
+import type { List } from '@/stores/useListStore';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 

@@ -15,7 +15,10 @@ interface AppHotkeysProviderProps {
 // Component to manage scope changes based on app state
 function ScopeManager() {
   const pathname = usePathname() || '/';
-  const { enableScope, disableScope, enabledScopes } = useHotkeysContext();
+  const hotkeysContext = useHotkeysContext();
+  const { enableScope, disableScope } = hotkeysContext;
+  // enabledScopes exists at runtime but may not be in types
+  const enabledScopes = (hotkeysContext as { enabledScopes?: string[] }).enabledScopes;
   const { isCommandPaletteOpen, isNewCastModalOpen } = useNavigationStore();
   const { selectedCast } = useDataStore();
 

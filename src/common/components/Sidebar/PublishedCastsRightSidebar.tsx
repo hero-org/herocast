@@ -18,6 +18,14 @@ const convertDraftToFakeCast = (
   author: {
     fid: profile.fid,
     username: profile.username,
+    custodyAddress: '',
+    displayName: profile.display_name || profile.username,
+    pfp: { url: profile.pfp_url || '' },
+    profile: { bio: { text: '', mentionedProfiles: [] } },
+    followerCount: 0,
+    followingCount: 0,
+    verifications: [],
+    activeStatus: 'active',
   },
   parentAuthor: {
     fid: null,
@@ -53,7 +61,6 @@ const PublishedCastsRightSidebar = () => {
       style={{
         msOverflowStyle: 'none',
         scrollbarWidth: 'none',
-        WebkitScrollbar: 'none',
       }}
       className="h-screen sticky top-0 bg-muted/40  w-full md:border-l md:border-foreground/5 overflow-y-auto"
     >

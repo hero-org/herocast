@@ -462,7 +462,7 @@ export default function Accounts() {
                         </summary>
                         <div className="mt-4 pt-4 border-t">
                           <p className="text-sm text-muted-foreground mb-3">Pay with ETH on Optimism to connect</p>
-                          {isConnected ? (
+                          {isConnected && pendingAccount ? (
                             <ConfirmOnchainSignerButton account={pendingAccount} />
                           ) : (
                             <SwitchWalletButton />

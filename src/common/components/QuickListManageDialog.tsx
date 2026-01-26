@@ -4,6 +4,7 @@ import { Loader2, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { isFidListContent } from '@/common/types/list.types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -62,7 +63,7 @@ export function QuickListManageDialog({
   const listsAtCapacity = useMemo(() => {
     const atCapacity = new Set<string>();
     fidLists.forEach((list) => {
-      if (list.contents?.type === 'fids' && list.contents.fids?.length >= MAX_USERS_PER_LIST) {
+      if (isFidListContent(list.contents) && list.contents.fids.length >= MAX_USERS_PER_LIST) {
         atCapacity.add(list.id);
       }
     });
@@ -157,7 +158,7 @@ export function QuickListManageDialog({
             fidLists.map((list) => {
               const isAtCapacity = listsAtCapacity.has(list.id);
               const isDisabled = isAtCapacity && !isChecked(list.id);
-              const userCount = list.contents?.type === 'fids' ? list.contents.fids?.length || 0 : 0;
+              const userCount = isFidListContent(list.contents) ? list.contents.fids.length : 0;
 
               return (
                 <div key={list.id} className="flex items-center space-x-3 py-2">

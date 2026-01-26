@@ -355,7 +355,7 @@ const DateTimePicker = React.forwardRef<
       <Popover open={props.isOpen} onOpenChange={props.onOpenChange}>
         <PopoverTrigger asChild>
           {children ? (
-            React.cloneElement(children as React.ReactElement, {
+            React.cloneElement(children as React.ReactElement<{ onClick?: () => void; disabled?: boolean }>, {
               ...buttonProps,
               onClick: () => {
                 state.setOpen(true);
@@ -381,11 +381,11 @@ const DateTimePicker = React.forwardRef<
             <Calendar {...calendarProps} minValue={today(getLocalTimeZone())} />
             {state.hasTime && (
               <TimeField
-                minValue={state.minValue}
+                minValue={(state as unknown as { minValue?: TimeValue }).minValue}
                 granularity="minute"
                 hourCycle={24}
                 value={state.timeValue}
-                onChange={state.setTimeValue}
+                onChange={(value) => value && state.setTimeValue(value)}
               />
             )}
           </div>

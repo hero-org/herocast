@@ -60,7 +60,7 @@ export default function SearchPage() {
   );
   // Allow search if we have 3+ chars OR if we have valid operators like from: or channel: OR if we have filters set
   const hasValidOperators = /(?:from:|channel:|parent:|before:|after:)\S+/.test(searchTerm);
-  const hasActiveFilters = filters.authorFid || filters.channelId || filters.parentUrl;
+  const hasActiveFilters = Boolean(filters.authorFid || filters.channelId || filters.parentUrl);
   const canSearch = searchTerm.trim().length >= 3 || hasValidOperators || hasActiveFilters;
   const { updateSelectedCast, updateSelectedProfileFid } = useDataStore();
 
@@ -275,7 +275,7 @@ export default function SearchPage() {
 
   useHotkeys([Key.Enter, 'meta+enter'], () => onSearch(), [onSearch], {
     enableOnFormTags: true,
-    enabled: canSearch && !isLoading,
+    enabled: Boolean(canSearch) && !isLoading,
   });
 
   useEffect(() => {

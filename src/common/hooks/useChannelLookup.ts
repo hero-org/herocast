@@ -30,10 +30,19 @@ export const useChannelLookup = (url?: string) => {
           // Add to cache (LRU eviction when full)
           if (channelCache.size >= CACHE_SIZE) {
             const firstKey = channelCache.keys().next().value;
-            channelCache.delete(firstKey);
+            if (firstKey) channelCache.delete(firstKey);
           }
-          channelCache.set(url, data);
-          setChannel(data);
+          const channel: ChannelType = {
+            id: data.id,
+            name: data.name ?? '',
+            url: data.url ?? '',
+            description: data.description ?? undefined,
+            icon_url: data.icon_url ?? undefined,
+            source: data.source ?? undefined,
+            data: data.data as ChannelType['data'],
+          };
+          channelCache.set(url, channel);
+          setChannel(channel);
         }
       } catch (error) {
         console.warn('Failed to fetch channel for URL:', url, error);

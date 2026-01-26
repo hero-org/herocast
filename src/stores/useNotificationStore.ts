@@ -217,7 +217,7 @@ const store = (set: StoreSet, get) => ({
       if (!error && data) {
         set((state) => {
           // Merge Supabase data with local data, preferring newer timestamps
-          data.forEach((item) => {
+          (data as { notification_id: string; notification_type: string; read_at: string }[]).forEach((item) => {
             const localState = state.readStates[item.notification_id];
             const remoteReadAt = new Date(item.read_at).getTime();
 
@@ -296,7 +296,8 @@ const store = (set: StoreSet, get) => ({
       }
 
       // Get unique items from sync queue
-      const uniqueItems = state.syncQueue.reduce(
+      const syncQueue = state.syncQueue as NotificationReadState[];
+      const uniqueItems = syncQueue.reduce(
         (acc, item) => {
           acc[item.notificationId] = item;
           return acc;
@@ -304,7 +305,7 @@ const store = (set: StoreSet, get) => ({
         {} as Record<string, NotificationReadState>
       );
 
-      const items = Object.values(uniqueItems).map((item) => ({
+      const items = Object.values(uniqueItems).map((item: NotificationReadState) => ({
         user_id: user.id,
         notification_id: item.notificationId,
         notification_type: item.type,
@@ -358,11 +359,14 @@ const store = (set: StoreSet, get) => ({
   },
 });
 
+type PersistedState = Pick<NotificationStore, 'readStates' | 'lastReadTimestamp' | 'syncQueue' | 'lastSyncAt'>;
+
 export const useNotificationStore = create<NotificationStore>()(
   persist(mutative(store), {
     name: 'notification-store',
-    storage,
-    partialize: (state) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    storage: storage as any,
+    partialize: (state): PersistedState => ({
       readStates: state.readStates,
       lastReadTimestamp: state.lastReadTimestamp,
       syncQueue: state.syncQueue,

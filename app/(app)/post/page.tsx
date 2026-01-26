@@ -75,7 +75,7 @@ const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAcc
         .filter(
           (draft) => (!activeAccountId || draft.accountId === activeAccountId) && draft.status === DraftStatus.scheduled
         )
-        .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()); // Soonest first
+        .sort((a, b) => new Date(a.scheduledFor || 0).getTime() - new Date(b.scheduledFor || 0).getTime()); // Soonest first
     case DraftListTab.published:
       return drafts
         .filter((draft) => draft.status === DraftStatus.published && draft.accountId === activeAccountId)
@@ -281,13 +281,13 @@ export default function NewPost() {
     if (!draft) return renderEmptyMainContent();
 
     const parentCast = parentCasts.find((cast) => cast.hash === draft.parentCastId?.hash);
-    const hasEmbeds = draft?.embeds?.length > 0;
+    const hasEmbeds = (draft?.embeds?.length ?? 0) > 0;
     return (
       <div className="pt-4 pb-6">
         <div className="flex items-center text-xs text-muted-foreground">
           <ClockIcon className="w-5 h-5" />
           <span className="ml-1">
-            Scheduled for {getUserLocaleDateFromIsoString(draft.scheduledFor)}{' '}
+            Scheduled for {draft.scheduledFor ? getUserLocaleDateFromIsoString(draft.scheduledFor) : 'unknown'}{' '}
             {draft.publishedAt && `· Published at ${getUserLocaleDateFromIsoString(draft.publishedAt)}`}
           </span>
           {draft.parentUrl && (

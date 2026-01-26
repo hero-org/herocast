@@ -18,7 +18,7 @@ const VideoEmbed = ({ url }: { url: string }) => {
   //   playerRef.current.controls = !playerRef.current.controls;
   // }
 
-  const playerRef = React.useRef<HTMLVideoElement | null>(null);
+  const playerRef = React.useRef<HTMLVideoElement>(null);
 
   return (
     <div key={`video-embed-${url}`} className="">
@@ -28,6 +28,7 @@ const VideoEmbed = ({ url }: { url: string }) => {
         controls={true}
         width="80%"
         height="auto"
+        // @ts-expect-error - react-hls-player types expect non-null ref but React 18 refs include null
         playerRef={playerRef}
         className="rounded-md max-w-min max-h-72 object-left"
       />

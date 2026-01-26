@@ -1,12 +1,12 @@
 import { BellIcon, MagnifyingGlassIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import type { List } from '@/common/types/database.types';
 import { isSearchListContent } from '@/common/types/list.types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { List } from '@/stores/useListStore';
 import { useListStore } from '@/stores/useListStore';
 
 interface SearchListsViewProps {

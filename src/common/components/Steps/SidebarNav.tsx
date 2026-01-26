@@ -34,7 +34,7 @@ export function SidebarNav({ className, items, step, onClick, ...props }: Sideba
             variant="ghost"
             className={cn(
               enabled ? 'text-foreground/40 hover:bg-transparent hover:underline' : '',
-              item.key === step ? 'bg-muted hover:bg-muted' : '',
+              item.keys.includes(step) ? 'bg-muted hover:bg-muted' : '',
               'justify-start truncate'
             )}
           >

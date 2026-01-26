@@ -35,7 +35,7 @@ const SwitchWalletButton = ({ className }: SwitchWalletButtonProps) => {
         onClick={() => openConnectModal?.() || openAccountModal?.()}
       >
         {`${
-          isClient && isConnected
+          isClient && isConnected && address
             ? `Connected to ${address.substring(0, 6)}...${address.substring(address.length - 4, address.length)}`
             : 'Connect wallet'
         }`}

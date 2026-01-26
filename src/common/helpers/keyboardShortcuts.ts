@@ -10,8 +10,8 @@ export function formatShortcutKeys(shortcut: string): string[] {
     return [];
   }
 
-  const platform =
-    typeof window !== 'undefined' ? (navigator.platform.toLowerCase().includes('mac') ? 'mac' : 'other') : 'other';
+  const platform: 'mac' | 'windows' | 'linux' | undefined =
+    typeof window !== 'undefined' ? (navigator.platform.toLowerCase().includes('mac') ? 'mac' : 'windows') : undefined;
 
   return shortcut.split('+').map((key) => formatKey(key.trim(), platform));
 }

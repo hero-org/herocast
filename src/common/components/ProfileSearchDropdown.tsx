@@ -51,7 +51,7 @@ export function ProfileSearchDropdown({
             console.warn('Invalid viewerFid, using default value 3');
             getUserDataForFidOrUsername({
               username: term,
-              viewerFid: 3,
+              viewerFid: '3',
             }).then((users) => {
               setProfiles(users);
               setIsLoading(false);
@@ -59,7 +59,7 @@ export function ProfileSearchDropdown({
           } else {
             getUserDataForFidOrUsername({
               username: term,
-              viewerFid,
+              viewerFid: String(viewerFid),
             }).then((users) => {
               setProfiles(users);
               setIsLoading(false);

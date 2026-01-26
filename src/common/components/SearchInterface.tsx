@@ -78,7 +78,7 @@ export function SearchInterface({
     Object.entries(filters).filter(([key, value]) => {
       if (key === 'interval') return value !== Interval.d7;
       if (key === 'sortType') return value !== SortType.DESC_CHRON;
-      return value !== undefined && value !== false && value !== '';
+      return value !== undefined && !Object.is(value, false) && value !== '';
     }).length +
     (fromUsername ? 1 : 0) +
     (channelFromQuery ? 1 : 0);

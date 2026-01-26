@@ -15,12 +15,7 @@ type StepSequenceProps = {
 };
 
 const StepSequence = ({ title, description, navItems, step, setStep, renderStep }: StepSequenceProps) => {
-  const progressPercent =
-    (findIndex(navItems, (item) =>
-      'keys' in item ? includes(item.keys, step) : 'key' in item ? item.key === step : false
-    ) /
-      (navItems.length - 1)) *
-    100;
+  const progressPercent = (findIndex(navItems, (item) => includes(item.keys, step)) / (navItems.length - 1)) * 100;
 
   return (
     <div className="w-full">

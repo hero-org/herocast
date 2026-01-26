@@ -8,6 +8,9 @@ export async function POST(request: NextRequest) {
 }
 export async function GET(request: NextRequest) {
   const signerToken = request.nextUrl.searchParams.get('signerToken');
+  if (!signerToken) {
+    return NextResponse.json({ error: 'signerToken is required' }, { status: 400 });
+  }
   const signerStatus = await getSignerRequestStatus(signerToken);
   return NextResponse.json(signerStatus, { status: 200 });
 }

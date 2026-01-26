@@ -144,10 +144,7 @@ export const commandAliases: Record<string, string> = {
   // Shortcuts and abbreviations
   cc: 'Create cast',
   nc: 'new cast',
-  dm: 'direct message',
-  dms: 'direct messages',
   notis: 'notifications',
-  notifs: 'notifications',
   bm: 'bookmarks',
   bms: 'bookmarks',
   sched: 'schedule',

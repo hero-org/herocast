@@ -37,7 +37,17 @@ export function AutoInteractionHistory({ listId }: AutoInteractionHistoryProps) 
         .limit(50);
 
       if (error) throw error;
-      setHistory(data || []);
+      // Filter to only valid action types and map to HistoryItem
+      const validHistory: HistoryItem[] = (data || [])
+        .filter((item) => item.action === 'like' || item.action === 'recast')
+        .map((item) => ({
+          cast_hash: item.cast_hash,
+          action: item.action as 'like' | 'recast',
+          processed_at: item.processed_at || '',
+          status: (item.status as 'success' | 'failed') || undefined,
+          error_message: item.error_message || undefined,
+        }));
+      setHistory(validHistory);
     } catch (error) {
       console.error('Failed to fetch history:', error);
     } finally {

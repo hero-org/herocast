@@ -38,7 +38,6 @@ export const CreateAccountPage = () => {
 
       await addAccount({
         account: {
-          id: null,
           platformAccountId: undefined,
           status: AccountStatusType.pending,
           platform: AccountPlatformType.farcaster,

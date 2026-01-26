@@ -15,7 +15,7 @@ export type Search = {
 
 // List content types moved to @/common/types/list.types.ts
 
-type List = Omit<Tables<'list'>, 'contents'> & { contents: unknown };
+export type List = Omit<Tables<'list'>, 'contents'> & { contents: unknown };
 type InsertList = TablesInsert<'list'>;
 type UpdateList = TablesUpdate<'list'>;
 

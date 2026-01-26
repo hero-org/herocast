@@ -38,10 +38,10 @@ export default function Channels() {
     keys: ['name', 'url'],
   });
 
-  const searchResults = take(
+  const searchResults: ChannelType[] = take(
     searchTerm
-      ? map(fuse.search(searchTerm), 'item')
-      : orderBy(filter(allChannels, 'data.followerCount'), 'data.followerCount', 'desc'),
+      ? (map(fuse.search(searchTerm), 'item') as ChannelType[])
+      : (orderBy(filter(allChannels, 'data.followerCount'), 'data.followerCount', 'desc') as ChannelType[]),
     50
   );
 
@@ -196,7 +196,7 @@ export default function Channels() {
           </div>
         </div>
         <ul role="list" className="mt-3 mb-48 grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-6">
-          {searchResults.map((channel) => (
+          {searchResults.map((channel: ChannelType) => (
             <li key={`all-channels-${channel.id}`} className="col-span-1 flex rounded-md shadow-sm">
               {renderChannelCard(channel)}
             </li>

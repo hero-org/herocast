@@ -14,7 +14,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, type JSX, useEffect, useState } from 'react';
 import { Loading } from '@/common/components/Loading';
 import NewCastModal from '@/common/components/NewCastModal';
 import AccountSwitcher from '@/common/components/Sidebar/AccountSwitcher';

@@ -70,7 +70,7 @@ export function isNotFoundError(error: unknown): boolean {
 }
 
 export function isServerError(error: unknown): boolean {
-  if (error instanceof DirectCastAPIError) {
+  if (error instanceof DirectCastAPIError && error.statusCode !== undefined) {
     return error.statusCode >= 500 && error.statusCode < 600;
   }
   if (error instanceof Error) {

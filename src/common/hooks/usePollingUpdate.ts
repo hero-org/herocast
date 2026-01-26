@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const usePollingUpdate = (pollingFunction: (() => void) | null, interval: number) => {
-  const [subscription, setSubscription] = useState(null);
+  const [subscription, setSubscription] = useState<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!pollingFunction) return;

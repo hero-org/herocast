@@ -7,7 +7,7 @@ import {
 } from '@heroicons/react/24/outline';
 import sortBy from 'lodash.sortby';
 import { useRouter } from 'next/navigation';
-import type { List } from '@/common/types/database.types';
+import { isSearchListContent } from '@/common/types/list.types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -63,8 +63,9 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
     }
   };
 
-  const renderList = (list: List & { id: string }) => {
+  const renderList = (list: (typeof lists)[number]) => {
     const isSelected = selectedListId === list.id;
+    const hasEmailEnabled = isSearchListContent(list.contents) && list.contents.enabled_daily_email;
 
     return (
       <li key={`list-${list.id}`} className="px-2 sm:px-3 lg:px-4">
@@ -77,9 +78,7 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
         >
           <span className="flex-nowrap truncate">{list.name}</span>
           <div className="flex">
-            {list?.contents?.enabled_daily_email && (
-              <EnvelopeIcon className="h-4 w-4 mt-1 mr-1 text-muted-foreground/50" />
-            )}
+            {hasEmailEnabled && <EnvelopeIcon className="h-4 w-4 mt-1 mr-1 text-muted-foreground/50" />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="outline" className="rounded-lg h-6 w-5">
