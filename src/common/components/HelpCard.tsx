@@ -1,9 +1,8 @@
-import React from 'react';
 import { PaperAirplaneIcon } from '@heroicons/react/20/solid';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
 import { openWindow } from '@/common/helpers/navigation';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const HelpCard = () => (
   <Card className="max-w-2xl">

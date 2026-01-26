@@ -1,5 +1,5 @@
-import { createServerClient, type CookieOptions, serialize } from '@supabase/ssr';
-import { type GetServerSidePropsContext } from 'next';
+import { type CookieOptions, createServerClient, serialize } from '@supabase/ssr';
+import type { GetServerSidePropsContext } from 'next';
 
 export function createClient(context: GetServerSidePropsContext) {
   const supabase = createServerClient(

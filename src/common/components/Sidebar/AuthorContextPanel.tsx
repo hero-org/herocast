@@ -1,19 +1,18 @@
-import React from 'react';
-import { useDataStore } from '@/stores/useDataStore';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { useProfile } from '@/hooks/queries/useProfile';
-import { useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
-import ProfileInfoContent from '@/common/components/ProfileInfoContent';
-import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { ExternalLink, Copy, Check, Twitter, Github } from 'lucide-react';
+import { Check, Copy, ExternalLink, Github, Twitter } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import ProfileInfoContent from '@/common/components/ProfileInfoContent';
 import {
   getAppByFid,
   VERIFIED_ACCOUNT_PLATFORMS,
   type VerifiedAccountPlatform,
 } from '@/common/constants/farcasterApps';
+import { Button } from '@/components/ui/button';
+import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
+import { useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
+import { useProfile } from '@/hooks/queries/useProfile';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useDataStore } from '@/stores/useDataStore';
 
 type ExtendedProfile = {
   verified_accounts?: Array<{ platform: VerifiedAccountPlatform; username: string }>;

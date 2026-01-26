@@ -1,16 +1,15 @@
 'use client';
 
 import '@farcaster/auth-kit/styles.css';
-import React, { useEffect, useState, Suspense } from 'react';
-import { UserAuthForm } from '@/common/components/UserAuthForm';
 import { AuthKitProvider } from '@farcaster/auth-kit';
-import { useSearchParams, useRouter } from 'next/navigation';
-
-import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { useAuth } from '@/common/context/AuthContext';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import { Loading } from '@/common/components/Loading';
+import { UserAuthForm } from '@/common/components/UserAuthForm';
+import { useAuth } from '@/common/context/AuthContext';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
 
 const authKitConfig = {
   rpcUrl: `https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,

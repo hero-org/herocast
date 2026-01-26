@@ -1,20 +1,18 @@
 'use client';
 
-import React from 'react';
-
-import { type TweetProps, EmbeddedTweet, TweetNotFound, TweetSkeleton, useTweet } from 'react-tweet';
-
-import type { Tweet } from 'react-tweet/api';
+import type React from 'react';
 import {
-  type TwitterComponents,
+  enrichTweet,
+  TweetBody,
   TweetContainer,
   TweetHeader,
   TweetInReplyTo,
-  TweetBody,
   TweetMedia,
-  QuotedTweet,
-  enrichTweet,
+  TweetSkeleton,
+  type TwitterComponents,
+  useTweet,
 } from 'react-tweet';
+import type { Tweet } from 'react-tweet/api';
 
 type Props = {
   tweet: Tweet;

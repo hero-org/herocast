@@ -1,7 +1,7 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import { PanelConfig, FeedPanelConfig, InboxPanelConfig } from '@/common/types/workspace.types';
-import FeedPanel, { FeedPanelHandle } from './panels/FeedPanel';
-import InboxPanel, { InboxPanelHandle } from './panels/InboxPanel';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
+import type { FeedPanelConfig, InboxPanelConfig, PanelConfig } from '@/common/types/workspace.types';
+import FeedPanel, { type FeedPanelHandle } from './panels/FeedPanel';
+import InboxPanel, { type InboxPanelHandle } from './panels/InboxPanel';
 
 export interface PanelContentHandle {
   refresh: () => void;

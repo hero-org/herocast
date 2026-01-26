@@ -1,24 +1,26 @@
-import React, { useEffect, useMemo, Suspense, Component, ReactNode } from 'react';
-import Modal from '@/common/components/Modal';
-import { Loading } from './Loading';
-import dynamic from 'next/dynamic';
 import { AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import dynamic from 'next/dynamic';
+import type React from 'react';
+import { Component, type ReactNode, useEffect, useMemo } from 'react';
+import Modal from '@/common/components/Modal';
 import { DraftStatus } from '@/common/constants/farcaster';
+import { Button } from '@/components/ui/button';
+import { Loading } from './Loading';
 
 // Dynamic import with loading fallback
 const NewPostEntry = dynamic(() => import('./Editor/NewCastEditor'), {
   loading: () => <Loading loadingMessage="Loading editor" />,
   ssr: false,
 });
-import { useDraftStore } from '@/stores/useDraftStore';
-import { CastRow } from './CastRow';
-import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+
 import { HotkeyScopes } from '@/common/constants/hotkeys';
-import { AccountSelector } from './AccountSelector';
-import { AccountStatusType } from '../constants/accounts';
-import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { useDataStore } from '@/stores/useDataStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { AccountStatusType } from '../constants/accounts';
+import { AccountSelector } from './AccountSelector';
+import { CastRow } from './CastRow';
 
 type NewCastModalProps = {
   draftId: string;

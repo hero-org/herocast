@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import Modal from './Modal';
+import { BellIcon } from '@heroicons/react/24/outline';
 import { usePostHog } from 'posthog-js/react';
-import { useListStore } from '@/stores/useListStore';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { IntervalFilter } from './IntervalFilter';
-import { Interval } from '../types/types';
 import { Switch } from '@/components/ui/switch';
+import { useListStore } from '@/stores/useListStore';
 import { toastSuccessSavedSearchUpdate } from '../helpers/toast';
-import { BellIcon } from '@heroicons/react/24/outline';
-import { toast } from 'sonner';
+import { Interval } from '../types/types';
+import { IntervalFilter } from './IntervalFilter';
+import Modal from './Modal';
 
 const intervals = [Interval.d1, Interval.d7, Interval.d14];
 

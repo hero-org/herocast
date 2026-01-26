@@ -1,13 +1,12 @@
-import React from 'react';
-import { SidebarHeader } from './SidebarHeader';
-import { CastRow } from '../CastRow';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v1';
-import { useDraftStore } from '@/stores/useDraftStore';
-import orderBy from 'lodash.orderby';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v1';
 import filter from 'lodash.filter';
+import orderBy from 'lodash.orderby';
 import uniqBy from 'lodash.uniqby';
-import { useProfileByFid, ProfileData } from '@/hooks/queries/useProfile';
+import { type ProfileData, useProfileByFid } from '@/hooks/queries/useProfile';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { CastRow } from '../CastRow';
+import { SidebarHeader } from './SidebarHeader';
 
 const convertDraftToFakeCast = (
   draft: any,

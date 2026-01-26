@@ -1,13 +1,9 @@
-import React from 'react';
-import Link from 'next/link';
-import ProfileInfoContent from './ProfileInfoContent';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
 import { take } from 'lodash';
-import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { formatLargeNumber } from '../helpers/text';
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
 import { useProfileByFid } from '@/hooks/queries/useProfile';
+import { cn } from '@/lib/utils';
+import ProfileInfoContent from './ProfileInfoContent';
 
 const priorityChannels = ['email', 'linkedin', 'telegram', 'twitter', 'github'];
 

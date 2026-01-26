@@ -1,15 +1,14 @@
-import React from 'react';
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAccountStore } from '@/stores/useAccountStore';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { getPlanLimitsForPlan, type PlanLimitsKeys } from '@/config/planLimits';
+import { cn } from '@/lib/utils';
+import { useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
+import { isPaidUser } from '@/stores/useUserStore';
 import { useDraftStore } from '../../stores/useDraftStore';
 import { DraftStatus } from '../constants/farcaster';
-import { Button } from '@/components/ui/button';
-import { isPaidUser } from '@/stores/useUserStore';
-import { getPlanLimitsForPlan, PlanLimitsKeys } from '@/config/planLimits';
 import { Interval } from '../types/types';
-import { cn } from '@/lib/utils';
 
 type UpgradeFreePlanCardProps = {
   limitKey: PlanLimitsKeys;

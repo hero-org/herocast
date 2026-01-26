@@ -4,12 +4,7 @@ import { devtools } from 'zustand/middleware';
 import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
 import { createClient } from '@/common/helpers/supabase/component';
 import type { Tables, TablesInsert, TablesUpdate } from '@/common/types/database.types';
-import {
-  type AutoInteractionListContent,
-  type FidListContent,
-  isAutoInteractionListContent,
-  isFidListContent,
-} from '@/common/types/list.types';
+import { type AutoInteractionListContent, type FidListContent, isFidListContent } from '@/common/types/list.types';
 
 export type Search = {
   term: string;

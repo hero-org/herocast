@@ -1,25 +1,21 @@
-import * as React from 'react';
-
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Loading } from './Loading';
 import { SignInButton, useProfile } from '@farcaster/auth-kit';
-import { useEffect, useState } from 'react';
-import { createClient } from '../helpers/supabase/component';
-import { useRouter } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import includes from 'lodash.includes';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
-import includes from 'lodash.includes';
-import { User } from '@supabase/supabase-js';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
 import { useAuth } from '../context/AuthContext';
+import { createClient } from '../helpers/supabase/component';
+import { Loading } from './Loading';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 

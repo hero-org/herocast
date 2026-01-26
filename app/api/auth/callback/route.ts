@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/common/helpers/supabase/route';
 
 export async function GET(request: NextRequest) {

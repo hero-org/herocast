@@ -1,7 +1,7 @@
-import { initializeStores, initializeStoresProgressive } from '@/stores/initializeStores';
-import { useEffect, useState, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useEffect, useRef, useState } from 'react';
+import { initializeStoresProgressive } from '@/stores/initializeStores';
 import { useNavigationStore } from '@/stores/useNavigationStore';
+import { useAuth } from '../context/AuthContext';
 
 enum InitStatus {
   uninitialized = 'uninitialized',

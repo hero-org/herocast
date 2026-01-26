@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import { UserDataType, validations } from '@farcaster/hub-web';
+import { Cog6ToothIcon } from '@heroicons/react/20/solid';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { getAddress } from 'viem';
+import { mainnet } from 'viem/chains';
 import { useAccount, useSwitchChain, useWalletClient } from 'wagmi';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { hydrateAccounts, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
+import { AccountPlatformType } from '../constants/accounts';
 import {
   getSignatureForUsernameProof,
   getTimestamp,
@@ -13,13 +19,7 @@ import {
   updateUsernameOffchain,
   validateUsernameIsAvailable,
 } from '../helpers/farcaster';
-import { getAddress } from 'viem';
-import { PENDING_ACCOUNT_NAME_PLACEHOLDER, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
-import { AccountPlatformType } from '../constants/accounts';
-import { mainnet } from 'viem/chains';
-import { validations, UserDataType } from '@farcaster/hub-web';
 import { AccountSelector } from './AccountSelector';
-import { Cog6ToothIcon } from '@heroicons/react/20/solid';
 
 export type FarcasterAccountSetupFormValues = z.infer<typeof FarcasterAccountSetupFormSchema>;
 

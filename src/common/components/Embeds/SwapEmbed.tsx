@@ -1,17 +1,16 @@
-import React from 'react';
+import { ArrowsRightLeftIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
-import {
-  parseSwapUrl,
-  getZapperSwapUrl,
-  getAlchemyNetworkForSwapChain,
-  getExplorerTxUrlByChain,
-  getExplorerTokenUrl,
-} from '@/common/helpers/onchain';
-import { Skeleton } from '@/components/ui/skeleton';
 import { openWindow } from '@/common/helpers/navigation';
-import { ArrowTopRightOnSquareIcon, ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
-import { cn } from '@/lib/utils';
+import {
+  getAlchemyNetworkForSwapChain,
+  getExplorerTokenUrl,
+  getExplorerTxUrlByChain,
+  getZapperSwapUrl,
+  parseSwapUrl,
+} from '@/common/helpers/onchain';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 type SwapMetadataResponse = {
   symbol: string;

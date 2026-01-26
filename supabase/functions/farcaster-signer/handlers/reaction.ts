@@ -3,12 +3,12 @@
  * Handles like and recast operations
  */
 
-import type { AuthResult } from '../lib/types.ts';
-import { ReactionRequestSchema, DeleteReactionRequestSchema, validateRequest } from '../lib/validate.ts';
 import { getAccountForSigning } from '../lib/accounts.ts';
-import { signAndSubmitReaction, removeReaction } from '../lib/sign.ts';
 import { logSigningAction } from '../lib/audit.ts';
 import { corsHeaders, handleError, InvalidRequestError } from '../lib/errors.ts';
+import { removeReaction, signAndSubmitReaction } from '../lib/sign.ts';
+import type { AuthResult } from '../lib/types.ts';
+import { DeleteReactionRequestSchema, ReactionRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**
  * Handle POST /reaction - Add a reaction (like or recast)

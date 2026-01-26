@@ -1,9 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { usePathname, useRouter } from 'next/navigation';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { createClient } from '../helpers/supabase/component';
-import { User } from '@supabase/supabase-js';
-import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;

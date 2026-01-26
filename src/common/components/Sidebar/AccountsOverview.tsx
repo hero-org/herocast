@@ -1,12 +1,11 @@
-import React from 'react';
-import { AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { SidebarHeader } from './SidebarHeader';
 import * as Tooltip from '@radix-ui/react-tooltip';
-import HotkeyTooltipWrapper from '../HotkeyTooltipWrapper';
 import { useRouter } from 'next/navigation';
 import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
 import { cn } from '@/lib/utils';
+import { type AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
+import HotkeyTooltipWrapper from '../HotkeyTooltipWrapper';
+import { SidebarHeader } from './SidebarHeader';
 
 const AccountsOverview = () => {
   const router = useRouter();

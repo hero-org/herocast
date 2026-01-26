@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { useAccountStore } from '@/stores/useAccountStore';
 import Link from 'next/link';
-import ProfileInfoContent from '../ProfileInfoContent';
-import { Loading } from '../Loading';
-import { UnfollowData } from '@/common/types/types';
+import { useMemo } from 'react';
+import type { UnfollowData } from '@/common/types/types';
+import { Card, CardContent } from '@/components/ui/card';
 import { useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { Loading } from '../Loading';
+import ProfileInfoContent from '../ProfileInfoContent';
 
 const RECENT_UNFOLLOWERS_LIMIT = 12;
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);

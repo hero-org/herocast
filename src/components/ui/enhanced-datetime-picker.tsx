@@ -1,7 +1,6 @@
+import { CalendarIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { format, isBefore, isToday, startOfToday } from 'date-fns';
 import * as React from 'react';
-import { CalendarIcon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { format, startOfToday, isToday, isBefore, startOfMinute } from 'date-fns';
-import { today as todayTz, getLocalTimeZone } from '@internationalized/date';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';

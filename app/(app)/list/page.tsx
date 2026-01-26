@@ -1,10 +1,8 @@
 'use client';
 
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { UsersIcon } from 'lucide-react';
-import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -13,9 +11,8 @@ import ProfileInfo from '@/common/components/ProfileInfo';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
 import { LIST_SIZE_WARNING_THRESHOLD, MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
 import { type FidListContent, isFidListContent } from '@/common/types/list.types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -23,17 +20,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
 

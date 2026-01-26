@@ -1,6 +1,6 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { type CookieOptions, createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { Database } from '@/common/types/database.types';
+import type { Database } from '@/common/types/database.types';
 
 /**
  * Creates a Supabase client for App Router route handlers.

@@ -1,48 +1,48 @@
 'use client';
 
-import React, { useCallback, useRef } from 'react';
 import {
+  closestCenter,
   DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
-  closestCenter,
-  DragOverlay,
-  DragStartEvent,
 } from '@dnd-kit/core';
 import {
-  SortableContext,
   horizontalListSortingStrategy,
+  SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  TrendingUp,
-  Layers,
-  Hash,
-  Search,
-  Users,
-  MessageCircle,
   AtSign,
-  Heart,
-  Repeat2,
-  UserPlus,
-  GripVertical,
-  X,
   ChevronLeft,
   ChevronRight,
+  GripVertical,
+  Hash,
+  Heart,
+  Layers,
+  MessageCircle,
   RefreshCw,
+  Repeat2,
+  Search,
+  TrendingUp,
+  UserPlus,
+  Users,
+  X,
 } from 'lucide-react';
+import React, { useCallback, useRef } from 'react';
+import type { FeedPanelConfig, InboxPanelConfig, PanelConfig } from '@/common/types/workspace.types';
 import { Button } from '@/components/ui/button';
-import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
-import { PanelConfig, FeedPanelConfig, InboxPanelConfig } from '@/common/types/workspace.types';
-import { PanelContent, PanelContentHandle } from './PanelContent';
-import { PanelErrorBoundary } from './PanelErrorBoundary';
-import { AddPanelPlaceholder } from './AddPanelPlaceholder';
 import { cn } from '@/lib/utils';
+import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
+import { AddPanelPlaceholder } from './AddPanelPlaceholder';
+import { PanelContent, type PanelContentHandle } from './PanelContent';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 const COLLAPSED_WIDTH = 48; // pixels
 const MIN_COLUMN_WIDTH = 320; // pixels

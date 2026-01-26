@@ -1,16 +1,13 @@
-import React, { useState } from 'react';
-import { ChannelType } from '@/common/constants/channels';
-import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
-import { SidebarHeader } from './SidebarHeader';
-import { cn } from '@/lib/utils';
 import { ArrowTrendingUpIcon, HomeIcon } from '@heroicons/react/24/outline';
-import { Rss, Hash } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Hash, Rss } from 'lucide-react';
 import Link from 'next/link';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import type React from 'react';
+import { useState } from 'react';
+import type { ChannelType } from '@/common/constants/channels';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
-import { Separator } from '@/components/ui/separator';
-import SidebarCollapsibleHeader from './SidebarCollapsibleHeader';
 import CollapsibleList from './CollapsibleList';
 
 type ChannelsOverviewProps = {

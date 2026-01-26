@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { AuthResult } from './types.ts';
 import { ErrorCodes, SignerServiceError } from './errors.ts';
+import type { AuthResult } from './types.ts';
 
 /**
  * Authenticates a request using the Authorization header.

@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type * as React from 'react';
 import { KeyboardShortcutSingle } from '@/components/ui/keyboard-shortcut-single';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface KeyboardShortcutTooltipProps {

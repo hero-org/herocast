@@ -3,9 +3,8 @@
 // This enables autocomplete, go to definition, etc.
 import 'https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts';
 
-import { createClient } from '@supabase/supabase-js';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
-import { FunctionsHttpError, FunctionsRelayError, FunctionsFetchError } from '@supabase/supabase-js';
+import { createClient, FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from '@supabase/supabase-js';
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),

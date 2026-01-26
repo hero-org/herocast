@@ -1,6 +1,6 @@
-import { unstable_cache } from 'next/cache';
-import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
+import { unstable_cache } from 'next/cache';
+import { type NextRequest, NextResponse } from 'next/server';
 
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 

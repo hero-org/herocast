@@ -2,7 +2,7 @@
  * Types for the Farcaster Signing Service Edge Function
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ============================================================================
 // Request Types

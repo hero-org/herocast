@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { createClient } from '@/common/helpers/supabase/component';
+import { ArrowPathIcon, ExclamationCircleIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/common/helpers/supabase/component';
 import { Badge } from '@/components/ui/badge';
-import { HeartIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface HistoryItem {

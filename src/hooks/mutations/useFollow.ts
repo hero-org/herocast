@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { followUser, unfollowUser } from '@/common/helpers/farcaster';
+import type { ProfileData } from '@/hooks/queries/useProfile';
 import { queryKeys } from '@/lib/queryKeys';
-import { ProfileData } from '@/hooks/queries/useProfile';
 
 interface FollowParams {
   targetFid: number;

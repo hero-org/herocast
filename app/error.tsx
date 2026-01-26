@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
 import * as Sentry from '@sentry/nextjs';
-import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface ErrorProps {
   error: Error & { digest?: string };

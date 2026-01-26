@@ -1,17 +1,17 @@
-import React from 'https://esm.sh/react';
-import { render } from 'https://esm.sh/@react-email/render';
 import {
-  Button,
-  Html,
-  Head,
-  Preview,
   Body,
+  Button,
   Container,
-  Section,
-  Text,
-  Tailwind,
+  Head,
+  Html,
   Img,
+  Preview,
+  Section,
+  Tailwind,
+  Text,
 } from 'https://esm.sh/@react-email/components';
+import { render } from 'https://esm.sh/@react-email/render';
+import React from 'https://esm.sh/react';
 
 interface Cast {
   author: {

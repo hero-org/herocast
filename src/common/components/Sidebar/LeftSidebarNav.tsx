@@ -1,21 +1,21 @@
-import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { renderShortcut } from './CollapsibleNavSection';
 import {
+  Hash,
   Inbox,
+  LayoutPanelLeft,
+  List,
+  MessageCircle,
   Newspaper,
   PenSquare,
-  MessageCircle,
   Search,
-  User,
   Settings,
+  User,
   UserPlus,
-  Hash,
-  List,
-  LayoutPanelLeft,
 } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import type React from 'react';
+import { cn } from '@/lib/utils';
+import { renderShortcut } from './CollapsibleNavSection';
 
 type NavItem = {
   name: string;

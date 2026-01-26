@@ -1,29 +1,30 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { take } from 'lodash';
 import {
-  TrendingUp,
-  Layers,
-  Hash,
-  DollarSign,
-  MessageCircle,
-  AtSign,
-  Heart,
-  Repeat2,
-  UserPlus,
-  List,
-  PenSquare,
-  LayoutGrid,
   ArrowLeft,
+  AtSign,
+  DollarSign,
+  Hash,
+  Heart,
+  Layers,
+  LayoutGrid,
+  List,
+  MessageCircle,
+  PenSquare,
+  Repeat2,
   Search,
+  TrendingUp,
+  UserPlus,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { PanelType, PanelConfigUnion, FeedPanelConfig, InboxPanelConfig } from '@/common/types/workspace.types';
-import { useListStore } from '@/stores/useListStore';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { FeedPanelConfig, InboxPanelConfig, PanelConfigUnion, PanelType } from '@/common/types/workspace.types';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { take } from 'lodash';
+import { cn } from '@/lib/utils';
+import { useListStore } from '@/stores/useListStore';
 
 interface AddPanelPlaceholderProps {
   onAddPanel: (type: PanelType, config: PanelConfigUnion) => void;

@@ -1,10 +1,10 @@
-import React from 'react';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { MessageSquareOff, Users } from 'lucide-react';
+import type React from 'react';
+import type { DirectCastConversation, DirectCastGroup } from '@/common/constants/directCast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNowStrict } from 'date-fns';
-import { Users, MessageSquareOff } from 'lucide-react';
 import ProfileHoverCard from './ProfileHoverCard';
-import { DirectCastConversation, DirectCastGroup } from '@/common/constants/directCast';
 
 interface ConversationListItemProps {
   item: DirectCastConversation | DirectCastGroup;

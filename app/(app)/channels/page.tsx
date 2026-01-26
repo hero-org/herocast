@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useAccountStore } from '@/stores/useAccountStore';
-import isEmpty from 'lodash.isempty';
-import { ChannelType } from '@/common/constants/channels';
-import findIndex from 'lodash.findindex';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
-import SortableList, { SortableItem } from 'react-easy-sort';
-import { take } from 'lodash';
+import { PersonIcon } from '@radix-ui/react-icons';
 import Fuse from 'fuse.js';
+import { take } from 'lodash';
+import filter from 'lodash.filter';
+import findIndex from 'lodash.findindex';
+import isEmpty from 'lodash.isempty';
 import map from 'lodash.map';
 import orderBy from 'lodash.orderby';
-import { PersonIcon } from '@radix-ui/react-icons';
+import { useRouter } from 'next/navigation';
+import type React from 'react';
+import { useState } from 'react';
+import SortableList, { SortableItem } from 'react-easy-sort';
+import type { ChannelType } from '@/common/constants/channels';
 import { formatLargeNumber } from '@/common/helpers/text';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
-import filter from 'lodash.filter';
 import { cn } from '@/lib/utils';
+import { useAccountStore } from '@/stores/useAccountStore';
 
 export default function Channels() {
   const router = useRouter();

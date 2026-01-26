@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { openDB } from 'idb';
-import { create as mutativeCreate, Draft } from 'mutative';
-import { createClient } from '@/common/helpers/supabase/component';
 import debounce from 'lodash.debounce';
+import { type Draft, create as mutativeCreate } from 'mutative';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { createClient } from '@/common/helpers/supabase/component';
 
 const IDB_DATABASE_NAME = 'herocast-notifications';
 const IDB_STORE_NAME = 'notification-read-states';

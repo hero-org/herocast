@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
-import { SearchFilters, SearchMode, SortType } from '@/services/searchService';
-import { SearchService } from '@/services/searchService';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 import { Interval } from '@/common/types/types';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { type SearchFilters, SearchService, SortType } from '@/services/searchService';
 
 interface SearchFiltersPanelProps {
   filters: SearchFilters;

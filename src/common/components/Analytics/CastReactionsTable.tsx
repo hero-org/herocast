@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { CastRow } from '@/common/components/CastRow';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { CastData } from '@/common/types/types';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import orderBy from 'lodash.orderby';
+import { useEffect, useState } from 'react';
+import { CastRow } from '@/common/components/CastRow';
+import type { CastData } from '@/common/types/types';
 
 interface CastReactionsTableProps {
   rawCasts: CastData[];

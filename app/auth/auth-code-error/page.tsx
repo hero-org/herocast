@@ -1,9 +1,8 @@
 'use client';
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw, LogIn } from 'lucide-react';
+import { AlertCircle, LogIn, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function AuthCodeError() {
   return (

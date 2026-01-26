@@ -1,16 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-
-import { CheckIcon, CaretSortIcon } from '@radix-ui/react-icons';
-
-import { cn } from '@/lib/utils';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { type AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 
 type AccountSelectorProps = {
   className?: string;

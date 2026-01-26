@@ -1,22 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
-import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
-import { CastRow } from '@/common/components/CastRow';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAccountStore } from '@/stores/useAccountStore';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
+import { CastRow } from '@/common/components/CastRow';
 import { Loading } from '@/common/components/Loading';
 import ProfileInfo from '@/common/components/ProfileInfo';
+import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProfile } from '@/hooks/queries/useProfile';
-import { useProfileFeed, ProfileFeedType } from '@/hooks/queries/useProfileFeed';
+import { type ProfileFeedType, useProfileFeed } from '@/hooks/queries/useProfileFeed';
+import { useAccountStore } from '@/stores/useAccountStore';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 enum FeedTypeEnum {
-  'casts' = 'Casts',
-  'likes' = 'Likes',
+  casts = 'Casts',
+  likes = 'Likes',
 }
 
 const getUsernameAndFidFromSlug = (slug?: string) => {

@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { MessageThread, Message } from './MessageThread';
-import { cn } from '@/lib/utils';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import { type Message, MessageThread } from './MessageThread';
+
 // import { DMErrorBoundary } from './DMErrorBoundary';
 
 interface AnimatedMessageThreadProps {

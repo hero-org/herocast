@@ -1,7 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { CommandLineIcon, PaintBrushIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
+import { ArrowRightOnRectangleIcon, UserIcon, WalletIcon } from '@heroicons/react/24/solid';
+import type { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+import { usePostHog } from 'posthog-js/react';
+import { useEffect, useState } from 'react';
 import HelpCard from '@/common/components/HelpCard';
+import SwitchWalletButton from '@/common/components/SwitchWalletButton';
+import { ThemeToggle } from '@/common/components/ThemeToggle';
+import { createClient } from '@/common/helpers/supabase/component';
+import { formatShortcut } from '@/common/helpers/text';
+import { hotkeyDefinitions } from '@/common/services/shortcuts/hotkeyDefinitions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -12,19 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { accountCommands, useAccountStore } from '@/stores/useAccountStore';
-import { newPostCommands } from '@/stores/useDraftStore';
-import { User } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
-import { getNavigationCommands } from '@/getNavigationCommands';
-import SwitchWalletButton from '@/common/components/SwitchWalletButton';
-import { createClient } from '@/common/helpers/supabase/component';
-import { usePostHog } from 'posthog-js/react';
-import { formatShortcut } from '@/common/helpers/text';
-import { hotkeyDefinitions, hotkeyCategories } from '@/common/services/shortcuts/hotkeyDefinitions';
-import { UserIcon, WalletIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid';
-import { CommandLineIcon, PaintBrushIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
-import { ThemeToggle } from '@/common/components/ThemeToggle';
+import { useAccountStore } from '@/stores/useAccountStore';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 
 type SimpleCommand = {

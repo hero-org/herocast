@@ -1,5 +1,5 @@
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { publishReaction, removeReaction } from '@/common/helpers/farcaster';
 import { queryKeys } from '@/lib/queryKeys';
 import { useAccountStore } from '@/stores/useAccountStore';

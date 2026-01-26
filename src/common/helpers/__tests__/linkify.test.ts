@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import * as linkify from 'linkifyjs';
 import { registerPlugin } from 'linkifyjs';
 import mentionPlugin, { channelPlugin } from '../linkify';

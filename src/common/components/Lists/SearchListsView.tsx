@@ -1,13 +1,12 @@
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import { List } from '@/common/types/database.types';
-import { SearchListContent, isSearchListContent } from '@/common/types/list.types';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { MagnifyingGlassIcon, BellIcon, PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { BellIcon, MagnifyingGlassIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import type { List } from '@/common/types/database.types';
+import { isSearchListContent } from '@/common/types/list.types';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useListStore } from '@/stores/useListStore';
 
 interface SearchListsViewProps {

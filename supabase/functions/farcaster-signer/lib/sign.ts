@@ -6,21 +6,21 @@
  */
 
 import {
-  makeCastAdd,
-  makeCastRemove,
-  makeReactionAdd,
-  makeReactionRemove,
-  makeLinkAdd,
-  makeLinkRemove,
-  makeUserDataAdd,
+  CastType,
+  FarcasterNetwork,
+  hexStringToBytes,
   Message,
   MessageData,
+  makeCastAdd,
+  makeCastRemove,
+  makeLinkAdd,
+  makeLinkRemove,
+  makeReactionAdd,
+  makeReactionRemove,
+  makeUserDataAdd,
   NobleEd25519Signer,
-  FarcasterNetwork,
   ReactionType,
-  CastType,
-  UserDataType,
-  hexStringToBytes,
+  type UserDataType,
 } from 'npm:@farcaster/core@0.14.19';
 import { HubSubmissionFailedError } from './errors.ts';
 
@@ -259,7 +259,6 @@ export async function signAndSubmitCast(params: CastParams): Promise<string> {
         error?.response?.data?.errCode || error?.response?.data?.message || error?.message
       );
       lastError = error;
-      continue;
     }
   }
 
@@ -306,7 +305,6 @@ export async function signAndSubmitUserData(params: UserDataParams): Promise<str
     } catch (error) {
       console.log(`[signAndSubmitUserData] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
       lastError = error;
-      continue;
     }
   }
 
@@ -356,7 +354,6 @@ export async function removeCast(params: RemoveCastParams): Promise<string> {
     } catch (error) {
       console.log(`[removeCast] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
       lastError = error;
-      continue;
     }
   }
 
@@ -418,7 +415,6 @@ export async function signAndSubmitReaction(params: ReactionParams): Promise<str
     } catch (error) {
       console.log(`[signAndSubmitReaction] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
       lastError = error;
-      continue;
     }
   }
 
@@ -476,7 +472,6 @@ export async function removeReaction(params: ReactionParams): Promise<string> {
     } catch (error) {
       console.log(`[removeReaction] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
       lastError = error;
-      continue;
     }
   }
 
@@ -528,7 +523,6 @@ export async function signAndSubmitFollow(params: FollowParams): Promise<string>
     } catch (error) {
       console.log(`[signAndSubmitFollow] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
       lastError = error;
-      continue;
     }
   }
 
@@ -576,7 +570,6 @@ export async function removeFollow(params: FollowParams): Promise<string> {
     } catch (error) {
       console.log(`[removeFollow] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
       lastError = error;
-      continue;
     }
   }
 

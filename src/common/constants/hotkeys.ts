@@ -9,7 +9,6 @@ export const HotkeyScopes = {
   PROFILE: 'profile',
   CONVERSATION: 'conversation',
   SETTINGS: 'settings',
-  ANALYTICS: 'analytics',
   INBOX: 'inbox',
   DMS: 'dms',
 
@@ -31,7 +30,6 @@ export const PageScopes: Record<string, HotkeyScope[]> = {
   profile: [HotkeyScopes.GLOBAL, HotkeyScopes.PROFILE],
   conversation: [HotkeyScopes.GLOBAL, HotkeyScopes.CONVERSATION],
   settings: [HotkeyScopes.GLOBAL, HotkeyScopes.SETTINGS],
-  analytics: [HotkeyScopes.GLOBAL, HotkeyScopes.ANALYTICS],
   post: [HotkeyScopes.GLOBAL, HotkeyScopes.EDITOR],
   inbox: [HotkeyScopes.GLOBAL, HotkeyScopes.INBOX],
   dms: [HotkeyScopes.GLOBAL, HotkeyScopes.DMS],

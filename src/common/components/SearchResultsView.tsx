@@ -1,12 +1,11 @@
-import React from 'react';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type React from 'react';
 import { CastRow } from '@/common/components/CastRow';
-import { Button } from '@/components/ui/button';
-import { SearchFilters } from '@/services/searchService';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InformationCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
-import { RawSearchResult } from '@/services/searchService';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import type { RawSearchResult, SearchFilters } from '@/services/searchService';
 
 interface SearchResultsViewProps {
   searchTerm: string;

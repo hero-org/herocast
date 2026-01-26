@@ -1,8 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useState } from 'react';
+
 import { PhotoIcon } from '@heroicons/react/24/solid';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from 'react';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const getImageViaCdnUrl = (imgUrl: string, skipCdn: boolean) => {
   // Cloudinary URLs are already CDN-optimized, return as-is

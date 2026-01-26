@@ -1,8 +1,15 @@
-import React from 'react';
-import { SidebarHeader } from './SidebarHeader';
-import { useListStore } from '@/stores/useListStore';
+import {
+  BellIcon,
+  Cog6ToothIcon,
+  EllipsisVerticalIcon,
+  EnvelopeIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import sortBy from 'lodash.sortby';
-import { List } from '@/common/types/database.types';
+import { useRouter } from 'next/navigation';
+import type { List } from '@/common/types/database.types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,20 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import {
-  EllipsisVerticalIcon,
-  MagnifyingGlassIcon,
-  Cog6ToothIcon,
-  BellIcon,
-  EnvelopeIcon,
-} from '@heroicons/react/24/outline';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAccountStore } from '@/stores/useAccountStore';
-import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
-import { cn } from '@/lib/utils';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
-import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useListStore } from '@/stores/useListStore';
+import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
+import { SidebarHeader } from './SidebarHeader';
 
 type ListsOverviewProps = {
   hideHeader?: boolean;

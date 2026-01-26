@@ -1,13 +1,13 @@
-import * as ed from '@noble/ed25519';
 import {
+  bytesToHexString,
   NobleEd25519Signer,
   SIGNED_KEY_REQUEST_TYPE,
   SIGNED_KEY_REQUEST_VALIDATOR_EIP_712_DOMAIN,
-  bytesToHexString,
 } from '@farcaster/hub-web';
+import * as ed from '@noble/ed25519';
+import axios from 'axios';
 import { toBytes } from 'viem';
 import { mnemonicToAccount } from 'viem/accounts';
-import axios from 'axios';
 
 type KeyPairType = {
   publicKey: Uint8Array;

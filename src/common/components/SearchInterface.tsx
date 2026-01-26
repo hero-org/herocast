@@ -1,29 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { SearchFilters, SearchMode, SortType } from '@/services/searchService';
-import { SearchService } from '@/services/searchService';
-import { SearchQueryBuilder } from '@/services/searchQueryBuilder';
-import { SearchInterfaceMobile } from './SearchInterfaceMobile';
-import { useMediaQuery } from '@/common/hooks/useMediaQuery';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Interval } from '@/common/types/types';
 import {
-  MagnifyingGlassIcon,
   AdjustmentsHorizontalIcon,
-  QuestionMarkCircleIcon,
-  XMarkIcon,
-  SparklesIcon,
   ClockIcon,
-  UserIcon,
   HashtagIcon,
   LinkIcon,
+  MagnifyingGlassIcon,
+  QuestionMarkCircleIcon,
+  UserIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import { useMediaQuery } from '@/common/hooks/useMediaQuery';
+import { Interval } from '@/common/types/types';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { SearchQueryBuilder } from '@/services/searchQueryBuilder';
+import { type SearchFilters, SearchService, SortType } from '@/services/searchService';
+import { SearchInterfaceMobile } from './SearchInterfaceMobile';
 
 interface SearchInterfaceProps {
   searchTerm: string;

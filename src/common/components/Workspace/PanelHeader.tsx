@@ -1,6 +1,6 @@
-import React from 'react';
+import { ChevronLeft, GripVertical, X } from 'lucide-react';
+import type React from 'react';
 import { Button } from '@/components/ui/button';
-import { GripVertical, ChevronLeft, X } from 'lucide-react';
 
 interface PanelHeaderProps {
   title: string;

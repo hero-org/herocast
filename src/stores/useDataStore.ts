@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { create as mutativeCreate, Draft } from 'mutative';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 type TokenInfo = {
   imageUrl: string;

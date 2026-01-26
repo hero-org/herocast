@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/common/helpers/supabase/route';
+import { type NextRequest, NextResponse } from 'next/server';
 import { DIRECT_CAST_API } from '@/common/constants/directCast';
+import { createClient } from '@/common/helpers/supabase/route';
 
 // Validate API key by making a lightweight call to the Farcaster API
 async function validateApiKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {

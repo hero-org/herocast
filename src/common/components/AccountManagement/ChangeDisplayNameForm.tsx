@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
 import { UserDataType } from '@farcaster/hub-web';
-import { setUserDataInProtocol } from '@/common/helpers/farcaster';
-import { AccountObjectType } from '@/stores/useAccountStore';
 import { Cog6ToothIcon } from '@heroicons/react/20/solid';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { Textarea } from '@/components/ui/textarea';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
+import { setUserDataInProtocol } from '@/common/helpers/farcaster';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import type { AccountObjectType } from '@/stores/useAccountStore';
 
 type ChangeDisplayNameFormValues = z.infer<typeof ChangeDisplayNameFormSchema>;
 

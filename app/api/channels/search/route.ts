@@ -1,6 +1,6 @@
-import { unstable_cache } from 'next/cache';
-import { NextRequest, NextResponse } from 'next/server';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { unstable_cache } from 'next/cache';
+import { type NextRequest, NextResponse } from 'next/server';
 
 const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes within 20 seconds
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';

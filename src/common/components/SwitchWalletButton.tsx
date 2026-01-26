@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-
-import { Button } from '@/components/ui/button';
 import { useAccountModal, useConnectModal } from '@rainbow-me/rainbowkit';
+import { useEffect, useState } from 'react';
 import { useAccount, useDisconnect } from 'wagmi';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 type SwitchWalletButtonProps = {

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { type NextRequest, NextResponse } from 'next/server';
 import { SearchQueryBuilder } from '@/services/searchQueryBuilder';
 
 const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes within 20 seconds

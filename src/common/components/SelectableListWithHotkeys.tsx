@@ -1,11 +1,11 @@
-import React, { useLayoutEffect, useMemo, useRef } from 'react';
-import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
-import { Key } from 'ts-key-enum';
-import isEmpty from 'lodash.isempty';
-import { HotkeyScopes, HotkeyScope } from '@/common/constants/hotkeys';
-import { usePathname } from 'next/navigation';
-import { getScopesForPage } from '@/common/constants/hotkeys';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import isEmpty from 'lodash.isempty';
+import { usePathname } from 'next/navigation';
+import type React from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import { Key } from 'ts-key-enum';
+import { getScopesForPage, type HotkeyScope } from '@/common/constants/hotkeys';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 
 type SelectableListWithHotkeysProps = {
   data: any[];

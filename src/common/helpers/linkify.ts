@@ -1,4 +1,4 @@
-import { State, createTokenClass } from 'linkifyjs';
+import { createTokenClass, State } from 'linkifyjs';
 
 const MentionToken = createTokenClass('mention', {
   isLink: true,

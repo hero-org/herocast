@@ -1,16 +1,16 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { CastRow } from './CastRow';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-import { SelectableListWithHotkeys } from './SelectableListWithHotkeys';
-import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { CAST_AVATAR_CENTER, CAST_THREAD_LINE_LEFT } from '@/common/constants/layout';
 import { Button } from '@/components/ui/button';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { cn } from '@/lib/utils';
 import { useDataStore } from '@/stores/useDataStore';
+import { CastRow } from './CastRow';
+import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
+import { SelectableListWithHotkeys } from './SelectableListWithHotkeys';
 import SkeletonCastRow from './SkeletonCastRow';
-import { useRouter } from 'next/navigation';
-import { CAST_THREAD_LINE_LEFT, CAST_AVATAR_CENTER } from '@/common/constants/layout';
 
 type CastThreadViewProps = {
   hash?: string;

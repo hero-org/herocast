@@ -1,19 +1,18 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { ID_REGISTRY_ADDRESS, idRegistryABI } from '@farcaster/hub-web';
+import { CheckCircleIcon, Cog6ToothIcon } from '@heroicons/react/20/solid';
+import { useAccountModal } from '@rainbow-me/rainbowkit';
+import { getChainId, writeContract } from '@wagmi/core';
+import isEmpty from 'lodash.isempty';
+import { useCallback, useEffect, useState } from 'react';
 import { useAccount, useReadContract, useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
 import { Button } from '@/components/ui/button';
-import { AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
-import isEmpty from 'lodash.isempty';
-import { useAccountModal } from '@rainbow-me/rainbowkit';
-import { getChainId } from '@wagmi/core';
-import { config } from '../helpers/rainbowkit';
-import { writeContract } from '@wagmi/core';
-import SwitchWalletButton from './SwitchWalletButton';
-import { KEY_GATEWAY } from '../constants/contracts/key-gateway';
-import { getSignedKeyRequestMetadataFromAppAccount } from '../helpers/farcaster';
 import { Label } from '@/components/ui/label';
+import { type AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
+import { KEY_GATEWAY } from '../constants/contracts/key-gateway';
 import { optimismChainId } from '../helpers/env';
-import { Cog6ToothIcon, CheckCircleIcon } from '@heroicons/react/20/solid';
-import { ID_REGISTRY_ADDRESS, idRegistryABI } from '@farcaster/hub-web';
+import { getSignedKeyRequestMetadataFromAppAccount } from '../helpers/farcaster';
+import { config } from '../helpers/rainbowkit';
+import SwitchWalletButton from './SwitchWalletButton';
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 

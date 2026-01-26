@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAccount, useWalletClient } from 'wagmi';
 import { UserDataType } from '@farcaster/hub-web';
+import { Cog6ToothIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { getAddress } from 'viem';
+import { switchChain } from 'viem/actions';
+import { mainnet } from 'viem/chains';
+import { useAccount, useWalletClient } from 'wagmi';
+import { z } from 'zod';
+import { AccountPlatformType } from '@/common/constants/accounts';
 import {
   getFidForAddress,
   getSignatureForUsernameProof,
@@ -16,13 +19,10 @@ import {
   updateUsernameOffchain,
   validateUsernameIsAvailable,
 } from '@/common/helpers/farcaster';
-import { getAddress } from 'viem';
-import { AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
-import { AccountPlatformType } from '@/common/constants/accounts';
-import { Cog6ToothIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid';
-import { mainnet } from 'viem/chains';
-import { switchChain } from 'viem/actions';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { type AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
 
 export type RenameAccountFormValues = z.infer<typeof RenameAccountFormSchema>;
 

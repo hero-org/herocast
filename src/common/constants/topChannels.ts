@@ -1,4 +1,4 @@
-import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 /**
  * Top 10 Farcaster channels by follower count + activity.

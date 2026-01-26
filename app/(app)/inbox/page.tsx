@@ -1,36 +1,40 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
-import isEmpty from 'lodash.isempty';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { Notification, NotificationTypeEnum, CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { useDataStore } from '@/stores/useDataStore';
-import { Loading } from '@/common/components/Loading';
-import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CastRow } from '@/common/components/CastRow';
-import { cn } from '@/lib/utils';
+import {
+  type CastWithInteractions,
+  type Notification,
+  NotificationTypeEnum,
+} from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { useRouter, useSearchParams } from 'next/navigation';
-import SkeletonCastRow from '@/common/components/SkeletonCastRow';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import isEmpty from 'lodash.isempty';
+import { Cloud, MoreHorizontal, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { CastRow } from '@/common/components/CastRow';
+import { Loading } from '@/common/components/Loading';
+import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import SkeletonCastRow from '@/common/components/SkeletonCastRow';
+import { createParentCastId } from '@/common/constants/farcaster';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { formatLargeNumber } from '@/common/helpers/text';
-import { useDraftStore } from '@/stores/useDraftStore';
-import { useNotificationStore } from '@/stores/useNotificationStore';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, RefreshCw, Cloud } from 'lucide-react';
 import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
-import { createParentCastId } from '@/common/constants/farcaster';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 
 // Client-side cache for parent casts (prevents repeated API calls)
 const parentCastCache = new Map<string, { cast: CastWithInteractions | null; timestamp: number }>();

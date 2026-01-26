@@ -1,14 +1,12 @@
-import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Loading } from './Loading';
-import { formatLargeNumber } from '../helpers/text';
-import FollowButton from './FollowButton';
 import Linkify from 'linkify-react';
 import Link from 'next/link';
-import { useDataStore } from '@/stores/useDataStore';
+import type React from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useAccountStore } from '@/stores/useAccountStore';
-import get from 'lodash.get';
+import { formatLargeNumber } from '../helpers/text';
+import FollowButton from './FollowButton';
+import { Loading } from './Loading';
 
 type ProfileInfoContentProps = {
   profile: any;

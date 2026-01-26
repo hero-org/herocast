@@ -1,4 +1,3 @@
-import React from 'react';
 import ChannelsOverview from './ChannelsOverview';
 
 const ChannelsRightSidebar = () => {

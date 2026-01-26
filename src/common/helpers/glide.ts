@@ -1,10 +1,10 @@
 import { BUNDLER_ADDRESS, bundlerABI } from '@farcaster/hub-web';
-import { createGlideClient, Chains } from '@paywithglide/glide-js';
+import { Chains, createGlideClient } from '@paywithglide/glide-js';
+import type { PaymentOption } from 'node_modules/@paywithglide/glide-js/dist/types';
 import { encodeFunctionData, toHex } from 'viem';
-import { WARPCAST_RECOVERY_PROXY } from './farcaster';
-import { RegistrationTransactionData } from '../components/PaymentSelector';
-import { PaymentOption } from 'node_modules/@paywithglide/glide-js/dist/types';
+import type { RegistrationTransactionData } from '../components/PaymentSelector';
 import { isDev } from './env';
+import { WARPCAST_RECOVERY_PROXY } from './farcaster';
 
 const chains = isDev()
   ? [

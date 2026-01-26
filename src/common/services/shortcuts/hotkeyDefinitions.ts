@@ -1,12 +1,5 @@
+import { ArrowPathRoundedSquareIcon, ChatBubbleLeftIcon, HeartIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
-import {
-  MagnifyingGlassCircleIcon,
-  UserCircleIcon,
-  ChartBarIcon,
-  HeartIcon,
-  ArrowPathRoundedSquareIcon,
-  ChatBubbleLeftIcon,
-} from '@heroicons/react/20/solid';
 
 export interface HotkeyDefinition {
   id: string;

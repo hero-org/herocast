@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { ArrowTopRightOnSquareIcon, CheckIcon, ClipboardIcon, LinkIcon } from '@heroicons/react/24/outline';
+import type React from 'react';
+import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
+import { openWindow } from '@/common/helpers/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { openWindow } from '@/common/helpers/navigation';
-import { ClipboardIcon, ArrowTopRightOnSquareIcon, CheckIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { useUrlMetadata } from '@/hooks/queries/useUrlMetadata';
 import { cn } from '@/lib/utils';
 

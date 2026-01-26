@@ -3,8 +3,8 @@
 // This enables autocomplete, go to definition, etc.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from '@supabase/supabase-js';
+import { corsHeaders } from '../_shared/cors.ts';
 
 console.log('Hello from Functions!');
 

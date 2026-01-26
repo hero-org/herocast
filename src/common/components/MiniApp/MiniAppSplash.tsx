@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import type React from 'react';
+import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
-import { sanitizeImageUrl, sanitizeColor, escapeHtml } from './security';
+import { escapeHtml, sanitizeColor, sanitizeImageUrl } from './security';
 
 export interface MiniAppSplashProps {
   iconUrl?: string;

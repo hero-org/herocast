@@ -1,5 +1,5 @@
-import { useLayoutEffect, useState, useCallback, useEffect, useRef } from 'react';
 import debounce from 'lodash/debounce';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**
  * This hook provides a function that returns whether the component is still mounted.

@@ -1,6 +1,7 @@
-import React, { Component, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import type React from 'react';
+import { Component, type ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   children: ReactNode;

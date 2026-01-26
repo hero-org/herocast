@@ -3,7 +3,7 @@
 import { CheckIcon, EyeIcon, MagnifyingGlassIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isSearchListContent, type SearchListContent } from '@/common/types/list.types';
 import { Interval } from '@/common/types/types';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { SearchMode, SortType } from '@/services/searchService';
+import { SortType } from '@/services/searchService';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
 

@@ -1,5 +1,5 @@
-import tippy from 'tippy.js';
 import { ReactRenderer } from '@tiptap/react';
+import tippy from 'tippy.js';
 
 // Fixed mentions function for production
 

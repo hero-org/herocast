@@ -1,10 +1,10 @@
 import '@rainbow-me/rainbowkit/styles.css';
+import { Chains } from '@paywithglide/glide-js';
 import { getDefaultConfig, midnightTheme } from '@rainbow-me/rainbowkit';
-import { optimism, mainnet, base, arbitrum, polygon, zora } from '@wagmi/core/chains';
+import { createConfig, http } from '@wagmi/core';
+import { arbitrum, base, mainnet, optimism, polygon, zora } from '@wagmi/core/chains';
 import { createPublicClient } from 'viem';
 import { isDev } from './env';
-import { Chains } from '@paywithglide/glide-js';
-import { http, createConfig } from '@wagmi/core';
 
 const optimismHttp = http(`https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`);
 

@@ -1,11 +1,24 @@
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+  isToday as _isToday,
+  type CalendarDate,
+  createCalendar,
+  fromDate,
+  getLocalTimeZone,
+  getWeeksInMonth,
+  parseDateTime,
+  toCalendarDate,
+  toCalendarDateTime,
+  today,
+} from '@internationalized/date';
+import type { DateSegment as IDateSegment } from '@react-stately/datepicker';
 import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
-  AriaDatePickerProps,
-  AriaTimeFieldProps,
-  CalendarProps,
-  DateValue,
-  TimeValue,
+  type AriaDatePickerProps,
+  type AriaTimeFieldProps,
+  type CalendarProps,
+  type DateValue,
+  type TimeValue,
   useButton,
   useCalendar,
   useCalendarCell,
@@ -17,32 +30,19 @@ import {
   useTimeField,
 } from 'react-aria';
 import {
-  CalendarState,
-  DateFieldState,
-  DatePickerState,
-  DatePickerStateOptions,
-  TimeFieldStateOptions,
+  type CalendarState,
+  type DateFieldState,
+  type DatePickerState,
+  type DatePickerStateOptions,
+  type TimeFieldStateOptions,
   useCalendarState,
   useDateFieldState,
   useDatePickerState,
   useTimeFieldState,
 } from 'react-stately';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  today,
-  CalendarDate,
-  createCalendar,
-  getLocalTimeZone,
-  getWeeksInMonth,
-  parseDateTime,
-  fromDate,
-  toCalendarDateTime,
-  isToday as _isToday,
-  toCalendarDate,
-} from '@internationalized/date';
-import { DateSegment as IDateSegment } from '@react-stately/datepicker';
+import { cn } from '@/lib/utils';
 
 function Calendar(props: CalendarProps<DateValue>) {
   const prevButtonRef = React.useRef<HTMLButtonElement | null>(null);

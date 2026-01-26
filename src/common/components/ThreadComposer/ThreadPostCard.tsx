@@ -1,16 +1,14 @@
 'use client';
 
-import React from 'react';
-import { DraftType } from '@/common/constants/farcaster';
-import { TrashIcon, PlusIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import { PhotoIcon } from '@heroicons/react/20/solid';
-import { GripVertical, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
+import { PhotoIcon } from '@heroicons/react/20/solid';
+import { CheckCircleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { GripVertical, Loader2 } from 'lucide-react';
 import NewCastEditor from '@/common/components/Editor/NewCastEditor';
+import type { DraftType } from '@/common/constants/farcaster';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 type ThreadPostCardProps = {
   draft: DraftType;

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { makeGraphqlRequest } from '@/common/helpers/graphql';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import get from 'lodash.get';
 import isEmpty from 'lodash.isempty';
+import { useEffect, useState } from 'react';
+import { makeGraphqlRequest } from '@/common/helpers/graphql';
+import { cn } from '@/lib/utils';
 import { openWindow } from '../../helpers/navigation';
 import { EmbedSkeleton } from './EmbedSkeleton';
-import { cn } from '@/lib/utils';
 
 type StatsType = {
   name: string;

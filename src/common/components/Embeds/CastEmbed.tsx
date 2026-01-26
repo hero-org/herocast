@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { CastRow } from '../CastRow';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import isEmpty from 'lodash.isempty';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useEffect, useState } from 'react';
+import { CastRow } from '../CastRow';
 import { EmbedSkeleton } from './EmbedSkeleton';
 
 type CastEmbedProps = {

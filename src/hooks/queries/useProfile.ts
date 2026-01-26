@@ -1,8 +1,8 @@
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useQuery } from '@tanstack/react-query';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { CoordinapeAttestation } from '@/common/helpers/coordinapeAttestations';
+import type { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
 import { queryKeys } from '@/lib/queryKeys';
-import { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
-import { CoordinapeAttestation } from '@/common/helpers/coordinapeAttestations';
 import { profileBatcher } from './profileBatcher';
 
 export type AdditionalUserInfo = {

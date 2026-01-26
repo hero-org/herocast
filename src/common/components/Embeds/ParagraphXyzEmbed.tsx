@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { ParagraphXyzArticleType, getParagraphXyzArticle } from '../../helpers/paragraph';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { openWindow } from '@/common/helpers/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { getParagraphXyzArticle, type ParagraphXyzArticleType } from '../../helpers/paragraph';
 import { EmbedSkeleton } from './EmbedSkeleton';
+
 type ParagraphXyzEmbedProps = {
   url: string;
 };

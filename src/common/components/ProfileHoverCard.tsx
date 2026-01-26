@@ -1,9 +1,9 @@
-import React from 'react';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import Link from 'next/link';
+import type React from 'react';
 import { useInView } from 'react-intersection-observer';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useProfile } from '@/hooks/queries/useProfile';
 import ProfileInfoContent from './ProfileInfoContent';
-import Link from 'next/link';
 
 type ProfileHoverCardProps = {
   fid?: number;

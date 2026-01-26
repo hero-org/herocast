@@ -11,7 +11,7 @@
  */
 
 import { assertEquals, assertExists } from 'https://deno.land/std@0.224.0/assert/mod.ts';
-import { getTestConfig, signInTestUser, makeRequest, expectError, expectSuccess, getTestAccountId } from './helpers.ts';
+import { expectError, getTestAccountId, getTestConfig, makeRequest, signInTestUser } from './helpers.ts';
 
 const config = getTestConfig();
 

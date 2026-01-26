@@ -1,8 +1,8 @@
 'use client';
 
-import React, { forwardRef, useImperativeHandle, useState, useEffect } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import type { FarcasterMention } from '@/common/types/embeds';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FarcasterMention } from '@/common/types/embeds';
 import { cn } from '@/lib/utils';
 import { useIsMounted } from '../helpers/hooks';
 

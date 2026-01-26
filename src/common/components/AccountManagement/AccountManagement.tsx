@@ -1,10 +1,9 @@
-import React from 'react';
-import { AccountObjectType } from '@/stores/useAccountStore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import RenameAccountForm from './RenameAccountForm';
+import type { AccountObjectType } from '@/stores/useAccountStore';
 import ChangeBioForm from './ChangeBioForm';
 import ChangeDisplayNameForm from './ChangeDisplayNameForm';
 import ChangeProfilePictureForm from './ChangeProfilePictureForm';
+import RenameAccountForm from './RenameAccountForm';
 
 type AccountManagementProps = {
   account: AccountObjectType;

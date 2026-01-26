@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { createSignerRequest, getSignerRequestStatus } from '@/common/helpers/warpcastLogin';
 
 export async function POST(request: NextRequest) {

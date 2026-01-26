@@ -1,6 +1,6 @@
-import { unstable_cache } from 'next/cache';
-import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
+import { unstable_cache } from 'next/cache';
+import { type NextRequest, NextResponse } from 'next/server';
 import { join } from 'path';
 
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;

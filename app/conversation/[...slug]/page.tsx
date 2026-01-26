@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { CastThreadView } from '@/common/components/CastThreadView';
 import { useDataStore } from '@/stores/useDataStore';
 

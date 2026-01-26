@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import ConfirmOnchainSignerButton from '@/common/components/ConfirmOnchainSignerButton';
-import SwitchWalletButton from '@/common/components/SwitchWalletButton';
 import { QrCode } from '@/common/components/QrCode';
+import SwitchWalletButton from '@/common/components/SwitchWalletButton';
+import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
 import { getTimestamp } from '@/common/helpers/farcaster';
-import { WarpcastLoginStatus, getWarpcastSignerStatus } from '@/common/helpers/warpcastLogin';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useIsMounted } from '@/common/helpers/hooks';
-import { useRouter } from 'next/navigation';
+import { getWarpcastSignerStatus, WarpcastLoginStatus } from '@/common/helpers/warpcastLogin';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { type AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 

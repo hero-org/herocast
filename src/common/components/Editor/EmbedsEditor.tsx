@@ -1,8 +1,8 @@
-import React from 'react';
-import { FarcasterEmbed, FarcasterUrlEmbed, isUrlEmbed, isImageEmbed } from '@/common/types/embeds';
 import { Cross1Icon } from '@radix-ui/react-icons';
-import { Button } from '@/components/ui/button';
+import type React from 'react';
 import OpenGraphImage from '@/common/components/Embeds/OpenGraphImage';
+import { type FarcasterEmbed, type FarcasterUrlEmbed, isImageEmbed, isUrlEmbed } from '@/common/types/embeds';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 type EmbedsEditorProps = {

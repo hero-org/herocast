@@ -1,4 +1,4 @@
-import { DraftTemplateType, DraftStatus } from './farcaster';
+import { DraftStatus, type DraftTemplateType } from './farcaster';
 
 export const NewPostDraft: DraftTemplateType = {
   text: '',

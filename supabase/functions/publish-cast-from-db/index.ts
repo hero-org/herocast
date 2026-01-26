@@ -1,6 +1,6 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
-import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
+import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import axios from 'npm:axios';
 
 Sentry.init({

@@ -1,13 +1,11 @@
-import React from 'react';
-
-import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
-import { useFollow, useUnfollow } from '@/hooks/mutations/useFollow';
-import { useAccountStore } from '@/stores/useAccountStore';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { useFollow, useUnfollow } from '@/hooks/mutations/useFollow';
+import { useProfileByUsername } from '@/hooks/queries/useProfile';
+import { useAccountStore } from '@/stores/useAccountStore';
 import { AccountPlatformType } from '../constants/accounts';
 import { toastInfoReadOnlyMode } from '../helpers/toast';
-import { useProfileByUsername } from '@/hooks/queries/useProfile';
 
 type ProfileWithViewerContext = {
   fid: number;

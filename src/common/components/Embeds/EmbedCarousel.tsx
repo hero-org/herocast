@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { openWindow } from '@/common/helpers/navigation';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { renderEmbedForUrl } from './index';
-import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
-import { openWindow } from '@/common/helpers/navigation';
 
 type EmbedCarouselProps = {
   embeds: Array<{

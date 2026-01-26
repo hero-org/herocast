@@ -1,5 +1,5 @@
-import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { ChannelType } from '../constants/channels';
+import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { ChannelType } from '../constants/channels';
 
 /**
  * Converts a database ChannelType to Neynar Channel format.

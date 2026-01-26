@@ -1,36 +1,38 @@
 'use client';
 
-import { useDraftStore } from '@/stores/useDraftStore';
-import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { Loading } from '@/common/components/Loading';
 import dynamic from 'next/dynamic';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Loading } from '@/common/components/Loading';
+import { useDraftStore } from '@/stores/useDraftStore';
 
 // Dynamic imports with loading fallback
 const ThreadComposer = dynamic(() => import('@/common/components/ThreadComposer'), {
   loading: () => <Loading loadingMessage="Loading thread composer" />,
   ssr: false,
 });
-import { ClockIcon } from '@heroicons/react/24/outline';
+
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
-import DraftList from './components/DraftList';
-import { Button } from '@/components/ui/button';
-import { CastRow } from '@/common/components/CastRow';
+import { ClockIcon } from '@heroicons/react/24/outline';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { DraftStatus, DraftType } from '@/common/constants/farcaster';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import map from 'lodash.map';
-import { renderEmbedForUrl } from '@/common/components/Embeds';
-import { getUserLocaleDateFromIsoString } from '@/common/helpers/date';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { CastRow } from '@/common/components/CastRow';
 import { ChannelDisplay } from '@/common/components/ChannelDisplay';
-import { useSearchParams, usePathname } from 'next/navigation';
+import { renderEmbedForUrl } from '@/common/components/Embeds';
 import EmptyStateWithAction from '@/common/components/EmptyStateWithAction';
-import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
-import { getPlanLimitsForPlan } from '@/config/planLimits';
 import Modal from '@/common/components/Modal';
+import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
+import { DraftStatus, type DraftType } from '@/common/constants/farcaster';
+import { getUserLocaleDateFromIsoString } from '@/common/helpers/date';
 import { useMediaQuery } from '@/common/hooks/useMediaQuery';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getPlanLimitsForPlan } from '@/config/planLimits';
+import { useAccountStore } from '@/stores/useAccountStore';
+import DraftList from './components/DraftList';
 
 enum DraftListTab {
   writing = 'writing',

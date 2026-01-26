@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import get from 'lodash.get';
+import type React from 'react';
+import { useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
+import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { type DexPair, type PriceChange, useDataStore } from '@/stores/useDataStore';
 import { openWindow } from '../helpers/navigation';
 import { Loading } from './Loading';
-import { useInView } from 'react-intersection-observer';
-import { DexPair, PriceChange, useDataStore } from '@/stores/useDataStore';
-import get from 'lodash.get';
-import { Button } from '@/components/ui/button';
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 
 type CashtagHoverCardProps = {
   tokenSymbol: string;

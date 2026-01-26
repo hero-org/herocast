@@ -1,6 +1,5 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { queryKeys } from '@/lib/queryKeys';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 const DEFAULT_LIMIT = 25;
 

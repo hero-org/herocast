@@ -1,7 +1,6 @@
-import React from 'react';
-import BigOptionSelector from '@/common/components/BigOptionSelector';
-import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
 import { useRouter } from 'next/navigation';
+import BigOptionSelector from '@/common/components/BigOptionSelector';
+import { useAccountStore } from '@/stores/useAccountStore';
 import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
 
 const WelcomeCards = () => {
@@ -47,6 +46,7 @@ const WelcomeCards = () => {
                     width="100%"
                     height="90"
                     style={{ border: '1px solid #EEE', background: 'white' }}
+                    title="Paragraph newsletter signup"
                   ></iframe>
                 ),
               }

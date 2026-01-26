@@ -1,12 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React from 'react';
-import AnalyticsGraph from './AnalyticsGraph';
-import { CombinedActivityData } from '@/common/types/types';
-import { Interval } from '@/common/types/types';
-import { formatLargeNumber } from '@/common/helpers/text';
+import { UTCDate } from '@date-fns/utc';
 import { startOfDay, subDays } from 'date-fns';
 import { fillMissingDaysBetweenDates } from '@/common/helpers/analytics';
-import { UTCDate } from '@date-fns/utc';
+import { formatLargeNumber } from '@/common/helpers/text';
+import { type CombinedActivityData, Interval } from '@/common/types/types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AnalyticsGraph from './AnalyticsGraph';
 
 type StatsWithGraphCard = {
   interval: Interval;

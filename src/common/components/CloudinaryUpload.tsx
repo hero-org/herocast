@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { useCloudinaryUpload } from '@/common/hooks/useCloudinaryUpload';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 
 type CloudinaryUploadProps = {
   onSuccess?: (url: string) => void;

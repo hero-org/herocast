@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export type MiniAppManifest = {
   name: string;

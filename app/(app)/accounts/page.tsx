@@ -1,48 +1,47 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import { UserPlusIcon } from '@heroicons/react/20/solid';
 import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
-import {
-  AccountObjectType,
-  PENDING_ACCOUNT_NAME_PLACEHOLDER,
-  hydrateAccounts,
-  useAccountStore,
-} from '@/stores/useAccountStore';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { filter } from 'lodash';
 import isEmpty from 'lodash.isempty';
-import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { QrCode } from '@/common/components/QrCode';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import SortableList, { SortableItem } from 'react-easy-sort';
 import { useAccount } from 'wagmi';
+import AccountManagementModal from '@/common/components/AccountManagement/AccountManagementModal';
+import AlertDialogDemo from '@/common/components/AlertDialog';
+import ConfirmOnchainSignerButton from '@/common/components/ConfirmOnchainSignerButton';
+import HelpCard from '@/common/components/HelpCard';
+import { QrCode } from '@/common/components/QrCode';
+import SwitchWalletButton from '@/common/components/SwitchWalletButton';
+import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
+import { getTimestamp } from '@/common/helpers/farcaster';
+import { useIsMounted } from '@/common/helpers/hooks';
+import { openWindow } from '@/common/helpers/navigation';
 import {
-  WarpcastLoginStatus,
   callCreateSignerRequest,
   generateWarpcastSigner,
   getWarpcastSignerStatus,
+  WarpcastLoginStatus,
 } from '@/common/helpers/warpcastLogin';
-import HelpCard from '@/common/components/HelpCard';
-import { useIsMounted } from '@/common/helpers/hooks';
-import { useRouter } from 'next/navigation';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import { openWindow } from '@/common/helpers/navigation';
-import ConfirmOnchainSignerButton from '@/common/components/ConfirmOnchainSignerButton';
-import SwitchWalletButton from '@/common/components/SwitchWalletButton';
-import { getTimestamp } from '@/common/helpers/farcaster';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AlertDialogDemo from '@/common/components/AlertDialog';
-import AccountManagementModal from '@/common/components/AccountManagement/AccountManagementModal';
-import { cn } from '@/lib/utils';
-import { filter } from 'lodash';
-import SortableList, { SortableItem } from 'react-easy-sort';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import {
+  type AccountObjectType,
+  hydrateAccounts,
+  PENDING_ACCOUNT_NAME_PLACEHOLDER,
+  useAccountStore,
+} from '@/stores/useAccountStore';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 enum SignupStateEnum {
-  'initial',
-  'connecting',
-  'done',
+  initial,
+  connecting,
+  done,
 }
 
 export default function Accounts() {

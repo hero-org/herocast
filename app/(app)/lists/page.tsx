@@ -1,17 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { BoltIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import Head from 'next/head';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MagnifyingGlassIcon, UserGroupIcon, BoltIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { useListStore } from '@/stores/useListStore';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter, useSearchParams } from 'next/navigation';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { AutoListsView } from '@/common/components/Lists/AutoListsView';
 import { SearchListsView } from '@/common/components/Lists/SearchListsView';
 import { UserListsView } from '@/common/components/Lists/UserListsView';
-import { AutoListsView } from '@/common/components/Lists/AutoListsView';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useListStore } from '@/stores/useListStore';
 
 interface ListTypeCardProps {
   icon: React.ReactNode;

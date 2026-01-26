@@ -3,12 +3,12 @@
  * Handles follow and unfollow operations
  */
 
-import type { AuthResult } from '../lib/types.ts';
-import { FollowRequestSchema, validateRequest } from '../lib/validate.ts';
 import { getAccountForSigning } from '../lib/accounts.ts';
-import { signAndSubmitFollow, removeFollow } from '../lib/sign.ts';
 import { logSigningAction } from '../lib/audit.ts';
 import { corsHeaders, handleError, InvalidRequestError } from '../lib/errors.ts';
+import { removeFollow, signAndSubmitFollow } from '../lib/sign.ts';
+import type { AuthResult } from '../lib/types.ts';
+import { FollowRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**
  * Handle POST /follow - Follow a user

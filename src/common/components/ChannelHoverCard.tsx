@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useMemo, useCallback, memo } from 'react';
+import type React from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { ChannelType } from '../constants/channels';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loading } from './Loading';
-import { Button } from '@/components/ui/button';
+import type { ChannelType } from '../constants/channels';
 import { formatLargeNumber } from '../helpers/text';
 import { LinkifiedText } from './LinkifiedText';
+import { Loading } from './Loading';
 
 type ProfileHoverCardProps = {
   channelName: string;

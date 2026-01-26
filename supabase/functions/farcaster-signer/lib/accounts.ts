@@ -1,6 +1,6 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { SigningAccount } from './types.ts';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { ErrorCodes, SignerServiceError } from './errors.ts';
+import type { SigningAccount } from './types.ts';
 
 /**
  * Retrieves an account for signing operations.

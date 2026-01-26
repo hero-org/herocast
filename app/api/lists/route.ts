@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient, FeedType, FilterType } from '@neynar/nodejs-sdk';
+import { FeedType, FilterType, NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 import { NEYNAR_API_MAX_FIDS_PER_REQUEST } from '@/common/constants/listLimits';
 
 const apiKey = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;

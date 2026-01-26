@@ -1,7 +1,7 @@
-import { unstable_cache } from 'next/cache';
-import { NextRequest, NextResponse } from 'next/server';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { BulkUserAddressTypes } from '@neynar/nodejs-sdk/build/neynar-api/common/constants';
+import { unstable_cache } from 'next/cache';
+import { type NextRequest, NextResponse } from 'next/server';
 
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 

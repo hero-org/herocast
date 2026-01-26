@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Loading } from '@/common/components/Loading';
 import MiniAppHost from '@/common/components/MiniApp/MiniAppHost';
 

@@ -1,42 +1,41 @@
-import React, { Fragment, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ArrowUpCircleIcon, Cog6ToothIcon, PencilSquareIcon, UserIcon } from '@heroicons/react/20/solid';
 import {
   Bars3Icon,
-  UserPlusIcon,
-  BellIcon,
+  ChatBubbleLeftRightIcon,
   MagnifyingGlassIcon,
   NewspaperIcon,
   UserGroupIcon,
-  ChatBubbleLeftRightIcon,
+  UserPlusIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid';
-import { usePathname } from 'next/navigation';
-import Image from 'next/image';
-import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
-import LeftSidebarToggle from '@/common/components/Sidebar/LeftSidebarToggle';
-import RightSidebarToggle from '@/common/components/Sidebar/RightSidebarToggle';
-import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
-import { Toaster } from '@/components/ui/sonner';
-import AccountSwitcher from '@/common/components/Sidebar/AccountSwitcher';
-import { cn } from '@/lib/utils';
-import { Loading } from '@/common/components/Loading';
-import useInitializeStores from '@/common/hooks/useInitializeStores';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AccountPlatformType } from '@/common/constants/accounts';
-import NewCastModal from '@/common/components/NewCastModal';
-import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
-import { useDraftStore } from '@/stores/useDraftStore';
-import Link from 'next/link';
-import { ChartBarIcon } from '@heroicons/react/20/solid';
-import PublishedCastsRightSidebar from '@/common/components/Sidebar/PublishedCastsRightSidebar';
-import { useListStore } from '@/stores/useListStore';
-import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { Inbox } from 'lucide-react';
-import LeftSidebarNav from '@/common/components/Sidebar/LeftSidebarNav';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import type React from 'react';
+import { Fragment, useEffect, useState } from 'react';
+import { Loading } from '@/common/components/Loading';
+import NewCastModal from '@/common/components/NewCastModal';
+import AccountSwitcher from '@/common/components/Sidebar/AccountSwitcher';
 import AuthorContextPanel from '@/common/components/Sidebar/AuthorContextPanel';
+import LeftSidebarNav from '@/common/components/Sidebar/LeftSidebarNav';
+import LeftSidebarToggle from '@/common/components/Sidebar/LeftSidebarToggle';
+import PublishedCastsRightSidebar from '@/common/components/Sidebar/PublishedCastsRightSidebar';
+import RightSidebarToggle from '@/common/components/Sidebar/RightSidebarToggle';
+import { AccountPlatformType } from '@/common/constants/accounts';
+import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
+import useInitializeStores from '@/common/hooks/useInitializeStores';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/sonner';
+import { cn } from '@/lib/utils';
+import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { useListStore } from '@/stores/useListStore';
+import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { RIGHT_SIDEBAR_ENUM } from '../common/constants/navigation';
 
 type NavigationGroupType = {
   name: string;
@@ -332,10 +331,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
   };
 
   const getNavItem = (pathname: string) => {
-    return navigationGroups
-      .map((group) => group.items)
-      .flat()
-      .find((item) => item.router === pathname);
+    return navigationGroups.flatMap((group) => group.items).find((item) => item.router === pathname);
   };
 
   const navItem = getNavItem(pathname);

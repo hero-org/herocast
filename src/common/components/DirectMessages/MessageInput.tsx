@@ -1,10 +1,10 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { Textarea } from '@/components/ui/textarea';
+import { Loader2 } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 interface MessageInputProps {
   onSend: (message: string) => Promise<void>;

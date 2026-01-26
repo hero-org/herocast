@@ -4,6 +4,6 @@ export function randomNumberBetween(min: number, max: number): number {
 
 export const roundToNextDigit = (value: number) => {
   const digits = value.toString().length;
-  const factor = Math.pow(10, digits - 1);
+  const factor = 10 ** (digits - 1);
   return Math.ceil(value / factor) * factor;
 };

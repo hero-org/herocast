@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import Link from 'next/link';
+import type React from 'react';
+import { useState } from 'react';
+import { useInView } from 'react-intersection-observer';
+import { useMediaQuery } from '@/common/hooks/useMediaQuery';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useInView } from 'react-intersection-observer';
 import { useProfile } from '@/hooks/queries/useProfile';
 import ProfileInfoContent from '../ProfileInfoContent';
-import Link from 'next/link';
-import { useMediaQuery } from '@/common/hooks/useMediaQuery';
 
 type ProfileHoverCardProps = {
   fid?: number;

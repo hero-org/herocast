@@ -1,5 +1,5 @@
-import { DirectCastAPIError } from '../helpers/directCastApi';
 import { useAccountStore } from '../../stores/useAccountStore';
+import { DirectCastAPIError } from '../helpers/directCastApi';
 
 export enum DMErrorType {
   INVALID_API_KEY = 'INVALID_API_KEY',
@@ -153,7 +153,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 };
 
 export function calculateBackoffDelay(attempt: number, config: RetryConfig = DEFAULT_RETRY_CONFIG): number {
-  const delay = Math.min(config.baseDelay * Math.pow(config.backoffFactor, attempt - 1), config.maxDelay);
+  const delay = Math.min(config.baseDelay * config.backoffFactor ** (attempt - 1), config.maxDelay);
   // Add jitter to prevent thundering herd
   const jitter = delay * 0.1 * Math.random();
   return Math.floor(delay + jitter);

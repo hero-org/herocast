@@ -1,23 +1,19 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { map, uniq } from 'lodash';
 import isEmpty from 'lodash.isempty';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 import { CastThreadView } from '@/common/components/CastThreadView';
 import { SearchInterface } from '@/common/components/SearchInterface';
 import { SearchResultsView } from '@/common/components/SearchResultsView';
 import { Interval } from '@/common/types/types';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import {
   type RawSearchResult,
   type SearchFilters,
@@ -29,7 +25,6 @@ import {
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDataStore } from '@/stores/useDataStore';
 import { useListStore } from '@/stores/useListStore';
-import { useNavigationStore } from '@/stores/useNavigationStore';
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 5;

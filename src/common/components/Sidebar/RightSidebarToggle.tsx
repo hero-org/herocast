@@ -1,8 +1,8 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
 import { PanelRight } from 'lucide-react';
-import { useNavigationStore } from '@/stores/useNavigationStore';
+import type React from 'react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 
 interface RightSidebarToggleProps {
   className?: string;

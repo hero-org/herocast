@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { HotkeysProvider, useHotkeysContext } from 'react-hotkeys-hook';
 import { usePathname } from 'next/navigation';
+import type React from 'react';
+import { useEffect } from 'react';
+import { HotkeysProvider, useHotkeysContext } from 'react-hotkeys-hook';
 import { getScopesForPage, HotkeyScopes } from '@/common/constants/hotkeys';
-import { useNavigationStore } from '@/stores/useNavigationStore';
 import { useDataStore } from '@/stores/useDataStore';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 
 interface AppHotkeysProviderProps {
   children: React.ReactNode;

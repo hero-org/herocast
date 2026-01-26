@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
 import { UserPlusIcon } from '@heroicons/react/20/solid';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
+import { callCreateSignerRequest, generateWarpcastSigner } from '@/common/helpers/warpcastLogin';
+import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { Button } from '@/components/ui/button';
-import { generateWarpcastSigner, callCreateSignerRequest } from '@/common/helpers/warpcastLogin';
-import { useRouter } from 'next/navigation';
 
 export const CreateAccountPage = () => {
   const [isLoading, setIsLoading] = useState(false);

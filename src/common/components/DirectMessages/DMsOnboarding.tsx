@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import { AlertCircle, ChevronDown, ExternalLink, Lock, MessageSquare } from 'lucide-react';
+import Image from 'next/image';
+import type React from 'react';
+import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, ChevronDown, ExternalLink, Lock, MessageSquare } from 'lucide-react';
 import { useAccountStore } from '@/stores/useAccountStore';
-import Image from 'next/image';
 
 interface DMsOnboardingProps {
   onComplete: () => void;

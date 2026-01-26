@@ -1,14 +1,13 @@
-import { useEditor as useTipTapEditor, Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Mention from '@tiptap/extension-mention';
 import Placeholder from '@tiptap/extension-placeholder';
-import { useState, useCallback, useRef, useEffect } from 'react';
-import type { FarcasterEmbed } from '@/common/types/embeds';
-import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import type { EditorOptions } from '@tiptap/react';
-import { getUrlsInText } from '@/common/helpers/text';
+import { type Editor, useEditor as useTipTapEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { debounce } from 'lodash';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { getUrlsInText } from '@/common/helpers/text';
+import type { FarcasterEmbed } from '@/common/types/embeds';
 
 // Mod-protocol channel type (simplified for our needs)
 export type ModChannel = {

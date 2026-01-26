@@ -1,13 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAccountStore } from '@/stores/useAccountStore';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  DirectCastConversation,
-  DirectCastGroup,
-  DirectCastMessage,
   DIRECT_CAST_API,
+  type DirectCastConversation,
+  type DirectCastGroup,
+  type DirectCastMessage,
 } from '@/common/constants/directCast';
-import { DMTab } from '@/common/components/DirectMessages/DMEmptyState';
 import { useDebouncedCallback } from '@/common/helpers/hooks';
+import { useAccountStore } from '@/stores/useAccountStore';
 
 interface UseDirectMessagesOptions {
   category?: 'default' | 'request' | 'archived';
@@ -92,7 +91,7 @@ function classifyError(error: any): { type: ErrorType; retryable: boolean; waitT
 // Calculate exponential backoff with jitter
 function calculateBackoff(attempt: number, maxBackoff: number = 30000): number {
   const baseDelay = 1000; // 1 second
-  const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), maxBackoff);
+  const delay = Math.min(baseDelay * 2 ** (attempt - 1), maxBackoff);
   // Add jitter (±25%)
   const jitter = delay * 0.25 * (Math.random() * 2 - 1);
   return Math.round(delay + jitter);

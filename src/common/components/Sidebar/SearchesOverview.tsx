@@ -1,11 +1,9 @@
-import React from 'react';
-import { SidebarHeader } from './SidebarHeader';
-import { Badge } from '@/components/ui/badge';
-import { Search, useListStore } from '@/stores/useListStore';
 import { take } from 'lodash';
 import sortBy from 'lodash.sortby';
 import { isDev } from '@/common/helpers/env';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { type Search, useListStore } from '@/stores/useListStore';
 
 type SearchesOverviewProps = {
   onItemClick?: () => void;

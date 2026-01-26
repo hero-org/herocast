@@ -1,8 +1,8 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
 import { CheckCircleIcon } from '@heroicons/react/20/solid';
 import findIndex from 'lodash.findindex';
 import includes from 'lodash.includes';
+import type React from 'react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export type SidebarNavItem = {

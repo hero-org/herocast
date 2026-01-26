@@ -1,19 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useEffect, useState } from 'react';
-
-import { CheckIcon, CaretSortIcon } from '@radix-ui/react-icons';
-
-import { cn } from '@/lib/utils';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import type { PaymentOption } from 'node_modules/@paywithglide/glide-js/dist/types';
+import { useEffect, useState } from 'react';
+import type { Hex } from 'viem';
+import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
-
 import { Command, CommandGroup, CommandItem, CommandList, CommandShortcut } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useAccount } from 'wagmi';
+import { cn } from '@/lib/utils';
 import { getChain, getGlidePaymentOptions } from '../helpers/glide';
-import { PaymentOption } from 'node_modules/@paywithglide/glide-js/dist/types';
-import { Hex } from 'viem';
 import { Loading } from './Loading';
 
 export interface RegistrationTransactionData {

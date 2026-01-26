@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User } from 'lucide-react';
-import { User as NeynarUser } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { User as NeynarUser } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { debounce } from 'lodash';
+import { Loader2, User } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { formatLargeNumber } from '@/common/helpers/text';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 

@@ -1,4 +1,4 @@
-import { DirectCastConversation, DirectCastGroup, DirectCastMessage } from '@/common/constants/directCast';
+import type { DirectCastConversation, DirectCastGroup, DirectCastMessage } from '@/common/constants/directCast';
 
 /**
  * Extract all unique FIDs from conversations, groups, and messages

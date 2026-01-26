@@ -1,9 +1,10 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import type React from 'react';
+import { useEffect } from 'react';
 import { Loading } from '@/common/components/Loading';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
 
 const ProfileIndexPage: React.FC = () => {
   const router = useRouter();

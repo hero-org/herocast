@@ -1,6 +1,6 @@
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import type React from 'react';
 import { useChannelLookup } from '@/common/hooks/useChannelLookup';
+import { Badge } from '@/components/ui/badge';
 
 interface ChannelDisplayProps {
   parentUrl?: string | null;

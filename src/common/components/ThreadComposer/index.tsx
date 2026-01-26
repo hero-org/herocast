@@ -1,25 +1,27 @@
 'use client';
 
-import React, { useCallback, useState, useEffect } from 'react';
-import { useDraftStore } from '@/stores/useDraftStore';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { Button } from '@/components/ui/button';
-import { DocumentTextIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { MAX_THREAD_POSTS, DraftType } from '@/common/constants/farcaster';
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import ThreadPostCard from './ThreadPostCard';
+import { CheckCircleIcon, DocumentTextIcon, PlusIcon } from '@heroicons/react/24/outline';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { CastRow } from '@/common/components/CastRow';
+import HotkeyTooltipWrapper from '@/common/components/HotkeyTooltipWrapper';
+import { type DraftType, MAX_THREAD_POSTS } from '@/common/constants/farcaster';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { useCloudinaryUpload } from '@/common/hooks/useCloudinaryUpload';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -30,12 +32,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import HotkeyTooltipWrapper from '@/common/components/HotkeyTooltipWrapper';
-import { CastRow } from '@/common/components/CastRow';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { useCloudinaryUpload } from '@/common/hooks/useCloudinaryUpload';
-import { CheckCircleIcon } from '@heroicons/react/24/outline';
-import { Loader2 } from 'lucide-react';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import ThreadPostCard from './ThreadPostCard';
 
 const MAX_POST_LENGTH = 320;
 

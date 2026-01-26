@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { Loader2, UsersIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -9,16 +15,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Loader2, UsersIcon } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useListStore } from '@/stores/useListStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import Link from 'next/link';
-import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { useToast } from '@/hooks/use-toast';
+import { useListStore } from '@/stores/useListStore';
 
 interface QuickListManageDialogProps {
   open: boolean;

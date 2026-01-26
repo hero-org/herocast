@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { CommandItem } from '@/components/ui/command';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useRouter } from 'next/navigation';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { CommandItem } from '@/components/ui/command';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
-import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChannelSearchCommandProps {
   query: string;

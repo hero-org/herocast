@@ -1,7 +1,5 @@
-import React from 'react';
 import { ChevronRight } from 'lucide-react';
-import { SidebarGroupLabel } from '@/components/ui/sidebar';
-import { CollapsibleTrigger } from '@/components/ui/collapsible';
+import type React from 'react';
 
 type SidebarCollapsibleHeaderProps = {
   title: React.ReactNode;

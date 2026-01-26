@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
 import * as Sentry from '@sentry/nextjs';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw, Home, Settings } from 'lucide-react';
+import { AlertCircle, Home, RefreshCw, Settings } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface AppErrorProps {
   error: Error & { digest?: string };

@@ -3,12 +3,12 @@
  * Handles profile updates (username, display name, bio, pfp)
  */
 
-import type { AuthResult } from '../lib/types.ts';
-import { UserDataRequestSchema, validateRequest } from '../lib/validate.ts';
 import { getAccountForSigning } from '../lib/accounts.ts';
-import { signAndSubmitUserData } from '../lib/sign.ts';
 import { logSigningAction } from '../lib/audit.ts';
 import { corsHeaders, handleError } from '../lib/errors.ts';
+import { signAndSubmitUserData } from '../lib/sign.ts';
+import type { AuthResult } from '../lib/types.ts';
+import { UserDataRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**
  * Handle POST /user-data - Update user data in Farcaster

@@ -1,13 +1,12 @@
 'use client';
 
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import * as React from 'react';
-
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import { Interval } from '../types/types';
+import { cn } from '@/lib/utils';
+import type { Interval } from '../types/types';
 
 type IntervalFilterProps = {
   intervals: Interval[];

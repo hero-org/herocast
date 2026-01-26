@@ -1,5 +1,5 @@
-import { CommandType } from './common/constants/commands';
 import { ArrowPathRoundedSquareIcon, ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/20/solid';
+import type { CommandType } from './common/constants/commands';
 
 export const getThemeCommands = (theme?: string, setTheme?: (theme: string) => void): CommandType[] =>
   theme && setTheme

@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { SearchFilters, SearchMode, SortType } from '@/services/searchService';
-import { Input } from '@/components/ui/input';
+import { AdjustmentsHorizontalIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import { Interval } from '@/common/types/types';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-import { Badge } from '@/components/ui/badge';
-import { MagnifyingGlassIcon, AdjustmentsHorizontalIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { type SearchFilters, SortType } from '@/services/searchService';
 import { SearchFiltersPanel } from './SearchFiltersPanel';
-import { Interval } from '@/common/types/types';
 
 interface SearchInterfaceMobileProps {
   searchTerm: string;

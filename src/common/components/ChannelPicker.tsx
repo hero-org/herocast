@@ -1,15 +1,15 @@
+import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { Cross2Icon, PersonIcon } from '@radix-ui/react-icons';
+import Fuse from 'fuse.js';
+import { take } from 'lodash';
+import orderBy from 'lodash.orderby';
+import uniqBy from 'lodash.uniqby';
 import * as React from 'react';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { take } from 'lodash';
-import { useEffect, useRef } from 'react';
-import uniqBy from 'lodash.uniqby';
-import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { PersonIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { formatLargeNumber } from '../helpers/text';
-import Fuse from 'fuse.js';
-import orderBy from 'lodash.orderby';
 
 // Strip URL scheme for better Fuse.js matching
 const stripUrlScheme = (url: string | undefined): string => {

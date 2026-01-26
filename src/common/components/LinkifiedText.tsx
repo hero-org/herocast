@@ -1,5 +1,5 @@
-import React from 'react';
 import Linkify from 'linkify-react';
+import type React from 'react';
 import { cn } from '@/lib/utils';
 
 export interface LinkifiedTextProps {

@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback, useState, forwardRef, useImperativeHandle } from 'react';
+import { type Notification, NotificationTypeEnum } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { formatDistanceToNowStrict } from 'date-fns';
+import isEmpty from 'lodash.isempty';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { Notification, NotificationTypeEnum, CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { CastRow } from '@/common/components/CastRow';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
-import { InboxPanelConfig } from '@/common/types/workspace.types';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRouter } from 'next/navigation';
-import isEmpty from 'lodash.isempty';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { formatLargeNumber } from '@/common/helpers/text';
-import Link from 'next/link';
+import type { InboxPanelConfig } from '@/common/types/workspace.types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAccountStore } from '@/stores/useAccountStore';
 
 export interface InboxPanelHandle {
   refresh: () => void;

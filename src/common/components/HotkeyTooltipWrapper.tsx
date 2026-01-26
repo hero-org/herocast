@@ -1,7 +1,7 @@
 // needs to be wrapped in <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
-import React from 'react';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import type React from 'react';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 type HotkeyTooltipWrapperProps = {
   hotkey?: string | React.ReactNode;

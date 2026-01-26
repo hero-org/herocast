@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import type React from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
+import { cn } from '@/lib/utils';
 
 // Compact styling for sidebar context
 const kbdClassName = 'h-4 min-w-4 text-[10px]';

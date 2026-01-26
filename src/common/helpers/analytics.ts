@@ -1,5 +1,5 @@
-import { AggregatedAnalytics } from '../types/types';
 import { UTCDate } from '@date-fns/utc';
+import type { AggregatedAnalytics } from '../types/types';
 
 export const fillMissingDaysBetweenDates = (data: AggregatedAnalytics[], startDate: Date, endDate: Date) => {
   if (!data || data.length === 0) {

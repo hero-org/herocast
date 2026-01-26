@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import type { User as NeynarUser } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { AlertCircle, User, X } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MessageInput } from './MessageInput';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { X, AlertCircle, User } from 'lucide-react';
-import { User as NeynarUser } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { InlineUserSearch } from './InlineUserSearch';
+import { MessageInput } from './MessageInput';
 
 interface NewConversationDialogProps {
   open: boolean;

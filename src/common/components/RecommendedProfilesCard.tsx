@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useEffect, useState } from 'react';
 import FollowButton from './FollowButton';
 import { LinkifiedText } from './LinkifiedText';
 

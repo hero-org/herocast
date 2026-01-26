@@ -1,8 +1,7 @@
-import React from 'react';
-import { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { forwardRef, useImperativeHandle, useState, useEffect } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
+import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import clsx from 'clsx';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type ChannelListRef = {
   onKeyDown: (props: { event: Event }) => boolean;

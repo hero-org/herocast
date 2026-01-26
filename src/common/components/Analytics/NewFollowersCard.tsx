@@ -1,11 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React, { useMemo } from 'react';
-import AnalyticsGraph from './AnalyticsGraph';
-import { CombinedActivityData } from '@/common/types/types';
-import { Interval } from '@/common/types/types';
-import { formatLargeNumber } from '@/common/helpers/text';
 import { subDays } from 'date-fns';
+import { useMemo } from 'react';
 import { fillMissingDaysBetweenDates } from '@/common/helpers/analytics';
+import { formatLargeNumber } from '@/common/helpers/text';
+import { type CombinedActivityData, Interval } from '@/common/types/types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AnalyticsGraph from './AnalyticsGraph';
 
 type NewFollowersCardProps = {
   followerCount: number | undefined;

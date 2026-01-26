@@ -1,12 +1,11 @@
+export { SearchQueryBuilder } from './searchQueryBuilder';
 export {
-  searchService,
-  SearchService,
-  SearchMode,
-  SortType,
+  type RawSearchResult,
   type SearchFilters,
+  SearchMode,
   type SearchParams,
   type SearchResponse,
-  type RawSearchResult,
+  SearchService,
+  SortType,
+  searchService,
 } from './searchService';
-
-export { SearchQueryBuilder } from './searchQueryBuilder';

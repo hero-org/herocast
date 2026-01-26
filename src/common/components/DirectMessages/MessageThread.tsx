@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { MessageSquareOff } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
+import { useSmoothScroll } from '@/common/hooks/useSmoothScroll';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNowStrict } from 'date-fns';
-import { ChevronDown, MessageSquareOff } from 'lucide-react';
 import { DMErrorBoundary } from './DMErrorBoundary';
-import { useSmoothScroll } from '@/common/hooks/useSmoothScroll';
-import ProfileHoverCard from './ProfileHoverCard';
 import { MessageInput } from './MessageInput';
 import { MessageStatus } from './MessageStatus';
+import ProfileHoverCard from './ProfileHoverCard';
 
 export interface Message {
   id: string;

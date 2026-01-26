@@ -9,17 +9,15 @@ export const dynamic = 'force-dynamic';
 
 import { BoltIcon, CheckIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { AutoInteractionContentFilters } from '@/common/components/Lists/AutoInteractionContentFilters';
 import { AutoInteractionHistory } from '@/common/components/Lists/AutoInteractionHistory';
-import { AutoInteractionSettings } from '@/common/components/Lists/AutoInteractionSettings';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
 import { type AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -41,7 +39,7 @@ import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProf
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { type AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
-import { isAutoInteractionList, useListStore } from '@/stores/useListStore';
+import { useListStore } from '@/stores/useListStore';
 
 export default function AutoInteractionsPage() {
   const router = useRouter();

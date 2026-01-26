@@ -1,5 +1,5 @@
-import React from 'react';
-import { MessageSquare, Users, Archive } from 'lucide-react';
+import { Archive, MessageSquare, Users } from 'lucide-react';
+import type React from 'react';
 
 export enum DMTab {
   conversations = 'conversations',

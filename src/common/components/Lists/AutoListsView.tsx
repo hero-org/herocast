@@ -1,16 +1,16 @@
-import React, { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { List } from '@/common/types/database.types';
-import { AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { BoltIcon, PlusIcon, HeartIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, BoltIcon, HeartIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
+import type { List } from '@/common/types/database.types';
+import type { AutoInteractionListContent } from '@/common/types/list.types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 

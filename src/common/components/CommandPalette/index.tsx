@@ -1,52 +1,44 @@
 'use client';
 
-import React, { useMemo, useState, useCallback, ComponentType, SVGProps, useEffect, useRef } from 'react';
-import { CommandType } from '@/common/constants/commands';
-import { accountCommands, getChannelCommands, useAccountStore } from '@/stores/useAccountStore';
-import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
-import { newPostCommands, useDraftStore } from '@/stores/useDraftStore';
-import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
-import { hotkeyDefinitions, hotkeyCategories } from '@/common/services/shortcuts/hotkeyDefinitions';
-import { SearchIcon, AtSymbolIcon, ArrowPathRoundedSquareIcon } from '@heroicons/react/20/solid';
-import { useRecentCommands } from '@/common/hooks/useRecentCommands';
-import { findCommandByAlias } from '@/common/constants/commandAliases';
-import styles from './CommandPalette.module.css';
-import { NewFeedbackPostDraft } from '@/common/constants/postDrafts';
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandShortcut,
-} from '@/components/ui/command';
+  ArrowPathRoundedSquareIcon,
+  ArrowsUpDownIcon,
+  MagnifyingGlassCircleIcon,
+  UserCircleIcon,
+} from '@heroicons/react/20/solid';
+import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import commandScore from 'command-score';
+import { HeartIcon } from 'lucide-react';
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { type ComponentType, type SVGProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { findCommandByAlias } from '@/common/constants/commandAliases';
+import type { CommandType } from '@/common/constants/commands';
+import { NewFeedbackPostDraft } from '@/common/constants/postDrafts';
+import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
+import { useRecentCommands } from '@/common/hooks/useRecentCommands';
+import { hotkeyDefinitions } from '@/common/services/shortcuts/hotkeyDefinitions';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { KeyboardShortcutSingle } from '@/components/ui/keyboard-shortcut-single';
-import { ChartBarIcon, MagnifyingGlassCircleIcon, UserCircleIcon, ArrowsUpDownIcon } from '@heroicons/react/20/solid';
-import Image from 'next/image';
-import commandScore from 'command-score';
-import { useRouter, usePathname } from 'next/navigation';
 import { getNavigationCommands } from '@/getNavigationCommands';
-import { useTheme } from 'next-themes';
 import { getThemeCommands } from '@/getThemeCommands';
-import { formatShortcut } from '@/common/helpers/text';
-import { useDataStore } from '@/stores/useDataStore';
-import { Skeleton } from '@/components/ui/skeleton';
-import { FARCASTER_LOGO_URL, isWarpcastUrl, parseWarpcastUrl } from '@/common/helpers/warpcast';
 import { cn } from '@/lib/utils';
+import { accountCommands, getChannelCommands, useAccountStore } from '@/stores/useAccountStore';
+import { useDataStore } from '@/stores/useDataStore';
+import { newPostCommands, useDraftStore } from '@/stores/useDraftStore';
+import { useNavigationStore } from '@/stores/useNavigationStore';
+import { endTiming, startTiming } from '@/stores/usePerformanceStore';
 import { ChannelSearchCommand } from './ChannelSearchCommand';
+import styles from './CommandPalette.module.css';
 import { UserSearchCommand } from './UserSearchCommand';
-import { startTiming, endTiming } from '@/stores/usePerformanceStore';
-import { HeartIcon } from 'lucide-react';
-import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 
 const MIN_SCORE_THRESHOLD = 0.0015;
 
 // Cache static commands that don't depend on user state
 // eslint-disable-next-line prefer-const
-let cachedStaticCommands: CommandType[] | null = null;
+const cachedStaticCommands: CommandType[] | null = null;
 let cachedFarcasterBotCommands: CommandType[] | null = null;
 
 const createFarcasterBotCommand = (name: string, action: () => void, navigateTo?: string): CommandType => ({
@@ -146,16 +138,6 @@ export default function CommandPalette() {
           enableOnFormTags: false,
         },
         icon: UserCircleIcon,
-      },
-      {
-        name: 'Your Analytics',
-        action: () => {
-          const state = useAccountStore.getState();
-          const fid = state.accounts[state.selectedAccountIdx]?.platformAccountId;
-          const route = fid ? `/analytics?fid=${fid}` : '/analytics';
-          router.push(route);
-        },
-        icon: ChartBarIcon,
       },
     ],
     [router]

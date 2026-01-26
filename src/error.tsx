@@ -1,4 +1,3 @@
-import React from 'react';
 // import herocastImg from '../public/images/herocast.png';
 
 export default function ErrorPage() {

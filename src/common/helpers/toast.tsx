@@ -1,5 +1,5 @@
-import { toast } from 'sonner';
 import truncate from 'lodash.truncate';
+import { toast } from 'sonner';
 import { openWindow } from './navigation';
 
 export const toastInfoReadOnlyMode = () => {

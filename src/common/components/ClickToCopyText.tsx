@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import { addToClipboard } from '../helpers/clipboard';
 
 type ClickToCopyTextProps = {

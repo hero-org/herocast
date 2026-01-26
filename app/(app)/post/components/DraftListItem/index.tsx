@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
-import { ClockIcon, TrashIcon, CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, ClockIcon, DocumentDuplicateIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { formatDistanceToNow } from 'date-fns';
+import type React from 'react';
+import { ChannelDisplay } from '@/common/components/ChannelDisplay';
+import { DraftStatus, type DraftType } from '@/common/constants/farcaster';
+import { getUserLocaleDateFromIsoString } from '@/common/helpers/date';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
-import { DraftStatus, DraftType } from '@/common/constants/farcaster';
-import { getUserLocaleDateFromIsoString } from '@/common/helpers/date';
-import { ChannelDisplay } from '@/common/components/ChannelDisplay';
 import { useDraftStore } from '@/stores/useDraftStore';
 
 type DraftListItemProps = {

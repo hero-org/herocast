@@ -1,5 +1,3 @@
-import React from 'react';
-
 const EmptyRightSidebar = () => {
   return (
     <aside className="bg-background md:sticky md:bottom-0 md:right-0 md:top-16 md:w-48 lg:w-64 md:overflow-y-auto md:border-l md:border-white/5 h-screen top-0  w-full overflow-y-auto">

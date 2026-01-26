@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { NeynarAPIClient, CastParamType } from '@neynar/nodejs-sdk';
+import { CastParamType, NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 
 const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes within 20 seconds
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';

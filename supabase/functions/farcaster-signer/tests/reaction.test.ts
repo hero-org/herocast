@@ -8,14 +8,14 @@
 
 import { assertEquals, assertExists } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import {
-  getTestConfig,
-  signInTestUser,
-  makeRequest,
   expectError,
   expectSuccess,
   getTestAccountId,
-  TestUser,
+  getTestConfig,
+  makeRequest,
   SKIP_NO_ACCOUNT,
+  signInTestUser,
+  type TestUser,
 } from './helpers.ts';
 
 const config = getTestConfig();
@@ -25,7 +25,7 @@ const TEST_USER = {
   password: 'test-password-123',
 };
 
-let cachedAuth: { user: TestUser; accountId: string } | null | undefined = undefined;
+let cachedAuth: { user: TestUser; accountId: string } | null | undefined;
 
 async function getAuth(): Promise<{ user: TestUser; accountId: string } | null> {
   if (cachedAuth !== undefined) return cachedAuth;

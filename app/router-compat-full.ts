@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter as useNavigationRouter, usePathname, useSearchParams, useParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
+import { useRouter as useNavigationRouter, useParams, usePathname } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 // Types matching next/router exactly
 export interface NextRouter {

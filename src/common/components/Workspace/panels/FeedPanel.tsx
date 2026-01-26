@@ -1,23 +1,23 @@
 'use client';
 
-import React, { useEffect, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import isEmpty from 'lodash.isempty';
+import { useRouter } from 'next/navigation';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { useTrendingFeedInfinite, flattenTrendingFeedPages } from '@/hooks/queries/useTrendingFeed';
-import { useFollowingFeedInfinite, flattenFollowingFeedPages } from '@/hooks/queries/useFollowingFeed';
-import { useChannelFeedInfinite, flattenChannelFeedPages } from '@/hooks/queries/useChannelFeed';
-import { useFidListFeedInfinite, flattenFidListFeedPages } from '@/hooks/queries/useFidListFeed';
-import { useSearchListFeedInfinite, flattenSearchListFeedPages } from '@/hooks/queries/useSearchListFeed';
 import { CastRow } from '@/common/components/CastRow';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
-import { FeedPanelConfig } from '@/common/types/workspace.types';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
-import { useRouter } from 'next/navigation';
-import isEmpty from 'lodash.isempty';
+import { isFidListContent, isSearchListContent } from '@/common/types/list.types';
+import type { FeedPanelConfig } from '@/common/types/workspace.types';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { flattenChannelFeedPages, useChannelFeedInfinite } from '@/hooks/queries/useChannelFeed';
+import { flattenFidListFeedPages, useFidListFeedInfinite } from '@/hooks/queries/useFidListFeed';
+import { flattenFollowingFeedPages, useFollowingFeedInfinite } from '@/hooks/queries/useFollowingFeed';
+import { flattenSearchListFeedPages, useSearchListFeedInfinite } from '@/hooks/queries/useSearchListFeed';
+import { flattenTrendingFeedPages, useTrendingFeedInfinite } from '@/hooks/queries/useTrendingFeed';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
-import { isFidListContent, isSearchListContent } from '@/common/types/list.types';
 
 const DEFAULT_FEED_PAGE_SIZE = 10;
 const PREFETCH_THRESHOLD = 3; // Load more when 3 items from end

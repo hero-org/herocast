@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { getUrlsInText, isImageUrl } from '@/common/helpers/text';
-import { LinkifiedText } from '@/common/components/LinkifiedText';
+import type React from 'react';
+import { useState } from 'react';
 import OpenGraphImage from '@/common/components/Embeds/OpenGraphImage';
+import { LinkifiedText } from '@/common/components/LinkifiedText';
+import { getUrlsInText, isImageUrl } from '@/common/helpers/text';
+import { cn } from '@/lib/utils';
 
 interface MessageBubbleProps {
   text: string;

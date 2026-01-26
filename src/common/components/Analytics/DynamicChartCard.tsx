@@ -1,15 +1,15 @@
-import React, { useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnalyticsData, Interval } from '@/common/types/types';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { format, subDays } from 'date-fns';
+import React, { useMemo } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { cn } from '@/lib/utils';
+import { roundToNextDigit } from '@/common/helpers/math';
+import { type AnalyticsData, Interval } from '@/common/types/types';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
-import { roundToNextDigit } from '@/common/helpers/math';
+import { cn } from '@/lib/utils';
 
 type DynamicChartCardProps = {
   interval: Interval;

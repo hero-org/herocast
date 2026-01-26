@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ChannelType } from '../constants/channels';
+import { useEffect, useState } from 'react';
+import type { ChannelType } from '../constants/channels';
 import { createClient } from '../helpers/supabase/component';
 
 // Simple in-memory cache for recently looked up channels

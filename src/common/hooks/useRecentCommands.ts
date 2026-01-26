@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { CommandType } from '../constants/commands';
+import type { CommandType } from '../constants/commands';
 
 const STORAGE_KEY = 'herocast_recent_commands';
 const MAX_RECENT_COMMANDS = 10;

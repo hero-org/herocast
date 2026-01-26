@@ -1,6 +1,5 @@
-import React from 'react';
+import { AlertCircle, Clock, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Check, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MessageStatusProps {

@@ -1,4 +1,4 @@
-import { Properties } from 'csstype';
+import type { Properties } from 'csstype';
 
 export const castTextStyle = {
   whiteSpace: 'pre-wrap',

@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { UserDataType } from '@farcaster/hub-web';
-import { setUserDataInProtocol } from '@/common/helpers/farcaster';
-import { AccountObjectType } from '@/stores/useAccountStore';
 import { Cog6ToothIcon } from '@heroicons/react/20/solid';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import CloudinaryUpload from '../CloudinaryUpload';
+import { setUserDataInProtocol } from '@/common/helpers/farcaster';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import type { AccountObjectType } from '@/stores/useAccountStore';
+import CloudinaryUpload from '../CloudinaryUpload';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 

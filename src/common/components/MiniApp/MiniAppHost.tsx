@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Context, Manifest } from '@farcaster/miniapp-host';
-import type { MiniAppHost as MiniAppHostSDK } from '@farcaster/miniapp-host';
-import { useAccount, useWalletClient } from 'wagmi';
-import { MiniAppSplash } from './MiniAppSplash';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { cn } from '@/lib/utils';
-import { sanitizeManifest, sanitizeIframeSrc, getAllowedOrigins, isValidHttpsUrl, escapeHtml } from './security';
+import type { Context, Manifest, MiniAppHost as MiniAppHostSDK } from '@farcaster/miniapp-host';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createSiweMessage } from 'viem/siwe';
+import { useAccount, useWalletClient } from 'wagmi';
+import { cn } from '@/lib/utils';
+import { useAccountStore } from '@/stores/useAccountStore';
 import { exposeToIframeWithMultipleOrigins } from './exposeToIframeMultiOrigin';
+import { MiniAppSplash } from './MiniAppSplash';
+import { getAllowedOrigins, isValidHttpsUrl, sanitizeIframeSrc, sanitizeManifest } from './security';
 
 export interface MiniAppHostProps {
   url: string;

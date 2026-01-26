@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useState } from 'react';
+import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
+import type { Account } from '@/common/types/database.types';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
+import { Switch } from '@/components/ui/switch';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { Account } from '@/common/types/database.types';
 import { AutoInteractionContentFilters } from './AutoInteractionContentFilters';
 
 interface AutoInteractionSettingsProps {

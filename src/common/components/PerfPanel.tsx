@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { usePerformanceStore, startTiming, endTiming } from '@/stores/usePerformanceStore';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { endTiming, startTiming, usePerformanceStore } from '@/stores/usePerformanceStore';
 
 export const PerfPanel: React.FC = () => {
   const { metrics, clearMetrics } = usePerformanceStore();

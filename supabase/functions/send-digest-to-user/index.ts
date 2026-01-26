@@ -3,11 +3,11 @@
 // This enables autocomplete, go to definition, etc.
 import 'https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts';
 
-import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'npm:resend';
-import { runFarcasterCastSearch } from '../_shared/searchService.ts';
-import { getHtmlEmail } from '../_shared/email.ts';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
+import { Resend } from 'npm:resend';
+import { createClient } from '@supabase/supabase-js';
+import { getHtmlEmail } from '../_shared/email.ts';
+import { runFarcasterCastSearch } from '../_shared/searchService.ts';
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),

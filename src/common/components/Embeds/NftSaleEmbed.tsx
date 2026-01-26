@@ -1,9 +1,8 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { parseNftSaleUrl, getZapperNftSaleUrl } from '@/common/helpers/onchain';
-import { Skeleton } from '@/components/ui/skeleton';
-import { openWindow } from '@/common/helpers/navigation';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { useQuery } from '@tanstack/react-query';
+import { openWindow } from '@/common/helpers/navigation';
+import { getZapperNftSaleUrl, parseNftSaleUrl } from '@/common/helpers/onchain';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 type NftMetadataResponse = {

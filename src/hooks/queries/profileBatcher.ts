@@ -1,5 +1,5 @@
-import { create, windowScheduler, keyResolver } from '@yornaath/batshit';
-import { ProfileData } from './useProfile';
+import { create, keyResolver, windowScheduler } from '@yornaath/batshit';
+import type { ProfileData } from './useProfile';
 
 /**
  * Profile request batcher using batshit.

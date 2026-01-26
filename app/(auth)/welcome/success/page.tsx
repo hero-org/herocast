@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import {
   CheckCircleIcon,
   MagnifyingGlassIcon,
@@ -8,20 +7,21 @@ import {
   RectangleGroupIcon,
   UserIcon,
 } from '@heroicons/react/20/solid';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
-import { useDraftStore } from '@/stores/useDraftStore';
-import { JoinedHerocastPostDraft } from '@/common/constants/postDrafts';
 import Link from 'next/link';
-import { Progress } from '@/components/ui/progress';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { DraftStatus } from '@/common/constants/farcaster';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { useListStore } from '@/stores/useListStore';
 import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { JoinedHerocastPostDraft } from '@/common/constants/postDrafts';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useDraftStore } from '@/stores/useDraftStore';
+import { useListStore } from '@/stores/useListStore';
 
 enum OnboardingStep {
   login_to_herocast = 'login_to_herocast',

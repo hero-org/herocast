@@ -1,7 +1,6 @@
-import { useQuery, useQueries } from '@tanstack/react-query';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
-import { ProfileData } from './useProfile';
+import type { ProfileData } from './useProfile';
 
 const BATCH_SIZE = 100; // Neynar API limit per request
 

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { AlertCircle, Clock, ExternalLink, Key, Loader2, RefreshCw, WifiOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { DMErrorType, getErrorInfo } from '@/common/utils/dmErrors';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Clock, Key, RefreshCw, WifiOff, ExternalLink, Loader2 } from 'lucide-react';
-import { getErrorInfo, DMErrorType, DMErrorInfo } from '@/common/utils/dmErrors';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 
 interface RetryButtonProps {
   onRetry: () => void | Promise<void>;

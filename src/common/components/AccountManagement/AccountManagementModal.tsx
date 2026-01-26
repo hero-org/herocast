@@ -1,11 +1,11 @@
-import React from 'react';
-import Modal from '../Modal';
-import { AccountObjectType } from '@/stores/useAccountStore';
-import AccountManagement from './AccountManagement';
-import { AccountPlatformType } from '@/common/constants/accounts';
 import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
-import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import type React from 'react';
+import { AccountPlatformType } from '@/common/constants/accounts';
+import { Button } from '@/components/ui/button';
+import type { AccountObjectType } from '@/stores/useAccountStore';
+import Modal from '../Modal';
+import AccountManagement from './AccountManagement';
 
 type AccountManagementModalProps = {
   account?: AccountObjectType;

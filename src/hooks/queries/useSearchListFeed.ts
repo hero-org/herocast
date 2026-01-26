@@ -1,8 +1,8 @@
+import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { queryKeys } from '@/lib/queryKeys';
-import { searchService, SearchFilters } from '@/services/searchService';
 import { Interval } from '@/common/types/types';
+import { queryKeys } from '@/lib/queryKeys';
+import { type SearchFilters, searchService } from '@/services/searchService';
 
 const DEFAULT_LIMIT = 15;
 

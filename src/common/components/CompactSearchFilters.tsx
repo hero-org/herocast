@@ -1,8 +1,8 @@
-import React from 'react';
-import { SearchFilters, SearchMode, SortType } from '@/services/searchService';
-import { Badge } from '@/components/ui/badge';
+import type React from 'react';
 import { Interval } from '@/common/types/types';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { type SearchFilters, SortType } from '@/services/searchService';
 
 interface CompactSearchFiltersProps {
   filters: SearchFilters;

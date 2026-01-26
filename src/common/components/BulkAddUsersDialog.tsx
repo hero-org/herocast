@@ -1,6 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,15 +14,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 interface BulkAddUsersDialogProps {
   open: boolean;

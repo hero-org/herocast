@@ -4,20 +4,17 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { createClient } from '@supabase/supabase-js';
+import { PostgreSQLDriver } from 'https://deno.land/x/kysely_deno_postgres/mod.ts';
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
-import { Database } from '../_shared/db.ts';
+import { createClient } from '@supabase/supabase-js';
+import { Kysely, PostgresAdapter, PostgresIntrospector, PostgresQueryCompiler } from 'kysely';
+import { corsHeaders } from '../_shared/cors.ts';
 import {
   buildAnalyticsQuery,
   formatResponseSection,
   getRecentUnfollows,
   getTopCasts,
 } from '../_shared/queryHelpers.ts';
-import { corsHeaders } from '../_shared/cors.ts';
-import { Kysely, PostgresAdapter, PostgresDialect, PostgresIntrospector, PostgresQueryCompiler, sql } from 'kysely';
-// import { Client } from "postgres";
-import { Pool } from 'https://deno.land/x/postgres@v0.17.0/mod.ts';
-import { PostgreSQLDriver } from 'https://deno.land/x/kysely_deno_postgres/mod.ts';
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),

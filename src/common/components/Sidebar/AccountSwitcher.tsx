@@ -1,10 +1,13 @@
 'use client';
 
-import * as React from 'react';
 import { CaretSortIcon, PlusCircledIcon } from '@radix-ui/react-icons';
-
-import { cn } from '@/lib/utils';
+import get from 'lodash.get';
+import map from 'lodash.map';
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
+import { AccountPlatformType } from '@/common/constants/accounts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -16,13 +19,8 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useRouter } from 'next/navigation';
-import { AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
-import map from 'lodash.map';
-import { AccountPlatformType } from '@/common/constants/accounts';
-import { Badge } from '@/components/ui/badge';
-import get from 'lodash.get';
-import { UserGroupIcon } from '@heroicons/react/24/outline';
+import { cn } from '@/lib/utils';
+import { type AccountObjectType, PENDING_ACCOUNT_NAME_PLACEHOLDER, useAccountStore } from '@/stores/useAccountStore';
 
 const groups = [
   {

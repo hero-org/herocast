@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache';
-import { NextRequest, NextResponse } from 'next/server';
-import { getIcebreakerSocialInfoForFid } from '@/common/helpers/icebreaker';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getCoordinapeInfoForAddresses } from '@/common/helpers/coordinapeAttestations';
+import { getIcebreakerSocialInfoForFid } from '@/common/helpers/icebreaker';
 
 async function fetchAdditionalProfileInfoUncached(fid: number, addresses: string) {
   // Get additional profile info in parallel

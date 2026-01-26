@@ -1,6 +1,6 @@
-import { useHotkeys, Options } from 'react-hotkeys-hook';
-import { HotkeyScope } from '@/common/constants/hotkeys';
 import { useCallback } from 'react';
+import { type Options, useHotkeys } from 'react-hotkeys-hook';
+import type { HotkeyScope } from '@/common/constants/hotkeys';
 
 interface AppHotkeyOptions extends Options {
   scopes?: HotkeyScope | HotkeyScope[];

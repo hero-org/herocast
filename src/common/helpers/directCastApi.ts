@@ -1,4 +1,4 @@
-import { DIRECT_CAST_API, DirectCastError } from '../constants/directCast';
+import { DIRECT_CAST_API, type DirectCastError } from '../constants/directCast';
 
 export class DirectCastAPIError extends Error {
   constructor(

@@ -1,4 +1,4 @@
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 
 type GetUserDataForFidOrUsernameProps = {
   username?: string;

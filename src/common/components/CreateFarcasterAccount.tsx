@@ -8,7 +8,7 @@ import {
 import { ArrowPathIcon, Cog6ToothIcon } from '@heroicons/react/20/solid';
 import type { PaymentOption } from '@paywithglide/glide-js';
 import { NoPaymentOptionsError } from '@paywithglide/glide-js';
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { formatEther, type Hex } from 'viem';
 import {
   useAccount,

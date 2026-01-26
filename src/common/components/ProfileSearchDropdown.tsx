@@ -1,19 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { CheckIcon, CaretSortIcon } from '@radix-ui/react-icons';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import debounce from 'lodash.debounce';
-import { CommandLoading } from 'cmdk';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import uniqBy from 'lodash.uniqby';
+import { useEffect, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { type AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
 import { getUserDataForFidOrUsername } from '../helpers/neynar';
 import { formatLargeNumber } from '../helpers/text';
-import { AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
 
 type ProfileSearchDropdownProps = {
   disabled?: boolean;

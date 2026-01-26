@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import type React from 'react';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import type { DraftType } from '@/common/constants/farcaster';
 import DraftListItem from '../DraftListItem';
-import { DraftType } from '@/common/constants/farcaster';
 
 type DraftListProps = {
   drafts: DraftType[];

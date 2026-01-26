@@ -32,7 +32,7 @@ export function localize(value: number, str: string): string {
   return `${value}${str}`;
 }
 
-import { parseISO, formatDistanceToNow } from 'date-fns';
+import { parseISO } from 'date-fns';
 
 export const getUserLocaleDateFromIsoString = (
   isoString: string,

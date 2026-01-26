@@ -1,48 +1,44 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { useAccountStore } from '@/stores/useAccountStore';
-import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import isEmpty from 'lodash.isempty';
+import { Archive, CheckCheck, MessageSquare, MoreHorizontal, Plus, RefreshCw, Users } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Loading } from '@/common/components/Loading';
-import { useNavigationStore } from '@/stores/useNavigationStore';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { formatDistanceToNowStrict } from 'date-fns';
+import { toast } from 'sonner';
+import { ConversationListItem } from '@/common/components/DirectMessages/ConversationListItem';
+import { DMEmptyState, DMTab } from '@/common/components/DirectMessages/DMEmptyState';
+import { DMErrorBoundary } from '@/common/components/DirectMessages/DMErrorBoundary';
+import { DMErrorState } from '@/common/components/DirectMessages/DMErrorState';
+import { DMLoadingState } from '@/common/components/DirectMessages/DMLoadingState';
+import { DMsOnboarding } from '@/common/components/DirectMessages/DMsOnboarding';
+import { MessageSkeleton } from '@/common/components/DirectMessages/MessageSkeleton';
+import { type Message, MessageThread } from '@/common/components/DirectMessages/MessageThread';
+import { NewConversationDialog } from '@/common/components/DirectMessages/NewConversationDialog';
+import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import type { DirectCastConversation, DirectCastGroup } from '@/common/constants/directCast';
+import { HotkeyScopes } from '@/common/constants/hotkeys';
+import {
+  extractFidsFromDMData,
+  getAvatarFallback,
+  getSafeDisplayName,
+  getSafeUsername,
+} from '@/common/helpers/dmProfiles';
+import { useDirectMessages, useDirectMessageThread } from '@/common/hooks/useDirectMessages';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, RefreshCw, MessageSquare, Users, Archive, CheckCheck, Settings, Plus } from 'lucide-react';
 import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
-import { MessageThread, Message } from '@/common/components/DirectMessages/MessageThread';
-import { MessageSkeleton } from '@/common/components/DirectMessages/MessageSkeleton';
-import { DMsOnboarding } from '@/common/components/DirectMessages/DMsOnboarding';
-import { DMErrorBoundary } from '@/common/components/DirectMessages/DMErrorBoundary';
-import { DMLoadingState } from '@/common/components/DirectMessages/DMLoadingState';
-import { DMEmptyState, DMTab } from '@/common/components/DirectMessages/DMEmptyState';
-import { DMErrorState } from '@/common/components/DirectMessages/DMErrorState';
-import { ConversationListItem } from '@/common/components/DirectMessages/ConversationListItem';
-import { NewConversationDialog } from '@/common/components/DirectMessages/NewConversationDialog';
-import { useDirectMessages, useDirectMessageThread } from '@/common/hooks/useDirectMessages';
-import { DirectCastConversation, DirectCastGroup, DirectCastMessage } from '@/common/constants/directCast';
-import { getUsernameForFid } from '@/common/helpers/farcaster';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
+import { cn } from '@/lib/utils';
+import { useAccountStore } from '@/stores/useAccountStore';
 import { useDataStore } from '@/stores/useDataStore';
-import {
-  extractFidsFromDMData,
-  getSafeDisplayName,
-  getSafeUsername,
-  truncateText,
-  getAvatarFallback,
-} from '@/common/helpers/dmProfiles';
-import { useBulkProfiles, getProfileFromBulk } from '@/hooks/queries/useBulkProfiles';
-import { toast } from 'sonner';
-import { HotkeyScopes } from '@/common/constants/hotkeys';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 
 const DirectMessages = () => {
   const { isNewCastModalOpen } = useNavigationStore();

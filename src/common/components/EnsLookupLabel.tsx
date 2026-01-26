@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
+import { useEffect, useState } from 'react';
 import { isAddress } from 'viem';
-import { getAddressFromEnsName } from '../helpers/ens';
-import { getEnsNameForAddress } from '../helpers/ens';
 import { useAccount } from 'wagmi';
+import { getAddressFromEnsName, getEnsNameForAddress } from '../helpers/ens';
 
 const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
   const [ensName, setEnsName] = useState<string | null>(null);

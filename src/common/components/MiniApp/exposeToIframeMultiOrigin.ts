@@ -8,8 +8,8 @@
  * to Comlink.expose() instead of a single origin.
  */
 
-import * as Comlink from '@farcaster/miniapp-host/dist/comlink/index.js';
 import type { MiniAppHost } from '@farcaster/miniapp-core';
+import * as Comlink from '@farcaster/miniapp-host/dist/comlink/index.js';
 import type { Provider } from 'ox/Provider';
 
 /**

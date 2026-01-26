@@ -1,9 +1,9 @@
-import React, { ReactNode } from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { SidebarNav, SidebarNavItem } from './SidebarNav';
 import findIndex from 'lodash.findindex';
 import includes from 'lodash.includes';
+import type { ReactNode } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { SidebarNav, type SidebarNavItem } from './SidebarNav';
 
 type StepSequenceProps = {
   title: string;

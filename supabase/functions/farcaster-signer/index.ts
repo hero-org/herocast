@@ -14,12 +14,12 @@
  *   POST /user-data - Update user data (bio, display name, pfp, username)
  */
 
-import { corsHeaders, handleError } from './lib/errors.ts';
-import { authenticateRequest } from './lib/auth.ts';
-import { handlePostCast, handleDeleteCast } from './handlers/cast.ts';
-import { handlePostReaction, handleDeleteReaction } from './handlers/reaction.ts';
-import { handlePostFollow, handleDeleteFollow } from './handlers/follow.ts';
+import { handleDeleteCast, handlePostCast } from './handlers/cast.ts';
+import { handleDeleteFollow, handlePostFollow } from './handlers/follow.ts';
+import { handleDeleteReaction, handlePostReaction } from './handlers/reaction.ts';
 import { handlePostUserData } from './handlers/user-data.ts';
+import { authenticateRequest } from './lib/auth.ts';
+import { corsHeaders, handleError } from './lib/errors.ts';
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight requests

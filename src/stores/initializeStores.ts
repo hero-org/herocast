@@ -1,10 +1,10 @@
 import { useAccountStore } from './useAccountStore';
-import { useListStore } from './useListStore';
 import { useDraftStore } from './useDraftStore';
-import { useUserStore } from './useUserStore';
+import { useListStore } from './useListStore';
 import { useNotificationStore } from './useNotificationStore';
+import { endTiming, startTiming } from './usePerformanceStore';
+import { useUserStore } from './useUserStore';
 import { useWorkspaceStore } from './useWorkspaceStore';
-import { startTiming, endTiming } from './usePerformanceStore';
 
 export const initializeStores = async () => {
   // console.log('Start initializing stores 🤩')
@@ -30,8 +30,12 @@ export const initializeStoresProgressive = async () => {
   console.log('Phase 1: Loading critical data 🚀');
   await Promise.all([
     useAccountStore.getState().hydrateMinimal(),
-    useDraftStore.getState().hydrate(), // Drafts are quick to load
-    useNotificationStore.getState().hydrate(), // Notification states are quick
+    useDraftStore
+      .getState()
+      .hydrate(), // Drafts are quick to load
+    useNotificationStore
+      .getState()
+      .hydrate(), // Notification states are quick
   ]);
 
   const phase1Duration = endTiming(phase1TimingId, 1000); // Target: <1s for critical path
