@@ -19,6 +19,7 @@ const PostCastSchema = z
     parent_cast_id: CastIdSchema.optional(),
     embeds: z.array(EmbedSchema).max(2).optional(),
     idempotency_key: z.string().optional(),
+    scheduled_for: z.string().datetime().optional(),
   })
   .refine((data) => data.account_id || data.account_username, {
     message: 'Either account_id or account_username is required',
@@ -71,6 +72,11 @@ export const postCastToolDefinition: ToolDefinition = {
         },
       },
       idempotency_key: { type: 'string', description: 'Unique key to prevent duplicate posts on retry' },
+      scheduled_for: {
+        type: 'string',
+        description:
+          'ISO 8601 UTC timestamp to schedule the cast (e.g., "2026-01-26T15:00:00Z"). Will be rounded to nearest 5-minute boundary.',
+      },
     },
     required: ['text'],
   },
@@ -78,6 +84,39 @@ export const postCastToolDefinition: ToolDefinition = {
 
 function normalizeUsername(username: string): string {
   return username.trim().replace(/^@/, '');
+}
+
+function roundToNearest5Minutes(date: Date): Date {
+  const rounded = new Date(date);
+  const minutes = rounded.getMinutes();
+  const roundedMinutes = Math.round(minutes / 5) * 5;
+
+  if (roundedMinutes >= 60) {
+    rounded.setHours(rounded.getHours() + 1);
+    rounded.setMinutes(0);
+  } else {
+    rounded.setMinutes(roundedMinutes);
+  }
+
+  rounded.setSeconds(0, 0); // Clear seconds and milliseconds
+  return rounded;
+}
+
+function validateScheduledTime(isoString: string): { valid: true; date: Date } | { valid: false; error: string } {
+  const date = new Date(isoString);
+
+  if (isNaN(date.getTime())) {
+    return { valid: false, error: 'Invalid date format. Use ISO 8601 UTC (e.g., "2026-01-26T15:00:00Z")' };
+  }
+
+  const now = new Date();
+  const minScheduleTime = new Date(now.getTime() + 60 * 1000); // 1 minute buffer
+
+  if (date < minScheduleTime) {
+    return { valid: false, error: 'Scheduled time must be at least 1 minute in the future' };
+  }
+
+  return { valid: true, date };
 }
 
 type AccountLookupResult = { accountId: string; status: string | null } | { multiple: true } | null;
@@ -227,6 +266,65 @@ export async function postCastTool(auth: AuthContext, input: unknown): Promise<T
     };
   }
 
+  // Handle scheduled casts
+  if (parsed.scheduled_for) {
+    const validation = validateScheduledTime(parsed.scheduled_for);
+    if (!validation.valid) {
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ error: validation.error, code: 'INVALID_SCHEDULE_TIME' }) }],
+        isError: true,
+      };
+    }
+
+    const roundedTime = roundToNearest5Minutes(validation.date);
+
+    // If rounding brought the time into the past, bump to the next 5-minute boundary
+    const now = new Date();
+    if (roundedTime <= now) {
+      roundedTime.setMinutes(roundedTime.getMinutes() + 5);
+    }
+
+    const { data, error } = await supabaseClient
+      .from('draft')
+      .insert({
+        account_id: accountId,
+        data: {
+          text: parsed.text,
+          rawText: parsed.text,
+          embeds: parsed.embeds,
+          parentUrl: parsed.parent_url,
+          parentCastId: parsed.parent_cast_id,
+          channel_id: parsed.channel_id,
+        },
+        scheduled_for: roundedTime.toISOString(),
+        status: 'scheduled',
+      })
+      .select('id, scheduled_for')
+      .single();
+
+    if (error) {
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ error: error.message, code: 'SCHEDULE_FAILED' }) }],
+        isError: true,
+      };
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            scheduled: true,
+            draft_id: data.id,
+            scheduled_for: data.scheduled_for,
+            message: `Cast scheduled for ${data.scheduled_for}`,
+          }),
+        },
+      ],
+    };
+  }
+
+  // Immediate post
   const payload = {
     account_id: accountId,
     text: parsed.text,
