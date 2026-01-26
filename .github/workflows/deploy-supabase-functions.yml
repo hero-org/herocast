@@ -4,12 +4,25 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'supabase/functions/**'
   workflow_dispatch:
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      supabase: ${{ steps.filter.outputs.supabase }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            supabase:
+              - 'supabase/functions/**'
+
   deploy:
+    needs: check-changes
+    if: needs.check-changes.outputs.supabase == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     env:

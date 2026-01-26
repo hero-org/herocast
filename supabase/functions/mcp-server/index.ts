@@ -17,6 +17,7 @@ import {
   noContentResponse,
 } from './lib/errors.ts';
 import type { JsonRpcRequest } from './lib/types.ts';
+import { getCastsTool, getCastsToolDefinition } from './tools/get-casts.ts';
 import { listAccountsTool, listAccountsToolDefinition } from './tools/list-accounts.ts';
 import { postCastTool, postCastToolDefinition } from './tools/post-cast.ts';
 
@@ -25,7 +26,7 @@ const SERVER_NAME = 'herocast-mcp';
 const SERVER_VERSION = '1.0.0';
 const MCP_SESSION_HEADER = 'Mcp-Session-Id';
 
-const toolDefinitions = [postCastToolDefinition, listAccountsToolDefinition];
+const toolDefinitions = [postCastToolDefinition, listAccountsToolDefinition, getCastsToolDefinition];
 
 function getSessionId(req: Request): string {
   return req.headers.get('mcp-session-id') || crypto.randomUUID();
@@ -140,6 +141,11 @@ Deno.serve(async (req: Request) => {
 
       if (name === listAccountsToolDefinition.name) {
         const result = await listAccountsTool(auth.supabaseClient, auth.userId);
+        return jsonRpcResult(id ?? null, result);
+      }
+
+      if (name === getCastsToolDefinition.name) {
+        const result = await getCastsTool(auth, toolArguments);
         return jsonRpcResult(id ?? null, result);
       }
 
