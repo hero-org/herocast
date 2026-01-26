@@ -3,6 +3,7 @@
  * Handles creating and deleting casts with idempotency support
  */
 
+import { processMentionsInText } from '../../_shared/mentions.ts';
 import { getAccountForSigning } from '../lib/accounts.ts';
 import { logSigningAction } from '../lib/audit.ts';
 import { resolveChannelToUrl } from '../lib/channels.ts';
@@ -132,20 +133,43 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
       parentUrl = await resolveChannelToUrl(validated.channel_id);
     }
 
-    // 5. Get account for signing
+    // 5. Auto-resolve mentions if not provided and text contains @mentions
+    let finalText = validated.text;
+    let finalMentions = validated.mentions;
+    let finalMentionsPositions = validated.mentions_positions;
+
+    if ((!finalMentions || finalMentions.length === 0) && validated.text.includes('@')) {
+      const neynarApiKey = Deno.env.get('NEYNAR_API_KEY');
+      if (neynarApiKey) {
+        console.log('[handlePostCast] Auto-resolving mentions from text');
+        try {
+          const resolved = await processMentionsInText(validated.text, neynarApiKey);
+          finalText = resolved.text;
+          finalMentions = resolved.mentions;
+          finalMentionsPositions = resolved.mentionsPositions;
+          console.log(`[handlePostCast] Resolved ${finalMentions.length} mentions`);
+        } catch (error) {
+          console.warn('[handlePostCast] Mention resolution failed, using original text:', error);
+        }
+      } else {
+        console.warn('[handlePostCast] NEYNAR_API_KEY not set, skipping mention auto-resolution');
+      }
+    }
+
+    // 6. Get account for signing
     const account = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = account.userId;
 
-    // 6. Sign and submit cast
+    // 7. Sign and submit cast
     const hash = await signAndSubmitCast({
       fid: account.fid,
       privateKey: account.privateKey,
-      text: validated.text,
+      text: finalText,
       parentUrl,
       parentCastId: validated.parent_cast_id,
       embeds: transformEmbeds(validated.embeds),
-      mentions: validated.mentions,
-      mentionsPositions: validated.mentions_positions,
+      mentions: finalMentions,
+      mentionsPositions: finalMentionsPositions,
       castType: validated.cast_type,
     });
 

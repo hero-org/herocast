@@ -82,21 +82,18 @@ export const CastRequestSchema = z
       });
     }
 
-    if (data.mentions && data.mentions_positions && data.mentions.length !== data.mentions_positions.length) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'mentions and mentions_positions must have the same length',
-        path: ['mentions_positions'],
-      });
+    // Only validate mention array consistency if BOTH are explicitly provided
+    // If neither or partial, the handler will auto-resolve from text
+    if (data.mentions && data.mentions_positions) {
+      if (data.mentions.length !== data.mentions_positions.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'mentions and mentions_positions must have the same length when both are provided',
+          path: ['mentions_positions'],
+        });
+      }
     }
-
-    if ((data.mentions && !data.mentions_positions) || (!data.mentions && data.mentions_positions)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'mentions and mentions_positions must be provided together',
-        path: ['mentions_positions'],
-      });
-    }
+    // Note: Removed the "must be provided together" check - auto-resolution handles missing mentions
   });
 
 export type CastRequest = z.infer<typeof CastRequestSchema>;
