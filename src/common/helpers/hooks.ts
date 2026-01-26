@@ -1,4 +1,5 @@
-import debounce from 'lodash/debounce';
+import type { DebouncedFunc } from 'lodash';
+import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**
@@ -72,7 +73,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
   deps: React.DependencyList = []
 ): (...args: Parameters<T>) => void {
   const callbackRef = useRef(callback);
-  const debounceRef = useRef<ReturnType<typeof debounce>>();
+  const debounceRef = useRef<DebouncedFunc<T> | undefined>(undefined);
 
   // Update callback ref when it changes
   useEffect(() => {

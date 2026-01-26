@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { type NextRequest, NextResponse } from 'next/server';
-import { SearchQueryBuilder } from '@/services/searchQueryBuilder';
 
 const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes within 20 seconds
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
@@ -33,15 +32,12 @@ export async function GET(request: NextRequest) {
     // Use direct query if provided, otherwise build from term and filters
     let queryString = q;
     if (!queryString && term) {
-      const queryBuilder = new SearchQueryBuilder();
-      queryString = queryBuilder
-        .setQuery(term)
-        .setChannelId(channelId)
-        .setAuthorFid(authorFid)
-        .setFromFid(fromFid)
-        .setMentionFid(mentionFid)
-        .setParentUrl(parentUrl)
-        .build();
+      // Build query string with embedded filters (new SearchQueryBuilder parses these)
+      const parts = [term];
+      if (channelId) parts.push(`channel:${channelId}`);
+      if (parentUrl) parts.push(`parent:${parentUrl}`);
+      if (fromFid) parts.push(`from:${fromFid}`);
+      queryString = parts.join(' ');
     }
 
     if (!queryString) {

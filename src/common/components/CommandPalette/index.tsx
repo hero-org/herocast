@@ -69,7 +69,7 @@ export default function CommandPalette() {
   const pathname = usePathname() || '/';
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const { addCommand, getRecentCommands, recentCommandNames } = useRecentCommands();
   const [lastQuery, setLastQuery] = useState('');
   const [executingCommand, setExecutingCommand] = useState<string | null>(null);
@@ -471,7 +471,10 @@ export default function CommandPalette() {
     }
 
     // First try to find exact alias match
-    const aliasMatch = findCommandByAlias(debouncedQuery, allCommands);
+    const aliasedName = findCommandByAlias(debouncedQuery);
+    const aliasMatch = aliasedName
+      ? allCommands.find((cmd) => cmd.name.toLowerCase() === aliasedName.toLowerCase())
+      : null;
 
     let result = allCommands.filter((command: CommandType) => {
       const namesToScore = [command.name, ...(command.aliases || [])];

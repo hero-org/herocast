@@ -73,7 +73,7 @@ export default function ListsHub() {
   // Update URL when tab changes
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    router.push(`/lists?tab=${value}`, undefined, { shallow: true });
+    router.push(`/lists?tab=${value}`);
   };
 
   return (

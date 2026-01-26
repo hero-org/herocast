@@ -1,4 +1,3 @@
-import { useAccountStore } from '../../stores/useAccountStore';
 import { DirectCastAPIError } from '../helpers/directCastApi';
 
 export enum DMErrorType {
@@ -166,37 +165,6 @@ export function shouldRetry(error: unknown, attempt: number, config: RetryConfig
 
   const errorInfo = getErrorInfo(error);
   return errorInfo.canRetry;
-}
-
-// Error recovery actions
-export async function handleAuthError(accountKey: string): Promise<void> {
-  // Clear the invalid API key
-  const store = useAccountStore.getState();
-  await store.updateAccountSettings(accountKey, {
-    settings: {
-      ...store.accounts[accountKey].settings,
-      directCastApiKey: undefined,
-    },
-  });
-}
-
-export async function handleErrorRecovery(error: unknown, accountKey: string): Promise<void> {
-  const errorInfo = getErrorInfo(error);
-
-  switch (errorInfo.type) {
-    case DMErrorType.INVALID_API_KEY:
-      await handleAuthError(accountKey);
-      break;
-    case DMErrorType.RATE_LIMIT:
-      // Could implement a queue system here
-      break;
-    case DMErrorType.NETWORK:
-      // Could implement offline mode detection
-      break;
-    default:
-      // Log error for monitoring
-      console.error('[DM Error]', error);
-  }
 }
 
 // Utility to format error for display

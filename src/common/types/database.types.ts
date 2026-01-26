@@ -631,3 +631,7 @@ export const Constants = {
     },
   },
 } as const;
+
+// Convenience type aliases for common table row types
+export type List = Database['public']['Tables']['list']['Row'];
+export type Account = Database['public']['Tables']['accounts']['Row'];

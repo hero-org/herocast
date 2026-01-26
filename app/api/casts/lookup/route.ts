@@ -72,16 +72,9 @@ export async function GET(request: NextRequest) {
 
       const castParamType = type === 'hash' ? CastParamType.Hash : CastParamType.Url;
 
-      const options: { viewerFid?: number } = {};
-      if (viewerFid) {
-        const viewerFidNum = parseInt(viewerFid, 10);
-        if (!isNaN(viewerFidNum) && viewerFidNum > 0) {
-          options.viewerFid = viewerFidNum;
-        }
-      }
-
+      // Note: viewerFid is no longer supported in the Neynar SDK for this endpoint
       const response = await Promise.race([
-        neynarClient.lookUpCastByHashOrWarpcastUrl(identifier, castParamType, options),
+        neynarClient.lookUpCastByHashOrWarpcastUrl(identifier, castParamType),
         new Promise((_, reject) => setTimeout(() => reject(new Error('AbortError')), timeoutThreshold)),
       ]);
 

@@ -137,7 +137,7 @@ export function useLikeCast() {
               ...currentLikes,
               {
                 fid: userFid,
-                fname: selectedAccount?.platformUsername || '',
+                fname: selectedAccount?.user?.username || '',
               },
             ],
             likes_count: (cast.reactions?.likes_count || 0) + 1,
@@ -285,7 +285,7 @@ export function useRecast() {
               ...currentRecasts,
               {
                 fid: userFid,
-                fname: selectedAccount?.platformUsername || '',
+                fname: selectedAccount?.user?.username || '',
               },
             ],
             recasts_count: (cast.reactions?.recasts_count || 0) + 1,
