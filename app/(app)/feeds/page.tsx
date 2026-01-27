@@ -1,7 +1,6 @@
 'use client';
 
 import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import includes from 'lodash.includes';
 import isEmpty from 'lodash.isempty';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -194,7 +193,7 @@ export default function Feeds() {
   }, [feedKey]);
 
   useEffect(() => {
-    const shouldUpdateLastReadTimestamp = !includes([CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING], feedKey);
+    const shouldUpdateLastReadTimestamp = ![CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING].includes(feedKey);
     if (shouldUpdateLastReadTimestamp && selectedChannelUrl && account && account?.channels?.length > 0) {
       const channelId = account.channels.find((channel) => channel.url === selectedChannelUrl)?.id;
       if (!channelId) return;

@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import includes from 'lodash.includes';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
@@ -225,7 +224,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         break;
     }
 
-    const buttonMustBeValid = includes([ViewState.SIGNUP, ViewState.LOGIN], view);
+    const buttonMustBeValid = [ViewState.SIGNUP, ViewState.LOGIN].includes(view);
     return (
       <Button
         type="button"
@@ -350,7 +349,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                 )}
               />
 
-              {!includes([ViewState.FORGOT, ViewState.LOGGED_IN], view) && (
+              {![ViewState.FORGOT, ViewState.LOGGED_IN].includes(view) && (
                 <>
                   <FormField
                     control={form.control}

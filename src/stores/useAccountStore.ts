@@ -5,7 +5,6 @@ import { ArrowTrendingUpIcon, HomeIcon } from '@heroicons/react/20/solid';
 import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import cloneDeep from 'lodash.clonedeep';
 import findIndex from 'lodash.findindex';
-import includes from 'lodash.includes';
 import isEmpty from 'lodash.isempty';
 import sortBy from 'lodash.sortby';
 import uniqBy from 'lodash.uniqby';
@@ -147,7 +146,7 @@ const store = (set: StoreSet) => ({
 
     if (localOnly) {
       set((state) => {
-        const channels = state.allChannels.filter((channel) => includes(DEFAULT_LOCAL_ACCOUNT_CHANNELS, channel.name));
+        const channels = state.allChannels.filter((channel) => DEFAULT_LOCAL_ACCOUNT_CHANNELS.includes(channel.name));
         const accountChannels = channels.map((channel, idx) => ({
           ...channel,
           idx,

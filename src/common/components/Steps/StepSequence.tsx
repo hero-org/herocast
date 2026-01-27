@@ -1,5 +1,4 @@
 import findIndex from 'lodash.findindex';
-import includes from 'lodash.includes';
 import type { ReactNode } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -15,7 +14,7 @@ type StepSequenceProps = {
 };
 
 const StepSequence = ({ title, description, navItems, step, setStep, renderStep }: StepSequenceProps) => {
-  const progressPercent = (findIndex(navItems, (item) => includes(item.keys, step)) / (navItems.length - 1)) * 100;
+  const progressPercent = (findIndex(navItems, (item) => item.keys.includes(step)) / (navItems.length - 1)) * 100;
 
   return (
     <div className="w-full">

@@ -1,6 +1,5 @@
 import { CheckCircleIcon } from '@heroicons/react/20/solid';
 import findIndex from 'lodash.findindex';
-import includes from 'lodash.includes';
 import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -19,7 +18,7 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 
 export function SidebarNav({ className, items, step, onClick, ...props }: SidebarNavProps) {
   const getIdxForStep = (step: string) => {
-    return findIndex(items, (item) => includes(item.keys, step));
+    return findIndex(items, (item) => item.keys.includes(step));
   };
   const currentStepIdx = getIdxForStep(step);
 

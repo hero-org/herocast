@@ -16,7 +16,6 @@ import { format, formatDistanceToNowStrict } from 'date-fns';
 import Linkify from 'linkify-react';
 import { registerPlugin } from 'linkifyjs';
 import get from 'lodash.get';
-import includes from 'lodash.includes';
 import map from 'lodash.map';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -294,11 +293,11 @@ const CastRowComponent = ({
       [CastReactionType.replies]: { count: repliesCount },
       [CastReactionType.recasts]: {
         count: recastsCount + Number(didRecast),
-        isActive: didRecast || includes(recastFids, userFid),
+        isActive: didRecast || recastFids.includes(userFid),
       },
       [CastReactionType.likes]: {
         count: likesCount + Number(didLike),
-        isActive: didLike || includes(likeFids, userFid),
+        isActive: didLike || likeFids.includes(userFid),
       },
     };
   }, [
