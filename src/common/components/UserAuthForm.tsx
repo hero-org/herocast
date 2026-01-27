@@ -1,4 +1,3 @@
-import { SignInButton, useProfile } from '@farcaster/auth-kit';
 import { zodResolver } from '@hookform/resolvers/zod';
 import includes from 'lodash.includes';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -11,13 +10,10 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { AccountPlatformType, AccountStatusType } from '../constants/accounts';
 import { useAuth } from '../context/AuthContext';
 import { createClient } from '../helpers/supabase/component';
-import { Loading } from './Loading';
-
-const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 export type UserAuthFormValues = z.infer<typeof UserAuthFormSchema>;
 
@@ -54,17 +50,12 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const posthog = usePostHog();
-  const {
-    isAuthenticated,
-    profile: { username, fid },
-  } = useProfile();
-  const { accounts, addAccount, resetStore } = useAccountStore();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [userMessage, setUserMessage] = useState<string>('');
   const [view, setView] = useState<ViewState>(ViewState.SIGNUP);
   const { user } = useAuth();
-  const hasSignInWithFarcaster = false;
+  const { resetStore } = useAccountStore();
 
   const form = useForm<UserAuthFormValues>({
     resolver: zodResolver(UserAuthFormSchema),
@@ -213,71 +204,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
   }, [searchParams, user]);
 
-  useEffect(() => {
-    if (isAuthenticated && username && fid) {
-      setupLocalAccount({ fid, username });
-    }
-  }, [isAuthenticated, username, fid]);
-
-  const localAccounts = accounts.filter((account) => account.platform === AccountPlatformType.farcaster_local_readonly);
-
-  const setupLocalAccount = async ({ fid, username }) => {
-    if (!fid || !username) return;
-
-    const hasLocalAccountCreated = localAccounts.some((a) => a.platformAccountId === fid.toString());
-    setIsLoading(true);
-    let account;
-    if (hasLocalAccountCreated) {
-      account = localAccounts.find((a) => a.platformAccountId === fid.toString());
-    } else {
-      setUserMessage('Setting up local account...');
-
-      try {
-        const response = await fetch(`/api/users?fids=${fid}&viewer_fid=${APP_FID}`);
-        if (!response.ok) {
-          console.error('Failed to fetch user:', response.status);
-          setIsLoading(false);
-          return;
-        }
-        const data = await response.json();
-        const users = data.users || [];
-        if (!users.length) {
-          console.error('No users found for fid: ', fid);
-          setIsLoading(false);
-          return;
-        }
-
-        account = {
-          name: username,
-          status: AccountStatusType.active,
-          platform: AccountPlatformType.farcaster_local_readonly,
-          platformAccountId: fid.toString(),
-          user: users?.[0],
-        };
-        await addAccount({
-          account,
-          localOnly: true,
-        });
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      setUserMessage('Error setting up local account.');
-      setIsLoading(false);
-      return;
-    }
-
-    posthog.identify(data?.user?.id, { isLocalOnly: true });
-    setUserMessage('Setup done. Welcome to the herocast experience!');
-    router.push('/post');
-    setIsLoading(false);
-  };
-
   const renderSubmitButton = () => {
     let buttonText = '';
 
@@ -308,7 +234,7 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
         disabled={isLoading || (buttonMustBeValid && !isValid)}
         onClick={() => buttonAction()}
       >
-        {isLoading ? <Loading className="text-white" /> : buttonText}
+        {isLoading ? <Spinner className="text-white" /> : buttonText}
       </Button>
     );
   };
@@ -494,34 +420,6 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
           </div>
         </form>
       </Form>
-      {hasSignInWithFarcaster && !signupOnly && view !== ViewState.LOGGED_IN && (
-        <>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-          </div>
-          <div className="flex flex-col space-y-4 items-center justify-center text-white">
-            {!isAuthenticated ? (
-              <>
-                <SignInButton hideSignOut />
-                <span className="text-center text-xs sm:text-sm text-foreground">
-                  Sign in with Farcaster for read-only access
-                </span>
-              </>
-            ) : (
-              <Button
-                type="button"
-                size="lg"
-                className="py-4 text-white bg-[#8A63D2] hover:bg-[#6A4CA5] rounded-md"
-                disabled
-              >
-                Signed in with Farcaster ☑️
-              </Button>
-            )}
-          </div>
-        </>
-      )}
     </div>
   );
 }
