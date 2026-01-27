@@ -209,19 +209,19 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
 
     switch (view) {
       case ViewState.FORGOT:
-        buttonText = 'reset password';
+        buttonText = 'Reset password';
         break;
       case ViewState.LOGIN:
-        buttonText = 'continue';
+        buttonText = 'Login';
         break;
       case ViewState.SIGNUP:
-        buttonText = 'sign up';
+        buttonText = 'Sign up';
         break;
       case ViewState.RESET:
-        buttonText = 'set password';
+        buttonText = 'Set password';
         break;
       case ViewState.LOGGED_IN:
-        buttonText = 'continue';
+        buttonText = 'Continue';
         break;
     }
 
@@ -229,38 +229,13 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     return (
       <Button
         type="button"
-        size="lg"
-        className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+        className="w-full"
         disabled={isLoading || (buttonMustBeValid && !isValid)}
         onClick={() => buttonAction()}
       >
-        {isLoading ? <Spinner className="text-white" /> : buttonText}
+        {isLoading ? <Spinner className="h-4 w-4" /> : buttonText}
       </Button>
     );
-  };
-
-  const renderViewSwitchText = () => {
-    switch (view) {
-      case ViewState.LOGIN:
-        return (
-          <div
-            className="mt-2 text-center text-sm sm:text-base hover:cursor-pointer"
-            onClick={() => setView(ViewState.SIGNUP)}
-          >
-            no herocast account? <span className="underline">sign up</span>
-          </div>
-        );
-      case ViewState.FORGOT:
-      case ViewState.SIGNUP:
-        return (
-          <div
-            className="mt-2 text-center text-sm sm:text-base hover:cursor-pointer"
-            onClick={() => setView(ViewState.LOGIN)}
-          >
-            already have your herocast account? <span className="underline">log in</span>
-          </div>
-        );
-    }
   };
 
   const logOut = async () => {
@@ -303,61 +278,124 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
     }
   };
 
-  const renderGoogleLoginButton = () => (
-    <Button type="button" size="lg" variant="outline" className="py-4" onClick={() => loginWithGoogle()}>
-      <img src="/images/google_logo.png" alt="google logo" width="24" height="24" className="" />
-      login with Google
-    </Button>
-  );
+  const getSubtitle = () => {
+    switch (view) {
+      case ViewState.SIGNUP:
+        return 'Sign up with your Google account or email';
+      case ViewState.LOGIN:
+        return 'Login with your Google account or email';
+      case ViewState.FORGOT:
+        return 'Enter your email to reset your password';
+      case ViewState.RESET:
+        return 'Choose a new password for your account';
+      case ViewState.LOGGED_IN:
+        return 'You are already signed in';
+      default:
+        return '';
+    }
+  };
 
   return (
     <div className="grid gap-6">
-      <Form {...form}>
-        <span className="text-2xl sm:text-3xl font-semibold tracking-tight">{renderViewHelpText()}</span>
+      {/* Header */}
+      <div className="flex flex-col gap-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">{renderViewHelpText()}</h1>
+        <p className="text-sm text-muted-foreground">{getSubtitle()}</p>
+      </div>
 
-        <form>
-          <div className="flex">
-            {userMessage && <span className="text-sm sm:text-base text-muted-foreground">{userMessage}</span>}
+      {userMessage && <p className="text-sm text-center text-muted-foreground">{userMessage}</p>}
+
+      {view !== ViewState.LOGGED_IN && (
+        <>
+          {/* Google OAuth */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => loginWithGoogle()}
+            disabled={isLoading}
+          >
+            <img src="/images/google_logo.png" alt="" width={20} height={20} />
+            Login with Google
+          </Button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+            </div>
           </div>
-          <div className="grid gap-4">
-            {view !== ViewState.LOGGED_IN && (
-              <div className="grid gap-4">
-                {renderGoogleLoginButton()}
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>email</FormLabel>
-                      <FormControl>
-                        <Input
-                          variantSize="lg"
-                          type="email"
-                          placeholder="vitalik@ethereum.org"
-                          disabled={isLoading}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {!includes([ViewState.FORGOT, ViewState.LOGGED_IN], view) && (
-                  <>
-                    {/* Password Field */}
+        </>
+      )}
+
+      {/* Email form */}
+      <Form {...form}>
+        <form className="grid gap-4">
+          {view !== ViewState.LOGGED_IN && (
+            <>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="m@example.com" disabled={isLoading} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {!includes([ViewState.FORGOT, ViewState.LOGGED_IN], view) && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Password</FormLabel>
+                          {view === ViewState.LOGIN && (
+                            <button
+                              type="button"
+                              className="text-sm underline-offset-4 hover:underline text-muted-foreground"
+                              onClick={() => setView(ViewState.FORGOT)}
+                            >
+                              Forgot your password?
+                            </button>
+                          )}
+                        </div>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            disabled={isLoading}
+                            autoComplete={view === ViewState.SIGNUP ? 'new-password' : 'current-password'}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {view === ViewState.RESET && (
                     <FormField
                       control={form.control}
-                      name="password"
+                      name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
                             <Input
-                              variantSize="lg"
+                              type="password"
+                              placeholder="••••••••"
                               disabled={isLoading}
                               autoComplete="new-password"
-                              type="password"
-                              placeholder="••••••"
                               {...field}
                             />
                           </FormControl>
@@ -365,61 +403,47 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
                         </FormItem>
                       )}
                     />
+                  )}
+                </>
+              )}
+            </>
+          )}
 
-                    {/* Confirm Password Field for RESET view */}
-                    {view === ViewState.RESET && (
-                      <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                              <Input
-                                variantSize="lg"
-                                disabled={isLoading}
-                                autoComplete="new-password"
-                                type="password"
-                                placeholder="••••••"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-            {renderSubmitButton()}
-            {view === ViewState.LOGIN && (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full shadow-none rounded-lg"
-                disabled={isLoading}
-                onClick={() => setView(ViewState.FORGOT)}
-              >
-                forgot password?
-              </Button>
-            )}
-            {view === ViewState.LOGGED_IN && (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full shadow-none rounded-lg"
-                disabled={isLoading}
-                onClick={() => logOut()}
-              >
-                Not you? Log out
-              </Button>
-            )}
-            {renderViewSwitchText()}
-          </div>
+          {renderSubmitButton()}
+
+          {view === ViewState.LOGGED_IN && (
+            <Button type="button" variant="outline" className="w-full" disabled={isLoading} onClick={() => logOut()}>
+              Not you? Log out
+            </Button>
+          )}
         </form>
       </Form>
+
+      {/* View switch */}
+      {view === ViewState.LOGIN && (
+        <div className="text-center text-sm">
+          Don&apos;t have an account?{' '}
+          <button
+            type="button"
+            className="underline underline-offset-4 hover:text-primary"
+            onClick={() => setView(ViewState.SIGNUP)}
+          >
+            Sign up
+          </button>
+        </div>
+      )}
+      {(view === ViewState.SIGNUP || view === ViewState.FORGOT) && (
+        <div className="text-center text-sm">
+          Already have an account?{' '}
+          <button
+            type="button"
+            className="underline underline-offset-4 hover:text-primary"
+            onClick={() => setView(ViewState.LOGIN)}
+          >
+            Login
+          </button>
+        </div>
+      )}
     </div>
   );
 }

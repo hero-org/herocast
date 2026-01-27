@@ -56,34 +56,30 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-      <Card className="w-full max-w-sm">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+      {/* Logo outside card */}
+      <div className="flex items-center gap-2 mb-8">
+        <img src="/images/logo.png" alt="herocast" width={32} height={32} className="rounded-lg" />
+        <span className="text-xl font-semibold tracking-tight">herocast</span>
+      </div>
+
+      <Card className="w-full max-w-md">
         <CardContent className="pt-6">
-          {/* Logo and branding */}
-          <div className="flex flex-col items-center gap-4 mb-8">
-            <div className="flex items-center gap-2">
-              <img src="/images/logo.png" alt="herocast" width={40} height={40} className="rounded-lg" />
-              <span className="text-2xl font-bold tracking-tight">herocast</span>
-            </div>
-            <p className="text-center text-muted-foreground text-sm">The Farcaster client for power users</p>
-          </div>
-
-          {/* Auth form */}
           <UserAuthForm signupOnly={showOnlySignup} />
-
-          {/* Footer */}
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            By continuing, you agree to our{' '}
-            <a href="https://herocast.xyz/terms" className="underline hover:text-foreground">
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a href="https://herocast.xyz/privacy" className="underline hover:text-foreground">
-              Privacy Policy
-            </a>
-          </p>
         </CardContent>
       </Card>
+
+      {/* Footer outside card */}
+      <p className="mt-6 text-center text-xs text-muted-foreground max-w-md">
+        By clicking continue, you agree to our{' '}
+        <a href="https://herocast.xyz/terms" className="underline underline-offset-4 hover:text-foreground">
+          Terms of Service
+        </a>{' '}
+        and{' '}
+        <a href="https://herocast.xyz/privacy" className="underline underline-offset-4 hover:text-foreground">
+          Privacy Policy
+        </a>
+      </p>
     </div>
   );
 }
