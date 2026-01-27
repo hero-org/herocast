@@ -1,5 +1,6 @@
 import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { fetchWithPerf } from '@/lib/fetchWithPerf';
 import { queryKeys } from '@/lib/queryKeys';
 
 const DEFAULT_LIMIT = 10;
@@ -33,7 +34,11 @@ async function fetchTrendingFeed(options?: { cursor?: string; limit?: number }):
   params.append('limit', limit.toString());
   if (cursor) params.append('cursor', cursor);
 
-  const response = await fetch(`/api/feeds/trending?${params.toString()}`);
+  const response = await fetchWithPerf(`/api/feeds/trending?${params.toString()}`, undefined, {
+    name: 'feed:trending',
+    threshold: 1000,
+    metadata: { hasMore: !!cursor },
+  });
   if (!response.ok) throw new Error('Failed to fetch trending feed');
 
   return response.json();

@@ -1,5 +1,6 @@
 import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { fetchWithPerf } from '@/lib/fetchWithPerf';
 import { queryKeys } from '@/lib/queryKeys';
 
 const DEFAULT_LIMIT = 15;
@@ -37,7 +38,11 @@ async function fetchFollowingFeed(
   params.append('limit', limit.toString());
   if (cursor) params.append('cursor', cursor);
 
-  const response = await fetch(`/api/feeds/following?${params.toString()}`);
+  const response = await fetchWithPerf(`/api/feeds/following?${params.toString()}`, undefined, {
+    name: 'feed:following',
+    threshold: 1000,
+    metadata: { fid, hasMore: !!cursor },
+  });
   if (!response.ok) throw new Error('Failed to fetch following feed');
 
   return response.json();

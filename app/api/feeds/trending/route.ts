@@ -5,6 +5,15 @@ const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes wit
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
 
+// Simple server-side timing helper
+const logTiming = (label: string, startTime: number, metadata?: Record<string, unknown>) => {
+  const duration = Date.now() - startTime;
+  const status = duration < 1000 ? 'good' : duration < 2000 ? 'warning' : 'critical';
+  const icon = status === 'good' ? '⚡' : status === 'warning' ? '⚠️' : '🐌';
+  console.log(`${icon} [API] ${label}: ${duration}ms`, metadata || '');
+  return duration;
+};
+
 // In-memory cache for trending feed (2 minute TTL)
 const feedCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
@@ -71,7 +80,9 @@ export async function GET(request: NextRequest) {
         options.cursor = cursor;
       }
 
+      const neynarStart = Date.now();
       const response = await neynarClient.fetchTrendingFeed(options);
+      logTiming('neynar:fetchTrendingFeed', neynarStart, { limit, hasCursor: !!cursor });
 
       clearTimeout(timeoutId);
 
