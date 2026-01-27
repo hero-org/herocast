@@ -43,10 +43,10 @@
   }
 
   .dark {
-    --background: 0deg, 0%, 4.31%;
+    --background: 0 0% 4.3%;
     --foreground: 0 0% 98%;
-    --card: 0deg, 0%, 15%;
-    --card-foreground: 220, 14%, 96%;
+    --card: 0 0% 15%;
+    --card-foreground: 220 14% 96%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
@@ -67,7 +67,7 @@
     --chart-3: 240 1% 58%;
     --chart-4: 240 1% 42%;
     --chart-5: 240 2% 26%;
-    --chart-dynamic-1: 213deg, 93.9%, 67.8%;
+    --chart-dynamic-1: 213 93.9% 67.8%;
     --chart-dynamic-2: 240 1% 42%;
     --chart-dynamic-3: 240 1% 42%;
     --sidebar-background: 240 5.9% 10%;
