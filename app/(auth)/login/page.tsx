@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 import { UserAuthForm } from '@/common/components/UserAuthForm';
 import { useAuth } from '@/common/context/AuthContext';
+import { Card, CardContent } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 
 function getSafeRedirect(path: string | null): string | null {
@@ -55,10 +56,9 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Main content - centered */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+      <Card className="w-full max-w-sm">
+        <CardContent className="pt-6">
           {/* Logo and branding */}
           <div className="flex flex-col items-center gap-4 mb-8">
             <div className="flex items-center gap-2">
@@ -82,8 +82,8 @@ function LoginContent() {
               Privacy Policy
             </a>
           </p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
