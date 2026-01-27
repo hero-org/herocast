@@ -1,6 +1,7 @@
 import { formatDistanceToNowStrict } from 'date-fns';
 import { MessageSquareOff, Users } from 'lucide-react';
 import type React from 'react';
+import { memo } from 'react';
 import type { DirectCastConversation, DirectCastGroup } from '@/common/constants/directCast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -58,127 +59,124 @@ const getAvatarFallback = (profile: any, fid?: number, isGroup?: boolean) => {
   return '??';
 };
 
-export const ConversationListItem: React.FC<ConversationListItemProps> = ({
-  item,
-  isSelected,
-  viewerFid,
-  onClick,
-  getProfileByFid,
-  index,
-}) => {
-  // Determine if it's a group
-  const isGroup = 'groupId' in item;
+export const ConversationListItem: React.FC<ConversationListItemProps> = memo(
+  ({ item, isSelected, viewerFid, onClick, getProfileByFid, index }) => {
+    // Determine if it's a group
+    const isGroup = 'groupId' in item;
 
-  // Extract data based on type
-  let participantFid: number | undefined;
-  let participantProfile: any;
-  let name: string | undefined;
-  let memberCount: number | undefined;
-  const lastMessage = item.lastMessage;
+    // Extract data based on type
+    let participantFid: number | undefined;
+    let participantProfile: any;
+    let name: string | undefined;
+    let memberCount: number | undefined;
+    const lastMessage = item.lastMessage;
 
-  if (isGroup) {
-    name = item.name;
-    memberCount = item.memberCount;
-  } else {
-    // For conversations, find the other participant
-    participantFid = item.participantFids.find((fid) => fid !== viewerFid);
-    if (participantFid) {
-      participantProfile = getProfileByFid(participantFid);
-      // Debug logging
-      if (index === 0) {
-        console.log('[ConversationListItem Debug]', {
-          participantFid,
-          participantProfile,
-          hasProfile: !!participantProfile,
-          displayName: participantProfile?.display_name,
-          username: participantProfile?.username,
-        });
+    if (isGroup) {
+      name = item.name;
+      memberCount = item.memberCount;
+    } else {
+      // For conversations, find the other participant
+      participantFid = item.participantFids.find((fid) => fid !== viewerFid);
+      if (participantFid) {
+        participantProfile = getProfileByFid(participantFid);
+        // Debug logging
+        if (index === 0) {
+          console.log('[ConversationListItem Debug]', {
+            participantFid,
+            participantProfile,
+            hasProfile: !!participantProfile,
+            displayName: participantProfile?.display_name,
+            username: participantProfile?.username,
+          });
+        }
       }
     }
-  }
 
-  // Handle timestamp edge cases
-  let timeAgo = '';
-  if (lastMessage) {
-    let timestamp: Date;
-    if (!lastMessage.creationTimestamp || lastMessage.creationTimestamp === 0) {
-      // Fallback to current time if timestamp is missing
-      timestamp = new Date();
-    } else if (lastMessage.creationTimestamp > 10000000000) {
-      // If timestamp is already in milliseconds (has more than 10 digits)
-      timestamp = new Date(lastMessage.creationTimestamp);
-    } else {
-      // Normal case: timestamp is in seconds
-      timestamp = new Date(lastMessage.creationTimestamp * 1000);
+    // Handle timestamp edge cases
+    let timeAgo = '';
+    if (lastMessage) {
+      let timestamp: Date;
+      if (!lastMessage.creationTimestamp || lastMessage.creationTimestamp === 0) {
+        // Fallback to current time if timestamp is missing
+        timestamp = new Date();
+      } else if (lastMessage.creationTimestamp > 10000000000) {
+        // If timestamp is already in milliseconds (has more than 10 digits)
+        timestamp = new Date(lastMessage.creationTimestamp);
+      } else {
+        // Normal case: timestamp is in seconds
+        timestamp = new Date(lastMessage.creationTimestamp * 1000);
+      }
+      timeAgo = formatDistanceToNowStrict(timestamp);
     }
-    timeAgo = formatDistanceToNowStrict(timestamp);
-  }
 
-  // Handle empty conversations
-  const hasNoMessages = !lastMessage;
+    // Handle empty conversations
+    const hasNoMessages = !lastMessage;
 
-  return (
-    <li
-      className={cn(
-        'flex gap-x-3 px-4 py-3 border-b border-muted/50 transition-colors duration-50 border-l-2 cursor-pointer min-w-0 max-w-full',
-        isSelected ? 'bg-muted border-l-blue-500' : 'bg-background/80 hover:bg-muted/50 border-l-transparent'
-      )}
-      onClick={onClick}
-    >
-      <div className="relative flex-shrink-0">
-        {isGroup ? (
-          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-            <Users className="h-5 w-5 text-muted-foreground" />
-          </div>
-        ) : (
-          <ProfileHoverCard fid={participantFid} username={participantProfile?.username} viewerFid={viewerFid}>
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={participantProfile?.pfp_url} />
-              <AvatarFallback>{getAvatarFallback(participantProfile, participantFid, false)}</AvatarFallback>
-            </Avatar>
-          </ProfileHoverCard>
+    return (
+      <li
+        className={cn(
+          'flex gap-x-3 px-4 py-3 border-b border-muted/50 transition-colors duration-50 border-l-2 cursor-pointer min-w-0 max-w-full',
+          isSelected ? 'bg-muted border-l-blue-500' : 'bg-background/80 hover:bg-muted/50 border-l-transparent'
         )}
-      </div>
-      <div className="flex-1 min-w-0 max-w-full">
-        <div className="flex items-center justify-between gap-x-2 min-w-0">
+        onClick={onClick}
+      >
+        <div className="relative flex-shrink-0">
           {isGroup ? (
-            <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
-              {truncateText(name || 'Unnamed Group', 20)}
-            </p>
+            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+              <Users className="h-5 w-5 text-muted-foreground" />
+            </div>
           ) : (
             <ProfileHoverCard fid={participantFid} username={participantProfile?.username} viewerFid={viewerFid}>
-              <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
-                {getSafeDisplayName(participantProfile, participantFid)}
-              </p>
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={participantProfile?.pfp_url} />
+                <AvatarFallback>{getAvatarFallback(participantProfile, participantFid, false)}</AvatarFallback>
+              </Avatar>
             </ProfileHoverCard>
           )}
-          {timeAgo && <p className="flex-shrink-0 text-xs text-foreground/60 ml-2">{timeAgo}</p>}
         </div>
-        {hasNoMessages ? (
-          <div className="mt-0.5 flex items-center gap-1">
-            <MessageSquareOff className="h-3 w-3 text-foreground/40" />
-            <p className="text-sm text-foreground/50 italic">No messages yet</p>
-          </div>
-        ) : lastMessage ? (
-          <p className="mt-0.5 text-sm text-foreground/70 truncate min-w-0">
-            {isGroup && lastMessage.senderFid !== viewerFid && getProfileByFid && (
-              <span className="text-foreground/50">
-                @{getSafeUsername(getProfileByFid(lastMessage.senderFid), lastMessage.senderFid)}:
-              </span>
-            )}
-            {lastMessage.isDeleted ? (
-              <span className="italic text-foreground/50">Message deleted</span>
-            ) : !lastMessage.message?.trim() ? (
-              <span className="italic text-foreground/50">Empty message</span>
+        <div className="flex-1 min-w-0 max-w-full">
+          <div className="flex items-center justify-between gap-x-2 min-w-0">
+            {isGroup ? (
+              <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
+                {truncateText(name || 'Unnamed Group', 20)}
+              </p>
             ) : (
-              truncateText(lastMessage.message, 35)
+              <ProfileHoverCard fid={participantFid} username={participantProfile?.username} viewerFid={viewerFid}>
+                <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
+                  {getSafeDisplayName(participantProfile, participantFid)}
+                </p>
+              </ProfileHoverCard>
             )}
-          </p>
-        ) : null}
-        {isGroup && memberCount !== undefined && (
-          <p className="text-xs text-foreground/50 mt-0.5">{memberCount} members</p>
-        )}
-      </div>
-    </li>
-  );
-};
+            {timeAgo && <p className="flex-shrink-0 text-xs text-foreground/60 ml-2">{timeAgo}</p>}
+          </div>
+          {hasNoMessages ? (
+            <div className="mt-0.5 flex items-center gap-1">
+              <MessageSquareOff className="h-3 w-3 text-foreground/40" />
+              <p className="text-sm text-foreground/50 italic">No messages yet</p>
+            </div>
+          ) : lastMessage ? (
+            <p className="mt-0.5 text-sm text-foreground/70 truncate min-w-0">
+              {isGroup && lastMessage.senderFid !== viewerFid && getProfileByFid && (
+                <span className="text-foreground/50">
+                  @{getSafeUsername(getProfileByFid(lastMessage.senderFid), lastMessage.senderFid)}:
+                </span>
+              )}
+              {lastMessage.isDeleted ? (
+                <span className="italic text-foreground/50">Message deleted</span>
+              ) : !lastMessage.message?.trim() ? (
+                <span className="italic text-foreground/50">Empty message</span>
+              ) : (
+                truncateText(lastMessage.message, 35)
+              )}
+            </p>
+          ) : null}
+          {isGroup && memberCount !== undefined && (
+            <p className="text-xs text-foreground/50 mt-0.5">{memberCount} members</p>
+          )}
+        </div>
+      </li>
+    );
+  }
+);
+
+ConversationListItem.displayName = 'ConversationListItem';

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type React from 'react';
+import { memo } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useProfile } from '@/hooks/queries/useProfile';
@@ -13,7 +14,7 @@ type ProfileHoverCardProps = {
   className?: string;
 };
 
-const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: ProfileHoverCardProps) => {
+const ProfileHoverCard = memo(({ fid, username, viewerFid, children, className }: ProfileHoverCardProps) => {
   const { ref, inView } = useInView({
     threshold: 0,
     delay: 0,
@@ -46,6 +47,8 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
       </HoverCardContent>
     </HoverCard>
   );
-};
+});
+
+ProfileHoverCard.displayName = 'ProfileHoverCard';
 
 export default ProfileHoverCard;
