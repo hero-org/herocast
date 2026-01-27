@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { AppHotkeysProvider } from '@/common/components/AppHotkeysProvider';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { ThemeProvider } from '@/common/hooks/ThemeProvider';
+import { useNavigationPerf } from '@/common/hooks/useNavigationPerf';
 import { loadPosthogAnalytics } from '@/lib/analytics';
 
 const WalletProviders = dynamic(() => import('./WalletProviders'), {
@@ -16,6 +17,11 @@ const WalletProviders = dynamic(() => import('./WalletProviders'), {
 });
 
 const posthog = loadPosthogAnalytics();
+
+function NavigationPerfTracker() {
+  useNavigationPerf();
+  return null;
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -33,7 +39,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const content = (
     <WalletProviders>
       <AuthProvider>
-        <AppHotkeysProvider>{children}</AppHotkeysProvider>
+        <AppHotkeysProvider>
+          <NavigationPerfTracker />
+          {children}
+        </AppHotkeysProvider>
       </AuthProvider>
     </WalletProviders>
   );
