@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Reference for Common Tasks
+
+| Task | Key Files |
+|------|-----------|
+| Add new feed type | `src/hooks/queries/use*Feed.ts`, `app/api/feeds/*/route.ts` |
+| Add UI component | `src/components/ui/` (shadcn), `src/common/components/` (app-specific) |
+| Add new page | `app/(app)/[route]/page.tsx`, add `loading.tsx` |
+| Modify store | `src/stores/use*Store.ts` |
+| Add API route | `app/api/[route]/route.ts` |
+| Add perf tracking | Use `fetchWithPerf` or `measureAsync` from `@/stores/usePerformanceStore` |
+| Fix layout issues | Check for missing `min-h-0` and `flex-1` (see Layout Architecture) |
+
 ## Project Overview
 
 herocast is an open source Farcaster client built with Next.js, focused on professional users and power features. The application supports multi-account management, advanced content creation, analytics, and both web and desktop (Tauri) platforms.
@@ -120,6 +132,59 @@ All stores use mutative for immutable updates and have different persistence str
 - Focus on utility function testing
 - Use `@jest/globals` for test setup
 
+## Common Patterns & Gotchas
+
+### API Routes Pattern
+All API routes follow this structure:
+```typescript
+// app/api/[name]/route.ts
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  // ... validation ...
+  // ... call external API (Neynar, Supabase) ...
+  return NextResponse.json(data);
+}
+export const maxDuration = 20; // Vercel timeout
+```
+
+### React Query Hooks Pattern
+Feed hooks in `src/hooks/queries/`:
+```typescript
+// Fetch function (internal)
+async function fetchXxxFeed(params): Promise<Response> { ... }
+
+// Single page hook
+export function useXxxFeed(params, options) { return useQuery(...) }
+
+// Infinite scroll hook
+export function useXxxFeedInfinite(params, options) { return useInfiniteQuery(...) }
+
+// Flatten helper
+export function flattenXxxFeedPages(data): Cast[] { ... }
+```
+
+### Store Pattern
+All Zustand stores in `src/stores/`:
+```typescript
+interface StoreState { /* data */ }
+interface StoreActions {
+  hydrate: () => Promise<void>;  // Load from storage/API
+  // ... mutations ...
+}
+export const useXxxStore = create<StoreState & StoreActions>((set, get) => ({
+  // initial state
+  // actions using mutative for immutable updates
+}));
+```
+
+### Known Issues / Gotchas
+
+1. **Neynar API is slow** (7-8s) - Always show loading states, use caching
+2. **Store init runs twice in dev** - React strict mode, ignore the duplicate
+3. **IndexedDB async** - Store hydration is async, check `isHydrated` before accessing data
+4. **Supabase returns strings** - Use `string` type for UUIDs, not `UUID` from crypto
+5. **Flex scroll issues** - Add `min-h-0` to flex children that need to scroll
+
 ## Feed Architecture
 
 ### Feed Types
@@ -224,3 +289,133 @@ When content doesn't scroll, check for missing `min-h-0` on flex children. This 
 - Sentry integration for error monitoring
 - PostHog for analytics
 - Tauri for desktop app distribution
+
+## Performance Tracking
+
+### Overview
+
+The app includes a performance tracking system that measures operation durations and reports slow operations. Metrics are:
+- Logged to console in development (with colored output)
+- Sent to PostHog in production (for `warning` and `critical` status only)
+- Stored in `usePerformanceStore` for the dev panel
+
+### Key Files
+
+- `src/stores/usePerformanceStore.ts` - Core tracking store and utilities
+- `src/common/components/PerfPanel.tsx` - Dev-only performance panel
+- `src/lib/fetchWithPerf.ts` - Tracked fetch wrapper for API calls
+- `src/common/hooks/useNavigationPerf.ts` - Page navigation tracking
+
+### Using Performance Tracking
+
+**Track an async operation:**
+```typescript
+import { measureAsync } from '@/stores/usePerformanceStore';
+
+const result = await measureAsync(
+  'my-operation',           // metric name
+  () => fetchSomething(),   // async function
+  500,                      // threshold in ms (default: 100)
+  { userId: '123' }         // optional metadata
+);
+```
+
+**Track API calls with fetchWithPerf:**
+```typescript
+import { fetchWithPerf } from '@/lib/fetchWithPerf';
+
+const response = await fetchWithPerf(
+  '/api/my-endpoint',
+  { method: 'POST', body: JSON.stringify(data) },
+  { name: 'api:my-endpoint', threshold: 500, metadata: { action: 'create' } }
+);
+```
+
+**Manual timing (for complex flows):**
+```typescript
+import { startTiming, endTiming } from '@/stores/usePerformanceStore';
+
+const timingId = startTiming('complex-operation');
+// ... do work ...
+endTiming(timingId, 1000, { step: 'final' }); // threshold: 1000ms
+```
+
+### Accessing Performance Data
+
+| Environment | Method |
+|-------------|--------|
+| Development | `Ctrl+Shift+P` opens PerfPanel UI |
+| Development | `window.__perfSummary()` in browser console |
+| Production | Query PostHog for `performance_metric` events |
+
+### Metric Status Levels
+
+- **good**: Duration < threshold
+- **warning**: Duration >= threshold and < 2x threshold
+- **critical**: Duration >= 2x threshold
+
+Only `warning` and `critical` metrics are sent to PostHog to reduce noise.
+
+### Current Instrumentation
+
+| Category | Metric Name | Threshold | Location |
+|----------|-------------|-----------|----------|
+| Navigation | `nav:/feeds`, `nav:/profile`, etc. | 300ms | `useNavigationPerf` hook |
+| Feed API | `feed:following` | 1000ms | `useFollowingFeed.ts` |
+| Feed API | `feed:trending` | 1000ms | `useTrendingFeed.ts` |
+| Store Init | `store-init-total` | 4000ms | `initializeStores.ts` |
+| Store Init | `store-init-phase1` | 1000ms | `initializeStores.ts` |
+| Store Init | `store-init-phase2` | 3000ms | `initializeStores.ts` |
+
+### Adding New Tracking
+
+When adding performance tracking to new operations:
+
+1. **Choose appropriate threshold**: API calls ~500-1000ms, UI operations ~100-300ms
+2. **Use descriptive names**: Prefix with category (`api:`, `feed:`, `nav:`, `store:`)
+3. **Add relevant metadata**: Include IDs, counts, or flags that help debug slow operations
+4. **Document in this table**: Keep the instrumentation table above up to date
+
+## Loading States
+
+### Loading Pattern Components
+
+The app uses consistent loading patterns via `src/common/components/PageSkeleton.tsx`:
+
+```typescript
+import { PageSkeleton } from '@/common/components/PageSkeleton';
+
+// Variants: 'feed' | 'profile' | 'settings' | 'list' | 'generic'
+<PageSkeleton variant="feed" itemCount={10} />
+```
+
+### Route Loading Files
+
+Next.js App Router `loading.tsx` files provide automatic loading states during navigation:
+
+- `app/(app)/feeds/loading.tsx` - Feed skeleton
+- `app/(app)/profile/loading.tsx` - Profile skeleton
+- `app/(app)/settings/loading.tsx` - Settings skeleton
+- `app/(app)/lists/loading.tsx` - List skeleton
+- `app/(app)/search/loading.tsx` - Feed skeleton
+- `app/(app)/inbox/loading.tsx` - Feed skeleton
+- `app/(app)/dms/loading.tsx` - List skeleton
+- `app/(app)/channels/loading.tsx` - List skeleton
+- `app/(app)/accounts/loading.tsx` - List skeleton
+
+### Spinner Component
+
+For inline loading indicators:
+
+```typescript
+import { Spinner } from '@/components/ui/spinner';
+
+<Spinner size="sm" />  // 'sm' | 'md' | 'lg'
+```
+
+### Best Practices
+
+1. **Always show loading state**: Never leave users staring at blank screens
+2. **Use skeletons for content**: Prefer `PageSkeleton` over spinners for page content
+3. **Use spinners for actions**: Buttons, form submissions, modal loading
+4. **Match skeleton to content**: Use the appropriate variant that matches the page structure

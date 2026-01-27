@@ -113,3 +113,6 @@ dist/
 
 # MCP
 .mcp.json
+
+# Benchmark results
+scripts/benchmark-results/
