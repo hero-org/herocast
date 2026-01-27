@@ -14,7 +14,10 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "prepare": "husky",
-    "supabase:setup": "node scripts/apply-pgsodium-grants.js"
+    "supabase:setup": "node scripts/apply-pgsodium-grants.js",
+    "benchmark": "npx tsx scripts/benchmark.ts",
+    "benchmark:prod": "npx tsx scripts/benchmark.ts --prod",
+    "benchmark:compare": "npx tsx scripts/benchmark-compare.ts"
   },
   "browserslist": {
     "production": [
@@ -138,7 +141,6 @@
     "lodash.find": "^4.6.0",
     "lodash.findindex": "^4.6.0",
     "lodash.get": "^4.4.2",
-    "lodash.includes": "^4.3.0",
     "lodash.isempty": "^4.4.0",
     "lodash.isequal": "^4.5.0",
     "lodash.map": "^4.6.0",
@@ -169,7 +171,6 @@
     "react-resizable-panels": "^4.4.1",
     "react-stately": "^3.36.1",
     "react-tweet": "^3.2.2",
-    "recharts": "^2.15.1",
     "reflect-metadata": "^0.2.2",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
@@ -219,9 +220,11 @@
     "kysely-codegen": "^0.15.0",
     "lint-staged": "^16.2.7",
     "madge": "^6.1.0",
+    "playwright": "^1.58.0",
     "postcss": "^8.5.3",
     "ramda": "^0.29.1",
     "supabase": "^1.226.4",
-    "ts-jest": "^29.2.6"
+    "ts-jest": "^29.2.6",
+    "tsx": "^4.21.0"
   }
 }
