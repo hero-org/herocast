@@ -139,3 +139,13 @@ port = 54327
 vector_port = 54328
 # Configure one of the supported backends: `postgres`, `bigquery`.
 backend = "postgres"
+
+# Edge Function configuration
+# These functions handle OAuth tokens and validate them internally via Supabase auth.getUser()
+# Supabase's built-in JWT middleware doesn't understand the OAuth token format
+
+[functions.mcp-server]
+verify_jwt = false
+
+[functions.farcaster-signer]
+verify_jwt = false

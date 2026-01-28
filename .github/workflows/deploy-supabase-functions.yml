@@ -36,4 +36,11 @@ jobs:
         with:
           version: latest
 
+      # Deploy all functions (config.toml specifies per-function settings)
       - run: supabase functions deploy --project-ref $PROJECT_ID
+
+      # These functions handle OAuth tokens and validate them internally via auth.getUser()
+      # Supabase's built-in JWT middleware rejects OAuth tokens, so we disable it
+      - run: |
+          supabase functions deploy mcp-server --no-verify-jwt --project-ref $PROJECT_ID
+          supabase functions deploy farcaster-signer --no-verify-jwt --project-ref $PROJECT_ID

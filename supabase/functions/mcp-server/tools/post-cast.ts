@@ -349,8 +349,10 @@ export async function postCastTool(auth: AuthContext, input: unknown): Promise<T
 
   let responseJson: { success?: boolean; hash?: string; fid?: number; error?: { message?: string; code?: string } } =
     {};
+  let responseText = '';
   try {
-    responseJson = (await response.json()) as typeof responseJson;
+    responseText = await response.text();
+    responseJson = JSON.parse(responseText);
   } catch {
     responseJson = {};
   }
@@ -358,6 +360,13 @@ export async function postCastTool(auth: AuthContext, input: unknown): Promise<T
   if (!response.ok || responseJson.success === false) {
     const message = responseJson.error?.message || `Signer service failed (${response.status})`;
     const code = responseJson.error?.code || 'SIGNER_SERVICE_ERROR';
+    // Log details for debugging
+    console.error('[postCastTool] Signer error:', {
+      status: response.status,
+      statusText: response.statusText,
+      responseText: responseText.slice(0, 500),
+      parsedError: responseJson.error,
+    });
     return {
       content: [{ type: 'text', text: JSON.stringify({ error: message, code }) }],
       isError: true,

@@ -117,7 +117,22 @@ Deno.serve(async (req: Request) => {
     auth = await authenticateRequest(req.headers.get('Authorization'));
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unauthorized';
-    return jsonRpcError(id ?? null, -32001, message, 401, undefined, getAuthChallengeHeaders());
+    const authHeader = req.headers.get('Authorization');
+    // Include debug info in error response
+    return jsonRpcError(
+      id ?? null,
+      -32001,
+      message,
+      401,
+      {
+        debug: {
+          hasAuthHeader: !!authHeader,
+          authHeaderLength: authHeader?.length ?? 0,
+          authHeaderPrefix: authHeader?.slice(0, 30) ?? 'none',
+        },
+      },
+      getAuthChallengeHeaders()
+    );
   }
 
   switch (method) {
