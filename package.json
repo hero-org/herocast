@@ -154,7 +154,7 @@
     "next-themes": "^0.3.0",
     "pg": "^8.14.0",
     "pino-pretty": "^13.1.1",
-    "posthog-js": "^1.230.4",
+    "posthog-js": "^1.335.5",
     "prop-types": "^15.8.1",
     "radix-colors-for-tailwind": "^2.0.0",
     "react": "18.2.0",
