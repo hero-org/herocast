@@ -107,6 +107,13 @@ const RegisterFarcasterUsernameForm = ({
       });
       return;
     }
+    if (!account?.platformAccountId) {
+      form.setError('username', {
+        type: 'manual',
+        message: 'Account not fully initialized. Please try again.',
+      });
+      return;
+    }
     if (!(await validateUsername(data.username))) return;
 
     setIsPending(true);
@@ -132,15 +139,13 @@ const RegisterFarcasterUsernameForm = ({
         throw new Error('Failed to get signature to register username');
       }
 
-      // todo: fix this can happen if account.getPlatformAccountId() is not set
-
       // register new username
       const result = await updateUsernameOffchain({
         timestamp,
         owner,
         fromFid: '0',
-        toFid: account.platformAccountId!.toString(),
-        fid: account.platformAccountId!.toString(),
+        toFid: account.platformAccountId.toString(),
+        fid: account.platformAccountId.toString(),
         username: username,
         signature: registerSignature,
       });

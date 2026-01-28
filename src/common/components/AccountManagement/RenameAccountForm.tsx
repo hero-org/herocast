@@ -96,12 +96,13 @@ const RenameAccountForm = ({
   };
 
   const validateConnectedWalletOwnsFid = async (): Promise<boolean | undefined> => {
-    if (!address) return undefined;
+    const platformAccountId = account.platformAccountId;
+    if (!address || !platformAccountId) return undefined;
 
     if (account.platform === AccountPlatformType.farcaster) {
       return getFidForAddress(address).then(async (fid) => {
-        console.log('fid for wallet', fid, address, account.platformAccountId!);
-        if (fid === BigInt(account.platformAccountId!)) {
+        console.log('fid for wallet', fid, address, platformAccountId);
+        if (fid === BigInt(platformAccountId)) {
           console.log('wallet owns fid');
           return true;
         } else {
@@ -132,7 +133,7 @@ const RenameAccountForm = ({
   const renameAccount = async (data) => {
     console.log('renameAccount - data', data);
 
-    if (!address || !client || !userInProtocol) return;
+    if (!address || !client || !userInProtocol || !account.platformAccountId) return;
 
     const { username } = data;
 
@@ -146,7 +147,7 @@ const RenameAccountForm = ({
 
     try {
       const owner = getAddress(address);
-      const existingOffchainUsername = await getUsernameForFid(Number(account.platformAccountId!));
+      const existingOffchainUsername = await getUsernameForFid(Number(account.platformAccountId));
       console.log('offchain username', existingOffchainUsername);
       if (existingOffchainUsername) {
         const unregisterSignature = await getSignatureForUsernameProof(client, address, {
@@ -163,8 +164,8 @@ const RenameAccountForm = ({
           timestamp,
           owner,
           toFid: '0',
-          fromFid: account.platformAccountId!,
-          fid: account.platformAccountId!,
+          fromFid: account.platformAccountId,
+          fid: account.platformAccountId,
           username: existingOffchainUsername,
           signature: unregisterSignature,
         });
@@ -187,8 +188,8 @@ const RenameAccountForm = ({
         timestamp,
         owner,
         fromFid: '0',
-        toFid: account.platformAccountId!,
-        fid: account.platformAccountId!,
+        toFid: account.platformAccountId,
+        fid: account.platformAccountId,
         username: username,
         signature: registerSignature,
       });

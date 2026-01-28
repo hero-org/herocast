@@ -39,7 +39,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
     args: address ? [address] : undefined,
   });
 
-  const isWalletOwnerOfFid = idOfUser !== 0n;
+  const isWalletOwnerOfFid = idOfUser !== undefined && idOfUser !== 0n;
   const isConnectedToOptimism = address && chainId === optimismChainId;
   if (idOfUserError) console.log('idOfUserError', idOfUserError);
 
