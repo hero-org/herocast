@@ -193,7 +193,8 @@ export default function Feeds() {
   }, [feedKey]);
 
   useEffect(() => {
-    const shouldUpdateLastReadTimestamp = ![CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING].includes(feedKey);
+    const shouldUpdateLastReadTimestamp =
+      feedKey !== null && ![CUSTOM_CHANNELS.TRENDING, CUSTOM_CHANNELS.FOLLOWING].includes(feedKey as CUSTOM_CHANNELS);
     if (shouldUpdateLastReadTimestamp && selectedChannelUrl && account && account?.channels?.length > 0) {
       const channelId = account.channels.find((channel) => channel.url === selectedChannelUrl)?.id;
       if (!channelId) return;
