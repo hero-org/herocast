@@ -256,6 +256,30 @@ Group routes by dependency requirements:
 - Bundle sizes: minimal visible change (tree-shaking was already working)
 - Real benefit: cleaner codebase, faster installs, proper memoization
 
+### 2026-01-27 14:30 - Faker.js Investigation & Fix ✅
+- Ran bundle analyzer (`ANALYZE=true pnpm build`)
+- **CRITICAL FINDING:** @faker-js/faker is 7.9 MB in production bundle
+- Investigation revealed:
+  - @farcaster/core lists faker as a **production dependency** (not dev)
+  - GitHub issue #2031 specifically mentions herocast
+  - PR #2201 (Oct 2024) moved faker FROM devDeps TO deps (making it worse)
+  - Farcaster uses faker in factory.ts for test utilities but ships it as prod dep
+- **Attempted fix 1:** pnpm override to faker v9 - FAILED (v9 has breaking API changes)
+- **Attempted fix 2:** Webpack alias to stub that throws errors - FAILED (factories evaluated at build time)
+- **Successful fix:** Webpack alias to stub with dummy return values
+  - Created `src/lib/faker-stub.ts` - returns safe dummy values
+  - Added webpack alias in `next.config.mjs` to redirect `@faker-js/faker` imports
+  - herocast doesn't use Factory functions, so dummy values are safe
+
+**Results:**
+| Route | Before | After | Reduction |
+|-------|--------|-------|-----------|
+| `/login` | 1.67 MB | 745 KB | **55%** |
+| `/feeds` | 1.79 MB | 865 KB | **52%** |
+| `/post` | 2.01 MB | 1.08 MB | **46%** |
+| `/inbox` | 1.82 MB | 892 KB | **51%** |
+
 ### Next Steps
-The biggest remaining opportunity is **route-level wallet loading**. The wallet libraries (viem/wagmi) are 2MB and loaded on every route, but only needed on 2-3 pages. This requires a larger refactor of the provider architecture.
+The remaining opportunity:
+1. **Route-level wallet loading (~2MB)** - viem/wagmi loaded on every route but only needed on 2-3 pages. Requires provider architecture refactor.
 

@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
+import bundleAnalyzer from '@next/bundle-analyzer';
 import { withSentryConfig } from '@sentry/nextjs';
 import path from 'path'; // Ensure you import path
 import { fileURLToPath } from 'url';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 // Get the directory path of the current module
 const __filename = fileURLToPath(import.meta.url);
@@ -53,10 +58,12 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@faker-js/faker': path.resolve(__dirname, 'node_modules/@faker-js/faker'),
       '@farcaster/core': path.resolve(__dirname, 'node_modules/@farcaster/core'),
       // Router compatibility: redirect all next/router imports to our compatibility module
       'next/router': path.resolve(__dirname, 'app/router-compat-full.ts'),
+      // Stub out faker - only used by @farcaster/core Factories which herocast never uses
+      // Saves ~7.9MB from production bundle
+      '@faker-js/faker': path.resolve(__dirname, 'src/lib/faker-stub.ts'),
     };
     return config;
   },
@@ -133,7 +140,7 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(
+export default withBundleAnalyzer(withSentryConfig(
   nextConfig,
   {
     // For all available options, see:
@@ -173,4 +180,4 @@ export default withSentryConfig(
     // https://vercel.com/docs/cron-jobs
     automaticVercelMonitors: true,
   }
-);
+));
