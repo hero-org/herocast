@@ -59,6 +59,10 @@ export function UserAuthForm({ signupOnly }: { signupOnly: boolean }) {
   const form = useForm<UserAuthFormValues>({
     resolver: zodResolver(UserAuthFormSchema),
     mode: 'onSubmit',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const { isValid } = form.formState;
