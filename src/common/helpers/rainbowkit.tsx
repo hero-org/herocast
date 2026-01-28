@@ -6,9 +6,13 @@ import { arbitrum, base, mainnet, optimism, polygon, zora } from '@wagmi/core/ch
 import { createPublicClient } from 'viem';
 import { isDev } from './env';
 
-const optimismHttp = http(`https://opt-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`);
+const alchemyApiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
-const mainnetHttp = http(`https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`);
+const optimismHttp = http(`https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);
+const mainnetHttp = http(`https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);
+const baseHttp = http(`https://base-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);
+const arbitrumHttp = http(`https://arb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);
+const polygonHttp = http(`https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);
 
 export const publicClient = createPublicClient({
   chain: optimism,
@@ -27,6 +31,14 @@ export const config = getDefaultConfig({
     ? [mainnet, optimism, Chains.OptimismTestnet, Chains.BaseTestnet]
     : [optimism, mainnet, base, arbitrum, polygon, zora],
   ssr: true,
+  transports: {
+    [optimism.id]: optimismHttp,
+    [mainnet.id]: mainnetHttp,
+    [base.id]: baseHttp,
+    [arbitrum.id]: arbitrumHttp,
+    [polygon.id]: polygonHttp,
+    [zora.id]: http(), // Alchemy doesn't support Zora, use default
+  },
 });
 
 export const mainnetConfig = createConfig({
