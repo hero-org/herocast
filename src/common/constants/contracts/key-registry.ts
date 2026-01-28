@@ -618,7 +618,10 @@ const KEY_REGISTRY_ABI = [
   },
 ] as const;
 
+import { optimismChainId } from '@/common/helpers/env';
+
 export const KEY_REGISTRY = {
   address: KEY_REGISTRY_ADDRESS,
   abi: KEY_REGISTRY_ABI,
+  chainId: optimismChainId,
 };

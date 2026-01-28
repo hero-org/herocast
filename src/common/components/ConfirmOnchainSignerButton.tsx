@@ -9,10 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { type AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 import { KEY_GATEWAY } from '../constants/contracts/key-gateway';
+import { KEY_REGISTRY } from '../constants/contracts/key-registry';
 import { optimismChainId } from '../helpers/env';
 import { getSignedKeyRequestMetadataFromAppAccount } from '../helpers/farcaster';
 import { config } from '../helpers/rainbowkit';
 import SwitchWalletButton from './SwitchWalletButton';
+
+const KEY_STATE_ADDED = 1;
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
@@ -40,6 +43,22 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
   const isConnectedToOptimism = address && chainId === optimismChainId;
   if (idOfUserError) console.log('idOfUserError', idOfUserError);
 
+  const shouldCheckKeyRegistry = isWalletOwnerOfFid && !!account?.publicKey;
+  const { data: keyData, isLoading: isCheckingKeyRegistry } = useReadContract({
+    address: KEY_REGISTRY.address,
+    abi: KEY_REGISTRY.abi,
+    chainId: KEY_REGISTRY.chainId,
+    functionName: 'keyDataOf',
+    args: shouldCheckKeyRegistry ? [BigInt(idOfUser!.toString()), account.publicKey as `0x${string}`] : undefined,
+    query: {
+      staleTime: 5 * 60 * 1000,
+      enabled: shouldCheckKeyRegistry,
+    },
+  });
+
+  const isKeyAlreadyRegistered =
+    keyData && typeof keyData === 'object' && 'state' in keyData && Number(keyData.state) === KEY_STATE_ADDED;
+
   const { setAccountActive } = useAccountStore();
   const enabled = !isEmpty(account);
   const deadline = Math.floor(Date.now() / 1000) + 86400; // signature is valid for 1 day
@@ -61,7 +80,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
 
   useEffect(() => {
     const setupAccount = async () => {
-      if (!isAddKeyTxLoading || !isWalletOwnerOfFid) return;
+      if (!isWalletOwnerOfFid) return;
 
       try {
         const response = await fetch(`/api/users?fids=${idOfUser}&viewer_fid=${APP_FID}`);
@@ -79,14 +98,15 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
           platform_account_id: user.fid.toString(),
         });
         await hydrateAccounts();
+        window.location.reload();
       } catch (error) {
         console.error('Error fetching user:', error);
       }
     };
-    if (isAddKeyTxSuccess) {
+    if (isAddKeyTxSuccess || isKeyAlreadyRegistered) {
       setupAccount();
     }
-  }, [idOfUser, isAddKeyTxSuccess]);
+  }, [idOfUser, isAddKeyTxSuccess, isKeyAlreadyRegistered]);
 
   console.log(
     'addKeyTxReceipt',
@@ -137,6 +157,8 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
   const getButtonText = () => {
     // if (addKeySignPending) return 'Waiting for you to sign in your wallet'
     if (chainId !== optimismChainId) return 'Switch to Optimism';
+    if (isCheckingKeyRegistry) return 'Checking onchain status...';
+    if (isKeyAlreadyRegistered) return 'Key found - activating account...';
     if (isAddKeyTxLoading) return 'Waiting for onchain transaction to be confirmed';
     if (isAddKeyTxSuccess) return 'Confirmed onchain';
     // if (prepareToAddKeyError) return 'Failed to prepare onchain request'
@@ -153,10 +175,17 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
         variant="default"
         className="w-full"
         onClick={() => onClick()}
-        disabled={!enabled || (isConnectedToOptimism && !isWalletOwnerOfFid) || isAddKeyTxSuccess || isError}
+        disabled={
+          !enabled ||
+          (isConnectedToOptimism && !isWalletOwnerOfFid) ||
+          isCheckingKeyRegistry ||
+          isAddKeyTxSuccess ||
+          isKeyAlreadyRegistered ||
+          isError
+        }
       >
         {getButtonText()}
-        {isAddKeyTxLoading && (
+        {(isCheckingKeyRegistry || isAddKeyTxLoading || isKeyAlreadyRegistered) && (
           <Cog6ToothIcon className="ml-1.5 h-5 w-5 text-foreground/80 animate-spin" aria-hidden="true" />
         )}
         {isAddKeyTxSuccess && <CheckCircleIcon className="ml-1.5 h-6 w-6 text-green-600" aria-hidden="true" />}

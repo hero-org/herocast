@@ -419,3 +419,12 @@ import { Spinner } from '@/components/ui/spinner';
 2. **Use skeletons for content**: Prefer `PageSkeleton` over spinners for page content
 3. **Use spinners for actions**: Buttons, form submissions, modal loading
 4. **Match skeleton to content**: Use the appropriate variant that matches the page structure
+
+
+## Bundle Size Notes
+
+### Lodash Imports
+Use individual lodash packages (e.g., `lodash.isempty`, `lodash.get`) - they are tiny (1-2KB each) and already tree-shaken. Avoid importing from the main `lodash` package which pulls the entire library.
+
+### Faker Stub
+`@faker-js/faker` is stubbed via webpack alias in `next.config.mjs` because `@farcaster/core` incorrectly lists it as a production dependency. The stub is at `src/lib/faker-stub.ts` - do not remove it or bundle size increases by 7.9MB.
