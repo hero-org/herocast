@@ -28,7 +28,7 @@ async function fetchBulkProfiles(
     const batch = fids.slice(i, i + BATCH_SIZE);
 
     try {
-      const users = await getProvider().getBulkUsers(batch, viewerFid);
+      const users = await getProvider().getBulkUsers({ fids: batch, viewerFid });
 
       if (users.length > 0) {
         if (includeAdditionalInfo) {
@@ -80,7 +80,7 @@ export function useBulkProfiles(fids: number[], options: UseBulkProfilesOptions)
   const sortedFids = [...fids].sort((a, b) => a - b);
 
   return useQuery({
-    queryKey: queryKeys.profiles.bulk(sortedFids),
+    queryKey: queryKeys.profiles.bulk(sortedFids, viewerFid),
     queryFn: () => fetchBulkProfiles(sortedFids, viewerFid, includeAdditionalInfo),
     enabled: enabled && sortedFids.length > 0 && viewerFid > 0,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -98,9 +98,9 @@ export function useProfiles(fids: number[], options: UseBulkProfilesOptions) {
 
   return useQueries({
     queries: fids.map((fid) => ({
-      queryKey: queryKeys.profiles.byFid(fid),
+      queryKey: queryKeys.profiles.byFid(fid, viewerFid),
       queryFn: async (): Promise<ProfileData | null> => {
-        const user = await getProvider().getUser(fid);
+        const user = await getProvider().getUser({ fid, viewerFid });
         if (!user) return null;
 
         if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {

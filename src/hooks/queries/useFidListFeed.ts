@@ -30,7 +30,7 @@ export function useFidListFeed(listId: string, fids: string[], viewerFid: string
   return useQuery({
     queryKey: queryKeys.feeds.list(listId, { limit, contentsHash }),
     queryFn: ({ signal }) =>
-      getProvider().getFidListFeed(fids.map(Number), Number(viewerFid), limit, undefined, { signal }),
+      getProvider().getFidListFeed({ fids: fids.map(Number), viewerFid: Number(viewerFid), limit, signal }),
     enabled: enabled && fids.length > 0 && !!viewerFid,
     // Override defaults for feed data which changes frequently
     staleTime: 1000 * 60 * 2, // 2 minutes for FID list feed
@@ -55,7 +55,13 @@ export function useFidListFeedInfinite(
   return useInfiniteQuery({
     queryKey: queryKeys.feeds.list(listId, { limit, contentsHash }),
     queryFn: ({ pageParam, signal }) =>
-      getProvider().getFidListFeed(fids.map(Number), Number(viewerFid), limit, pageParam, { signal }),
+      getProvider().getFidListFeed({
+        fids: fids.map(Number),
+        viewerFid: Number(viewerFid),
+        limit,
+        cursor: pageParam,
+        signal,
+      }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && fids.length > 0 && !!viewerFid,

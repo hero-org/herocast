@@ -1,8 +1,8 @@
-import type { FarcasterProvider } from './types';
+import { type FarcasterProvider, UnsupportedProviderFeatureError } from './types';
 
 /**
  * Wraps a primary provider with a fallback.
- * If primary throws "not yet supported", silently retries with fallback.
+ * If the primary provider does not support a feature, retries with fallback.
  */
 export function createFallbackProvider(primary: FarcasterProvider, fallback: FarcasterProvider): FarcasterProvider {
   const handler: ProxyHandler<FarcasterProvider> = {
@@ -16,7 +16,7 @@ export function createFallbackProvider(primary: FarcasterProvider, fallback: Far
         try {
           return await (value as Function).apply(target, args);
         } catch (error) {
-          if (error instanceof Error && error.message.includes('not yet supported')) {
+          if (error instanceof UnsupportedProviderFeatureError) {
             const fallbackMethod = (fallback as any)[prop];
             if (typeof fallbackMethod === 'function') {
               return fallbackMethod.apply(fallback, args);

@@ -1,11 +1,6 @@
-import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
-import type {
-  FarcasterProvider,
-  FeedResponse,
-  FetchOptions,
-  NotificationsResponse,
-  SearchCastsResponse,
-} from './types';
+import type { FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
+import type { FarcasterProvider, FeedResponse, GetNotificationsRequest, NotificationsResponse } from './types';
+import { UnsupportedProviderFeatureError as UnsupportedFeatureError } from './types';
 
 const DEFAULT_BASE_URL = 'https://haatz.quilibrium.com/v2/farcaster';
 
@@ -36,8 +31,16 @@ async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   return res.json();
 }
 
+function findUserByUsername(users: FarcasterUser[] | undefined, username: string) {
+  if (!users?.length) return null;
+
+  const normalizedUsername = username.toLowerCase();
+  const matchingUsernames = new Set([normalizedUsername, `${normalizedUsername}.eth`]);
+  return users.find((user) => matchingUsernames.has(user.username.toLowerCase())) || users[0];
+}
+
 function unsupported(method: string): never {
-  throw new Error(`Hypersnap: ${method} not yet supported`);
+  throw new UnsupportedFeatureError('hypersnap', method);
 }
 
 /** Extract channel ID from a Warpcast channel URL like https://warpcast.com/~/channel/degen */
@@ -64,47 +67,41 @@ export function createHypersnapProvider(): FarcasterProvider {
       allChannels: false,
     },
 
-    async getUser(fid, opts) {
-      const data = await fetchJson<{ user: FarcasterUser }>(buildUrl('user', { fid }), opts?.signal);
+    async getUser({ fid, signal }) {
+      const data = await fetchJson<{ user: FarcasterUser }>(buildUrl('user', { fid }), signal);
       if (!data.user) throw new Error(`User ${fid} not found`);
       return data.user;
     },
 
-    async getUserByUsername(username, opts) {
+    async getUserByUsername({ username, signal }) {
       // /user/by_username not available; use search as workaround
-      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/search', { q: username }), opts?.signal);
-      const match = data.users?.find((u) => u.username === username);
+      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/search', { q: username }), signal);
+      const match = findUserByUsername(data.users, username);
       if (!match) throw new Error(`User ${username} not found`);
       return match;
     },
 
-    async searchUsers(q, _viewerFid, limit, opts) {
-      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/search', { q, limit }), opts?.signal);
+    async searchUsers({ q, limit, signal }) {
+      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/search', { q, limit }), signal);
       return data.users || [];
     },
 
-    async getBulkUsers(fids, _viewerFid, opts) {
-      const data = await fetchJson<{ users: FarcasterUser[] }>(
-        buildUrl('user/bulk', { fids: fids.join(',') }),
-        opts?.signal
-      );
+    async getBulkUsers({ fids, signal }) {
+      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/bulk', { fids: fids.join(',') }), signal);
       return data.users || [];
     },
 
-    async getFollowingFeed(fid, limit = 15, cursor, opts) {
-      return fetchJson<FeedResponse>(buildUrl('feed', { feed_type: 'following', fid, limit, cursor }), opts?.signal);
+    async getFollowingFeed({ fid, limit = 15, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('feed', { feed_type: 'following', fid, limit, cursor }), signal);
     },
 
     getTrendingFeed() {
       return unsupported('getTrendingFeed');
     },
 
-    async getChannelFeed(parentUrl, _fid, limit = 15, cursor, opts) {
+    async getChannelFeed({ parentUrl, limit = 15, cursor, signal }) {
       const channelId = channelIdFromUrl(parentUrl);
-      return fetchJson<FeedResponse>(
-        buildUrl('feed/channels', { channel_ids: channelId, limit, cursor }),
-        opts?.signal
-      );
+      return fetchJson<FeedResponse>(buildUrl('feed/channels', { channel_ids: channelId, limit, cursor }), signal);
     },
 
     getProfileCasts() {
@@ -119,33 +116,22 @@ export function createHypersnapProvider(): FarcasterProvider {
       return unsupported('getFidListFeed');
     },
 
-    async searchCasts(q, _filters, _limit, _offset, opts) {
-      const data = await fetchJson<{
-        result: { casts: FarcasterCast[]; next?: Record<string, string> };
-      }>(buildUrl('cast/search', { q }), opts?.signal);
-      return {
-        results: (data.result?.casts || []).map((c) => ({
-          hash: c.hash,
-          fid: c.author?.fid || 0,
-          text: c.text,
-          timestamp: c.timestamp,
-        })),
-        next: data.result?.next?.cursor ? { cursor: data.result.next.cursor } : undefined,
-      } satisfies SearchCastsResponse;
+    async searchCasts() {
+      return unsupported('searchCasts');
     },
 
     getCasts() {
       return unsupported('getCasts');
     },
 
-    async getChannel(id, opts) {
-      const data = await fetchJson<{ channel: FarcasterChannel }>(buildUrl('channel', { id }), opts?.signal);
+    async getChannel({ id, signal }) {
+      const data = await fetchJson<{ channel: FarcasterChannel }>(buildUrl('channel', { id }), signal);
       if (!data.channel) throw new Error(`Channel ${id} not found`);
       return data.channel;
     },
 
-    async searchChannels(q, opts) {
-      const data = await fetchJson<{ channels: FarcasterChannel[] }>(buildUrl('channel/search', { q }), opts?.signal);
+    async searchChannels({ q, signal }) {
+      const data = await fetchJson<{ channels: FarcasterChannel[] }>(buildUrl('channel/search', { q }), signal);
       return data.channels || [];
     },
 
@@ -153,8 +139,8 @@ export function createHypersnapProvider(): FarcasterProvider {
       return unsupported('getAllChannels');
     },
 
-    async getNotifications(fid, limit, cursor, type, opts) {
-      return fetchJson<NotificationsResponse>(buildUrl('notifications', { fid, limit, cursor, type }), opts?.signal);
+    async getNotifications({ fid, limit, cursor, type, signal }: GetNotificationsRequest) {
+      return fetchJson<NotificationsResponse>(buildUrl('notifications', { fid, limit, cursor, type }), signal);
     },
   };
 }

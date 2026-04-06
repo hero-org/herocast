@@ -21,7 +21,7 @@ export function useFollowingFeed(fid: string, options?: FollowingFeedOptions) {
 
   return useQuery({
     queryKey: queryKeys.feeds.following(fid, { limit }),
-    queryFn: ({ signal }) => getProvider().getFollowingFeed(Number(fid), limit, undefined, { signal }),
+    queryFn: ({ signal }) => getProvider().getFollowingFeed({ fid: Number(fid), limit, signal }),
     enabled: enabled && !!fid,
     // Override defaults for feed data which changes frequently
     staleTime: 1000 * 60 * 2, // 2 minutes for following feed
@@ -39,7 +39,8 @@ export function useFollowingFeedInfinite(fid: string, options?: FollowingFeedOpt
 
   return useInfiniteQuery({
     queryKey: queryKeys.feeds.following(fid, { limit }),
-    queryFn: ({ pageParam, signal }) => getProvider().getFollowingFeed(Number(fid), limit, pageParam, { signal }),
+    queryFn: ({ pageParam, signal }) =>
+      getProvider().getFollowingFeed({ fid: Number(fid), limit, cursor: pageParam, signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!fid,

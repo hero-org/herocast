@@ -21,7 +21,7 @@ export function useChannelFeed(parentUrl: string, fid: string, options?: Channel
 
   return useQuery({
     queryKey: queryKeys.feeds.channel(parentUrl, fid, { limit }),
-    queryFn: ({ signal }) => getProvider().getChannelFeed(parentUrl, Number(fid), limit, undefined, { signal }),
+    queryFn: ({ signal }) => getProvider().getChannelFeed({ parentUrl, fid: Number(fid), limit, signal }),
     enabled: enabled && !!parentUrl && !!fid,
     // Override defaults for feed data which changes frequently
     staleTime: 1000 * 60 * 2, // 2 minutes for channel feeds
@@ -40,7 +40,7 @@ export function useChannelFeedInfinite(parentUrl: string, fid: string, options?:
   return useInfiniteQuery({
     queryKey: queryKeys.feeds.channel(parentUrl, fid, { limit }),
     queryFn: ({ pageParam, signal }) =>
-      getProvider().getChannelFeed(parentUrl, Number(fid), limit, pageParam, { signal }),
+      getProvider().getChannelFeed({ parentUrl, fid: Number(fid), limit, cursor: pageParam, signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!parentUrl && !!fid,

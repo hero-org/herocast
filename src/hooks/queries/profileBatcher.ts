@@ -11,10 +11,21 @@ import type { ProfileData } from './useProfile';
  *
  * @see https://tanstack.com/query/v4/docs/framework/react/community/batching-requests-using-bathshit
  */
-export const profileBatcher = create<ProfileData[], number, ProfileData>({
-  fetcher: async (fids: number[]) => {
-    return getProvider().getBulkUsers(fids);
-  },
-  resolver: keyResolver('fid'),
-  scheduler: windowScheduler(10), // 10ms batching window
-});
+const batchers = new Map<string, ReturnType<typeof create<ProfileData[], number, ProfileData>>>();
+
+export function getProfileBatcher(viewerFid?: number) {
+  const key = String(viewerFid ?? 'anon');
+  const existing = batchers.get(key);
+  if (existing) return existing;
+
+  const batcher = create<ProfileData[], number, ProfileData>({
+    fetcher: async (fids: number[]) => {
+      return getProvider().getBulkUsers({ fids, viewerFid });
+    },
+    resolver: keyResolver('fid'),
+    scheduler: windowScheduler(10), // 10ms batching window
+  });
+
+  batchers.set(key, batcher);
+  return batcher;
+}

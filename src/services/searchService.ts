@@ -60,6 +60,10 @@ export type SearchResponse = {
   isTimeout: boolean;
 };
 
+export type SearchWithCastsResponse = SearchResponse & {
+  casts: FarcasterCast[];
+};
+
 export class SearchService {
   async search(params: SearchParams): Promise<SearchResponse> {
     try {
@@ -82,7 +86,11 @@ export class SearchService {
         if (fromUsername) {
           console.log('SearchService - Looking up user:', fromUsername);
           try {
-            const users = await getProvider().searchUsers(fromUsername, Number(params.viewerFid), 1);
+            const users = await getProvider().searchUsers({
+              q: fromUsername,
+              viewerFid: Number(params.viewerFid),
+              limit: 1,
+            });
             const profile = users?.[0];
             console.log('SearchService - Profile lookup result:', profile);
             if (profile?.fid) {
@@ -132,12 +140,12 @@ export class SearchService {
       }
       if (searchParams.viewerFid) providerFilters.viewerFid = searchParams.viewerFid;
 
-      const searchResponse = await getProvider().searchCasts(
-        searchParams.q || '',
-        providerFilters,
-        searchParams.limit,
-        searchParams.offset
-      );
+      const searchResponse = await getProvider().searchCasts({
+        q: searchParams.q || '',
+        filters: providerFilters,
+        limit: searchParams.limit,
+        offset: searchParams.offset,
+      });
 
       return {
         results: searchResponse.results,
@@ -149,18 +157,33 @@ export class SearchService {
     }
   }
 
-  async searchWithCasts(params: SearchParams): Promise<CastsResult> {
+  async searchWithCasts(params: SearchParams): Promise<SearchWithCastsResponse> {
     const searchResponse = await this.search(params);
-    const castHashes = searchResponse.results?.map((result) => result.hash) || [];
+    const results = searchResponse.results || [];
+    const castHashes = results.map((result) => result.hash);
 
     // If no results, return empty response
-    if (castHashes.length === 0) {
-      return { casts: [] };
+    if (searchResponse.error || searchResponse.isTimeout || castHashes.length === 0) {
+      return { casts: [], results, error: searchResponse.error, isTimeout: searchResponse.isTimeout };
     }
 
-    const viewerFid = params.viewerFid ? Number(params.viewerFid) : undefined;
-    const casts = await getProvider().getCasts(castHashes, viewerFid);
-    return { casts };
+    try {
+      const viewerFid = params.viewerFid ? Number(params.viewerFid) : undefined;
+      const casts = await getProvider().getCasts({ hashes: castHashes, viewerFid });
+      const castsByHash = new Map(casts.map((cast) => [cast.hash, cast]));
+      const orderedCasts = castHashes
+        .map((hash) => castsByHash.get(hash))
+        .filter((cast): cast is FarcasterCast => cast !== undefined);
+
+      return { casts: orderedCasts, results, isTimeout: false };
+    } catch (error) {
+      return {
+        casts: [],
+        results,
+        error: error instanceof Error ? error.message : String(error),
+        isTimeout: false,
+      };
+    }
   }
 
   getTextMatchCondition(term: string): string {

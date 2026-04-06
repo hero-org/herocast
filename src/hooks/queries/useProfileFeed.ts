@@ -20,7 +20,7 @@ export function useUserCasts(fid: number | undefined, options?: ProfileFeedOptio
 
   return useQuery({
     queryKey: ['profiles', 'casts', fid, { limit, single: true }] as const,
-    queryFn: ({ signal }) => getProvider().getProfileCasts(fid!, limit, undefined, { signal }),
+    queryFn: ({ signal }) => getProvider().getProfileCasts({ fid: fid!, limit, signal }),
     enabled: enabled && !!fid && fid > 0,
     staleTime: 1000 * 60 * 2, // 2 minutes for feed data
   });
@@ -34,7 +34,7 @@ export function useUserLikes(fid: number | undefined, options?: ProfileFeedOptio
 
   return useQuery({
     queryKey: ['profiles', 'likes', fid, { limit, single: true }] as const,
-    queryFn: ({ signal }) => getProvider().getProfileLikes(fid!, limit, undefined, { signal }),
+    queryFn: ({ signal }) => getProvider().getProfileLikes({ fid: fid!, limit, signal }),
     enabled: enabled && !!fid && fid > 0,
     staleTime: 1000 * 60 * 2, // 2 minutes for feed data
   });
@@ -48,7 +48,7 @@ export function useUserCastsInfinite(fid: number | undefined, options?: ProfileF
 
   return useInfiniteQuery({
     queryKey: ['profiles', 'casts', fid, { limit }] as const,
-    queryFn: ({ pageParam, signal }) => getProvider().getProfileCasts(fid!, limit, pageParam, { signal }),
+    queryFn: ({ pageParam, signal }) => getProvider().getProfileCasts({ fid: fid!, limit, cursor: pageParam, signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!fid && fid > 0,
@@ -64,7 +64,7 @@ export function useUserLikesInfinite(fid: number | undefined, options?: ProfileF
 
   return useInfiniteQuery({
     queryKey: ['profiles', 'likes', fid, { limit }] as const,
-    queryFn: ({ pageParam, signal }) => getProvider().getProfileLikes(fid!, limit, pageParam, { signal }),
+    queryFn: ({ pageParam, signal }) => getProvider().getProfileLikes({ fid: fid!, limit, cursor: pageParam, signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!fid && fid > 0,

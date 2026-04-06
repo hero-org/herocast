@@ -38,57 +38,112 @@ export interface FetchOptions {
   signal?: AbortSignal;
 }
 
+interface ViewerContextRequest extends FetchOptions {
+  viewerFid?: number;
+}
+
+interface CursorRequest extends FetchOptions {
+  cursor?: string;
+  limit?: number;
+}
+
+export interface GetUserRequest extends ViewerContextRequest {
+  fid: number;
+}
+
+export interface GetUserByUsernameRequest extends ViewerContextRequest {
+  username: string;
+}
+
+export interface SearchUsersRequest extends ViewerContextRequest {
+  q: string;
+  limit?: number;
+}
+
+export interface GetBulkUsersRequest extends ViewerContextRequest {
+  fids: number[];
+}
+
+export interface GetFollowingFeedRequest extends CursorRequest {
+  fid: number;
+}
+
+export interface GetTrendingFeedRequest extends CursorRequest {}
+
+export interface GetChannelFeedRequest extends CursorRequest {
+  parentUrl: string;
+  fid?: number;
+}
+
+export interface GetProfileFeedRequest extends CursorRequest {
+  fid: number;
+}
+
+export interface GetFidListFeedRequest extends ViewerContextRequest, CursorRequest {
+  fids: number[];
+}
+
+export interface SearchCastsRequest extends FetchOptions {
+  q: string;
+  filters?: Record<string, string>;
+  limit?: number;
+  offset?: number;
+}
+
+export interface GetCastsRequest extends ViewerContextRequest {
+  hashes: string[];
+}
+
+export interface GetChannelRequest extends FetchOptions {
+  id: string;
+}
+
+export interface SearchChannelsRequest extends FetchOptions {
+  q: string;
+}
+
+export interface GetNotificationsRequest extends CursorRequest {
+  fid: number;
+  type?: string;
+}
+
+export class UnsupportedProviderFeatureError extends Error {
+  constructor(
+    public readonly provider: ProviderType,
+    public readonly feature: string
+  ) {
+    super(`${provider}: ${feature} not supported`);
+    this.name = 'UnsupportedProviderFeatureError';
+  }
+}
+
 export interface FarcasterProvider {
   type: ProviderType;
   capabilities: ProviderCapabilities;
 
   // Users
-  getUser(fid: number, opts?: FetchOptions): Promise<FarcasterUser>;
-  getUserByUsername(username: string, opts?: FetchOptions): Promise<FarcasterUser>;
-  searchUsers(q: string, viewerFid?: number, limit?: number, opts?: FetchOptions): Promise<FarcasterUser[]>;
-  getBulkUsers(fids: number[], viewerFid?: number, opts?: FetchOptions): Promise<FarcasterUser[]>;
+  getUser(request: GetUserRequest): Promise<FarcasterUser>;
+  getUserByUsername(request: GetUserByUsernameRequest): Promise<FarcasterUser>;
+  searchUsers(request: SearchUsersRequest): Promise<FarcasterUser[]>;
+  getBulkUsers(request: GetBulkUsersRequest): Promise<FarcasterUser[]>;
 
   // Feeds
-  getFollowingFeed(fid: number, limit?: number, cursor?: string, opts?: FetchOptions): Promise<FeedResponse>;
-  getTrendingFeed(limit?: number, cursor?: string, opts?: FetchOptions): Promise<FeedResponse>;
-  getChannelFeed(
-    parentUrl: string,
-    fid?: number,
-    limit?: number,
-    cursor?: string,
-    opts?: FetchOptions
-  ): Promise<FeedResponse>;
-  getProfileCasts(fid: number, limit?: number, cursor?: string, opts?: FetchOptions): Promise<FeedResponse>;
-  getProfileLikes(fid: number, limit?: number, cursor?: string, opts?: FetchOptions): Promise<FeedResponse>;
-  getFidListFeed(
-    fids: number[],
-    viewerFid?: number,
-    limit?: number,
-    cursor?: string,
-    opts?: FetchOptions
-  ): Promise<FeedResponse>;
+  getFollowingFeed(request: GetFollowingFeedRequest): Promise<FeedResponse>;
+  getTrendingFeed(request: GetTrendingFeedRequest): Promise<FeedResponse>;
+  getChannelFeed(request: GetChannelFeedRequest): Promise<FeedResponse>;
+  getProfileCasts(request: GetProfileFeedRequest): Promise<FeedResponse>;
+  getProfileLikes(request: GetProfileFeedRequest): Promise<FeedResponse>;
+  getFidListFeed(request: GetFidListFeedRequest): Promise<FeedResponse>;
 
   // Casts — searchCasts uses offset pagination (Neynar search API), not cursor
-  searchCasts(
-    q: string,
-    filters?: Record<string, string>,
-    limit?: number,
-    offset?: number,
-    opts?: FetchOptions
-  ): Promise<SearchCastsResponse>;
-  getCasts(hashes: string[], viewerFid?: number, opts?: FetchOptions): Promise<FarcasterCast[]>;
+  searchCasts(request: SearchCastsRequest): Promise<SearchCastsResponse>;
+  getCasts(request: GetCastsRequest): Promise<FarcasterCast[]>;
 
   // Channels
-  getChannel(id: string, opts?: FetchOptions): Promise<FarcasterChannel>;
-  searchChannels(q: string, opts?: FetchOptions): Promise<FarcasterChannel[]>;
+  getChannel(request: GetChannelRequest): Promise<FarcasterChannel>;
+  searchChannels(request: SearchChannelsRequest): Promise<FarcasterChannel[]>;
   getAllChannels(opts?: FetchOptions): Promise<FarcasterChannel[]>;
 
   // Notifications
-  getNotifications(
-    fid: number,
-    limit?: number,
-    cursor?: string,
-    type?: string,
-    opts?: FetchOptions
-  ): Promise<NotificationsResponse>;
+  getNotifications(request: GetNotificationsRequest): Promise<NotificationsResponse>;
 }

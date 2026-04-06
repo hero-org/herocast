@@ -21,7 +21,7 @@ export function useTrendingFeed(options?: TrendingFeedOptions) {
 
   return useQuery({
     queryKey: queryKeys.feeds.trending({ limit }),
-    queryFn: ({ signal }) => getProvider().getTrendingFeed(limit, undefined, { signal }),
+    queryFn: ({ signal }) => getProvider().getTrendingFeed({ limit, signal }),
     enabled,
     // Override defaults for feed data which changes frequently
     staleTime: 1000 * 60 * 2, // 2 minutes for trending feed
@@ -39,7 +39,7 @@ export function useTrendingFeedInfinite(options?: TrendingFeedOptions) {
 
   return useInfiniteQuery({
     queryKey: queryKeys.feeds.trending({ limit }),
-    queryFn: ({ pageParam, signal }) => getProvider().getTrendingFeed(limit, pageParam, { signal }),
+    queryFn: ({ pageParam, signal }) => getProvider().getTrendingFeed({ limit, cursor: pageParam, signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled,

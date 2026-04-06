@@ -4,7 +4,7 @@ import type { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
 import type { FarcasterUser } from '@/common/types/farcaster';
 import { getProvider } from '@/lib/farcaster/providers';
 import { queryKeys } from '@/lib/queryKeys';
-import { profileBatcher } from './profileBatcher';
+import { getProfileBatcher } from './profileBatcher';
 
 export type AdditionalUserInfo = {
   icebreakerSocialInfo?: IcebreakerSocialInfo;
@@ -24,10 +24,10 @@ interface UseProfileOptions {
  */
 async function fetchProfileByFid(
   fid: number,
-  _viewerFid?: number,
+  viewerFid?: number,
   includeAdditionalInfo = false
 ): Promise<ProfileData | null> {
-  const user = await getProvider().getUser(fid);
+  const user = await getProvider().getUser({ fid, viewerFid });
   if (!user) return null;
 
   if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {
@@ -52,13 +52,13 @@ async function fetchProfileByFid(
  */
 async function fetchProfileByUsername(
   username: string,
-  _viewerFid: number,
+  viewerFid: number,
   includeAdditionalInfo = false
 ): Promise<ProfileData | null> {
   // Remove @ prefix if present
   const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
 
-  const user = await getProvider().getUserByUsername(cleanUsername);
+  const user = await getProvider().getUserByUsername({ username: cleanUsername, viewerFid });
   if (!user) return null;
 
   if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {
@@ -91,7 +91,7 @@ export function useProfileByFid(fid: number | undefined, options?: UseProfileOpt
   const { viewerFid, includeAdditionalInfo = false, enabled = true } = options ?? {};
 
   return useQuery({
-    queryKey: queryKeys.profiles.byFid(fid ?? 0),
+    queryKey: queryKeys.profiles.byFid(fid ?? 0, viewerFid),
     // Use batcher for automatic request batching (solves N+1 problem)
     // Falls back to direct fetch when additional info is needed
     queryFn: async (): Promise<ProfileData | null> => {
@@ -99,7 +99,7 @@ export function useProfileByFid(fid: number | undefined, options?: UseProfileOpt
         return fetchProfileByFid(fid!, viewerFid, includeAdditionalInfo);
       }
       // Batcher returns ProfileData or undefined if not found
-      const profile = await profileBatcher.fetch(fid!);
+      const profile = await getProfileBatcher(viewerFid).fetch(fid!);
       return profile ?? null;
     },
     enabled: enabled && !!fid && fid > 0,
@@ -114,7 +114,7 @@ export function useProfileByUsername(username: string | undefined, options?: Use
   const { viewerFid, includeAdditionalInfo = false, enabled = true } = options ?? {};
 
   return useQuery({
-    queryKey: queryKeys.profiles.byUsername(username ?? ''),
+    queryKey: queryKeys.profiles.byUsername(username ?? '', viewerFid),
     queryFn: () => fetchProfileByUsername(username!, viewerFid ?? 0, includeAdditionalInfo),
     enabled: enabled && !!username && username.length > 0 && !!viewerFid,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -134,7 +134,9 @@ export function useProfile(params: { fid?: number; username?: string }, options?
   const useFidLookup = !!fid && fid > 0;
 
   return useQuery({
-    queryKey: useFidLookup ? queryKeys.profiles.byFid(fid!) : queryKeys.profiles.byUsername(username ?? ''),
+    queryKey: useFidLookup
+      ? queryKeys.profiles.byFid(fid!, viewerFid)
+      : queryKeys.profiles.byUsername(username ?? '', viewerFid),
     queryFn: () =>
       useFidLookup
         ? fetchProfileByFid(fid!, viewerFid, includeAdditionalInfo)

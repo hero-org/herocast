@@ -27,9 +27,12 @@ export const queryKeys = {
   // Profile queries
   profiles: {
     all: ['profiles'] as const,
-    byFid: (fid: number) => ['profiles', 'byFid', fid] as const,
-    byUsername: (username: string) => ['profiles', 'byUsername', username] as const,
-    bulk: (fids: number[]) =>
+    byFidPrefix: (fid: number) => ['profiles', 'byFid', fid] as const,
+    byFid: (fid: number, viewerFid?: number) => ['profiles', 'byFid', fid, viewerFid ?? null] as const,
+    byUsername: (username: string, viewerFid?: number) =>
+      ['profiles', 'byUsername', username, viewerFid ?? null] as const,
+    bulkPrefix: ['profiles', 'bulk'] as const,
+    bulk: (fids: number[], viewerFid?: number) =>
       [
         'profiles',
         'bulk',
@@ -37,6 +40,7 @@ export const queryKeys = {
           .slice()
           .sort((a, b) => a - b)
           .join(','),
+        viewerFid ?? null,
       ] as const,
     additionalInfo: (fid: number) => ['profiles', 'additionalInfo', fid] as const,
   },

@@ -1,7 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { map, uniq } from 'lodash';
 import isEmpty from 'lodash.isempty';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
@@ -11,17 +10,10 @@ import { Key } from 'ts-key-enum';
 import { CastThreadView } from '@/common/components/CastThreadView';
 import { SearchInterface } from '@/common/components/SearchInterface';
 import { SearchResultsView } from '@/common/components/SearchResultsView';
-import type { FarcasterCast } from '@/common/types/farcaster';
 import { Interval } from '@/common/types/types';
+import { useCastSearchInfinite } from '@/hooks/queries/useCastSearch';
 import { useToast } from '@/hooks/use-toast';
-import {
-  type RawSearchResult,
-  type SearchFilters,
-  SearchMode,
-  type SearchResponse,
-  SortType,
-  searchService,
-} from '@/services/searchService';
+import { type SearchFilters, SearchMode, SortType } from '@/services/searchService';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
@@ -40,21 +32,21 @@ export default function SearchPage() {
   const posthog = usePostHog();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [casts, setCasts] = useState<FarcasterCast[]>([]);
-  const [castHashes, setCastHashes] = useState<RawSearchResult[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
-  const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false); // Track if search has been performed
-  const [searchCounter, setSearchCounter] = useState(0);
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
-  const [error, setError] = useState<Error | null>(null);
-  const activeSearchCounter = useRef(0);
-  const [hasMore, setHasMore] = useState(true);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
+  const [submittedSearch, setSubmittedSearch] = useState<{
+    term: string;
+    filters: SearchFilters;
+    requestId: number;
+  } | null>(null);
 
   const router = useRouter();
   const { toast } = useToast();
   const { addSearch, addList, setSelectedListId, lists } = useListStore();
+  const lastTrackedSearchIdRef = useRef<number | null>(null);
+  const searchStartedAtRef = useRef(0);
   const selectedList = useListStore((state) =>
     state.selectedListId !== undefined ? state.lists.find((list) => list.id === state.selectedListId) : undefined
   );
@@ -66,6 +58,16 @@ export default function SearchPage() {
 
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const viewerFid = selectedAccount?.platformAccountId || APP_FID;
+  const searchQuery = useCastSearchInfinite(submittedSearch?.term ?? '', submittedSearch?.filters, viewerFid, {
+    enabled: !!submittedSearch,
+    initialLimit: SEARCH_LIMIT_INITIAL_LOAD,
+    limit: SEARCH_LIMIT_NEXT_LOAD,
+    queryKeyScope: { source: 'search-page' },
+  });
+  const casts = searchQuery.casts;
+  const isLoading = searchQuery.isPending || searchQuery.isFetching;
+  const hasMore = Boolean(searchQuery.hasNextPage);
+  const error = searchQuery.error instanceof Error ? searchQuery.error : null;
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -125,27 +127,20 @@ export default function SearchPage() {
     }
   };
 
-  const addCastHashes = (newCastHashes: RawSearchResult[], reset: boolean) => {
-    console.log('addCastHashes', newCastHashes?.length, 'reset: ', reset);
-    setCastHashes((prevCastHashes) => uniq([...(reset ? [] : prevCastHashes), ...(newCastHashes || [])]));
-  };
-
-  const resetState = () => {
-    setError(null);
-    setIsLoading(true);
-    setCasts([]);
-    setCastHashes([]);
-    setHasMore(true);
-  };
-
   const getFilters = () => filters;
+  const getSerializedSearch = (term: string, activeFilters: SearchFilters) =>
+    JSON.stringify({
+      term,
+      interval: activeFilters.interval,
+      mode: activeFilters.mode,
+      sortType: activeFilters.sortType,
+      authorFid: activeFilters.authorFid,
+      parentUrl: activeFilters.parentUrl,
+      channelId: activeFilters.channelId,
+    });
 
   const onSearch = useCallback(
     async (term?: string, filters?: SearchFilters) => {
-      const newSearchCounter = searchCounter + 1;
-      setSearchCounter(newSearchCounter);
-      activeSearchCounter.current = newSearchCounter;
-
       if (!term) {
         term = searchTerm;
       }
@@ -154,86 +149,65 @@ export default function SearchPage() {
         filters = getFilters();
       }
 
-      resetState();
+      const nextFilters = filters || DEFAULT_FILTERS;
+      const nextRequestId = Date.now();
+      const nextSearch = {
+        term,
+        filters: nextFilters,
+        requestId: nextRequestId,
+      };
+      const isSameSearch =
+        submittedSearch &&
+        getSerializedSearch(submittedSearch.term, submittedSearch.filters) === getSerializedSearch(term, nextFilters);
+
       setShowCastThreadView(false);
+      setSelectedCastIdx(-1);
       setHasSearched(true); // Mark that a search has been performed
+      searchStartedAtRef.current = Date.now();
       posthog.capture('user_start_castSearch', {
         term,
       });
-      const startedAt = Date.now();
-      try {
-        const searchResponse = await searchService.search({
-          searchTerm: term,
-          filters,
-          viewerFid,
-          limit: SEARCH_LIMIT_INITIAL_LOAD,
-        });
-        if (activeSearchCounter.current !== newSearchCounter) {
-          return;
-        }
-        const endedAt = Date.now();
-        const searchResults = searchResponse.results || [];
 
-        addSearch({
-          term,
-          startedAt,
-          endedAt,
-          resultsCount: searchResults.length,
-        });
-        posthog.capture('backend_returns_castSearch', {
-          term,
-          resultsCount: searchResults.length,
-          duration: endedAt - startedAt,
-        });
-        processSearchResponse(searchResponse, SEARCH_LIMIT_INITIAL_LOAD);
-      } catch (error) {
-        console.error('Failed to search for text', term, error);
-      } finally {
-        setIsLoading(false);
+      setSubmittedSearch(nextSearch);
+
+      if (isSameSearch) {
+        await searchQuery.refetch();
       }
     },
-    [searchCounter, searchTerm, filters, posthog]
+    [searchQuery, searchTerm, filters, posthog, submittedSearch]
   );
 
-  const processSearchResponse = (response: SearchResponse, limit: number) => {
-    const results = response.results || [];
-    console.log('processSearchResponse - results', results.length);
-    if (results.length < limit) {
-      setHasMore(false);
-    }
-    if (results.length > 0) {
-      addCastHashes(results, false);
-    }
-    const { isTimeout, error } = response;
-    if (isTimeout) {
-      setError(new Error('Search timed out - please try again'));
-    } else if (error) {
-      setError(new Error(error));
-    }
-    setIsLoading(false);
-  };
+  useEffect(() => {
+    if (!submittedSearch || searchQuery.isFetching || searchQuery.isError) return;
+    if (lastTrackedSearchIdRef.current === submittedSearch.requestId) return;
+    if (searchQuery.dataUpdatedAt < searchStartedAtRef.current) return;
+
+    const endedAt = Date.now();
+    addSearch({
+      term: submittedSearch.term,
+      startedAt: searchStartedAtRef.current,
+      endedAt,
+      resultsCount: searchQuery.totalResults,
+    });
+    posthog.capture('backend_returns_castSearch', {
+      term: submittedSearch.term,
+      resultsCount: searchQuery.totalResults,
+      duration: endedAt - searchStartedAtRef.current,
+    });
+    lastTrackedSearchIdRef.current = submittedSearch.requestId;
+  }, [
+    submittedSearch,
+    searchQuery.isFetching,
+    searchQuery.isError,
+    searchQuery.totalResults,
+    searchQuery.dataUpdatedAt,
+    addSearch,
+    posthog,
+  ]);
 
   const onContinueSearch = () => {
-    setIsLoading(true);
-    posthog.capture('user_start_castSearch', {
-      term: searchTerm,
-    });
-    searchService
-      .search({
-        searchTerm,
-        filters: getFilters(),
-        viewerFid,
-        limit: SEARCH_LIMIT_NEXT_LOAD,
-        orderBy: 'timestamp DESC',
-        offset: castHashes.length,
-      })
-      .then((response) => {
-        posthog.capture('backend_returns_castSearch', {
-          term: searchTerm,
-          resultsCount: (response?.results || []).length,
-        });
-        processSearchResponse(response, SEARCH_LIMIT_NEXT_LOAD);
-      });
+    if (!searchQuery.hasNextPage || searchQuery.isFetchingNextPage) return;
+    void searchQuery.fetchNextPage();
   };
 
   const onSaveSearch = async () => {
@@ -278,32 +252,6 @@ export default function SearchPage() {
     enabled: Boolean(canSearch) && !isLoading,
   });
 
-  useEffect(() => {
-    const fetchCasts = async (newCastHashes: string[]) => {
-      try {
-        const response = await fetch(`/api/casts?casts=${newCastHashes.join(',')}&viewer_fid=${viewerFid}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch casts');
-        }
-        const apiResponse = await response.json();
-        const allCasts = [...casts, ...apiResponse.result.casts];
-        const sortedCasts = allCasts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        setCasts(sortedCasts);
-      } catch (error) {
-        if (error instanceof Error) {
-          setError(error);
-        } else {
-          setError(new Error(`Unknown error occurred ${error}`));
-        }
-        console.error('Failed to fetch casts', newCastHashes, error);
-      }
-    };
-    const newCastHashes = map(castHashes, 'hash').filter((hash) => !casts.find((cast) => cast.hash === hash));
-    if (newCastHashes.length > 0) {
-      fetchCasts(newCastHashes.slice(0, 2));
-    }
-  }, [castHashes, casts, viewerFid]);
-
   const onBack = useCallback(() => {
     setShowCastThreadView(false);
   }, []);
@@ -328,7 +276,7 @@ export default function SearchPage() {
               searchTerm={searchTerm}
               filters={filters}
               casts={casts}
-              castHashes={castHashes}
+              totalResults={searchQuery.totalResults}
               isLoading={isLoading}
               hasSearched={hasSearched}
               hasMore={hasMore}

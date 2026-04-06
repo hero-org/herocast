@@ -2,7 +2,7 @@ import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/ty
 import type {
   FarcasterProvider,
   FeedResponse,
-  FetchOptions,
+  GetNotificationsRequest,
   NotificationsResponse,
   SearchCastsResponse,
 } from './types';
@@ -27,6 +27,14 @@ async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   return res.json();
 }
 
+function findUserByUsername(users: FarcasterUser[] | undefined, username: string) {
+  if (!users?.length) return null;
+
+  const normalizedUsername = username.toLowerCase();
+  const matchingUsernames = new Set([normalizedUsername, `${normalizedUsername}.eth`]);
+  return users.find((user) => matchingUsernames.has(user.username.toLowerCase())) || users[0];
+}
+
 export function createNeynarProvider(): FarcasterProvider {
   return {
     type: 'neynar',
@@ -40,103 +48,94 @@ export function createNeynarProvider(): FarcasterProvider {
       allChannels: true,
     },
 
-    async getUser(fid, opts) {
+    async getUser({ fid, viewerFid, signal }) {
       const data = await fetchJson<{ users: FarcasterUser[] }>(
-        buildUrl('/api/users', { fids: String(fid) }),
-        opts?.signal
+        buildUrl('/api/users', { fids: String(fid), viewer_fid: viewerFid }),
+        signal
       );
       if (!data.users?.[0]) throw new Error(`User ${fid} not found`);
       return data.users[0];
     },
 
-    async getUserByUsername(username, opts) {
+    async getUserByUsername({ username, viewerFid, signal }) {
       const data = await fetchJson<{ users: FarcasterUser[] }>(
-        buildUrl('/api/users/search', { q: username, limit: 1 }),
-        opts?.signal
+        buildUrl('/api/users/search', { q: username, viewer_fid: viewerFid, limit: 10 }),
+        signal
       );
-      const match = data.users?.find((u) => u.username === username);
+      const match = findUserByUsername(data.users, username);
       if (!match) throw new Error(`User ${username} not found`);
       return match;
     },
 
-    async searchUsers(q, viewerFid, limit, opts) {
+    async searchUsers({ q, viewerFid, limit, signal }) {
       const data = await fetchJson<{ users: FarcasterUser[] }>(
         buildUrl('/api/users/search', { q, viewer_fid: viewerFid, limit }),
-        opts?.signal
+        signal
       );
       return data.users || [];
     },
 
-    async getBulkUsers(fids, viewerFid, opts) {
+    async getBulkUsers({ fids, viewerFid, signal }) {
       const data = await fetchJson<{ users: FarcasterUser[] }>(
         buildUrl('/api/users', { fids: fids.join(','), viewer_fid: viewerFid }),
-        opts?.signal
+        signal
       );
       return data.users || [];
     },
 
-    async getFollowingFeed(fid, limit = 15, cursor, opts) {
-      return fetchJson<FeedResponse>(buildUrl('/api/feeds/following', { fid, limit, cursor }), opts?.signal);
+    async getFollowingFeed({ fid, limit = 15, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('/api/feeds/following', { fid, limit, cursor }), signal);
     },
 
-    async getTrendingFeed(limit = 10, cursor, opts) {
-      return fetchJson<FeedResponse>(buildUrl('/api/feeds/trending', { limit, cursor }), opts?.signal);
+    async getTrendingFeed({ limit = 10, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('/api/feeds/trending', { limit, cursor }), signal);
     },
 
-    async getChannelFeed(parentUrl, fid, limit = 15, cursor, opts) {
+    async getChannelFeed({ parentUrl, fid, limit = 15, cursor, signal }) {
       return fetchJson<FeedResponse>(
         buildUrl('/api/feeds/channel', { parent_url: parentUrl, fid, limit, cursor }),
-        opts?.signal
+        signal
       );
     },
 
-    async getProfileCasts(fid, limit = 25, cursor, opts) {
-      return fetchJson<FeedResponse>(
-        buildUrl('/api/feeds/profile', { fid, type: 'casts', limit, cursor }),
-        opts?.signal
-      );
+    async getProfileCasts({ fid, limit = 25, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('/api/feeds/profile', { fid, type: 'casts', limit, cursor }), signal);
     },
 
-    async getProfileLikes(fid, limit = 25, cursor, opts) {
-      return fetchJson<FeedResponse>(
-        buildUrl('/api/feeds/profile', { fid, type: 'likes', limit, cursor }),
-        opts?.signal
-      );
+    async getProfileLikes({ fid, limit = 25, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('/api/feeds/profile', { fid, type: 'likes', limit, cursor }), signal);
     },
 
-    async getFidListFeed(fids, viewerFid, limit = 15, cursor, opts) {
+    async getFidListFeed({ fids, viewerFid, limit = 15, cursor, signal }) {
       return fetchJson<FeedResponse>(
         buildUrl('/api/lists', { fids: fids.join(','), viewerFid, limit, cursor }),
-        opts?.signal
+        signal
       );
     },
 
-    async searchCasts(q, filters, limit, offset, opts) {
+    async searchCasts({ q, filters, limit, offset, signal }) {
       const params: Record<string, string | number | undefined> = { q, limit, offset };
       if (filters) Object.assign(params, filters);
-      return fetchJson<SearchCastsResponse>(buildUrl('/api/search', params), opts?.signal);
+      return fetchJson<SearchCastsResponse>(buildUrl('/api/search', params), signal);
     },
 
-    async getCasts(hashes, viewerFid, opts) {
+    async getCasts({ hashes, viewerFid, signal }) {
       const data = await fetchJson<{ result: { casts: FarcasterCast[] } }>(
         buildUrl('/api/casts', { casts: hashes.join(','), viewer_fid: viewerFid }),
-        opts?.signal
+        signal
       );
       return data.result?.casts || [];
     },
 
-    async getChannel(id, opts) {
-      const data = await fetchJson<{ channels: FarcasterChannel[] }>(buildUrl('/api/channels', { id }), opts?.signal);
+    async getChannel({ id, signal }) {
+      const data = await fetchJson<{ channels: FarcasterChannel[] }>(buildUrl('/api/channels', { id }), signal);
       const channel = data.channels?.find((c) => c.id === id);
       if (!channel) throw new Error(`Channel ${id} not found`);
       return channel;
     },
 
-    async searchChannels(q, opts) {
-      const data = await fetchJson<{ channels: FarcasterChannel[] }>(
-        buildUrl('/api/channels/search', { q }),
-        opts?.signal
-      );
+    async searchChannels({ q, signal }) {
+      const data = await fetchJson<{ channels: FarcasterChannel[] }>(buildUrl('/api/channels/search', { q }), signal);
       return data.channels || [];
     },
 
@@ -145,11 +144,8 @@ export function createNeynarProvider(): FarcasterProvider {
       return data.channels || [];
     },
 
-    async getNotifications(fid, limit, cursor, type, opts) {
-      return fetchJson<NotificationsResponse>(
-        buildUrl('/api/notifications', { fid, limit, cursor, type }),
-        opts?.signal
-      );
+    async getNotifications({ fid, limit, cursor, type, signal }: GetNotificationsRequest) {
+      return fetchJson<NotificationsResponse>(buildUrl('/api/notifications', { fid, limit, cursor, type }), signal);
     },
   };
 }
