@@ -24,7 +24,7 @@ export interface FarcasterUser {
   custody_address?: string;
   registered_at?: string;
   verifications?: string[];
-  auth_addresses?: string[];
+  auth_addresses?: Array<{ address: string; app: { fid: number; username?: string } }>;
   verified_addresses?: {
     eth_addresses: string[];
     sol_addresses: string[];
@@ -59,6 +59,7 @@ export interface FarcasterCast {
   object: 'cast';
   hash: string;
   parent_hash?: string | null;
+  parent_url?: string;
   parent_author?: { fid: number };
   author: FarcasterUser;
   text: string;
@@ -91,7 +92,8 @@ export interface FarcasterChannel {
   icon_url?: string;
   description?: string;
   parent_url?: string;
-  created_at?: string;
+  created_at?: string | number;
+  follower_count?: number;
   member_count?: number;
   lead?: FarcasterUser;
   moderator?: FarcasterUser;

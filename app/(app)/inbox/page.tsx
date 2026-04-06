@@ -848,7 +848,7 @@ const Inbox = () => {
 
   const renderNotificationRow = (notification: FarcasterNotification, idx: number) => {
     const { cast } = notification;
-    const timeAgoStr = formatDistanceToNowStrict(new Date(notification.most_recent_timestamp));
+    const timeAgoStr = formatDistanceToNowStrict(new Date(notification.most_recent_timestamp || ''));
     const actionDescription = getActionDescriptionForRow(notification);
     const notificationId = getNotificationId(notification);
     const isNotificationRead = isRead(notificationId);

@@ -246,7 +246,7 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
 
   // Render a notification row
   const renderNotificationRow = (notification: FarcasterNotification, idx: number) => {
-    const timeAgoStr = formatDistanceToNowStrict(new Date(notification.most_recent_timestamp));
+    const timeAgoStr = formatDistanceToNowStrict(new Date(notification.most_recent_timestamp || ''));
     const actionDescription = getActionDescription(notification);
     const isSentinel = idx === notifications.length - PREFETCH_THRESHOLD;
 

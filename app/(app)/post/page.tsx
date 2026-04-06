@@ -175,7 +175,7 @@ export default function NewPost() {
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
         viewerFid: Number(selectedAccount?.platformAccountId),
       });
-      setParentCasts(res?.result?.casts || []);
+      setParentCasts((res?.result?.casts || []) as unknown as FarcasterCast[]);
     };
 
     fetchParentCasts();

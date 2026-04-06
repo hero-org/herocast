@@ -546,7 +546,7 @@ const CastRowComponent = ({
 
   const renderCastReactions = (cast: FarcasterCast) => {
     const linksCount = cast?.embeds ? cast.embeds.length : 0;
-    const isOnchainLink = linksCount > 0 && 'url' in cast.embeds[0] ? cast.embeds[0].url.startsWith('chain:') : false;
+    const isOnchainLink = linksCount > 0 && 'url' in cast.embeds[0] ? cast.embeds[0]?.url?.startsWith('chain:') : false;
 
     return (
       <div className="-ml-1.5 flex space-x-3">
@@ -726,7 +726,7 @@ const CastRowComponent = ({
   };
 
   const channel = useMemo(
-    () => (showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url) : null),
+    () => (showChannel && 'parent_url' in cast ? getChannelForParentUrl(cast.parent_url as string | null) : null),
     [showChannel, cast, getChannelForParentUrl]
   );
 
