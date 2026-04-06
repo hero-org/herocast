@@ -4,7 +4,6 @@ import { useCallback } from 'react';
 import { createEmbedCastId, createParentCastId } from '@/common/constants/farcaster';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { useListStore } from '@/stores/useListStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
@@ -22,11 +21,11 @@ export function useGlobalHotkeys() {
     setCastModalDraftId,
     toggleLeftSidebar,
     toggleRightSidebar,
+    selectedCast,
   } = useNavigationStore();
   const { accounts, selectedAccountIdx, setCurrentAccountIdx, setSelectedChannelUrl } = useAccountStore();
   const { setSelectedListId, getSearchLists, getFidLists } = useListStore();
   const { addNewPostDraft } = useDraftStore();
-  const { selectedCast } = useDataStore();
 
   // Get lists for sidebar hotkeys
   const searchLists = getSearchLists();

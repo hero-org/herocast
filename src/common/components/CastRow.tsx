@@ -10,7 +10,6 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { ErrorBoundary } from '@sentry/react';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import Linkify from 'linkify-react';
@@ -26,6 +25,7 @@ import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { castTextStyle } from '@/common/helpers/css';
 import { isNftSaleUrl, isSwapUrl, isZapperTransactionUrl } from '@/common/helpers/onchain';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,6 @@ import { useLikeCast, useRecast, useRemoveRecast, useUnlikeCast } from '@/hooks/
 import { useProfileByFid } from '@/hooks/queries/useProfile';
 import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 import { endTiming, startTiming } from '@/stores/usePerformanceStore';
@@ -85,7 +84,7 @@ if (typeof window !== 'undefined' && !window.__linkify_plugins_registered) {
 }
 
 interface CastRowProps {
-  cast: CastWithInteractions & {
+  cast: FarcasterCast & {
     inclusion_context?: {
       is_following_recaster: boolean;
       is_following_author: boolean;
@@ -220,9 +219,8 @@ const CastRowComponent = ({
   const router = useRouter();
   const { accounts, selectedAccountIdx, setSelectedChannelByName, setSelectedChannelUrl } = useAccountStore();
 
-  const { setCastModalDraftId, setCastModalView, openNewCastModal } = useNavigationStore();
+  const { setCastModalDraftId, setCastModalView, openNewCastModal, updateSelectedCast } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
-  const { updateSelectedCast } = useDataStore();
 
   // Fetch recaster profile if this cast was recasted by someone we're following
   const { data: recasterProfile } = useProfileByFid(recastedByFid, {
@@ -546,7 +544,7 @@ const CastRowComponent = ({
     );
   };
 
-  const renderCastReactions = (cast: CastWithInteractions) => {
+  const renderCastReactions = (cast: FarcasterCast) => {
     const linksCount = cast?.embeds ? cast.embeds.length : 0;
     const isOnchainLink = linksCount > 0 && 'url' in cast.embeds[0] ? cast.embeds[0].url.startsWith('chain:') : false;
 
@@ -985,7 +983,7 @@ const CastRowComponent = ({
               </div>
             )}
             {!isEmbed && renderEmbeds()}
-            {!hideReactions && renderCastReactions(cast as CastWithInteractions)}
+            {!hideReactions && renderCastReactions(cast as FarcasterCast)}
           </div>
         </div>
       </div>

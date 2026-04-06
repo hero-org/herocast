@@ -1,5 +1,7 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import type { FarcasterCast } from '@/common/types/farcaster';
+import type { FeedResponse } from '@/lib/farcaster/providers';
+import { getProvider } from '@/lib/farcaster/providers';
 import { queryKeys } from '@/lib/queryKeys';
 
 const DEFAULT_LIMIT = 15;
@@ -7,42 +9,6 @@ const DEFAULT_LIMIT = 15;
 interface ChannelFeedOptions {
   limit?: number;
   enabled?: boolean;
-}
-
-interface ChannelFeedResponse {
-  casts: CastWithInteractions[];
-  next?: {
-    cursor: string;
-  };
-}
-
-/**
- * Fetches the channel feed for a specific parent URL from the server-side API
- *
- * Phase 2 migration - replaces legacy getFeed logic for channel feeds.
- * Benefits:
- * - Automatic request deduplication
- * - Built-in caching with configurable staleness
- * - Automatic retry on failure
- * - Loading/error states managed automatically
- */
-async function fetchChannelFeed(
-  parentUrl: string,
-  fid: string,
-  options?: { cursor?: string; limit?: number }
-): Promise<ChannelFeedResponse> {
-  const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
-
-  const params = new URLSearchParams();
-  params.append('parent_url', parentUrl);
-  params.append('fid', fid);
-  params.append('limit', limit.toString());
-  if (cursor) params.append('cursor', cursor);
-
-  const response = await fetch(`/api/feeds/channel?${params.toString()}`);
-  if (!response.ok) throw new Error('Failed to fetch channel feed');
-
-  return response.json();
 }
 
 /**
@@ -55,7 +21,7 @@ export function useChannelFeed(parentUrl: string, fid: string, options?: Channel
 
   return useQuery({
     queryKey: queryKeys.feeds.channel(parentUrl, fid, { limit }),
-    queryFn: () => fetchChannelFeed(parentUrl, fid, { limit }),
+    queryFn: ({ signal }) => getProvider().getChannelFeed(parentUrl, Number(fid), limit, undefined, { signal }),
     enabled: enabled && !!parentUrl && !!fid,
     // Override defaults for feed data which changes frequently
     staleTime: 1000 * 60 * 2, // 2 minutes for channel feeds
@@ -73,7 +39,8 @@ export function useChannelFeedInfinite(parentUrl: string, fid: string, options?:
 
   return useInfiniteQuery({
     queryKey: queryKeys.feeds.channel(parentUrl, fid, { limit }),
-    queryFn: ({ pageParam }) => fetchChannelFeed(parentUrl, fid, { cursor: pageParam, limit }),
+    queryFn: ({ pageParam, signal }) =>
+      getProvider().getChannelFeed(parentUrl, Number(fid), limit, pageParam, { signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!parentUrl && !!fid,
@@ -84,7 +51,7 @@ export function useChannelFeedInfinite(parentUrl: string, fid: string, options?:
 /**
  * Helper to flatten infinite query pages into a single cast array
  */
-export function flattenChannelFeedPages(data: { pages: ChannelFeedResponse[] } | undefined): CastWithInteractions[] {
+export function flattenChannelFeedPages(data: { pages: FeedResponse[] } | undefined): FarcasterCast[] {
   if (!data?.pages) return [];
 
   // Flatten all pages and deduplicate by hash

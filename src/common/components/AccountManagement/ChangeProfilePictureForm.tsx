@@ -1,9 +1,9 @@
 import { UserDataType } from '@farcaster/hub-web';
 import { Cog6ToothIcon } from '@heroicons/react/20/solid';
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { setUserDataInProtocol } from '@/common/helpers/farcaster';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { AccountObjectType } from '@/stores/useAccountStore';
@@ -18,7 +18,7 @@ type ChangeProfilePictureFormProps = {
 
 const ChangeProfilePictureForm = ({ account, onSuccess }: ChangeProfilePictureFormProps) => {
   const [isPending, setIsPending] = useState(false);
-  const [userInProtocol, setUserInProtocol] = useState<User>();
+  const [userInProtocol, setUserInProtocol] = useState<FarcasterUser>();
   const [newPfpUrl, setNewPfpUrl] = useState<string>();
   const [error, setError] = useState<string>();
 

@@ -30,6 +30,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
+import { useSocialGraphSync } from '@/hooks/useSocialGraphSync';
+import { FarcasterProviderContext, useFarcasterProviderValue } from '@/lib/farcaster/providers';
 import { cn } from '@/lib/utils';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
 import { useDraftStore } from '@/stores/useDraftStore';
@@ -61,6 +63,8 @@ type HeaderAction = {
 
 const Home = ({ children }: { children: React.ReactNode }) => {
   useInitializeStores();
+  useSocialGraphSync();
+  const farcasterProviderValue = useFarcasterProviderValue();
 
   const pathname = usePathname() || '/';
   // In App Router, asPath is equivalent to pathname (no query string access from usePathname)
@@ -400,155 +404,157 @@ const Home = ({ children }: { children: React.ReactNode }) => {
     );
 
   return (
-    <div className="h-screen bg-background overflow-hidden">
-      <SidebarProvider className="h-full">
-        <Transition.Root show={sidebarOpen} as={Fragment}>
-          <Dialog as="div" className="relative z-5 lg:hidden" onClose={() => setSidebarOpen(false)}>
-            <Transition.Child
-              as={Fragment}
-              enter="transition-opacity ease-linear duration-10"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="transition-opacity ease-linear duration-10"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="fixed inset-0 bg-background/80" />
-            </Transition.Child>
-
-            <div className="fixed inset-0 flex">
+    <FarcasterProviderContext.Provider value={farcasterProviderValue}>
+      <div className="h-screen bg-background overflow-hidden">
+        <SidebarProvider className="h-full">
+          <Transition.Root show={sidebarOpen} as={Fragment}>
+            <Dialog as="div" className="relative z-5 lg:hidden" onClose={() => setSidebarOpen(false)}>
               <Transition.Child
                 as={Fragment}
-                enter="transition ease-in-out duration-10 transform"
-                enterFrom="-translate-x-full"
-                enterTo="translate-x-0"
-                leave="transition ease-in-out duration-10 transform"
-                leaveFrom="translate-x-0"
-                leaveTo="-translate-x-full"
+                enter="transition-opacity ease-linear duration-10"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="transition-opacity ease-linear duration-10"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
               >
-                <Dialog.Panel className="relative mr-2 flex w-full max-w-xs flex-1">
-                  {/* Mobile Sidebar */}
-                  <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
-                    <div className="flex h-14 shrink-0 items-center">
-                      <Link href="/post" className="flex items-center hover:cursor-pointer">
-                        <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
-                          herocast
-                        </h2>
-                      </Link>
+                <div className="fixed inset-0 bg-background/80" />
+              </Transition.Child>
+
+              <div className="fixed inset-0 flex">
+                <Transition.Child
+                  as={Fragment}
+                  enter="transition ease-in-out duration-10 transform"
+                  enterFrom="-translate-x-full"
+                  enterTo="translate-x-0"
+                  leave="transition ease-in-out duration-10 transform"
+                  leaveFrom="translate-x-0"
+                  leaveTo="-translate-x-full"
+                >
+                  <Dialog.Panel className="relative mr-2 flex w-full max-w-xs flex-1">
+                    {/* Mobile Sidebar */}
+                    <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
+                      <div className="flex h-14 shrink-0 items-center">
+                        <Link href="/post" className="flex items-center hover:cursor-pointer">
+                          <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+                            herocast
+                          </h2>
+                        </Link>
+                        <button
+                          type="button"
+                          className="ml-auto -m-2.5 p-2.5 text-foreground"
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <span className="sr-only">Close sidebar</span>
+                          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                        </button>
+                      </div>
+                      <LeftSidebarNav onNavigate={() => setSidebarOpen(false)} />
+                      {isReadOnlyUser && renderUpgradeCard()}
+                      {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
+                      <div className="mt-auto py-3">
+                        <AccountSwitcher />
+                      </div>
+                    </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </Dialog>
+          </Transition.Root>
+          <div
+            className={cn(
+              'h-full transition-[margin-left] duration-200 ease-linear flex-1',
+              leftSidebarOpen ? 'lg:ml-[200px]' : 'lg:ml-0'
+            )}
+          >
+            <div className="h-full">
+              {/* Static sidebar for desktop */}
+              {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
+              <div
+                className={cn(
+                  'hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted no-scrollbar transition-transform duration-200 ease-linear',
+                  leftSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                )}
+              >
+                {/* Sidebar component */}
+                <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
+                  <div className="flex h-14 shrink-0 items-center">
+                    <Link href="/post" className="flex items-center hover:cursor-pointer">
+                      <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
+                        herocast
+                      </h2>
+                    </Link>
+                    <LeftSidebarToggle className="ml-auto" />
+                  </div>
+                  <LeftSidebarNav />
+                  {isReadOnlyUser && renderUpgradeCard()}
+                  {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
+                  <div className="mt-auto py-3">
+                    <AccountSwitcher />
+                  </div>
+                </div>
+              </div>
+              <div className="h-full flex">
+                <div className="flex-1 h-full flex flex-col min-w-0 min-h-0">
+                  {/* Header */}
+                  {!hideTitlebar && (title || headerActions) && (
+                    <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4 min-w-0">
                       <button
                         type="button"
-                        className="ml-auto -m-2.5 p-2.5 text-foreground"
-                        onClick={() => setSidebarOpen(false)}
+                        className="-m-2.5 p-2.5 text-foreground lg:hidden flex-shrink-0"
+                        onClick={() => setSidebarOpen((prev) => !prev)}
                       >
-                        <span className="sr-only">Close sidebar</span>
-                        <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                        <span className="sr-only">Open sidebar</span>
+                        <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                       </button>
+                      {!leftSidebarOpen && <LeftSidebarToggle className="hidden lg:flex" />}
+                      <h1 className="md:ml-2 text-xl font-bold leading-7 text-foreground truncate min-w-0">{title}</h1>
+                      <div className="flex-grow min-w-[40px]" />
+                      <div className="flex gap-x-2 flex-shrink-0">
+                        {headerActions.map((action) => (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            key={`header-action-${action.name}`}
+                            onClick={action.onClick}
+                          >
+                            {action.name}
+                          </Button>
+                        ))}
+                        {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && <RightSidebarToggle className="hidden lg:flex" />}
+                      </div>
                     </div>
-                    <LeftSidebarNav onNavigate={() => setSidebarOpen(false)} />
-                    {isReadOnlyUser && renderUpgradeCard()}
-                    {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
-                    <div className="mt-auto py-3">
-                      <AccountSwitcher />
-                    </div>
+                  )}
+                  <div className="flex-1 min-h-0 overflow-hidden">
+                    {pageRequiresHydrate && !isHydrated ? (
+                      <div className="pl-4">
+                        <Loading loadingMessage="Loading herocast" />
+                      </div>
+                    ) : (
+                      <div className={cn('h-full', pathname === '/accounts' ? 'overflow-y-auto' : 'overflow-hidden')}>
+                        {children}
+                      </div>
+                    )}
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </Dialog>
-        </Transition.Root>
-        <div
-          className={cn(
-            'h-full transition-[margin-left] duration-200 ease-linear flex-1',
-            leftSidebarOpen ? 'lg:ml-[200px]' : 'lg:ml-0'
-          )}
-        >
-          <div className="h-full">
-            {/* Static sidebar for desktop */}
-            {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
-            <div
-              className={cn(
-                'hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted no-scrollbar transition-transform duration-200 ease-linear',
-                leftSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-              )}
-            >
-              {/* Sidebar component */}
-              <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
-                <div className="flex h-14 shrink-0 items-center">
-                  <Link href="/post" className="flex items-center hover:cursor-pointer">
-                    <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
-                      herocast
-                    </h2>
-                  </Link>
-                  <LeftSidebarToggle className="ml-auto" />
                 </div>
-                <LeftSidebarNav />
-                {isReadOnlyUser && renderUpgradeCard()}
-                {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
-                <div className="mt-auto py-3">
-                  <AccountSwitcher />
-                </div>
-              </div>
-            </div>
-            <div className="h-full flex">
-              <div className="flex-1 h-full flex flex-col min-w-0 min-h-0">
-                {/* Header */}
-                {!hideTitlebar && (title || headerActions) && (
-                  <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4 min-w-0">
-                    <button
-                      type="button"
-                      className="-m-2.5 p-2.5 text-foreground lg:hidden flex-shrink-0"
-                      onClick={() => setSidebarOpen((prev) => !prev)}
-                    >
-                      <span className="sr-only">Open sidebar</span>
-                      <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-                    </button>
-                    {!leftSidebarOpen && <LeftSidebarToggle className="hidden lg:flex" />}
-                    <h1 className="md:ml-2 text-xl font-bold leading-7 text-foreground truncate min-w-0">{title}</h1>
-                    <div className="flex-grow min-w-[40px]" />
-                    <div className="flex gap-x-2 flex-shrink-0">
-                      {headerActions.map((action) => (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          key={`header-action-${action.name}`}
-                          onClick={action.onClick}
-                        >
-                          {action.name}
-                        </Button>
-                      ))}
-                      {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && <RightSidebarToggle className="hidden lg:flex" />}
-                    </div>
+                {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && (
+                  <div
+                    className={cn(
+                      'hidden lg:block flex-shrink-0 transition-[width,opacity] duration-200 ease-linear overflow-hidden',
+                      rightSidebarOpen ? 'w-[280px] opacity-100' : 'w-0 opacity-0'
+                    )}
+                  >
+                    {renderRightSidebar()}
                   </div>
                 )}
-                <div className="flex-1 min-h-0 overflow-hidden">
-                  {pageRequiresHydrate && !isHydrated ? (
-                    <div className="pl-4">
-                      <Loading loadingMessage="Loading herocast" />
-                    </div>
-                  ) : (
-                    <div className={cn('h-full', pathname === '/accounts' ? 'overflow-y-auto' : 'overflow-hidden')}>
-                      {children}
-                    </div>
-                  )}
-                </div>
               </div>
-              {sidebarType !== RIGHT_SIDEBAR_ENUM.NONE && (
-                <div
-                  className={cn(
-                    'hidden lg:block flex-shrink-0 transition-[width,opacity] duration-200 ease-linear overflow-hidden',
-                    rightSidebarOpen ? 'w-[280px] opacity-100' : 'w-0 opacity-0'
-                  )}
-                >
-                  {renderRightSidebar()}
-                </div>
-              )}
+              {renderNewCastModal()}
             </div>
-            {renderNewCastModal()}
           </div>
-        </div>
-      </SidebarProvider>
-      <Toaster theme="system" position="bottom-right" />
-    </div>
+        </SidebarProvider>
+        <Toaster theme="system" position="bottom-right" />
+      </div>
+    </FarcasterProviderContext.Provider>
   );
 };
 

@@ -1,7 +1,7 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v1';
 import filter from 'lodash.filter';
 import orderBy from 'lodash.orderby';
 import uniqBy from 'lodash.uniqby';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { type ProfileData, useProfileByFid } from '@/hooks/queries/useProfile';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDraftStore } from '@/stores/useDraftStore';
@@ -11,7 +11,7 @@ import { SidebarHeader } from './SidebarHeader';
 const convertDraftToFakeCast = (
   draft: any,
   profile: ProfileData
-): Omit<CastWithInteractions, 'reactions' | 'recasts' | 'recasters' | 'replies'> & { accountId: string } => ({
+): Omit<FarcasterCast, 'reactions' | 'recasts' | 'recasters' | 'replies'> & { accountId: string } => ({
   hash: draft.hash,
   text: draft.text,
   timestamp: draft.timestamp,

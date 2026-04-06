@@ -1,6 +1,5 @@
 'use client';
 
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import isEmpty from 'lodash.isempty';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -17,6 +16,7 @@ import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
 import { createClient } from '@/common/helpers/supabase/component';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { isFidListContent, isSearchListContent } from '@/common/types/list.types';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +26,6 @@ import { flattenFollowingFeedPages, useFollowingFeedInfinite } from '@/hooks/que
 import { flattenSearchListFeedPages, useSearchListFeedInfinite } from '@/hooks/queries/useSearchListFeed';
 import { flattenTrendingFeedPages, useTrendingFeedInfinite } from '@/hooks/queries/useTrendingFeed';
 import { type AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { useListStore } from '@/stores/useListStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
@@ -63,8 +62,16 @@ export default function Feeds() {
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { lists, selectedListId, setSelectedListId } = useListStore();
-  const { isNewCastModalOpen, setCastModalView, openNewCastModal, closeNewCastModal, setCastModalDraftId } =
-    useNavigationStore();
+  const {
+    isNewCastModalOpen,
+    setCastModalView,
+    openNewCastModal,
+    closeNewCastModal,
+    setCastModalDraftId,
+    selectedCast,
+    updateSelectedCast,
+    updateSelectedProfileFid,
+  } = useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
 
   const { ref: buttonRef, inView } = useInView({
@@ -74,8 +81,6 @@ export default function Feeds() {
   const { accounts, selectedAccountIdx, selectedChannelUrl, isHydrated, setSelectedChannelUrl } = useAccountStore();
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const { selectedCast, updateSelectedCast, updateSelectedProfileFid } = useDataStore();
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
   // React Query hooks for different feed types - provides automatic caching & deduplication
@@ -152,7 +157,7 @@ export default function Feeds() {
   const feedKey = getFeedKey({ selectedChannelUrl, account, selectedListId });
 
   // Extract data from appropriate React Query hook - ALL feeds now use React Query
-  let casts: CastWithInteractions[];
+  let casts: FarcasterCast[];
   let isLoadingFeed: boolean;
   let nextCursor: string;
 

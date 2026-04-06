@@ -1,4 +1,4 @@
-import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { FarcasterChannel } from '@/common/types/farcaster';
 import type { ChannelType } from '../constants/channels';
 
 /**
@@ -7,7 +7,7 @@ import type { ChannelType } from '../constants/channels';
  * Database stores `icon_url`, but Neynar API and ChannelPicker expect `image_url`.
  * This function handles that conversion.
  */
-export function toNeynarChannel(dbChannel: ChannelType & { idx?: number }): Channel {
+export function toNeynarChannel(dbChannel: ChannelType & { idx?: number }): FarcasterChannel {
   return {
     id: dbChannel.name,
     name: dbChannel.name,
@@ -17,12 +17,12 @@ export function toNeynarChannel(dbChannel: ChannelType & { idx?: number }): Chan
     object: 'channel',
     created_at: 0,
     follower_count: dbChannel.data?.followerCount,
-  } as Channel;
+  } as FarcasterChannel;
 }
 
 /**
  * Converts an array of database channels to Neynar format.
  */
-export function toNeynarChannels(dbChannels: (ChannelType & { idx?: number })[]): Channel[] {
+export function toNeynarChannels(dbChannels: (ChannelType & { idx?: number })[]): FarcasterChannel[] {
   return dbChannels.map(toNeynarChannel);
 }

@@ -8,12 +8,12 @@ import { useEffect, useState } from 'react';
 export const dynamic = 'force-dynamic';
 
 import { BoltIcon, CheckIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import Link from 'next/link';
 import { AutoInteractionContentFilters } from '@/common/components/Lists/AutoInteractionContentFilters';
 import { AutoInteractionHistory } from '@/common/components/Lists/AutoInteractionHistory';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { type AutoInteractionListContent, isAutoInteractionListContent } from '@/common/types/list.types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,7 +63,7 @@ export default function AutoInteractionsPage() {
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedProfile, setSelectedProfile] = useState<User | undefined>(undefined);
+  const [selectedProfile, setSelectedProfile] = useState<FarcasterUser | undefined>(undefined);
 
   // Auto-interaction settings state
   const [sourceAccountId, setSourceAccountId] = useState<string>('');
@@ -153,7 +153,7 @@ export default function AutoInteractionsPage() {
     }
   };
 
-  const handleAddTargetAccount = (profile: User) => {
+  const handleAddTargetAccount = (profile: FarcasterUser) => {
     if (!targetFids.includes(profile.fid.toString())) {
       setTargetFids([...targetFids, profile.fid.toString()]);
     }
@@ -778,7 +778,7 @@ export default function AutoInteractionsPage() {
                           <ProfileSearchDropdown
                             defaultProfiles={[]}
                             selectedProfile={undefined}
-                            setSelectedProfile={(profile: User) => {
+                            setSelectedProfile={(profile: FarcasterUser) => {
                               if (!requireMentions.includes(profile.fid.toString())) {
                                 setRequireMentions([...requireMentions, profile.fid.toString()]);
                               }

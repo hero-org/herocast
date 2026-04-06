@@ -1,6 +1,6 @@
-import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import clsx from 'clsx';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import type { FarcasterChannel } from '@/common/types/farcaster';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type ChannelListRef = {
@@ -8,7 +8,7 @@ type ChannelListRef = {
 };
 
 type Props = {
-  items: Array<Channel | null>;
+  items: Array<FarcasterChannel | null>;
   command: any;
   query?: string;
 };

@@ -1,12 +1,12 @@
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { CAST_AVATAR_CENTER, CAST_THREAD_LINE_LEFT } from '@/common/constants/layout';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useDataStore } from '@/stores/useDataStore';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 import { CastRow } from './CastRow';
 import HotkeyTooltipWrapper from './HotkeyTooltipWrapper';
 import { SelectableListWithHotkeys } from './SelectableListWithHotkeys';
@@ -24,10 +24,10 @@ type CastThreadViewProps = {
 
 export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight = '100%' }: CastThreadViewProps) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [casts, setCasts] = useState<CastWithInteractions[]>([]);
+  const [casts, setCasts] = useState<FarcasterCast[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(0);
   const [expandedCasts, setExpandedCasts] = useState<Set<string>>(new Set());
-  const { updateSelectedCast } = useDataStore();
+  const { updateSelectedCast } = useNavigationStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -107,12 +107,12 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
     });
   }, []);
 
-  const handleCastClick = (cast: CastWithInteractions) => {
+  const handleCastClick = (cast: FarcasterCast) => {
     // Navigate to the conversation page for this cast
     router.push(`/conversation/${cast.hash}`);
   };
 
-  const renderRow = (cast: CastWithInteractions, idx: number) => {
+  const renderRow = (cast: FarcasterCast, idx: number) => {
     const isRowSelected = selectedCastIdx === idx;
     const isRootCast = idx === 0;
     const isReply = idx > 0;
@@ -173,7 +173,7 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
       data={casts}
       selectedIdx={selectedCastIdx}
       setSelectedIdx={setSelectedCastIdx}
-      renderRow={(item: CastWithInteractions, idx: number) => renderRow(item, idx)}
+      renderRow={(item: FarcasterCast, idx: number) => renderRow(item, idx)}
       isActive={isActive}
       containerHeight={containerHeight}
       pinnedNavigation={true}

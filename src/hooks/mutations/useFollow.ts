@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { followUser, unfollowUser } from '@/common/helpers/farcaster';
 import type { ProfileData } from '@/hooks/queries/useProfile';
 import { queryKeys } from '@/lib/queryKeys';
+import { useSocialGraphStore } from '@/stores/useSocialGraphStore';
 
 interface FollowParams {
   targetFid: number;
@@ -79,6 +80,9 @@ export function useFollow() {
         );
       });
 
+      // Optimistically update social graph store
+      useSocialGraphStore.getState().addFollowing(targetFid);
+
       // Return context for potential rollback
       return { previousProfile, previousBulkProfiles };
     },
@@ -97,6 +101,9 @@ export function useFollow() {
           queryClient.setQueryData(JSON.parse(key), data);
         });
       }
+
+      // Rollback social graph store
+      useSocialGraphStore.getState().removeFollowing(targetFid);
     },
 
     onSettled: (data, error, { targetFid }) => {
@@ -181,6 +188,9 @@ export function useUnfollow() {
         );
       });
 
+      // Optimistically update social graph store
+      useSocialGraphStore.getState().removeFollowing(targetFid);
+
       // Return context for potential rollback
       return { previousProfile, previousBulkProfiles };
     },
@@ -199,6 +209,9 @@ export function useUnfollow() {
           queryClient.setQueryData(JSON.parse(key), data);
         });
       }
+
+      // Rollback social graph store
+      useSocialGraphStore.getState().addFollowing(targetFid);
     },
 
     onSettled: (data, error, { targetFid }) => {

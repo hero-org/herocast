@@ -1,6 +1,6 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import isEmpty from 'lodash.isempty';
 import { useEffect, useState } from 'react';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { CastRow } from '../CastRow';
 import { EmbedSkeleton } from './EmbedSkeleton';
 
@@ -11,7 +11,7 @@ type CastEmbedProps = {
 };
 
 const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
-  const [cast, setCast] = useState<CastWithInteractions | null>(null);
+  const [cast, setCast] = useState<FarcasterCast | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

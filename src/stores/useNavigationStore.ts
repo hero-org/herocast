@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import type { FarcasterCast } from '@/common/types/farcaster';
 
 export enum CastModalView {
   New = 'new',
@@ -17,6 +19,8 @@ interface NavigationStoreProps {
   isManageListModalOpen: boolean;
   leftSidebarOpen: boolean;
   rightSidebarOpen: boolean;
+  selectedCast?: FarcasterCast;
+  selectedProfileFid?: number;
 }
 
 interface NavigationStoreActions {
@@ -32,6 +36,8 @@ interface NavigationStoreActions {
   toggleLeftSidebar: () => void;
   toggleRightSidebar: () => void;
   initializeSidebarState: () => void;
+  updateSelectedCast: (cast?: FarcasterCast) => void;
+  updateSelectedProfileFid: (fid?: number) => void;
 }
 
 export interface NavigationStore extends NavigationStoreProps, NavigationStoreActions {}
@@ -83,6 +89,8 @@ const store = (set: StoreSet) => ({
   isManageListModalOpen: false,
   leftSidebarOpen: true,
   rightSidebarOpen: true,
+  selectedCast: undefined,
+  selectedProfileFid: undefined,
   setCastModalDraftId: (draftId: string) => {
     set((state) => {
       state.castModalDraftId = draftId;
@@ -147,6 +155,16 @@ const store = (set: StoreSet) => ({
     set((state) => {
       state.leftSidebarOpen = savedState.left;
       state.rightSidebarOpen = savedState.right;
+    });
+  },
+  updateSelectedCast: (cast?: FarcasterCast) => {
+    set((state) => {
+      state.selectedCast = cast;
+    });
+  },
+  updateSelectedProfileFid: (fid?: number) => {
+    set((state) => {
+      state.selectedProfileFid = fid;
     });
   },
 });

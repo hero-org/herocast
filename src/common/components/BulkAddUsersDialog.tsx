@@ -1,8 +1,8 @@
 'use client';
 
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ interface BulkAddUsersDialogProps {
 interface ParsedUser {
   input: string;
   fid?: string;
-  user?: User;
+  user?: FarcasterUser;
   error?: string;
   isDuplicate?: boolean;
 }
@@ -130,7 +130,7 @@ export function BulkAddUsersDialog({
 
           if (data.users) {
             // Add fetched users to results
-            data.users.forEach((user: User) => {
+            data.users.forEach((user: FarcasterUser) => {
               const fidItem = batch.find((item) => parseInt(item.fid) === user.fid)!;
               results.push({
                 input: fidItem.input,
@@ -141,7 +141,7 @@ export function BulkAddUsersDialog({
             });
 
             // Handle not found FIDs
-            const foundFids = new Set(data.users.map((u: User) => u.fid));
+            const foundFids = new Set(data.users.map((u: FarcasterUser) => u.fid));
             fidsToFetch.forEach((fid) => {
               if (!foundFids.has(parseInt(fid))) {
                 const fidItem = batch.find((item) => item.fid === fid)!;

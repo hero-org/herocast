@@ -12,7 +12,7 @@ import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
 import { useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
 import { useProfile } from '@/hooks/queries/useProfile';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 
 type ExtendedProfile = {
   verified_accounts?: Array<{ platform: VerifiedAccountPlatform; username: string }>;
@@ -23,7 +23,7 @@ type ExtendedProfile = {
 };
 
 const AuthorContextPanel = () => {
-  const { selectedCast } = useDataStore();
+  const { selectedCast } = useNavigationStore();
   const currentAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const currentUserFid = currentAccount?.platformAccountId ? Number(currentAccount.platformAccountId) : undefined;
 

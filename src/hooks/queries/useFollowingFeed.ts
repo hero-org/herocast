@@ -1,6 +1,7 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { fetchWithPerf } from '@/lib/fetchWithPerf';
+import type { FarcasterCast } from '@/common/types/farcaster';
+import type { FeedResponse } from '@/lib/farcaster/providers';
+import { getProvider } from '@/lib/farcaster/providers';
 import { queryKeys } from '@/lib/queryKeys';
 
 const DEFAULT_LIMIT = 15;
@@ -8,44 +9,6 @@ const DEFAULT_LIMIT = 15;
 interface FollowingFeedOptions {
   limit?: number;
   enabled?: boolean;
-}
-
-interface FollowingFeedResponse {
-  casts: CastWithInteractions[];
-  next?: {
-    cursor: string;
-  };
-}
-
-/**
- * Fetches the following feed for a specific user from the server-side API
- *
- * Phase 2 migration - replaces legacy getFeed logic for FOLLOWING feed.
- * Benefits:
- * - Automatic request deduplication
- * - Built-in caching with configurable staleness
- * - Automatic retry on failure
- * - Loading/error states managed automatically
- */
-async function fetchFollowingFeed(
-  fid: string,
-  options?: { cursor?: string; limit?: number }
-): Promise<FollowingFeedResponse> {
-  const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
-
-  const params = new URLSearchParams();
-  params.append('fid', fid);
-  params.append('limit', limit.toString());
-  if (cursor) params.append('cursor', cursor);
-
-  const response = await fetchWithPerf(`/api/feeds/following?${params.toString()}`, undefined, {
-    name: 'feed:following',
-    threshold: 1000,
-    metadata: { fid, hasMore: !!cursor },
-  });
-  if (!response.ok) throw new Error('Failed to fetch following feed');
-
-  return response.json();
 }
 
 /**
@@ -58,7 +21,7 @@ export function useFollowingFeed(fid: string, options?: FollowingFeedOptions) {
 
   return useQuery({
     queryKey: queryKeys.feeds.following(fid, { limit }),
-    queryFn: () => fetchFollowingFeed(fid, { limit }),
+    queryFn: ({ signal }) => getProvider().getFollowingFeed(Number(fid), limit, undefined, { signal }),
     enabled: enabled && !!fid,
     // Override defaults for feed data which changes frequently
     staleTime: 1000 * 60 * 2, // 2 minutes for following feed
@@ -76,7 +39,7 @@ export function useFollowingFeedInfinite(fid: string, options?: FollowingFeedOpt
 
   return useInfiniteQuery({
     queryKey: queryKeys.feeds.following(fid, { limit }),
-    queryFn: ({ pageParam }) => fetchFollowingFeed(fid, { cursor: pageParam, limit }),
+    queryFn: ({ pageParam, signal }) => getProvider().getFollowingFeed(Number(fid), limit, pageParam, { signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!fid,
@@ -87,9 +50,7 @@ export function useFollowingFeedInfinite(fid: string, options?: FollowingFeedOpt
 /**
  * Helper to flatten infinite query pages into a single cast array
  */
-export function flattenFollowingFeedPages(
-  data: { pages: FollowingFeedResponse[] } | undefined
-): CastWithInteractions[] {
+export function flattenFollowingFeedPages(data: { pages: FeedResponse[] } | undefined): FarcasterCast[] {
   if (!data?.pages) return [];
 
   // Flatten all pages and deduplicate by hash

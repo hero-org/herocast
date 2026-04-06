@@ -11,7 +11,6 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CheckCircleIcon, DocumentTextIcon, PlusIcon } from '@heroicons/react/24/outline';
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -21,6 +20,7 @@ import { type DraftType, MAX_THREAD_POSTS } from '@/common/constants/farcaster';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { useCloudinaryUpload } from '@/common/hooks/useCloudinaryUpload';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -86,7 +86,7 @@ function splitTextIntoPosts(text: string): string[] {
 
 type ThreadComposerProps = {
   threadId: string;
-  parentCast?: CastWithInteractions;
+  parentCast?: FarcasterCast;
   onPublishSuccess?: () => void;
 };
 

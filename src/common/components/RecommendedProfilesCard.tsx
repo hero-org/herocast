@@ -1,9 +1,9 @@
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useEffect, useState } from 'react';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import FollowButton from './FollowButton';
 import { LinkifiedText } from './LinkifiedText';
 
-const defaultProfiles: User[] = [
+const defaultProfiles: FarcasterUser[] = [
   {
     username: 'hellno',
     fid: 13596,
@@ -28,10 +28,10 @@ const defaultProfiles: User[] = [
       },
     },
   },
-] as User[];
+] as FarcasterUser[];
 
 const RecommendedProfilesCard = () => {
-  const [profiles, setProfiles] = useState<User[]>(defaultProfiles);
+  const [profiles, setProfiles] = useState<FarcasterUser[]>(defaultProfiles);
 
   useEffect(() => {
     const getProfiles = async () => {

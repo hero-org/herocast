@@ -1,5 +1,7 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import type { FarcasterCast } from '@/common/types/farcaster';
+import type { FeedResponse } from '@/lib/farcaster/providers';
+import { getProvider } from '@/lib/farcaster/providers';
 import { queryKeys } from '@/lib/queryKeys';
 
 const DEFAULT_LIMIT = 15;
@@ -7,42 +9,6 @@ const DEFAULT_LIMIT = 15;
 interface FidListFeedOptions {
   limit?: number;
   enabled?: boolean;
-}
-
-interface FidListFeedResponse {
-  casts: CastWithInteractions[];
-  next?: {
-    cursor: string;
-  };
-}
-
-/**
- * Fetches feed for a FID list from the server-side API
- *
- * Phase 2 migration - replaces legacy getFeed logic for FID list feeds.
- * Benefits:
- * - Automatic request deduplication
- * - Built-in caching with configurable staleness
- * - Automatic retry on failure
- * - Loading/error states managed automatically
- */
-async function fetchFidListFeed(
-  fids: string[],
-  viewerFid: string,
-  options?: { cursor?: string; limit?: number }
-): Promise<FidListFeedResponse> {
-  const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
-
-  const params = new URLSearchParams();
-  params.append('fids', fids.join(','));
-  params.append('viewerFid', viewerFid);
-  params.append('limit', limit.toString());
-  if (cursor) params.append('cursor', cursor);
-
-  const response = await fetch(`/api/lists?${params.toString()}`);
-  if (!response.ok) throw new Error('Failed to fetch FID list feed');
-
-  return response.json();
 }
 
 /**
@@ -63,7 +29,8 @@ export function useFidListFeed(listId: string, fids: string[], viewerFid: string
 
   return useQuery({
     queryKey: queryKeys.feeds.list(listId, { limit, contentsHash }),
-    queryFn: () => fetchFidListFeed(fids, viewerFid, { limit }),
+    queryFn: ({ signal }) =>
+      getProvider().getFidListFeed(fids.map(Number), Number(viewerFid), limit, undefined, { signal }),
     enabled: enabled && fids.length > 0 && !!viewerFid,
     // Override defaults for feed data which changes frequently
     staleTime: 1000 * 60 * 2, // 2 minutes for FID list feed
@@ -87,7 +54,8 @@ export function useFidListFeedInfinite(
 
   return useInfiniteQuery({
     queryKey: queryKeys.feeds.list(listId, { limit, contentsHash }),
-    queryFn: ({ pageParam }) => fetchFidListFeed(fids, viewerFid, { cursor: pageParam, limit }),
+    queryFn: ({ pageParam, signal }) =>
+      getProvider().getFidListFeed(fids.map(Number), Number(viewerFid), limit, pageParam, { signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && fids.length > 0 && !!viewerFid,
@@ -98,7 +66,7 @@ export function useFidListFeedInfinite(
 /**
  * Helper to flatten infinite query pages into a single cast array
  */
-export function flattenFidListFeedPages(data: { pages: FidListFeedResponse[] } | undefined): CastWithInteractions[] {
+export function flattenFidListFeedPages(data: { pages: FeedResponse[] } | undefined): FarcasterCast[] {
   if (!data?.pages) return [];
 
   // Flatten all pages and deduplicate by hash

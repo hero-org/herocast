@@ -1,10 +1,10 @@
 'use client';
 
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import debounce from 'lodash.debounce';
 import uniqBy from 'lodash.uniqby';
 import { useEffect, useState } from 'react';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -16,9 +16,9 @@ import { formatLargeNumber } from '../helpers/text';
 
 type ProfileSearchDropdownProps = {
   disabled?: boolean;
-  defaultProfiles: User[];
-  selectedProfile: User | undefined;
-  setSelectedProfile: (profile: User) => void;
+  defaultProfiles: FarcasterUser[];
+  selectedProfile: FarcasterUser | undefined;
+  setSelectedProfile: (profile: FarcasterUser) => void;
   placeholder?: string;
 };
 
@@ -31,7 +31,7 @@ export function ProfileSearchDropdown({
 }: ProfileSearchDropdownProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [profiles, setProfiles] = useState<User[]>([]);
+  const [profiles, setProfiles] = useState<FarcasterUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const { accounts, selectedAccountIdx } = useAccountStore();

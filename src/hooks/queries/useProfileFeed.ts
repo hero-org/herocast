@@ -1,5 +1,7 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import type { FarcasterCast } from '@/common/types/farcaster';
+import type { FeedResponse } from '@/lib/farcaster/providers';
+import { getProvider } from '@/lib/farcaster/providers';
 
 const DEFAULT_LIMIT = 25;
 
@@ -10,55 +12,6 @@ interface ProfileFeedOptions {
   enabled?: boolean;
 }
 
-interface ProfileFeedResponse {
-  casts: CastWithInteractions[];
-  next?: {
-    cursor: string | null;
-  };
-}
-
-/**
- * Fetches casts authored by a specific user from the server-side API
- */
-async function fetchUserCasts(
-  fid: number,
-  options?: { cursor?: string; limit?: number }
-): Promise<ProfileFeedResponse> {
-  const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
-
-  const params = new URLSearchParams();
-  params.append('fid', fid.toString());
-  params.append('type', 'casts');
-  params.append('limit', limit.toString());
-  if (cursor) params.append('cursor', cursor);
-
-  const response = await fetch(`/api/feeds/profile?${params.toString()}`);
-  if (!response.ok) throw new Error('Failed to fetch user casts');
-
-  return response.json();
-}
-
-/**
- * Fetches casts liked by a specific user from the server-side API
- */
-async function fetchUserLikes(
-  fid: number,
-  options?: { cursor?: string; limit?: number }
-): Promise<ProfileFeedResponse> {
-  const { cursor, limit = DEFAULT_LIMIT } = options ?? {};
-
-  const params = new URLSearchParams();
-  params.append('fid', fid.toString());
-  params.append('type', 'likes');
-  params.append('limit', limit.toString());
-  if (cursor) params.append('cursor', cursor);
-
-  const response = await fetch(`/api/feeds/profile?${params.toString()}`);
-  if (!response.ok) throw new Error('Failed to fetch user likes');
-
-  return response.json();
-}
-
 /**
  * Hook for fetching a user's casts feed
  */
@@ -66,8 +19,8 @@ export function useUserCasts(fid: number | undefined, options?: ProfileFeedOptio
   const { limit = DEFAULT_LIMIT, enabled = true } = options ?? {};
 
   return useQuery({
-    queryKey: ['profiles', 'casts', fid, { limit }] as const,
-    queryFn: () => fetchUserCasts(fid!, { limit }),
+    queryKey: ['profiles', 'casts', fid, { limit, single: true }] as const,
+    queryFn: ({ signal }) => getProvider().getProfileCasts(fid!, limit, undefined, { signal }),
     enabled: enabled && !!fid && fid > 0,
     staleTime: 1000 * 60 * 2, // 2 minutes for feed data
   });
@@ -80,8 +33,8 @@ export function useUserLikes(fid: number | undefined, options?: ProfileFeedOptio
   const { limit = DEFAULT_LIMIT, enabled = true } = options ?? {};
 
   return useQuery({
-    queryKey: ['profiles', 'likes', fid, { limit }] as const,
-    queryFn: () => fetchUserLikes(fid!, { limit }),
+    queryKey: ['profiles', 'likes', fid, { limit, single: true }] as const,
+    queryFn: ({ signal }) => getProvider().getProfileLikes(fid!, limit, undefined, { signal }),
     enabled: enabled && !!fid && fid > 0,
     staleTime: 1000 * 60 * 2, // 2 minutes for feed data
   });
@@ -95,7 +48,7 @@ export function useUserCastsInfinite(fid: number | undefined, options?: ProfileF
 
   return useInfiniteQuery({
     queryKey: ['profiles', 'casts', fid, { limit }] as const,
-    queryFn: ({ pageParam }) => fetchUserCasts(fid!, { cursor: pageParam, limit }),
+    queryFn: ({ pageParam, signal }) => getProvider().getProfileCasts(fid!, limit, pageParam, { signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!fid && fid > 0,
@@ -111,7 +64,7 @@ export function useUserLikesInfinite(fid: number | undefined, options?: ProfileF
 
   return useInfiniteQuery({
     queryKey: ['profiles', 'likes', fid, { limit }] as const,
-    queryFn: ({ pageParam }) => fetchUserLikes(fid!, { cursor: pageParam, limit }),
+    queryFn: ({ pageParam, signal }) => getProvider().getProfileLikes(fid!, limit, pageParam, { signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!fid && fid > 0,

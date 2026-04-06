@@ -1,6 +1,6 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { publishReaction, removeReaction } from '@/common/helpers/farcaster';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { queryKeys } from '@/lib/queryKeys';
 import { useAccountStore } from '@/stores/useAccountStore';
 
@@ -23,7 +23,7 @@ interface CastActionContext {
 function updateCastInFeeds(
   queryClient: ReturnType<typeof useQueryClient>,
   castHash: string,
-  updater: (cast: CastWithInteractions) => CastWithInteractions
+  updater: (cast: FarcasterCast) => FarcasterCast
 ) {
   // Get all feed query keys that might contain this cast
   const feedQueryKeys = [
@@ -33,7 +33,7 @@ function updateCastInFeeds(
   feedQueryKeys.forEach((queryKey) => {
     queryClient.setQueriesData(
       { queryKey, exact: false },
-      (oldData: { pages?: Array<{ casts: CastWithInteractions[] }> } | undefined) => {
+      (oldData: { pages?: Array<{ casts: FarcasterCast[] }> } | undefined) => {
         if (!oldData?.pages) return oldData;
 
         const newPages = oldData.pages.map((page) => {

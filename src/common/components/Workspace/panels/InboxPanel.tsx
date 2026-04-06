@@ -1,6 +1,5 @@
 'use client';
 
-import { type Notification, NotificationTypeEnum } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { formatDistanceToNowStrict } from 'date-fns';
 import isEmpty from 'lodash.isempty';
 import Link from 'next/link';
@@ -10,6 +9,7 @@ import { useInView } from 'react-intersection-observer';
 import { CastRow } from '@/common/components/CastRow';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
 import { formatLargeNumber } from '@/common/helpers/text';
+import { type FarcasterNotification, NotificationType } from '@/common/types/farcaster';
 import type { InboxPanelConfig } from '@/common/types/workspace.types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,20 +41,20 @@ const tabToApiType = (tab: InboxPanelConfig['tab']): string => {
 };
 
 // Map panel tab to notification type enum for type checking
-const tabToNotificationType = (tab: InboxPanelConfig['tab']): NotificationTypeEnum => {
+const tabToNotificationType = (tab: InboxPanelConfig['tab']): NotificationType => {
   switch (tab) {
     case 'mentions':
-      return NotificationTypeEnum.Mention;
+      return NotificationType.Mention;
     case 'likes':
-      return NotificationTypeEnum.Likes;
+      return NotificationType.Likes;
     case 'follows':
-      return NotificationTypeEnum.Follows;
+      return NotificationType.Follows;
     case 'replies':
-      return NotificationTypeEnum.Reply;
+      return NotificationType.Reply;
     case 'recasts':
-      return NotificationTypeEnum.Recasts;
+      return NotificationType.Recasts;
     default:
-      return NotificationTypeEnum.Reply;
+      return NotificationType.Reply;
   }
 };
 
@@ -97,7 +97,7 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
   const viewerFid = useAccountStore((state) => state.accounts[state.selectedAccountIdx]?.platformAccountId);
 
   // State for notifications
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<FarcasterNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [hasMore, setHasMore] = useState(true);
@@ -211,13 +211,9 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
 
   // Handle notification click
   const handleNotificationClick = useCallback(
-    (notification: Notification) => {
+    (notification: FarcasterNotification) => {
       // For follow notifications, navigate to the first follower's profile
-      if (
-        notification.type === NotificationTypeEnum.Follows &&
-        notification.follows &&
-        notification.follows.length > 0
-      ) {
+      if (notification.type === NotificationType.Follows && notification.follows && notification.follows.length > 0) {
         const firstFollower = notification.follows[0]?.user;
         router.push(`/profile/${firstFollower.username}`);
       }
@@ -230,18 +226,18 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
   );
 
   // Get action description for notification
-  const getActionDescription = (notification: Notification): string => {
+  const getActionDescription = (notification: FarcasterNotification): string => {
     const cast = notification.cast;
     switch (notification.type) {
-      case NotificationTypeEnum.Reply:
+      case NotificationType.Reply:
         return cast ? `@${cast.author.username} replied` : 'Someone replied';
-      case NotificationTypeEnum.Mention:
+      case NotificationType.Mention:
         return cast ? `@${cast.author.username} mentioned you` : 'Someone mentioned you';
-      case NotificationTypeEnum.Likes:
+      case NotificationType.Likes:
         return `${notification.reactions?.length || 1} like${(notification.reactions?.length || 1) > 1 ? 's' : ''}`;
-      case NotificationTypeEnum.Follows:
+      case NotificationType.Follows:
         return `${notification.follows?.length || 1} new follower${(notification.follows?.length || 1) > 1 ? 's' : ''}`;
-      case NotificationTypeEnum.Recasts:
+      case NotificationType.Recasts:
         return `${notification.reactions?.length || 1} recast${(notification.reactions?.length || 1) > 1 ? 's' : ''}`;
       default:
         return '';
@@ -249,13 +245,13 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
   };
 
   // Render a notification row
-  const renderNotificationRow = (notification: Notification, idx: number) => {
+  const renderNotificationRow = (notification: FarcasterNotification, idx: number) => {
     const timeAgoStr = formatDistanceToNowStrict(new Date(notification.most_recent_timestamp));
     const actionDescription = getActionDescription(notification);
     const isSentinel = idx === notifications.length - PREFETCH_THRESHOLD;
 
     // Handle follow notifications specially
-    if (notification.type === NotificationTypeEnum.Follows && notification.follows) {
+    if (notification.type === NotificationType.Follows && notification.follows) {
       const firstFollower = notification.follows[0]?.user;
       const remainingCount = notification.follows.length - 1;
 
@@ -294,7 +290,7 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
     }
 
     // For likes/recasts, show a simpler row with the cast text
-    if (notification.type === NotificationTypeEnum.Likes || notification.type === NotificationTypeEnum.Recasts) {
+    if (notification.type === NotificationType.Likes || notification.type === NotificationType.Recasts) {
       const { cast } = notification;
       return (
         <li

@@ -1,7 +1,6 @@
 'use client';
 
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,6 +9,7 @@ import { BulkAddUsersDialog } from '@/common/components/BulkAddUsersDialog';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
 import { LIST_SIZE_WARNING_THRESHOLD, MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { type FidListContent, isFidListContent } from '@/common/types/list.types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,11 +46,11 @@ export default function ListPage() {
   } = useListStore();
 
   const [activeListId, setActiveListId] = useState<string | null>(null);
-  const [selectedProfile, setSelectedProfile] = useState<User | undefined>(undefined);
+  const [selectedProfile, setSelectedProfile] = useState<FarcasterUser | undefined>(undefined);
   const [newListName, setNewListName] = useState('');
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [defaultProfiles, setDefaultProfiles] = useState<User[]>([]);
+  const [defaultProfiles, setDefaultProfiles] = useState<FarcasterUser[]>([]);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');

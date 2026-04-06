@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -82,14 +81,10 @@ type addTokenDataProps = {
 };
 
 interface DataStoreProps {
-  selectedCast?: CastWithInteractions;
-  selectedProfileFid?: number;
   tokenSymbolToData: Record<string, DexPair>;
 }
 
 interface DataStoreActions {
-  updateSelectedCast: (cast?: CastWithInteractions) => void;
-  updateSelectedProfileFid: (fid?: number) => void;
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => void;
 }
 
@@ -100,19 +95,7 @@ export const mutative = (config) => (set, get) => config((fn) => set(mutativeCre
 type StoreSet = (fn: (draft: Draft<DataStore>) => void) => void;
 
 const store = (set: StoreSet) => ({
-  selectedCast: null,
-  selectedProfileFid: undefined,
   tokenSymbolToData: {},
-  updateSelectedCast: (cast?: CastWithInteractions) => {
-    set((state) => {
-      state.selectedCast = cast;
-    });
-  },
-  updateSelectedProfileFid: (fid?: number) => {
-    set((state) => {
-      state.selectedProfileFid = fid;
-    });
-  },
   addTokenData: ({ tokenSymbol, data }: addTokenDataProps) => {
     set((state) => {
       state.tokenSymbolToData = {

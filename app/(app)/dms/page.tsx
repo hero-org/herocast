@@ -37,7 +37,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
 import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 
 const DirectMessages = () => {
@@ -66,7 +65,7 @@ const DirectMessages = () => {
   }, [errorCode]);
 
   // Keep UI state management
-  const updateSelectedProfileFid = useDataStore((state) => state.updateSelectedProfileFid);
+  const updateSelectedProfileFid = useNavigationStore((state) => state.updateSelectedProfileFid);
 
   // Helper to get unique ID for an item
   const getItemId = (item: DirectCastConversation | DirectCastGroup) => {

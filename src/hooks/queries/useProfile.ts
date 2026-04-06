@@ -1,7 +1,8 @@
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useQuery } from '@tanstack/react-query';
 import type { CoordinapeAttestation } from '@/common/helpers/coordinapeAttestations';
 import type { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
+import type { FarcasterUser } from '@/common/types/farcaster';
+import { getProvider } from '@/lib/farcaster/providers';
 import { queryKeys } from '@/lib/queryKeys';
 import { profileBatcher } from './profileBatcher';
 
@@ -10,7 +11,7 @@ export type AdditionalUserInfo = {
   coordinapeAttestations?: CoordinapeAttestation[];
 };
 
-export type ProfileData = User & AdditionalUserInfo;
+export type ProfileData = FarcasterUser & AdditionalUserInfo;
 
 interface UseProfileOptions {
   viewerFid?: number;
@@ -19,26 +20,14 @@ interface UseProfileOptions {
 }
 
 /**
- * Fetches a single profile by FID from server-side API
+ * Fetches a single profile by FID using the Farcaster provider
  */
 async function fetchProfileByFid(
   fid: number,
-  viewerFid?: number,
+  _viewerFid?: number,
   includeAdditionalInfo = false
 ): Promise<ProfileData | null> {
-  const params = new URLSearchParams();
-  params.append('fids', fid.toString());
-  if (viewerFid) {
-    params.append('viewer_fid', viewerFid.toString());
-  }
-
-  const response = await fetch(`/api/users?${params.toString()}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch profile');
-  }
-
-  const data = await response.json();
-  const user = data.users?.[0];
+  const user = await getProvider().getUser(fid);
   if (!user) return null;
 
   if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {
@@ -59,35 +48,18 @@ async function fetchProfileByFid(
 }
 
 /**
- * Fetches a profile by username from server-side API
+ * Fetches a profile by username using the Farcaster provider
  */
 async function fetchProfileByUsername(
   username: string,
-  viewerFid: number,
+  _viewerFid: number,
   includeAdditionalInfo = false
 ): Promise<ProfileData | null> {
   // Remove @ prefix if present
   const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
 
-  const params = new URLSearchParams();
-  params.append('q', cleanUsername);
-  params.append('viewer_fid', viewerFid.toString());
-
-  const response = await fetch(`/api/users/search?${params.toString()}`);
-  if (!response.ok) {
-    throw new Error('Failed to search profile');
-  }
-
-  const data = await response.json();
-  const users = data.users;
-
-  if (!users?.length) return null;
-
-  // Find exact match (handle .eth suffix variants)
-  const matchingUsernames = [cleanUsername.toLowerCase(), `${cleanUsername.toLowerCase()}.eth`];
-  const user = users.find((u) => matchingUsernames.includes(u.username.toLowerCase()));
-
-  if (!user) return users[0]; // Fall back to first result
+  const user = await getProvider().getUserByUsername(cleanUsername);
+  if (!user) return null;
 
   if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {
     try {

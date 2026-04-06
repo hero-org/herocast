@@ -1,8 +1,9 @@
 import { useQueries, useQuery } from '@tanstack/react-query';
+import { getProvider } from '@/lib/farcaster/providers';
 import { queryKeys } from '@/lib/queryKeys';
 import type { ProfileData } from './useProfile';
 
-const BATCH_SIZE = 100; // Neynar API limit per request
+const BATCH_SIZE = 100; // API limit per request
 
 interface UseBulkProfilesOptions {
   viewerFid: number;
@@ -11,7 +12,7 @@ interface UseBulkProfilesOptions {
 }
 
 /**
- * Fetches multiple profiles in batches from server-side API
+ * Fetches multiple profiles in batches using the Farcaster provider
  */
 async function fetchBulkProfiles(
   fids: number[],
@@ -27,17 +28,7 @@ async function fetchBulkProfiles(
     const batch = fids.slice(i, i + BATCH_SIZE);
 
     try {
-      const params = new URLSearchParams();
-      params.append('fids', batch.join(','));
-      params.append('viewer_fid', viewerFid.toString());
-
-      const response = await fetch(`/api/users?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch bulk profiles');
-      }
-
-      const data = await response.json();
-      const users = data.users || [];
+      const users = await getProvider().getBulkUsers(batch, viewerFid);
 
       if (users.length > 0) {
         if (includeAdditionalInfo) {
@@ -109,18 +100,7 @@ export function useProfiles(fids: number[], options: UseBulkProfilesOptions) {
     queries: fids.map((fid) => ({
       queryKey: queryKeys.profiles.byFid(fid),
       queryFn: async (): Promise<ProfileData | null> => {
-        const params = new URLSearchParams();
-        params.append('fids', fid.toString());
-        params.append('viewer_fid', viewerFid.toString());
-
-        const response = await fetch(`/api/users?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-
-        const data = await response.json();
-        const user = data.users?.[0];
-
+        const user = await getProvider().getUser(fid);
         if (!user) return null;
 
         if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {

@@ -1,7 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { map, uniq } from 'lodash';
 import isEmpty from 'lodash.isempty';
 import { useRouter } from 'next/navigation';
@@ -12,6 +11,7 @@ import { Key } from 'ts-key-enum';
 import { CastThreadView } from '@/common/components/CastThreadView';
 import { SearchInterface } from '@/common/components/SearchInterface';
 import { SearchResultsView } from '@/common/components/SearchResultsView';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { Interval } from '@/common/types/types';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -23,8 +23,8 @@ import {
   searchService,
 } from '@/services/searchService';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
 import { useListStore } from '@/stores/useListStore';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 const SEARCH_LIMIT_INITIAL_LOAD = 5;
@@ -40,7 +40,7 @@ export default function SearchPage() {
   const posthog = usePostHog();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [casts, setCasts] = useState<CastWithInteractions[]>([]);
+  const [casts, setCasts] = useState<FarcasterCast[]>([]);
   const [castHashes, setCastHashes] = useState<RawSearchResult[]>([]);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +62,7 @@ export default function SearchPage() {
   const hasValidOperators = /(?:from:|channel:|parent:|before:|after:)\S+/.test(searchTerm);
   const hasActiveFilters = Boolean(filters.authorFid || filters.channelId || filters.parentUrl);
   const canSearch = searchTerm.trim().length >= 3 || hasValidOperators || hasActiveFilters;
-  const { updateSelectedCast, updateSelectedProfileFid } = useDataStore();
+  const { updateSelectedCast, updateSelectedProfileFid } = useNavigationStore();
 
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const viewerFid = selectedAccount?.platformAccountId || APP_FID;

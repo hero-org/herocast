@@ -1,15 +1,15 @@
-import type { User as NeynarUser } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { debounce } from 'lodash';
 import { Loader2, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { formatLargeNumber } from '@/common/helpers/text';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
 interface InlineUserSearchProps {
-  onSelect: (user: NeynarUser) => void;
+  onSelect: (user: FarcasterUser) => void;
   placeholder?: string;
   viewerFid?: string;
   autoFocus?: boolean;
@@ -22,7 +22,7 @@ export function InlineUserSearch({
   autoFocus = true,
 }: InlineUserSearchProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<NeynarUser[]>([]);
+  const [results, setResults] = useState<FarcasterUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 

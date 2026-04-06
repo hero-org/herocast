@@ -1,4 +1,3 @@
-import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { Cross2Icon, PersonIcon } from '@radix-ui/react-icons';
 import Fuse from 'fuse.js';
 import { take } from 'lodash';
@@ -6,6 +5,7 @@ import orderBy from 'lodash.orderby';
 import uniqBy from 'lodash.uniqby';
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
+import type { FarcasterChannel } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -18,19 +18,19 @@ const stripUrlScheme = (url: string | undefined): string => {
 };
 
 // Default "Home" channel when no channel is selected
-const HOME_CHANNEL: Channel = {
+const HOME_CHANNEL: FarcasterChannel = {
   id: 'home',
   name: 'Home',
   object: 'channel',
   image_url: 'https://warpcast.com/~/channel-images/home.png',
   parent_url: undefined,
-} as Channel;
+} as FarcasterChannel;
 
 type Props = {
-  getChannels: (query: string) => Promise<Channel[]>;
-  onSelect: (value: Channel | undefined) => void;
-  value?: Channel;
-  initialChannels?: Channel[];
+  getChannels: (query: string) => Promise<FarcasterChannel[]>;
+  onSelect: (value: FarcasterChannel | undefined) => void;
+  value?: FarcasterChannel;
+  initialChannels?: FarcasterChannel[];
   disabled?: boolean;
   /** Show only icon without text label */
   compact?: boolean;
@@ -43,9 +43,9 @@ export function ChannelPicker(props: Props) {
   const [isPending, setIsPending] = React.useState(false);
 
   // Deduplicate initial channels by parent_url to avoid React key conflicts
-  const [channels, setChannels] = React.useState<Channel[]>(uniqBy(props.initialChannels ?? [], 'parent_url'));
+  const [channels, setChannels] = React.useState<FarcasterChannel[]>(uniqBy(props.initialChannels ?? [], 'parent_url'));
 
-  const setChannelResults = (newChannels: Channel[]) => {
+  const setChannelResults = (newChannels: FarcasterChannel[]) => {
     setChannels(uniqBy(newChannels, 'parent_url'));
   };
 
@@ -102,14 +102,14 @@ export function ChannelPicker(props: Props) {
   }, [open]);
 
   const handleSelect = React.useCallback(
-    (channel: Channel) => {
+    (channel: FarcasterChannel) => {
       setOpen(false);
       onSelect(channel);
     },
     [onSelect, setOpen]
   );
 
-  const filteredChannels = React.useMemo((): Channel[] => {
+  const filteredChannels = React.useMemo((): FarcasterChannel[] => {
     if (channels.length === 0) return [];
     if (!query) {
       // Show all channels (user pinned + top channels), scrollable
@@ -124,10 +124,10 @@ export function ChannelPicker(props: Props) {
         const key = Array.isArray(path) ? path[0] : path;
         if (key === 'id') {
           // Also search in stripped parent_url for broader matches
-          const parentUrl = stripUrlScheme((obj as Channel).parent_url);
-          return [(obj as Channel).id || '', parentUrl];
+          const parentUrl = stripUrlScheme((obj as FarcasterChannel).parent_url);
+          return [(obj as FarcasterChannel).id || '', parentUrl];
         }
-        return ((obj as Channel)[key as keyof Channel] as string) || '';
+        return ((obj as FarcasterChannel)[key as keyof FarcasterChannel] as string) || '';
       },
       threshold: 0.3,
     });

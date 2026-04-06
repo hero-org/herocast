@@ -1,10 +1,11 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { FarcasterCast } from '@/common/types/farcaster';
+import { getProvider } from '@/lib/farcaster/providers';
 import { Interval } from '../common/types/types';
 import { SearchQueryBuilder } from './searchQueryBuilder';
 
 // Type representing the result of cast lookups (matches Neynar API response structure)
 export type CastsResult = {
-  casts: CastWithInteractions[];
+  casts: FarcasterCast[];
 };
 
 export type RawSearchResult = {
@@ -81,19 +82,13 @@ export class SearchService {
         if (fromUsername) {
           console.log('SearchService - Looking up user:', fromUsername);
           try {
-            const baseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_URL || '';
-            const response = await fetch(
-              `${baseUrl}/api/users?username=${encodeURIComponent(fromUsername)}&viewer_fid=${params.viewerFid}`
-            );
-            if (response.ok) {
-              const data = await response.json();
-              const profile = data.users?.[0];
-              console.log('SearchService - Profile lookup result:', profile);
-              if (profile?.fid) {
-                authorFid = profile.fid;
-              } else {
-                console.warn('SearchService - Could not find user:', fromUsername);
-              }
+            const users = await getProvider().searchUsers(fromUsername, Number(params.viewerFid), 1);
+            const profile = users?.[0];
+            console.log('SearchService - Profile lookup result:', profile);
+            if (profile?.fid) {
+              authorFid = profile.fid;
+            } else {
+              console.warn('SearchService - Could not find user:', fromUsername);
             }
           } catch (error) {
             console.error('SearchService - Error looking up user:', fromUsername, error);
@@ -113,19 +108,44 @@ export class SearchService {
         parentUrl: params.parentUrl || filters.parentUrl,
       };
 
-      const searchUrl = this.buildSearchUrl(searchParams);
       console.log('SearchService - Final search params:', {
         q: searchParams.q,
         authorFid: searchParams.authorFid,
         searchTerm: params.searchTerm,
         cleanQuery,
       });
-      const response = await fetch(searchUrl);
-      const data = await response.json();
-      return data;
+
+      // Build filters for the provider
+      const providerFilters: Record<string, string> = {};
+      const mode = searchParams.mode || searchParams.filters?.mode;
+      if (mode) providerFilters.mode = mode;
+      const sortType = searchParams.sortType || searchParams.filters?.sortType;
+      if (sortType) providerFilters.sortType = sortType;
+      if (searchParams.authorFid) providerFilters.authorFid = searchParams.authorFid.toString();
+      if (searchParams.parentUrl) providerFilters.parentUrl = searchParams.parentUrl;
+      if (searchParams.channelId) providerFilters.channelId = searchParams.channelId;
+      const interval = searchParams.filters?.interval;
+      if (interval) {
+        providerFilters.interval = interval;
+      } else {
+        providerFilters.interval = Interval.d7;
+      }
+      if (searchParams.viewerFid) providerFilters.viewerFid = searchParams.viewerFid;
+
+      const searchResponse = await getProvider().searchCasts(
+        searchParams.q || '',
+        providerFilters,
+        searchParams.limit,
+        searchParams.offset
+      );
+
+      return {
+        results: searchResponse.results,
+        isTimeout: false,
+      } as SearchResponse;
     } catch (error) {
       console.error('Search failed:', error);
-      return { error: error as string, isTimeout: false };
+      return { error: error instanceof Error ? error.message : String(error), isTimeout: false };
     }
   }
 
@@ -135,77 +155,12 @@ export class SearchService {
 
     // If no results, return empty response
     if (castHashes.length === 0) {
-      return {
-        casts: [],
-      };
-    }
-
-    // Build URL for /api/casts route
-    const urlParams = new URLSearchParams();
-    urlParams.append('casts', castHashes.join(','));
-    if (params.viewerFid) {
-      urlParams.append('viewer_fid', params.viewerFid);
-    }
-
-    const baseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_URL || '';
-    const response = await fetch(`${baseUrl}/api/casts?${urlParams.toString()}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Error fetching casts:', data.error);
       return { casts: [] };
     }
 
-    // The API returns { result: { casts: [...] } }
-    return data.result || { casts: [] };
-  }
-
-  private buildSearchUrl(params: SearchParams): string {
-    const urlParams = new URLSearchParams();
-
-    // Use 'q' parameter for Neynar API
-    if (params.q) {
-      urlParams.append('q', params.q);
-    } else if (params.searchTerm) {
-      // Fallback to term for backward compatibility
-      urlParams.append('term', params.searchTerm);
-    }
-
-    // Core search parameters
-    if (params.limit) urlParams.append('limit', params.limit.toString());
-    if (params.offset) urlParams.append('offset', params.offset.toString());
-    if (params.viewerFid) urlParams.append('viewerFid', params.viewerFid);
-
-    // Neynar API parameters
-    const mode = params.mode || params.filters?.mode;
-    if (mode) {
-      urlParams.append('mode', mode);
-    }
-    const sortType = params.sortType || params.filters?.sortType;
-    if (sortType) {
-      urlParams.append('sortType', sortType);
-    }
-    if (params.authorFid) {
-      urlParams.append('authorFid', params.authorFid.toString());
-    }
-    if (params.parentUrl) {
-      urlParams.append('parentUrl', params.parentUrl);
-    }
-    if (params.channelId) {
-      urlParams.append('channelId', params.channelId);
-    }
-
-    // Filter parameters
-    if (params.filters) {
-      if (params.filters.interval) urlParams.append('interval', params.filters.interval);
-    }
-
-    if (!urlParams.get('interval')) {
-      urlParams.set('interval', Interval.d7);
-    }
-
-    const baseUrl = typeof window !== 'undefined' ? '' : process.env.NEXT_PUBLIC_URL || '';
-    return `${baseUrl}/api/search?${urlParams.toString()}`;
+    const viewerFid = params.viewerFid ? Number(params.viewerFid) : undefined;
+    const casts = await getProvider().getCasts(castHashes, viewerFid);
+    return { casts };
   }
 
   getTextMatchCondition(term: string): string {

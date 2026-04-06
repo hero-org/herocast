@@ -1,4 +1,5 @@
 import { create, keyResolver, windowScheduler } from '@yornaath/batshit';
+import { getProvider } from '@/lib/farcaster/providers';
 import type { ProfileData } from './useProfile';
 
 /**
@@ -12,18 +13,7 @@ import type { ProfileData } from './useProfile';
  */
 export const profileBatcher = create<ProfileData[], number, ProfileData>({
   fetcher: async (fids: number[]) => {
-    const params = new URLSearchParams();
-    params.append('fids', fids.join(','));
-    // Use app FID as default viewer for viewer context
-    params.append('viewer_fid', process.env.NEXT_PUBLIC_APP_FID || '');
-
-    const response = await fetch(`/api/users?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch profiles');
-    }
-
-    const data = await response.json();
-    return data.users || [];
+    return getProvider().getBulkUsers(fids);
   },
   resolver: keyResolver('fid'),
   scheduler: windowScheduler(10), // 10ms batching window

@@ -1,5 +1,5 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { Interval } from '@/common/types/types';
 import { queryKeys } from '@/lib/queryKeys';
 import { type SearchFilters, searchService } from '@/services/searchService';
@@ -12,7 +12,7 @@ interface SearchListFeedOptions {
 }
 
 interface SearchListFeedResponse {
-  casts: CastWithInteractions[];
+  casts: FarcasterCast[];
 }
 
 /**
@@ -98,9 +98,7 @@ export function useSearchListFeedInfinite(
  * Deduplicates casts by hash to handle any potential duplicates
  * across page boundaries.
  */
-export function flattenSearchListFeedPages(
-  data: { pages: SearchListFeedResponse[] } | undefined
-): CastWithInteractions[] {
+export function flattenSearchListFeedPages(data: { pages: SearchListFeedResponse[] } | undefined): FarcasterCast[] {
   if (!data?.pages) return [];
 
   // Flatten all pages and deduplicate by hash

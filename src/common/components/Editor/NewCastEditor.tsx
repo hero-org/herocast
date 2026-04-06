@@ -1,6 +1,5 @@
 import { CalendarDaysIcon, LinkIcon, PhotoIcon } from '@heroicons/react/20/solid';
 import { getFarcasterMentions } from '@mod-protocol/farcaster';
-import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { EditorContent } from '@tiptap/react';
 import { format, startOfToday } from 'date-fns';
 import { take } from 'lodash';
@@ -16,6 +15,7 @@ import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { useCastEditor } from '@/common/hooks/useCastEditor';
 import { useChannelLookup } from '@/common/hooks/useChannelLookup';
 import { useCloudinaryUpload } from '@/common/hooks/useCloudinaryUpload';
+import type { FarcasterChannel } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
@@ -49,7 +49,7 @@ const fetchUrlMetadata = async (url: string): Promise<Record<string, unknown>> =
   }
 };
 
-const getChannels = async (query: string): Promise<Channel[]> => {
+const getChannels = async (query: string): Promise<FarcasterChannel[]> => {
   if (query.length < 2) return [];
   try {
     const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
@@ -581,7 +581,7 @@ export default function NewPostEntry({
             {!isReply && !hideChannel && (
               <>
                 <ChannelPicker
-                  value={channel ? (channel as unknown as Channel) : undefined}
+                  value={channel ? (channel as unknown as FarcasterChannel) : undefined}
                   onSelect={(ch) => {
                     // Clear reply URL when channel is selected (mutual exclusivity)
                     setReplyToUrl('');
@@ -604,7 +604,7 @@ export default function NewPostEntry({
                     // Return focus to editor after channel selection
                     setTimeout(() => editor?.commands.focus(), 0);
                   }}
-                  initialChannels={[...toNeynarChannels(userChannels), ...(TOP_CHANNELS as Channel[])]}
+                  initialChannels={[...toNeynarChannels(userChannels), ...(TOP_CHANNELS as FarcasterChannel[])]}
                   getChannels={getChannels}
                   disabled={isPublishing}
                   compact

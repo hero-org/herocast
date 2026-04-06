@@ -1,16 +1,16 @@
 'use client';
 
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { CastThreadView } from '@/common/components/CastThreadView';
-import { useDataStore } from '@/stores/useDataStore';
+import type { FarcasterCast } from '@/common/types/farcaster';
+import { useNavigationStore } from '@/stores/useNavigationStore';
 
 export default function ConversationPage() {
   const params = useParams();
   const slug = params.slug as string[];
-  const [cast, setCast] = useState<CastWithInteractions | null>(null);
-  const { updateSelectedCast } = useDataStore();
+  const [cast, setCast] = useState<FarcasterCast | null>(null);
+  const { updateSelectedCast } = useNavigationStore();
 
   useEffect(() => {
     // if navigating away, reset the selected cast
