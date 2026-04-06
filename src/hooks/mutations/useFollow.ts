@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { followUser, unfollowUser } from '@/common/helpers/farcaster';
 import type { ProfileData } from '@/hooks/queries/useProfile';
 import { queryKeys } from '@/lib/queryKeys';
+import { useSocialGraphStore } from '@/stores/useSocialGraphStore';
 
 interface FollowParams {
   targetFid: number;
@@ -9,7 +10,7 @@ interface FollowParams {
 }
 
 interface FollowMutationContext {
-  previousProfile?: ProfileData | null;
+  previousProfiles: Map<string, ProfileData | null | undefined>;
   previousBulkProfiles?: Map<string, ProfileData[]>;
 }
 
@@ -38,21 +39,26 @@ export function useFollow() {
 
     onMutate: async ({ targetFid }) => {
       // Cancel any outgoing refetches to prevent race conditions
-      await queryClient.cancelQueries({ queryKey: queryKeys.profiles.byFid(targetFid) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.profiles.byFidPrefix(targetFid) });
 
-      // Snapshot the previous profile state
-      const previousProfile = queryClient.getQueryData<ProfileData>(queryKeys.profiles.byFid(targetFid));
+      // Snapshot any viewer-specific profile queries for this fid
+      const previousProfiles = new Map<string, ProfileData | null | undefined>();
+      queryClient
+        .getQueriesData<ProfileData>({ queryKey: queryKeys.profiles.byFidPrefix(targetFid) })
+        .forEach(([key, data]) => {
+          previousProfiles.set(JSON.stringify(key), data);
+        });
 
       // Snapshot all bulk profile queries that might contain this profile
       const previousBulkProfiles = new Map<string, ProfileData[]>();
-      queryClient.getQueriesData<ProfileData[]>({ queryKey: queryKeys.profiles.bulk([]) }).forEach(([key, data]) => {
+      queryClient.getQueriesData<ProfileData[]>({ queryKey: queryKeys.profiles.bulkPrefix }).forEach(([key, data]) => {
         if (data) {
           previousBulkProfiles.set(JSON.stringify(key), data);
         }
       });
 
-      // Optimistically update single profile cache
-      queryClient.setQueryData<ProfileData>(queryKeys.profiles.byFid(targetFid), (old) => {
+      // Optimistically update all single profile caches for this fid
+      queryClient.setQueriesData<ProfileData>({ queryKey: queryKeys.profiles.byFidPrefix(targetFid) }, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -64,7 +70,7 @@ export function useFollow() {
       });
 
       // Optimistically update bulk profile caches
-      queryClient.setQueriesData<ProfileData[]>({ queryKey: queryKeys.profiles.bulk([]) }, (old) => {
+      queryClient.setQueriesData<ProfileData[]>({ queryKey: queryKeys.profiles.bulkPrefix }, (old) => {
         if (!old) return old;
         return old.map((profile) =>
           profile.fid === targetFid
@@ -79,16 +85,21 @@ export function useFollow() {
         );
       });
 
+      // Optimistically update social graph store
+      useSocialGraphStore.getState().addFollowing(targetFid);
+
       // Return context for potential rollback
-      return { previousProfile, previousBulkProfiles };
+      return { previousProfiles, previousBulkProfiles };
     },
 
     onError: (err, { targetFid }, context) => {
       console.error('Failed to follow user:', err);
 
-      // Rollback single profile cache
-      if (context?.previousProfile !== undefined) {
-        queryClient.setQueryData(queryKeys.profiles.byFid(targetFid), context.previousProfile);
+      // Rollback single profile caches
+      if (context?.previousProfiles) {
+        context.previousProfiles.forEach((data, key) => {
+          queryClient.setQueryData(JSON.parse(key), data);
+        });
       }
 
       // Rollback bulk profile caches
@@ -97,20 +108,13 @@ export function useFollow() {
           queryClient.setQueryData(JSON.parse(key), data);
         });
       }
+
+      // Rollback social graph store
+      useSocialGraphStore.getState().removeFollowing(targetFid);
     },
 
     onSettled: (data, error, { targetFid }) => {
-      // Invalidate profile to ensure consistency with server
-      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.byFid(targetFid) });
-
-      // Also invalidate bulk queries that might contain this profile
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.profiles.bulk([]),
-        predicate: (query) => {
-          const data = query.state.data as ProfileData[] | undefined;
-          return data?.some((profile) => profile.fid === targetFid) ?? false;
-        },
-      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
     },
   });
 }
@@ -140,21 +144,26 @@ export function useUnfollow() {
 
     onMutate: async ({ targetFid }) => {
       // Cancel any outgoing refetches to prevent race conditions
-      await queryClient.cancelQueries({ queryKey: queryKeys.profiles.byFid(targetFid) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.profiles.byFidPrefix(targetFid) });
 
-      // Snapshot the previous profile state
-      const previousProfile = queryClient.getQueryData<ProfileData>(queryKeys.profiles.byFid(targetFid));
+      // Snapshot any viewer-specific profile queries for this fid
+      const previousProfiles = new Map<string, ProfileData | null | undefined>();
+      queryClient
+        .getQueriesData<ProfileData>({ queryKey: queryKeys.profiles.byFidPrefix(targetFid) })
+        .forEach(([key, data]) => {
+          previousProfiles.set(JSON.stringify(key), data);
+        });
 
       // Snapshot all bulk profile queries that might contain this profile
       const previousBulkProfiles = new Map<string, ProfileData[]>();
-      queryClient.getQueriesData<ProfileData[]>({ queryKey: queryKeys.profiles.bulk([]) }).forEach(([key, data]) => {
+      queryClient.getQueriesData<ProfileData[]>({ queryKey: queryKeys.profiles.bulkPrefix }).forEach(([key, data]) => {
         if (data) {
           previousBulkProfiles.set(JSON.stringify(key), data);
         }
       });
 
-      // Optimistically update single profile cache
-      queryClient.setQueryData<ProfileData>(queryKeys.profiles.byFid(targetFid), (old) => {
+      // Optimistically update all single profile caches for this fid
+      queryClient.setQueriesData<ProfileData>({ queryKey: queryKeys.profiles.byFidPrefix(targetFid) }, (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -166,7 +175,7 @@ export function useUnfollow() {
       });
 
       // Optimistically update bulk profile caches
-      queryClient.setQueriesData<ProfileData[]>({ queryKey: queryKeys.profiles.bulk([]) }, (old) => {
+      queryClient.setQueriesData<ProfileData[]>({ queryKey: queryKeys.profiles.bulkPrefix }, (old) => {
         if (!old) return old;
         return old.map((profile) =>
           profile.fid === targetFid
@@ -181,16 +190,21 @@ export function useUnfollow() {
         );
       });
 
+      // Optimistically update social graph store
+      useSocialGraphStore.getState().removeFollowing(targetFid);
+
       // Return context for potential rollback
-      return { previousProfile, previousBulkProfiles };
+      return { previousProfiles, previousBulkProfiles };
     },
 
     onError: (err, { targetFid }, context) => {
       console.error('Failed to unfollow user:', err);
 
-      // Rollback single profile cache
-      if (context?.previousProfile !== undefined) {
-        queryClient.setQueryData(queryKeys.profiles.byFid(targetFid), context.previousProfile);
+      // Rollback single profile caches
+      if (context?.previousProfiles) {
+        context.previousProfiles.forEach((data, key) => {
+          queryClient.setQueryData(JSON.parse(key), data);
+        });
       }
 
       // Rollback bulk profile caches
@@ -199,20 +213,13 @@ export function useUnfollow() {
           queryClient.setQueryData(JSON.parse(key), data);
         });
       }
+
+      // Rollback social graph store
+      useSocialGraphStore.getState().addFollowing(targetFid);
     },
 
     onSettled: (data, error, { targetFid }) => {
-      // Invalidate profile to ensure consistency with server
-      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.byFid(targetFid) });
-
-      // Also invalidate bulk queries that might contain this profile
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.profiles.bulk([]),
-        predicate: (query) => {
-          const data = query.state.data as ProfileData[] | undefined;
-          return data?.some((profile) => profile.fid === targetFid) ?? false;
-        },
-      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
     },
   });
 }

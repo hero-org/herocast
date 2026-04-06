@@ -1,17 +1,17 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import type React from 'react';
 import { CastRow } from '@/common/components/CastRow';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import type { RawSearchResult, SearchFilters } from '@/services/searchService';
+import type { SearchFilters } from '@/services/searchService';
 
 interface SearchResultsViewProps {
   searchTerm: string;
   filters: SearchFilters;
-  casts: CastWithInteractions[];
-  castHashes: RawSearchResult[];
+  casts: FarcasterCast[];
+  totalResults: number;
   isLoading: boolean;
   hasSearched: boolean;
   hasMore: boolean;
@@ -25,7 +25,7 @@ export function SearchResultsView({
   searchTerm,
   filters,
   casts,
-  castHashes,
+  totalResults,
   isLoading,
   hasSearched,
   hasMore,
@@ -64,7 +64,7 @@ export function SearchResultsView({
   }
 
   // Initial loading state - show skeletons only for the first search
-  if (isLoading && casts.length === 0 && castHashes.length === 0) {
+  if (isLoading && casts.length === 0) {
     return (
       <div className="my-8 space-y-4">
         <SkeletonCastRow />
@@ -80,7 +80,9 @@ export function SearchResultsView({
       {casts.length > 0 && (
         <div className="flex items-center justify-between px-2">
           <p className="text-sm text-muted-foreground">
-            {casts.length} results {hasMore && '(more available)'}
+            {totalResults} matches
+            {totalResults !== casts.length ? `, ${casts.length} loaded` : ''}
+            {hasMore && ' (more available)'}
           </p>
           {filters.sortType === 'algorithmic' && (
             <Badge variant="outline" className="text-xs">
@@ -108,12 +110,9 @@ export function SearchResultsView({
       {/* Loading more indicator */}
       {isLoading && casts.length > 0 && (
         <div className="space-y-2 opacity-60">
-          {castHashes
-            .filter((obj) => !casts.some((cast) => cast.hash === obj.hash))
-            .slice(0, 3)
-            .map((obj) => (
-              <SkeletonCastRow key={`skeleton-${obj.hash}`} text={obj.text} />
-            ))}
+          <SkeletonCastRow />
+          <SkeletonCastRow />
+          <SkeletonCastRow />
         </div>
       )}
 

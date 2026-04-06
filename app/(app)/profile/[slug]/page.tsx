@@ -1,12 +1,12 @@
 'use client';
 
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2/openapi-farcaster/models/cast-with-interactions';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { CastRow } from '@/common/components/CastRow';
 import { Loading } from '@/common/components/Loading';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProfile } from '@/hooks/queries/useProfile';
 import { type ProfileFeedType, useProfileFeed } from '@/hooks/queries/useProfileFeed';
@@ -84,7 +84,7 @@ const ProfilePage = () => {
     </div>
   );
 
-  const renderRow = (item: CastWithInteractions, idx: number) => (
+  const renderRow = (item: FarcasterCast, idx: number) => (
     <li
       key={item?.hash}
       className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl"
@@ -126,7 +126,7 @@ const ProfilePage = () => {
             data={casts}
             selectedIdx={selectedFeedIdx}
             setSelectedIdx={setSelectedFeedIdx}
-            renderRow={(item: CastWithInteractions, idx: number) => renderRow(item, idx)}
+            renderRow={(item: FarcasterCast, idx: number) => renderRow(item, idx)}
             onExpand={() => null}
             onSelect={() => null}
             isActive

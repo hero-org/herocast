@@ -1,39 +1,28 @@
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v1';
 import filter from 'lodash.filter';
 import orderBy from 'lodash.orderby';
 import uniqBy from 'lodash.uniqby';
+import type { FarcasterCast, FarcasterUser } from '@/common/types/farcaster';
 import { type ProfileData, useProfileByFid } from '@/hooks/queries/useProfile';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastRow } from '../CastRow';
 import { SidebarHeader } from './SidebarHeader';
 
-const convertDraftToFakeCast = (
-  draft: any,
-  profile: ProfileData
-): Omit<CastWithInteractions, 'reactions' | 'recasts' | 'recasters' | 'replies'> & { accountId: string } => ({
+const convertDraftToFakeCast = (draft: any, profile: ProfileData): Partial<FarcasterCast> & { accountId: string } => ({
+  object: 'cast' as const,
   hash: draft.hash,
   text: draft.text,
   timestamp: draft.timestamp,
   author: {
+    object: 'user' as const,
     fid: profile.fid,
     username: profile.username,
-    custodyAddress: '',
-    displayName: profile.display_name || profile.username,
-    pfp: { url: profile.pfp_url || '' },
-    profile: { bio: { text: '', mentionedProfiles: [] } },
-    followerCount: 0,
-    followingCount: 0,
-    verifications: [],
-    activeStatus: 'active',
-  },
-  parentAuthor: {
-    fid: null,
-  },
-  parentHash: null,
-  parentUrl: null,
-  threadHash: '',
-  mentionedProfiles: [],
+    display_name: profile.display_name || profile.username,
+    pfp_url: profile.pfp_url || '',
+    profile: { bio: { text: '' } },
+    follower_count: 0,
+    following_count: 0,
+  } as FarcasterUser,
   embeds: [],
   accountId: draft.accountId,
 });

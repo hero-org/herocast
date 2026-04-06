@@ -1,8 +1,8 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
-import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import type { FarcasterChannel } from '@/common/types/farcaster';
 import { CommandItem } from '@/components/ui/command';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAccountStore } from '@/stores/useAccountStore';
@@ -15,7 +15,7 @@ interface ChannelSearchCommandProps {
 export const ChannelSearchCommand: React.FC<ChannelSearchCommandProps> = ({ query }) => {
   const router = useRouter();
   const { setSelectedChannelUrl } = useAccountStore();
-  const [channels, setChannels] = useState<Channel[]>([]);
+  const [channels, setChannels] = useState<FarcasterChannel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {

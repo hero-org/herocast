@@ -15,7 +15,6 @@ const ThreadComposer = dynamic(() => import('@/common/components/ThreadComposer'
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import map from 'lodash.map';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { CastRow } from '@/common/components/CastRow';
@@ -27,6 +26,7 @@ import UpgradeFreePlanCard from '@/common/components/UpgradeFreePlanCard';
 import { DraftStatus, type DraftType } from '@/common/constants/farcaster';
 import { getUserLocaleDateFromIsoString } from '@/common/helpers/date';
 import { useMediaQuery } from '@/common/hooks/useMediaQuery';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -87,7 +87,7 @@ const getDraftsForTab = (drafts: DraftType[], activeTab: DraftListTab, activeAcc
 
 export default function NewPost() {
   const { drafts, addNewPostDraft, removePostDraftById, removeEmptyDrafts, getThreadDrafts } = useDraftStore();
-  const [parentCasts, setParentCasts] = useState<CastWithInteractions[]>([]);
+  const [parentCasts, setParentCasts] = useState<FarcasterCast[]>([]);
   const { accounts, selectedAccountIdx } = useAccountStore();
   const selectedAccount = accounts[selectedAccountIdx];
   const [activeTab, setActiveTab] = useState<DraftListTab>(DraftListTab.writing);
@@ -175,7 +175,7 @@ export default function NewPost() {
       const res = await neynarClient.fetchBulkCasts(parentCastIds, {
         viewerFid: Number(selectedAccount?.platformAccountId),
       });
-      setParentCasts(res?.result?.casts || []);
+      setParentCasts((res?.result?.casts || []) as unknown as FarcasterCast[]);
     };
 
     fetchParentCasts();

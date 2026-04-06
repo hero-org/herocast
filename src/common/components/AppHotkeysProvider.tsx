@@ -5,7 +5,6 @@ import type React from 'react';
 import { useEffect } from 'react';
 import { HotkeysProvider, useHotkeysContext } from 'react-hotkeys-hook';
 import { getScopesForPage, HotkeyScopes } from '@/common/constants/hotkeys';
-import { useDataStore } from '@/stores/useDataStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 
 interface AppHotkeysProviderProps {
@@ -19,8 +18,7 @@ function ScopeManager() {
   const { enableScope, disableScope } = hotkeysContext;
   // enabledScopes exists at runtime but may not be in types
   const enabledScopes = (hotkeysContext as { enabledScopes?: string[] }).enabledScopes;
-  const { isCommandPaletteOpen, isNewCastModalOpen } = useNavigationStore();
-  const { selectedCast } = useDataStore();
+  const { isCommandPaletteOpen, isNewCastModalOpen, selectedCast } = useNavigationStore();
 
   // Ensure global scope is always enabled on mount
   useEffect(() => {

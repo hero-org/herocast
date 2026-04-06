@@ -1,10 +1,5 @@
 'use client';
 
-import {
-  type CastWithInteractions,
-  type Notification,
-  NotificationTypeEnum,
-} from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { formatDistanceToNowStrict } from 'date-fns';
 import isEmpty from 'lodash.isempty';
 import { Cloud, MoreHorizontal, RefreshCw } from 'lucide-react';
@@ -19,6 +14,7 @@ import SkeletonCastRow from '@/common/components/SkeletonCastRow';
 import { createParentCastId } from '@/common/constants/farcaster';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { formatLargeNumber } from '@/common/helpers/text';
+import { type FarcasterCast, type FarcasterNotification, NotificationType } from '@/common/types/farcaster';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,13 +27,12 @@ import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-toolt
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 
 // Client-side cache for parent casts (prevents repeated API calls)
-const parentCastCache = new Map<string, { cast: CastWithInteractions | null; timestamp: number }>();
+const parentCastCache = new Map<string, { cast: FarcasterCast | null; timestamp: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 1 day
 
 enum NotificationTab {
@@ -51,15 +46,15 @@ enum NotificationTab {
 const notificationTabToType = (tab: NotificationTab) => {
   switch (tab) {
     case NotificationTab.mentions:
-      return NotificationTypeEnum.Mention;
+      return NotificationType.Mention;
     case NotificationTab.likes:
-      return NotificationTypeEnum.Likes;
+      return NotificationType.Likes;
     case NotificationTab.follows:
-      return NotificationTypeEnum.Follows;
+      return NotificationType.Follows;
     case NotificationTab.replies:
-      return NotificationTypeEnum.Reply;
+      return NotificationType.Reply;
     case NotificationTab.recasts:
-      return NotificationTypeEnum.Recasts;
+      return NotificationType.Recasts;
     default:
       return undefined;
   }
@@ -114,11 +109,12 @@ const CompactFollowerProfile = ({ user, viewerFid }: { user: any; viewerFid: str
 const Inbox = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isNewCastModalOpen, setCastModalView, openNewCastModal, setCastModalDraftId } = useNavigationStore();
+  const { isNewCastModalOpen, setCastModalView, openNewCastModal, setCastModalDraftId, updateSelectedCast } =
+    useNavigationStore();
   const { addNewPostDraft } = useDraftStore();
   const selectedAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const { isRead, markAsRead, markAsUnread, getUnreadCount } = useNotificationStore();
-  const [notificationsByType, setNotificationsByType] = useState<Record<NotificationTab, Notification[]>>({
+  const [notificationsByType, setNotificationsByType] = useState<Record<NotificationTab, FarcasterNotification[]>>({
     [NotificationTab.replies]: [],
     [NotificationTab.mentions]: [],
     [NotificationTab.likes]: [],
@@ -140,9 +136,8 @@ const Inbox = () => {
     [NotificationTab.follows]: false,
   });
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
-  const { updateSelectedCast } = useDataStore();
   const [activeTab, setActiveTab] = useState<NotificationTab>(NotificationTab.replies);
-  const [parentCast, setParentCast] = useState<CastWithInteractions | null>(null);
+  const [parentCast, setParentCast] = useState<FarcasterCast | null>(null);
   const [isLoadingParent, setIsLoadingParent] = useState<boolean>(false);
   const [lastAutoLoadTime, setLastAutoLoadTime] = useState<number>(0);
   const listContainerRef = useRef<HTMLDivElement>(null);
@@ -152,8 +147,8 @@ const Inbox = () => {
   const notifications = notificationsByType[activeTab];
 
   // Generate unique ID for notification
-  const getNotificationId = (notification: Notification): string => {
-    if (notification.type === NotificationTypeEnum.Follows && notification.follows) {
+  const getNotificationId = (notification: FarcasterNotification): string => {
+    if (notification.type === NotificationType.Follows && notification.follows) {
       // For follows, use the first follower's fid + timestamp
       return `follow-${notification.follows[0]?.user?.fid}-${notification.most_recent_timestamp}`;
     }
@@ -370,7 +365,7 @@ const Inbox = () => {
 
       // For replies and mentions, fetch the parent cast (only if we don't have it already)
       if (
-        (notification.type === NotificationTypeEnum.Reply || notification.type === NotificationTypeEnum.Mention) &&
+        (notification.type === NotificationType.Reply || notification.type === NotificationType.Mention) &&
         notification.cast.parent_hash
       ) {
         // Check if we already have this parent cast to prevent repeated requests
@@ -522,11 +517,7 @@ const Inbox = () => {
       const notification = notifications[selectedNotificationIdx];
       if (notification) {
         // For follow notifications, navigate to the first follower's profile
-        if (
-          notification.type === NotificationTypeEnum.Follows &&
-          notification.follows &&
-          notification.follows.length > 0
-        ) {
+        if (notification.type === NotificationType.Follows && notification.follows && notification.follows.length > 0) {
           const firstFollower = notification.follows[0]?.user;
           router.push(`/profile/${firstFollower.username}`);
         }
@@ -837,33 +828,33 @@ const Inbox = () => {
     [notifications, activeTab, getNotificationId]
   );
 
-  const getActionDescriptionForRow = (notification: Notification): string => {
+  const getActionDescriptionForRow = (notification: FarcasterNotification): string => {
     const cast = notification.cast;
     switch (notification.type) {
-      case NotificationTypeEnum.Reply:
+      case NotificationType.Reply:
         return cast ? `@${cast.author.username} replied` : 'Someone replied';
-      case NotificationTypeEnum.Mention:
+      case NotificationType.Mention:
         return cast ? `@${cast.author.username} mentioned you` : 'Someone mentioned you';
-      case NotificationTypeEnum.Likes:
+      case NotificationType.Likes:
         return `${notification.reactions?.length || 1} like${(notification.reactions?.length || 1) > 1 ? 's' : ''}`;
-      case NotificationTypeEnum.Follows:
+      case NotificationType.Follows:
         return `${notification.follows?.length || 1} new follower${(notification.follows?.length || 1) > 1 ? 's' : ''}`;
-      case NotificationTypeEnum.Recasts:
+      case NotificationType.Recasts:
         return `${notification.reactions?.length || 1} recast${(notification.reactions?.length || 1) > 1 ? 's' : ''}`;
       default:
         return '';
     }
   };
 
-  const renderNotificationRow = (notification: Notification, idx: number) => {
+  const renderNotificationRow = (notification: FarcasterNotification, idx: number) => {
     const { cast } = notification;
-    const timeAgoStr = formatDistanceToNowStrict(new Date(notification.most_recent_timestamp));
+    const timeAgoStr = formatDistanceToNowStrict(new Date(notification.most_recent_timestamp || ''));
     const actionDescription = getActionDescriptionForRow(notification);
     const notificationId = getNotificationId(notification);
     const isNotificationRead = isRead(notificationId);
 
     // Handle follow notifications specially
-    if (notification.type === NotificationTypeEnum.Follows && notification.follows) {
+    if (notification.type === NotificationType.Follows && notification.follows) {
       const firstFollower = notification.follows[0]?.user;
       const remainingCount = notification.follows.length - 1;
 
@@ -949,9 +940,9 @@ const Inbox = () => {
     if (!notification) return null;
 
     const isReplyOrMention =
-      notification.type === NotificationTypeEnum.Reply || notification.type === NotificationTypeEnum.Mention;
+      notification.type === NotificationType.Reply || notification.type === NotificationType.Mention;
 
-    const isFollow = notification.type === NotificationTypeEnum.Follows;
+    const isFollow = notification.type === NotificationType.Follows;
 
     // Handle follow notifications
     if (isFollow && notification.follows) {

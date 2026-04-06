@@ -1,11 +1,11 @@
-import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { FarcasterChannel } from '@/common/types/farcaster';
 
 /**
  * Top 10 Farcaster channels by follower count + activity.
  * Used as default channels in ChannelPicker when user has no pinned channels.
  * Update periodically by running: curl "https://api.neynar.com/v2/farcaster/channel/trending?time_window=30d&limit=10"
  */
-export const TOP_CHANNELS: Partial<Channel>[] = [
+export const TOP_CHANNELS: Partial<FarcasterChannel>[] = [
   {
     id: 'farcaster',
     name: 'Farcaster',

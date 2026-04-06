@@ -1,6 +1,5 @@
 'use client';
 
-import type { CastWithInteractions } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import isEmpty from 'lodash.isempty';
 import { useRouter } from 'next/navigation';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
@@ -8,6 +7,7 @@ import { useInView } from 'react-intersection-observer';
 import { CastRow } from '@/common/components/CastRow';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
 import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
+import type { FarcasterCast } from '@/common/types/farcaster';
 import { isFidListContent, isSearchListContent } from '@/common/types/list.types';
 import type { FeedPanelConfig } from '@/common/types/workspace.types';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -218,7 +218,7 @@ const FeedPanel = forwardRef<FeedPanelHandle, FeedPanelProps>(({ config, isColla
 
   // Handle cast click - navigate to conversation
   const handleCastClick = useCallback(
-    (cast: CastWithInteractions) => {
+    (cast: FarcasterCast) => {
       router.push(`/conversation/${cast.hash}`);
     },
     [router]

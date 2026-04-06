@@ -1,4 +1,4 @@
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
+import type { FarcasterUser } from '@/common/types/farcaster';
 
 type GetUserDataForFidOrUsernameProps = {
   username?: string;
@@ -10,7 +10,7 @@ export const getUserDataForFidOrUsername = async ({
   username,
   fid,
   viewerFid,
-}: GetUserDataForFidOrUsernameProps): Promise<User[]> => {
+}: GetUserDataForFidOrUsernameProps): Promise<FarcasterUser[]> => {
   try {
     if (!username && !fid) {
       return [];

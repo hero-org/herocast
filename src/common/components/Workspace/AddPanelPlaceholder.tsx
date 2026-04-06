@@ -1,6 +1,5 @@
 'use client';
 
-import type { Channel } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { take } from 'lodash';
 import {
   ArrowLeft,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
+import type { FarcasterChannel } from '@/common/types/farcaster';
 import type { FeedPanelConfig, InboxPanelConfig, PanelConfigUnion, PanelType } from '@/common/types/workspace.types';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -150,7 +150,7 @@ const panelOptions: PanelOption[] = [
 ];
 
 // Channel search API
-const getChannels = async (query: string): Promise<Channel[]> => {
+const getChannels = async (query: string): Promise<FarcasterChannel[]> => {
   if (query.length < 2) return [];
   try {
     const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
@@ -167,14 +167,14 @@ const getChannels = async (query: string): Promise<Channel[]> => {
 
 // Channel Picker Step Component
 interface ChannelPickerStepProps {
-  onSelect: (channel: Channel) => void;
+  onSelect: (channel: FarcasterChannel) => void;
   onBack: () => void;
   disabled?: boolean;
 }
 
 const ChannelPickerStep: React.FC<ChannelPickerStepProps> = ({ onSelect, onBack, disabled }) => {
   const [query, setQuery] = useState('');
-  const [channels, setChannels] = useState<Channel[]>([]);
+  const [channels, setChannels] = useState<FarcasterChannel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -378,7 +378,7 @@ export const AddPanelPlaceholder: React.FC<AddPanelPlaceholderProps> = ({ onAddP
   );
 
   const handleChannelSelect = useCallback(
-    (channel: Channel) => {
+    (channel: FarcasterChannel) => {
       const config: FeedPanelConfig = {
         feedType: 'channel',
         channelUrl: channel.parent_url || channel.url,

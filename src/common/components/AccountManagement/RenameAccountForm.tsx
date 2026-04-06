@@ -1,7 +1,6 @@
 import { UserDataType } from '@farcaster/hub-web';
 import { Cog6ToothIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { getAddress } from 'viem';
@@ -19,6 +18,7 @@ import {
   updateUsernameOffchain,
   validateUsernameIsAvailable,
 } from '@/common/helpers/farcaster';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -47,7 +47,7 @@ const RenameAccountForm = ({
   account: AccountObjectType;
 }) => {
   const [isPending, setIsPending] = useState(false);
-  const [userInProtocol, setUserInProtocol] = useState<User>();
+  const [userInProtocol, setUserInProtocol] = useState<FarcasterUser>();
   const { address, chainId, isConnected } = useAccount();
   const { updateAccountUsername } = useAccountStore();
   const client = useWalletClient({

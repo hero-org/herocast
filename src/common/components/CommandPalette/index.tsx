@@ -27,7 +27,6 @@ import { getNavigationCommands } from '@/getNavigationCommands';
 import { getThemeCommands } from '@/getThemeCommands';
 import { cn } from '@/lib/utils';
 import { accountCommands, getChannelCommands, useAccountStore } from '@/stores/useAccountStore';
-import { useDataStore } from '@/stores/useDataStore';
 import { newPostCommands, useDraftStore } from '@/stores/useDraftStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { endTiming, startTiming } from '@/stores/usePerformanceStore';
@@ -76,7 +75,7 @@ export default function CommandPalette() {
   const [executingCommand, setExecutingCommand] = useState<string | null>(null);
   const isNavigatingRef = useRef(false);
 
-  const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette } = useNavigationStore();
+  const { isCommandPaletteOpen, closeCommandPallete, toggleCommandPalette, selectedCast } = useNavigationStore();
   const eventCleanupRef = useRef<(() => void) | null>(null);
 
   // Cleanup on unmount
@@ -113,7 +112,6 @@ export default function CommandPalette() {
   // Get theme and store data
   const { theme, setTheme } = useTheme();
   const { accounts, selectedAccountIdx } = useAccountStore();
-  const { selectedCast } = useDataStore();
 
   // Use only user's pinned channels instead of all channels for better performance
   const userChannels = accounts[selectedAccountIdx]?.channels || [];

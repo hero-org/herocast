@@ -1,6 +1,6 @@
-import type { User as NeynarUser } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { AlertCircle, User, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -24,10 +24,10 @@ export function NewConversationDialog({
   viewerFid,
   isLoading = false,
 }: NewConversationDialogProps) {
-  const [selectedUser, setSelectedUser] = useState<NeynarUser | null>(null);
+  const [selectedUser, setSelectedUser] = useState<FarcasterUser | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleUserSelect = useCallback((user: NeynarUser) => {
+  const handleUserSelect = useCallback((user: FarcasterUser) => {
     setSelectedUser(user);
     setError(null);
   }, []);

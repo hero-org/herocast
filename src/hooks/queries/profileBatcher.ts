@@ -1,4 +1,5 @@
 import { create, keyResolver, windowScheduler } from '@yornaath/batshit';
+import { getProvider } from '@/lib/farcaster/providers';
 import type { ProfileData } from './useProfile';
 
 /**
@@ -10,21 +11,21 @@ import type { ProfileData } from './useProfile';
  *
  * @see https://tanstack.com/query/v4/docs/framework/react/community/batching-requests-using-bathshit
  */
-export const profileBatcher = create<ProfileData[], number, ProfileData>({
-  fetcher: async (fids: number[]) => {
-    const params = new URLSearchParams();
-    params.append('fids', fids.join(','));
-    // Use app FID as default viewer for viewer context
-    params.append('viewer_fid', process.env.NEXT_PUBLIC_APP_FID || '');
+const batchers = new Map<string, ReturnType<typeof create<ProfileData[], number, ProfileData>>>();
 
-    const response = await fetch(`/api/users?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch profiles');
-    }
+export function getProfileBatcher(viewerFid?: number) {
+  const key = String(viewerFid ?? 'anon');
+  const existing = batchers.get(key);
+  if (existing) return existing;
 
-    const data = await response.json();
-    return data.users || [];
-  },
-  resolver: keyResolver('fid'),
-  scheduler: windowScheduler(10), // 10ms batching window
-});
+  const batcher = create<ProfileData[], number, ProfileData>({
+    fetcher: async (fids: number[]) => {
+      return getProvider().getBulkUsers({ fids, viewerFid });
+    },
+    resolver: keyResolver('fid'),
+    scheduler: windowScheduler(10), // 10ms batching window
+  });
+
+  batchers.set(key, batcher);
+  return batcher;
+}

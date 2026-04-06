@@ -1,16 +1,17 @@
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useQuery } from '@tanstack/react-query';
 import type { CoordinapeAttestation } from '@/common/helpers/coordinapeAttestations';
 import type { IcebreakerSocialInfo } from '@/common/helpers/icebreaker';
+import type { FarcasterUser } from '@/common/types/farcaster';
+import { getProvider } from '@/lib/farcaster/providers';
 import { queryKeys } from '@/lib/queryKeys';
-import { profileBatcher } from './profileBatcher';
+import { getProfileBatcher } from './profileBatcher';
 
 export type AdditionalUserInfo = {
   icebreakerSocialInfo?: IcebreakerSocialInfo;
   coordinapeAttestations?: CoordinapeAttestation[];
 };
 
-export type ProfileData = User & AdditionalUserInfo;
+export type ProfileData = FarcasterUser & AdditionalUserInfo;
 
 interface UseProfileOptions {
   viewerFid?: number;
@@ -19,26 +20,14 @@ interface UseProfileOptions {
 }
 
 /**
- * Fetches a single profile by FID from server-side API
+ * Fetches a single profile by FID using the Farcaster provider
  */
 async function fetchProfileByFid(
   fid: number,
   viewerFid?: number,
   includeAdditionalInfo = false
 ): Promise<ProfileData | null> {
-  const params = new URLSearchParams();
-  params.append('fids', fid.toString());
-  if (viewerFid) {
-    params.append('viewer_fid', viewerFid.toString());
-  }
-
-  const response = await fetch(`/api/users?${params.toString()}`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch profile');
-  }
-
-  const data = await response.json();
-  const user = data.users?.[0];
+  const user = await getProvider().getUser({ fid, viewerFid });
   if (!user) return null;
 
   if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {
@@ -59,7 +48,7 @@ async function fetchProfileByFid(
 }
 
 /**
- * Fetches a profile by username from server-side API
+ * Fetches a profile by username using the Farcaster provider
  */
 async function fetchProfileByUsername(
   username: string,
@@ -69,25 +58,8 @@ async function fetchProfileByUsername(
   // Remove @ prefix if present
   const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
 
-  const params = new URLSearchParams();
-  params.append('q', cleanUsername);
-  params.append('viewer_fid', viewerFid.toString());
-
-  const response = await fetch(`/api/users/search?${params.toString()}`);
-  if (!response.ok) {
-    throw new Error('Failed to search profile');
-  }
-
-  const data = await response.json();
-  const users = data.users;
-
-  if (!users?.length) return null;
-
-  // Find exact match (handle .eth suffix variants)
-  const matchingUsernames = [cleanUsername.toLowerCase(), `${cleanUsername.toLowerCase()}.eth`];
-  const user = users.find((u) => matchingUsernames.includes(u.username.toLowerCase()));
-
-  if (!user) return users[0]; // Fall back to first result
+  const user = await getProvider().getUserByUsername({ username: cleanUsername, viewerFid });
+  if (!user) return null;
 
   if (includeAdditionalInfo && user.verified_addresses?.eth_addresses?.length) {
     try {
@@ -119,7 +91,7 @@ export function useProfileByFid(fid: number | undefined, options?: UseProfileOpt
   const { viewerFid, includeAdditionalInfo = false, enabled = true } = options ?? {};
 
   return useQuery({
-    queryKey: queryKeys.profiles.byFid(fid ?? 0),
+    queryKey: queryKeys.profiles.byFid(fid ?? 0, viewerFid),
     // Use batcher for automatic request batching (solves N+1 problem)
     // Falls back to direct fetch when additional info is needed
     queryFn: async (): Promise<ProfileData | null> => {
@@ -127,7 +99,7 @@ export function useProfileByFid(fid: number | undefined, options?: UseProfileOpt
         return fetchProfileByFid(fid!, viewerFid, includeAdditionalInfo);
       }
       // Batcher returns ProfileData or undefined if not found
-      const profile = await profileBatcher.fetch(fid!);
+      const profile = await getProfileBatcher(viewerFid).fetch(fid!);
       return profile ?? null;
     },
     enabled: enabled && !!fid && fid > 0,
@@ -142,7 +114,7 @@ export function useProfileByUsername(username: string | undefined, options?: Use
   const { viewerFid, includeAdditionalInfo = false, enabled = true } = options ?? {};
 
   return useQuery({
-    queryKey: queryKeys.profiles.byUsername(username ?? ''),
+    queryKey: queryKeys.profiles.byUsername(username ?? '', viewerFid),
     queryFn: () => fetchProfileByUsername(username!, viewerFid ?? 0, includeAdditionalInfo),
     enabled: enabled && !!username && username.length > 0 && !!viewerFid,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -162,7 +134,9 @@ export function useProfile(params: { fid?: number; username?: string }, options?
   const useFidLookup = !!fid && fid > 0;
 
   return useQuery({
-    queryKey: useFidLookup ? queryKeys.profiles.byFid(fid!) : queryKeys.profiles.byUsername(username ?? ''),
+    queryKey: useFidLookup
+      ? queryKeys.profiles.byFid(fid!, viewerFid)
+      : queryKeys.profiles.byUsername(username ?? '', viewerFid),
     queryFn: () =>
       useFidLookup
         ? fetchProfileByFid(fid!, viewerFid, includeAdditionalInfo)

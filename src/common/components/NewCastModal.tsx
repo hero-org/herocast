@@ -15,7 +15,6 @@ const NewPostEntry = dynamic(() => import('./Editor/NewCastEditor'), {
 
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
-import { useDataStore } from '@/stores/useDataStore';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 import { AccountStatusType } from '../constants/accounts';
@@ -73,8 +72,7 @@ class CastEditorErrorBoundary extends Component<{ children: ReactNode; onReset: 
 }
 
 const NewCastModal: React.FC<NewCastModalProps> = ({ draftId, open, setOpen }) => {
-  const { castModalView } = useNavigationStore();
-  const { selectedCast } = useDataStore();
+  const { castModalView, selectedCast } = useNavigationStore();
   const { drafts, removePostDraftById } = useDraftStore();
   const draft = useMemo(() => drafts.find((d) => d.id === draftId), [draftId, drafts]);
 

@@ -1,9 +1,9 @@
 import { UserCircleIcon } from '@heroicons/react/20/solid';
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { CommandItem } from '@/components/ui/command';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 
@@ -15,7 +15,7 @@ const APP_FID = process.env.NEXT_PUBLIC_APP_FID!;
 
 export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) => {
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<FarcasterUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {

@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useProviderSwitch } from '@/lib/farcaster/providers';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 
@@ -37,6 +38,7 @@ export default function Settings() {
 
   const [user, setUser] = useState<User | null>(null);
 
+  const { providerType, setProviderType } = useProviderSwitch();
   const { resetStore } = useAccountStore();
   const {
     layout: workspaceLayout,
@@ -152,6 +154,38 @@ export default function Settings() {
                 <p className="text-sm text-muted-foreground">Choose between light, dark or system theme</p>
               </div>
               <ThemeToggle />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Data Provider Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CommandLineIcon className="h-5 w-5" />
+              Data Provider
+            </CardTitle>
+            <CardDescription>Choose how herocast connects to Farcaster</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">
+                  {providerType === 'neynar' ? 'Neynar (Official)' : 'Hypersnap (Fork)'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {providerType === 'neynar'
+                    ? 'Standard Farcaster API with full feature support'
+                    : 'Direct node connection — no API key needed, some features fall back to Neynar'}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setProviderType(providerType === 'neynar' ? 'hypersnap' : 'neynar')}
+              >
+                Switch to {providerType === 'neynar' ? 'Hypersnap' : 'Neynar'}
+              </Button>
             </div>
           </CardContent>
         </Card>

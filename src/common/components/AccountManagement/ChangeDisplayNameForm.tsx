@@ -1,12 +1,12 @@
 import { UserDataType } from '@farcaster/hub-web';
 import { Cog6ToothIcon } from '@heroicons/react/20/solid';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { setUserDataInProtocol } from '@/common/helpers/farcaster';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,7 +33,7 @@ type ChangeDisplayNameFormProps = {
 
 const ChangeDisplayNameForm = ({ account, onSuccess }: ChangeDisplayNameFormProps) => {
   const [isPending, setIsPending] = useState(false);
-  const [userInProtocol, setUserInProtocol] = useState<User>();
+  const [userInProtocol, setUserInProtocol] = useState<FarcasterUser>();
 
   const form = useForm<ChangeDisplayNameFormValues>({
     resolver: zodResolver(ChangeDisplayNameFormSchema),

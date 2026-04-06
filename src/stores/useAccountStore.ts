@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { ArrowTrendingUpIcon, HomeIcon } from '@heroicons/react/20/solid';
-import type { User } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import cloneDeep from 'lodash.clonedeep';
 import findIndex from 'lodash.findindex';
 import isEmpty from 'lodash.isempty';
@@ -15,6 +14,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { getUsernameForFid } from '@/common/helpers/farcaster';
 import { createClient } from '@/common/helpers/supabase/component';
 import type { Json } from '@/common/types/database.types';
+import type { FarcasterUser } from '@/common/types/farcaster';
 import { AccountPlatformType, AccountStatusType } from '../../src/common/constants/accounts';
 import type { ChannelType } from '../../src/common/constants/channels';
 import type { CommandType } from '../../src/common/constants/commands';
@@ -25,7 +25,7 @@ const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 const TIMEDELTA_REHYDRATE = 1000 * 60 * 60 * 120; // 5 days;
 const CHANNEL_UPDATE_RELEASE_DATE = 1722607765000;
 
-type ExtendedUser = User & {
+type ExtendedUser = FarcasterUser & {
   pro?: {
     status: string | 'subscribed';
   };
@@ -700,7 +700,7 @@ export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Pr
       const data = await response.json();
       const users = data.users || [];
       return accountsWithChannels.map((account) => {
-        const user = users.find((user: User) => user.fid === Number(account.platformAccountId));
+        const user = users.find((user: FarcasterUser) => user.fid === Number(account.platformAccountId));
         if (user) {
           account.user = user;
         }
