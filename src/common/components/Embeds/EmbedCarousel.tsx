@@ -24,6 +24,8 @@ type EmbedCarouselProps = {
   isSelected?: boolean;
 };
 
+const PRELOAD_NEIGHBORS = 1;
+
 const getEmbedKey = (embed: EmbedCarouselProps['embeds'][number], index: number) =>
   embed?.cast_id?.hash || embed?.castId?.hash || embed?.url || `embed-${index}`;
 
@@ -32,13 +34,15 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
   const [containerHeight, setContainerHeight] = useState<number | null>(null);
   const activeRef = useRef<HTMLDivElement | null>(null);
   const embedsKey = useMemo(() => embeds.map(getEmbedKey).join('|'), [embeds]);
-  const renderedIndexes = useMemo(
-    () =>
-      new Set(
-        [currentIndex - 1, currentIndex, currentIndex + 1].filter((index) => index >= 0 && index < embeds.length)
-      ),
-    [currentIndex, embeds.length]
-  );
+  const renderedIndexes = useMemo(() => {
+    const indexes: number[] = [];
+    for (let index = currentIndex - PRELOAD_NEIGHBORS; index <= currentIndex + PRELOAD_NEIGHBORS; index++) {
+      if (index >= 0 && index < embeds.length) {
+        indexes.push(index);
+      }
+    }
+    return new Set(indexes);
+  }, [currentIndex, embeds.length]);
 
   // Reset state when embeds change
   useEffect(() => {
@@ -58,13 +62,15 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
 
     const updateHeight = () => {
       const height = currentRef.offsetHeight;
-      if (height > 0) {
-        setContainerHeight(height);
-      }
+      setContainerHeight(height > 0 ? height : null);
     };
 
     updateHeight();
     const raf = requestAnimationFrame(updateHeight);
+
+    if (typeof ResizeObserver === 'undefined') {
+      return () => cancelAnimationFrame(raf);
+    }
 
     // Watch for size changes (async content loading like tweets)
     const observer = new ResizeObserver(updateHeight);
