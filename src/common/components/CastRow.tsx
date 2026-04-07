@@ -532,7 +532,7 @@ const CastRowComponent = ({
     return (
       <div
         key={`cast-${cast.hash}-${key}`}
-        className="mt-1.5 flex align-center text-sm text-foreground/40 hover:text-foreground hover:bg-background/50 py-1 px-1.5 rounded-md"
+        className="mt-1.5 flex align-center text-sm text-foreground/60 hover:text-foreground hover:bg-background/50 py-1 px-1.5 rounded-md"
         onClick={async (event) => {
           event.stopPropagation();
           onClickReaction(key, isActive);
@@ -635,18 +635,21 @@ const CastRowComponent = ({
     [cast.text, userFid, setSelectedChannelByName, router]
   );
 
-  const renderEmbeds = () => {
+  const filteredEmbeds = useMemo(() => {
     if (!('embeds' in cast) || !cast.embeds.length) {
-      return null;
+      return [];
     }
 
     // Filter out Zapper transaction URLs (we show custom embeds for those via renderExternalUrlReply)
-    const filteredEmbeds = cast.embeds.filter((embed) => {
+    return cast.embeds.filter((embed) => {
       if ('url' in embed && embed.url) {
         return !isZapperTransactionUrl(embed.url);
       }
       return true;
     });
+  }, [cast.embeds]);
+
+  const renderEmbeds = () => {
     if (filteredEmbeds.length === 0) {
       return null;
     }
@@ -707,7 +710,7 @@ const CastRowComponent = ({
 
     const badge = (
       <span
-        className={cn('ml-10', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/40 hover:underline')}
+        className={cn('ml-10', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/60 hover:underline')}
       >
         <ArrowPathIcon className="h-4 w-4 mt-0.5 mr-1" />
         {recasterLabel && `Recasted by ${recasterLabel}`}
@@ -860,7 +863,7 @@ const CastRowComponent = ({
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger>
-            <span className="text-sm leading-5 text-foreground/50 hover:underline">{timeFormatting.timeAgoStr}</span>
+            <span className="text-sm leading-5 text-foreground/60 hover:underline">{timeFormatting.timeAgoStr}</span>
           </TooltipTrigger>
           <TooltipContent
             align={'center'}
@@ -881,8 +884,8 @@ const CastRowComponent = ({
           isEmbed ? 'p-2' : 'p-3',
           isEmbed && !hideReactions && 'pb-0',
           isSelected && isEmbed ? 'bg-muted' : 'cursor-pointer',
-          isSelected ? 'bg-muted border-l-1 border-foreground/10' : 'border-l-1 border-transparent',
-          'lg:ml-0 grow rounded-r-sm hover:bg-muted/50'
+          isSelected ? 'bg-muted border-l-1 border-foreground/20' : 'border-l-1 border-transparent',
+          'lg:ml-0 grow rounded-r-sm hover:bg-muted'
         )}
       >
         {renderRecastBadge()}
@@ -911,7 +914,7 @@ const CastRowComponent = ({
             <div className="flex flex-row flex-wrap justify-between gap-x-4 leading-5">
               <div className="flex flex-row">
                 {hideAuthor ? (
-                  <span className="text-sm leading-5 text-foreground/50">{authorInfo.username}</span>
+                  <span className="text-sm leading-5 text-foreground/60">{authorInfo.username}</span>
                 ) : (
                   <MemoizedProfileHoverCard fid={cast.author.fid} viewerFid={userFid} username={authorInfo.username}>
                     <span className="items-center flex font-semibold text-foreground truncate cursor-pointer w-full max-w-54 lg:max-w-full">
@@ -932,7 +935,7 @@ const CastRowComponent = ({
                 {renderCastTime()}
                 <Link
                   href={`${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`}
-                  className="text-sm leading-5 text-foreground/50"
+                  className="text-sm leading-5 text-foreground/60"
                   tabIndex={-1}
                   prefetch={false}
                 >
@@ -943,7 +946,7 @@ const CastRowComponent = ({
             </div>
             {showParentDetails && cast?.parent_hash && (
               <div className="flex flex-row items-center">
-                <span className="text-sm text-foreground/50">{cast.parent_hash && 'Replying'}</span>
+                <span className="text-sm text-foreground/60">{cast.parent_hash && 'Replying'}</span>
               </div>
             )}
             <div

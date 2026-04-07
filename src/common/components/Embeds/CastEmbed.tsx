@@ -62,7 +62,13 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
   if (isLoading) return <EmbedSkeleton variant="social" />;
 
   // Loaded but no cast found
-  if (isEmpty(cast)) return null;
+  if (isEmpty(cast)) {
+    return (
+      <div className="max-w-lg rounded-lg border border-muted bg-muted/50 p-3 text-sm text-muted-foreground">
+        Cast unavailable
+      </div>
+    );
+  }
 
   return (
     <div key={`cast-embed-${url}`} className="border border-foreground/30 rounded-lg">

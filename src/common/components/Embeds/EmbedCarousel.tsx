@@ -1,6 +1,6 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { openWindow } from '@/common/helpers/navigation';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
@@ -24,42 +24,63 @@ type EmbedCarouselProps = {
   isSelected?: boolean;
 };
 
+const PRELOAD_NEIGHBORS = 1;
+
+const getEmbedKey = (embed: EmbedCarouselProps['embeds'][number], index: number) =>
+  embed?.cast_id?.hash || embed?.castId?.hash || embed?.url || `embed-${index}`;
+
 const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [containerHeight, setContainerHeight] = useState<number | 'auto'>('auto');
-  const embedRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [containerHeight, setContainerHeight] = useState<number | null>(null);
+  const activeRef = useRef<HTMLDivElement | null>(null);
+  const embedsKey = useMemo(() => embeds.map(getEmbedKey).join('|'), [embeds]);
+  const renderedIndexes = useMemo(() => {
+    const indexes: number[] = [];
+    for (let index = currentIndex - PRELOAD_NEIGHBORS; index <= currentIndex + PRELOAD_NEIGHBORS; index++) {
+      if (index >= 0 && index < embeds.length) {
+        indexes.push(index);
+      }
+    }
+    return new Set(indexes);
+  }, [currentIndex, embeds.length]);
 
   // Reset state when embeds change
   useEffect(() => {
     setCurrentIndex(0);
-    setContainerHeight('auto');
-    embedRefs.current = [];
-  }, [embeds]);
+    setContainerHeight(null);
+  }, [embedsKey]);
+
+  // Clamp index if the embed list shrinks while this carousel is mounted
+  useEffect(() => {
+    setCurrentIndex((index) => Math.min(index, Math.max(embeds.length - 1, 0)));
+  }, [embeds.length]);
 
   // Track height of current embed with ResizeObserver
-  useEffect(() => {
-    const currentRef = embedRefs.current[currentIndex];
+  useLayoutEffect(() => {
+    const currentRef = activeRef.current;
     if (!currentRef) return;
 
     const updateHeight = () => {
       const height = currentRef.offsetHeight;
-      if (height > 0) {
-        setContainerHeight(height);
-      }
+      setContainerHeight(height > 0 ? height : null);
     };
 
-    // Initial measurement with small delay for render
-    const timer = setTimeout(updateHeight, 50);
+    updateHeight();
+    const raf = requestAnimationFrame(updateHeight);
+
+    if (typeof ResizeObserver === 'undefined') {
+      return () => cancelAnimationFrame(raf);
+    }
 
     // Watch for size changes (async content loading like tweets)
     const observer = new ResizeObserver(updateHeight);
     observer.observe(currentRef);
 
     return () => {
-      clearTimeout(timer);
+      cancelAnimationFrame(raf);
       observer.disconnect();
     };
-  }, [currentIndex]);
+  }, [currentIndex, embedsKey, hideReactions]);
 
   const goToPreviousEmbed = useCallback(() => {
     if (currentIndex > 0) {
@@ -127,26 +148,28 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
     <div className="w-full min-w-0 max-w-lg self-start overflow-hidden">
       {/* Embed container with animated height */}
       <div
-        className="overflow-hidden rounded-lg transition-[height] duration-300 ease-in-out"
-        style={{ height: containerHeight === 'auto' ? 'auto' : `${containerHeight}px` }}
+        className="relative overflow-hidden rounded-lg transition-[height] duration-300 ease-in-out"
+        style={containerHeight ? { height: `${containerHeight}px` } : undefined}
       >
-        <div
-          className="flex items-start transition-transform duration-300 ease-in-out cursor-pointer"
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-          onClick={handleEmbedClick}
-        >
-          {embeds.map((embed, index) => (
+        {embeds.map((embed, index) => {
+          if (!renderedIndexes.has(index)) return null;
+
+          const isActive = index === currentIndex;
+          return (
             <div
-              key={`embed-${embed?.cast_id?.hash || embed?.castId?.hash || embed?.url || index}`}
-              ref={(el) => {
-                embedRefs.current[index] = el;
-              }}
-              className="w-full min-w-0 flex-shrink-0 overflow-hidden"
+              key={`${getEmbedKey(embed, index)}-${index}`}
+              ref={isActive ? activeRef : undefined}
+              aria-hidden={isActive ? undefined : true}
+              className={cn(
+                'w-full min-w-0',
+                isActive ? 'relative cursor-pointer' : 'invisible pointer-events-none absolute inset-x-0 top-0'
+              )}
+              onClick={isActive ? (event) => handleEmbedClick(event, index) : undefined}
             >
               {renderEmbedForUrl({ ...embed, hideReactions, skipIntersection: true })}
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {/* Navigation - compact row below content */}

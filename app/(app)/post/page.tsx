@@ -227,19 +227,6 @@ export default function NewPost() {
     });
   };
 
-  const renderNewDraftButton = () => (
-    <Button
-      variant="outline"
-      className="flex items-center gap-2 hover:bg-muted/80 transition-colors"
-      onClick={handleNewDraft}
-    >
-      <PencilSquareIcon className="w-5 h-5" />
-      <span>New draft</span>
-    </Button>
-  );
-
-  const renderDraftActions = () => <div className="flex items-center gap-2">{renderNewDraftButton()}</div>;
-
   const renderEmptyMainContent = () => (
     <div className="flex flex-col items-center justify-center pt-2 pb-6 w-full h-full min-h-[400px]">
       <div
@@ -348,7 +335,7 @@ export default function NewPost() {
 
   const renderDraftList = () => {
     if (draftsForTab.length === 0) {
-      return renderScrollableList(<div className="flex justify-center py-4">{renderDraftActions()}</div>);
+      return renderScrollableList(<div className="py-4 text-center text-sm text-muted-foreground">No drafts yet</div>);
     }
 
     return renderScrollableList(
