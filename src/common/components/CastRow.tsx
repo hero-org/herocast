@@ -635,18 +635,21 @@ const CastRowComponent = ({
     [cast.text, userFid, setSelectedChannelByName, router]
   );
 
-  const renderEmbeds = () => {
+  const filteredEmbeds = useMemo(() => {
     if (!('embeds' in cast) || !cast.embeds.length) {
-      return null;
+      return [];
     }
 
     // Filter out Zapper transaction URLs (we show custom embeds for those via renderExternalUrlReply)
-    const filteredEmbeds = cast.embeds.filter((embed) => {
+    return cast.embeds.filter((embed) => {
       if ('url' in embed && embed.url) {
         return !isZapperTransactionUrl(embed.url);
       }
       return true;
     });
+  }, [cast.embeds]);
+
+  const renderEmbeds = () => {
     if (filteredEmbeds.length === 0) {
       return null;
     }
