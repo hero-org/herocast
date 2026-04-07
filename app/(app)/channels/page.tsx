@@ -107,7 +107,7 @@ export default function Channels() {
             View
           </Button>
           <Button
-            variant="default"
+            variant={enabled ? 'destructive' : 'default'}
             size="sm"
             onClick={() => (enabled ? removePinnedChannel(channel) : addPinnedChannel(channel))}
           >

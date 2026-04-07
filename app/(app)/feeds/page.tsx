@@ -374,7 +374,7 @@ export default function Feeds() {
     return (
       <li
         key={item?.hash}
-        className="border-b border-foreground/20 relative w-full pr-4"
+        className="border-b border-border relative w-full pr-4"
         ref={isSentinel ? buttonRef : undefined}
       >
         <CastRow

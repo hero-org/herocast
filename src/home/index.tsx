@@ -472,7 +472,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
               <div
                 className={cn(
-                  'hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-muted no-scrollbar transition-transform duration-200 ease-linear',
+                  'hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-border no-scrollbar transition-transform duration-200 ease-linear',
                   leftSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
               >
@@ -498,7 +498,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 <div className="flex-1 h-full flex flex-col min-w-0 min-h-0">
                   {/* Header */}
                   {!hideTitlebar && (title || headerActions) && (
-                    <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-muted bg-background px-4 sm:px-6 md:px-4 min-w-0">
+                    <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-border bg-background px-4 sm:px-6 md:px-4 min-w-0">
                       <button
                         type="button"
                         className="-m-2.5 p-2.5 text-foreground lg:hidden flex-shrink-0"
