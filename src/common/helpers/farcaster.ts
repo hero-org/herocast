@@ -15,6 +15,7 @@ import axios from 'axios';
 import { type Address, encodeAbiParameters } from 'viem';
 import { mnemonicToAccount } from 'viem/accounts';
 import type { FarcasterEmbed } from '@/common/types/embeds';
+import { getProvider } from '@/lib/farcaster/providers';
 import { useTextLength } from '../helpers/editor';
 import { isDev } from './env';
 import { publicClient, publicClientTestnet } from './rainbowkit';
@@ -523,30 +524,16 @@ type StructuredCastURL = {
 // Maximum number of embeds allowed in a Farcaster cast
 export const FARCASTER_MAX_EMBEDS = 2;
 
-// Local implementation of getMentionFidsByUsernames using Neynar API directly
+// Resolve @mention usernames to FIDs via the active provider
 export const getMentionFidsByUsernames = () => {
   return async (usernames: string[]): Promise<Array<{ username: string; fid: number } | null>> => {
     try {
+      const provider = getProvider();
       const results = await Promise.all(
         usernames.map(async (username) => {
           try {
-            const response = await axios.get(
-              `https://api.neynar.com/v2/farcaster/user/by_username?username=${encodeURIComponent(username)}`,
-              {
-                headers: {
-                  'x-api-key': process.env.NEXT_PUBLIC_NEYNAR_API_KEY,
-                },
-              }
-            );
-
-            // Transform Neynar response to expected format
-            if (response.data && response.data.user) {
-              return {
-                username: response.data.user.username,
-                fid: response.data.user.fid,
-              };
-            }
-            return null;
+            const user = await provider.getUserByUsername({ username });
+            return { username: user.username, fid: user.fid };
           } catch (e) {
             console.error(`Failed to fetch data for username ${username}`, e);
             return null;

@@ -59,7 +59,7 @@ export function createHypersnapProvider(): FarcasterProvider {
     type: 'hypersnap',
 
     capabilities: {
-      trendingFeed: false,
+      trendingFeed: true,
       profileCasts: false,
       profileLikes: false,
       fidListFeed: false,
@@ -95,8 +95,8 @@ export function createHypersnapProvider(): FarcasterProvider {
       return fetchJson<FeedResponse>(buildUrl('feed', { feed_type: 'following', fid, limit, cursor }), signal);
     },
 
-    getTrendingFeed() {
-      return unsupported('getTrendingFeed');
+    async getTrendingFeed({ limit = 10, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('feed/trending', { limit, cursor }), signal);
     },
 
     async getChannelFeed({ parentUrl, limit = 15, cursor, signal }) {
@@ -116,8 +116,19 @@ export function createHypersnapProvider(): FarcasterProvider {
       return unsupported('getFidListFeed');
     },
 
-    async searchCasts() {
-      return unsupported('searchCasts');
+    async searchCasts({ q, limit, signal }) {
+      const data = await fetchJson<{
+        result: { casts: Array<{ hash: string; author?: { fid: number }; text: string; timestamp: string }> };
+      }>(buildUrl('cast/search', { q, limit }), signal);
+      const casts = data.result?.casts || [];
+      return {
+        results: casts.map((cast) => ({
+          hash: cast.hash,
+          fid: cast.author?.fid ?? 0,
+          text: cast.text,
+          timestamp: cast.timestamp,
+        })),
+      };
     },
 
     getCasts() {

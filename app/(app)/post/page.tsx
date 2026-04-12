@@ -14,7 +14,6 @@ const ThreadComposer = dynamic(() => import('@/common/components/ThreadComposer'
 
 import { PencilSquareIcon } from '@heroicons/react/20/solid';
 import { ClockIcon } from '@heroicons/react/24/outline';
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import map from 'lodash.map';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { CastRow } from '@/common/components/CastRow';
@@ -31,6 +30,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
+import { getProvider } from '@/lib/farcaster/providers';
 import { useAccountStore } from '@/stores/useAccountStore';
 import DraftList from './components/DraftList';
 
@@ -171,11 +171,9 @@ export default function NewPost() {
     if (parentCastIds.length === 0) return;
 
     const fetchParentCasts = async () => {
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-      const res = await neynarClient.fetchBulkCasts(parentCastIds, {
-        viewerFid: Number(selectedAccount?.platformAccountId),
-      });
-      setParentCasts((res?.result?.casts || []) as unknown as FarcasterCast[]);
+      const viewerFid = selectedAccount?.platformAccountId ? Number(selectedAccount.platformAccountId) : undefined;
+      const casts = await getProvider().getCasts({ hashes: parentCastIds, viewerFid });
+      setParentCasts(casts);
     };
 
     fetchParentCasts();
