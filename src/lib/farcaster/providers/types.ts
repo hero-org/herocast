@@ -24,6 +24,18 @@ export interface NotificationsResponse {
   next?: { cursor?: string };
 }
 
+/** A cast with its nested replies (used in conversation responses). */
+export interface CastWithReplies extends FarcasterCast {
+  direct_replies: CastWithReplies[];
+}
+
+export interface ConversationResponse {
+  conversation: {
+    cast: CastWithReplies;
+    chronological_parent_casts?: FarcasterCast[];
+  };
+}
+
 /** Which optional capabilities a provider supports. */
 export interface ProviderCapabilities {
   trendingFeed: boolean;
@@ -31,6 +43,7 @@ export interface ProviderCapabilities {
   profileLikes: boolean;
   fidListFeed: boolean;
   castLookup: boolean;
+  castConversation: boolean;
   allChannels: boolean;
 }
 
@@ -102,6 +115,14 @@ export interface SearchChannelsRequest extends FetchOptions {
   q: string;
 }
 
+export interface GetConversationRequest extends FetchOptions {
+  identifier: string;
+  type?: 'hash' | 'url';
+  replyDepth?: number;
+  includeParents?: boolean;
+  viewerFid?: number;
+}
+
 export interface GetNotificationsRequest extends CursorRequest {
   fid: number;
   type?: string;
@@ -138,6 +159,9 @@ export interface FarcasterProvider {
   // Casts — searchCasts uses offset pagination (Neynar search API), not cursor
   searchCasts(request: SearchCastsRequest): Promise<SearchCastsResponse>;
   getCasts(request: GetCastsRequest): Promise<FarcasterCast[]>;
+
+  // Conversations
+  getConversation(request: GetConversationRequest): Promise<ConversationResponse>;
 
   // Channels
   getChannel(request: GetChannelRequest): Promise<FarcasterChannel>;

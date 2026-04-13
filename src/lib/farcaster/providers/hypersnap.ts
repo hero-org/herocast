@@ -1,5 +1,12 @@
 import type { FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
-import type { FarcasterProvider, FeedResponse, GetNotificationsRequest, NotificationsResponse } from './types';
+import type {
+  ConversationResponse,
+  FarcasterProvider,
+  FeedResponse,
+  GetConversationRequest,
+  GetNotificationsRequest,
+  NotificationsResponse,
+} from './types';
 import { UnsupportedProviderFeatureError as UnsupportedFeatureError } from './types';
 
 const DEFAULT_BASE_URL = 'https://haatz.quilibrium.com/v2/farcaster';
@@ -64,6 +71,7 @@ export function createHypersnapProvider(): FarcasterProvider {
       profileLikes: false,
       fidListFeed: false,
       castLookup: false,
+      castConversation: true,
       allChannels: false,
     },
 
@@ -129,6 +137,13 @@ export function createHypersnapProvider(): FarcasterProvider {
           timestamp: cast.timestamp,
         })),
       };
+    },
+
+    async getConversation({ identifier, type = 'hash', replyDepth = 2, signal }: GetConversationRequest) {
+      return fetchJson<ConversationResponse>(
+        buildUrl('cast/conversation', { identifier, type, reply_depth: replyDepth }),
+        signal
+      );
     },
 
     getCasts() {

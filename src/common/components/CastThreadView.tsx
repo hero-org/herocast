@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { CAST_AVATAR_CENTER, CAST_THREAD_LINE_LEFT } from '@/common/constants/layout';
 import type { FarcasterCast } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
+import { getProvider } from '@/lib/farcaster/providers';
 import { cn } from '@/lib/utils';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { CastRow } from './CastRow';
@@ -68,18 +69,11 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
       if (!threadHash) return;
 
       try {
-        const params = new URLSearchParams({
+        const { conversation } = await getProvider().getConversation({
           identifier: threadHash,
-          reply_depth: '1',
-          include_chronological_parent_casts: 'true',
+          replyDepth: 1,
+          includeParents: true,
         });
-
-        const response = await fetch(`/api/casts/conversation?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch cast conversation: ${response.statusText}`);
-        }
-
-        const { conversation } = await response.json();
         if (conversation?.cast?.direct_replies) {
           const { direct_replies: replies, ...castObjectWithoutReplies } = conversation.cast;
           setCasts((conversation.chronological_parent_casts || []).concat([castObjectWithoutReplies].concat(replies)));

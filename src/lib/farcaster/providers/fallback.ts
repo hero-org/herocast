@@ -40,6 +40,7 @@ export function createFallbackProvider(primary: FarcasterProvider, fallback: Far
         profileLikes: pc.profileLikes || fc.profileLikes,
         fidListFeed: pc.fidListFeed || fc.fidListFeed,
         castLookup: pc.castLookup || fc.castLookup,
+        castConversation: pc.castConversation || fc.castConversation,
         allChannels: pc.allChannels || fc.allChannels,
       };
     },

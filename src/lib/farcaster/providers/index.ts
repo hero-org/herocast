@@ -86,6 +86,8 @@ export function useFarcasterProviderValue() {
 }
 
 export type {
+  CastWithReplies,
+  ConversationResponse,
   FarcasterProvider,
   FeedResponse,
   FetchOptions,
@@ -93,6 +95,7 @@ export type {
   GetCastsRequest,
   GetChannelFeedRequest,
   GetChannelRequest,
+  GetConversationRequest,
   GetFidListFeedRequest,
   GetFollowingFeedRequest,
   GetNotificationsRequest,

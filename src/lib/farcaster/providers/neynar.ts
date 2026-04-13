@@ -1,7 +1,9 @@
 import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
 import type {
+  ConversationResponse,
   FarcasterProvider,
   FeedResponse,
+  GetConversationRequest,
   GetNotificationsRequest,
   NotificationsResponse,
   SearchCastsResponse,
@@ -45,6 +47,7 @@ export function createNeynarProvider(): FarcasterProvider {
       profileLikes: true,
       fidListFeed: true,
       castLookup: true,
+      castConversation: true,
       allChannels: true,
     },
 
@@ -125,6 +128,26 @@ export function createNeynarProvider(): FarcasterProvider {
         signal
       );
       return data.result?.casts || [];
+    },
+
+    async getConversation({
+      identifier,
+      type = 'hash',
+      replyDepth = 1,
+      includeParents = true,
+      viewerFid,
+      signal,
+    }: GetConversationRequest) {
+      return fetchJson<ConversationResponse>(
+        buildUrl('/api/casts/conversation', {
+          identifier,
+          type,
+          reply_depth: replyDepth,
+          include_chronological_parent_casts: includeParents ? 'true' : 'false',
+          viewer_fid: viewerFid,
+        }),
+        signal
+      );
     },
 
     async getChannel({ id, signal }) {
