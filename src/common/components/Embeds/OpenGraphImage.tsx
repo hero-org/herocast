@@ -1,12 +1,15 @@
 import { ArrowTopRightOnSquareIcon, CheckIcon, ClipboardIcon, LinkIcon } from '@heroicons/react/24/outline';
 import type React from 'react';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { openWindow } from '@/common/helpers/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUrlMetadata } from '@/hooks/queries/useUrlMetadata';
+import { useSnapFetch } from '@/hooks/queries/useSnapFetch';
 import { cn } from '@/lib/utils';
+
+const SnapEmbed = lazy(() => import('./SnapEmbed'));
 
 // Skeleton for loading state - matches final card dimensions
 const UrlMetadataSkeleton = ({ compact = false }: { compact?: boolean }) => (
@@ -207,17 +210,42 @@ const OpenGraphImage = ({
   // Skip intersection observer if in carousel (transform breaks intersection detection)
   const shouldFetch = skipIntersection || inView;
 
+  // Snap detection (parallel with OG metadata)
+  const { data: snapData, isLoading: snapLoading } = useSnapFetch(url, {
+    enabled: shouldFetch && !compact,
+  });
+
   // Only fetch when in view (or skip intersection check)
   const {
     data: metadata,
-    isLoading,
+    isLoading: ogLoading,
     isError,
   } = useUrlMetadata(url, {
     enabled: shouldFetch,
   });
 
-  // Show skeleton while loading
-  if (!shouldFetch || isLoading) {
+  // Show skeleton while both are loading
+  if (!shouldFetch || (ogLoading && snapLoading)) {
+    return (
+      <div ref={ref}>
+        <UrlMetadataSkeleton compact={compact} />
+      </div>
+    );
+  }
+
+  // If snap detected, render snap embed (skip in compact mode)
+  if (snapData && !compact) {
+    return (
+      <div ref={ref}>
+        <Suspense fallback={<UrlMetadataSkeleton />}>
+          <SnapEmbed url={url} snapData={snapData as import('@farcaster/snap/react').SnapPage} />
+        </Suspense>
+      </div>
+    );
+  }
+
+  // Still loading OG (snap returned null but OG still pending)
+  if (ogLoading) {
     return (
       <div ref={ref}>
         <UrlMetadataSkeleton compact={compact} />
