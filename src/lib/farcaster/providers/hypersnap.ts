@@ -1,4 +1,5 @@
-import type { FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
+import { TOP_CHANNELS } from '@/common/constants/topChannels';
+import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
 import type {
   ConversationResponse,
   FarcasterProvider,
@@ -70,9 +71,9 @@ export function createHypersnapProvider(): FarcasterProvider {
       profileCasts: false,
       profileLikes: false,
       fidListFeed: false,
-      castLookup: false,
+      castLookup: true,
       castConversation: true,
-      allChannels: false,
+      allChannels: true,
     },
 
     async getUser({ fid, signal }) {
@@ -146,8 +147,23 @@ export function createHypersnapProvider(): FarcasterProvider {
       );
     },
 
-    getCasts() {
-      return unsupported('getCasts');
+    async getCasts({ hashes, signal }) {
+      // No batch cast lookup endpoint — use conversation with depth=0 per hash
+      const results = await Promise.all(
+        hashes.map(async (hash) => {
+          try {
+            const data = await fetchJson<ConversationResponse>(
+              buildUrl('cast/conversation', { identifier: hash, type: 'hash', reply_depth: 0 }),
+              signal
+            );
+            const { direct_replies: _, ...cast } = data.conversation.cast;
+            return cast as FarcasterCast;
+          } catch {
+            return null;
+          }
+        })
+      );
+      return results.filter((c): c is FarcasterCast => c !== null);
     },
 
     async getChannel({ id, signal }) {
@@ -161,8 +177,10 @@ export function createHypersnapProvider(): FarcasterProvider {
       return data.channels || [];
     },
 
-    getAllChannels() {
-      return unsupported('getAllChannels');
+    async getAllChannels() {
+      // No global channel list endpoint — return static top channels.
+      // Users can discover more channels via searchChannels which works natively.
+      return TOP_CHANNELS as FarcasterChannel[];
     },
 
     async getNotifications({ fid, limit, cursor, type, signal }: GetNotificationsRequest) {
