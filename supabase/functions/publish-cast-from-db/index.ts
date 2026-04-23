@@ -2,6 +2,8 @@ import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import axios from 'npm:axios';
+import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts';
+import { redactHeaders, redactSecrets } from '../_shared/redact.ts';
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
@@ -132,7 +134,53 @@ function buildSignerPayload(draftData: any) {
   return payload;
 }
 
-async function callSignerService(path: string, body: Record<string, unknown>): Promise<{ hash: string }> {
+/**
+ * Mint a short-lived HS256 JWT that the signer edge function will accept via
+ * `supabase.auth.getUser()`. Claim shape matches Supabase's expected user JWT
+ * so RLS evaluates `auth.uid() = sub`. `scope` is advisory metadata surfaced to
+ * audit logs (e.g. `{ account_id, draft_id }`); `source` tags the caller cron.
+ *
+ * NOTE: Requires SUPABASE_JWT_SECRET (symmetric HS256). If the project is
+ * migrated to asymmetric (JWKs) JWT signing, this path must switch to signing
+ * with the project's private key and the signer must verify via JWKs. Operator:
+ * confirm via Dashboard -> Project Settings -> JWT Signing before deploy.
+ */
+async function mintUserJwt(
+  sub: string,
+  scope: Record<string, unknown>,
+  source: string
+): Promise<string> {
+  const secret = Deno.env.get('SUPABASE_JWT_SECRET');
+  if (!secret) {
+    throw new Error('SUPABASE_JWT_SECRET missing');
+  }
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  return await create(
+    { alg: 'HS256', typ: 'JWT' },
+    {
+      sub,
+      role: 'authenticated',
+      aud: 'authenticated',
+      source,
+      scope,
+      iat: getNumericDate(0),
+      exp: getNumericDate(60),
+    },
+    key
+  );
+}
+
+async function callSignerService(
+  path: string,
+  body: Record<string, unknown>,
+  userJwt: string
+): Promise<{ hash: string }> {
   const supabaseUrl = getSupabaseUrl();
   const serviceRoleKey = getServiceRoleKey();
 
@@ -144,7 +192,7 @@ async function callSignerService(path: string, body: Record<string, unknown>): P
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${serviceRoleKey}`,
+      Authorization: `Bearer ${userJwt}`,
       apikey: serviceRoleKey,
     },
     body: JSON.stringify(body),
@@ -198,19 +246,25 @@ async function submitViaSignerService({
   accountId,
   draftId,
   draftData,
+  userJwt,
 }: {
   accountId: string;
   draftId: string;
   draftData: any;
+  userJwt: string;
 }): Promise<string> {
   console.log('Submitting draft via signer service...');
 
   const payload = buildSignerPayload(draftData);
-  const response = await callSignerService('/cast', {
-    account_id: accountId,
-    idempotency_key: draftId,
-    ...payload,
-  });
+  const response = await callSignerService(
+    '/cast',
+    {
+      account_id: accountId,
+      idempotency_key: draftId,
+      ...payload,
+    },
+    userJwt
+  );
 
   console.log('Signer service returned hash:', response.hash);
   return response.hash;
@@ -252,6 +306,25 @@ const fixStuckDrafts = async (supabaseClient) => {
 const publishDraft = async (supabaseClient, draftId) => {
   return Sentry.withScope(async (scope) => {
     scope.setTag('draftId', draftId);
+
+    // Server-side authorization: SECURITY DEFINER RPC enforces the
+    // draft.created_by_user_id == accounts.user_id invariant and draft.status='scheduled'.
+    // If it errors or returns zero rows, the draft is not authorized to publish.
+    const { data: authRows, error: authError } = await supabaseClient.rpc('authorize_draft_publish', {
+      p_draft_id: draftId,
+    });
+
+    if (authError || !authRows || authRows.length === 0) {
+      console.error('draft publish not authorized', authError);
+      Sentry.captureException(authError || new Error(`draft ${draftId} publish not authorized`));
+      await supabaseClient.from('draft').update({ status: 'failed' }).eq('id', draftId);
+      return;
+    }
+
+    const { owner_user_id, account_id: authorizedAccountId } = authRows[0] as {
+      owner_user_id: string;
+      account_id: string;
+    };
 
     const { data: drafts, error: getDraftError } = await supabaseClient
       .from('draft')
@@ -308,7 +381,7 @@ const publishDraft = async (supabaseClient, draftId) => {
       console.log('submit draft to protocol - draftId:', draftId);
       console.log('account fid:', Number(account.platform_account_id));
 
-      // Check if we have pre-encoded message bytes
+      // Check if we have pre-encoded message bytes (fast path — no signer call needed)
       if (draft.encoded_message_bytes && Array.isArray(draft.encoded_message_bytes)) {
         console.log('Found pre-encoded message bytes, using reliable submission...');
         await submitPreEncodedMessage({
@@ -318,10 +391,18 @@ const publishDraft = async (supabaseClient, draftId) => {
         console.log('No pre-encoded bytes found, using fallback approach...');
         console.log('draft data structure:', JSON.stringify(castBody, null, 2));
 
+        // Mint a 60-second JWT bound to the validated owner + draft scope.
+        const userJwt = await mintUserJwt(
+          owner_user_id,
+          { account_id: authorizedAccountId, draft_id: draftId },
+          'cron:publish'
+        );
+
         await submitViaSignerService({
           accountId: draft.account_id,
           draftId,
           draftData: castBody,
+          userJwt,
         });
       }
 
@@ -343,16 +424,16 @@ const publishDraft = async (supabaseClient, draftId) => {
         console.error('=== HTTP RESPONSE ERROR ===');
         console.error('Status:', e.response.status);
         console.error('Status Text:', e.response.statusText);
-        console.error('Response Data:', JSON.stringify(e.response.data, null, 2));
-        console.error('Response Headers:', JSON.stringify(e.response.headers, null, 2));
+        console.error('Response Data:', redactSecrets(JSON.stringify(e.response.data, null, 2)));
+        console.error('Response Headers:', JSON.stringify(redactHeaders(e.response?.headers), null, 2));
       }
 
       if (e.config) {
         console.error('=== REQUEST CONFIG ===');
         console.error('URL:', e.config.url);
         console.error('Method:', e.config.method);
-        console.error('Headers:', JSON.stringify(e.config.headers, null, 2));
-        console.error('Request Data:', JSON.stringify(e.config.data, null, 2));
+        console.error('Headers:', JSON.stringify(redactHeaders(e.config?.headers), null, 2));
+        console.error('Request Data:', redactSecrets(JSON.stringify(e.config.data, null, 2)));
       }
 
       if (e.request && !e.response) {

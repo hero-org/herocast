@@ -175,10 +175,19 @@ export interface IdempotencyEntry {
 
 /**
  * Result of successful authentication
+ *
+ * `userId` is always defined — the signer only accepts user JWTs (real users or
+ * cron-minted short-lived JWTs whose `sub` claim is a validated owner user id).
  */
 export interface AuthResult {
-  userId?: string;
+  userId: string;
   supabaseClient: SupabaseClient;
+  /**
+   * Origin of the request, extracted from the JWT `source` claim. Used to tag
+   * audit rows. Optional for backward compatibility with older callers during
+   * the transition; `authenticateRequest` now always populates it.
+   */
+  source?: string;
 }
 
 /**

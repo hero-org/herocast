@@ -14,7 +14,8 @@ import { DeleteReactionRequestSchema, ReactionRequestSchema, validateRequest } f
  * Handle POST /reaction - Add a reaction (like or recast)
  */
 export async function handlePostReaction(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId: authUserId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient, source } = authResult;
+  const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
 
@@ -50,6 +51,8 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: reactionType,
         success: true,
       });
@@ -76,6 +79,8 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'reaction',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',
@@ -90,7 +95,8 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
  * Handle DELETE /reaction - Remove a reaction (like or recast)
  */
 export async function handleDeleteReaction(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId: authUserId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient, source } = authResult;
+  const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
 
@@ -126,6 +132,8 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: `remove_${reactionType}`,
         success: true,
       });
@@ -152,6 +160,8 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'remove_reaction',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',

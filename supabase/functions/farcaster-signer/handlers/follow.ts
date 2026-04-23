@@ -14,7 +14,8 @@ import { FollowRequestSchema, validateRequest } from '../lib/validate.ts';
  * Handle POST /follow - Follow a user
  */
 export async function handlePostFollow(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId: authUserId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient, source } = authResult;
+  const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
 
@@ -48,6 +49,8 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'follow',
         success: true,
       });
@@ -74,6 +77,8 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'follow',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',
@@ -88,7 +93,8 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
  * Handle DELETE /follow - Unfollow a user
  */
 export async function handleDeleteFollow(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId: authUserId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient, source } = authResult;
+  const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
 
@@ -122,6 +128,8 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'unfollow',
         success: true,
       });
@@ -148,6 +156,8 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'unfollow',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',
