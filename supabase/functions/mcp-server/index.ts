@@ -16,6 +16,7 @@ import {
   jsonRpcResult,
   noContentResponse,
 } from './lib/errors.ts';
+import { assertScope, isScopeInsufficientError, type McpScope } from './lib/scopes.ts';
 import type { JsonRpcRequest, ToolDefinition, ToolHandler } from './lib/types.ts';
 import { addToListTool, addToListToolDefinition } from './tools/add-to-list.ts';
 import { createListTool, createListToolDefinition } from './tools/create-list.ts';
@@ -35,24 +36,35 @@ const SERVER_NAME = 'herocast-mcp';
 const SERVER_VERSION = '1.0.0';
 const MCP_SESSION_HEADER = 'Mcp-Session-Id';
 
-type Tool = { definition: ToolDefinition; handler: ToolHandler };
+type Tool = { definition: ToolDefinition; handler: ToolHandler; requiredScope: McpScope };
 
 const tools: Tool[] = [
-  { definition: postCastToolDefinition, handler: postCastTool },
-  { definition: listAccountsToolDefinition, handler: (auth) => listAccountsTool(auth.supabaseClient, auth.userId) },
-  { definition: getCastsToolDefinition, handler: getCastsTool },
-  { definition: getUserToolDefinition, handler: (_auth, args) => getUserTool(args) },
-  { definition: searchUsersToolDefinition, handler: (_auth, args) => searchUsersTool(args) },
-  { definition: listListsToolDefinition, handler: listListsTool },
-  { definition: getListToolDefinition, handler: getListTool },
-  { definition: createListToolDefinition, handler: createListTool },
-  { definition: updateListToolDefinition, handler: updateListTool },
-  { definition: deleteListToolDefinition, handler: deleteListTool },
-  { definition: addToListToolDefinition, handler: addToListTool },
-  { definition: removeFromListToolDefinition, handler: removeFromListTool },
+  { definition: postCastToolDefinition, handler: postCastTool, requiredScope: 'write:cast' },
+  {
+    definition: listAccountsToolDefinition,
+    handler: (auth) => listAccountsTool(auth.supabaseClient, auth.userId),
+    requiredScope: 'read:accounts',
+  },
+  { definition: getCastsToolDefinition, handler: getCastsTool, requiredScope: 'read:casts' },
+  { definition: getUserToolDefinition, handler: (_auth, args) => getUserTool(args), requiredScope: 'read:accounts' },
+  {
+    definition: searchUsersToolDefinition,
+    handler: (_auth, args) => searchUsersTool(args),
+    requiredScope: 'read:accounts',
+  },
+  { definition: listListsToolDefinition, handler: listListsTool, requiredScope: 'manage:lists' },
+  { definition: getListToolDefinition, handler: getListTool, requiredScope: 'manage:lists' },
+  { definition: createListToolDefinition, handler: createListTool, requiredScope: 'manage:lists' },
+  { definition: updateListToolDefinition, handler: updateListTool, requiredScope: 'manage:lists' },
+  { definition: deleteListToolDefinition, handler: deleteListTool, requiredScope: 'manage:lists' },
+  { definition: addToListToolDefinition, handler: addToListTool, requiredScope: 'manage:lists' },
+  { definition: removeFromListToolDefinition, handler: removeFromListTool, requiredScope: 'manage:lists' },
 ];
 
-const toolMap = new Map<string, ToolHandler>(tools.map((t) => [t.definition.name, t.handler]));
+type ToolEntry = { handler: ToolHandler; requiredScope: McpScope };
+const toolMap = new Map<string, ToolEntry>(
+  tools.map((t) => [t.definition.name, { handler: t.handler, requiredScope: t.requiredScope }])
+);
 const toolDefinitions = tools.map((t) => t.definition);
 
 function getSessionId(req: Request): string {
@@ -117,20 +129,16 @@ Deno.serve(async (req: Request) => {
     auth = await authenticateRequest(req.headers.get('Authorization'));
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unauthorized';
-    const authHeader = req.headers.get('Authorization');
-    // Include debug info in error response
+    const hasAuthHeader = !!req.headers.get('Authorization');
+    // Do NOT echo any portion of the bearer token (length/prefix/slice) —
+    // that was historically used for debugging but leaks key material into
+    // client-facing responses and logs. Only a boolean presence flag is safe.
     return jsonRpcError(
       id ?? null,
       -32001,
       message,
       401,
-      {
-        debug: {
-          hasAuthHeader: !!authHeader,
-          authHeaderLength: authHeader?.length ?? 0,
-          authHeaderPrefix: authHeader?.slice(0, 30) ?? 'none',
-        },
-      },
+      { debug: { hasAuthHeader } },
       getAuthChallengeHeaders()
     );
   }
@@ -176,9 +184,20 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      const handler = toolMap.get(name);
-      if (handler) {
-        const result = await handler(auth, toolArguments);
+      const entry = toolMap.get(name);
+      if (entry) {
+        try {
+          assertScope(auth.scopes, entry.requiredScope);
+        } catch (scopeErr) {
+          if (isScopeInsufficientError(scopeErr)) {
+            return jsonRpcError(id ?? null, -32603, scopeErr.message, 403, {
+              code: 'scope_insufficient',
+              required: scopeErr.required,
+            });
+          }
+          throw scopeErr;
+        }
+        const result = await entry.handler(auth, toolArguments);
         return jsonRpcResult(id ?? null, result);
       }
 
