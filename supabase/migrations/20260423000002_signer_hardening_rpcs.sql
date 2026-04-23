@@ -34,7 +34,10 @@ END;
 $$;
 
 ALTER FUNCTION public.authorize_draft_publish(uuid) OWNER TO postgres;
-REVOKE ALL ON FUNCTION public.authorize_draft_publish(uuid) FROM PUBLIC;
+-- The project's ALTER DEFAULT PRIVILEGES (see 20231201175719_schema_test.sql:202)
+-- grants ALL on new functions to anon and authenticated. Revoking PUBLIC alone
+-- leaves those role-specific grants in place, so we revoke them explicitly too.
+REVOKE ALL ON FUNCTION public.authorize_draft_publish(uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.authorize_draft_publish(uuid) TO service_role;
 
 -- ============================================================================
@@ -76,5 +79,7 @@ END;
 $$;
 
 ALTER FUNCTION public.authorize_auto_interaction(uuid) OWNER TO postgres;
-REVOKE ALL ON FUNCTION public.authorize_auto_interaction(uuid) FROM PUBLIC;
+-- Same rationale as above: explicit revoke from anon, authenticated to override
+-- the project's default privileges that grant ALL on new functions to them.
+REVOKE ALL ON FUNCTION public.authorize_auto_interaction(uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.authorize_auto_interaction(uuid) TO service_role;
