@@ -29,7 +29,7 @@ jobs:
         run: supabase start
 
       - name: Reset database
-        run: supabase db reset --force
+        run: supabase db reset --yes
 
       - name: Apply pgsodium grants
         run: |
