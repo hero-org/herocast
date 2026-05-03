@@ -26,7 +26,10 @@ jobs:
           deno-version: v1.x
 
       - name: Start Supabase
-        run: supabase start
+        # Exclude services the signer tests don't need. Avoids the inbucket
+        # port-bind race (54324) that intermittently fails on GitHub runners
+        # when supabase start retries after a container startup hiccup.
+        run: supabase start --exclude inbucket,studio,storage-api,realtime,imgproxy,pgadmin-schema-diff,migra,pg-prove,pgbouncer,vector,supavisor
 
       - name: Reset database
         run: supabase db reset --yes
