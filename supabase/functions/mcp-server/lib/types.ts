@@ -4,6 +4,7 @@ export type AuthContext = {
   supabaseClient: SupabaseClient;
   userId: string;
   token: string;
+  scopes: string[];
 };
 
 export type ToolDefinition = {

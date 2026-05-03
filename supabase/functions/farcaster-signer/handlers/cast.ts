@@ -71,7 +71,8 @@ function successResponse(data: { success: true; hash: string; fid: number }): Re
  * 9. Return success response
  */
 export async function handlePostCast(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId: authUserId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient, source } = authResult;
+  const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
 
@@ -184,6 +185,8 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'cast',
         success: true,
       });
@@ -212,6 +215,8 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'cast',
         success: false,
         errorCode,
@@ -249,7 +254,8 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
  * 6. Return success response
  */
 export async function handleDeleteCast(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId: authUserId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient, source } = authResult;
+  const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
 
@@ -283,6 +289,8 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'remove_cast',
         success: true,
       });
@@ -311,6 +319,8 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'remove_cast',
         success: false,
         errorCode,

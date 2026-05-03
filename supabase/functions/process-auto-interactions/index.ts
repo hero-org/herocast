@@ -1,5 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
+import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts';
+import { redactHeaders, redactSecrets } from '../_shared/redact.ts';
 
 // console.log("Hello from process-auto-interactions!")
 
@@ -25,7 +27,57 @@ const getServiceRoleKey = () => {
   return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
 };
 
-async function callSignerService(path: string, body: Record<string, unknown>): Promise<{ hash: string }> {
+/**
+ * Mint a short-lived ES256 JWT that the signer edge function accepts via
+ * `supabase.auth.getUser()`. The claim shape matches Supabase's expected
+ * user JWT so RLS resolves `auth.uid() = sub`. `source` tags the caller cron;
+ * `cron_meta` carries our own bookkeeping (account_id / list_id) — `scope`
+ * is reserved by gotrue's AccessTokenClaims (OAuth 2.0 string).
+ *
+ * Requires CRON_SIGNING_PRIVATE_JWK env: a JSON-serialized ES256 (P-256)
+ * private JWK whose public side is registered in the project's signing-keys
+ * (status >= standby) so it appears in `/auth/v1/.well-known/jwks.json`.
+ */
+async function mintUserJwt(
+  sub: string,
+  cronMeta: Record<string, unknown>,
+  source: string
+): Promise<string> {
+  const privateJwkRaw = Deno.env.get('CRON_SIGNING_PRIVATE_JWK');
+  if (!privateJwkRaw) {
+    throw new Error('CRON_SIGNING_PRIVATE_JWK missing');
+  }
+  const jwk = JSON.parse(privateJwkRaw) as JsonWebKey & { kid?: string };
+  if (!jwk.kid) {
+    throw new Error('CRON_SIGNING_PRIVATE_JWK missing kid');
+  }
+  const key = await crypto.subtle.importKey(
+    'jwk',
+    jwk,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['sign']
+  );
+  return await create(
+    { alg: 'ES256', typ: 'JWT', kid: jwk.kid },
+    {
+      sub,
+      role: 'authenticated',
+      aud: 'authenticated',
+      source,
+      cron_meta: cronMeta,
+      iat: getNumericDate(0),
+      exp: getNumericDate(60),
+    },
+    key
+  );
+}
+
+async function callSignerService(
+  path: string,
+  body: Record<string, unknown>,
+  userJwt: string
+): Promise<{ hash: string }> {
   const supabaseUrl = getSupabaseUrl();
   const serviceRoleKey = getServiceRoleKey();
 
@@ -37,7 +89,7 @@ async function callSignerService(path: string, body: Record<string, unknown>): P
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${serviceRoleKey}`,
+      Authorization: `Bearer ${userJwt}`,
       apikey: serviceRoleKey,
     },
     body: JSON.stringify(body),
@@ -53,6 +105,16 @@ async function callSignerService(path: string, body: Record<string, unknown>): P
   if (!response.ok || !data || data.success === false) {
     const errorMessage = data?.error?.message || `Signer service failed (${response.status})`;
     const errorCode = data?.error?.code;
+    if (response && typeof (response as Response).headers !== 'undefined') {
+      const headerBag: Record<string, unknown> = {};
+      (response as Response).headers.forEach((v, k) => {
+        headerBag[k] = v;
+      });
+      console.error('Signer service response headers:', JSON.stringify(redactHeaders(headerBag), null, 2));
+    }
+    if (data) {
+      console.error('Signer service response data:', redactSecrets(JSON.stringify(data, null, 2)));
+    }
     throw new Error(errorCode ? `${errorCode}: ${errorMessage}` : errorMessage);
   }
 
@@ -131,13 +193,37 @@ async function processAutoInteractionList(supabase: any, list: any) {
     return;
   }
 
-  // Note: We'll get the account details from decrypted_accounts view below
+  // Server-side authorization: SECURITY DEFINER RPC validates list.type='auto_interaction'
+  // and `accounts.user_id = list.user_id` for the sourceAccountId, returning the
+  // authoritative owner + source account id. Prefer this over content.sourceAccountId
+  // (which a compromised writer could lie about).
+  const { data: authRows, error: authErr } = await supabase.rpc('authorize_auto_interaction', {
+    p_list_id: list.id,
+  });
 
-  // Get decrypted account data directly from the view (like publish-cast-from-db does)
+  if (authErr || !authRows || authRows.length === 0) {
+    console.warn(`[list ${list.id}] authorization failed, skipping`, authErr);
+    return;
+  }
+
+  const { owner_user_id, source_account_id } = authRows[0] as {
+    owner_user_id: string;
+    source_account_id: string;
+  };
+
+  // Single 60-second JWT covers every signer call for this list run.
+  const userJwt = await mintUserJwt(
+    owner_user_id,
+    { account_id: source_account_id, list_id: list.id },
+    'cron:auto-interaction'
+  );
+
+  // Get decrypted account data directly from the view (like publish-cast-from-db does).
+  // Use source_account_id from the RPC — the validated id — instead of content.sourceAccountId.
   const { data: accounts, error: decryptError } = await supabase
     .from('decrypted_accounts')
     .select('id, platform_account_id')
-    .eq('id', content.sourceAccountId);
+    .eq('id', source_account_id);
 
   if (decryptError || !accounts || accounts.length === 0) {
     throw new Error(`Failed to get decrypted account: ${decryptError?.message || 'Account not found'}`);
@@ -147,7 +233,7 @@ async function processAutoInteractionList(supabase: any, list: any) {
 
   console.log(`[List ${list.id}] Decrypted account:`, {
     hasAccount: !!account,
-    accountId: content.sourceAccountId,
+    accountId: source_account_id,
     platformAccountId: account.platform_account_id,
   });
 
@@ -217,18 +303,18 @@ async function processAutoInteractionList(supabase: any, list: any) {
       isReply: !!cast.parent_hash,
     });
 
-    // Perform the actions
+    // Perform the actions — use validated source_account_id and the minted JWT.
     const actions = [];
     if (content.actionType === 'like' || content.actionType === 'both') {
       actions.push({
         type: 'like',
-        action: () => submitReaction('like', cast, content.sourceAccountId),
+        action: () => submitReaction('like', cast, source_account_id, userJwt),
       });
     }
     if (content.actionType === 'recast' || content.actionType === 'both') {
       actions.push({
         type: 'recast',
-        action: () => submitReaction('recast', cast, content.sourceAccountId),
+        action: () => submitReaction('recast', cast, source_account_id, userJwt),
       });
     }
 
@@ -513,19 +599,23 @@ async function fetchAllRecentCasts(
   return allCasts;
 }
 
-async function submitReaction(type: 'like' | 'recast', cast: any, accountId: string) {
+async function submitReaction(type: 'like' | 'recast', cast: any, accountId: string, userJwt: string) {
   if (!accountId) {
     throw new Error('Account ID is required to submit reactions');
   }
 
-  const response = await callSignerService('/reaction', {
-    account_id: accountId,
-    type,
-    target: {
-      fid: cast.author.fid,
-      hash: cast.hash,
+  const response = await callSignerService(
+    '/reaction',
+    {
+      account_id: accountId,
+      type,
+      target: {
+        fid: cast.author.fid,
+        hash: cast.hash,
+      },
     },
-  });
+    userJwt
+  );
 
   console.log(`Successfully submitted ${type} for cast ${cast.hash}. Hash: ${response.hash}`);
 }

@@ -2,6 +2,8 @@ import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
 import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import axios from 'npm:axios';
+import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts';
+import { redactHeaders, redactSecrets } from '../_shared/redact.ts';
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
@@ -132,7 +134,59 @@ function buildSignerPayload(draftData: any) {
   return payload;
 }
 
-async function callSignerService(path: string, body: Record<string, unknown>): Promise<{ hash: string }> {
+/**
+ * Mint a short-lived ES256 JWT that the signer edge function accepts via
+ * `supabase.auth.getUser()`. The claim shape matches Supabase's expected
+ * user JWT so RLS resolves `auth.uid() = sub`. `source` tags the caller cron;
+ * `cron_meta` carries our own bookkeeping (account_id / draft_id) — `scope`
+ * is reserved by gotrue's AccessTokenClaims (OAuth 2.0 string).
+ *
+ * Requires CRON_SIGNING_PRIVATE_JWK env: a JSON-serialized ES256 (P-256)
+ * private JWK whose public side is registered in the project's signing-keys
+ * (status >= standby) so it appears in `/auth/v1/.well-known/jwks.json`. The
+ * `kid` from the JWK is set in the JWT header so gotrue picks the matching
+ * verifier.
+ */
+async function mintUserJwt(
+  sub: string,
+  cronMeta: Record<string, unknown>,
+  source: string
+): Promise<string> {
+  const privateJwkRaw = Deno.env.get('CRON_SIGNING_PRIVATE_JWK');
+  if (!privateJwkRaw) {
+    throw new Error('CRON_SIGNING_PRIVATE_JWK missing');
+  }
+  const jwk = JSON.parse(privateJwkRaw) as JsonWebKey & { kid?: string };
+  if (!jwk.kid) {
+    throw new Error('CRON_SIGNING_PRIVATE_JWK missing kid');
+  }
+  const key = await crypto.subtle.importKey(
+    'jwk',
+    jwk,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['sign']
+  );
+  return await create(
+    { alg: 'ES256', typ: 'JWT', kid: jwk.kid },
+    {
+      sub,
+      role: 'authenticated',
+      aud: 'authenticated',
+      source,
+      cron_meta: cronMeta,
+      iat: getNumericDate(0),
+      exp: getNumericDate(60),
+    },
+    key
+  );
+}
+
+async function callSignerService(
+  path: string,
+  body: Record<string, unknown>,
+  userJwt: string
+): Promise<{ hash: string }> {
   const supabaseUrl = getSupabaseUrl();
   const serviceRoleKey = getServiceRoleKey();
 
@@ -144,7 +198,7 @@ async function callSignerService(path: string, body: Record<string, unknown>): P
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${serviceRoleKey}`,
+      Authorization: `Bearer ${userJwt}`,
       apikey: serviceRoleKey,
     },
     body: JSON.stringify(body),
@@ -198,19 +252,25 @@ async function submitViaSignerService({
   accountId,
   draftId,
   draftData,
+  userJwt,
 }: {
   accountId: string;
   draftId: string;
   draftData: any;
+  userJwt: string;
 }): Promise<string> {
   console.log('Submitting draft via signer service...');
 
   const payload = buildSignerPayload(draftData);
-  const response = await callSignerService('/cast', {
-    account_id: accountId,
-    idempotency_key: draftId,
-    ...payload,
-  });
+  const response = await callSignerService(
+    '/cast',
+    {
+      account_id: accountId,
+      idempotency_key: draftId,
+      ...payload,
+    },
+    userJwt
+  );
 
   console.log('Signer service returned hash:', response.hash);
   return response.hash;
@@ -252,6 +312,25 @@ const fixStuckDrafts = async (supabaseClient) => {
 const publishDraft = async (supabaseClient, draftId) => {
   return Sentry.withScope(async (scope) => {
     scope.setTag('draftId', draftId);
+
+    // Server-side authorization: SECURITY DEFINER RPC enforces the
+    // draft.created_by_user_id == accounts.user_id invariant and draft.status='scheduled'.
+    // If it errors or returns zero rows, the draft is not authorized to publish.
+    const { data: authRows, error: authError } = await supabaseClient.rpc('authorize_draft_publish', {
+      p_draft_id: draftId,
+    });
+
+    if (authError || !authRows || authRows.length === 0) {
+      console.error('draft publish not authorized', authError);
+      Sentry.captureException(authError || new Error(`draft ${draftId} publish not authorized`));
+      await supabaseClient.from('draft').update({ status: 'failed' }).eq('id', draftId);
+      return;
+    }
+
+    const { owner_user_id, account_id: authorizedAccountId } = authRows[0] as {
+      owner_user_id: string;
+      account_id: string;
+    };
 
     const { data: drafts, error: getDraftError } = await supabaseClient
       .from('draft')
@@ -308,7 +387,7 @@ const publishDraft = async (supabaseClient, draftId) => {
       console.log('submit draft to protocol - draftId:', draftId);
       console.log('account fid:', Number(account.platform_account_id));
 
-      // Check if we have pre-encoded message bytes
+      // Check if we have pre-encoded message bytes (fast path — no signer call needed)
       if (draft.encoded_message_bytes && Array.isArray(draft.encoded_message_bytes)) {
         console.log('Found pre-encoded message bytes, using reliable submission...');
         await submitPreEncodedMessage({
@@ -318,10 +397,18 @@ const publishDraft = async (supabaseClient, draftId) => {
         console.log('No pre-encoded bytes found, using fallback approach...');
         console.log('draft data structure:', JSON.stringify(castBody, null, 2));
 
+        // Mint a 60-second JWT bound to the validated owner + draft scope.
+        const userJwt = await mintUserJwt(
+          owner_user_id,
+          { account_id: authorizedAccountId, draft_id: draftId },
+          'cron:publish'
+        );
+
         await submitViaSignerService({
           accountId: draft.account_id,
           draftId,
           draftData: castBody,
+          userJwt,
         });
       }
 
@@ -343,16 +430,16 @@ const publishDraft = async (supabaseClient, draftId) => {
         console.error('=== HTTP RESPONSE ERROR ===');
         console.error('Status:', e.response.status);
         console.error('Status Text:', e.response.statusText);
-        console.error('Response Data:', JSON.stringify(e.response.data, null, 2));
-        console.error('Response Headers:', JSON.stringify(e.response.headers, null, 2));
+        console.error('Response Data:', redactSecrets(JSON.stringify(e.response.data, null, 2)));
+        console.error('Response Headers:', JSON.stringify(redactHeaders(e.response?.headers), null, 2));
       }
 
       if (e.config) {
         console.error('=== REQUEST CONFIG ===');
         console.error('URL:', e.config.url);
         console.error('Method:', e.config.method);
-        console.error('Headers:', JSON.stringify(e.config.headers, null, 2));
-        console.error('Request Data:', JSON.stringify(e.config.data, null, 2));
+        console.error('Headers:', JSON.stringify(redactHeaders(e.config?.headers), null, 2));
+        console.error('Request Data:', redactSecrets(JSON.stringify(e.config.data, null, 2)));
       }
 
       if (e.request && !e.response) {
@@ -472,10 +559,9 @@ Deno.serve(async (req) => {
   });
 });
 
-// # run
-// supabase functions serve --debug
-// # and then
-// curl --request POST 'http://localhost:54321/functions/v1/publish-cast-from-db' \
-// --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-// --header 'Content-Type: application/json' \
-// --data '{ "name":"Functions" }'
+// Local invocation:
+//   supabase functions serve --debug
+//   curl -X POST http://localhost:54321/functions/v1/publish-cast-from-db \
+//     -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+//     -H "Content-Type: application/json" \
+//     --data '{}'

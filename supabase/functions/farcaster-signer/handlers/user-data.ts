@@ -14,7 +14,8 @@ import { UserDataRequestSchema, validateRequest } from '../lib/validate.ts';
  * Handle POST /user-data - Update user data in Farcaster
  */
 export async function handlePostUserData(req: Request, authResult: AuthResult): Promise<Response> {
-  const { userId: authUserId, supabaseClient } = authResult;
+  const { userId: authUserId, supabaseClient, source } = authResult;
+  const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
 
@@ -40,6 +41,8 @@ export async function handlePostUserData(req: Request, authResult: AuthResult): 
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'user_data',
         success: true,
       });
@@ -65,6 +68,8 @@ export async function handlePostUserData(req: Request, authResult: AuthResult): 
         supabaseClient,
         accountId,
         userId: auditUserId,
+        actorUserId: authUserId,
+        source: auditSource,
         action: 'user_data',
         success: false,
         errorCode: error instanceof Error ? error.message : 'Unknown error',
