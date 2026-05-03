@@ -135,43 +135,40 @@ function buildSignerPayload(draftData: any) {
 }
 
 /**
- * Mint a short-lived HS256 JWT that the signer edge function will accept via
- * `supabase.auth.getUser()`. Claim shape matches Supabase's expected user JWT
- * so RLS evaluates `auth.uid() = sub`. `scope` is advisory metadata surfaced to
- * audit logs (e.g. `{ account_id, draft_id }`); `source` tags the caller cron.
+ * Mint a short-lived ES256 JWT that the signer edge function accepts via
+ * `supabase.auth.getUser()`. The claim shape matches Supabase's expected
+ * user JWT so RLS resolves `auth.uid() = sub`. `source` tags the caller cron;
+ * `cron_meta` carries our own bookkeeping (account_id / draft_id) — `scope`
+ * is reserved by gotrue's AccessTokenClaims (OAuth 2.0 string).
  *
- * NOTE: Requires LEGACY_JWT_SECRET (symmetric HS256) — set via
- * `supabase secrets set LEGACY_JWT_SECRET=<value>`. The Supabase CLI reserves
- * the SUPABASE_* prefix, so we deliberately use a non-prefixed name. The value
- * is the project's "Legacy JWT secret" from Dashboard -> Project Settings ->
- * JWT Keys (used to verify pre-migration HS256 tokens). Once the project moves
- * fully off the legacy key, this path must switch to signing with the project's
- * ES256 private key (from SUPABASE_SECRET_KEYS) and the signer must verify via
- * JWKs.
+ * Requires CRON_SIGNING_PRIVATE_JWK env: a JSON-serialized ES256 (P-256)
+ * private JWK whose public side is registered in the project's signing-keys
+ * (status >= standby) so it appears in `/auth/v1/.well-known/jwks.json`. The
+ * `kid` from the JWK is set in the JWT header so gotrue picks the matching
+ * verifier.
  */
 async function mintUserJwt(
   sub: string,
   scope: Record<string, unknown>,
   source: string
 ): Promise<string> {
-  const secret = Deno.env.get('LEGACY_JWT_SECRET');
-  if (!secret) {
-    throw new Error('LEGACY_JWT_SECRET missing');
+  const privateJwkRaw = Deno.env.get('CRON_SIGNING_PRIVATE_JWK');
+  if (!privateJwkRaw) {
+    throw new Error('CRON_SIGNING_PRIVATE_JWK missing');
+  }
+  const jwk = JSON.parse(privateJwkRaw) as JsonWebKey & { kid?: string };
+  if (!jwk.kid) {
+    throw new Error('CRON_SIGNING_PRIVATE_JWK missing kid');
   }
   const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
+    'jwk',
+    jwk,
+    { name: 'ECDSA', namedCurve: 'P-256' },
     false,
     ['sign']
   );
-  // NOTE: do not put a `scope` claim in this JWT. gotrue's AccessTokenClaims
-  // expects `scope` to be a space-delimited string (OAuth 2.0 standard) and will
-  // reject the token with "json: cannot unmarshal object into Go struct field
-  // AccessTokenClaims.scope of type string" if we pass an object. We use
-  // `cron_meta` for our own bookkeeping instead.
   return await create(
-    { alg: 'HS256', typ: 'JWT' },
+    { alg: 'ES256', typ: 'JWT', kid: jwk.kid },
     {
       sub,
       role: 'authenticated',
