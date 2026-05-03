@@ -35,10 +35,14 @@ jobs:
         run: supabase db reset --yes
 
       - name: Apply pgsodium grants
+        # Key seeding is handled by supabase/seed.sql (auto-run by `db reset`
+        # with privileged access). The grants script applies role-membership
+        # changes; psql does not propagate SQL errors so failures here are
+        # non-fatal — fine for the redundant function-EXECUTE grants that the
+        # postgres role lacks ownership to apply in the CI Supabase image.
         run: |
           export PGPASSWORD=postgres
           psql -h localhost -p 54322 -U postgres -d postgres -f supabase/setup/pgsodium_grants.sql
-          psql -h localhost -p 54322 -U postgres -d postgres -f supabase/setup/pgsodium_seed_key.sql
 
       - name: Export Supabase env
         run: |
