@@ -149,7 +149,7 @@ function buildSignerPayload(draftData: any) {
  */
 async function mintUserJwt(
   sub: string,
-  scope: Record<string, unknown>,
+  cronMeta: Record<string, unknown>,
   source: string
 ): Promise<string> {
   const privateJwkRaw = Deno.env.get('CRON_SIGNING_PRIVATE_JWK');
@@ -174,7 +174,7 @@ async function mintUserJwt(
       role: 'authenticated',
       aud: 'authenticated',
       source,
-      cron_meta: scope,
+      cron_meta: cronMeta,
       iat: getNumericDate(0),
       exp: getNumericDate(60),
     },
@@ -559,10 +559,9 @@ Deno.serve(async (req) => {
   });
 });
 
-// # run
-// supabase functions serve --debug
-// # and then
-// curl --request POST 'http://localhost:54321/functions/v1/publish-cast-from-db' \
-// --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-// --header 'Content-Type: application/json' \
-// --data '{ "name":"Functions" }'
+// Local invocation:
+//   supabase functions serve --debug
+//   curl -X POST http://localhost:54321/functions/v1/publish-cast-from-db \
+//     -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+//     -H "Content-Type: application/json" \
+//     --data '{}'

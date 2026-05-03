@@ -40,7 +40,7 @@ const getServiceRoleKey = () => {
  */
 async function mintUserJwt(
   sub: string,
-  scope: Record<string, unknown>,
+  cronMeta: Record<string, unknown>,
   source: string
 ): Promise<string> {
   const privateJwkRaw = Deno.env.get('CRON_SIGNING_PRIVATE_JWK');
@@ -65,7 +65,7 @@ async function mintUserJwt(
       role: 'authenticated',
       aud: 'authenticated',
       source,
-      cron_meta: scope,
+      cron_meta: cronMeta,
       iat: getNumericDate(0),
       exp: getNumericDate(60),
     },

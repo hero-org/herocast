@@ -29,8 +29,9 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
  * Creates a Supabase client with the user's JWT token (not service role)
  * to ensure RLS policies are enforced for all subsequent queries.
  *
- * Cron callers mint a short-lived HS256 JWT with `sub = <owner_user_id>` and
- * present it here — this path validates it identically to a human-user JWT.
+ * Cron callers mint a short-lived ES256 JWT with `sub = <owner_user_id>` and
+ * present it here — this path validates it identically to a human-user JWT
+ * (gotrue verifies via JWKs lookup by `kid`).
  *
  * @param authHeader - The Authorization header value (e.g., "Bearer <token>")
  * @returns AuthResult containing userId and Supabase client
