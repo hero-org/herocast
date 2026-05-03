@@ -140,19 +140,23 @@ function buildSignerPayload(draftData: any) {
  * so RLS evaluates `auth.uid() = sub`. `scope` is advisory metadata surfaced to
  * audit logs (e.g. `{ account_id, draft_id }`); `source` tags the caller cron.
  *
- * NOTE: Requires SUPABASE_JWT_SECRET (symmetric HS256). If the project is
- * migrated to asymmetric (JWKs) JWT signing, this path must switch to signing
- * with the project's private key and the signer must verify via JWKs. Operator:
- * confirm via Dashboard -> Project Settings -> JWT Signing before deploy.
+ * NOTE: Requires LEGACY_JWT_SECRET (symmetric HS256) — set via
+ * `supabase secrets set LEGACY_JWT_SECRET=<value>`. The Supabase CLI reserves
+ * the SUPABASE_* prefix, so we deliberately use a non-prefixed name. The value
+ * is the project's "Legacy JWT secret" from Dashboard -> Project Settings ->
+ * JWT Keys (used to verify pre-migration HS256 tokens). Once the project moves
+ * fully off the legacy key, this path must switch to signing with the project's
+ * ES256 private key (from SUPABASE_SECRET_KEYS) and the signer must verify via
+ * JWKs.
  */
 async function mintUserJwt(
   sub: string,
   scope: Record<string, unknown>,
   source: string
 ): Promise<string> {
-  const secret = Deno.env.get('SUPABASE_JWT_SECRET');
+  const secret = Deno.env.get('LEGACY_JWT_SECRET');
   if (!secret) {
-    throw new Error('SUPABASE_JWT_SECRET missing');
+    throw new Error('LEGACY_JWT_SECRET missing');
   }
   const key = await crypto.subtle.importKey(
     'raw',
