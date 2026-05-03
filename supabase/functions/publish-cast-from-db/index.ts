@@ -165,6 +165,11 @@ async function mintUserJwt(
     false,
     ['sign']
   );
+  // NOTE: do not put a `scope` claim in this JWT. gotrue's AccessTokenClaims
+  // expects `scope` to be a space-delimited string (OAuth 2.0 standard) and will
+  // reject the token with "json: cannot unmarshal object into Go struct field
+  // AccessTokenClaims.scope of type string" if we pass an object. We use
+  // `cron_meta` for our own bookkeeping instead.
   return await create(
     { alg: 'HS256', typ: 'JWT' },
     {
@@ -172,7 +177,7 @@ async function mintUserJwt(
       role: 'authenticated',
       aud: 'authenticated',
       source,
-      scope,
+      cron_meta: scope,
       iat: getNumericDate(0),
       exp: getNumericDate(60),
     },
