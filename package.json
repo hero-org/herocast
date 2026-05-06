@@ -119,7 +119,7 @@
     "@visx/visx": "^3.12.0",
     "@webscopeio/react-textarea-autocomplete": "^4.9.2",
     "@yornaath/batshit": "^0.12.0",
-    "axios": "^1.8.3",
+    "axios": "^1.13.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
