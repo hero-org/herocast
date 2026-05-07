@@ -24,6 +24,11 @@ type SelectableListWithHotkeysProps = {
   footer?: React.ReactNode;
   estimatedItemHeight?: number;
   getItemKey?: (item: any, index: number) => string;
+  // Opt-in for callers that surface a "new content" pill UX. When true, the
+  // virtualizer will NOT auto-scroll to top when the first item's hash
+  // changes — the parent owns that scroll via the pill click handler so the
+  // user keeps their reading position until they explicitly opt in.
+  disableAutoScrollOnFirstItemChange?: boolean;
 };
 
 export const SelectableListWithHotkeys = ({
@@ -43,6 +48,7 @@ export const SelectableListWithHotkeys = ({
   footer,
   estimatedItemHeight = 250,
   getItemKey: externalGetItemKey,
+  disableAutoScrollOnFirstItemChange = false,
 }: SelectableListWithHotkeysProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname() || '/';
@@ -71,7 +77,7 @@ export const SelectableListWithHotkeys = ({
     const shouldReset =
       prevFirstItemKeyRef.current !== null && firstItemKey !== null && prevFirstItemKeyRef.current !== firstItemKey;
 
-    if (shouldReset) {
+    if (shouldReset && !disableAutoScrollOnFirstItemChange) {
       if (process.env.NODE_ENV === 'development') {
         console.log('[Virtualizer] Feed refreshed, resetting');
       }
@@ -79,7 +85,7 @@ export const SelectableListWithHotkeys = ({
       virtualizer.measure();
     }
     prevFirstItemKeyRef.current = firstItemKey;
-  }, [firstItemKey, virtualizer]);
+  }, [firstItemKey, virtualizer, disableAutoScrollOnFirstItemChange]);
 
   // Scroll to selected item when selectedIdx changes
   useLayoutEffect(() => {

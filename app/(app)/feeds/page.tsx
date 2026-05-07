@@ -8,6 +8,7 @@ import { Key } from 'ts-key-enum';
 import { CompactCastRow } from '@/common/components/CastRow/CompactCastRow';
 import { CastThreadView } from '@/common/components/CastThreadView';
 import { CreateAccountPage } from '@/common/components/CreateAccountPage';
+import { NewCastsPill } from '@/common/components/Feed/NewCastsPill';
 import { PreviewPane } from '@/common/components/Feed/PreviewPane';
 import { SplitPaneShell } from '@/common/components/Feed/SplitPaneShell';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
@@ -66,8 +67,16 @@ export default function Feeds() {
   // Esc returns to the list. State is meaningless below `lg` (no preview pane
   // mounts) and is reset to `false` by media-query changes / feed switches.
   const [previewFocused, setPreviewFocused] = useState(false);
+  // The cast hash the user has "seen" as the top of the list. Drives the
+  // "N new casts" pill: any casts above this hash count as new arrivals.
+  // Reset on feed switch, advanced on pill click and on scroll-to-top.
+  const [acknowledgedFirstHash, setAcknowledgedFirstHash] = useState<string | null>(null);
   const lastUpdateTimeRef = useRef(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Wrapper for the list pane — used to scope the scroll listener / force
+  // scroll-to-top when the pill is clicked, so we don't accidentally target
+  // some other `.overflow-y-auto` on the page.
+  const listWrapperRef = useRef<HTMLDivElement>(null);
 
   const { lists, selectedListId, setSelectedListId } = useListStore();
   const {
@@ -204,6 +213,18 @@ export default function Feeds() {
     nextCursor = channelQuery.hasNextPage ? 'has-more' : '';
   }
 
+  // Compute the count of "new" casts above the user's last acknowledged top.
+  // `acknowledgedFirstHash` is null on the very first render (no pill yet),
+  // and is reset to null on feed switch. When the acknowledged hash is no
+  // longer present in the array (e.g. a full server-side refresh that drops
+  // the previous head), treat as 0 — the conservative path avoids surprising
+  // the user with a giant "N new casts" count after the feed got nuked.
+  let newCastsCount = 0;
+  if (acknowledgedFirstHash !== null && casts.length > 0 && casts[0]?.hash !== acknowledgedFirstHash) {
+    const idx = casts.findIndex((c) => c.hash === acknowledgedFirstHash);
+    newCastsCount = idx === -1 ? 0 : idx;
+  }
+
   // On desktop the preview pane already shows the selected cast, so click /
   // Enter / `o` should just update selection. Below the lg breakpoint there is
   // no preview pane, so we preserve today's behavior of opening the full-page
@@ -227,6 +248,73 @@ export default function Feeds() {
       container.scrollTop = 0;
     }
   }, [feedKey]);
+
+  // Reset the acknowledged hash whenever the user switches feeds — the next
+  // non-empty render will adopt the new feed's top hash so the pill never
+  // flashes on switch. Runs synchronously alongside the scroll-to-top above.
+  useEffect(() => {
+    setAcknowledgedFirstHash(null);
+  }, [feedKey]);
+
+  // Hash of the current top cast. We depend on this string (not the `casts`
+  // array reference, which is a fresh array on every render) so the effects
+  // and click callback below are stable across unrelated re-renders. Only
+  // refetch / feed-switch transitions should re-bind the scroll listener.
+  const topHash = casts[0]?.hash;
+
+  // Initialize / re-initialize the acknowledged hash on the first non-empty
+  // render after a feed switch (or initial mount). Without this, the pill
+  // would show "N new casts" against `null` forever.
+  useEffect(() => {
+    if (acknowledgedFirstHash === null && topHash) {
+      setAcknowledgedFirstHash(topHash);
+    }
+  }, [acknowledgedFirstHash, topHash]);
+
+  // Auto-dismiss the pill when the list pane is already scrolled to the top:
+  // if the user is staring at the top of the feed when new casts arrive,
+  // there's no point pestering them with a pill.
+  useEffect(() => {
+    const wrapper = listWrapperRef.current;
+    if (!wrapper) return;
+    const scrollContainer = wrapper.querySelector<HTMLElement>('.overflow-y-auto');
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      if (scrollContainer.scrollTop <= 0) {
+        if (topHash && acknowledgedFirstHash !== topHash) {
+          setAcknowledgedFirstHash(topHash);
+        }
+      }
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    // Run once on mount/effect-rerun so we auto-acknowledge if the user is
+    // already at the top when new content arrives (no scroll event fires in
+    // that case).
+    handleScroll();
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+    };
+  }, [topHash, acknowledgedFirstHash]);
+
+  const handlePillClick = useCallback(() => {
+    if (topHash) {
+      setAcknowledgedFirstHash(topHash);
+    }
+    // Selecting index 0 triggers SelectableListWithHotkeys' scroll-to-selected
+    // effect. We still force scrollTop=0 below to cover the edge case where
+    // selection was already 0 (effect won't re-run on identical value).
+    setSelectedCastIdx(0);
+    const wrapper = listWrapperRef.current;
+    if (wrapper) {
+      const scrollContainer = wrapper.querySelector<HTMLElement>('.overflow-y-auto');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      }
+    }
+  }, [topHash]);
 
   useEffect(() => {
     const shouldUpdateLastReadTimestamp =
@@ -552,6 +640,9 @@ export default function Feeds() {
       scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
       footer={!isEmpty(casts) ? renderLoadMoreButton() : null}
       estimatedItemHeight={88}
+      // Suppress the virtualizer's auto-scroll-to-top on feed refresh: the
+      // NewCastsPill flow owns scrolling so the user keeps their place.
+      disableAutoScrollOnFirstItemChange={true}
     />
   );
 
@@ -651,7 +742,11 @@ export default function Feeds() {
       ) : (
         <SplitPaneShell
           list={
-            <div className="h-full w-full">
+            // `relative` is required so NewCastsPill (absolute-positioned) anchors
+            // to this wrapper rather than escaping to some ancestor. The ref lets
+            // effects scope querySelector('.overflow-y-auto') to just the list.
+            <div className="relative h-full w-full" ref={listWrapperRef}>
+              <NewCastsPill count={newCastsCount} onClick={handlePillClick} />
               {renderFeed()}
               {renderWelcomeMessage()}
             </div>
