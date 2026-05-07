@@ -86,6 +86,18 @@ export default function Feeds() {
   const searchParams = useSearchParams();
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
+  // Legacy ?castHash=0x... URLs are migrated to the dedicated /cast/[hash]
+  // route. Computed synchronously so the redirect effect runs before any
+  // feed queries get a chance to render content.
+  const legacyCastHashParam = searchParams.get('castHash');
+  const shouldRedirectLegacyCastHash = Boolean(legacyCastHashParam && legacyCastHashParam.startsWith('0x'));
+
+  useEffect(() => {
+    if (shouldRedirectLegacyCastHash && legacyCastHashParam) {
+      router.replace(`/cast/${encodeURIComponent(legacyCastHashParam)}`);
+    }
+  }, [shouldRedirectLegacyCastHash, legacyCastHashParam, router]);
+
   // React Query hooks for different feed types - provides automatic caching & deduplication
   const isTrendingFeed = selectedChannelUrl === CUSTOM_CHANNELS.TRENDING;
   const isFollowingFeed = selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING;
@@ -571,6 +583,12 @@ export default function Feeds() {
       )}
     </main>
   );
+
+  // While redirecting away to /cast/[hash], render an empty placeholder so
+  // the feed never flashes during the transition.
+  if (shouldRedirectLegacyCastHash) {
+    return <main className="w-full h-full" data-testid="feeds-redirecting-to-cast" />;
+  }
 
   return renderContent();
 }

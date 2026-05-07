@@ -1,4 +1,25 @@
-import type { FarcasterUser } from '@/common/types/farcaster';
+import type { FarcasterCast, FarcasterUser } from '@/common/types/farcaster';
+
+/**
+ * Fetches a single cast by its hash via the internal lookup API.
+ * Returns the cast object, or `null` if it cannot be found / on error.
+ */
+export const fetchCastByHash = async (hash: string): Promise<FarcasterCast | null> => {
+  if (!hash) return null;
+
+  try {
+    const params = new URLSearchParams({ identifier: hash, type: 'hash' });
+    const response = await fetch(`/api/casts/lookup?${params.toString()}`);
+    if (!response.ok) {
+      return null;
+    }
+    const data = await response.json();
+    return (data?.cast as FarcasterCast) ?? null;
+  } catch (err) {
+    console.error('Error fetching cast by hash', { hash, err });
+    return null;
+  }
+};
 
 type GetUserDataForFidOrUsernameProps = {
   username?: string;
