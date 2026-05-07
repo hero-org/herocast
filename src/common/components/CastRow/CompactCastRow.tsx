@@ -85,6 +85,8 @@ const CompactCastRowComponent: React.FC<CompactCastRowProps> = ({ cast, idx, isS
   const displayName = cast.author?.display_name || username;
   const pfpUrl = cast.author?.pfp_url;
   const likesCount = cast.reactions?.likes_count ?? 0;
+  const hasText = (cast.text ?? '').trim().length > 0;
+  const hasEmbeds = (cast.embeds?.length ?? 0) > 0;
 
   const handleClick = useCallback(
     (event: React.MouseEvent) => {
@@ -122,10 +124,27 @@ const CompactCastRowComponent: React.FC<CompactCastRowProps> = ({ cast, idx, isS
         </div>
 
         {/* Line 2 — cast content (loudest element). 2 lines so users get
-            enough preview to scan without clicking each cast. */}
-        <div className="text-base font-medium leading-snug text-foreground line-clamp-2 break-words" title={cast.text}>
-          {cast.text}
-        </div>
+            enough preview to scan without clicking each cast. When the cast
+            is media-only (no text but has embeds), render 2 muted skeleton
+            bars at the same height so the row keeps a consistent rhythm and
+            doesn't collapse into an empty-looking sliver. */}
+        {hasText ? (
+          <div
+            className="text-base font-medium leading-snug text-foreground line-clamp-2 break-words"
+            title={cast.text}
+          >
+            {cast.text}
+          </div>
+        ) : hasEmbeds ? (
+          <div
+            className="flex flex-col gap-y-1.5 py-1"
+            role="presentation"
+            aria-label="Cast with embedded media, no text"
+          >
+            <div className="h-3.5 w-full rounded bg-muted-foreground/15" />
+            <div className="h-3.5 w-3/5 rounded bg-muted-foreground/15" />
+          </div>
+        ) : null}
 
         {/* Meta row — muted timestamp · optional channel · likes (when > 0) */}
         <div className="flex items-center gap-x-1.5 text-xs leading-4 text-foreground/50 min-w-0">
