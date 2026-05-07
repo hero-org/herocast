@@ -2,8 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { useTheme } from 'next-themes';
-import { SnapCard } from '@farcaster/snap/react';
-import type { SnapPage, SnapActionHandlers } from '@farcaster/snap/react';
+import { SnapView, type SnapPage, type SnapActionHandlers } from '@/common/components/Snap/SnapView';
 import { openWindow } from '@/common/helpers/navigation';
 import { EmbedSkeleton } from './EmbedSkeleton';
 
@@ -28,7 +27,6 @@ const SnapEmbed = ({ url, snapData }: SnapEmbedProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           target,
-          // For now, send unsigned payload. JFS signing will be added as a follow-up.
           body: JSON.stringify({ inputs, timestamp: Math.floor(Date.now() / 1000) }),
         }),
       });
@@ -59,7 +57,6 @@ const SnapEmbed = ({ url, snapData }: SnapEmbedProps) => {
       if (data.snap) {
         setSnap(data.snap as SnapPage);
       } else {
-        // Fallback: open in browser
         openWindow(target);
       }
     } catch {
@@ -77,7 +74,6 @@ const SnapEmbed = ({ url, snapData }: SnapEmbedProps) => {
     view_cast: ({ hash }) => openWindow(`https://warpcast.com/~/conversations/${hash}`),
     view_profile: ({ fid }) => openWindow(`/profile/${fid}`),
     compose_cast: () => {
-      // TODO: integrate with useDraftStore to open composer
       console.log('compose_cast action from snap');
     },
     view_token: () => {},
@@ -87,7 +83,7 @@ const SnapEmbed = ({ url, snapData }: SnapEmbedProps) => {
 
   return (
     <div className="max-w-lg" onClick={(e) => e.stopPropagation()}>
-      <SnapCard
+      <SnapView
         snap={snap}
         handlers={handlers}
         loading={loading}

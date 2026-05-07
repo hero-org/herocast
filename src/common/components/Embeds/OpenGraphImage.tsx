@@ -238,7 +238,7 @@ const OpenGraphImage = ({
     return (
       <div ref={ref}>
         <Suspense fallback={<UrlMetadataSkeleton />}>
-          <SnapEmbed url={url} snapData={snapData as import('@farcaster/snap/react').SnapPage} />
+          <SnapEmbed url={url} snapData={snapData as import('@/common/components/Snap/SnapView').SnapPage} />
         </Suspense>
       </div>
     );
