@@ -141,6 +141,16 @@ jest.mock('@/common/components/Embeds/EmbedCarousel', () => ({
   default: ({ embeds }: { embeds: unknown[] }) => <div data-testid="embed-carousel-stub" data-count={embeds.length} />,
 }));
 
+// MultiEmbedStack only renders inside the preview pane (PreviewEmbedContext).
+// The legacy regression path never enters that context, so the component is
+// stubbed to avoid pulling in its ESM-only transitive deps (react-tweet,
+// frame-sdk).
+jest.mock('@/common/components/Feed/MultiEmbedStack', () => ({
+  __esModule: true,
+  MultiEmbedStack: () => null,
+  default: () => null,
+}));
+
 jest.mock('@/common/components/Embeds/NftSaleEmbed', () => ({
   __esModule: true,
   default: ({ url }: { url: string }) => <div data-testid="nft-sale-embed" data-url={url} />,

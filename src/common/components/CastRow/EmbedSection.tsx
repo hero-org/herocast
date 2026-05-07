@@ -9,6 +9,8 @@ import EmbedCarousel from '../Embeds/EmbedCarousel';
 import NftSaleEmbed from '../Embeds/NftSaleEmbed';
 import OpenGraphImage from '../Embeds/OpenGraphImage';
 import SwapEmbed from '../Embeds/SwapEmbed';
+import { MultiEmbedStack } from '../Feed/MultiEmbedStack';
+import { usePreviewEmbedContext } from '../Feed/PreviewEmbedContext';
 
 interface ExternalUrlReplyProps {
   parentUrl: string | null;
@@ -63,6 +65,18 @@ interface EmbedListProps {
 }
 
 export const EmbedList: React.FC<EmbedListProps> = ({ cast, isSelected, hideReactions }) => {
+  const { inPreview } = usePreviewEmbedContext();
+
+  // Preview pane uses MultiEmbedStack which owns its own filter pass — short
+  // circuit before doing the legacy carousel filter so we don't pay for it.
+  if (inPreview) {
+    return <MultiEmbedStack cast={cast} hideReactions={hideReactions} />;
+  }
+
+  return <CarouselEmbedList cast={cast} isSelected={isSelected} hideReactions={hideReactions} />;
+};
+
+const CarouselEmbedList: React.FC<EmbedListProps> = ({ cast, isSelected, hideReactions }) => {
   const filteredEmbeds = useMemo(() => {
     if (!('embeds' in cast) || !cast.embeds.length) {
       return [];
