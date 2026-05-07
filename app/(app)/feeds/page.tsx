@@ -8,6 +8,8 @@ import { Key } from 'ts-key-enum';
 import { CastRow } from '@/common/components/CastRow';
 import { CastThreadView } from '@/common/components/CastThreadView';
 import { CreateAccountPage } from '@/common/components/CreateAccountPage';
+import { PreviewPane } from '@/common/components/Feed/PreviewPane';
+import { SplitPaneShell } from '@/common/components/Feed/SplitPaneShell';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
 import { AccountStatusType } from '@/common/constants/accounts';
@@ -16,6 +18,7 @@ import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
 import { createClient } from '@/common/helpers/supabase/component';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { useMediaQuery } from '@/common/hooks/useMediaQuery';
 import type { FarcasterCast } from '@/common/types/farcaster';
 import { isFidListContent, isSearchListContent } from '@/common/types/list.types';
 import { Button } from '@/components/ui/button';
@@ -184,10 +187,21 @@ export default function Feeds() {
     nextCursor = channelQuery.hasNextPage ? 'has-more' : '';
   }
 
-  const onSelectCast = useCallback((idx: number) => {
-    setSelectedCastIdx(idx);
-    setShowCastThreadView(true);
-  }, []);
+  // On desktop the preview pane already shows the selected cast, so click /
+  // Enter / `o` should just update selection. Below the lg breakpoint there is
+  // no preview pane, so we preserve today's behavior of opening the full-page
+  // thread view.
+  const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: false });
+
+  const onSelectCast = useCallback(
+    (idx: number) => {
+      setSelectedCastIdx(idx);
+      if (!isDesktop) {
+        setShowCastThreadView(true);
+      }
+    },
+    [isDesktop]
+  );
 
   useEffect(() => {
     // Scroll the main content container to top when feed changes
@@ -529,6 +543,10 @@ export default function Feeds() {
     );
   };
 
+  const previewCast = selectedCastIdx >= 0 ? casts[selectedCastIdx] : null;
+  const showPreviewChannel =
+    selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING;
+
   const renderContent = () => (
     <main className="w-full h-full">
       {isLoadingFeed && isEmpty(casts) && (
@@ -541,10 +559,15 @@ export default function Feeds() {
       {showCastThreadView ? (
         renderThread()
       ) : (
-        <div className="h-full w-full">
-          {renderFeed()}
-          {renderWelcomeMessage()}
-        </div>
+        <SplitPaneShell
+          list={
+            <div className="h-full w-full">
+              {renderFeed()}
+              {renderWelcomeMessage()}
+            </div>
+          }
+          preview={<PreviewPane cast={previewCast} showChannel={showPreviewChannel} />}
+        />
       )}
     </main>
   );
