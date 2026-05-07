@@ -480,8 +480,9 @@ export default function Feeds() {
       <li key={item?.hash} className="border-b border-border relative w-full" ref={isSentinel ? buttonRef : undefined}>
         <CompactCastRow
           cast={item}
+          idx={idx}
           isSelected={selectedCastIdx === idx}
-          onSelect={() => onSelectCast(idx)}
+          onSelect={onSelectCast}
           showChannel={
             selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
           }
