@@ -136,14 +136,15 @@ const CompactCastRowComponent: React.FC<CompactCastRowProps> = ({ cast, idx, isS
             {cast.text}
           </div>
         ) : hasEmbeds ? (
+          // Outlined placeholder for media-only casts. Single rounded box
+          // at the same height as 2 lines of clamped text so the row
+          // maintains rhythm. Outline-only (no fill) reads as intentional
+          // placeholder rather than a still-loading skeleton.
           <div
-            className="flex flex-col gap-y-1.5 py-1"
+            className="my-1 h-9 w-full rounded-md border border-foreground/15"
             role="presentation"
             aria-label="Cast with embedded media, no text"
-          >
-            <div className="h-3.5 w-full rounded bg-muted-foreground/15" />
-            <div className="h-3.5 w-3/5 rounded bg-muted-foreground/15" />
-          </div>
+          />
         ) : null}
 
         {/* Meta row — muted timestamp · optional channel · likes (when > 0) */}
