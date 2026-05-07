@@ -51,7 +51,25 @@ type SplitPaneShellProps = {
   preview: ReactNode;
   /** Optional className applied to the outer container. */
   className?: string;
+  /**
+   * When `true`, draws a subtle focus accent ring on the list pane. Mutually
+   * exclusive with `previewFocused`. When neither is set the panes render
+   * without focus chrome (initial mount / mobile).
+   */
+  listFocused?: boolean;
+  /**
+   * When `true`, draws a subtle focus accent ring on the preview pane.
+   * Mutually exclusive with `listFocused`.
+   */
+  previewFocused?: boolean;
 };
+
+/**
+ * Tailwind classes applied to the focused pane. Uses the same accent token as
+ * selected-row chrome in `StandardCastRow.tsx` (`border-foreground/20`) so
+ * focus indication feels native to the rest of the feed UI.
+ */
+const FOCUS_RING_CLASSES = 'ring-1 ring-inset ring-foreground/20';
 
 /**
  * Snap the layout to the nearest defined snap point if the released layout is
@@ -67,7 +85,13 @@ function getSnappedLayout(listSize: number): { list: number; preview: number } |
   return null;
 }
 
-export function SplitPaneShell({ list, preview, className }: SplitPaneShellProps) {
+export function SplitPaneShell({
+  list,
+  preview,
+  className,
+  listFocused = false,
+  previewFocused = false,
+}: SplitPaneShellProps) {
   const isDesktop = useMediaQuery(LG_BREAKPOINT_QUERY, { defaultValue: false });
   const [groupHandle, groupRef] = useGroupCallbackRef();
   // Track whether we're mounted so we can avoid SSR / hydration mismatch on
@@ -121,8 +145,9 @@ export function SplitPaneShell({ list, preview, className }: SplitPaneShellProps
         id={LIST_PANEL_ID}
         defaultSize={DEFAULT_LIST_SIZE}
         minSize={MIN_PANEL_SIZE}
-        className="h-full min-w-0 overflow-hidden"
+        className={cn('h-full min-w-0 overflow-hidden', listFocused && FOCUS_RING_CLASSES)}
         data-testid="split-pane-list"
+        data-focus-region={listFocused ? 'list' : undefined}
       >
         {list}
       </Panel>
@@ -134,8 +159,9 @@ export function SplitPaneShell({ list, preview, className }: SplitPaneShellProps
         id={PREVIEW_PANEL_ID}
         defaultSize={DEFAULT_PREVIEW_SIZE}
         minSize={MIN_PANEL_SIZE}
-        className="h-full min-w-0 overflow-hidden"
+        className={cn('h-full min-w-0 overflow-hidden', previewFocused && FOCUS_RING_CLASSES)}
         data-testid="split-pane-preview"
+        data-focus-region={previewFocused ? 'preview' : undefined}
       >
         {preview}
       </Panel>

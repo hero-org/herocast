@@ -61,6 +61,11 @@ export default function Feeds() {
   const [isRefreshingPage, setIsRefreshingPage] = useState(false);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
   const [showCastThreadView, setShowCastThreadView] = useState(false);
+  // Which split-pane region currently owns keyboard focus on desktop. Tab
+  // toggles between list / preview; Shift+ArrowLeft/Right switch directly;
+  // Esc returns to the list. State is meaningless below `lg` (no preview pane
+  // mounts) and is reset to `false` by media-query changes / feed switches.
+  const [previewFocused, setPreviewFocused] = useState(false);
   const lastUpdateTimeRef = useRef(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -313,7 +318,7 @@ export default function Feeds() {
     });
   }, [selectedCast, setCastModalView, updateSelectedCast, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
 
-  // Escape handler to close thread view (only when no modal is open)
+  // Escape handler to close thread view (only when no modal is open).
   useAppHotkeys(
     [Key.Escape, '§'],
     () => {
@@ -326,6 +331,70 @@ export default function Feeds() {
       enabled: showCastThreadView && !isNewCastModalOpen,
     },
     [showCastThreadView, isNewCastModalOpen, setShowCastThreadView]
+  );
+
+  // Split-pane focus toggling. These hotkeys are dual-gated: each is scoped to
+  // the FEED scope (active on `/feeds`) AND uses `enabled` to stop firing in
+  // states where the toggle would be meaningless (modal open, thread view, no
+  // preview pane mounted, etc.). `preventDefault: true` is required for Tab
+  // and Shift+arrow so the browser's native focus-cycling / scroll behavior
+  // doesn't fire alongside the callback.
+  const splitPaneHotkeysActive = isDesktop && !showCastThreadView && !isNewCastModalOpen;
+
+  useAppHotkeys(
+    'Tab',
+    () => {
+      setPreviewFocused((prev) => !prev);
+    },
+    {
+      scopes: [HotkeyScopes.FEED],
+      enabled: splitPaneHotkeysActive,
+      preventDefault: true,
+    },
+    [splitPaneHotkeysActive]
+  );
+
+  useAppHotkeys(
+    'shift+ArrowRight',
+    () => {
+      setPreviewFocused(true);
+    },
+    {
+      scopes: [HotkeyScopes.FEED],
+      enabled: splitPaneHotkeysActive && !previewFocused,
+      preventDefault: true,
+    },
+    [splitPaneHotkeysActive, previewFocused]
+  );
+
+  useAppHotkeys(
+    'shift+ArrowLeft',
+    () => {
+      setPreviewFocused(false);
+    },
+    {
+      scopes: [HotkeyScopes.FEED],
+      enabled: splitPaneHotkeysActive && previewFocused,
+      preventDefault: true,
+    },
+    [splitPaneHotkeysActive, previewFocused]
+  );
+
+  // Esc returns focus to the list. Gated on `!showCastThreadView` so the
+  // existing thread-view Esc handler above keeps priority when both states
+  // could fire (in practice they are mutually exclusive — thread view replaces
+  // the split pane entirely — but the explicit gate prevents accidental
+  // double-handling if that invariant changes).
+  useAppHotkeys(
+    Key.Escape,
+    () => {
+      setPreviewFocused(false);
+    },
+    {
+      scopes: [HotkeyScopes.FEED],
+      enabled: splitPaneHotkeysActive && previewFocused && !showCastThreadView,
+    },
+    [splitPaneHotkeysActive, previewFocused, showCastThreadView]
   );
 
   const refreshFeed = useCallback(() => {
@@ -391,7 +460,17 @@ export default function Feeds() {
     closeNewCastModal();
     setShowCastThreadView(false);
     setSelectedCastIdx(-1);
+    setPreviewFocused(false);
   }, [selectedChannelUrl, selectedListId]);
+
+  // Reset preview focus if the user shrinks below the lg breakpoint — there is
+  // no preview pane mounted in mobile mode, so leaving `previewFocused: true`
+  // would silently disable list j/k navigation.
+  useEffect(() => {
+    if (!isDesktop && previewFocused) {
+      setPreviewFocused(false);
+    }
+  }, [isDesktop, previewFocused]);
 
   const renderRow = (item: any, idx: number) => {
     // Attach sentinel ref to 5th-from-last item for auto-pagination
@@ -468,7 +547,9 @@ export default function Feeds() {
       setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
       onSelect={onSelectCast}
-      isActive={!(showCastThreadView || isNewCastModalOpen)}
+      // When preview-focus is active the list's j/k must NOT move selection —
+      // the user is scrolling the preview pane (browser default) instead.
+      isActive={!(showCastThreadView || isNewCastModalOpen) && !previewFocused}
       pinnedNavigation={true}
       containerHeight="100%"
       scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
@@ -579,6 +660,8 @@ export default function Feeds() {
             </div>
           }
           preview={<PreviewPane cast={previewCast} showChannel={showPreviewChannel} />}
+          listFocused={isDesktop && !previewFocused}
+          previewFocused={isDesktop && previewFocused}
         />
       )}
     </main>
