@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { Key } from 'ts-key-enum';
-import { CastRow } from '@/common/components/CastRow';
+import { CompactCastRow } from '@/common/components/CastRow/CompactCastRow';
 import { CastThreadView } from '@/common/components/CastThreadView';
 import { CreateAccountPage } from '@/common/components/CreateAccountPage';
 import { PreviewPane } from '@/common/components/Feed/PreviewPane';
@@ -477,12 +477,8 @@ export default function Feeds() {
     const isSentinel = idx === casts.length - PREFETCH_THRESHOLD;
 
     return (
-      <li
-        key={item?.hash}
-        className="border-b border-border relative w-full pr-4"
-        ref={isSentinel ? buttonRef : undefined}
-      >
-        <CastRow
+      <li key={item?.hash} className="border-b border-border relative w-full" ref={isSentinel ? buttonRef : undefined}>
+        <CompactCastRow
           cast={item}
           isSelected={selectedCastIdx === idx}
           onSelect={() => onSelectCast(idx)}
@@ -554,7 +550,7 @@ export default function Feeds() {
       containerHeight="100%"
       scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
       footer={!isEmpty(casts) ? renderLoadMoreButton() : null}
-      estimatedItemHeight={400}
+      estimatedItemHeight={88}
     />
   );
 
