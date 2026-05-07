@@ -6,7 +6,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { Key } from 'ts-key-enum';
 import { CompactCastRow } from '@/common/components/CastRow/CompactCastRow';
-import { CastThreadView } from '@/common/components/CastThreadView';
 import { CreateAccountPage } from '@/common/components/CreateAccountPage';
 import { NewCastsPill } from '@/common/components/Feed/NewCastsPill';
 import { PreviewPane } from '@/common/components/Feed/PreviewPane';
@@ -61,7 +60,6 @@ const supabaseClient = createClient();
 export default function Feeds() {
   const [isRefreshingPage, setIsRefreshingPage] = useState(false);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
-  const [showCastThreadView, setShowCastThreadView] = useState(false);
   // Which split-pane region currently owns keyboard focus on desktop. Tab
   // toggles between list / preview; Shift+ArrowLeft/Right switch directly;
   // Esc returns to the list. State is meaningless below `lg` (no preview pane
@@ -227,18 +225,21 @@ export default function Feeds() {
 
   // On desktop the preview pane already shows the selected cast, so click /
   // Enter / `o` should just update selection. Below the lg breakpoint there is
-  // no preview pane, so we preserve today's behavior of opening the full-page
-  // thread view.
+  // no preview pane, so navigate to the dedicated /cast/[hash] route — same UX
+  // as the retired full-page thread view, served by the deep-link route.
   const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: false });
 
   const onSelectCast = useCallback(
     (idx: number) => {
       setSelectedCastIdx(idx);
       if (!isDesktop) {
-        setShowCastThreadView(true);
+        const cast = casts[idx];
+        if (cast?.hash) {
+          router.push(`/cast/${cast.hash}`);
+        }
       }
     },
-    [isDesktop]
+    [isDesktop, casts, router]
   );
 
   useEffect(() => {
@@ -406,28 +407,13 @@ export default function Feeds() {
     });
   }, [selectedCast, setCastModalView, updateSelectedCast, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
 
-  // Escape handler to close thread view (only when no modal is open).
-  useAppHotkeys(
-    [Key.Escape, '§'],
-    () => {
-      setShowCastThreadView(false);
-    },
-    {
-      scopes: [HotkeyScopes.FEED],
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-      enabled: showCastThreadView && !isNewCastModalOpen,
-    },
-    [showCastThreadView, isNewCastModalOpen, setShowCastThreadView]
-  );
-
   // Split-pane focus toggling. These hotkeys are dual-gated: each is scoped to
   // the FEED scope (active on `/feeds`) AND uses `enabled` to stop firing in
-  // states where the toggle would be meaningless (modal open, thread view, no
-  // preview pane mounted, etc.). `preventDefault: true` is required for Tab
-  // and Shift+arrow so the browser's native focus-cycling / scroll behavior
-  // doesn't fire alongside the callback.
-  const splitPaneHotkeysActive = isDesktop && !showCastThreadView && !isNewCastModalOpen;
+  // states where the toggle would be meaningless (modal open, no preview pane
+  // mounted, etc.). `preventDefault: true` is required for Tab and Shift+arrow
+  // so the browser's native focus-cycling / scroll behavior doesn't fire
+  // alongside the callback.
+  const splitPaneHotkeysActive = isDesktop && !isNewCastModalOpen;
 
   useAppHotkeys(
     'Tab',
@@ -468,11 +454,7 @@ export default function Feeds() {
     [splitPaneHotkeysActive, previewFocused]
   );
 
-  // Esc returns focus to the list. Gated on `!showCastThreadView` so the
-  // existing thread-view Esc handler above keeps priority when both states
-  // could fire (in practice they are mutually exclusive — thread view replaces
-  // the split pane entirely — but the explicit gate prevents accidental
-  // double-handling if that invariant changes).
+  // Esc returns focus to the list when preview pane has focus.
   useAppHotkeys(
     Key.Escape,
     () => {
@@ -480,9 +462,9 @@ export default function Feeds() {
     },
     {
       scopes: [HotkeyScopes.FEED],
-      enabled: splitPaneHotkeysActive && previewFocused && !showCastThreadView,
+      enabled: splitPaneHotkeysActive && previewFocused,
     },
-    [splitPaneHotkeysActive, previewFocused, showCastThreadView]
+    [splitPaneHotkeysActive, previewFocused]
   );
 
   const refreshFeed = useCallback(() => {
@@ -546,7 +528,6 @@ export default function Feeds() {
 
   useEffect(() => {
     closeNewCastModal();
-    setShowCastThreadView(false);
     setSelectedCastIdx(-1);
     setPreviewFocused(false);
   }, [selectedChannelUrl, selectedListId]);
@@ -634,7 +615,7 @@ export default function Feeds() {
       onSelect={onSelectCast}
       // When preview-focus is active the list's j/k must NOT move selection —
       // the user is scrolling the preview pane (browser default) instead.
-      isActive={!(showCastThreadView || isNewCastModalOpen) && !previewFocused}
+      isActive={!isNewCastModalOpen && !previewFocused}
       pinnedNavigation={true}
       containerHeight="100%"
       scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
@@ -643,15 +624,6 @@ export default function Feeds() {
       // Suppress the virtualizer's auto-scroll-to-top on feed refresh: the
       // NewCastsPill flow owns scrolling so the user keeps their place.
       disableAutoScrollOnFirstItemChange={true}
-    />
-  );
-
-  const renderThread = () => (
-    <CastThreadView
-      cast={casts[selectedCastIdx]}
-      onBack={() => setShowCastThreadView(false)}
-      onReply={onReply}
-      onQuote={onQuote}
     />
   );
 
@@ -737,25 +709,21 @@ export default function Feeds() {
           ))}
         </div>
       )}
-      {showCastThreadView ? (
-        renderThread()
-      ) : (
-        <SplitPaneShell
-          list={
-            // `relative` is required so NewCastsPill (absolute-positioned) anchors
-            // to this wrapper rather than escaping to some ancestor. The ref lets
-            // effects scope querySelector('.overflow-y-auto') to just the list.
-            <div className="relative h-full w-full" ref={listWrapperRef}>
-              <NewCastsPill count={newCastsCount} onClick={handlePillClick} />
-              {renderFeed()}
-              {renderWelcomeMessage()}
-            </div>
-          }
-          preview={<PreviewPane cast={previewCast} showChannel={showPreviewChannel} />}
-          listFocused={isDesktop && !previewFocused}
-          previewFocused={isDesktop && previewFocused}
-        />
-      )}
+      <SplitPaneShell
+        list={
+          // `relative` is required so NewCastsPill (absolute-positioned) anchors
+          // to this wrapper rather than escaping to some ancestor. The ref lets
+          // effects scope querySelector('.overflow-y-auto') to just the list.
+          <div className="relative h-full w-full" ref={listWrapperRef}>
+            <NewCastsPill count={newCastsCount} onClick={handlePillClick} />
+            {renderFeed()}
+            {renderWelcomeMessage()}
+          </div>
+        }
+        preview={<PreviewPane cast={previewCast} showChannel={showPreviewChannel} />}
+        listFocused={isDesktop && !previewFocused}
+        previewFocused={isDesktop && previewFocused}
+      />
     </main>
   );
 
