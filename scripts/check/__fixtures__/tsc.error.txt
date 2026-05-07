@@ -1,0 +1,9 @@
+src/components/Example.tsx(12,5): error TS2322: Type 'number' is not assignable to type 'string'.
+src/lib/helpers/foo.ts(48,16): error TS2339: Property 'bar' does not exist on type 'Baz'.
+src/hooks/useThing.ts(7,9): error TS2304: Cannot find name 'NotImported'.
+Found 3 errors in 3 files.
+
+Errors  Files
+     1  src/components/Example.tsx:12
+     1  src/lib/helpers/foo.ts:48
+     1  src/hooks/useThing.ts:7
