@@ -71,10 +71,14 @@ export default function Feeds() {
   const [acknowledgedFirstHash, setAcknowledgedFirstHash] = useState<string | null>(null);
   const lastUpdateTimeRef = useRef(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
-  // Wrapper for the list pane — used to scope the scroll listener / force
-  // scroll-to-top when the pill is clicked, so we don't accidentally target
-  // some other `.overflow-y-auto` on the page.
+  // Wrapper for the list pane — used to scope the pill scroll-to-top click
+  // handler. Kept separate from `listScrollContainerRef` because the wrapper
+  // also hosts the pill itself.
   const listWrapperRef = useRef<HTMLDivElement>(null);
+  // Direct handle on the SelectableListWithHotkeys scroll element so the
+  // pill auto-acknowledge listener attaches to a known element instead of a
+  // fragile `querySelector('.overflow-y-auto')` against internal markup.
+  const listScrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { lists, selectedListId, setSelectedListId } = useListStore();
   const {
@@ -264,21 +268,27 @@ export default function Feeds() {
   const topHash = casts[0]?.hash;
 
   // Initialize / re-initialize the acknowledged hash on the first non-empty
-  // render after a feed switch (or initial mount). Without this, the pill
-  // would show "N new casts" against `null` forever.
+  // render after a feed switch (or initial mount), and reset it whenever the
+  // currently-acknowledged hash is no longer present in `casts`. The latter
+  // guard handles transient empty refetches and server-side prunes — without
+  // it, the count math (above) would silently fall back to 0 (idx === -1)
+  // but the acknowledged hash would stay pointed at a phantom cast forever.
   useEffect(() => {
-    if (acknowledgedFirstHash === null && topHash) {
+    if (!topHash) return;
+    if (acknowledgedFirstHash === null) {
+      setAcknowledgedFirstHash(topHash);
+      return;
+    }
+    if (!casts.some((c) => c?.hash === acknowledgedFirstHash)) {
       setAcknowledgedFirstHash(topHash);
     }
-  }, [acknowledgedFirstHash, topHash]);
+  }, [acknowledgedFirstHash, topHash, casts]);
 
   // Auto-dismiss the pill when the list pane is already scrolled to the top:
   // if the user is staring at the top of the feed when new casts arrive,
   // there's no point pestering them with a pill.
   useEffect(() => {
-    const wrapper = listWrapperRef.current;
-    if (!wrapper) return;
-    const scrollContainer = wrapper.querySelector<HTMLElement>('.overflow-y-auto');
+    const scrollContainer = listScrollContainerRef.current;
     if (!scrollContainer) return;
 
     const handleScroll = () => {
@@ -308,12 +318,9 @@ export default function Feeds() {
     // effect. We still force scrollTop=0 below to cover the edge case where
     // selection was already 0 (effect won't re-run on identical value).
     setSelectedCastIdx(0);
-    const wrapper = listWrapperRef.current;
-    if (wrapper) {
-      const scrollContainer = wrapper.querySelector<HTMLElement>('.overflow-y-auto');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = 0;
-      }
+    const scrollContainer = listScrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
     }
   }, [topHash]);
 
@@ -624,6 +631,9 @@ export default function Feeds() {
       // Suppress the virtualizer's auto-scroll-to-top on feed refresh: the
       // NewCastsPill flow owns scrolling so the user keeps their place.
       disableAutoScrollOnFirstItemChange={true}
+      // Get a stable handle on the scroll element so the pill auto-acknowledge
+      // listener doesn't have to query DOM by class name.
+      scrollContainerRef={listScrollContainerRef}
     />
   );
 
