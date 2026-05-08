@@ -7,7 +7,18 @@
     "defaultBranch": "main"
   },
   "files": {
-    "includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json", "**/*.md"]
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.json",
+      "**/*.md",
+      "!.context",
+      "!.next",
+      "!supabase/functions",
+      "!src/common/types/database.types.ts"
+    ]
   },
   "formatter": {
     "enabled": true,
