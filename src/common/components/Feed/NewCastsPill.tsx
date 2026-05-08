@@ -29,26 +29,37 @@ type NewCastsPillProps = {
 };
 
 export function NewCastsPill({ count, onClick, className }: NewCastsPillProps) {
-  if (count <= 0) return null;
-
-  const label = `${count} new ${count === 1 ? 'cast' : 'casts'}`;
+  const hasCasts = count > 0;
+  const label = hasCasts ? `${count} new ${count === 1 ? 'cast' : 'casts'}` : '';
   const ariaLabel = `Load ${count} new ${count === 1 ? 'cast' : 'casts'} and scroll to top`;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      data-testid="new-casts-pill"
-      className={cn(
-        'absolute top-2 left-1/2 z-10 -translate-x-1/2',
-        'inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1 text-xs font-medium text-background shadow',
-        'hover:bg-foreground/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-foreground/50 transition-colors',
-        className
+    <>
+      {/* Always-mounted screen-reader live region. Its content changes when
+          new casts arrive, which screen readers announce automatically. The
+          visible button below is rendered conditionally and may not exist
+          when the user scrolls back to the top — the live region keeps the
+          announcement working in both states. */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {label}
+      </div>
+      {hasCasts && (
+        <button
+          type="button"
+          onClick={onClick}
+          aria-label={ariaLabel}
+          data-testid="new-casts-pill"
+          className={cn(
+            'absolute top-2 left-1/2 z-10 -translate-x-1/2',
+            'inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1 text-xs font-medium text-background shadow',
+            'hover:bg-foreground/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-foreground/50 transition-colors',
+            className
+          )}
+        >
+          <span>{label}</span>
+          <ChevronUpIcon className="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
       )}
-    >
-      <span>{label}</span>
-      <ChevronUpIcon className="h-3.5 w-3.5" aria-hidden="true" />
-    </button>
+    </>
   );
 }

@@ -146,6 +146,8 @@ export function SplitPaneShell({
         defaultSize={DEFAULT_LIST_SIZE}
         minSize={MIN_PANEL_SIZE}
         className={cn('h-full min-w-0 overflow-hidden', listFocused && FOCUS_RING_CLASSES)}
+        role="region"
+        aria-label="Feed list"
         data-testid="split-pane-list"
         data-focus-region={listFocused ? 'list' : undefined}
       >

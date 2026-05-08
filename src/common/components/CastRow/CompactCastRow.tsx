@@ -98,6 +98,27 @@ const CompactCastRowComponent: React.FC<CompactCastRowProps> = ({ cast, idx, isS
     [onSelect, idx]
   );
 
+  // Mirror click behavior on Enter / Space so screen-reader users (who
+  // activate role="button" elements via those keys) can open a cast even
+  // though the row sits outside the normal Tab order.
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        event.stopPropagation();
+        onSelect?.(idx);
+      }
+    },
+    [onSelect, idx]
+  );
+
+  // Surfaced to assistive tech as the button's accessible name. Identity
+  // first so screen-reader users hear who posted, then a snippet of the
+  // cast so they know whether to engage before activating it.
+  const accessibleName = displayName
+    ? `Open cast by ${displayName}${cast.text ? `: ${cast.text}` : ''}`
+    : `Open cast${cast.text ? `: ${cast.text}` : ''}`;
+
   return (
     <div
       className={cn(
@@ -105,9 +126,20 @@ const CompactCastRowComponent: React.FC<CompactCastRowProps> = ({ cast, idx, isS
         // Selected-row treatment matches StandardCastRow:
         //   bg-muted + 1px left border accent.
         // Hover is a softer muted/50 to avoid fighting with selected styling.
-        isSelected ? 'bg-muted border-l border-foreground/20' : 'border-l border-transparent hover:bg-muted/50'
+        isSelected ? 'bg-muted border-l border-foreground/20' : 'border-l border-transparent hover:bg-muted/50',
+        'focus-visible:outline-none focus-visible:bg-muted'
       )}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      // tabIndex={-1} keeps the row out of the page Tab order (which is
+      // reserved for split-pane region toggling) but still makes the
+      // element focusable programmatically — screen readers can move
+      // real focus here when the user navigates to it via list / button
+      // rotor controls.
+      tabIndex={-1}
+      role="button"
+      aria-label={accessibleName}
+      aria-pressed={isSelected ? true : undefined}
       data-testid="compact-cast-row"
       data-selected={isSelected ? 'true' : undefined}
     >

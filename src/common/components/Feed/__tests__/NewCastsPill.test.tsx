@@ -8,16 +8,18 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { NewCastsPill } from '../NewCastsPill';
 
 describe('NewCastsPill', () => {
-  it('returns null when count is 0', () => {
-    const { container } = render(<NewCastsPill count={0} onClick={jest.fn()} />);
-    expect(container.firstChild).toBeNull();
+  it('hides the visible pill when count is 0 (live region stays mounted)', () => {
+    render(<NewCastsPill count={0} onClick={jest.fn()} />);
     expect(screen.queryByTestId('new-casts-pill')).toBeNull();
+    // Live region stays mounted with empty content so screen readers can
+    // announce when count later changes from 0 to N.
+    expect(screen.getByRole('status').textContent).toBe('');
   });
 
-  it('returns null for negative counts (defensive)', () => {
-    const { container } = render(<NewCastsPill count={-3} onClick={jest.fn()} />);
-    expect(container.firstChild).toBeNull();
+  it('hides the visible pill for negative counts (defensive)', () => {
+    render(<NewCastsPill count={-3} onClick={jest.fn()} />);
     expect(screen.queryByTestId('new-casts-pill')).toBeNull();
+    expect(screen.getByRole('status').textContent).toBe('');
   });
 
   it('renders singular "1 new cast" when count is 1', () => {
