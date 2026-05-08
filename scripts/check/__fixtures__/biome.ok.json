@@ -1,0 +1,13 @@
+{
+  "summary": {
+    "changed": 0,
+    "unchanged": 42,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "suggestedFixesSkipped": 0,
+    "diagnosticsNotPrinted": 0,
+    "duration": { "secs": 0, "nanos": 9876543 }
+  },
+  "diagnostics": []
+}

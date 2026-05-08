@@ -12,4 +12,4 @@ else
   PNPM_CMD="npx pnpm"
 fi
 
-$PNPM_CMD typecheck
+$PNPM_CMD check

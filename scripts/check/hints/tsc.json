@@ -1,0 +1,70 @@
+{
+  "TS2322": {
+    "fix_hint": "Type X is not assignable to type Y. Either widen the target type, narrow the source value, or update the union/interface to match the actual shape.",
+    "see_also": "docs/agents/typecheck.md#ts2322"
+  },
+  "TS2339": {
+    "fix_hint": "Property does not exist on type. Either the property is missing from the interface, the variable is the wrong type, or you need a type guard.",
+    "see_also": "docs/agents/typecheck.md#ts2339"
+  },
+  "TS2304": {
+    "fix_hint": "Cannot find name. Add the missing import or check for typos.",
+    "see_also": "docs/agents/typecheck.md#ts2304"
+  },
+  "TS2345": {
+    "fix_hint": "Argument of type X is not assignable to parameter of type Y. Adjust the call site or relax the parameter type.",
+    "see_also": "docs/agents/typecheck.md#ts2345"
+  },
+  "TS2554": {
+    "fix_hint": "Wrong number of arguments. Check function signature; consider optional parameters or default values.",
+    "see_also": "docs/agents/typecheck.md#ts2554"
+  },
+  "TS2769": {
+    "fix_hint": "No overload matches this call. Inspect the overload list; commonly resolved by passing the correct discriminator or fixing argument shape.",
+    "see_also": "docs/agents/typecheck.md#ts2769"
+  },
+  "TS7006": {
+    "fix_hint": "Parameter implicitly has an 'any' type. Add an explicit annotation or enable inference via context.",
+    "see_also": "docs/agents/typecheck.md#ts7006"
+  },
+  "TS18048": {
+    "fix_hint": "Value is possibly undefined. Add a null/undefined guard or use the non-null assertion only when invariant is documented.",
+    "see_also": "docs/agents/typecheck.md#ts18048"
+  },
+  "TS18047": {
+    "fix_hint": "Value is possibly null. Guard with a null check or use optional chaining.",
+    "see_also": "docs/agents/typecheck.md#ts18047"
+  },
+  "TS2741": {
+    "fix_hint": "Property is missing in type but required. Provide the missing field or mark it optional in the target type.",
+    "see_also": "docs/agents/typecheck.md#ts2741"
+  },
+  "TS2538": {
+    "fix_hint": "Type cannot be used as an index type. Constrain the key to string|number|symbol.",
+    "see_also": "docs/agents/typecheck.md#ts2538"
+  },
+  "TS2786": {
+    "fix_hint": "Cannot be used as a JSX component. Check return type and named/default export shape.",
+    "see_also": "docs/agents/typecheck.md#ts2786"
+  },
+  "TS2353": {
+    "fix_hint": "Object literal may only specify known properties. Remove the unexpected key or extend the target type.",
+    "see_also": "docs/agents/typecheck.md#ts2353"
+  },
+  "TS2532": {
+    "fix_hint": "Object is possibly undefined. Use optional chaining or a guard before access.",
+    "see_also": "docs/agents/typecheck.md#ts2532"
+  },
+  "TS2305": {
+    "fix_hint": "Module has no exported member. Check the import path and module exports.",
+    "see_also": "docs/agents/typecheck.md#ts2305"
+  },
+  "TOOL_CRASH": {
+    "fix_hint": "The tool crashed before producing parseable output. See raw stderr for stack trace.",
+    "see_also": "docs/agents/typecheck.md#tool-crash"
+  },
+  "UNKNOWN_FAILURE": {
+    "fix_hint": "Tool exited non-zero with no parseable diagnostics. See raw stderr.",
+    "see_also": "docs/agents/typecheck.md#unknown-failure"
+  }
+}

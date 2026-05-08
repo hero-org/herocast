@@ -1,0 +1,42 @@
+{
+  "summary": {
+    "changed": 0,
+    "unchanged": 2,
+    "errors": 1,
+    "warnings": 1,
+    "skipped": 0,
+    "suggestedFixesSkipped": 0,
+    "diagnosticsNotPrinted": 0,
+    "duration": { "secs": 0, "nanos": 12345678 }
+  },
+  "diagnostics": [
+    {
+      "category": "lint/correctness/noUnusedImports",
+      "severity": "error",
+      "description": "Some imports are unused.",
+      "message": [{ "content": "Some imports are unused.", "elements": [] }],
+      "location": {
+        "path": { "file": "src/components/Example.tsx" },
+        "span": [10, 25],
+        "sourceCode": "import { Foo } from './foo';\nimport { Bar } from './bar';\n",
+        "lineStarts": [0, 30]
+      },
+      "advices": { "advices": [] },
+      "tags": []
+    },
+    {
+      "category": "lint/suspicious/noExplicitAny",
+      "severity": "warning",
+      "description": "Unexpected any.",
+      "message": [{ "content": "Unexpected any. Specify a different type.", "elements": [] }],
+      "location": {
+        "path": "src/lib/helpers/foo.ts",
+        "span": [120, 123],
+        "sourceCode": "function takes(x: any) {\n  return x;\n}\n",
+        "lineStarts": [0, 24, 41]
+      },
+      "advices": { "advices": [] },
+      "tags": []
+    }
+  ]
+}
