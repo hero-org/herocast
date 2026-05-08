@@ -739,10 +739,10 @@ export default function Feeds() {
     </main>
   );
 
-  // While redirecting away to /cast/[hash], render an empty placeholder so
-  // the feed never flashes during the transition.
+  // While redirecting away to /conversation/[hash], render an empty
+  // placeholder so the feed never flashes during the transition.
   if (shouldRedirectLegacyCastHash) {
-    return <main className="w-full h-full" data-testid="feeds-redirecting-to-cast" />;
+    return <main className="w-full h-full" data-testid="feeds-redirecting-to-conversation" />;
   }
 
   return renderContent();
