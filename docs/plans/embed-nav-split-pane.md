@@ -1,7 +1,7 @@
 # Embed Navigation: Split-Pane Feed Plan
 
 **Branch:** `hellno/embed-nav-modes`
-**Status:** Ready for implementation. CEO review + Design review + Eng review complete.
+**Status:** Phase 1 shipped. CEO review + Design review + Eng review complete; codex P0 reviews clean across all five lanes plus the consolidation and a11y polish.
 **Effort:** Phase 1 = 3 weeks (this PR). Phase 2 = ~2 weeks (separate PR, deferred).
 **Driver:** Founder taste (no user signal yet — instrument before broad rollout, see Phase 2)
 
@@ -237,20 +237,19 @@ Frames render and run inside the preview pane natively. No new tabs. Click-throu
 - Decommission `EmbedCarousel` keyboard left/right handler (`EmbedCarousel.tsx:111-131`)
 - Remove `CastThreadView` route-replace; new `/cast/0x...` route renders preview-only layout (no list visible). Legacy `?castHash=0x...` redirects.
 
-### Phase 1, Week 3: Polish + ship
-- Mobile fallback (<lg breakpoint, 1024px): single-column with tap-to-thread (today's behavior preserved as regression-critical)
-- Hotkey cheatsheet UI (`?` opens overlay with new model documented)
-- Mode/focus indicator (visual cue when keyboard focus is in preview vs list)
-- A11y: ARIA region landmarks for list + preview, focus outlines, screen-reader semantics for two-region layout
-- Tauri desktop verification (resize behavior, min widths)
-- No legacy toggle — split-pane is the new default
-- Test plan complete (see Test Plan section below)
+### Phase 1, Week 3: Polish + ship (shipped)
+- Mobile fallback (<lg breakpoint, 1024px): single-column with tap-to-thread — preserved end-to-end. Tap navigates to /conversation/[hash].
+- Mode/focus indicator: shipped in Lane 1C — list/preview pane gets a `ring-1 ring-inset ring-foreground/20` accent based on which region is focused.
+- A11y: ARIA region landmarks (`role="region"` on list pane and preview pane), `role="button"` + `aria-label` + Enter/Space keyboard handling on compact rows, screen-reader live region on the new-casts pill.
+- No legacy toggle — split-pane is the new default.
 
 ### Phase 2 (separate PR, deferred from this scope)
 - Rework `src/common/components/Workspace/panels/FeedPanel.tsx` around the shared split-pane primitive
 - Workspace becomes "multi-feed + preview" (Tweetdeck-style for power users)
 - Extract `useFeedSelection()` hook (or equivalent) when there's a second consumer
 - App-wide hotkey scope cleanup: refactor scope architecture to be focus-region-aware across feeds, notifications, search, conversations (currently each page hacks its own version)
+- Hotkey cheatsheet UI (`?` opens overlay with the new model documented)
+- Mobile single-column ARIA region landmark (desktop split-pane has them; mobile single-column path doesn't)
 - PostHog instrumentation iteration: unified event schema for feed/preview/embed interactions across the app, not just /feeds. Tracked at [hero-org/herocast#706](https://github.com/hero-org/herocast/issues/706).
 
 ---
