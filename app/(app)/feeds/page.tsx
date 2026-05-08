@@ -102,15 +102,17 @@ export default function Feeds() {
   const searchParams = useSearchParams();
   const account: AccountObjectType = accounts[selectedAccountIdx];
 
-  // Legacy ?castHash=0x... URLs are migrated to the dedicated /cast/[hash]
-  // route. Computed synchronously so the redirect effect runs before any
-  // feed queries get a chance to render content.
+  // Legacy ?castHash=0x... URLs are migrated to the /conversation/[hash]
+  // route, which renders the full thread (parent + cast + replies) — same
+  // surface that the rest of the app links to. Computed synchronously so
+  // the redirect effect runs before any feed queries get a chance to
+  // render content.
   const legacyCastHashParam = searchParams.get('castHash');
   const shouldRedirectLegacyCastHash = Boolean(legacyCastHashParam && legacyCastHashParam.startsWith('0x'));
 
   useEffect(() => {
     if (shouldRedirectLegacyCastHash && legacyCastHashParam) {
-      router.replace(`/cast/${encodeURIComponent(legacyCastHashParam)}`);
+      router.replace(`/conversation/${encodeURIComponent(legacyCastHashParam)}`);
     }
   }, [shouldRedirectLegacyCastHash, legacyCastHashParam, router]);
 
@@ -228,9 +230,9 @@ export default function Feeds() {
   }
 
   // On desktop the preview pane already shows the selected cast, so click /
-  // Enter / `o` should just update selection. Below the lg breakpoint there is
-  // no preview pane, so navigate to the dedicated /cast/[hash] route — same UX
-  // as the retired full-page thread view, served by the deep-link route.
+  // Enter / `o` should just update selection. Below the lg breakpoint there
+  // is no preview pane, so navigate to /conversation/[hash] — full thread
+  // view, same surface command palette / inbox / workspace use.
   const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: false });
 
   const onSelectCast = useCallback(
@@ -239,7 +241,7 @@ export default function Feeds() {
       if (!isDesktop) {
         const cast = casts[idx];
         if (cast?.hash) {
-          router.push(`/cast/${cast.hash}`);
+          router.push(`/conversation/${cast.hash}`);
         }
       }
     },

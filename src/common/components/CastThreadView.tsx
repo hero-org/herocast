@@ -82,7 +82,19 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
         const { conversation } = await response.json();
         if (conversation?.cast?.direct_replies) {
           const { direct_replies: replies, ...castObjectWithoutReplies } = conversation.cast;
-          setCasts((conversation.chronological_parent_casts || []).concat([castObjectWithoutReplies].concat(replies)));
+          const orderedCasts = (conversation.chronological_parent_casts || []).concat(
+            [castObjectWithoutReplies].concat(replies)
+          );
+          setCasts(orderedCasts);
+          // Auto-expand parent casts AND the root cast so the user lands on
+          // the full thread context immediately, no `read more...` clicks
+          // required for the casts they came here to read. Replies stay
+          // truncated to keep the list scannable.
+          const parentAndRootHashes = new Set<string>([
+            ...(conversation.chronological_parent_casts || []).map((c: FarcasterCast) => c.hash),
+            castObjectWithoutReplies.hash,
+          ]);
+          setExpandedCasts(parentAndRootHashes);
         }
       } catch (err) {
         console.error(`Error fetching cast thread: ${err}`);
