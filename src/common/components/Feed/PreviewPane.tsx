@@ -39,6 +39,15 @@ type PreviewPaneProps = {
  * Memoized chrome wrapper for the preview cast. Keyed on cast hash so
  * unchanged selections skip work, but new selections re-mount the cast
  * subtree (which cancels any in-flight effects in CastRow / Embeds).
+ *
+ * `isSelected` is true here even though the visual selection lives on the
+ * compact list row — it activates the `CAST_SELECTED` hotkey scope inside
+ * the underlying `ReactionBar` so `l` (like) and `Shift+R` (recast) fire
+ * against the cast the user is actually looking at.
+ *
+ * `defaultExpanded` initializes the cast text expanded so the preview never
+ * starts truncated — when the user is in the preview pane they want the
+ * full text immediately, not a `read more...` they need to press `x` for.
  */
 const PreviewChrome = memo(function PreviewChrome({
   cast,
@@ -49,7 +58,7 @@ const PreviewChrome = memo(function PreviewChrome({
 }) {
   return (
     <div className="border-b border-border w-full pr-4">
-      <CastRow cast={cast} isEmbed={false} isSelected={false} showChannel={showChannel} />
+      <CastRow cast={cast} isEmbed={false} isSelected={true} defaultExpanded={true} showChannel={showChannel} />
     </div>
   );
 });

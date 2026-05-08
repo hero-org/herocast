@@ -40,6 +40,13 @@ export interface CastRowProps {
   onCastClick?: () => void;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
+  /**
+   * When true, the locally-managed expansion state initializes to expanded.
+   * Has no effect when `onToggleExpand` is provided (the parent owns expansion
+   * in that case). Used by the preview pane so the user doesn't have to press
+   * `x` to read past the 6-line truncation on every selection change.
+   */
+  defaultExpanded?: boolean;
 }
 
 const StandardCastRowComponent = ({
@@ -56,6 +63,7 @@ const StandardCastRowComponent = ({
   onCastClick,
   isExpanded = false,
   onToggleExpand,
+  defaultExpanded = false,
 }: CastRowProps) => {
   const router = useRouter();
   const { accounts, selectedAccountIdx, setSelectedChannelUrl } = useAccountStore();
@@ -70,8 +78,10 @@ const StandardCastRowComponent = ({
 
   const [isListDialogOpen, setIsListDialogOpen] = useState(false);
 
-  // Local expansion state for embeds (when no onToggleExpand provided)
-  const [localExpanded, setLocalExpanded] = useState(false);
+  // Local expansion state for embeds (when no onToggleExpand provided).
+  // Seeded from `defaultExpanded` so the preview pane can render expanded
+  // by default without forcing every cast row to manage state via prop.
+  const [localExpanded, setLocalExpanded] = useState(defaultExpanded);
   // Use prop-based expansion if provided, otherwise use local state
   const effectiveIsExpanded = onToggleExpand ? isExpanded : localExpanded;
   const handleToggleExpand = onToggleExpand ?? (() => setLocalExpanded((prev) => !prev));
