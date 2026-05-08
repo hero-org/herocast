@@ -1,0 +1,34 @@
+{
+  "JEST_TEST_FAILURE": {
+    "fix_hint": "A test assertion failed. Inspect the failure message; fix the implementation or update the test if the new behavior is intentional.",
+    "see_also": "docs/agents/typecheck.md#jest-test-failure"
+  },
+  "JEST_SUITE_FAILURE": {
+    "fix_hint": "A test suite failed to load (syntax error, missing import, or module resolution failure). Fix the failure before tests can run.",
+    "see_also": "docs/agents/typecheck.md#jest-suite-failure"
+  },
+  "JEST_TIMEOUT": {
+    "fix_hint": "Test exceeded its timeout. Either bump `jest.setTimeout`, mock slow dependencies, or fix the underlying hang.",
+    "see_also": "docs/agents/typecheck.md#jest-timeout"
+  },
+  "JEST_SNAPSHOT": {
+    "fix_hint": "Snapshot mismatch. If the change is intentional, update with `pnpm jest -u`.",
+    "see_also": "docs/agents/typecheck.md#jest-snapshot"
+  },
+  "JEST_UNHANDLED_REJECTION": {
+    "fix_hint": "Unhandled promise rejection in test. Await the promise or wrap with `.rejects` matchers.",
+    "see_also": "docs/agents/typecheck.md#jest-unhandled-rejection"
+  },
+  "API_CONTRACT_DRIFT": {
+    "fix_hint": "API response schema and runtime payload diverged. Update `src/lib/api-contracts/<route>.ts` to reflect the new shape, or fix the route handler.",
+    "see_also": "docs/agents/api-contract-policy.md#api-contract-drift"
+  },
+  "TOOL_CRASH": {
+    "fix_hint": "Jest crashed before producing parseable output. See raw stderr.",
+    "see_also": "docs/agents/typecheck.md#tool-crash"
+  },
+  "UNKNOWN_FAILURE": {
+    "fix_hint": "Jest exited non-zero with no parseable diagnostics; see raw stderr.",
+    "see_also": "docs/agents/typecheck.md#unknown-failure"
+  }
+}

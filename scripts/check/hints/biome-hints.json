@@ -1,0 +1,66 @@
+{
+  "lint/correctness/noUnusedImports": {
+    "fix_hint": "Remove the unused import or use it. Biome supports auto-fix via `biome check --write`.",
+    "see_also": "docs/agents/typecheck.md#biome-unused-imports"
+  },
+  "lint/correctness/noUnusedVariables": {
+    "fix_hint": "Remove the unused variable, prefix with `_` if intentionally unused, or use it.",
+    "see_also": "docs/agents/typecheck.md#biome-unused-vars"
+  },
+  "lint/correctness/useExhaustiveDependencies": {
+    "fix_hint": "Add the missing dependency to the React hook deps array, or document why it is intentionally omitted.",
+    "see_also": "docs/agents/typecheck.md#biome-exhaustive-deps"
+  },
+  "lint/correctness/useHookAtTopLevel": {
+    "fix_hint": "React hooks must be called at the top level of a component or another hook. Move out of conditional/loop.",
+    "see_also": "docs/agents/typecheck.md#biome-hook-top-level"
+  },
+  "lint/style/useTemplate": {
+    "fix_hint": "Use template literals instead of string concatenation.",
+    "see_also": "docs/agents/typecheck.md#biome-use-template"
+  },
+  "lint/style/useNodejsImportProtocol": {
+    "fix_hint": "Use `node:` protocol for built-in module imports (e.g. `import fs from 'node:fs'`).",
+    "see_also": "docs/agents/typecheck.md#biome-node-protocol"
+  },
+  "lint/style/noNonNullAssertion": {
+    "fix_hint": "Avoid `!` non-null assertions; replace with explicit guards or type narrowing.",
+    "see_also": "docs/agents/typecheck.md#biome-non-null"
+  },
+  "lint/suspicious/noExplicitAny": {
+    "fix_hint": "Replace `any` with `unknown` or a more specific type.",
+    "see_also": "docs/agents/typecheck.md#biome-no-any"
+  },
+  "lint/suspicious/noArrayIndexKey": {
+    "fix_hint": "Use a stable identifier as the React `key`, not an array index.",
+    "see_also": "docs/agents/typecheck.md#biome-array-index-key"
+  },
+  "lint/suspicious/noConsoleLog": {
+    "fix_hint": "Remove or replace `console.log` with the project logger.",
+    "see_also": "docs/agents/typecheck.md#biome-no-console"
+  },
+  "lint/complexity/noUselessFragments": {
+    "fix_hint": "Remove the redundant React Fragment.",
+    "see_also": "docs/agents/typecheck.md#biome-useless-fragment"
+  },
+  "lint/a11y/useAltText": {
+    "fix_hint": "Add a meaningful `alt` attribute to `<img>` (or `alt=\"\"` for decorative images).",
+    "see_also": "docs/agents/typecheck.md#biome-alt-text"
+  },
+  "format": {
+    "fix_hint": "Formatting issue. Run `pnpm format` or `biome check --write` to auto-fix.",
+    "see_also": "docs/agents/typecheck.md#biome-format"
+  },
+  "parse": {
+    "fix_hint": "Parse error. The file is syntactically invalid; fix the syntax before linting can proceed.",
+    "see_also": "docs/agents/typecheck.md#biome-parse"
+  },
+  "TOOL_CRASH": {
+    "fix_hint": "Biome crashed. See raw stderr for diagnostics.",
+    "see_also": "docs/agents/typecheck.md#tool-crash"
+  },
+  "UNKNOWN_FAILURE": {
+    "fix_hint": "Biome exited non-zero with no parseable diagnostics; see raw stderr.",
+    "see_also": "docs/agents/typecheck.md#unknown-failure"
+  }
+}

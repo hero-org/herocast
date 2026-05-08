@@ -13,6 +13,9 @@
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",
     "test": "jest",
+    "check": "npx tsx scripts/check/index.ts",
+    "check:fast": "npx tsx scripts/check/index.ts --fast",
+    "gen:db-types": "bash -c 'PID=$(grep \"^SUPABASE_PROJECT_ID=\" .env 2>/dev/null | cut -d= -f2); PID=${PID:-$SUPABASE_PROJECT_ID}; if [ -z \"$PID\" ]; then echo \"Error: SUPABASE_PROJECT_ID is not set in .env or environment\" >&2; exit 1; fi; supabase gen types typescript --project-id \"$PID\" --schema public > database.types.ts'",
     "prepare": "husky",
     "supabase:setup": "node scripts/apply-pgsodium-grants.js",
     "benchmark": "npx tsx scripts/benchmark.ts",
@@ -185,7 +188,7 @@
     "zustand": "^4.5.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.12",
+    "@biomejs/biome": "2.3.12",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@jest/globals": "^29.7.0",
     "@next/bundle-analyzer": "^16.1.5",

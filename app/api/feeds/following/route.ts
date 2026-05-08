@@ -1,5 +1,10 @@
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
+import {
+  buildFollowingFeedResponse,
+  followingFeedRequestSchema,
+  followingFeedResponseSchemaStrict,
+} from '@/lib/api-contracts/feeds-following';
 
 const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes within 20 seconds
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
@@ -46,32 +51,19 @@ const setCachedData = (key: string, data: any) => {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const fidParam = searchParams.get('fid');
-    const limitParam = searchParams.get('limit');
-    const cursor = searchParams.get('cursor');
-
-    if (!fidParam) {
-      return NextResponse.json({ error: 'Missing fid parameter' }, { status: 400 });
+    const params = Object.fromEntries(new URL(request.url).searchParams);
+    const parsed = followingFeedRequestSchema.safeParse(params);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid params', details: parsed.error.format() }, { status: 400 });
     }
-
-    const fid = parseInt(fidParam, 10);
-    const limit = limitParam ? parseInt(limitParam, 10) : 15;
-
-    if (isNaN(fid)) {
-      return NextResponse.json({ error: 'Invalid fid parameter' }, { status: 400 });
-    }
-
-    if (isNaN(limit) || limit < 1 || limit > 100) {
-      return NextResponse.json({ error: 'Invalid limit parameter (1-100)' }, { status: 400 });
-    }
+    const { fid, limit, cursor } = parsed.data;
 
     if (!API_KEY) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
     }
 
     // Check cache first
-    const cacheKey = getCacheKey(fid, limit, cursor || undefined);
+    const cacheKey = getCacheKey(fid, limit, cursor);
     const cachedData = getCachedData(cacheKey);
     if (cachedData) {
       return NextResponse.json(cachedData);
@@ -96,16 +88,23 @@ export async function GET(request: NextRequest) {
 
       clearTimeout(timeoutId);
 
-      // Normalize response
-      const normalizedResponse = {
-        casts: response.casts || [],
-        next: response.next || {},
-      };
+      // Normalize response via the pure builder — same function the
+      // contract test imports to assert shape parity against the schema.
+      const responsePayload = buildFollowingFeedResponse(response);
+
+      // Dev-only response validation: surfaces drift before it ships to clients.
+      // Uses the strict variant so unknown top-level keys are flagged instead
+      // of silently stripped. In production this is skipped to avoid the parse
+      // cost on the hot path; the client-side apiFetch validates again at the
+      // consumer boundary.
+      if (process.env.NODE_ENV !== 'production') {
+        followingFeedResponseSchemaStrict.parse(responsePayload);
+      }
 
       // Cache the response
-      setCachedData(cacheKey, normalizedResponse);
+      setCachedData(cacheKey, responsePayload);
 
-      return NextResponse.json(normalizedResponse);
+      return NextResponse.json(responsePayload);
     } catch (error: any) {
       clearTimeout(timeoutId);
 

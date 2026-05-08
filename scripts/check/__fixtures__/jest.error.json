@@ -1,0 +1,87 @@
+{
+  "numFailedTestSuites": 1,
+  "numFailedTests": 2,
+  "numPassedTestSuites": 0,
+  "numPassedTests": 1,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 0,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 1,
+  "numTotalTests": 3,
+  "openHandles": [],
+  "snapshot": {
+    "added": 0,
+    "didUpdate": false,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0
+  },
+  "startTime": 1715000000000,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["myUtil"],
+          "duration": 4,
+          "failureDetails": [],
+          "failureMessages": [
+            "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 4\nReceived: 5\n    at Object.<anonymous> (/Users/dev/repo/src/common/helpers/__tests__/example.test.ts:14:24)\n    at Promise.then.completed (/Users/dev/repo/node_modules/jest-circus/build/utils.js:1)\n"
+          ],
+          "fullName": "myUtil adds two numbers",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "adds two numbers"
+        },
+        {
+          "ancestorTitles": ["myUtil"],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [
+            "Error: expect(received).toEqual(expected)\n\n- Expected\n+ Received\n\n  Object {\n-   \"name\": \"alice\",\n+   \"name\": \"bob\",\n  }\n    at Object.<anonymous> (/Users/dev/repo/src/common/helpers/__tests__/example.test.ts:22:30)\n"
+          ],
+          "fullName": "myUtil returns the user",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "returns the user"
+        },
+        {
+          "ancestorTitles": ["myUtil"],
+          "duration": 1,
+          "failureDetails": [],
+          "failureMessages": [],
+          "fullName": "myUtil is exported",
+          "invocations": 1,
+          "location": null,
+          "numPassingAsserts": 1,
+          "retryReasons": [],
+          "status": "passed",
+          "title": "is exported"
+        }
+      ],
+      "endTime": 1715000000050,
+      "message": "  myUtil > adds two numbers\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: 4\n    Received: 5\n",
+      "name": "/Users/dev/repo/src/common/helpers/__tests__/example.test.ts",
+      "startTime": 1715000000010,
+      "status": "failed",
+      "summary": ""
+    }
+  ],
+  "wasInterrupted": false
+}
