@@ -180,4 +180,61 @@ describe('groupEmbeds', () => {
       expect(groups[0].urls).toEqual(['https://i.imgur.com/a.png', 'https://i.imgur.com/b.png']);
     }
   });
+
+  it('collapses duplicate cast_id embeds into a single cast slot', () => {
+    const hash = '0xe07445af2f361de5cd36b9e15b56d41685ed1211';
+    const groups = groupEmbeds(
+      [{ cast_id: { fid: 4044, hash } }, { cast_id: { fid: 4044, hash } }, { cast_id: { fid: 4044, hash } }],
+      undefined
+    );
+    expect(groups).toHaveLength(1);
+    expect(groups[0].kind).toBe('slot');
+    if (groups[0].kind === 'slot') {
+      expect(groups[0].slotKind).toBe('cast');
+    }
+  });
+
+  it('drops a farcaster.xyz/~/ca/ URL when the same cast hash is already a cast_id embed', () => {
+    const hash = '0xe07445af2f361de5cd36b9e15b56d41685ed1211';
+    const groups = groupEmbeds(
+      [
+        { cast_id: { fid: 4044, hash } },
+        { url: `https://farcaster.xyz/~/ca/${hash}` },
+        { cast_id: { fid: 4044, hash } },
+      ],
+      undefined
+    );
+    expect(groups).toHaveLength(1);
+    expect(groups[0].kind).toBe('slot');
+  });
+
+  it('drops a warpcast.com user/short-hash URL when the matching full cast_id is present', () => {
+    const fullHash = '0xe07445af2f361de5cd36b9e15b56d41685ed1211';
+    const shortHash = '0xe07445af2f';
+    const groups = groupEmbeds(
+      [{ cast_id: { fid: 4044, hash: fullHash } }, { url: `https://warpcast.com/alec.eth/${shortHash}` }],
+      undefined
+    );
+    expect(groups).toHaveLength(1);
+    expect(groups[0].kind).toBe('slot');
+  });
+
+  it('keeps unrelated cast_id and URL embeds when they do not match', () => {
+    const groups = groupEmbeds(
+      [
+        { cast_id: { fid: 4044, hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } },
+        { url: 'https://farcaster.xyz/~/ca/0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' },
+      ],
+      undefined
+    );
+    expect(groups).toHaveLength(2);
+  });
+
+  it('dedupes a non-image URL embed appearing twice', () => {
+    const groups = groupEmbeds(
+      [{ url: 'https://example.com/article' }, { url: 'https://example.com/article' }],
+      undefined
+    );
+    expect(groups).toHaveLength(1);
+  });
 });

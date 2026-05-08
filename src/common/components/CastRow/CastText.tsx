@@ -49,25 +49,46 @@ export const CastText: React.FC<CastTextProps> = ({
   const textRef = useRef<HTMLDivElement>(null);
   const [needsTruncation, setNeedsTruncation] = useState(false);
 
+  // Heuristic: text long enough that truncation is meaningful. Used to
+  // decide whether to show the show-more / show-less toggle without
+  // depending on a DOM measurement, which is unreliable while the text is
+  // already expanded (scrollHeight equals clientHeight in that state, so
+  // we'd lose the signal that the cast is "actually long" the moment it
+  // expands). Threshold is conservative: short and one-paragraph casts
+  // get no toggle; long casts always get one.
+  const text = 'text' in cast && cast.text ? cast.text : '';
+  const newlineCount = text.match(/\n/g)?.length ?? 0;
+  const hasLongText = text.length > 280 || newlineCount >= 5;
+
+  // Show the toggle when the text is long enough to benefit from truncation
+  // — either because the DOM measurement says it's clipped right now, or
+  // because the heuristic says it would clip if we collapsed it (covers the
+  // case where the cast started in `defaultExpanded` mode).
+  const showToggle = needsTruncation || (hasLongText && (effectiveIsExpanded || needsTruncation));
+
   // Hotkey for expanding/collapsing text (only for non-embeds)
   useAppHotkeys(
     'x',
     () => {
-      if (needsTruncation || effectiveIsExpanded) {
+      if (showToggle) {
         onToggleExpand();
       }
     },
     {
       scopes: [HotkeyScopes.CAST_SELECTED],
-      enabled: !isEmbed && isSelected && (needsTruncation || effectiveIsExpanded),
+      enabled: !isEmbed && isSelected && showToggle,
     },
-    [isEmbed, isSelected, needsTruncation, effectiveIsExpanded, onToggleExpand]
+    [isEmbed, isSelected, showToggle, onToggleExpand]
   );
 
-  // Detect if text overflows (needs truncation)
+  // Detect if text overflows (needs truncation). Skip while expanded — the
+  // measurement is meaningless then (scrollHeight === clientHeight always),
+  // and updating to `false` would hide the show-less toggle the user needs
+  // to collapse a long cast they explicitly expanded.
   useEffect(() => {
     const el = textRef.current;
     if (!el) return;
+    if (effectiveIsExpanded) return;
 
     const checkTruncation = () => {
       // Compare scroll height vs client height to detect overflow
@@ -124,7 +145,7 @@ export const CastText: React.FC<CastTextProps> = ({
       >
         {processedText}
       </div>
-      {(needsTruncation || effectiveIsExpanded) && (
+      {showToggle && (
         <div className="w-full text-left">
           <TooltipProvider delayDuration={50}>
             <HotkeyTooltipWrapper hotkey={isEmbed ? '' : 'X'} side="right">
