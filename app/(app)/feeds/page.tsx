@@ -709,8 +709,6 @@ export default function Feeds() {
   };
 
   const previewCast = selectedCastIdx >= 0 ? casts[selectedCastIdx] : null;
-  const showPreviewChannel =
-    selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING;
 
   const renderContent = () => (
     <main className="w-full h-full">
@@ -732,7 +730,7 @@ export default function Feeds() {
             {renderWelcomeMessage()}
           </div>
         }
-        preview={<PreviewPane cast={previewCast} showChannel={showPreviewChannel} />}
+        preview={<PreviewPane cast={previewCast} previewFocused={previewFocused} />}
         listFocused={isDesktop && !previewFocused}
         previewFocused={isDesktop && previewFocused}
       />

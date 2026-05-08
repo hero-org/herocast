@@ -86,6 +86,16 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
             [castObjectWithoutReplies].concat(replies)
           );
           setCasts(orderedCasts);
+          // Set initial selection to the focused cast (the one we loaded the
+          // thread for) rather than the oldest parent. The virtualizer auto-
+          // scrolls to selectedCastIdx, so the focused cast lands in view
+          // with parents above scrollable up and replies below scrollable
+          // down — same UX as Twitter/X opening a tweet permalink.
+          const focusedHash = cast?.hash || hash;
+          const focusedIdx = focusedHash ? orderedCasts.findIndex((c: FarcasterCast) => c.hash === focusedHash) : -1;
+          if (focusedIdx >= 0) {
+            setSelectedCastIdx(focusedIdx);
+          }
           // Auto-expand parent casts AND the root cast so the user lands on
           // the full thread context immediately, no `read more...` clicks
           // required for the casts they came here to read. Replies stay

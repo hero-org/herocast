@@ -3,25 +3,27 @@
 /**
  * PreviewPane — right-side cast preview for the split-pane /feeds layout.
  *
- * Renders the currently selected cast at full size using the existing
- * `<CastRow isEmbed={false} />`. The cast subtree is wrapped in
- * `PreviewEmbedContext` so `EmbedList` (in `CastRow/EmbedSection.tsx`)
- * swaps the default `EmbedCarousel` for the smart-group `MultiEmbedStack`
- * renderer.
+ * Renders the full conversation thread (parent + cast + direct replies) for
+ * the currently selected cast via `CastThreadView`. The same component the
+ * `/conversation/[...slug]` route uses, so users see the same surface in
+ * both places.
  *
  * Behavior:
- * - Resets the scroll container to the top whenever the selected cast
- *   changes. Matches the spec ("Preview scroll resets to top on every
- *   selection change") and is necessary because the underlying CastRow may
- *   not change height between selections.
- * - The chrome wrapper is `React.memo`'d and keyed on the cast hash so
- *   identical selections do not re-render the wrapper, while distinct
- *   selections force a clean re-mount of the cast subtree. The remount is
- *   what cancels in-flight embed fetches (react-query auto-aborts on unmount).
+ * - The thread is keyed on `cast.hash` so a new selection unmounts the
+ *   previous thread (cancels its in-flight fetches via react-query unmount)
+ *   and remounts cleanly with the new cast at the focused position.
+ * - When `previewFocused` is true (the user pressed Tab / Shift+Right /
+ *   clicked into the preview), the thread's internal `j`/`k` navigation
+ *   activates so the user can move between the parent / cast / replies.
+ *   When the list pane has focus instead, the thread's hotkeys are
+ *   suppressed so feed-list `j`/`k` keeps moving cast selection.
+ * - The cast subtree is wrapped in `PreviewEmbedContext` so descendant
+ *   `EmbedList` instances swap the default carousel for the smart-group
+ *   `MultiEmbedStack` renderer (matching `/conversation` and the rest of
+ *   the embed-quality work).
  */
 
-import { memo, useEffect, useRef } from 'react';
-import { CastRow } from '@/common/components/CastRow';
+import { CastThreadView } from '@/common/components/CastThreadView';
 import type { FarcasterCast } from '@/common/types/farcaster';
 import { cn } from '@/lib/utils';
 import { PreviewEmbedContext, type PreviewEmbedContextValue } from './PreviewEmbedContext';
@@ -29,70 +31,32 @@ import { PreviewEmbedContext, type PreviewEmbedContextValue } from './PreviewEmb
 type PreviewPaneProps = {
   /** The currently selected cast, or `null` when nothing is selected. */
   cast: FarcasterCast | null | undefined;
-  /** Whether to show the channel pill (mirrors feeds page logic). */
-  showChannel?: boolean;
-  /** Optional className for the outer scroll container. */
+  /** Optional className for the outer container. */
   className?: string;
+  /**
+   * When true, the thread's internal `j`/`k` selection hotkeys activate.
+   * Driven by the focus-region state in `feeds/page.tsx` so list-focused
+   * keeps the feed `j`/`k`, preview-focused hands them to the thread.
+   */
+  previewFocused?: boolean;
 };
-
-/**
- * Memoized chrome wrapper for the preview cast. Keyed on cast hash so
- * unchanged selections skip work, but new selections re-mount the cast
- * subtree (which cancels any in-flight effects in CastRow / Embeds).
- *
- * `isSelected` is true here even though the visual selection lives on the
- * compact list row — it activates the `CAST_SELECTED` hotkey scope inside
- * the underlying `ReactionBar` so `l` (like) and `Shift+R` (recast) fire
- * against the cast the user is actually looking at.
- *
- * `defaultExpanded` initializes the cast text expanded so the preview never
- * starts truncated — when the user is in the preview pane they want the
- * full text immediately, not a `read more...` they need to press `x` for.
- */
-const PreviewChrome = memo(function PreviewChrome({
-  cast,
-  showChannel,
-}: {
-  cast: FarcasterCast;
-  showChannel?: boolean;
-}) {
-  return (
-    <div className="border-b border-border w-full pr-4">
-      <CastRow cast={cast} isEmbed={false} isSelected={true} defaultExpanded={true} showChannel={showChannel} />
-    </div>
-  );
-});
 
 // Stable context value — `inPreview` is a constant for this component, so
 // hoisting the object out of render avoids forcing context consumers to
 // re-evaluate on every PreviewPane render.
 const PREVIEW_CONTEXT_VALUE: PreviewEmbedContextValue = { inPreview: true };
 
-function PreviewPaneImpl({ cast, showChannel, className }: PreviewPaneProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const castHash = cast?.hash;
-
-  // Reset preview scroll to the top on every selection change so the user
-  // never lands mid-scroll on a different cast. The `key={cast.hash}`
-  // remount below handles cancellation of any in-flight embed fetches by
-  // unmounting the previous cast's react-query subscriptions.
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0;
-    }
-  }, [castHash]);
-
+export function PreviewPane({ cast, className, previewFocused }: PreviewPaneProps) {
   return (
-    <div
-      ref={scrollContainerRef}
-      className={cn('h-full w-full overflow-y-auto no-scrollbar', className)}
-      role="region"
-      aria-label="Cast preview"
-      data-testid="preview-pane"
-    >
-      <PreviewEmbedContext.Provider value={PREVIEW_CONTEXT_VALUE}>
+    <PreviewEmbedContext.Provider value={PREVIEW_CONTEXT_VALUE}>
+      <div
+        className={cn('h-full w-full', className)}
+        role="region"
+        aria-label="Cast preview"
+        data-testid="preview-pane"
+      >
         {cast ? (
-          <PreviewChrome key={cast.hash} cast={cast} showChannel={showChannel} />
+          <CastThreadView key={cast.hash} cast={cast} containerHeight="100%" isActive={Boolean(previewFocused)} />
         ) : (
           <div
             className="flex h-full w-full items-center justify-center px-6 py-12 text-sm text-muted-foreground"
@@ -101,9 +65,7 @@ function PreviewPaneImpl({ cast, showChannel, className }: PreviewPaneProps) {
             Select a cast to preview it here.
           </div>
         )}
-      </PreviewEmbedContext.Provider>
-    </div>
+      </div>
+    </PreviewEmbedContext.Provider>
   );
 }
-
-export const PreviewPane = memo(PreviewPaneImpl);
