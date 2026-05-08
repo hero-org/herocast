@@ -13,7 +13,7 @@
  *    then fall back to clickable URL."
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MiniAppHost } from '@/common/components/MiniApp';
 import { cn } from '@/lib/utils';
 import OpenGraphImage from '../Embeds/OpenGraphImage';
@@ -37,6 +37,11 @@ const READY_TIMEOUT_MS = 8000;
 
 export const FrameV2Embed = ({ url, title, splashImageUrl, className }: FrameV2EmbedProps) => {
   const [status, setStatus] = useState<'loading' | 'ready' | 'failed'>('loading');
+
+  // Stable manifest reference — without `useMemo`, MiniAppHost's manifest
+  // dependency churns on every parent render, re-rendering MiniAppSplash
+  // before the iframe signals ready.
+  const manifest = useMemo(() => ({ name: title, splashImageUrl }), [title, splashImageUrl]);
 
   useEffect(() => {
     if (status !== 'loading') return;
@@ -62,7 +67,7 @@ export const FrameV2Embed = ({ url, title, splashImageUrl, className }: FrameV2E
     <div className={cn('w-full max-w-lg rounded-lg border border-muted bg-background', className)}>
       <MiniAppHost
         url={url}
-        manifest={{ name: title, splashImageUrl }}
+        manifest={manifest}
         onReady={() => setStatus('ready')}
         onError={() => setStatus('failed')}
       />

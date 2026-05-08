@@ -76,9 +76,15 @@ export const groupEmbeds = (embeds: CastEmbedType[], frames: unknown): EmbedGrou
     return Boolean(embed.url || embed.cast_id);
   });
 
-  const galleryUrls = usable
-    .filter((embed): embed is CastEmbedType & { url: string } => Boolean(embed.url) && isImageEmbedUrl(embed.url!))
-    .map((embed) => embed.url);
+  // Dedupe by URL: a cast with the same image embedded twice should still
+  // render as one gallery slot, not two.
+  const galleryUrls = Array.from(
+    new Set(
+      usable
+        .filter((embed): embed is CastEmbedType & { url: string } => Boolean(embed.url) && isImageEmbedUrl(embed.url!))
+        .map((embed) => embed.url)
+    )
+  );
 
   const groups: EmbedGroup[] = [];
   if (galleryUrls.length > 0) {

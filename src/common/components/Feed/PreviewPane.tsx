@@ -5,31 +5,26 @@
  *
  * Renders the currently selected cast at full size using the existing
  * `<CastRow isEmbed={false} />`. The cast subtree is wrapped in
- * `PreviewEmbedContext` so descendants can:
- *   - swap the default `EmbedCarousel` for the smart-group `MultiEmbedStack`
- *     renderer (see `CastRow/EmbedSection.tsx`).
- *   - read an `AbortSignal` for per-selection embed fetches.
+ * `PreviewEmbedContext` so `EmbedList` (in `CastRow/EmbedSection.tsx`)
+ * swaps the default `EmbedCarousel` for the smart-group `MultiEmbedStack`
+ * renderer.
  *
  * Behavior:
  * - Resets the scroll container to the top whenever the selected cast
  *   changes. Matches the spec ("Preview scroll resets to top on every
  *   selection change") and is necessary because the underlying CastRow may
  *   not change height between selections.
- * - Aborts the previous selection's controller before minting a new one and
- *   exposes the signal via context. The `key={cast.hash}` re-mount also
- *   unmounts effects of the previous cast — context + remount together cover
- *   both react-query queries (auto-aborted on unmount) and any manual
- *   `fetch()` callers that opt into the signal.
  * - The chrome wrapper is `React.memo`'d and keyed on the cast hash so
  *   identical selections do not re-render the wrapper, while distinct
- *   selections force a clean re-mount of the cast subtree.
+ *   selections force a clean re-mount of the cast subtree. The remount is
+ *   what cancels in-flight embed fetches (react-query auto-aborts on unmount).
  */
 
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { CastRow } from '@/common/components/CastRow';
 import type { FarcasterCast } from '@/common/types/farcaster';
 import { cn } from '@/lib/utils';
-import { PreviewEmbedContext } from './PreviewEmbedContext';
+import { PreviewEmbedContext, type PreviewEmbedContextValue } from './PreviewEmbedContext';
 
 type PreviewPaneProps = {
   /** The currently selected cast, or `null` when nothing is selected. */
@@ -59,51 +54,24 @@ const PreviewChrome = memo(function PreviewChrome({
   );
 });
 
+// Stable context value — `inPreview` is a constant for this component, so
+// hoisting the object out of render avoids forcing context consumers to
+// re-evaluate on every PreviewPane render.
+const PREVIEW_CONTEXT_VALUE: PreviewEmbedContextValue = { inPreview: true };
+
 function PreviewPaneImpl({ cast, showChannel, className }: PreviewPaneProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const castHash = cast?.hash;
 
-  // Lazy-init so the controller exists at first render — context consumers
-  // that read `abortSignal` synchronously get a real signal on the very first
-  // paint. Replaced (not just aborted) on every *subsequent* selection change
-  // so React's identity comparison forces a fresh memoized context value.
-  const [controller, setController] = useState<AbortController>(() => new AbortController());
-  const isFirstRunRef = useRef(true);
-
+  // Reset preview scroll to the top on every selection change so the user
+  // never lands mid-scroll on a different cast. The `key={cast.hash}`
+  // remount below handles cancellation of any in-flight embed fetches by
+  // unmounting the previous cast's react-query subscriptions.
   useEffect(() => {
-    // First effect for the initial cast: keep the lazy-init controller intact
-    // so any fetch started during the first render keeps its valid signal.
-    if (isFirstRunRef.current) {
-      isFirstRunRef.current = false;
-    } else {
-      setController((prev) => {
-        prev.abort();
-        return new AbortController();
-      });
-    }
-
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
   }, [castHash]);
-
-  // Abort the current (post-state-update) controller on unmount. Re-running
-  // on `controller` change keeps the closure pointing at the live one; the
-  // intermediate cleanup invocations during a swap are harmless because
-  // `setController`'s updater already aborts the prior controller.
-  useEffect(() => {
-    return () => {
-      controller.abort();
-    };
-  }, [controller]);
-
-  const contextValue = useMemo(
-    () => ({
-      inPreview: true,
-      abortSignal: controller.signal,
-    }),
-    [controller]
-  );
 
   return (
     <div
@@ -113,7 +81,7 @@ function PreviewPaneImpl({ cast, showChannel, className }: PreviewPaneProps) {
       aria-label="Cast preview"
       data-testid="preview-pane"
     >
-      <PreviewEmbedContext.Provider value={contextValue}>
+      <PreviewEmbedContext.Provider value={PREVIEW_CONTEXT_VALUE}>
         {cast ? (
           <PreviewChrome key={cast.hash} cast={cast} showChannel={showChannel} />
         ) : (
