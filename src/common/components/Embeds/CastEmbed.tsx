@@ -15,6 +15,9 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+
     const getData = async () => {
       try {
         let identifier: string;
@@ -27,7 +30,7 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
           identifier = castId.hash;
           type = 'hash';
         } else {
-          setIsLoading(false);
+          if (!cancelled) setIsLoading(false);
           return;
         }
 
@@ -36,23 +39,30 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
           type,
         });
 
-        const response = await fetch(`/api/casts/lookup?${params.toString()}`);
+        const response = await fetch(`/api/casts/lookup?${params.toString()}`, { signal: controller.signal });
         if (!response.ok) {
           throw new Error(`API error: ${response.status}`);
         }
 
         const res = await response.json();
-        if (res && res.cast) {
+        if (!cancelled && res && res.cast) {
           setCast(res.cast);
         }
       } catch (err) {
+        // AbortError is expected on selection change — don't surface it.
+        if ((err as { name?: string })?.name === 'AbortError') return;
         console.log(`Error in CastEmbed: ${err} ${url} ${castId}`);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
     getData();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [url, castId]);
 
   // Invalid props - no url AND no castId

@@ -5,9 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { Key } from 'ts-key-enum';
-import { CastRow } from '@/common/components/CastRow';
-import { CastThreadView } from '@/common/components/CastThreadView';
+import { CompactCastRow } from '@/common/components/CastRow/CompactCastRow';
 import { CreateAccountPage } from '@/common/components/CreateAccountPage';
+import { NewCastsPill } from '@/common/components/Feed/NewCastsPill';
+import { PreviewPane } from '@/common/components/Feed/PreviewPane';
+import { SplitPaneShell } from '@/common/components/Feed/SplitPaneShell';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
 import { AccountStatusType } from '@/common/constants/accounts';
@@ -16,6 +18,7 @@ import { HotkeyScopes } from '@/common/constants/hotkeys';
 import { ONE_MINUTE_IN_MS } from '@/common/constants/time';
 import { createClient } from '@/common/helpers/supabase/component';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
+import { useMediaQuery } from '@/common/hooks/useMediaQuery';
 import type { FarcasterCast } from '@/common/types/farcaster';
 import { isFidListContent, isSearchListContent } from '@/common/types/list.types';
 import { Button } from '@/components/ui/button';
@@ -57,9 +60,25 @@ const supabaseClient = createClient();
 export default function Feeds() {
   const [isRefreshingPage, setIsRefreshingPage] = useState(false);
   const [selectedCastIdx, setSelectedCastIdx] = useState(-1);
-  const [showCastThreadView, setShowCastThreadView] = useState(false);
+  // Which split-pane region currently owns keyboard focus on desktop. Tab
+  // toggles between list / preview; Shift+ArrowLeft/Right switch directly;
+  // Esc returns to the list. State is meaningless below `lg` (no preview pane
+  // mounts) and is reset to `false` by media-query changes / feed switches.
+  const [previewFocused, setPreviewFocused] = useState(false);
+  // The cast hash the user has "seen" as the top of the list. Drives the
+  // "N new casts" pill: any casts above this hash count as new arrivals.
+  // Reset on feed switch, advanced on pill click and on scroll-to-top.
+  const [acknowledgedFirstHash, setAcknowledgedFirstHash] = useState<string | null>(null);
   const lastUpdateTimeRef = useRef(Date.now());
   const visibilityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Wrapper for the list pane — used to scope the pill scroll-to-top click
+  // handler. Kept separate from `listScrollContainerRef` because the wrapper
+  // also hosts the pill itself.
+  const listWrapperRef = useRef<HTMLDivElement>(null);
+  // Direct handle on the SelectableListWithHotkeys scroll element so the
+  // pill auto-acknowledge listener attaches to a known element instead of a
+  // fragile `querySelector('.overflow-y-auto')` against internal markup.
+  const listScrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const { lists, selectedListId, setSelectedListId } = useListStore();
   const {
@@ -82,6 +101,20 @@ export default function Feeds() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const account: AccountObjectType = accounts[selectedAccountIdx];
+
+  // Legacy ?castHash=0x... URLs are migrated to the /conversation/[hash]
+  // route, which renders the full thread (parent + cast + replies) — same
+  // surface that the rest of the app links to. Computed synchronously so
+  // the redirect effect runs before any feed queries get a chance to
+  // render content.
+  const legacyCastHashParam = searchParams.get('castHash');
+  const shouldRedirectLegacyCastHash = Boolean(legacyCastHashParam && legacyCastHashParam.startsWith('0x'));
+
+  useEffect(() => {
+    if (shouldRedirectLegacyCastHash && legacyCastHashParam) {
+      router.replace(`/conversation/${encodeURIComponent(legacyCastHashParam)}`);
+    }
+  }, [shouldRedirectLegacyCastHash, legacyCastHashParam, router]);
 
   // React Query hooks for different feed types - provides automatic caching & deduplication
   const isTrendingFeed = selectedChannelUrl === CUSTOM_CHANNELS.TRENDING;
@@ -184,10 +217,36 @@ export default function Feeds() {
     nextCursor = channelQuery.hasNextPage ? 'has-more' : '';
   }
 
-  const onSelectCast = useCallback((idx: number) => {
-    setSelectedCastIdx(idx);
-    setShowCastThreadView(true);
-  }, []);
+  // Compute the count of "new" casts above the user's last acknowledged top.
+  // `acknowledgedFirstHash` is null on the very first render (no pill yet),
+  // and is reset to null on feed switch. When the acknowledged hash is no
+  // longer present in the array (e.g. a full server-side refresh that drops
+  // the previous head), treat as 0 — the conservative path avoids surprising
+  // the user with a giant "N new casts" count after the feed got nuked.
+  let newCastsCount = 0;
+  if (acknowledgedFirstHash !== null && casts.length > 0 && casts[0]?.hash !== acknowledgedFirstHash) {
+    const idx = casts.findIndex((c) => c.hash === acknowledgedFirstHash);
+    newCastsCount = idx === -1 ? 0 : idx;
+  }
+
+  // On desktop the preview pane already shows the selected cast, so click /
+  // Enter / `o` should just update selection. Below the lg breakpoint there
+  // is no preview pane, so navigate to /conversation/[hash] — full thread
+  // view, same surface command palette / inbox / workspace use.
+  const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: false });
+
+  const onSelectCast = useCallback(
+    (idx: number) => {
+      setSelectedCastIdx(idx);
+      if (!isDesktop) {
+        const cast = casts[idx];
+        if (cast?.hash) {
+          router.push(`/conversation/${cast.hash}`);
+        }
+      }
+    },
+    [isDesktop, casts, router]
+  );
 
   useEffect(() => {
     // Scroll the main content container to top when feed changes
@@ -196,6 +255,76 @@ export default function Feeds() {
       container.scrollTop = 0;
     }
   }, [feedKey]);
+
+  // Reset the acknowledged hash whenever the user switches feeds — the next
+  // non-empty render will adopt the new feed's top hash so the pill never
+  // flashes on switch. Runs synchronously alongside the scroll-to-top above.
+  useEffect(() => {
+    setAcknowledgedFirstHash(null);
+  }, [feedKey]);
+
+  // Hash of the current top cast. We depend on this string (not the `casts`
+  // array reference, which is a fresh array on every render) so the effects
+  // and click callback below are stable across unrelated re-renders. Only
+  // refetch / feed-switch transitions should re-bind the scroll listener.
+  const topHash = casts[0]?.hash;
+
+  // Initialize / re-initialize the acknowledged hash on the first non-empty
+  // render after a feed switch (or initial mount), and reset it whenever the
+  // currently-acknowledged hash is no longer present in `casts`. The latter
+  // guard handles transient empty refetches and server-side prunes — without
+  // it, the count math (above) would silently fall back to 0 (idx === -1)
+  // but the acknowledged hash would stay pointed at a phantom cast forever.
+  useEffect(() => {
+    if (!topHash) return;
+    if (acknowledgedFirstHash === null) {
+      setAcknowledgedFirstHash(topHash);
+      return;
+    }
+    if (!casts.some((c) => c?.hash === acknowledgedFirstHash)) {
+      setAcknowledgedFirstHash(topHash);
+    }
+  }, [acknowledgedFirstHash, topHash, casts]);
+
+  // Auto-dismiss the pill when the list pane is already scrolled to the top:
+  // if the user is staring at the top of the feed when new casts arrive,
+  // there's no point pestering them with a pill.
+  useEffect(() => {
+    const scrollContainer = listScrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      if (scrollContainer.scrollTop <= 0) {
+        if (topHash && acknowledgedFirstHash !== topHash) {
+          setAcknowledgedFirstHash(topHash);
+        }
+      }
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    // Run once on mount/effect-rerun so we auto-acknowledge if the user is
+    // already at the top when new content arrives (no scroll event fires in
+    // that case).
+    handleScroll();
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+    };
+  }, [topHash, acknowledgedFirstHash]);
+
+  const handlePillClick = useCallback(() => {
+    if (topHash) {
+      setAcknowledgedFirstHash(topHash);
+    }
+    // Selecting index 0 triggers SelectableListWithHotkeys' scroll-to-selected
+    // effect. We still force scrollTop=0 below to cover the edge case where
+    // selection was already 0 (effect won't re-run on identical value).
+    setSelectedCastIdx(0);
+    const scrollContainer = listScrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    }
+  }, [topHash]);
 
   useEffect(() => {
     const shouldUpdateLastReadTimestamp =
@@ -287,19 +416,64 @@ export default function Feeds() {
     });
   }, [selectedCast, setCastModalView, updateSelectedCast, addNewPostDraft, setCastModalDraftId, openNewCastModal]);
 
-  // Escape handler to close thread view (only when no modal is open)
+  // Split-pane focus toggling. These hotkeys are dual-gated: each is scoped to
+  // the FEED scope (active on `/feeds`) AND uses `enabled` to stop firing in
+  // states where the toggle would be meaningless (modal open, no preview pane
+  // mounted, etc.). `preventDefault: true` is required for Tab and Shift+arrow
+  // so the browser's native focus-cycling / scroll behavior doesn't fire
+  // alongside the callback.
+  const splitPaneHotkeysActive = isDesktop && !isNewCastModalOpen;
+
   useAppHotkeys(
-    [Key.Escape, '§'],
+    'Tab',
     () => {
-      setShowCastThreadView(false);
+      setPreviewFocused((prev) => !prev);
     },
     {
       scopes: [HotkeyScopes.FEED],
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-      enabled: showCastThreadView && !isNewCastModalOpen,
+      enabled: splitPaneHotkeysActive,
+      preventDefault: true,
     },
-    [showCastThreadView, isNewCastModalOpen, setShowCastThreadView]
+    [splitPaneHotkeysActive]
+  );
+
+  useAppHotkeys(
+    'shift+ArrowRight',
+    () => {
+      setPreviewFocused(true);
+    },
+    {
+      scopes: [HotkeyScopes.FEED],
+      enabled: splitPaneHotkeysActive && !previewFocused,
+      preventDefault: true,
+    },
+    [splitPaneHotkeysActive, previewFocused]
+  );
+
+  useAppHotkeys(
+    'shift+ArrowLeft',
+    () => {
+      setPreviewFocused(false);
+    },
+    {
+      scopes: [HotkeyScopes.FEED],
+      enabled: splitPaneHotkeysActive && previewFocused,
+      preventDefault: true,
+    },
+    [splitPaneHotkeysActive, previewFocused]
+  );
+
+  // Esc returns focus to the list when preview pane has focus.
+  useAppHotkeys(
+    Key.Escape,
+    () => {
+      setPreviewFocused(false);
+    },
+    {
+      scopes: [HotkeyScopes.FEED],
+      enabled: splitPaneHotkeysActive && previewFocused,
+    },
+    [splitPaneHotkeysActive, previewFocused]
   );
 
   const refreshFeed = useCallback(() => {
@@ -363,24 +537,30 @@ export default function Feeds() {
 
   useEffect(() => {
     closeNewCastModal();
-    setShowCastThreadView(false);
     setSelectedCastIdx(-1);
+    setPreviewFocused(false);
   }, [selectedChannelUrl, selectedListId]);
+
+  // Reset preview focus if the user shrinks below the lg breakpoint — there is
+  // no preview pane mounted in mobile mode, so leaving `previewFocused: true`
+  // would silently disable list j/k navigation.
+  useEffect(() => {
+    if (!isDesktop && previewFocused) {
+      setPreviewFocused(false);
+    }
+  }, [isDesktop, previewFocused]);
 
   const renderRow = (item: any, idx: number) => {
     // Attach sentinel ref to 5th-from-last item for auto-pagination
     const isSentinel = idx === casts.length - PREFETCH_THRESHOLD;
 
     return (
-      <li
-        key={item?.hash}
-        className="border-b border-border relative w-full pr-4"
-        ref={isSentinel ? buttonRef : undefined}
-      >
-        <CastRow
+      <li key={item?.hash} className="border-b border-border relative w-full" ref={isSentinel ? buttonRef : undefined}>
+        <CompactCastRow
           cast={item}
+          idx={idx}
           isSelected={selectedCastIdx === idx}
-          onSelect={() => onSelectCast(idx)}
+          onSelect={onSelectCast}
           showChannel={
             selectedChannelUrl === CUSTOM_CHANNELS.FOLLOWING || selectedChannelUrl === CUSTOM_CHANNELS.TRENDING
           }
@@ -442,21 +622,20 @@ export default function Feeds() {
       setSelectedIdx={setSelectedCastIdx}
       renderRow={(item: any, idx: number) => renderRow(item, idx)}
       onSelect={onSelectCast}
-      isActive={!(showCastThreadView || isNewCastModalOpen)}
+      // When preview-focus is active the list's j/k must NOT move selection —
+      // the user is scrolling the preview pane (browser default) instead.
+      isActive={!isNewCastModalOpen && !previewFocused}
       pinnedNavigation={true}
       containerHeight="100%"
       scopes={[HotkeyScopes.GLOBAL, HotkeyScopes.FEED]}
       footer={!isEmpty(casts) ? renderLoadMoreButton() : null}
-      estimatedItemHeight={400}
-    />
-  );
-
-  const renderThread = () => (
-    <CastThreadView
-      cast={casts[selectedCastIdx]}
-      onBack={() => setShowCastThreadView(false)}
-      onReply={onReply}
-      onQuote={onQuote}
+      estimatedItemHeight={88}
+      // Suppress the virtualizer's auto-scroll-to-top on feed refresh: the
+      // NewCastsPill flow owns scrolling so the user keeps their place.
+      disableAutoScrollOnFirstItemChange={true}
+      // Get a stable handle on the scroll element so the pill auto-acknowledge
+      // listener doesn't have to query DOM by class name.
+      scrollContainerRef={listScrollContainerRef}
     />
   );
 
@@ -529,6 +708,8 @@ export default function Feeds() {
     );
   };
 
+  const previewCast = selectedCastIdx >= 0 ? casts[selectedCastIdx] : null;
+
   const renderContent = () => (
     <main className="w-full h-full">
       {isLoadingFeed && isEmpty(casts) && (
@@ -538,16 +719,29 @@ export default function Feeds() {
           ))}
         </div>
       )}
-      {showCastThreadView ? (
-        renderThread()
-      ) : (
-        <div className="h-full w-full">
-          {renderFeed()}
-          {renderWelcomeMessage()}
-        </div>
-      )}
+      <SplitPaneShell
+        list={
+          // `relative` is required so NewCastsPill (absolute-positioned) anchors
+          // to this wrapper rather than escaping to some ancestor. The ref lets
+          // effects scope querySelector('.overflow-y-auto') to just the list.
+          <div className="relative h-full w-full" ref={listWrapperRef}>
+            <NewCastsPill count={newCastsCount} onClick={handlePillClick} />
+            {renderFeed()}
+            {renderWelcomeMessage()}
+          </div>
+        }
+        preview={<PreviewPane cast={previewCast} previewFocused={previewFocused} />}
+        listFocused={isDesktop && !previewFocused}
+        previewFocused={isDesktop && previewFocused}
+      />
     </main>
   );
+
+  // While redirecting away to /conversation/[hash], render an empty
+  // placeholder so the feed never flashes during the transition.
+  if (shouldRedirectLegacyCastHash) {
+    return <main className="w-full h-full" data-testid="feeds-redirecting-to-conversation" />;
+  }
 
   return renderContent();
 }

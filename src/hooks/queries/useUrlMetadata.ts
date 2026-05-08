@@ -18,9 +18,9 @@ interface UseUrlMetadataOptions {
   enabled?: boolean;
 }
 
-async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null> {
+async function fetchUrlMetadata(url: string, signal?: AbortSignal): Promise<UrlMetadata | null> {
   const params = new URLSearchParams({ url });
-  const response = await fetch(`/api/embeds/metadata?${params.toString()}`);
+  const response = await fetch(`/api/embeds/metadata?${params.toString()}`, { signal });
 
   if (!response.ok) {
     throw new Error('Failed to fetch URL metadata');
@@ -45,7 +45,7 @@ export function useUrlMetadata(url: string, options?: UseUrlMetadataOptions) {
 
   return useQuery({
     queryKey: queryKeys.embeds.urlMetadata(url),
-    queryFn: () => fetchUrlMetadata(url),
+    queryFn: ({ signal }) => fetchUrlMetadata(url, signal),
     enabled: enabled && !!url && url.length > 0,
     staleTime: 1000 * 60 * 60, // 1 hour - metadata rarely changes
     gcTime: 1000 * 60 * 60 * 24, // 24 hours - keep in cache long

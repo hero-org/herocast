@@ -1,69 +1,137 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { CastThreadView } from '@/common/components/CastThreadView';
+import { PreviewEmbedContext } from '@/common/components/Feed/PreviewEmbedContext';
+import { PageSkeleton } from '@/common/components/PageSkeleton';
 import type { FarcasterCast } from '@/common/types/farcaster';
+import { Button } from '@/components/ui/button';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigationStore } from '@/stores/useNavigationStore';
+
+type LoadStatus = 'loading' | 'loaded' | 'not-found';
+
+const PREVIEW_CONTEXT_VALUE = { inPreview: true };
 
 export default function ConversationPage() {
   const params = useParams();
   const slug = params.slug as string[];
   const [cast, setCast] = useState<FarcasterCast | null>(null);
+  const [status, setStatus] = useState<LoadStatus>('loading');
   const { updateSelectedCast } = useNavigationStore();
 
   useEffect(() => {
-    // if navigating away, reset the selected cast
     return () => {
       updateSelectedCast();
     };
-  }, []);
+  }, [updateSelectedCast]);
 
-  function getPayloadFromSlug(): { identifier: string; type: 'hash' | 'url' } {
-    return slug && slug?.length === 2
-      ? {
-          identifier: `https://warpcast.com/${slug[0]}/${slug[1]}`,
-          type: 'url',
-        }
-      : {
-          identifier: slug[0],
-          type: 'hash',
-        };
+  function getPayloadFromSlug(): { identifier: string; type: 'hash' | 'url' } | null {
+    if (!slug || slug.length === 0) return null;
+    if (slug.length === 1) {
+      if (!slug[0].startsWith('0x')) return null;
+      return { identifier: slug[0], type: 'hash' };
+    }
+    if (slug.length === 2) {
+      if (!slug[1].startsWith('0x')) return null;
+      return { identifier: `https://warpcast.com/${slug[0]}/${slug[1]}`, type: 'url' };
+    }
+    return null;
   }
 
   useEffect(() => {
+    let cancelled = false;
+
     const getData = async () => {
-      if (!slug || slug.length === 0) return;
-      if (slug.length === 1 && !slug[0].startsWith('0x')) return;
-      if (slug.length === 2 && !slug[1].startsWith('0x')) return;
+      const payload = getPayloadFromSlug();
+      if (!payload) {
+        setStatus('not-found');
+        return;
+      }
+
+      setCast(null);
+      updateSelectedCast();
+      setStatus('loading');
 
       try {
-        const payload = getPayloadFromSlug();
-        const params = new URLSearchParams({
+        const lookupParams = new URLSearchParams({
           identifier: payload.identifier,
           type: payload.type,
         });
-
-        const response = await fetch(`/api/casts/lookup?${params.toString()}`);
+        const response = await fetch(`/api/casts/lookup?${lookupParams.toString()}`);
         if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
+          if (!cancelled) {
+            setStatus('not-found');
+          }
+          return;
         }
-
         const res = await response.json();
-        if (res && res.cast) {
+        if (cancelled) return;
+        if (res?.cast) {
           setCast(res.cast);
+          updateSelectedCast(res.cast);
+          setStatus('loaded');
+        } else {
+          setStatus('not-found');
         }
       } catch (err) {
         console.error(`Error in conversation page: ${err} ${slug}`);
+        if (!cancelled) {
+          setStatus('not-found');
+        }
       }
     };
 
     getData();
-  }, [slug]);
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug?.join('/')]);
+
+  if (status === 'loading') {
+    return (
+      <div className="h-full w-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl px-4 py-6" data-testid="conversation-loading">
+          <PageSkeleton variant="profile" />
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'not-found' || !cast) {
+    return (
+      <div className="h-full w-full overflow-y-auto">
+        <div className="mx-auto w-full max-w-3xl px-4 py-12 flex justify-center">
+          <Card className="w-full max-w-md" data-testid="conversation-not-found">
+            <CardHeader>
+              <CardTitle>Cast not found</CardTitle>
+              <CardDescription>
+                We couldn&apos;t find a cast at that link. It may have been deleted or the URL may be incorrect.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Link href="/feeds" className="w-full">
+                <Button className="w-full">Back to feeds</Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full w-full">
-      <CastThreadView cast={cast ?? undefined} containerHeight="100%" />
-    </div>
+    // PreviewEmbedContext flips EmbedList over to the smart-group
+    // MultiEmbedStack renderer (matching the /feeds preview pane) so the
+    // thread view renders embeds the same way users see them in the feed.
+    <PreviewEmbedContext.Provider value={PREVIEW_CONTEXT_VALUE}>
+      <div className="h-full w-full">
+        <CastThreadView cast={cast} containerHeight="100%" />
+      </div>
+    </PreviewEmbedContext.Provider>
   );
 }

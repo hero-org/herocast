@@ -15,13 +15,30 @@ export interface MiniAppHostProps {
   url: string;
   manifest?: Partial<Manifest.MiniAppConfig>;
   className?: string;
+  /**
+   * Fires the first time the embedded mini app calls `sdk.ready()`. Lets
+   * wrappers cancel a "stuck on splash" timeout fallback.
+   */
+  onReady?: () => void;
+  /**
+   * Fires when iframe setup fails (invalid URL, postMessage init throws).
+   * Receives the same human-readable string shown in the inline error UI.
+   */
+  onError?: (message: string) => void;
 }
 
-const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) => {
+const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className, onReady, onError }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
+  const onReadyRef = useRef(onReady);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onReadyRef.current = onReady;
+    onErrorRef.current = onError;
+  }, [onReady, onError]);
 
   // Get current Farcaster account
   const { accounts, selectedAccountIdx } = useAccountStore();
@@ -53,7 +70,9 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
 
     // Validate URL before proceeding
     if (!safeSrc || !miniAppOrigins || miniAppOrigins.length === 0) {
-      setError('Invalid or insecure mini app URL. Only HTTPS URLs are allowed.');
+      const message = 'Invalid or insecure mini app URL. Only HTTPS URLs are allowed.';
+      setError(message);
+      onErrorRef.current?.(message);
       return;
     }
 
@@ -86,6 +105,7 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
       // Required: App signals ready
       ready: async () => {
         setIsReady(true);
+        onReadyRef.current?.();
       },
 
       // Required: Close the mini app
@@ -317,7 +337,9 @@ const MiniAppHost: React.FC<MiniAppHostProps> = ({ url, manifest, className }) =
       cleanupRef.current = cleanup;
     } catch (e) {
       console.error('Failed to expose SDK to iframe:', e);
-      setError('Failed to initialize mini app');
+      const message = 'Failed to initialize mini app';
+      setError(message);
+      onErrorRef.current?.(message);
     }
 
     return () => {

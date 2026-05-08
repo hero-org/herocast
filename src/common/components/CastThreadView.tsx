@@ -82,7 +82,29 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
         const { conversation } = await response.json();
         if (conversation?.cast?.direct_replies) {
           const { direct_replies: replies, ...castObjectWithoutReplies } = conversation.cast;
-          setCasts((conversation.chronological_parent_casts || []).concat([castObjectWithoutReplies].concat(replies)));
+          const orderedCasts = (conversation.chronological_parent_casts || []).concat(
+            [castObjectWithoutReplies].concat(replies)
+          );
+          setCasts(orderedCasts);
+          // Set initial selection to the focused cast (the one we loaded the
+          // thread for) rather than the oldest parent. The virtualizer auto-
+          // scrolls to selectedCastIdx, so the focused cast lands in view
+          // with parents above scrollable up and replies below scrollable
+          // down — same UX as Twitter/X opening a tweet permalink.
+          const focusedHash = cast?.hash || hash;
+          const focusedIdx = focusedHash ? orderedCasts.findIndex((c: FarcasterCast) => c.hash === focusedHash) : -1;
+          if (focusedIdx >= 0) {
+            setSelectedCastIdx(focusedIdx);
+          }
+          // Auto-expand parent casts AND the root cast so the user lands on
+          // the full thread context immediately, no `read more...` clicks
+          // required for the casts they came here to read. Replies stay
+          // truncated to keep the list scannable.
+          const parentAndRootHashes = new Set<string>([
+            ...(conversation.chronological_parent_casts || []).map((c: FarcasterCast) => c.hash),
+            castObjectWithoutReplies.hash,
+          ]);
+          setExpandedCasts(parentAndRootHashes);
         }
       } catch (err) {
         console.error(`Error fetching cast thread: ${err}`);

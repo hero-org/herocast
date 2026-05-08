@@ -2,7 +2,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import isEmpty from 'lodash.isempty';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import { Key } from 'ts-key-enum';
 import { getScopesForPage, type HotkeyScope } from '@/common/constants/hotkeys';
 import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
@@ -24,6 +24,16 @@ type SelectableListWithHotkeysProps = {
   footer?: React.ReactNode;
   estimatedItemHeight?: number;
   getItemKey?: (item: any, index: number) => string;
+  // Opt-in for callers that surface a "new content" pill UX. When true, the
+  // virtualizer will NOT auto-scroll to top when the first item's hash
+  // changes — the parent owns that scroll via the pill click handler so the
+  // user keeps their reading position until they explicitly opt in.
+  disableAutoScrollOnFirstItemChange?: boolean;
+  // Optional callback giving the parent a stable handle on the scroll
+  // container element so it can attach scroll listeners or read scroll
+  // position without resorting to fragile DOM queries (`querySelector` on
+  // class names that are implementation details of this component).
+  scrollContainerRef?: React.MutableRefObject<HTMLDivElement | null>;
 };
 
 export const SelectableListWithHotkeys = ({
@@ -43,10 +53,24 @@ export const SelectableListWithHotkeys = ({
   footer,
   estimatedItemHeight = 250,
   getItemKey: externalGetItemKey,
+  disableAutoScrollOnFirstItemChange = false,
+  scrollContainerRef,
 }: SelectableListWithHotkeysProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname() || '/';
   const pageScopes = scopes ?? getScopesForPage(pathname);
+
+  // Mirror the internal ref into the optional parent-supplied ref so callers
+  // can read the scroll element without a brittle DOM query.
+  const setContainerEl = useCallback(
+    (el: HTMLDivElement | null) => {
+      containerRef.current = el;
+      if (scrollContainerRef) {
+        scrollContainerRef.current = el;
+      }
+    },
+    [scrollContainerRef]
+  );
 
   // Track first item to detect feed refresh (not pagination)
   const firstItemKey = useMemo(() => {
@@ -71,7 +95,7 @@ export const SelectableListWithHotkeys = ({
     const shouldReset =
       prevFirstItemKeyRef.current !== null && firstItemKey !== null && prevFirstItemKeyRef.current !== firstItemKey;
 
-    if (shouldReset) {
+    if (shouldReset && !disableAutoScrollOnFirstItemChange) {
       if (process.env.NODE_ENV === 'development') {
         console.log('[Virtualizer] Feed refreshed, resetting');
       }
@@ -79,7 +103,7 @@ export const SelectableListWithHotkeys = ({
       virtualizer.measure();
     }
     prevFirstItemKeyRef.current = firstItemKey;
-  }, [firstItemKey, virtualizer]);
+  }, [firstItemKey, virtualizer, disableAutoScrollOnFirstItemChange]);
 
   // Scroll to selected item when selectedIdx changes
   useLayoutEffect(() => {
@@ -154,7 +178,11 @@ export const SelectableListWithHotkeys = ({
   const virtualItems = virtualizer.getVirtualItems();
 
   return (
-    <div ref={containerRef} className="overflow-y-auto no-scrollbar" style={{ height: containerHeight, width: '100%' }}>
+    <div
+      ref={setContainerEl}
+      className="overflow-y-auto no-scrollbar"
+      style={{ height: containerHeight, width: '100%' }}
+    >
       <div
         role="list"
         style={{
