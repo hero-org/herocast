@@ -24,9 +24,9 @@ export function useTextLength({ text, isPro = false }: { text: string; isPro?: b
     isLongCast: lengthInBytes > MAX_SHORT_CAST_LENGTH,
     isValid,
     tailwindColor: !isValid
-      ? 'text-red-500 font-semibold'
+      ? 'text-destructive font-semibold'
       : lengthInBytes > ninetyPercentComplete
-        ? `text-orange-500`
+        ? 'text-warning'
         : 'text-foreground/60',
     label:
       lengthInBytes > MAX_USER_CAST_CHARACTERS

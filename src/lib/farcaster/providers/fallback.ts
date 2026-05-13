@@ -1,5 +1,7 @@
 import { type FarcasterProvider, UnsupportedProviderFeatureError } from './types';
 
+type ProviderMethod = (this: FarcasterProvider, ...args: unknown[]) => unknown;
+
 /**
  * Wraps a primary provider with a fallback.
  * If the primary provider does not support a feature, retries with fallback.
@@ -14,12 +16,12 @@ export function createFallbackProvider(primary: FarcasterProvider, fallback: Far
 
       return async (...args: unknown[]) => {
         try {
-          return await (value as Function).apply(target, args);
+          return await (value as ProviderMethod).apply(target, args);
         } catch (error) {
           if (error instanceof UnsupportedProviderFeatureError) {
-            const fallbackMethod = (fallback as any)[prop];
+            const fallbackMethod = Reflect.get(fallback, prop);
             if (typeof fallbackMethod === 'function') {
-              return fallbackMethod.apply(fallback, args);
+              return (fallbackMethod as ProviderMethod).apply(fallback, args);
             }
           }
           throw error;

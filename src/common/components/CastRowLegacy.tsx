@@ -1,23 +1,25 @@
 // LEGACY SNAPSHOT of CastRow.tsx as of Phase 1 Week 1 split-pane refactor.
 // Used only by StandardCastRow regression test. DELETE when Phase 1 ships and the regression test is retired.
-import { ArrowPathIcon, EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
-import {
-  ArrowPathRoundedSquareIcon,
-  ArrowTopRightOnSquareIcon,
-  ChatBubbleLeftIcon,
-  ChatBubbleLeftRightIcon,
-  DocumentDuplicateIcon,
-  HeartIcon,
-  LinkIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline';
-import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
+
 import { ErrorBoundary } from '@sentry/react';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import Linkify from 'linkify-react';
 import { registerPlugin } from 'linkifyjs';
 import get from 'lodash.get';
 import map from 'lodash.map';
+import {
+  Copy,
+  ExternalLink,
+  Heart,
+  Heart as HeartFilledIcon,
+  Link as LinkIcon,
+  MessageSquare,
+  MessagesSquare,
+  MoreHorizontal,
+  RefreshCw,
+  Repeat2,
+  Trash2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -111,7 +113,7 @@ const renderMention = ({ attributes, content }) => {
   const { userFid } = attributes;
   return (
     <span
-      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+      className="cursor-pointer text-mention font-medium hover:underline hover:text-mention/70"
       onClick={(event) => {
         event.stopPropagation();
       }}
@@ -128,7 +130,7 @@ const renderLink = ({ attributes, content }) => {
   const { href } = attributes;
   return (
     <span
-      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+      className="cursor-pointer text-mention font-medium hover:underline hover:text-mention/70"
       onClick={(event) => {
         event.stopPropagation();
         window.open(href, '_blank');
@@ -149,7 +151,7 @@ const renderChannel = ({ attributes, content }) => {
 
   return (
     <span
-      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+      className="cursor-pointer text-channel font-medium hover:underline hover:text-channel/70"
       onClick={(event) => {
         event.stopPropagation();
         const { setSelectedChannelByName } = useAccountStore.getState();
@@ -177,7 +179,7 @@ const renderCashtag = ({ attributes, content }) => {
 
   return (
     <span
-      className="cursor-pointer text-blue-500 text-font-medium hover:underline hover:text-blue-500/70"
+      className="cursor-pointer text-mention font-medium hover:underline hover:text-mention/70"
       onClick={(event) => {
         event.stopPropagation();
       }}
@@ -334,18 +336,18 @@ const CastRowLegacyComponent = ({
     switch (reactionType) {
       case CastReactionType.likes:
         return isActive ? (
-          <HeartFilledIcon className={className} aria-hidden="true" />
+          <HeartFilledIcon className={className} aria-hidden="true" fill="currentColor" />
         ) : (
-          <HeartIcon className={className} aria-hidden="true" />
+          <Heart className={className} aria-hidden="true" />
         );
       case CastReactionType.recasts:
-        return <ArrowPathRoundedSquareIcon className={className} aria-hidden="true" />;
+        return <Repeat2 className={className} aria-hidden="true" />;
       case CastReactionType.quote:
-        return <ChatBubbleLeftRightIcon className={className} aria-hidden="true" />;
+        return <MessagesSquare className={className} aria-hidden="true" />;
       case CastReactionType.replies:
-        return <ChatBubbleLeftIcon className={className} aria-hidden="true" />;
+        return <MessageSquare className={className} aria-hidden="true" />;
       case CastReactionType.links:
-        return <ArrowTopRightOnSquareIcon className={className} aria-hidden="true" />;
+        return <ExternalLink className={className} aria-hidden="true" />;
       default:
         return null;
     }
@@ -714,7 +716,7 @@ const CastRowLegacyComponent = ({
       <span
         className={cn('ml-10', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/60 hover:underline')}
       >
-        <ArrowPathIcon className="h-4 w-4 mt-0.5 mr-1" />
+        <RefreshCw className="h-4 w-4 mt-0.5 mr-1" />
         {recasterLabel && `Recasted by ${recasterLabel}`}
       </span>
     );
@@ -748,7 +750,7 @@ const CastRowLegacyComponent = ({
     showChannel &&
     channel && (
       <Badge
-        className="truncate items-top bg-blue-400/10  hover:bg-blue-400/20 text-blue-400 hover:text-blue-600  border-blue-400/5 shadow-none"
+        className="truncate items-top bg-channel/10 hover:bg-channel/20 text-channel border-channel/20 shadow-none"
         onClick={() => setSelectedChannelUrl(channel.url)}
       >
         {channel.name}
@@ -761,7 +763,7 @@ const CastRowLegacyComponent = ({
         key: 'delete',
         isDialog: true,
         label: 'Delete',
-        icon: <TrashIcon className="h-4 w-4 mr-1" />,
+        icon: <Trash2 className="h-4 w-4 mr-1" />,
         content: (
           <DialogContent>
             <DialogHeader>
@@ -794,7 +796,7 @@ const CastRowLegacyComponent = ({
       {
         key: 'copy-cast-link',
         label: 'Copy cast link',
-        icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
+        icon: <Copy className="h-4 w-4 mr-1" />,
         onClick: () => {
           const url = `${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`;
           addToClipboard(url);
@@ -804,7 +806,7 @@ const CastRowLegacyComponent = ({
       {
         key: 'copy-cast-hash',
         label: 'Copy cast hash',
-        icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
+        icon: <Copy className="h-4 w-4 mr-1" />,
         onClick: () => {
           addToClipboard(cast.hash);
           toastCopiedToClipboard(cast.hash);
@@ -815,7 +817,7 @@ const CastRowLegacyComponent = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild className="ml-1">
           <Button size="icon" variant="outline" className="rounded-full h-6 w-6">
-            <EllipsisHorizontalIcon className="h-3.5 w-3.5" />
+            <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -941,7 +943,7 @@ const CastRowLegacyComponent = ({
                   tabIndex={-1}
                   prefetch={false}
                 >
-                  <ArrowTopRightOnSquareIcon className="mt-0.5 w-4 h-4 ml-1.5" />
+                  <ExternalLink className="mt-0.5 w-4 h-4 ml-1.5" />
                 </Link>
                 {showAdminActions && renderAdminActions()}
               </div>

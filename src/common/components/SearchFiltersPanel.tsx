@@ -1,4 +1,4 @@
-import { InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Info, X } from 'lucide-react';
 import { useState } from 'react';
 import { Interval } from '@/common/types/types';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +42,7 @@ export function SearchFiltersPanel({ filters, onFiltersChange, className }: Sear
           <Popover open={showHelp} onOpenChange={setShowHelp}>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <InformationCircleIcon className="h-4 w-4" />
+                <Info className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-96">
@@ -140,7 +140,7 @@ export function SearchFiltersPanel({ filters, onFiltersChange, className }: Sear
             })
           }
         >
-          <XMarkIcon className="h-4 w-4 mr-1" />
+          <X className="h-4 w-4 mr-1" />
           Clear All Filters
         </Button>
       )}

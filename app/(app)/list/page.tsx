@@ -1,7 +1,6 @@
 'use client';
 
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { UsersIcon } from 'lucide-react';
+import { Plus, Trash2, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -402,7 +401,7 @@ export default function ListPage() {
                       )}
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => handleRemoveUser(fid, displayName)}>
-                      <TrashIcon className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </CardContent>
@@ -501,7 +500,7 @@ export default function ListPage() {
             ))}
           </TabsList>
           <Button size="sm" onClick={() => setIsCreatingList(true)}>
-            <PlusIcon className="h-4 w-4 mr-1" />
+            <Plus className="h-4 w-4 mr-1" />
             New List
           </Button>
         </div>
@@ -523,7 +522,7 @@ export default function ListPage() {
                       list.contents.fids &&
                       list.contents.fids.length >= LIST_SIZE_WARNING_THRESHOLD && (
                         <p className="text-sm text-warning mt-1">
-                          ⚠️ Approaching limit: {MAX_USERS_PER_LIST - list.contents.fids.length} slots remaining (max{' '}
+                          Approaching limit: {MAX_USERS_PER_LIST - list.contents.fids.length} slots remaining (max{' '}
                           {MAX_USERS_PER_LIST})
                         </p>
                       )}
@@ -537,7 +536,7 @@ export default function ListPage() {
                       setDeleteConfirmOpen(true);
                     }}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
                 {isFidListContent(list.contents) &&

@@ -1,5 +1,5 @@
-import { LinkIcon } from '@heroicons/react/24/outline';
 import { ErrorBoundary } from '@sentry/react';
+import { Link as LinkIcon } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import { isNftSaleUrl, isSwapUrl, isZapperTransactionUrl } from '@/common/helpers/onchain';

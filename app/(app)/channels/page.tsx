@@ -1,7 +1,5 @@
 'use client';
 
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
-import { PersonIcon } from '@radix-ui/react-icons';
 import Fuse from 'fuse.js';
 import { take } from 'lodash';
 import filter from 'lodash.filter';
@@ -9,6 +7,7 @@ import findIndex from 'lodash.findindex';
 import isEmpty from 'lodash.isempty';
 import map from 'lodash.map';
 import orderBy from 'lodash.orderby';
+import { Search, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useState } from 'react';
@@ -62,7 +61,7 @@ export default function Channels() {
         {enabled && idx !== undefined && (
           <div
             className={cn(
-              'text-background bg-green-600/80 border-foreground/60 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-lg text-lg font-medium'
+              'text-background bg-success/80 border-foreground/60 border flex w-10 flex-shrink-0 items-center justify-center rounded-l-lg text-lg font-medium'
             )}
           >
             {idx + 1}
@@ -78,7 +77,7 @@ export default function Channels() {
             <img
               src={channel.icon_url}
               alt=""
-              className="ml-2 mt-0.5 rounded-lg border border-gray-600 h-10 w-10 flex-none bg-background"
+              className="ml-2 mt-0.5 rounded-lg border border-border h-10 w-10 flex-none bg-background"
             />
           ) : (
             <div className="ml-2" />
@@ -89,7 +88,7 @@ export default function Channels() {
               {channel.data?.followerCount && (
                 <span className="ml-1 border-l border-foreground/10 text-foreground/60">
                   {' '}
-                  <PersonIcon className="mb-1 h-3 w-3 inline" /> {formatLargeNumber(channel.data.followerCount)}
+                  <User className="mb-1 h-3 w-3 inline" /> {formatLargeNumber(channel.data.followerCount)}
                 </span>
               )}
             </p>
@@ -127,7 +126,7 @@ export default function Channels() {
   const renderPinnedChannels = () => {
     return (
       <div>
-        <div className="border-b border-gray-500 sm:flex sm:items-center sm:justify-between">
+        <div className="border-b border-border sm:flex sm:items-center sm:justify-between">
           <div className="flex flex-col">
             <h2 className="text-lg font-medium text-foreground/80 leading-6">Pinned channels</h2>
             <h3 className="text-sm font-medium text-foreground/80">
@@ -156,7 +155,7 @@ export default function Channels() {
   const renderAllChannels = () => {
     return (
       <div className="mt-8 min-h-full">
-        <div className="border-b border-gray-500 sm:flex sm:items-center sm:justify-between">
+        <div className="border-b border-border sm:flex sm:items-center sm:justify-between">
           <div className="flex flex-col">
             <h2 className="text-lg font-medium text-foreground/80 leading-6">All channels</h2>
             <h3 className="text-sm font-medium text-foreground/80">Search and pin new channels</h3>
@@ -172,7 +171,7 @@ export default function Channels() {
           <div className="flex rounded-md shadow-sm max-w-md">
             <div className="relative flex-grow focus-within:z-10">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <MagnifyingGlassIcon className="h-5 w-5 text-foreground/70" aria-hidden="true" />
+                <Search className="h-5 w-5 text-foreground/70" aria-hidden="true" />
               </div>
               <input
                 onChange={handleSearchChange}
@@ -180,7 +179,7 @@ export default function Channels() {
                 type="text"
                 name="mobile-search-channel"
                 id="mobile-search-channel"
-                className="block w-full rounded-md border-0 py-2.5 pl-10 bg-white/20 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/10 focus:text-foreground ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 sm:hidden"
+                className="block w-full rounded-md border-0 py-2.5 pl-10 bg-white/20 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/10 focus:text-foreground ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-ring sm:hidden"
                 placeholder="Search"
               />
               <input
@@ -189,7 +188,7 @@ export default function Channels() {
                 type="text"
                 name="desktop-search-channel"
                 id="desktop-search-channel"
-                className="hidden w-full rounded-md border-0 py-2 pl-10 bg-white/20 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/10 focus:text-foreground ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 sm:block"
+                className="hidden w-full rounded-md border-0 py-2 pl-10 bg-white/20 pr-3 text-foreground/80 placeholder:text-foreground focus:bg-white/10 focus:text-foreground ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-ring sm:block"
                 placeholder="Search channels"
               />
             </div>

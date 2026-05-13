@@ -1,8 +1,8 @@
 'use client';
 
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import debounce from 'lodash.debounce';
 import uniqBy from 'lodash.uniqby';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { FarcasterUser } from '@/common/types/farcaster';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -104,7 +104,7 @@ export function ProfileSearchDropdown({
           )}
         >
           {selectedProfile ? renderSelectedProfile() : placeholder || 'Select account...'}
-          {!disabled && <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
+          {!disabled && <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
         </Button>
       </PopoverTrigger>
       {!disabled && (
@@ -153,7 +153,7 @@ export function ProfileSearchDropdown({
                           </div>
                           <span className="text-xs text-muted-foreground truncate">@{profile.username}</span>
                         </div>
-                        <CheckIcon
+                        <Check
                           className={cn(
                             'ml-2 h-4 w-4 flex-shrink-0',
                             selectedProfile?.fid === profile.fid ? 'opacity-100' : 'opacity-0'

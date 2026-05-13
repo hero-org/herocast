@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
@@ -50,7 +50,7 @@ export const ChannelSearchCommand: React.FC<ChannelSearchCommandProps> = ({ quer
   if (isLoading) {
     return (
       <CommandItem disabled>
-        <MagnifyingGlassIcon className="h-5 w-5 flex-none text-foreground/80 mr-2" />
+        <Search className="h-5 w-5 flex-none text-foreground/80 mr-2" />
         <span className="ml-2">Searching channels...</span>
       </CommandItem>
     );
@@ -59,7 +59,7 @@ export const ChannelSearchCommand: React.FC<ChannelSearchCommandProps> = ({ quer
   if (channels.length === 0) {
     return (
       <CommandItem disabled>
-        <MagnifyingGlassIcon className="h-5 w-5 flex-none text-foreground/80 mr-2" />
+        <Search className="h-5 w-5 flex-none text-foreground/80 mr-2" />
         <span className="ml-2">No channels found for &quot;{query}&quot;</span>
       </CommandItem>
     );

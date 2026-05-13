@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { Cross2Icon } from '@radix-ui/react-icons';
+import { X } from 'lucide-react';
 import type React from 'react';
 
 type ModalProps = {
@@ -17,7 +17,7 @@ const Modal: React.FC<ModalProps> = ({ open, setOpen, title, description, childr
       <Dialog.Portal>
         <Dialog.Overlay className="z-50 bg-muted/95 data-[state=open]:animate-overlayShow fixed inset-0" />
         <Dialog.Content
-          className="z-50 data-[state=open]:animate-contentShow fixed bg-background top-[45%] left-[50%] w-[100vw] max-w-[600px] translate-x-[-50%] translate-y-[-40%] rounded-[6px] p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none"
+          className="z-50 data-[state=open]:animate-contentShow fixed top-[45%] left-[50%] w-[100vw] max-w-[600px] translate-x-[-50%] translate-y-[-40%] rounded-2xl border border-border bg-popover text-popover-foreground p-[25px] shadow-lg focus:outline-none"
           onOpenAutoFocus={focusMode ? undefined : (e) => e.preventDefault()}
           onCloseAutoFocus={focusMode ? undefined : (e) => e.preventDefault()}
         >
@@ -33,7 +33,7 @@ const Modal: React.FC<ModalProps> = ({ open, setOpen, title, description, childr
               className="text-card-foreground/80 bg-background/90 focus:shadow-background/90 absolute top-[10px] right-[10px] inline-flex h-[25px] w-[25px] appearance-none items-center justify-center rounded-full focus:shadow-[0_0_0_2px] focus:outline-none"
               aria-label="Close"
             >
-              <Cross2Icon />
+              <X />
             </button>
           </Dialog.Close>
         </Dialog.Content>

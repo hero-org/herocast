@@ -73,7 +73,6 @@ if (isLoading) {
 | CastEmbed         | Farcaster casts              | ✅                   |
 | VideoEmbed        | HLS video streams            | Native player        |
 | OpenGraphImage    | Generic URLs with metadata   | ✅                   |
-| NounsBuildEmbed   | Nouns Builder DAOs           | ✅                   |
 | ParagraphXyzEmbed | Paragraph articles           | ✅                   |
 | SwapEmbed         | Token swaps                  | ✅                   |
 | NftSaleEmbed      | NFT sales                    | ✅                   |

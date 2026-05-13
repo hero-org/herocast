@@ -23,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
+import { KbdTooltip } from '@/components/ui/kbd';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
@@ -875,11 +875,9 @@ const Inbox = () => {
               <AvatarFallback>{firstFollower?.username?.slice(0, 2)}</AvatarFallback>
             </Avatar>
             {/* Unread indicator */}
-            {!isNotificationRead && (
-              <div className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 bg-blue-500 rounded-full" />
-            )}
+            {!isNotificationRead && <div className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 bg-info rounded-full" />}
             {remainingCount > 0 && (
-              <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+              <div className="absolute -bottom-1 -right-1 bg-info text-info-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
                 +{Math.min(remainingCount, 9)}
               </div>
             )}
@@ -920,7 +918,7 @@ const Inbox = () => {
             <AvatarFallback>{author?.username?.slice(0, 2)}</AvatarFallback>
           </Avatar>
           {/* Unread indicator */}
-          {!isNotificationRead && <div className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 bg-blue-500 rounded-full" />}
+          {!isNotificationRead && <div className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 bg-info rounded-full" />}
         </div>
         <div className="flex-auto min-w-0">
           <div className="flex items-center justify-between gap-x-4">
@@ -1025,7 +1023,7 @@ const Inbox = () => {
                     const notificationIds = notificationsByType[NotificationTab.replies].map(getNotificationId);
                     const unreadCount = getUnreadCount(NotificationTab.replies, notificationIds);
                     return unreadCount > 0 ? (
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-info text-info-foreground text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     ) : null;
@@ -1038,7 +1036,7 @@ const Inbox = () => {
                     const notificationIds = notificationsByType[NotificationTab.mentions].map(getNotificationId);
                     const unreadCount = getUnreadCount(NotificationTab.mentions, notificationIds);
                     return unreadCount > 0 ? (
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-info text-info-foreground text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     ) : null;
@@ -1051,7 +1049,7 @@ const Inbox = () => {
                     const notificationIds = notificationsByType[NotificationTab.likes].map(getNotificationId);
                     const unreadCount = getUnreadCount(NotificationTab.likes, notificationIds);
                     return unreadCount > 0 ? (
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-info text-info-foreground text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     ) : null;
@@ -1064,7 +1062,7 @@ const Inbox = () => {
                     const notificationIds = notificationsByType[NotificationTab.recasts].map(getNotificationId);
                     const unreadCount = getUnreadCount(NotificationTab.recasts, notificationIds);
                     return unreadCount > 0 ? (
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-info text-info-foreground text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     ) : null;
@@ -1077,7 +1075,7 @@ const Inbox = () => {
                     const notificationIds = notificationsByType[NotificationTab.follows].map(getNotificationId);
                     const unreadCount = getUnreadCount(NotificationTab.follows, notificationIds);
                     return unreadCount > 0 ? (
-                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-info text-info-foreground text-xs rounded-full h-4 min-w-[1rem] px-1 flex items-center justify-center">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     ) : null;
@@ -1085,7 +1083,7 @@ const Inbox = () => {
               </TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
-              <KeyboardShortcutTooltip keys="alt+e" shortcutSize="md">
+              <KbdTooltip shortcut="alt+e">
                 <Button
                   variant="outline"
                   size="sm"
@@ -1098,7 +1096,7 @@ const Inbox = () => {
                 >
                   Mark all read
                 </Button>
-              </KeyboardShortcutTooltip>
+              </KbdTooltip>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="flex-shrink-0 px-2">

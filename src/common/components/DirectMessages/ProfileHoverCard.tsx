@@ -52,7 +52,7 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
         </PopoverTrigger>
         <PopoverContent
           side="bottom"
-          className="w-80 border border-gray-400 overflow-hidden cursor-pointer p-4"
+          className="w-80 border border-border overflow-hidden cursor-pointer p-4"
           align="start"
           avoidCollisions={true}
           onClick={() => setIsOpen(false)}
@@ -71,7 +71,7 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
       </HoverCardTrigger>
       <HoverCardContent
         side="bottom"
-        className="w-80 border border-gray-400 overflow-hidden cursor-pointer"
+        className="w-80 border border-border overflow-hidden cursor-pointer"
         align="start"
         avoidCollisions={true}
       >

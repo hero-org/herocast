@@ -20,7 +20,7 @@ export const MiniAppSplash: React.FC<MiniAppSplashProps> = ({
   const safeIconUrl = useMemo(() => sanitizeImageUrl(iconUrl), [iconUrl]);
   const safeSplashImageUrl = useMemo(() => sanitizeImageUrl(splashImageUrl), [splashImageUrl]);
   const safeBackgroundColor = useMemo(
-    () => sanitizeColor(splashBackgroundColor) || '#18181b', // Default to zinc-900
+    () => sanitizeColor(splashBackgroundColor) || '#110f0d', // Default to warm-coffee --background (dark)
     [splashBackgroundColor]
   );
   // Name is rendered as text content (not dangerouslySetInnerHTML), so React handles escaping

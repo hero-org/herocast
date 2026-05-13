@@ -1,5 +1,4 @@
-import { ArrowTrendingUpIcon, HomeIcon } from '@heroicons/react/24/outline';
-import { Hash, Rss } from 'lucide-react';
+import { Hash, Home, Rss, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import type React from 'react';
 import type { JSX } from 'react';
@@ -164,13 +163,13 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
             {renderCustomChannel({
               name: 'Follow Feed',
               url: CUSTOM_CHANNELS.FOLLOWING,
-              icon: <HomeIcon className="h-4 w-4 flex-none" />,
+              icon: <Home className="h-4 w-4 flex-none" />,
               hotkey: '⇧0',
             })}
             {renderCustomChannel({
               name: 'Trending Feed',
               url: CUSTOM_CHANNELS.TRENDING,
-              icon: <ArrowTrendingUpIcon className="h-4 w-4 flex-none" />,
+              icon: <TrendingUp className="h-4 w-4 flex-none" />,
               hotkey: '⇧1',
             })}
           </ul>

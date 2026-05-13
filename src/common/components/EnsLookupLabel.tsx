@@ -1,4 +1,4 @@
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
+import { ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { isAddress } from 'viem';
 import { useAccount } from 'wagmi';
@@ -41,7 +41,7 @@ const EnsLookupLabel = ({ addressOrName }: { addressOrName: string }) => {
         rel="noreferrer"
         className="flex text-sm hover:underline"
       >
-        {ensName || address} <ArrowTopRightOnSquareIcon className="ml-1 mt-0.5 h-4 w-4" />
+        {ensName || address} <ExternalLink className="ml-1 mt-0.5 h-4 w-4" />
       </a>
     )
   );

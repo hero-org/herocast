@@ -1,13 +1,6 @@
-import {
-  ArrowPathRoundedSquareIcon,
-  ArrowTopRightOnSquareIcon,
-  ChatBubbleLeftIcon,
-  ChatBubbleLeftRightIcon,
-  HeartIcon,
-} from '@heroicons/react/24/outline';
-import { HeartIcon as HeartFilledIcon } from '@heroicons/react/24/solid';
 import get from 'lodash.get';
 import map from 'lodash.map';
+import { ExternalLink, Heart, Heart as HeartFilledIcon, MessageSquare, MessagesSquare, Repeat2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { CastReactionType } from '@/common/constants/farcaster';
@@ -87,18 +80,18 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({
     switch (reactionType) {
       case CastReactionType.likes:
         return isActive ? (
-          <HeartFilledIcon className={className} aria-hidden="true" />
+          <HeartFilledIcon className={className} aria-hidden="true" fill="currentColor" />
         ) : (
-          <HeartIcon className={className} aria-hidden="true" />
+          <Heart className={className} aria-hidden="true" />
         );
       case CastReactionType.recasts:
-        return <ArrowPathRoundedSquareIcon className={className} aria-hidden="true" />;
+        return <Repeat2 className={className} aria-hidden="true" />;
       case CastReactionType.quote:
-        return <ChatBubbleLeftRightIcon className={className} aria-hidden="true" />;
+        return <MessagesSquare className={className} aria-hidden="true" />;
       case CastReactionType.replies:
-        return <ChatBubbleLeftIcon className={className} aria-hidden="true" />;
+        return <MessageSquare className={className} aria-hidden="true" />;
       case CastReactionType.links:
-        return <ArrowTopRightOnSquareIcon className={className} aria-hidden="true" />;
+        return <ExternalLink className={className} aria-hidden="true" />;
       default:
         return null;
     }

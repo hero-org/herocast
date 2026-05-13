@@ -1,8 +1,8 @@
 import { ID_REGISTRY_ADDRESS, idRegistryABI } from '@farcaster/hub-web';
-import { CheckCircleIcon, Cog6ToothIcon } from '@heroicons/react/20/solid';
 import { useAccountModal } from '@rainbow-me/rainbowkit';
 import { getChainId, writeContract } from '@wagmi/core';
 import isEmpty from 'lodash.isempty';
+import { CheckCircle2, Settings } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useAccount, useReadContract, useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
 import { Button } from '@/components/ui/button';
@@ -169,7 +169,7 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
   return (
     <div className="flex flex-col gap-5">
       {!isWalletOwnerOfFid && (
-        <Label className="font-semibold text-red-600">Connect a wallet that owns a Farcaster account.</Label>
+        <Label className="font-semibold text-destructive">Connect a wallet that owns a Farcaster account.</Label>
       )}
       <Button
         variant="default"
@@ -186,9 +186,9 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
       >
         {getButtonText()}
         {(isCheckingKeyRegistry || isAddKeyTxLoading || isKeyAlreadyRegistered) && (
-          <Cog6ToothIcon className="ml-1.5 h-5 w-5 text-foreground/80 animate-spin" aria-hidden="true" />
+          <Settings className="ml-1.5 h-5 w-5 text-foreground/80 animate-spin" aria-hidden="true" />
         )}
-        {isAddKeyTxSuccess && <CheckCircleIcon className="ml-1.5 h-6 w-6 text-green-600" aria-hidden="true" />}
+        {isAddKeyTxSuccess && <CheckCircle2 className="ml-1.5 h-6 w-6 text-success" aria-hidden="true" />}
       </Button>
       {!isAddKeyTxSuccess && <SwitchWalletButton />}
     </div>

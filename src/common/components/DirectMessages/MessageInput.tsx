@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
+import { KbdTooltip } from '@/components/ui/kbd';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
@@ -102,7 +102,7 @@ export function MessageInput({
           {remainingChars}
         </span>
 
-        <KeyboardShortcutTooltip keys="cmd+enter" disabled={!message.trim() || disabled}>
+        <KbdTooltip shortcut="cmd+enter" disabled={!message.trim() || disabled}>
           <Button
             size="sm"
             variant="outline"
@@ -117,7 +117,7 @@ export function MessageInput({
           >
             {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Send'}
           </Button>
-        </KeyboardShortcutTooltip>
+        </KbdTooltip>
       </div>
     </div>
   );

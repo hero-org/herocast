@@ -1,5 +1,5 @@
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import get from 'lodash.get';
+import { ExternalLink } from 'lucide-react';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
@@ -67,10 +67,10 @@ const CashtagHoverCard = ({
   };
 
   const renderPriceChangeRow = (label: string, value: string) => {
-    const color = value.startsWith('-') ? 'text-red-500' : 'text-green-500';
+    const color = value.startsWith('-') ? 'text-destructive' : 'text-success';
     return (
       <div className="mx-auto flex max-w-xs flex-col items-center justify-between">
-        <span className="text-sm text-gray-600">{label}</span>
+        <span className="text-sm text-muted-foreground">{label}</span>
         <span className={`text-sm font-semibold tracking-tight ${color}`}>{value}</span>
       </div>
     );
@@ -90,7 +90,7 @@ const CashtagHoverCard = ({
       <HoverCardTrigger onClick={onClick} ref={ref}>
         {children}
       </HoverCardTrigger>
-      <HoverCardContent onClick={onClick} side="right" className="border border-gray-400 overflow-hidden">
+      <HoverCardContent onClick={onClick} side="right" className="border border-border overflow-hidden">
         <div className="space-y-1">
           {tokenData ? (
             <div>
@@ -108,7 +108,7 @@ const CashtagHoverCard = ({
               </p>
               {renderPriceChanges(tokenData.priceChange)}
               <Button className="" variant="outline">
-                <ArrowTopRightOnSquareIcon className="w-4 h-4 mr-2" />
+                <ExternalLink className="w-4 h-4 mr-2" />
                 DexScreener
               </Button>
             </>

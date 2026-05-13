@@ -1,5 +1,5 @@
-import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { CAST_AVATAR_CENTER, CAST_THREAD_LINE_LEFT } from '@/common/constants/layout';
@@ -51,7 +51,7 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
       <Tooltip.Provider delayDuration={50} skipDelayDuration={0}>
         <HotkeyTooltipWrapper hotkey="Esc" side="right">
           <>
-            <ArrowLeftIcon
+            <ArrowLeft
               className="mr-1 mt-0.5 h-4 w-4 text-foreground/70 group-hover:text-foreground/80"
               aria-hidden="true"
             />

@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, EyeIcon, MagnifyingGlassIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Check, Eye, Plus, Search, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -276,7 +276,7 @@ export default function SearchListsPage() {
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold flex items-center gap-2">
-          <MagnifyingGlassIcon className="h-8 w-8 text-primary" />
+          <Search className="h-8 w-8 text-primary" />
           Search Lists
         </h1>
         <p className="text-muted-foreground mt-2">Create and manage saved searches to monitor keywords on Farcaster</p>
@@ -292,7 +292,7 @@ export default function SearchListsPage() {
                 <Dialog open={isCreatingList} onOpenChange={setIsCreatingList}>
                   <DialogTrigger asChild>
                     <Button size="sm" variant="ghost">
-                      <PlusIcon className="h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -379,11 +379,11 @@ export default function SearchListsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handleViewFeed}>
-                      <EyeIcon className="h-4 w-4 mr-1" />
+                      <Eye className="h-4 w-4 mr-1" />
                       View Feed
                     </Button>
                     <Button variant="destructive" size="sm" onClick={() => setDeleteConfirmOpen(true)}>
-                      <TrashIcon className="h-4 w-4 mr-1" />
+                      <Trash2 className="h-4 w-4 mr-1" />
                       Delete
                     </Button>
                   </div>
@@ -488,7 +488,7 @@ export default function SearchListsPage() {
                         'Saving...'
                       ) : saveSuccess ? (
                         <>
-                          <CheckIcon className="w-4 h-4 mr-2" />
+                          <Check className="w-4 h-4 mr-2" />
                           Saved
                         </>
                       ) : (
@@ -502,7 +502,7 @@ export default function SearchListsPage() {
           ) : (
             <Card>
               <CardContent className="text-center py-12">
-                <MagnifyingGlassIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">Select a search to edit or create a new one</p>
               </CardContent>
             </Card>

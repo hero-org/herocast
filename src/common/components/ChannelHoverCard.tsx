@@ -95,7 +95,7 @@ const ChannelHoverCard = memo(({ channelName, children, className }: ProfileHove
       <HoverCardTrigger onClick={onClick} className={`${className} text-left`}>
         {children}
       </HoverCardTrigger>
-      <HoverCardContent side="bottom" className="border border-gray-400 overflow-hidden cursor-pointer">
+      <HoverCardContent side="bottom" className="border border-border overflow-hidden cursor-pointer">
         {renderChannelContent}
       </HoverCardContent>
     </HoverCard>

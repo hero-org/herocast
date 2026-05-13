@@ -1,11 +1,4 @@
-import { Bars3BottomLeftIcon, MagnifyingGlassIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
-import {
-  BellIcon,
-  ChatBubbleLeftRightIcon,
-  Cog6ToothIcon,
-  HashtagIcon,
-  UserPlusIcon,
-} from '@heroicons/react/24/outline';
+import { AlignLeft, Bell, Hash, LayoutDashboard, MessagesSquare, Search, Settings, UserPlus } from 'lucide-react';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import type { CommandType } from './common/constants/commands';
 
@@ -17,7 +10,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Accounts',
     aliases: ['new account', 'sign up'],
-    icon: UserPlusIcon,
+    icon: UserPlus,
     shortcut: 'meta+shift+a',
     action: () => router.push('/accounts'),
     options: {
@@ -27,7 +20,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Switch to Feeds',
     aliases: ['scroll'],
-    icon: Bars3BottomLeftIcon,
+    icon: AlignLeft,
     shortcut: 'shift+f',
     action: () => router.push('/feeds'),
     options: {
@@ -37,7 +30,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Switch to Search',
     aliases: ['search'],
-    icon: MagnifyingGlassIcon,
+    icon: Search,
     shortcut: '/',
     action: () => router.push('/search'),
     options: {
@@ -48,7 +41,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Switch to Channels',
     aliases: ['channels'],
-    icon: RectangleGroupIcon,
+    icon: LayoutDashboard,
     shortcut: 'shift+c',
     action: () => router.push('/channels'),
     options: {
@@ -58,7 +51,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Notifications',
     aliases: ['notify', 'alert', 'mentions', 'replies', 'messages', 'inbox'],
-    icon: BellIcon,
+    icon: Bell,
     shortcut: 'shift+n',
     action: () => router.push('/inbox'),
     options: {
@@ -68,7 +61,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Direct Messages',
     aliases: ['dms', 'messages', 'chats', 'direct', 'dm'],
-    icon: ChatBubbleLeftRightIcon,
+    icon: MessagesSquare,
     shortcut: 'shift+m',
     action: () => router.push('/dms'),
     options: {
@@ -78,7 +71,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Inbox: Switch to Replies',
     aliases: ['inbox replies', 'notification replies'],
-    icon: HashtagIcon,
+    icon: Hash,
     shortcut: '1',
     action: () => router.push('/inbox?tab=replies'),
     options: {
@@ -89,7 +82,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Inbox: Switch to Mentions',
     aliases: ['inbox mentions', 'notification mentions'],
-    icon: HashtagIcon,
+    icon: Hash,
     shortcut: '2',
     action: () => router.push('/inbox?tab=mentions'),
     options: {
@@ -100,7 +93,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Inbox: Switch to Likes',
     aliases: ['inbox likes', 'notification likes'],
-    icon: HashtagIcon,
+    icon: Hash,
     shortcut: '3',
     action: () => router.push('/inbox?tab=likes'),
     options: {
@@ -111,7 +104,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Inbox: Switch to Recasts',
     aliases: ['inbox recasts', 'notification recasts'],
-    icon: HashtagIcon,
+    icon: Hash,
     shortcut: '4',
     action: () => router.push('/inbox?tab=recasts'),
     options: {
@@ -122,7 +115,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Inbox: Switch to Follows',
     aliases: ['inbox follows', 'notification follows'],
-    icon: HashtagIcon,
+    icon: Hash,
     shortcut: '5',
     action: () => router.push('/inbox?tab=follows'),
     options: {
@@ -133,7 +126,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Settings',
     aliases: ['preferences', 'options', 'config'],
-    icon: Cog6ToothIcon,
+    icon: Settings,
     shortcut: 'cmd+shift+,',
     action: () => router.push('/settings'),
     options: {
@@ -143,7 +136,7 @@ export const getNavigationCommands = ({ router }: WithRouterProps): CommandType[
   {
     name: 'Report a Bug',
     aliases: ['bug', 'issue', 'feedback', 'suggestion', 'complaint'],
-    icon: BellIcon,
+    icon: Bell,
     action: () =>
       window.open(
         'https://github.com/hero-org/herocast/issues/new?assignees=&labels=&projects=&template=bug_report.md&title='

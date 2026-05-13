@@ -1,13 +1,4 @@
-import {
-  AdjustmentsHorizontalIcon,
-  ClockIcon,
-  HashtagIcon,
-  LinkIcon,
-  MagnifyingGlassIcon,
-  QuestionMarkCircleIcon,
-  UserIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { Clock, Hash, HelpCircle, Link as LinkIcon, Search, SlidersHorizontal, User, X } from 'lucide-react';
 import { useState } from 'react';
 import { useMediaQuery } from '@/common/hooks/useMediaQuery';
 import { Interval } from '@/common/types/types';
@@ -96,7 +87,7 @@ export function SearchInterface({
       <div className="relative">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               value={searchTerm}
               onChange={(e) => onSearchTermChange(e.target.value)}
@@ -112,7 +103,7 @@ export function SearchInterface({
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
                 onClick={() => onSearchTermChange('')}
               >
-                <XMarkIcon className="h-4 w-4" />
+                <X className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -133,14 +124,14 @@ export function SearchInterface({
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-7" onClick={() => setShowAdvanced(!showAdvanced)}>
-              <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1" />
+              <SlidersHorizontal className="h-4 w-4 mr-1" />
               Advanced
             </Button>
 
             <Popover open={showHelp} onOpenChange={setShowHelp}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                  <QuestionMarkCircleIcon className="h-4 w-4" />
+                  <HelpCircle className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-96" align="start">
@@ -194,7 +185,7 @@ export function SearchInterface({
               {/* Time Period */}
               <div className="space-y-1.5">
                 <Label className="text-xs flex items-center gap-1">
-                  <ClockIcon className="h-3 w-3" />
+                  <Clock className="h-3 w-3" />
                   Time Period
                 </Label>
                 <Select
@@ -215,7 +206,7 @@ export function SearchInterface({
               {/* Sort Type */}
               <div className="space-y-1.5">
                 <Label className="text-xs flex items-center gap-1">
-                  <ClockIcon className="h-3 w-3" />
+                  <Clock className="h-3 w-3" />
                   Sort By
                 </Label>
                 <Select
@@ -235,7 +226,7 @@ export function SearchInterface({
               {/* Author FID */}
               <div className="space-y-1.5">
                 <Label className="text-xs flex items-center gap-1">
-                  <UserIcon className="h-3 w-3" />
+                  <User className="h-3 w-3" />
                   Author FID
                 </Label>
                 <Input
@@ -250,7 +241,7 @@ export function SearchInterface({
               {/* Channel */}
               <div className="space-y-1.5">
                 <Label className="text-xs flex items-center gap-1">
-                  <HashtagIcon className="h-3 w-3" />
+                  <Hash className="h-3 w-3" />
                   Channel
                 </Label>
                 <Input

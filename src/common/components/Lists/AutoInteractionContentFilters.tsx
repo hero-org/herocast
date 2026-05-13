@@ -1,4 +1,4 @@
-import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Plus, X } from 'lucide-react';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -88,7 +88,7 @@ export function AutoInteractionContentFilters({
             onKeyPress={(e) => e.key === 'Enter' && handleAddUrl()}
           />
           <Button size="sm" onClick={handleAddUrl} disabled={!newUrl}>
-            <PlusIcon className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
         {requiredUrls.length > 0 && (
@@ -100,7 +100,7 @@ export function AutoInteractionContentFilters({
                   onClick={() => onRequiredUrlsChange(requiredUrls.filter((u) => u !== url))}
                   className="ml-1 hover:text-destructive"
                 >
-                  <XMarkIcon className="h-3 w-3" />
+                  <X className="h-3 w-3" />
                 </button>
               </Badge>
             ))}
@@ -121,7 +121,7 @@ export function AutoInteractionContentFilters({
             onKeyPress={(e) => e.key === 'Enter' && handleAddKeyword()}
           />
           <Button size="sm" onClick={handleAddKeyword} disabled={!newKeyword}>
-            <PlusIcon className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
         {requiredKeywords.length > 0 && (
@@ -133,7 +133,7 @@ export function AutoInteractionContentFilters({
                   onClick={() => onRequiredKeywordsChange(requiredKeywords.filter((k) => k !== keyword))}
                   className="ml-1 hover:text-destructive"
                 >
-                  <XMarkIcon className="h-3 w-3" />
+                  <X className="h-3 w-3" />
                 </button>
               </Badge>
             ))}

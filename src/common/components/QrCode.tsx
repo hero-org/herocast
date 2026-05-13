@@ -1,4 +1,4 @@
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
+import { ExternalLink } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import ClickToCopyText from '@/common/components/ClickToCopyText';
 
@@ -22,7 +22,7 @@ export const QrCode = ({ deepLink }: { deepLink: string }) => {
               className="underline flex items-center text-foreground/70 hover:text-foreground"
             >
               Open this link in your Farcaster app
-              <ArrowTopRightOnSquareIcon className="w-4 h-4 ml-1" />
+              <ExternalLink className="w-4 h-4 ml-1" />
             </a>
             <ClickToCopyText text={deepLink} />
           </div>

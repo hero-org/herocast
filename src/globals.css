@@ -4,80 +4,199 @@
 
 @layer base {
   :root {
-    --background: 0 0% 99.2%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 98%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 255 4.8% 93%;
-    --muted-foreground: 240 3.8% 40%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 85%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    /* Surfaces — warm cream, hue family 25–45° */
+    --background: 45 30% 97%;
+    --foreground: 30 14% 12%;
+    --card: 45 35% 95%;
+    --card-foreground: 30 14% 12%;
+    --popover: 45 35% 97%;
+    --popover-foreground: 30 14% 12%;
+
+    /* Roles */
+    --primary: 30 14% 12%;
+    --primary-foreground: 45 30% 97%;
+    --secondary: 42 28% 91%;
+    --secondary-foreground: 30 14% 12%;
+    --muted: 42 28% 91%;
+    --muted-foreground: 35 8% 36%;
+    --accent: 42 28% 91%;
+    --accent-foreground: 30 14% 12%;
+
+    /* Status — full shadcn set */
+    --destructive: 8 78% 56%;
+    --destructive-foreground: 45 30% 97%;
+    --success: 145 50% 38%;
+    --success-foreground: 45 30% 97%;
+    --warning: 32 90% 52%;
+    --warning-foreground: 30 14% 12%;
+    --info: 200 90% 55%;
+    --info-foreground: 45 30% 97%;
+    --pending: 38 65% 55%;
+    --pending-foreground: 30 14% 12%;
+
+    /* Lines & focus */
+    --border: 40 18% 84%;
+    --input: 40 18% 88%;
+    --ring: 30 14% 12%;
+
+    /* System constants */
     --radius: 0.5rem;
-    --chart-1: 0 2% 90%;
-    --chart-2: 240 1% 74%;
-    --chart-3: 240 1% 58%;
-    --chart-4: 240 1% 42%;
-    --chart-5: 240 2% 26%;
-    --chart-dynamic-1: 213deg, 93.9%, 67.8%;
-    --chart-dynamic-2: 240 1% 42%;
-    --chart-dynamic-3: 240 1% 42%;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius-xs: 0.25rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.625rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+
+    /* Sidebar — warm cream */
+    --sidebar-background: 45 30% 98%;
+    --sidebar-foreground: 30 14% 22%;
+    --sidebar-primary: 30 14% 12%;
+    --sidebar-primary-foreground: 45 30% 97%;
+    --sidebar-accent: 42 28% 91%;
+    --sidebar-accent-foreground: 30 14% 12%;
+    --sidebar-border: 40 18% 88%;
+    --sidebar-ring: 30 14% 12%;
+
+    /* Brand marketing accents */
+    --brand-purple: 270 70% 65%;
+    --brand-purple-deep: 260 60% 45%;
+
+    /* Semantic information accents */
+    --mention: 200 90% 55%;
+    --channel: 270 50% 55%;
+    --hash: 35 8% 36%;
+
+    /* Chart series — categorical, distinguishable hues */
+    --chart-1: 200 90% 55%;
+    --chart-2: 30 14% 22%;
+    --chart-3: 270 50% 55%;
+    --chart-4: 145 50% 38%;
+    --chart-5: 32 90% 52%;
+
+    /* Type scale */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    --text-5xl: 3rem;
+    --text-6xl: 3.75rem;
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+
+    /* Density (opt-in via data-density on <html>) */
+    --density-row: 36px;
+    --density-body: var(--text-sm);
+    --density-avatar: 36px;
+    --density-pad-x: 12px;
+    --density-pad-y: 8px;
+
+    /* Motion */
+    --duration-instant: 80ms;
+    --duration-fast: 150ms;
+    --duration-base: 220ms;
+    --duration-slow: 320ms;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Z-index stack */
+    --z-dropdown: 30;
+    --z-popover: 40;
+    --z-modal: 50;
+    --z-toast: 60;
+    --z-tooltip: 70;
+    --z-command: 80;
+
+    /* Shadows */
+    --shadow-xs: 0 1px 0 hsl(0 0% 0% / 0.04);
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+
+    /* Button signature — themed (light: white inset highlight) */
+    --alpha-highlight: 0.5;
+    --shadow-button-inset: inset 0 1px 0 rgb(255 255 255 / var(--alpha-highlight));
+    --shadow-button-press:
+      inset 0 1px 0 rgb(255 255 255 / var(--alpha-highlight)),
+      0 1px 0 hsl(30 20% 60% / 0.18),
+      0 1px 3px hsl(30 20% 30% / 0.08);
+
+    /* Alpha overlays */
+    --alpha-hover: 0.06;
+    --alpha-mention-fill: 0.08;
+    --alpha-channel-fill: 0.10;
   }
 
   .dark {
-    --background: 0 0% 4.3%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 15%;
-    --card-foreground: 220 14% 96%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 235 3.7% 18%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 20%;
-    --input: 240 3.7% 23%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 359 2% 90%;
-    --chart-2: 240 1% 74%;
-    --chart-3: 240 1% 58%;
-    --chart-4: 240 1% 42%;
-    --chart-5: 240 2% 26%;
-    --chart-dynamic-1: 213 93.9% 67.8%;
-    --chart-dynamic-2: 240 1% 42%;
-    --chart-dynamic-3: 240 1% 42%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Warm dark — coffee/espresso, hue family 25–30° */
+    --background: 28 12% 6%;
+    --foreground: 42 25% 94%;
+    --card: 26 10% 12%;
+    --card-foreground: 42 25% 94%;
+    --popover: 28 12% 6%;
+    --popover-foreground: 42 25% 94%;
+
+    --primary: 42 25% 94%;
+    --primary-foreground: 28 12% 6%;
+    --secondary: 26 8% 16%;
+    --secondary-foreground: 42 25% 94%;
+    --muted: 26 8% 16%;
+    --muted-foreground: 38 12% 65%;
+    --accent: 26 8% 16%;
+    --accent-foreground: 42 25% 94%;
+
+    --destructive: 8 70% 55%;
+    --destructive-foreground: 42 25% 94%;
+    --success: 145 50% 50%;
+    --success-foreground: 28 12% 6%;
+    --warning: 32 90% 60%;
+    --warning-foreground: 28 12% 6%;
+    --info: 200 90% 60%;
+    --info-foreground: 28 12% 6%;
+    --pending: 38 65% 60%;
+    --pending-foreground: 28 12% 6%;
+
+    --border: 26 8% 20%;
+    --input: 26 8% 22%;
+    --ring: 42 18% 80%;
+
+    --sidebar-background: 26 10% 9%;
+    --sidebar-foreground: 42 18% 80%;
+    --sidebar-primary: 42 25% 94%;
+    --sidebar-primary-foreground: 28 12% 6%;
+    --sidebar-accent: 26 8% 16%;
+    --sidebar-accent-foreground: 42 25% 94%;
+    --sidebar-border: 26 8% 18%;
+    --sidebar-ring: 42 18% 80%;
+
+    --mention: 200 90% 60%;
+    --channel: 270 55% 65%;
+    --hash: 38 12% 65%;
+
+    --chart-1: 200 90% 60%;
+    --chart-2: 42 25% 80%;
+    --chart-3: 270 55% 65%;
+    --chart-4: 145 50% 55%;
+    --chart-5: 32 90% 60%;
+
+    /* Button signature flips for dark: needs darkening bottom edge */
+    --alpha-highlight: 0.08;
+    --shadow-button-inset:
+      inset 0 1px 0 rgb(255 255 255 / var(--alpha-highlight)),
+      inset 0 -1px 0 rgb(0 0 0 / 0.25);
+    --shadow-button-press:
+      inset 0 1px 0 rgb(255 255 255 / var(--alpha-highlight)),
+      inset 0 -1px 0 rgb(0 0 0 / 0.25),
+      0 1px 2px rgb(0 0 0 / 0.5);
+
+    --alpha-hover: 0.08;
   }
 
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -86,8 +205,8 @@
   }
   /* Hide scrollbar for IE, Edge and Firefox */
   .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
@@ -99,10 +218,60 @@
     overflow: hidden;
     height: 100%;
     scroll-behavior: auto;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: 1.5;
   }
   body {
     @apply bg-background text-foreground;
     overflow: hidden;
     height: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, .h1 { font-size: var(--text-4xl); font-weight: var(--weight-bold); letter-spacing: -0.02em; line-height: 1.05; }
+  h2, .h2 { font-size: var(--text-2xl); font-weight: var(--weight-bold); letter-spacing: -0.015em; line-height: 1.15; }
+  h3, .h3 { font-size: var(--text-xl); font-weight: var(--weight-medium); letter-spacing: -0.01em; line-height: 1.25; }
+  h4, .h4 { font-size: var(--text-lg); font-weight: var(--weight-medium); line-height: 1.3; }
+  code, kbd, .mono { font-family: var(--font-mono); }
+
+  /* Display — wordmark / marketing takeover. Satoshi only here. */
+  .display {
+    font-family: var(--font-display);
+    font-weight: var(--weight-bold);
+    font-size: clamp(3rem, 9vw, 7rem);
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+  }
+
+  /* Focus ring — 2 px outline with 2 px offset (shadcn-default for a11y).
+     Uses outline instead of box-shadow so it composes with button shadow stacks. */
+  :where(button, a, input, textarea, select, [role="button"], [role="checkbox"], [role="radio"], [role="switch"], [role="tab"], [role="menuitem"], [role="option"], [tabindex]):focus-visible {
+    outline: 2px solid hsl(var(--ring) / 0.7);
+    outline-offset: 2px;
+  }
+
+  /* Lucide icon stroke width — spec says 1.5 px (Lucide default is 2). */
+  .lucide {
+    stroke-width: 1.5;
+  }
+}
+
+@layer base {
+  /* Density modes — opt-in via data-density on <html> or <body>. */
+  [data-density="compact"] {
+    --density-row: 28px;
+    --density-body: var(--text-xs);
+    --density-avatar: 24px;
+    --density-pad-x: 8px;
+    --density-pad-y: 4px;
+  }
+  [data-density="comfortable"] {
+    --density-row: 44px;
+    --density-body: var(--text-base);
+    --density-avatar: 40px;
+    --density-pad-x: 16px;
+    --density-pad-y: 12px;
   }
 }

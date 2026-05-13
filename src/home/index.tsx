@@ -1,15 +1,18 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { ArrowUpCircleIcon, Cog6ToothIcon, PencilSquareIcon, UserIcon } from '@heroicons/react/20/solid';
 import {
-  Bars3Icon,
-  ChatBubbleLeftRightIcon,
-  MagnifyingGlassIcon,
-  NewspaperIcon,
-  UserGroupIcon,
-  UserPlusIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/solid';
-import { Inbox } from 'lucide-react';
+  ArrowUpCircle,
+  Inbox,
+  Menu,
+  MessagesSquare,
+  Newspaper,
+  Search,
+  Settings,
+  SquarePen,
+  User,
+  UserPlus,
+  Users,
+  X,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -144,7 +147,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               alt={`${channel.name} icon`}
               width={20}
               height={20}
-              className={cn('mr-1 bg-gray-100 border flex-none rounded-full')}
+              className={cn('mr-1 bg-muted border flex-none rounded-full')}
             />
           )}
           <span className="max-w-xs flex truncate">{channel.name} channel</span>
@@ -168,7 +171,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {
           name: 'Feeds',
           router: '/feeds',
-          icon: <NewspaperIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <Newspaper className="h-6 w-6 shrink-0" aria-hidden="true" />,
           getTitle: getFeedTitle,
           getHeaderActions: () => {
             const isChannelPinned = channels.findIndex((channel) => channel.url === selectedChannelUrl) !== -1;
@@ -218,26 +221,26 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {
           name: 'Post',
           router: '/post',
-          icon: <PencilSquareIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <SquarePen className="h-6 w-6 shrink-0" aria-hidden="true" />,
           hideTitlebar: true,
         },
         {
           name: 'DMs',
           router: '/dms',
-          icon: <ChatBubbleLeftRightIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <MessagesSquare className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: 'Shift + M',
           hideTitlebar: true,
         },
         {
           name: 'Lists',
           router: '/lists',
-          icon: <UserGroupIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <Users className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: 'Shift + L',
         },
         {
           name: 'Search',
           router: '/search',
-          icon: <MagnifyingGlassIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <Search className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: '/',
         },
 
@@ -250,7 +253,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {
           name: 'Profile',
           router: '/profile',
-          icon: <UserIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <User className="h-6 w-6 shrink-0" aria-hidden="true" />,
           additionalPaths: ['/profile', '/profile/[slug]'],
         },
       ],
@@ -261,7 +264,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {
           name: 'Upgrade',
           router: '/upgrade',
-          icon: <ArrowUpCircleIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <ArrowUpCircle className="h-6 w-6 shrink-0" aria-hidden="true" />,
         },
         // {
         //   name: 'Channels',
@@ -272,14 +275,14 @@ const Home = ({ children }: { children: React.ReactNode }) => {
         {
           name: 'Accounts',
           router: '/accounts',
-          icon: <UserPlusIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <UserPlus className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: 'CMD + Shift + A',
           additionalPaths: ['/farcaster-signup'],
         },
         {
           name: 'Settings',
           router: '/settings',
-          icon: <Cog6ToothIcon className="h-6 w-6 shrink-0" aria-hidden="true" />,
+          icon: <Settings className="h-6 w-6 shrink-0" aria-hidden="true" />,
           shortcut: 'Shift + ,',
         },
       ],
@@ -433,7 +436,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 >
                   <Dialog.Panel className="relative mr-2 flex w-full max-w-xs flex-1">
                     {/* Mobile Sidebar */}
-                    <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
+                    <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-sidebar text-sidebar-foreground px-3 no-scrollbar">
                       <div className="flex h-14 shrink-0 items-center">
                         <Link href="/post" className="flex items-center hover:cursor-pointer">
                           <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
@@ -446,7 +449,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                           onClick={() => setSidebarOpen(false)}
                         >
                           <span className="sr-only">Close sidebar</span>
-                          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                          <X className="h-6 w-6" aria-hidden="true" />
                         </button>
                       </div>
                       <LeftSidebarNav onNavigate={() => setSidebarOpen(false)} />
@@ -472,12 +475,12 @@ const Home = ({ children }: { children: React.ReactNode }) => {
               {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-5 lg:flex lg:w-48 lg:flex-col"> */}
               <div
                 className={cn(
-                  'hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-background border-r border-border no-scrollbar transition-transform duration-200 ease-linear',
+                  'hidden lg:flex lg:fixed lg:h-screen lg:inset-y-0 lg:left-0 lg:z-10 lg:w-[200px] lg:flex-shrink-0 lg:overflow-y-auto lg:bg-sidebar border-r border-sidebar-border no-scrollbar transition-transform duration-200 ease-linear',
                   leftSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
               >
                 {/* Sidebar component */}
-                <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-background px-3 no-scrollbar">
+                <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-sidebar text-sidebar-foreground px-3 no-scrollbar">
                   <div className="flex h-14 shrink-0 items-center">
                     <Link href="/post" className="flex items-center hover:cursor-pointer">
                       <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
@@ -505,7 +508,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                         onClick={() => setSidebarOpen((prev) => !prev)}
                       >
                         <span className="sr-only">Open sidebar</span>
-                        <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+                        <Menu className="h-5 w-5" aria-hidden="true" />
                       </button>
                       {!leftSidebarOpen && <LeftSidebarToggle className="hidden lg:flex" />}
                       <h1 className="md:ml-2 text-xl font-bold leading-7 text-foreground truncate min-w-0">{title}</h1>

@@ -5,7 +5,7 @@
  * Stderr = pass-through of each tool's human-readable output, prefixed with [tool].
  */
 
-export type ToolName = 'tsc' | 'biome' | 'jest';
+export type ToolName = 'tsc' | 'biome' | 'jest' | 'design-tokens';
 export type Severity = 'error' | 'warning' | 'info';
 
 export interface Diagnostic {

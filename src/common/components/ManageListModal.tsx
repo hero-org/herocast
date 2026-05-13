@@ -1,4 +1,4 @@
-import { BellIcon } from '@heroicons/react/24/outline';
+import { Bell } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -102,7 +102,7 @@ const ManageListModal = ({ open, onClose }) => {
         </div>
         <div className="flex flex-col">
           <Label htmlFor="daily-email-switch" className="flex">
-            <BellIcon className="h-5 w-5 mr-1" />
+            <Bell className="h-5 w-5 mr-1" />
             Daily Email Alert
           </Label>
           <Switch

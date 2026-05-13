@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
@@ -187,7 +187,7 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
           }}
           disabled={currentIndex === 0}
         >
-          <ChevronLeftIcon className="h-4 w-4 mr-1" />
+          <ChevronLeft className="h-4 w-4 mr-1" />
           Prev
         </Button>
 
@@ -222,7 +222,7 @@ const EmbedCarousel = ({ embeds, hideReactions, isSelected }: EmbedCarouselProps
           disabled={currentIndex === embeds.length - 1}
         >
           Next
-          <ChevronRightIcon className="h-4 w-4 ml-1" />
+          <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
     </div>

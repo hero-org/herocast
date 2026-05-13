@@ -1,5 +1,5 @@
-import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import { Clipboard } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,7 @@ const ClickToCopyText = ({ className, disabled, buttonText, text, size = 'lg' }:
         }, 2000);
       }}
     >
-      <ClipboardDocumentIcon
+      <Clipboard
         className={clsx(
           size === 'sm' ? 'h-4 w-4' : 'h-5 w-5',
           'mt-0.5',

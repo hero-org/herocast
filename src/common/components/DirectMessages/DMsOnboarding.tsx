@@ -114,7 +114,7 @@ export const DMsOnboarding: React.FC<DMsOnboardingProps> = ({ onComplete }) => {
         return (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Create a new API key and give it a name like &quot;Herocast&quot;. This helps you identify which app is
+              Create a new API key and give it a name like &quot;herocast&quot;. This helps you identify which app is
               using the key.
             </p>
             <div>

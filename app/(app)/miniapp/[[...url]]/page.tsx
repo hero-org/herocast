@@ -90,9 +90,9 @@ const MiniAppPage = () => {
   if (error || !decodedUrl) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-950">
-          <h2 className="mb-2 text-lg font-semibold text-red-900 dark:text-red-100">Failed to Load Mini App</h2>
-          <p className="text-sm text-red-700 dark:text-red-300">{error || 'Invalid URL parameter'}</p>
+        <div className="max-w-md rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-center">
+          <h2 className="mb-2 text-lg font-semibold text-destructive">Failed to Load Mini App</h2>
+          <p className="text-sm text-destructive/80">{error || 'Invalid URL parameter'}</p>
         </div>
       </div>
     );

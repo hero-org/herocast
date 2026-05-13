@@ -1,4 +1,4 @@
-import { ArrowPathIcon } from '@heroicons/react/20/solid';
+import { RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import type React from 'react';
 import type { FarcasterCast } from '@/common/types/farcaster';
@@ -37,7 +37,7 @@ export const RecastBadge: React.FC<RecastBadgeProps> = ({ cast, recastedByFid, r
 
   const badge = (
     <span className={cn('ml-10', 'h-5 inline-flex truncate text-sm font-semibold text-foreground/60 hover:underline')}>
-      <ArrowPathIcon className="h-4 w-4 mt-0.5 mr-1" />
+      <RefreshCw className="h-4 w-4 mt-0.5 mr-1" />
       {recasterLabel && `Recasted by ${recasterLabel}`}
     </span>
   );

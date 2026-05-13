@@ -1,6 +1,4 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import type { FarcasterCast } from '@/common/types/farcaster';
-import type { FeedResponse } from '@/lib/farcaster/providers';
 import { getProvider } from '@/lib/farcaster/providers';
 
 const DEFAULT_LIMIT = 25;

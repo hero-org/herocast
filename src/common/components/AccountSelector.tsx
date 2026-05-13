@@ -1,6 +1,6 @@
 'use client';
 
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
@@ -63,7 +63,7 @@ export function AccountSelector({ className, accountFilter }: AccountSelectorPro
               {selectedAccount?.user?.pfp_url && (
                 <img
                   src={selectedAccount?.user?.pfp_url}
-                  className="mr-1 bg-gray-100 border h-4 w-4 flex-none shrink-0 rounded-full"
+                  className="mr-1 bg-muted border h-4 w-4 flex-none shrink-0 rounded-full"
                 />
               )}
               {selectedAccount.name}{' '}
@@ -71,7 +71,7 @@ export function AccountSelector({ className, accountFilter }: AccountSelectorPro
           ) : (
             'Select...'
           )}
-          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[450px] p-0">
@@ -87,10 +87,10 @@ export function AccountSelector({ className, accountFilter }: AccountSelectorPro
                     setOpen(false);
                   }}
                 >
-                  <CheckIcon className={cn('mr-2 h-4 w-4', selectedAccountIdx === idx ? 'opacity-100' : 'opacity-0')} />
+                  <Check className={cn('mr-2 h-4 w-4', selectedAccountIdx === idx ? 'opacity-100' : 'opacity-0')} />
                   <img
                     src={account?.user?.pfp_url}
-                    className="mr-1 bg-gray-100 border h-5 w-5 flex-none shrink-0 rounded-full"
+                    className="mr-1 bg-muted border h-5 w-5 flex-none shrink-0 rounded-full"
                   />
                   {account.name}
                   <span className="ml-1 text-[0.8rem] text-muted-foreground">fid {account.platformAccountId}</span>

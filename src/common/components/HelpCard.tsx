@@ -1,5 +1,4 @@
-import { PaperAirplaneIcon } from '@heroicons/react/20/solid';
-import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline';
+import { MessageSquare, Send } from 'lucide-react';
 import { openWindow } from '@/common/helpers/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,11 +11,11 @@ const HelpCard = () => (
     </CardHeader>
     <CardContent className="flex flex-col space-y-2">
       <Button variant="default" onClick={() => openWindow('https://farcaster.xyz/hellno')}>
-        <ChatBubbleLeftEllipsisIcon className="mr-2 h-4 w-4" />
+        <MessageSquare className="mr-2 h-4 w-4" />
         Talk to us on Farcaster
       </Button>
       <Button variant="outline" onClick={() => openWindow('https://t.me/HELLNO_HELLNO')}>
-        <PaperAirplaneIcon className="mr-2 h-4 w-4" />
+        <Send className="mr-2 h-4 w-4" />
         Talk to us on Telegram
       </Button>
     </CardContent>

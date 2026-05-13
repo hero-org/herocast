@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { Search } from 'lucide-react';
 import type React from 'react';
 import { CastRow } from '@/common/components/CastRow';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
@@ -39,7 +39,7 @@ export function SearchResultsView({
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <div className="bg-muted rounded-full p-4 mb-4">
-          <MagnifyingGlassIcon className="h-8 w-8 text-muted-foreground" />
+          <Search className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-semibold mb-2">No results found</h3>
         <p className="text-muted-foreground text-center max-w-md">

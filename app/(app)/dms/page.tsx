@@ -32,7 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { KeyboardShortcutTooltip } from '@/components/ui/keyboard-shortcut-tooltip';
+import { KbdTooltip } from '@/components/ui/kbd';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getProfileFromBulk, useBulkProfiles } from '@/hooks/queries/useBulkProfiles';
 import { cn } from '@/lib/utils';
@@ -528,7 +528,7 @@ const DirectMessages = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-semibold text-foreground">Direct Messages</h1>
             <div className="flex items-center gap-2">
-              <KeyboardShortcutTooltip keys="cmd+n">
+              <KbdTooltip shortcut="cmd+n">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -539,7 +539,7 @@ const DirectMessages = () => {
                   <Plus className="h-4 w-4" />
                   <span className="ml-1 hidden sm:inline">New</span>
                 </Button>
-              </KeyboardShortcutTooltip>
+              </KbdTooltip>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -547,12 +547,12 @@ const DirectMessages = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <KeyboardShortcutTooltip keys="shift+r">
+                  <KbdTooltip shortcut="shift+r">
                     <DropdownMenuItem onClick={refreshDMs} disabled={isLoading}>
                       <RefreshCw className={cn('mr-2 h-4 w-4', isLoading && 'animate-spin')} />
                       Refresh
                     </DropdownMenuItem>
-                  </KeyboardShortcutTooltip>
+                  </KbdTooltip>
                   <DropdownMenuItem onClick={() => {}} disabled={isEmpty(currentList)}>
                     <CheckCheck className="mr-2 h-4 w-4" />
                     Mark all as read

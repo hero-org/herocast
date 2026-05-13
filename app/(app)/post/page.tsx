@@ -12,10 +12,9 @@ const ThreadComposer = dynamic(() => import('@/common/components/ThreadComposer'
   ssr: false,
 });
 
-import { PencilSquareIcon } from '@heroicons/react/20/solid';
-import { ClockIcon } from '@heroicons/react/24/outline';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import map from 'lodash.map';
+import { Clock, SquarePen } from 'lucide-react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { CastRow } from '@/common/components/CastRow';
 import { ChannelDisplay } from '@/common/components/ChannelDisplay';
@@ -234,14 +233,14 @@ export default function NewPost() {
         className="cursor-pointer flex flex-col items-center justify-center gap-4 p-8 rounded-lg w-full max-w-[500px] border border-muted"
       >
         <div className="flex flex-col items-center text-center gap-2">
-          <PencilSquareIcon className="w-12 h-12 text-muted-foreground/50" />
+          <SquarePen className="w-12 h-12 text-muted-foreground/50" />
           <h2 className="text-xl font-semibold">New draft</h2>
           <p className="text-muted-foreground max-w-[350px]">
             Start writing your thoughts or schedule posts for later.
           </p>
         </div>
         <Button className="mt-2" onClick={handleNewDraft}>
-          <PencilSquareIcon className="w-5 h-5 mr-2" />
+          <SquarePen className="w-5 h-5 mr-2" />
           New draft
         </Button>
       </div>
@@ -272,7 +271,7 @@ export default function NewPost() {
     return (
       <div className="pt-4 pb-6">
         <div className="flex items-center text-xs text-muted-foreground">
-          <ClockIcon className="w-5 h-5" />
+          <Clock className="w-5 h-5" />
           <span className="ml-1">
             Scheduled for {draft.scheduledFor ? getUserLocaleDateFromIsoString(draft.scheduledFor) : 'unknown'}{' '}
             {draft.publishedAt && `· Published at ${getUserLocaleDateFromIsoString(draft.publishedAt)}`}
@@ -283,7 +282,7 @@ export default function NewPost() {
               <ChannelDisplay
                 parentUrl={draft.parentUrl}
                 variant="secondary"
-                className="h-5 inline-flex truncate items-top rounded-sm bg-blue-400/10 px-1.5 py-0.5 text-xs font-medium text-blue-400 ring-1 ring-inset ring-blue-400/30"
+                className="h-5 inline-flex truncate items-top rounded-sm bg-channel/10 px-1.5 py-0.5 text-xs font-medium text-channel ring-1 ring-inset ring-channel/30"
               />
             </p>
           )}
@@ -315,7 +314,7 @@ export default function NewPost() {
       <div className="flex items-center py-2 w-full">
         <TabsList className="flex w-full">
           {DraftListTabs.map((tab) => (
-            <TabsTrigger key={tab.key} value={tab.key} className="text-zinc-600 dark:text-zinc-200">
+            <TabsTrigger key={tab.key} value={tab.key} className="text-muted-foreground">
               {tab.label}
             </TabsTrigger>
           ))}
@@ -411,7 +410,7 @@ export default function NewPost() {
                     <div className="flex items-center py-2 w-full">
                       <TabsList className="flex w-full">
                         {DraftListTabs.map((tab) => (
-                          <TabsTrigger key={tab.key} value={tab.key} className="text-zinc-600 dark:text-zinc-200">
+                          <TabsTrigger key={tab.key} value={tab.key} className="text-muted-foreground">
                             {tab.label}
                           </TabsTrigger>
                         ))}
@@ -469,7 +468,7 @@ export default function NewPost() {
           <div className="p-4 pb-0 block xl:hidden">
             <div className="flex justify-between items-center">
               <Button className="inline-flex items-center gap-2" onClick={openDraftsModal}>
-                <PencilSquareIcon className="w-5 h-5" />
+                <SquarePen className="w-5 h-5" />
                 <span>Drafts</span>
               </Button>
             </div>

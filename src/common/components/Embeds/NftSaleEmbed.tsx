@@ -1,5 +1,5 @@
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
+import { ExternalLink } from 'lucide-react';
 import { openWindow } from '@/common/helpers/navigation';
 import { getZapperNftSaleUrl, parseNftSaleUrl } from '@/common/helpers/onchain';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -119,9 +119,7 @@ export default function NftSaleEmbed({ url, isSelected }: NftSaleEmbedProps) {
           }}
         />
       ) : (
-        <div className="h-12 w-12 rounded-md bg-muted flex-shrink-0 flex items-center justify-center">
-          <span className="text-lg">🖼️</span>
-        </div>
+        <div className="h-12 w-12 rounded-md bg-muted flex-shrink-0" />
       )}
 
       {/* NFT Info */}
@@ -150,14 +148,12 @@ function FallbackCard({ zapperUrl, isSelected }: { zapperUrl: string; isSelected
         openWindow(zapperUrl);
       }}
     >
-      <div className="h-10 w-10 rounded-md bg-muted flex-shrink-0 flex items-center justify-center">
-        <span className="text-lg">🖼️</span>
-      </div>
+      <div className="h-10 w-10 rounded-md bg-muted flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-foreground">NFT Sale</div>
         <div className="text-xs text-muted-foreground">View on Zapper</div>
       </div>
-      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
     </div>
   );
 }
@@ -176,7 +172,7 @@ function LinkButton({ href, label }: { href: string; label: string }) {
       }}
     >
       {label}
-      <ArrowTopRightOnSquareIcon className="h-3 w-3" />
+      <ExternalLink className="h-3 w-3" />
     </button>
   );
 }

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-import { ArrowTrendingUpIcon, HomeIcon } from '@heroicons/react/20/solid';
 import cloneDeep from 'lodash.clonedeep';
 import findIndex from 'lodash.findindex';
 import isEmpty from 'lodash.isempty';
 import sortBy from 'lodash.sortby';
 import uniqBy from 'lodash.uniqby';
+import { Home, TrendingUp } from 'lucide-react';
 import { type Draft, create as mutativeCreate } from 'mutative';
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
@@ -803,7 +803,7 @@ const getCommandsForPinnedChannels = (channels: ChannelType[], state) => {
 export const getChannelCommands = (state, router?) => {
   let channelCommands: CommandType[] = [
     {
-      icon: HomeIcon,
+      icon: Home,
       name: `Switch to follow feed`,
       aliases: ['following', 'feed', 'home'],
       shortcut: 'shift+0',
@@ -819,7 +819,7 @@ export const getChannelCommands = (state, router?) => {
       },
     },
     {
-      icon: ArrowTrendingUpIcon,
+      icon: TrendingUp,
       name: `Switch to trending feed`,
       aliases: ['trending', 'popular'],
       shortcut: 'shift+1',

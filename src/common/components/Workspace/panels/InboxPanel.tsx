@@ -268,7 +268,7 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
               <AvatarFallback>{firstFollower?.username?.slice(0, 2)}</AvatarFallback>
             </Avatar>
             {remainingCount > 0 && (
-              <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+              <div className="absolute -bottom-1 -right-1 bg-info text-info-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
                 +{Math.min(remainingCount, 9)}
               </div>
             )}

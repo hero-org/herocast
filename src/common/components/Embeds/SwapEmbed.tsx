@@ -1,5 +1,5 @@
-import { ArrowsRightLeftIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { useQuery } from '@tanstack/react-query';
+import { ArrowLeftRight, ExternalLink } from 'lucide-react';
 import { openWindow } from '@/common/helpers/navigation';
 import {
   getAlchemyNetworkForSwapChain,
@@ -184,7 +184,7 @@ export default function SwapEmbed({ url, isSelected }: SwapEmbedProps) {
       <Avatar className="h-10 w-10 flex-shrink-0">
         <AvatarImage src={avatarSrc} />
         <AvatarFallback>
-          {avatarSrc ? avatarFallback : <ArrowsRightLeftIcon className="h-5 w-5 text-muted-foreground" />}
+          {avatarSrc ? avatarFallback : <ArrowLeftRight className="h-5 w-5 text-muted-foreground" />}
         </AvatarFallback>
       </Avatar>
 
@@ -195,7 +195,7 @@ export default function SwapEmbed({ url, isSelected }: SwapEmbedProps) {
 
         {/* Swap action line */}
         <div className="flex items-center gap-1.5 mt-0.5 text-sm text-foreground/80">
-          <ArrowsRightLeftIcon className="h-4 w-4 flex-shrink-0" />
+          <ArrowLeftRight className="h-4 w-4 flex-shrink-0" />
           <span>swapped {symbol}</span>
           {logo && (
             <img
@@ -254,7 +254,7 @@ function FallbackCard({
       {/* Fallback avatar with swap icon */}
       <Avatar className="h-10 w-10 flex-shrink-0">
         <AvatarFallback>
-          <ArrowsRightLeftIcon className="h-5 w-5 text-muted-foreground" />
+          <ArrowLeftRight className="h-5 w-5 text-muted-foreground" />
         </AvatarFallback>
       </Avatar>
 
@@ -264,7 +264,7 @@ function FallbackCard({
 
         {/* Swap action line */}
         <div className="flex items-center gap-1.5 mt-0.5 text-sm text-foreground/80">
-          <ArrowsRightLeftIcon className="h-4 w-4 flex-shrink-0" />
+          <ArrowLeftRight className="h-4 w-4 flex-shrink-0" />
           <span>Token Swap{chainName ? ` · ${chainName}` : ''}</span>
         </div>
 
@@ -299,7 +299,7 @@ function LinkButton({ href, label }: { href: string; label: string }) {
       }}
     >
       {label}
-      <ArrowTopRightOnSquareIcon className="h-3 w-3" />
+      <ExternalLink className="h-3 w-3" />
     </button>
   );
 }

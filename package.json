@@ -70,7 +70,6 @@
     "@farcaster/miniapp-host": "^0.2.14",
     "@gumlet/react-hls-player": "^1.0.1",
     "@headlessui/react": "^2.2.0",
-    "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.10.0",
     "@mod-protocol/mod-registry": "^0.1.1",
     "@mod-protocol/react": "^0.2.0",

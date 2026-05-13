@@ -1,5 +1,5 @@
 import { UserDataType } from '@farcaster/hub-web';
-import { Cog6ToothIcon } from '@heroicons/react/20/solid';
+import { Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { setUserDataInProtocol } from '@/common/helpers/farcaster';
@@ -77,7 +77,7 @@ const ChangeProfilePictureForm = ({ account, onSuccess }: ChangeProfilePictureFo
         onChange={(e) => setNewPfpUrl(e.target.value)}
       />
       <Button variant="default" type="submit" className="w-74" disabled={!canSubmit} onClick={changeProfilePicture}>
-        {isPending && <Cog6ToothIcon className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
+        {isPending && <Settings className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
         <p>Update profile picture</p>
       </Button>
     </div>

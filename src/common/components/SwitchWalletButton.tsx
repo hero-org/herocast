@@ -23,7 +23,7 @@ const SwitchWalletButton = ({ className }: SwitchWalletButtonProps) => {
   return (
     <div className={cn('flex flex-col', className)}>
       {isClient && isConnected && (
-        <Button variant="outline" className="border-red-700" onClick={() => disconnect()}>
+        <Button variant="outline" className="border-destructive" onClick={() => disconnect()}>
           Disconnect
         </Button>
       )}

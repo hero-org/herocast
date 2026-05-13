@@ -1,6 +1,6 @@
 import { UserDataType } from '@farcaster/hub-web';
-import { Cog6ToothIcon } from '@heroicons/react/20/solid';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -119,7 +119,7 @@ const ChangeDisplayNameForm = ({ account, onSuccess }: ChangeDisplayNameFormProp
           )}
         />
         <Button disabled={!canSubmitForm} variant="default" type="submit" className="w-74">
-          {isPending && <Cog6ToothIcon className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
+          {isPending && <Settings className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
           <p>Update display name</p>
         </Button>
       </form>

@@ -1,8 +1,8 @@
-import { Cross2Icon, PersonIcon } from '@radix-ui/react-icons';
 import Fuse from 'fuse.js';
 import { take } from 'lodash';
 import orderBy from 'lodash.orderby';
 import uniqBy from 'lodash.uniqby';
+import { User, X } from 'lucide-react';
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import type { FarcasterChannel } from '@/common/types/farcaster';
@@ -178,7 +178,7 @@ export function ChannelPicker(props: Props) {
           />
           {!props.compact && displayChannel.name}
           {!props.compact && !isHomeChannel && !props.disabled && (
-            <Cross2Icon className="ml-2 h-3 w-3 text-muted-foreground hover:text-foreground" onClick={handleClear} />
+            <X className="ml-2 h-3 w-3 text-muted-foreground hover:text-foreground" onClick={handleClear} />
           )}
         </Button>
       </PopoverTrigger>
@@ -215,7 +215,7 @@ export function ChannelPicker(props: Props) {
                   {channel?.follower_count && (
                     <span className="ml-1 border-l border-foreground/10 text-foreground/60">
                       {' '}
-                      <PersonIcon className="ml-1 mb-1 h-3 w-3 inline" /> {formatLargeNumber(channel.follower_count)}
+                      <User className="ml-1 mb-1 h-3 w-3 inline" /> {formatLargeNumber(channel.follower_count)}
                     </span>
                   )}
                 </CommandItem>

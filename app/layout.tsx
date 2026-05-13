@@ -1,5 +1,6 @@
 import '../src/globals.css';
 import type { Metadata } from 'next';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
 import type React from 'react';
 import CommandPalette from '@/common/components/CommandPalette';
@@ -41,6 +42,22 @@ const satoshi = localFont({
       style: 'normal',
     },
   ],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-mono',
+  display: 'swap',
 });
 
 export const viewport = {
@@ -91,8 +108,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={cn(satoshi.className, 'no-scrollbar')}>
+    <html lang="en" suppressHydrationWarning className={cn(inter.variable, satoshi.variable, jetbrainsMono.variable)}>
+      <body className={cn('font-sans', 'no-scrollbar')}>
         <Providers>
           <GlobalHotkeys />
           <CommandPalette />

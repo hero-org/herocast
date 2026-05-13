@@ -87,7 +87,7 @@ const ConnectAccountPage = () => {
   return (
     <div className="mx-auto flex flex-col justify-center items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
-        <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast ✨</h2>
+        <h2 className="text-4xl font-bold tracking-tight">Welcome to herocast</h2>
         <p className="text-lg text-muted-foreground">Build, engage and grow on Farcaster. Faster.</p>
         <div className="lg:max-w-lg mx-auto">
           <div className="grid grid-cols-1 gap-4">
@@ -103,7 +103,7 @@ const ConnectAccountPage = () => {
             </Card>
             <div className="relative mx-4">
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center">
                 <span className="bg-background px-2 text-sm text-foreground/80">OR</span>

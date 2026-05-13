@@ -1,5 +1,5 @@
-import { CalendarIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { format, isBefore, isToday, startOfToday } from 'date-fns';
+import { Calendar as CalendarIcon, X } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -281,7 +281,7 @@ export function EnhancedDateTimePicker({
 
       {showClearButton && jsDate && (
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleClear} disabled={disabled}>
-          <XMarkIcon className="h-4 w-4" />
+          <X className="h-4 w-4" />
         </Button>
       )}
     </div>
