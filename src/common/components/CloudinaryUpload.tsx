@@ -40,12 +40,9 @@ const CloudinaryUpload = ({ onSuccess }: CloudinaryUploadProps) => {
         />
       </div>
       {uploadProgress > 0 && !error && (
-        <Progress
-          value={uploadProgress}
-          indicatorClassName="bg-gradient-to-r from-green-400 to-green-600 animate-pulse"
-        />
+        <Progress value={uploadProgress} indicatorClassName="bg-success animate-pulse" />
       )}
-      {error && <Label className="text-red-500">{error}</Label>}
+      {error && <Label className="text-destructive">{error}</Label>}
     </div>
   );
 };

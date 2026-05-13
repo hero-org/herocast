@@ -1,10 +1,9 @@
 'use client';
 
-import { UserPlusIcon } from '@heroicons/react/20/solid';
-import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { filter } from 'lodash';
 import isEmpty from 'lodash.isempty';
+import { Download, RefreshCw, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SortableList, { SortableItem } from 'react-easy-sort';
@@ -173,7 +172,7 @@ export default function Accounts() {
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl flex">
-          You are using a readonly account <ArrowDownTrayIcon className="ml-2 mt-1 w-6 h-6" />
+          You are using a readonly account <Download className="ml-2 mt-1 w-6 h-6" />
         </CardTitle>
         <CardDescription>
           A readonly account is great for browsing, but you need a full account to start casting and interact with
@@ -200,7 +199,7 @@ export default function Accounts() {
       </CardHeader>
       <CardFooter>
         <Button className="w-full" variant="default" onClick={() => onCreateNewAccount()}>
-          <UserPlusIcon className="mr-1.5 h-5 w-5" aria-hidden="true" />
+          <UserPlus className="mr-1.5 h-5 w-5" aria-hidden="true" />
           {isLoading ? 'Connecting...' : 'Connect Account'}
         </Button>
       </CardFooter>
@@ -274,7 +273,7 @@ export default function Accounts() {
 
     return (
       <>
-        <div className="flex justify-between pb-2 border-b border-gray-200">
+        <div className="flex justify-between pb-2 border-b border-border">
           <h1 className="text-xl font-semibold leading-7 text-foreground/80">Connected Farcaster accounts</h1>
         </div>
         <ul role="list" className="mb-8 divide-y">
@@ -305,12 +304,12 @@ export default function Accounts() {
             onClick={() => onCreateNewAccount()}
             disabled={isLoading || signupState === SignupStateEnum.connecting}
           >
-            <UserPlusIcon className="mr-2 h-4 w-4" />
+            <UserPlus className="mr-2 h-4 w-4" />
             Connect New Account
           </Button>
           {accounts.length > 0 && (
             <Button variant="outline" size="sm" disabled={isLoading} onClick={() => refreshAccountNames()}>
-              <ArrowPathIcon className={cn(isLoading && 'animate-spin', 'mr-2 h-4 w-4')} />
+              <RefreshCw className={cn(isLoading && 'animate-spin', 'mr-2 h-4 w-4')} />
               Refresh
             </Button>
           )}
@@ -324,7 +323,7 @@ export default function Accounts() {
               {accounts.length === 0 ? (
                 <Card className="border-dashed">
                   <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                    <UserPlusIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                    <UserPlus className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="text-lg font-semibold mb-2">No accounts connected</h3>
                     <p className="text-sm text-muted-foreground">Connect your first Farcaster account to get started</p>
                   </CardContent>
@@ -368,7 +367,7 @@ export default function Accounts() {
                                       <span className="font-mono text-xs">Ctrl+{idx + 1}</span>
                                     </>
                                   )}
-                                  {item.status !== 'active' && <span className="text-yellow-600">• {item.status}</span>}
+                                  {item.status !== 'active' && <span className="text-warning">• {item.status}</span>}
                                 </div>
                               </div>
                             </div>
@@ -411,7 +410,7 @@ export default function Accounts() {
                         onClick={() => onCreateNewAccount()}
                         disabled={isLoading}
                       >
-                        <UserPlusIcon className="mr-2 h-4 w-4" />
+                        <UserPlus className="mr-2 h-4 w-4" />
                         {isLoading ? 'Connecting...' : 'Connect Account'}
                       </Button>
                     </CardContent>

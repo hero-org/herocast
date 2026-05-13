@@ -1,5 +1,5 @@
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { AccountPlatformType, AccountStatusType } from '@/common/constants/accounts';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ const AccountsOverview = () => {
       case 'active':
         return <></>;
       case 'pre-migration':
-        return <span className={cn('flex-none text-sm text-yellow-300/80')}>pre-migration account</span>;
+        return <span className={cn('flex-none text-sm text-warning')}>pre-migration account</span>;
       default:
         return <span className={cn('underline flex-none text-sm text-foreground/70')}>{status}</span>;
     }
@@ -28,7 +28,7 @@ const AccountsOverview = () => {
       case AccountPlatformType.farcaster_local_readonly:
         return (
           <p className="truncate text-md text-foreground grayscale group-hover:grayscale-0">
-            <ArrowDownTrayIcon className="w-4 h-4" />
+            <Download className="w-4 h-4" />
           </p>
         );
       default:
@@ -70,9 +70,9 @@ const AccountsOverview = () => {
                       alt=""
                       className={cn(
                         idx === selectedAccountIdx
-                          ? 'border-gray-100'
-                          : 'grayscale border-gray-400 hover:border-gray-300',
-                        '-mr-1 -mt-0.5 bg-gray-100 border h-5 w-5 flex-none rounded-full'
+                          ? 'border-border'
+                          : 'grayscale border-border hover:border-muted-foreground',
+                        '-mr-1 -mt-0.5 bg-muted border h-5 w-5 flex-none rounded-full'
                       )}
                     />
                   )}

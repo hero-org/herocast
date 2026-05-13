@@ -1,11 +1,5 @@
-import {
-  BellIcon,
-  Cog6ToothIcon,
-  EllipsisVerticalIcon,
-  EnvelopeIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
 import sortBy from 'lodash.sortby';
+import { Bell, Mail, MoreVertical, Search, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isSearchListContent } from '@/common/types/list.types';
 import { Button } from '@/components/ui/button';
@@ -78,22 +72,22 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
         >
           <span className="flex-nowrap truncate">{list.name}</span>
           <div className="flex">
-            {hasEmailEnabled && <EnvelopeIcon className="h-4 w-4 mt-1 mr-1 text-muted-foreground/50" />}
+            {hasEmailEnabled && <Mail className="h-4 w-4 mt-1 mr-1 text-muted-foreground/50" />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="outline" className="rounded-lg h-6 w-5">
-                  <EllipsisVerticalIcon className="h-3.5 w-3.5" />
+                  <MoreVertical className="h-3.5 w-3.5" />
                   <span className="sr-only">More</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="rounded-lg">
                 <DropdownMenuItem onClick={() => updateSelectedList(list.id)}>
-                  <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
+                  <Search className="h-4 w-4 mr-2" />
                   Search
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onManageList(list.id)}>
-                  <Cog6ToothIcon className="h-4 w-4 mr-2" />
+                  <Settings className="h-4 w-4 mr-2" />
                   Manage
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -146,7 +140,7 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
         <SidebarHeader
           title={
             <span className="flex align-center">
-              <BellIcon className="h-5 w-5 mt-1 mr-1" />
+              <Bell className="h-5 w-5 mt-1 mr-1" />
               Saved Searches
             </span>
           }

@@ -90,10 +90,15 @@ All stores use mutative for immutable updates and have different persistence str
 
 ### Styling Patterns
 
-- Uses Tailwind with custom design system based on Radix colors
+- Uses Tailwind with a token-driven design system; tokens live in `src/globals.css` and are exposed via `tailwind.config.js`
 - shadcn/ui components in `src/components/ui/`
-- Custom fonts (Satoshi) loaded via Next.js localFont
+- Inter for body/UI, Satoshi for the display lockup only, JetBrains Mono for hashes/addresses/kbd (all via `next/font`, wired in `app/layout.tsx`)
+- Lucide is the sole icon library (stroke 1.5 px, set globally)
 - Theme system with light/dark modes via next-themes
+
+**See `DESIGN.md`** for the hard rules: token-only colors (`bg-mention`, `text-channel`, `text-destructive`, etc.), button signature (`h-[42px] rounded-lg font-semibold` with `shadow-button-press`), focus ring (2 px outline + 2 px offset, set globally), motion durations, brand-name casing, and the no-emoji-in-chrome rule.
+
+The `pnpm check` aggregator includes a `design-tokens` adapter that flags raw `#hex`/`rgb(...)`/`hsl(...)`/Tailwind palette leaks. Severity is `warning` today — if you touched a flagged file, clean it up. Exemptions live in `scripts/check/adapters/design-tokens.ts`.
 
 ## Development Guidelines
 

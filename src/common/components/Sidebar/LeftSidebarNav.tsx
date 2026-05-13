@@ -119,8 +119,8 @@ const LeftSidebarNav = ({ onNavigate }: LeftSidebarNavProps) => {
           className={cn(
             'group flex items-center gap-x-3 rounded-md px-2 py-1.5 text-sm font-medium cursor-pointer transition-colors',
             active
-              ? 'bg-foreground text-background dark:bg-foreground/10 dark:text-foreground'
-              : 'text-foreground/80 hover:text-foreground hover:bg-muted'
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-button-press'
+              : 'text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent'
           )}
         >
           {item.icon}

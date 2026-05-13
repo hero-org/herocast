@@ -1,9 +1,7 @@
 'use client';
 
 import { Radio, RadioGroup } from '@headlessui/react';
-import { CheckCircleIcon, MagnifyingGlassIcon, PencilSquareIcon } from '@heroicons/react/20/solid';
-import { CheckIcon } from '@heroicons/react/24/outline';
-import { XCircleIcon } from '@heroicons/react/24/solid';
+import { Check, CheckCircle2, Search, SquarePen, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -48,7 +46,7 @@ const plans = [
       '2 connected accounts',
     ],
     unavilableFeatures: ['Shared accounts'],
-    logomarkClassName: 'fill-gray-300',
+    logomarkClassName: 'fill-muted-foreground/40',
   },
   {
     name: 'Creator',
@@ -78,7 +76,7 @@ const plans = [
       '2 connected accounts',
     ],
     unavilableFeatures: ['Shared accounts'],
-    logomarkClassName: 'fill-gray-300',
+    logomarkClassName: 'fill-muted-foreground/40',
   },
   {
     name: 'Brand',
@@ -108,7 +106,7 @@ const plans = [
       '5 connected accounts',
       'Shared accounts',
     ],
-    logomarkClassName: 'fill-white',
+    logomarkClassName: 'fill-primary-foreground',
   },
 ];
 
@@ -173,7 +171,7 @@ function Plan({
       <Link href={button.Hypersub.href} prefetch={false} className="w-full mx-auto">
         <Button
           type="button"
-          className="w-full text-white h-9 rounded-lg px-4 py-2 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+          className="w-full text-primary-foreground h-9 rounded-lg px-4 py-2 bg-gradient-to-r from-brand-purple-deep to-brand-purple hover:opacity-90"
         >
           {button.Hypersub.label ?? 'Hypersub'}
         </Button>
@@ -187,15 +185,15 @@ function Plan({
         className={cn(
           'flex flex-col overflow-hidden rounded-3xl p-6',
           featured
-            ? 'order-first bg-gray-900 lg:order-none shadow-sm shadow-muted-foreground hover:shadow-foreground/40 hover:shadow-md transition-shadow duration-100'
-            : 'bg-white shadow-sm shadow-gray-900/5'
+            ? 'order-first bg-primary text-primary-foreground lg:order-none shadow-sm shadow-muted-foreground hover:shadow-foreground/40 hover:shadow-md transition-shadow duration-100'
+            : 'bg-card text-card-foreground shadow-sm'
         )}
       >
-        <h3 className={cn('flex items-center text-lg font-semibold', featured ? 'text-white' : 'text-gray-800')}>
+        <h3 className="flex items-center text-lg font-semibold">
           <Logo className={cn('h-6 w-6 rounded-lg flex-none', logomarkClassName)} />
           <span className="ml-2">{name}</span>
         </h3>
-        <p className={cn('relative mt-5 flex text-3xl tracking-tight', featured ? 'text-white' : 'text-gray-800')}>
+        <p className="relative mt-5 flex text-3xl tracking-tight">
           {price.Monthly === price.Annually ? (
             price.Monthly
           ) : (
@@ -221,25 +219,29 @@ function Plan({
             </>
           )}
         </p>
-        <p className={cn('mt-3 text-sm', featured ? 'text-gray-300' : 'text-gray-700')}>{description}</p>
+        <p className={cn('mt-3 text-sm', featured ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+          {description}
+        </p>
         <div className="order-last mt-6">
           <ul
             role="list"
             className={cn(
               '-my-2 divide-y text-sm',
-              featured ? 'divide-gray-800 text-gray-300' : 'divide-gray-200 text-gray-700'
+              featured
+                ? 'divide-primary-foreground/20 text-primary-foreground/80'
+                : 'divide-border text-muted-foreground'
             )}
           >
             {features.map((feature) => (
               <li key={feature} className="flex py-2">
-                <CheckIcon className={cn('h-6 w-6 flex-none', featured ? 'text-white' : 'text-gray-800')} />
+                <Check className="h-6 w-6 flex-none" />
                 <span className="ml-4">{feature}</span>
               </li>
             ))}
             {unavilableFeatures &&
               unavilableFeatures.map((feature) => (
                 <li key={feature} className="flex py-2 opacity-50">
-                  <XCircleIcon className="h-6 w-6 flex-none text-gray-400" />
+                  <XCircle className="h-6 w-6 flex-none" />
                   <span className="ml-4">{feature}</span>
                 </li>
               ))}
@@ -279,14 +281,17 @@ function Pricing() {
             <div
               aria-hidden="true"
               className={cn(
-                'pointer-events-none absolute inset-0 z-5 shadow-none grid grid-cols-2 overflow-hidden rounded-md bg-gray-900 transition-all duration-300',
+                'pointer-events-none absolute inset-0 z-5 shadow-none grid grid-cols-2 overflow-hidden rounded-md bg-primary transition-all duration-300',
                 activePeriod === 'Monthly' ? '[clip-path:inset(0_50%_0_0)]' : '[clip-path:inset(0_0_0_calc(50%-1px))]'
               )}
             >
               {['Monthly', 'Annually'].map((period) => (
                 <div
                   key={period}
-                  className={cn('py-2 text-center text-sm font-semibold text-white', period === 'Annually' && '-ml-px')}
+                  className={cn(
+                    'py-2 text-center text-sm font-semibold text-primary-foreground',
+                    period === 'Annually' && '-ml-px'
+                  )}
                 >
                   {period}
                 </div>
@@ -331,7 +336,7 @@ export default function UpgradePage() {
     <div className="flex min-h-full flex-1 flex-col px-6 py-8 lg:px-8 space-y-4">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <h2 className="mt-6 text-center text-3xl font-bold leading-9 tracking-tight text-foreground">
-          Upgrade Herocast
+          Upgrade herocast
         </h2>
         <p className="mt-2 text-center text-lg text-muted-foreground">
           Choose a plan that fits your needs and take your Farcaster experience to the next level.
@@ -347,7 +352,7 @@ export default function UpgradePage() {
             <Button
               type="button"
               size="lg"
-              className="text-white text-base py-6 bg-gradient-to-r from-[#8A63D2] to-[#ff4eed] hover:from-[#6A4CA5] hover:to-[#c13ab3]"
+              className="text-primary-foreground text-base py-6 bg-gradient-to-r from-brand-purple-deep to-brand-purple hover:opacity-90"
             >
               Upgrade on Hypersub <span className="ml-2">→</span>
             </Button>
@@ -368,7 +373,7 @@ export default function UpgradePage() {
         <Card className="min-w-max bg-background text-foreground">
           <CardHeader className="space-y-1">
             <CardTitle className="flex">
-              <CheckCircleIcon className="-mt-0.5 mr-1 h-5 w-5 text-foreground/80" aria-hidden="true" />
+              <CheckCircle2 className="-mt-0.5 mr-1 h-5 w-5 text-foreground/80" aria-hidden="true" />
               Subscribed to herocast Pro
             </CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -379,11 +384,11 @@ export default function UpgradePage() {
             <div className="-mx-2 -my-1.5 flex">
               <Button onClick={() => router.push('/search')} type="button" variant="default">
                 Add more search alerts
-                <MagnifyingGlassIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+                <Search className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
               </Button>
               <Button onClick={() => router.push('/post')} type="button" variant="outline" className="ml-4">
                 Schedule more casts
-                <PencilSquareIcon className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+                <SquarePen className="ml-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
           </CardContent>

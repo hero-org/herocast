@@ -56,7 +56,7 @@ type UseCastEditorReturn = {
 export function useCastEditor({
   onError,
   onSubmit,
-  linkClassName = 'text-blue-500',
+  linkClassName = 'text-mention',
   renderMentionsSuggestionConfig,
   renderChannelsSuggestionConfig,
   editorOptions = {},

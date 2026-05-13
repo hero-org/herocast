@@ -1,10 +1,9 @@
-import { MinusCircleIcon } from '@heroicons/react/24/outline';
+import { MinusCircle } from 'lucide-react';
 import { isImageUrl } from '@/common/helpers/text';
 import { Button } from '@/components/ui/button';
 import { ImageEmbed } from '../PostEmbeddedContent';
 import CastEmbed from './CastEmbed';
 import { EmbedSkeleton } from './EmbedSkeleton';
-import NounsBuildEmbed from './NounsBuildEmbed';
 import OnchainEmbed from './OnchainEmbed';
 import OpenGraphImage from './OpenGraphImage';
 import ParagraphXyzEmbed from './ParagraphXyzEmbed';
@@ -49,8 +48,6 @@ const getEmbedForUrl = (url: string, hideReactions?: boolean, skipIntersection?:
   } else if ((url.includes('twitter.com') || url.startsWith('https://x.com')) && url.includes('status/')) {
     const tweetId = url.split('/').pop();
     return tweetId ? <TweetEmbed tweetId={tweetId} /> : null;
-  } else if (url.startsWith('https://nouns.build')) {
-    return <NounsBuildEmbed url={url} />;
   } else if (url.includes('paragraph.xyz') || url.includes('pgrph.xyz')) {
     return <ParagraphXyzEmbed url={url} />;
   } else {
@@ -84,7 +81,7 @@ export const renderEmbedForUrl = ({
       {content}
       {onRemove && (
         <Button onClick={onRemove} size="sm" className="mx-auto h-7 gap-1">
-          <MinusCircleIcon className="h-3.5 w-3.5" />
+          <MinusCircle className="h-3.5 w-3.5" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Remove</span>
         </Button>
       )}

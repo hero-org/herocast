@@ -1,6 +1,6 @@
 import { UserDataType } from '@farcaster/hub-web';
-import { Cog6ToothIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { AlertCircle, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { getAddress } from 'viem';
@@ -232,7 +232,7 @@ const RenameAccountForm = ({
           </p>
         )}
         <Button disabled={!canSubmitForm} variant="default" type="submit" className="w-74">
-          {isPending && <Cog6ToothIcon className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
+          {isPending && <Settings className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
           {hasUsernameInProtocol ? 'Rename account' : 'Set username'}
         </Button>
         {chainId !== mainnet.id && (
@@ -245,7 +245,7 @@ const RenameAccountForm = ({
   );
 
   const renderInfoBox = () => (
-    <div className="bg-orange-400 dark:bg-orange-700 p-4 rounded-lg border border-gray-500">
+    <div className="bg-warning/20 p-4 rounded-lg border border-warning/40">
       <p className="text-radix-mauve1 text-[15px] leading-normal">
         You can only rename your account if you are connected with your custodial wallet. If you signed up with
         Warpcast, you need to export your account and import it into a custodial wallet.
@@ -268,8 +268,8 @@ const RenameAccountForm = ({
         renderForm()
       ) : (
         <div className="flex flex-row text-center items-center space-x-4">
-          <div className="flex px-4 py-1.5 rounded-md bg-foreground/10 border border-gray-500 text-warning">
-            <ExclamationCircleIcon className="h-4 w-4 mr-2 mt-1" />
+          <div className="flex px-4 py-1.5 rounded-md bg-foreground/10 border border-border text-warning">
+            <AlertCircle className="h-4 w-4 mr-2 mt-1" />
             <p className="text-foreground text-[15px] leading-normal">Connect your wallet to rename your account.</p>
           </div>
         </div>

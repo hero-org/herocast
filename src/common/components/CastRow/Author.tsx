@@ -1,5 +1,4 @@
-import { EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
-import { ArrowTopRightOnSquareIcon, DocumentDuplicateIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Copy, ExternalLink, MoreHorizontal, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -68,7 +67,7 @@ const ChannelButton: React.FC<{
   if (!showChannel || !channel) return null;
   return (
     <Badge
-      className="truncate items-top bg-blue-400/10  hover:bg-blue-400/20 text-blue-400 hover:text-blue-600  border-blue-400/5 shadow-none"
+      className="truncate items-top bg-channel/10 hover:bg-channel/20 text-channel border-channel/20 shadow-none"
       onClick={() => onSelectChannelUrl(channel.url)}
     >
       {channel.name}
@@ -85,7 +84,7 @@ const AdminActions: React.FC<{
       key: 'delete',
       isDialog: true,
       label: 'Delete',
-      icon: <TrashIcon className="h-4 w-4 mr-1" />,
+      icon: <Trash2 className="h-4 w-4 mr-1" />,
       content: (
         <DialogContent>
           <DialogHeader>
@@ -118,7 +117,7 @@ const AdminActions: React.FC<{
     {
       key: 'copy-cast-link',
       label: 'Copy cast link',
-      icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
+      icon: <Copy className="h-4 w-4 mr-1" />,
       onClick: () => {
         const url = `${process.env.NEXT_PUBLIC_URL}/conversation/${cast.hash}`;
         addToClipboard(url);
@@ -128,7 +127,7 @@ const AdminActions: React.FC<{
     {
       key: 'copy-cast-hash',
       label: 'Copy cast hash',
-      icon: <DocumentDuplicateIcon className="h-4 w-4 mr-1" />,
+      icon: <Copy className="h-4 w-4 mr-1" />,
       onClick: () => {
         addToClipboard(cast.hash);
         toastCopiedToClipboard(cast.hash);
@@ -139,7 +138,7 @@ const AdminActions: React.FC<{
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="ml-1">
         <Button size="icon" variant="outline" className="rounded-full h-6 w-6">
-          <EllipsisHorizontalIcon className="h-3.5 w-3.5" />
+          <MoreHorizontal className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -239,7 +238,7 @@ export const AuthorHeader: React.FC<AuthorHeaderProps> = ({
             tabIndex={-1}
             prefetch={false}
           >
-            <ArrowTopRightOnSquareIcon className="mt-0.5 w-4 h-4 ml-1.5" />
+            <ExternalLink className="mt-0.5 w-4 h-4 ml-1.5" />
           </Link>
           {showAdminActions && <AdminActions cast={cast} selectedAccount={selectedAccount} />}
         </div>

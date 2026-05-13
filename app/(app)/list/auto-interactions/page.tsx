@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 // Force dynamic rendering since we use useRouter which uses useSearchParams
 export const dynamic = 'force-dynamic';
 
-import { BoltIcon, CheckIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Check, Plus, Trash2, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { AutoInteractionContentFilters } from '@/common/components/Lists/AutoInteractionContentFilters';
 import { AutoInteractionHistory } from '@/common/components/Lists/AutoInteractionHistory';
@@ -270,7 +270,7 @@ export default function AutoInteractionsPage() {
 
         <div className="mb-6">
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <BoltIcon className="h-8 w-8 text-primary" />
+            <Zap className="h-8 w-8 text-primary" />
             Auto-Interactions
           </h1>
           <p className="text-muted-foreground mt-2">Automatically like and recast content from specific accounts</p>
@@ -286,7 +286,7 @@ export default function AutoInteractionsPage() {
                   <Dialog open={isCreatingList} onOpenChange={setIsCreatingList}>
                     <DialogTrigger asChild>
                       <Button size="sm" variant="ghost">
-                        <PlusIcon className="h-4 w-4" />
+                        <Plus className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-xl">
@@ -638,7 +638,7 @@ export default function AutoInteractionsPage() {
                       <CardDescription>Manage auto-interaction settings and target accounts</CardDescription>
                     </div>
                     <Button variant="destructive" size="sm" onClick={() => handleDeleteList(activeList.id)}>
-                      <TrashIcon className="h-4 w-4 mr-1" />
+                      <Trash2 className="h-4 w-4 mr-1" />
                       Delete List
                     </Button>
                   </div>
@@ -734,7 +734,7 @@ export default function AutoInteractionsPage() {
                                         }
                                       }}
                                     >
-                                      <TrashIcon className="h-4 w-4" />
+                                      <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </div>
                                 ))
@@ -824,7 +824,7 @@ export default function AutoInteractionsPage() {
                               'Saving...'
                             ) : saveSuccess ? (
                               <>
-                                <CheckIcon className="w-4 h-4 mr-2" />
+                                <Check className="w-4 h-4 mr-2" />
                                 Saved
                               </>
                             ) : (
@@ -890,7 +890,7 @@ export default function AutoInteractionsPage() {
                               'Saving...'
                             ) : saveSuccess ? (
                               <>
-                                <CheckIcon className="w-4 h-4 mr-2" />
+                                <Check className="w-4 h-4 mr-2" />
                                 Saved
                               </>
                             ) : (
@@ -910,7 +910,7 @@ export default function AutoInteractionsPage() {
             ) : (
               <Card>
                 <CardContent className="text-center py-12">
-                  <BoltIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <Zap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">Select a list to view details or create a new one</p>
                 </CardContent>
               </Card>

@@ -1,4 +1,3 @@
-import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import {
   isToday as _isToday,
   type CalendarDate,
@@ -12,6 +11,7 @@ import {
   today,
 } from '@internationalized/date';
 import type { DateSegment as IDateSegment } from '@react-stately/datepicker';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   type AriaDatePickerProps,
@@ -73,7 +73,7 @@ function Calendar(props: CalendarProps<DateValue>) {
           size="lg"
           className={cn('absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100')}
         >
-          <ChevronLeftIcon className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4" />
         </Button>
         <div className="text-sm font-medium">{title}</div>
         <Button
@@ -82,7 +82,7 @@ function Calendar(props: CalendarProps<DateValue>) {
           variant="outline"
           className={cn('absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100')}
         >
-          <ChevronRightIcon className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
       <CalendarGrid state={state} />
@@ -215,14 +215,14 @@ function DateField(props: AriaDatePickerProps<DateValue>) {
       {...fieldProps}
       ref={ref}
       className={cn(
-        'inline-flex h-8 flex-1 items-center rounded-l-md border-input bg-transparent px-1 sm:px-2 py-2 text-xs sm:text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'inline-flex h-8 flex-1 items-center rounded-l-md border-input bg-transparent px-1 sm:px-2 py-2 text-xs sm:text-sm',
         props.isDisabled && 'cursor-not-allowed opacity-50'
       )}
     >
       {state.segments.map((segment, i) => (
         <DateSegment key={i} segment={segment} state={state} />
       ))}
-      {state.isInvalid && <span aria-hidden="true">🚫</span>}
+      {state.isInvalid && <X aria-hidden="true" className="h-4 w-4 text-destructive" />}
     </div>
   );
 }
@@ -245,7 +245,7 @@ function TimeField(props: AriaTimeFieldProps<TimeValue>) {
       {...fieldProps}
       ref={ref}
       className={cn(
-        'inline-flex h-10 w-full flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-xs sm:text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'inline-flex h-10 w-full flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-xs sm:text-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring/70',
         props.isDisabled && 'cursor-not-allowed opacity-50'
       )}
     >
@@ -393,7 +393,7 @@ const DateTimePicker = React.forwardRef<
       </Popover>
       <DateField {...fieldProps} value={currentValue()} />
       <div className={cn('-ml-2 mr-2 h-5 w-5', !showClearButton && 'hidden')}>
-        <XMarkIcon
+        <X
           className={cn('h-5 w-5 cursor-pointer text-primary/30', !jsDatetime && 'hidden')}
           onClick={() => onClear()}
         />

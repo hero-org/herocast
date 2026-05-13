@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  CheckCircleIcon,
-  MagnifyingGlassIcon,
-  PencilSquareIcon,
-  RectangleGroupIcon,
-  UserIcon,
-} from '@heroicons/react/20/solid';
+import { CheckCircle2, LayoutDashboard, Search, SquarePen, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -133,7 +127,7 @@ const WelcomeSuccessPage = () => {
             <div className="flex items-center align-middle">
               <div className="flex-shrink-0 mr-2">
                 {taskStatus[step.key] ? (
-                  <CheckCircleIcon className="h-6 w-6 text-green-600" aria-hidden="true" />
+                  <CheckCircle2 className="h-6 w-6 text-success" aria-hidden="true" />
                 ) : (
                   <Checkbox checked={false} className="cursor-default ml-0.5 mt-1 h-5 w-5 rounded-lg" />
                 )}
@@ -148,14 +142,14 @@ const WelcomeSuccessPage = () => {
   return (
     <div className="w-full flex flex-col mt-20 items-center">
       <div className="space-y-6 p-10 pb-16 block text-center">
-        <h2 className="text-4xl font-bold tracking-tight">welcome to herocast ✨</h2>
+        <h2 className="text-4xl font-bold tracking-tight">welcome to herocast</h2>
 
         {connectedAccount && (
           <div className="max-w-2xl mx-auto space-y-4">
-            <Alert className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+            <Alert className="border-success/30 bg-success/10">
               <AlertDescription className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <CheckCircle2 className="h-5 w-5 text-success" />
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={connectedAccount.user?.pfp_url} alt={connectedAccount.name} />
@@ -177,7 +171,7 @@ const WelcomeSuccessPage = () => {
                 variant="outline"
                 className="gap-2"
               >
-                <UserIcon className="h-4 w-4" />
+                <User className="h-4 w-4" />
                 View Profile
               </Button>
             </div>
@@ -194,20 +188,17 @@ const WelcomeSuccessPage = () => {
                   </div>
                 )}
                 <div className="space-y-4 py-4 block">{renderOnboardingSteps()}</div>
-                <Progress
-                  value={progressPercent}
-                  indicatorClassName="bg-gradient-to-r from-green-400 to-green-600 animate-pulse"
-                />
+                <Progress value={progressPercent} indicatorClassName="bg-success animate-pulse" />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-2">
                   <Link href="/lists">
                     <Button size="lg" type="button" variant="default" className="min-w-full px-2">
-                      <MagnifyingGlassIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+                      <Search className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Create friends list
                     </Button>
                   </Link>
                   <Link href="/channels">
                     <Button size="lg" type="button" variant="outline" className="min-w-full px-2">
-                      <RectangleGroupIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+                      <LayoutDashboard className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                       Pin channels
                     </Button>
                   </Link>
@@ -218,7 +209,7 @@ const WelcomeSuccessPage = () => {
                     size="lg"
                     className="min-w-full px-2"
                   >
-                    <PencilSquareIcon className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
+                    <SquarePen className="mr-1.5 mt-0.5 h-4 w-4" aria-hidden="true" />
                     Schedule casts
                   </Button>
                 </div>

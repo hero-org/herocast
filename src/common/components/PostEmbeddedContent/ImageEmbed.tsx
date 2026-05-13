@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
-import { PhotoIcon } from '@heroicons/react/24/solid';
+import { Image as ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,7 +29,7 @@ export const ImageEmbed = ({ url }: { url: string }) => {
   const renderLoadingPlaceholder = () => {
     return (
       <Skeleton className="h-48 md:h-72 w-48 object-left relative block rounded-lg py-10 text-center">
-        <PhotoIcon className="mx-auto h-12 w-12 text-foreground/70" />
+        <ImageIcon className="mx-auto h-12 w-12 text-foreground/70" />
         <Label>Loading image...</Label>
       </Skeleton>
     );

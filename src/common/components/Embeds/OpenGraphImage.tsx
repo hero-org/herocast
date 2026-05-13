@@ -1,4 +1,4 @@
-import { ArrowTopRightOnSquareIcon, CheckIcon, ClipboardIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { Check, Clipboard, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { useInView } from 'react-intersection-observer';
@@ -76,13 +76,13 @@ const UrlEmbed = ({ url, compact = false }: { url: string; compact?: boolean }) 
         <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleCopy} title="Copy URL">
             {copied ? (
-              <CheckIcon className="h-4 w-4 text-green-500" />
+              <Check className="h-4 w-4 text-success" />
             ) : (
-              <ClipboardIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              <Clipboard className="h-4 w-4 text-muted-foreground hover:text-foreground" />
             )}
           </Button>
           <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleOpen} title="Open in new tab">
-            <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-foreground" />
           </Button>
         </div>
       )}
@@ -174,13 +174,13 @@ const RichLinkCard = ({
         <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleCopy} title="Copy URL">
             {copied ? (
-              <CheckIcon className="h-4 w-4 text-green-500" />
+              <Check className="h-4 w-4 text-success" />
             ) : (
-              <ClipboardIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              <Clipboard className="h-4 w-4 text-muted-foreground hover:text-foreground" />
             )}
           </Button>
           <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={handleOpen} title="Open in new tab">
-            <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-foreground" />
           </Button>
         </div>
       )}

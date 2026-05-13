@@ -1,6 +1,6 @@
 import { UserDataType, validations } from '@farcaster/hub-web';
-import { Cog6ToothIcon } from '@heroicons/react/20/solid';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { getAddress } from 'viem';
@@ -219,7 +219,7 @@ const RegisterFarcasterUsernameForm = ({
         />
         <div className="flex flex-col space-y-2">
           <Button disabled={!canSubmitForm} type="submit">
-            {isPending && <Cog6ToothIcon className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
+            {isPending && <Settings className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />}
             Register username
           </Button>
           <Button variant="outline" disabled={!canSubmitForm} onClick={() => hydrateAccounts()}>
@@ -247,7 +247,7 @@ const RegisterFarcasterUsernameForm = ({
       {account && renderForm()}
       {error && (
         <div className="flex flex-start items-center mt-2">
-          <p className="text-wrap break-all	text-sm text-red-500">{error}</p>
+          <p className="text-wrap break-all	text-sm text-destructive">{error}</p>
         </div>
       )}
     </div>

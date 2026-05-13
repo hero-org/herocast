@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/require-await */
 
-import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import uniqBy from 'lodash.uniqby';
+import { PlusCircle, Trash2 } from 'lucide-react';
 import { type Draft, create as mutativeCreate } from 'mutative';
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
@@ -830,7 +830,7 @@ export const newPostCommands: CommandType[] = [
   {
     name: 'New Post',
     aliases: ['cast', 'write', 'create', 'compose', 'draft'],
-    icon: PlusCircleIcon,
+    icon: PlusCircle,
     shortcut: 'c',
     action: () => {
       useDraftStore.getState().addNewPostDraft({
@@ -851,7 +851,7 @@ export const newPostCommands: CommandType[] = [
   {
     name: 'Remove all drafts',
     aliases: ['cleanup'],
-    icon: TrashIcon,
+    icon: Trash2,
     action: () => useDraftStore.getState().removeAllPostDrafts(),
     navigateTo: '/post',
   },

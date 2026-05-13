@@ -1,8 +1,8 @@
-import { CalendarDaysIcon, LinkIcon, PhotoIcon } from '@heroicons/react/20/solid';
 import { getFarcasterMentions } from '@mod-protocol/farcaster';
 import { EditorContent } from '@tiptap/react';
 import { format, startOfToday } from 'date-fns';
 import { take } from 'lodash';
+import { CalendarDays, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePostHog } from 'posthog-js/react';
 import React, { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react';
@@ -333,7 +333,7 @@ export default function NewPostEntry({
   } = useCastEditor({
     onError,
     onSubmit: onSubmitPost,
-    linkClassName: 'text-blue-500',
+    linkClassName: 'text-mention',
     onContentChange: handleContentChange,
     renderChannelsSuggestionConfig: createRenderMentionsSuggestionConfig({
       getResults: getChannels,
@@ -694,7 +694,7 @@ export default function NewPostEntry({
               )}
               title="Add media"
             >
-              <PhotoIcon className="h-4 w-4" />
+              <ImageIcon className="h-4 w-4" />
             </button>
             {!hideSchedule && !onRemove && (
               <Popover open={schedulePopoverOpen} onOpenChange={setSchedulePopoverOpen} modal={true}>
@@ -715,7 +715,7 @@ export default function NewPostEntry({
                     )}
                     title={scheduleDateTime ? format(scheduleDateTime, 'MMM d, yyyy HH:mm') : 'Schedule'}
                   >
-                    <CalendarDaysIcon className="h-4 w-4" />
+                    <CalendarDays className="h-4 w-4" />
                     {scheduleDateTime && (
                       <span className="font-mono text-xs">{format(scheduleDateTime, 'MMM d HH:mm')}</span>
                     )}
@@ -840,7 +840,7 @@ export default function NewPostEntry({
               </label>
             )}
             {hasReachedFreePlanLimit && (
-              <p className="text-xs text-yellow-600 flex items-center">
+              <p className="text-xs text-warning flex items-center">
                 Free accounts are limited to {openSourcePlanLimits.maxScheduledCasts} scheduled casts.{' '}
                 <Link href="/upgrade" className="underline">
                   Upgrade to schedule more

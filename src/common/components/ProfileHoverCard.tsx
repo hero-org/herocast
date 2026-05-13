@@ -40,7 +40,7 @@ const ProfileHoverCard = memo(({ fid, username, viewerFid, children, className }
           {children}
         </Link>
       </HoverCardTrigger>
-      <HoverCardContent side="bottom" className="border border-gray-400 overflow-hidden cursor-pointer">
+      <HoverCardContent side="bottom" className="border border-border overflow-hidden cursor-pointer">
         <Link href={`/profile/${profile?.username || username}`} prefetch={false} className="w-full text-left">
           <ProfileInfoContent profile={profile} isHoverCard={true} />
         </Link>

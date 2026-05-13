@@ -16,6 +16,7 @@
  */
 
 import { biomeAdapter } from './adapters/biome';
+import { designTokensAdapter } from './adapters/design-tokens';
 import { jestAdapter } from './adapters/jest';
 import { tscAdapter } from './adapters/tsc';
 import type { Adapter, Diagnostic, Envelope, ToolName } from './types';
@@ -27,7 +28,7 @@ interface CliOpts {
   since?: string;
 }
 
-const ALL_TOOLS: ToolName[] = ['tsc', 'biome', 'jest'];
+const ALL_TOOLS: ToolName[] = ['tsc', 'biome', 'jest', 'design-tokens'];
 
 function parseArgs(argv: string[]): CliOpts {
   const opts: CliOpts = { fast: false, json: false, tools: [...ALL_TOOLS] };
@@ -69,8 +70,8 @@ function parseArgs(argv: string[]): CliOpts {
 
 function printHelp(): void {
   // eslint-disable-next-line no-console
-  console.log(`pnpm check [--fast] [--json] [--tools=tsc,biome,jest] [--since=<rev>]
-  --fast            Drop jest (pre-push escape hatch); equivalent to --tools=tsc,biome
+  console.log(`pnpm check [--fast] [--json] [--tools=tsc,biome,jest,design-tokens] [--since=<rev>]
+  --fast            Drop jest (pre-push escape hatch); equivalent to --tools=tsc,biome,design-tokens
   --json            Suppress stderr forwarding; only emit JSON envelope on stdout
   --tools=<list>    Subset of tools to run (comma-separated)
   --since=<rev>     Pass --staged to biome (incremental hint)`);
@@ -84,6 +85,8 @@ function adapterByName(name: ToolName): Adapter {
       return biomeAdapter;
     case 'jest':
       return jestAdapter;
+    case 'design-tokens':
+      return designTokensAdapter;
   }
 }
 

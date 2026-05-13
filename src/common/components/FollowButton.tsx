@@ -84,7 +84,7 @@ const FollowButton = ({ username, profile: profileProp }: FollowButtonProps) => 
       }}
     >
       <span className={clsx(isFollowing && 'group-hover:hidden', 'block')}>{getButtonText()}</span>
-      {isFollowing && <span className="hidden group-hover:block group-hover:text-red-600">Unfollow</span>}
+      {isFollowing && <span className="hidden group-hover:block group-hover:text-destructive">Unfollow</span>}
     </Button>
   );
 };

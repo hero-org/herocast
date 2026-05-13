@@ -126,7 +126,7 @@ const AuthorContextPanel = () => {
                       className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded"
                     >
                       {copiedAddress === addr ? (
-                        <Check className="h-3 w-3 text-green-500" />
+                        <Check className="h-3 w-3 text-success" />
                       ) : (
                         <Copy className="h-3 w-3" />
                       )}
@@ -232,7 +232,7 @@ const AuthorContextPanel = () => {
                         title={`Copy address: ${authAddr.address}`}
                       >
                         {copiedAddress === authAddr.address ? (
-                          <Check className="h-3 w-3 text-green-500" />
+                          <Check className="h-3 w-3 text-success" />
                         ) : (
                           <Copy className="h-3 w-3" />
                         )}

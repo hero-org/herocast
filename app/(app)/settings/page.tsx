@@ -1,8 +1,7 @@
 'use client';
 
-import { CommandLineIcon, PaintBrushIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
-import { ArrowRightOnRectangleIcon, UserIcon, WalletIcon } from '@heroicons/react/24/solid';
 import type { User } from '@supabase/supabase-js';
+import { LayoutGrid, LogOut, Paintbrush, Terminal, User as UserIcon, Wallet } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
@@ -84,7 +83,7 @@ export default function Settings() {
       <Dialog>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
-            <CommandLineIcon className="h-4 w-4" />
+            <Terminal className="h-4 w-4" />
             Keyboard Shortcuts
           </Button>
         </DialogTrigger>
@@ -131,7 +130,7 @@ export default function Settings() {
                 <p className="text-sm text-muted-foreground">{displayEmail}</p>
               </div>
               <Button variant="outline" size="sm" onClick={onLogout} className="gap-2">
-                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                <LogOut className="h-4 w-4" />
                 Log out
               </Button>
             </div>
@@ -142,7 +141,7 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PaintBrushIcon className="h-5 w-5" />
+              <Paintbrush className="h-5 w-5" />
               Appearance
             </CardTitle>
             <CardDescription>Customize the look and feel of the application</CardDescription>
@@ -162,7 +161,7 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CommandLineIcon className="h-5 w-5" />
+              <Terminal className="h-5 w-5" />
               Data Provider
             </CardTitle>
             <CardDescription>Choose how herocast connects to Farcaster</CardDescription>
@@ -194,7 +193,7 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Squares2X2Icon className="h-5 w-5" />
+              <LayoutGrid className="h-5 w-5" />
               Workspace
             </CardTitle>
             <CardDescription>Manage your multi-panel workspace layout</CardDescription>
@@ -231,7 +230,7 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <WalletIcon className="h-5 w-5" />
+              <Wallet className="h-5 w-5" />
               Connections
             </CardTitle>
             <CardDescription>Manage your wallet connections and integrations</CardDescription>

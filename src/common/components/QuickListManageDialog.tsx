@@ -185,7 +185,7 @@ export function QuickListManageDialog({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <p className="text-xs text-orange-500">List at capacity</p>
+                            <p className="text-xs text-warning">List at capacity</p>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>This list has reached the maximum of {MAX_USERS_PER_LIST} users</p>

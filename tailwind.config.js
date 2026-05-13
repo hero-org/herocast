@@ -35,6 +35,22 @@ module.exports = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+        },
+        pending: {
+          DEFAULT: 'hsl(var(--pending))',
+          foreground: 'hsl(var(--pending-foreground))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
@@ -61,11 +77,56 @@ module.exports = {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        // Information accents (product chrome)
+        mention: 'hsl(var(--mention))',
+        channel: 'hsl(var(--channel))',
+        hash: 'hsl(var(--hash))',
+        // Marketing
+        'brand-purple': 'hsl(var(--brand-purple))',
+        'brand-purple-deep': 'hsl(var(--brand-purple-deep))',
+        // Charts
+        chart: {
+          1: 'hsl(var(--chart-1))',
+          2: 'hsl(var(--chart-2))',
+          3: 'hsl(var(--chart-3))',
+          4: 'hsl(var(--chart-4))',
+          5: 'hsl(var(--chart-5))',
+        },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        xs: 'var(--radius-xs)',
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-display)'],
+        mono: ['var(--font-mono)'],
+      },
+      transitionDuration: {
+        instant: '80ms',
+        fast: '150ms',
+        base: '220ms',
+        slow: '320ms',
+      },
+      transitionTimingFunction: {
+        out: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+      zIndex: {
+        dropdown: '30',
+        popover: '40',
+        modal: '50',
+        toast: '60',
+        tooltip: '70',
+        command: '80',
+      },
+      boxShadow: {
+        'button-inset': 'var(--shadow-button-inset)',
+        'button-press': 'var(--shadow-button-press)',
       },
       keyframes: {
         'accordion-down': {

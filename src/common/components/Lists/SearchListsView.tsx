@@ -1,5 +1,5 @@
-import { BellIcon, MagnifyingGlassIcon, PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
+import { Bell, Pencil, Plus, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { isSearchListContent } from '@/common/types/list.types';
 import { Badge } from '@/components/ui/badge';
@@ -36,11 +36,11 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
   if (lists.length === 0) {
     return (
       <div className="text-center py-12">
-        <MagnifyingGlassIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No saved searches yet</h3>
         <p className="text-muted-foreground mb-4">Create searches to monitor keywords and topics on Farcaster</p>
         <Button onClick={() => router.push('/search')}>
-          <PlusIcon className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2" />
           Create Your First Search
         </Button>
       </div>
@@ -53,11 +53,11 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
         <p className="text-sm text-muted-foreground">Monitor keywords and get notified about new casts</p>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => router.push('/list/search')}>
-            <PencilIcon className="h-4 w-4 mr-2" />
+            <Pencil className="h-4 w-4 mr-2" />
             Manage
           </Button>
           <Button size="sm" onClick={() => router.push('/search')}>
-            <PlusIcon className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" />
             New Search
           </Button>
         </div>
@@ -80,7 +80,7 @@ export function SearchListsView({ lists, isLoading }: SearchListsViewProps) {
                   <div className="flex-1">
                     <CardTitle className="text-lg flex items-center gap-2">
                       {list.name}
-                      {hasEmailEnabled && <BellIcon className="h-4 w-4 text-muted-foreground" />}
+                      {hasEmailEnabled && <Bell className="h-4 w-4 text-muted-foreground" />}
                     </CardTitle>
                     <CardDescription className="mt-1">Searching for: &quot;{content.term}&quot;</CardDescription>
                   </div>

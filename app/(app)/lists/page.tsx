@@ -1,6 +1,6 @@
 'use client';
 
-import { BoltIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { Search, Users, Zap } from 'lucide-react';
 import Head from 'next/head';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type React from 'react';
@@ -101,7 +101,7 @@ export default function ListsHub() {
           <TabsContent value="all" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               <ListTypeCard
-                icon={<MagnifyingGlassIcon className="h-8 w-8 text-blue-500" />}
+                icon={<Search className="h-8 w-8 text-mention" />}
                 title="Saved Searches"
                 description="Monitor keywords and get daily email alerts"
                 count={searchLists.length}
@@ -109,7 +109,7 @@ export default function ListsHub() {
                 isLoading={!isHydrated}
               />
               <ListTypeCard
-                icon={<UserGroupIcon className="h-8 w-8 text-green-500" />}
+                icon={<Users className="h-8 w-8 text-success" />}
                 title="User Lists"
                 description="Group and follow specific users"
                 count={fidLists.length}
@@ -117,7 +117,7 @@ export default function ListsHub() {
                 isLoading={!isHydrated}
               />
               <ListTypeCard
-                icon={<BoltIcon className="h-8 w-8 text-purple-500" />}
+                icon={<Zap className="h-8 w-8 text-channel" />}
                 title="Auto-Interactions"
                 description="Automated likes and recasts between accounts"
                 count={autoLists.length}

@@ -1,4 +1,4 @@
-import { AdjustmentsHorizontalIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { useState } from 'react';
 import { Interval } from '@/common/types/types';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +45,7 @@ export function SearchInterfaceMobile({
       {/* Search Bar */}
       <div className="space-y-3">
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             value={searchTerm}
             onChange={(e) => onSearchTermChange(e.target.value)}
@@ -61,7 +61,7 @@ export function SearchInterfaceMobile({
               className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
               onClick={() => onSearchTermChange('')}
             >
-              <XMarkIcon className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -73,7 +73,7 @@ export function SearchInterfaceMobile({
           </Button>
 
           <Button variant="outline" size="icon" onClick={() => setShowFilters(true)} className="relative">
-            <AdjustmentsHorizontalIcon className="h-4 w-4" />
+            <SlidersHorizontal className="h-4 w-4" />
             {activeFiltersCount > 0 && (
               <Badge
                 variant="destructive"

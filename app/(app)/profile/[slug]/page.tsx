@@ -87,7 +87,7 @@ const ProfilePage = () => {
   const renderRow = (item: FarcasterCast, idx: number) => (
     <li
       key={item?.hash}
-      className="border-b border-gray-700/40 relative flex items-center space-x-4 max-w-full md:max-w-2xl"
+      className="border-b border-border relative flex items-center space-x-4 max-w-full md:max-w-2xl"
     >
       <CastRow
         cast={item}

@@ -16,7 +16,7 @@
  * count value — there is no internal show/hide state.
  */
 
-import { ChevronUpIcon } from '@heroicons/react/20/solid';
+import { ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type NewCastsPillProps = {
@@ -57,7 +57,7 @@ export function NewCastsPill({ count, onClick, className }: NewCastsPillProps) {
           )}
         >
           <span>{label}</span>
-          <ChevronUpIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       )}
     </>

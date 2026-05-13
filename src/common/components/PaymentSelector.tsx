@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import type { PaymentOption } from 'node_modules/@paywithglide/glide-js/dist/types';
 import { useEffect, useState } from 'react';
 import type { Hex } from 'viem';
@@ -99,7 +99,7 @@ export function PaymentSelector({
           ) : (
             'Select token...'
           )}
-          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
@@ -126,7 +126,7 @@ export function PaymentSelector({
                   </span>
                   {paymentOption && (
                     <CommandShortcut>
-                      <CheckIcon
+                      <Check
                         className={cn(
                           'mr-2 h-4 w-4',
                           paymentOption.paymentCurrency === option.paymentCurrency ? 'opacity-100' : 'opacity-0'

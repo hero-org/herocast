@@ -31,7 +31,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={cn(
           'rounded-2xl px-4 py-2 italic',
-          isViewer ? 'bg-blue-500/20 text-blue-300' : 'bg-muted text-foreground/50'
+          isViewer ? 'bg-mention/20 text-mention' : 'bg-muted text-foreground/50'
         )}
       >
         <p className="text-sm break-words">Message deleted</p>
@@ -46,7 +46,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={cn(
           'rounded-2xl px-4 py-2 italic',
-          isViewer ? 'bg-blue-500/20 text-blue-300' : 'bg-muted text-foreground/50'
+          isViewer ? 'bg-mention/20 text-mention' : 'bg-muted text-foreground/50'
         )}
       >
         <p className="text-sm break-words">Empty message</p>
@@ -114,7 +114,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             onClick={() => setIsExpanded(!isExpanded)}
             className={cn(
               'mt-1 text-xs flex items-center gap-1 hover:underline',
-              isViewer ? 'text-blue-200' : 'text-foreground/60'
+              isViewer ? 'text-info-foreground/80' : 'text-foreground/60'
             )}
           >
             {isExpanded ? (
@@ -137,7 +137,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       <div
         className={cn(
           'rounded-2xl px-4 py-2 overflow-hidden',
-          isViewer ? 'bg-blue-500 text-white' : 'bg-muted text-foreground',
+          isViewer ? 'bg-mention text-info-foreground' : 'bg-muted text-foreground',
           // keep your smaller padding only for emoji-only *text* messages
           isEmojiOnly && 'px-3 py-1',
           isImageMessage && 'px-0.5 py-0.5',
@@ -163,7 +163,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         {showTimestamp && timestamp && (
           <p
-            className={cn('text-xs mt-1', isViewer ? 'text-blue-200' : 'text-foreground/60', isImageMessage && 'px-2')}
+            className={cn(
+              'text-xs mt-1',
+              isViewer ? 'text-info-foreground/80' : 'text-foreground/60',
+              isImageMessage && 'px-2'
+            )}
           >
             {timestamp}
           </p>

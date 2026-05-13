@@ -1,4 +1,4 @@
-import { UserCircleIcon } from '@heroicons/react/20/solid';
+import { CircleUser } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
@@ -50,7 +50,7 @@ export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) =
   if (isLoading) {
     return (
       <CommandItem disabled>
-        <UserCircleIcon className="h-5 w-5 flex-none text-foreground/80 mr-2" />
+        <CircleUser className="h-5 w-5 flex-none text-foreground/80 mr-2" />
         <span className="ml-2">Searching users...</span>
       </CommandItem>
     );
@@ -59,7 +59,7 @@ export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) =
   if (users.length === 0) {
     return (
       <CommandItem disabled>
-        <UserCircleIcon className="h-5 w-5 flex-none text-foreground/80 mr-2" />
+        <CircleUser className="h-5 w-5 flex-none text-foreground/80 mr-2" />
         <span className="ml-2">No users found for &quot;{query}&quot;</span>
       </CommandItem>
     );
@@ -82,7 +82,7 @@ export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) =
           {user.pfp_url ? (
             <Image src={user.pfp_url} alt="" width={20} height={20} className="mr-2 h-5 w-5 flex-none rounded-full" />
           ) : (
-            <UserCircleIcon className="h-5 w-5 flex-none text-foreground/80 mr-2" />
+            <CircleUser className="h-5 w-5 flex-none text-foreground/80 mr-2" />
           )}
           <div className="flex flex-col ml-2">
             <span className="font-medium">{user.display_name || user.username}</span>

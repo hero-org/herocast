@@ -1,4 +1,4 @@
-import { ArrowPathRoundedSquareIcon, ChatBubbleLeftIcon, HeartIcon, UserCircleIcon } from '@heroicons/react/20/solid';
+import { CircleUser, Heart, MessageSquare, Repeat2 } from 'lucide-react';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
 
 export interface HotkeyDefinition {
@@ -102,7 +102,7 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     name: 'Your Profile',
     category: hotkeyCategories.navigation,
     scopes: [HotkeyScopes.GLOBAL],
-    icon: UserCircleIcon,
+    icon: CircleUser,
   },
 
   // Feed Navigation
@@ -147,7 +147,7 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     description: 'Like selected cast',
     category: hotkeyCategories.actions,
     scopes: [HotkeyScopes.CAST_SELECTED],
-    icon: HeartIcon,
+    icon: Heart,
   },
   {
     id: 'recast',
@@ -156,7 +156,7 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     description: 'Recast selected cast',
     category: hotkeyCategories.actions,
     scopes: [HotkeyScopes.CAST_SELECTED],
-    icon: ArrowPathRoundedSquareIcon,
+    icon: Repeat2,
   },
   {
     id: 'reply',
@@ -165,7 +165,7 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     description: 'Reply to selected cast',
     category: hotkeyCategories.actions,
     scopes: [HotkeyScopes.CAST_SELECTED],
-    icon: ChatBubbleLeftIcon,
+    icon: MessageSquare,
   },
   {
     id: 'quote',
@@ -174,7 +174,7 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     description: 'Quote selected cast',
     category: hotkeyCategories.actions,
     scopes: [HotkeyScopes.CAST_SELECTED],
-    icon: ArrowPathRoundedSquareIcon,
+    icon: Repeat2,
   },
   {
     id: 'manage-lists',
@@ -183,7 +183,7 @@ export const hotkeyDefinitions: HotkeyDefinition[] = [
     description: 'Add/remove author from lists',
     category: hotkeyCategories.actions,
     scopes: [HotkeyScopes.CAST_SELECTED],
-    icon: UserCircleIcon,
+    icon: CircleUser,
   },
 
   // Post Actions

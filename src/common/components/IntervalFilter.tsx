@@ -1,6 +1,6 @@
 'use client';
 
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
@@ -38,7 +38,7 @@ export function IntervalFilter({ intervals, defaultInterval, updateInterval, dis
           className="w-[110px] justify-between"
         >
           {value !== undefined ? intervals.find((interval) => interval === value) : 'Interval...'}
-          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[120px] p-0">
@@ -52,7 +52,7 @@ export function IntervalFilter({ intervals, defaultInterval, updateInterval, dis
                   disabled={disabledIntervals?.includes(interval)}
                   onSelect={(value) => handleSelect(value as unknown as Interval)}
                 >
-                  <CheckIcon className={cn('mr-2 h-4 w-4', value === interval ? 'opacity-100' : 'opacity-0')} />
+                  <Check className={cn('mr-2 h-4 w-4', value === interval ? 'opacity-100' : 'opacity-0')} />
                   {interval}
                 </CommandItem>
               ))}

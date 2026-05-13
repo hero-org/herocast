@@ -2,9 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { PhotoIcon } from '@heroicons/react/20/solid';
-import { CheckCircleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { GripVertical, Loader2 } from 'lucide-react';
+import { CheckCircle2, GripVertical, Image as ImageIcon, Loader2, Plus, Trash2 } from 'lucide-react';
 import NewCastEditor from '@/common/components/Editor/NewCastEditor';
 import type { DraftType } from '@/common/constants/farcaster';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -137,7 +135,7 @@ export default function ThreadPostCard({
                   isCurrentlyPublishing ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <CheckCircleIcon className="w-3.5 h-3.5 text-green-500" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                   )
                 ) : null}
                 #{index + 1}
@@ -161,7 +159,7 @@ export default function ThreadPostCard({
                   )}
                   title="Add media"
                 >
-                  <PhotoIcon className="w-4 h-4" />
+                  <ImageIcon className="w-4 h-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
@@ -182,7 +180,7 @@ export default function ThreadPostCard({
                     'transition-colors'
                   )}
                 >
-                  <PlusIcon className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
@@ -203,7 +201,7 @@ export default function ThreadPostCard({
                     'transition-colors'
                   )}
                 >
-                  <TrashIcon className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">

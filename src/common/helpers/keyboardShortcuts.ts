@@ -1,4 +1,4 @@
-import { formatKey } from '@/components/ui/keyboard-shortcut';
+import { formatKey } from '@/components/ui/kbd';
 
 /**
  * Formats a keyboard shortcut string for display

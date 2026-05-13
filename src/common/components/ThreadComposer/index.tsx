@@ -10,8 +10,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { CheckCircleIcon, DocumentTextIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { Loader2 } from 'lucide-react';
+import { CheckCircle2, FileText, Loader2, Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { CastRow } from '@/common/components/CastRow';
@@ -333,13 +332,13 @@ export default function ThreadComposer({ threadId, parentCast, onPublishSuccess 
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-2xl mx-auto px-4 py-2 flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => addNewPostDraft({ force: true })} className="gap-1.5">
-            <PlusIcon className="w-4 h-4" />
+            <Plus className="w-4 h-4" />
             New draft
           </Button>
           <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Import from notes">
-                <DocumentTextIcon className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
@@ -448,7 +447,7 @@ export default function ThreadComposer({ threadId, parentCast, onPublishSuccess 
                 >
                   <div className="w-5 h-5 flex items-center justify-center">
                     {isComplete ? (
-                      <CheckCircleIcon className="w-5 h-5 text-green-500" />
+                      <CheckCircle2 className="w-5 h-5 text-success" />
                     ) : isCurrent ? (
                       <Loader2 className="w-4 h-4 animate-spin text-primary" />
                     ) : (

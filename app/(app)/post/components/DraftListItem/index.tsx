@@ -1,7 +1,7 @@
 'use client';
 
-import { CheckCircleIcon, ClockIcon, DocumentDuplicateIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
+import { CheckCircle2, Clock, Copy, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { ChannelDisplay } from '@/common/components/ChannelDisplay';
 import { DraftStatus, type DraftType } from '@/common/constants/farcaster';
@@ -33,8 +33,8 @@ const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSele
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {draft.status === DraftStatus.scheduled && <ClockIcon className="w-4 h-4 text-muted-foreground" />}
-          {draft.status === DraftStatus.published && <CheckCircleIcon className="w-4 h-4 text-green-500" />}
+          {draft.status === DraftStatus.scheduled && <Clock className="w-4 h-4 text-muted-foreground" />}
+          {draft.status === DraftStatus.published && <CheckCircle2 className="w-4 h-4 text-success" />}
           <span className="text-sm font-medium truncate max-w-[180px]">
             {draft.text ? draft.text.substring(0, 30) + (draft.text.length > 30 ? '...' : '') : 'New draft'}
           </span>
@@ -52,7 +52,7 @@ const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSele
               }}
               title="Duplicate cast"
             >
-              <DocumentDuplicateIcon className="h-4 w-4" />
+              <Copy className="h-4 w-4" />
             </Button>
           )}
           <button
@@ -67,7 +67,7 @@ const DraftListItem: React.FC<DraftListItemProps> = ({ draft, isSelected, onSele
             }}
             title={isThread ? 'Delete thread' : 'Delete draft'}
           >
-            <TrashIcon className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>

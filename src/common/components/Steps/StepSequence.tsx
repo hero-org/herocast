@@ -22,10 +22,7 @@ const StepSequence = ({ title, description, navItems, step, setStep, renderStep 
         <div className="space-y-1 max-w-lg">
           <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
           <p className="text-muted-foreground">{description}</p>
-          <Progress
-            value={progressPercent}
-            indicatorClassName="bg-gradient-to-r from-green-400 to-green-600 animate-pulse"
-          />
+          <Progress value={progressPercent} indicatorClassName="bg-success animate-pulse" />
         </div>
         <Separator className="my-6" />
         <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">

@@ -5,9 +5,9 @@ import {
   ID_GATEWAY_EIP_712_TYPES,
   KEY_GATEWAY_EIP_712_TYPES,
 } from '@farcaster/hub-web';
-import { ArrowPathIcon, Cog6ToothIcon } from '@heroicons/react/20/solid';
 import type { PaymentOption } from '@paywithglide/glide-js';
 import { NoPaymentOptionsError } from '@paywithglide/glide-js';
+import { RefreshCw, Settings } from 'lucide-react';
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { formatEther, type Hex } from 'viem';
 import {
@@ -74,7 +74,7 @@ const PaymentSection: React.FC<{
         Sign to view Payment Options
         {state.isPending && (
           <div className="pointer-events-none ml-3">
-            <Cog6ToothIcon className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <Settings className="h-4 w-4 animate-spin" aria-hidden="true" />
           </div>
         )}
       </Button>
@@ -85,7 +85,7 @@ const PaymentSection: React.FC<{
 const InvalidAddressWarning: React.FC<{ isAddressValid: boolean }> = ({ isAddressValid }) =>
   !isAddressValid && (
     <div className="flex flex-start items-center mt-2">
-      <p className="text-wrap break-all text-sm text-red-500">
+      <p className="text-wrap break-all text-sm text-destructive">
         The wallet address you are connected to already has an account. Go back and connect another address.
       </p>
     </div>
@@ -120,14 +120,15 @@ const ActionButtons: React.FC<ActionButtonsProps> = React.memo(
             Waiting for your Farcaster ID to be generated. This may take a few moments.
           </p>
           <Button variant="outline" onClick={getFidAndUpdateAccount}>
-            <ArrowPathIcon className="h-4 w-4 mr-2" />
-            Manual refresh 🔄
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Manual refresh
           </Button>
         </>
       )}
       {!state.didSignTransactions && !state.isWaitingForFid && (
         <Button variant="outline" onClick={getFidAndUpdateAccount}>
-          Manual refresh 🔄
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Manual refresh
         </Button>
       )}
     </div>
@@ -144,7 +145,7 @@ ActionButtons.displayName = 'ActionButtons';
 const ErrorMessage: React.FC<{ error: string | undefined }> = ({ error }) =>
   error && (
     <div className="flex flex-start items-center mt-2">
-      <p className="text-wrap break-all text-sm text-red-500">Error: {error}</p>
+      <p className="text-wrap break-all text-sm text-destructive">Error: {error}</p>
     </div>
   );
 
@@ -154,7 +155,7 @@ const GlideAttribution: React.FC = () => (
       href="https://paywithglide.xyz"
       target="_blank"
       rel="noreferrer"
-      className="text-sm cursor-pointer text-muted-foreground text-font-medium hover:underline hover:text-blue-500/70"
+      className="text-sm cursor-pointer text-muted-foreground font-medium hover:underline hover:text-mention/70"
     >
       Payments powered by Glide
     </a>

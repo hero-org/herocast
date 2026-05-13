@@ -104,7 +104,7 @@ export default async function ConsentPage({ searchParams }: ConsentPageProps) {
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle>Authorize {clientName}</CardTitle>
-          <CardDescription>This app wants permission to access your Herocast account.</CardDescription>
+          <CardDescription>This app wants permission to access your herocast account.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-sm text-muted-foreground space-y-2">

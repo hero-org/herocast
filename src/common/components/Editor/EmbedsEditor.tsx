@@ -1,4 +1,4 @@
-import { Cross1Icon } from '@radix-ui/react-icons';
+import { X } from 'lucide-react';
 import type React from 'react';
 import OpenGraphImage from '@/common/components/Embeds/OpenGraphImage';
 import { type FarcasterEmbed, type FarcasterUrlEmbed, isImageEmbed, isUrlEmbed } from '@/common/types/embeds';
@@ -42,7 +42,7 @@ export const EmbedsEditor = ({ embeds, setEmbeds, removeEmbed }: EmbedsEditorPro
                     }
                   }}
                 >
-                  <Cross1Icon className="h-2.5 w-2.5" />
+                  <X className="h-2.5 w-2.5" />
                 </Button>
                 {isUrlEmbed(embed) && <OpenGraphImage url={embed.url} skipIntersection compact />}
               </div>
@@ -72,7 +72,7 @@ export const EmbedsEditor = ({ embeds, setEmbeds, removeEmbed }: EmbedsEditorPro
                     }
                   }}
                 >
-                  <Cross1Icon className="h-2.5 w-2.5" />
+                  <X className="h-2.5 w-2.5" />
                 </Button>
                 {isUrlEmbed(embed) && (
                   <div className="border rounded overflow-hidden">

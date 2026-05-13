@@ -1,5 +1,5 @@
-import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
+import { Plus, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import type { FidListContent } from '@/common/types/list.types';
@@ -58,11 +58,11 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
   if (lists.length === 0) {
     return (
       <div className="text-center py-12">
-        <UserGroupIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No user lists yet</h3>
         <p className="text-muted-foreground mb-4">Create lists to organize and follow groups of users</p>
         <Button onClick={() => router.push('/list')}>
-          <PlusIcon className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2" />
           Create Your First List
         </Button>
       </div>
@@ -74,7 +74,7 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">Organize users into lists to see their casts in custom feeds</p>
         <Button size="sm" onClick={() => router.push('/list')}>
-          <PlusIcon className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2" />
           New List
         </Button>
       </div>

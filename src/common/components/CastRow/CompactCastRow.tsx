@@ -1,4 +1,4 @@
-import { HeartIcon } from '@heroicons/react/24/outline';
+import { Heart } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { useChannelLookup } from '@/common/hooks/useChannelLookup';
 import type { FarcasterCast } from '@/common/types/farcaster';
@@ -192,7 +192,7 @@ const CompactCastRowComponent: React.FC<CompactCastRowProps> = ({ cast, idx, isS
             <>
               <span aria-hidden="true">·</span>
               <span className="inline-flex items-center gap-x-0.5 shrink-0" title={`${likesCount} likes`}>
-                <HeartIcon className="h-3 w-3" aria-hidden="true" />
+                <Heart className="h-3 w-3" aria-hidden="true" />
                 <span>{likesCount}</span>
               </span>
             </>

@@ -1,5 +1,5 @@
-import { ArrowPathIcon, ExclamationCircleIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
+import { AlertCircle, Heart, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/common/helpers/supabase/component';
 import { Badge } from '@/components/ui/badge';
@@ -88,7 +88,7 @@ export function AutoInteractionHistory({ listId }: AutoInteractionHistoryProps) 
         </div>
         {failureCount > 0 && (
           <div className="flex items-center gap-1 text-destructive">
-            <ExclamationCircleIcon className="h-4 w-4" />
+            <AlertCircle className="h-4 w-4" />
             <span className="font-medium">{failureCount}</span>
             <span>failed</span>
           </div>
@@ -102,9 +102,9 @@ export function AutoInteractionHistory({ listId }: AutoInteractionHistoryProps) 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 {item.action === 'like' ? (
-                  <HeartIcon className="h-4 w-4 text-red-500" />
+                  <Heart className="h-4 w-4 text-destructive" />
                 ) : (
-                  <ArrowPathIcon className="h-4 w-4 text-green-500" />
+                  <RefreshCw className="h-4 w-4 text-success" />
                 )}
                 <span className="text-sm font-medium capitalize">{item.action}</span>
               </div>

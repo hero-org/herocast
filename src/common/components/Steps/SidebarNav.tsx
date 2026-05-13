@@ -1,5 +1,5 @@
-import { CheckCircleIcon } from '@heroicons/react/20/solid';
 import findIndex from 'lodash.findindex';
+import { CheckCircle2 } from 'lucide-react';
 import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,7 @@ export function SidebarNav({ className, items, step, onClick, ...props }: Sideba
           >
             {item.title}
             <div className="flex-shrink-0 ml-2">
-              {item.idx < currentStepIdx && <CheckCircleIcon className="h-6 w-6 text-green-600" aria-hidden="true" />}
+              {item.idx < currentStepIdx && <CheckCircle2 className="h-6 w-6 text-success" aria-hidden="true" />}
             </div>
           </Button>
         );

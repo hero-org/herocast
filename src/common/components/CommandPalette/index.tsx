@@ -1,14 +1,7 @@
 'use client';
 
-import {
-  ArrowPathRoundedSquareIcon,
-  ArrowsUpDownIcon,
-  MagnifyingGlassCircleIcon,
-  UserCircleIcon,
-} from '@heroicons/react/20/solid';
-import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import commandScore from 'command-score';
-import { HeartIcon } from 'lucide-react';
+import { ArrowUpDown, CircleUser, Heart as HeartIcon, MessageSquare, Repeat2, Search } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -22,7 +15,7 @@ import { useRecentCommands } from '@/common/hooks/useRecentCommands';
 import { hotkeyDefinitions } from '@/common/services/shortcuts/hotkeyDefinitions';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { KeyboardShortcutSingle } from '@/components/ui/keyboard-shortcut-single';
+import { KbdGroup } from '@/components/ui/kbd';
 import { getNavigationCommands } from '@/getNavigationCommands';
 import { getThemeCommands } from '@/getThemeCommands';
 import { cn } from '@/lib/utils';
@@ -136,7 +129,7 @@ export default function CommandPalette() {
         options: {
           enableOnFormTags: false,
         },
-        icon: UserCircleIcon,
+        icon: CircleUser,
       },
     ],
     [router]
@@ -195,19 +188,19 @@ export default function CommandPalette() {
         name: `Like ${selectedCast.author.username}'s cast`,
         shortcut: 'l',
         action: () => {},
-        icon: () => <span className="text-lg">❤️</span>,
+        icon: HeartIcon,
       },
       {
         name: `Recast ${selectedCast.author.username}'s cast`,
         shortcut: 'shift+r',
         action: () => {},
-        icon: () => <span className="text-lg">🔁</span>,
+        icon: Repeat2,
       },
       {
         name: `Reply to ${selectedCast.author.username}`,
         shortcut: 'r',
         action: () => {},
-        icon: () => <span className="text-lg">💬</span>,
+        icon: MessageSquare,
       },
     ];
   }, [selectedCast]);
@@ -446,7 +439,7 @@ export default function CommandPalette() {
     action: () => {
       router.push(query ? `/search?q=${query}` : '/search');
     },
-    icon: MagnifyingGlassCircleIcon,
+    icon: Search,
   });
 
   const getFilteredCommands = useCallback(() => {
@@ -586,7 +579,11 @@ export default function CommandPalette() {
             </kbd>
           ) : (
             // For multi-key shortcuts, use the full shortcut display
-            <KeyboardShortcutSingle shortcut={command.shortcut} size="lg" className="ml-auto" />
+            <KbdGroup
+              shortcut={command.shortcut}
+              className="ml-auto"
+              kbdClassName="h-9 min-w-9 px-2 text-[16px] font-semibold rounded-md bg-muted text-foreground"
+            />
           ))
         )}
       </CommandItem>
@@ -604,8 +601,8 @@ export default function CommandPalette() {
     const contextShortcuts = selectedCast
       ? [
           { name: 'Like', shortcut: 'l', action: () => {}, icon: HeartIcon, keyboardOnly: true },
-          { name: 'Reply', shortcut: 'r', action: () => {}, icon: ChatBubbleLeftIcon, keyboardOnly: true },
-          { name: 'Recast', shortcut: 's', action: () => {}, icon: ArrowPathRoundedSquareIcon, keyboardOnly: true },
+          { name: 'Reply', shortcut: 'r', action: () => {}, icon: MessageSquare, keyboardOnly: true },
+          { name: 'Recast', shortcut: 's', action: () => {}, icon: Repeat2, keyboardOnly: true },
         ]
       : [];
 
@@ -646,7 +643,7 @@ export default function CommandPalette() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-6 h-6 flex items-center justify-center">
-                  <ArrowsUpDownIcon className="h-6 w-6 flex-none text-foreground/70" />
+                  <ArrowUpDown className="h-6 w-6 flex-none text-foreground/70" />
                 </div>
                 <span className="text-[18px] font-medium leading-tight text-muted-foreground">Navigate in feed</span>
               </div>

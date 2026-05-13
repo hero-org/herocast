@@ -1,4 +1,4 @@
-import { ArrowPathRoundedSquareIcon, ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/20/solid';
+import { Monitor, Moon, Repeat2, Sun } from 'lucide-react';
 import type { CommandType } from './common/constants/commands';
 
 export const getThemeCommands = (theme?: string, setTheme?: (theme: string) => void): CommandType[] =>
@@ -7,24 +7,24 @@ export const getThemeCommands = (theme?: string, setTheme?: (theme: string) => v
         {
           name: 'Switch to Light Theme',
           aliases: ['bright'],
-          icon: SunIcon,
+          icon: Sun,
           action: () => setTheme('light'),
         },
         {
           name: 'Switch to Dark Theme',
           aliases: ['dark'],
-          icon: MoonIcon,
+          icon: Moon,
           action: () => setTheme('dark'),
         },
         {
           name: 'Switch to System Theme',
           aliases: ['system'],
-          icon: ComputerDesktopIcon,
+          icon: Monitor,
           action: () => setTheme('system'),
         },
         {
           name: 'Toggle theme',
-          icon: ArrowPathRoundedSquareIcon,
+          icon: Repeat2,
           action: () => {
             if (theme === 'light') {
               setTheme('dark');

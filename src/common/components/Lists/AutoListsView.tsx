@@ -1,5 +1,5 @@
-import { ArrowPathIcon, BoltIcon, HeartIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
+import { Heart, Plus, RefreshCw, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import type { AutoInteractionListContent } from '@/common/types/list.types';
@@ -52,11 +52,11 @@ export function AutoListsView({ lists, isLoading }: AutoListsViewProps) {
   if (lists.length === 0) {
     return (
       <div className="text-center py-12">
-        <BoltIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <Zap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No auto-interactions yet</h3>
         <p className="text-muted-foreground mb-4">Set up automated likes and recasts between your accounts</p>
         <Button onClick={() => router.push('/list/auto-interactions')}>
-          <PlusIcon className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2" />
           Create Your First Automation
         </Button>
       </div>
@@ -68,7 +68,7 @@ export function AutoListsView({ lists, isLoading }: AutoListsViewProps) {
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">Automatically interact with casts from specific accounts</p>
         <Button size="sm" onClick={() => router.push('/list/auto-interactions')}>
-          <PlusIcon className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2" />
           New Automation
         </Button>
       </div>
@@ -100,10 +100,10 @@ export function AutoListsView({ lists, isLoading }: AutoListsViewProps) {
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
                     {content.actionType === 'like' || content.actionType === 'both' ? (
-                      <HeartIcon className="h-4 w-4 text-red-500" />
+                      <Heart className="h-4 w-4 text-destructive" />
                     ) : null}
                     {content.actionType === 'recast' || content.actionType === 'both' ? (
-                      <ArrowPathIcon className="h-4 w-4 text-green-500" />
+                      <RefreshCw className="h-4 w-4 text-success" />
                     ) : null}
                   </div>
                   <span className="text-sm text-muted-foreground">
