@@ -58,11 +58,11 @@ export function createHypersnapProvider(): FarcasterProvider {
     type: 'hypersnap',
 
     capabilities: {
-      trendingFeed: true,
+      trendingFeed: false,
       profileCasts: true,
       profileLikes: true,
       fidListFeed: false,
-      castLookup: true,
+      castLookup: false,
       allChannels: true,
     },
 
@@ -78,9 +78,9 @@ export function createHypersnapProvider(): FarcasterProvider {
       return data.user;
     },
 
-    async searchUsers({ q, limit, signal }) {
-      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/search', { q, limit }), signal);
-      return data.users || [];
+    searchUsers() {
+      // Hypersnap user search is exact-prefix only — no fuzzy/display-name match. Fall back to Neynar.
+      return unsupported('searchUsers');
     },
 
     async getBulkUsers({ fids, signal }) {
@@ -92,8 +92,9 @@ export function createHypersnapProvider(): FarcasterProvider {
       return fetchJson<FeedResponse>(buildUrl('feed', { feed_type: 'following', fid, limit, cursor }), signal);
     },
 
-    async getTrendingFeed({ limit = 10, cursor, signal }) {
-      return fetchJson<FeedResponse>(buildUrl('feed/trending', { limit, cursor }), signal);
+    getTrendingFeed() {
+      // Hypersnap /feed/trending currently takes ~54s per call. Fall back to Neynar until upstream fix.
+      return unsupported('getTrendingFeed');
     },
 
     async getChannelFeed({ parentUrl, limit = 15, cursor, signal }) {
@@ -144,12 +145,9 @@ export function createHypersnapProvider(): FarcasterProvider {
       return { results, next: { cursor: undefined } } satisfies SearchCastsResponse;
     },
 
-    async getCasts({ hashes, signal }) {
-      const data = await fetchJson<{ casts: FarcasterCast[] }>(
-        buildUrl('cast/bulk', { hashes: hashes.join(',') }),
-        signal
-      );
-      return data.casts || [];
+    getCasts() {
+      // Hypersnap /cast/bulk omits viewer_context, so has_liked/has_recasted UI state would be wrong.
+      return unsupported('getCasts');
     },
 
     async getChannel({ id, signal }) {
