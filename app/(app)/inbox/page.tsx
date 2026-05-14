@@ -945,7 +945,7 @@ const Inbox = () => {
     // Handle follow notifications
     if (isFollow && notification.follows) {
       return (
-        <div className="flex-1 border-l border-muted flex flex-col">
+        <div className="flex-1 min-w-0 border-l border-muted flex flex-col">
           <div className="px-4 py-3 border-b border-muted/50 bg-muted/30">
             <h3 className="text-sm font-medium text-foreground">
               {notification.follows.length} New Follower{notification.follows.length > 1 ? 's' : ''}
@@ -966,7 +966,7 @@ const Inbox = () => {
     if (!notification.cast) return null;
 
     return (
-      <div className="flex-1 border-l border-muted flex flex-col">
+      <div className="flex-1 min-w-0 border-l border-muted flex flex-col">
         {/* Show parent cast for replies and mentions */}
         {isReplyOrMention && (
           <div className="border-b border-muted/50">
@@ -1127,7 +1127,7 @@ const Inbox = () => {
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Notifications list */}
-        <div className="w-1/2 flex flex-col">
+        <div className="w-1/2 min-w-0 flex flex-col">
           <div className="flex-1 overflow-hidden" ref={listContainerRef}>
             {isEmpty(notifications) && !loadingByType[activeTab] ? (
               <div className="flex items-center justify-center h-full">
