@@ -207,20 +207,9 @@ export default function NewPostEntry({
     }
   };
 
-  // Cmd+Enter: Add another cast to thread
-  const ref = useAppHotkeys(
-    'meta+enter',
-    handleAddCast,
-    {
-      scopes: [HotkeyScopes.EDITOR],
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-      preventDefault: true,
-    },
-    [handleAddCast]
-  );
+  const isThreadContext = !!draft.threadId || !!onAddCast;
 
-  // Cmd+Shift+Enter: Publish single cast or thread
+  // Cmd+Enter publishes; inside a thread it adds the next post (Cmd+Shift+Enter still publishes).
   useAppHotkeys(
     'meta+shift+enter',
     onSubmitPost,
@@ -231,6 +220,18 @@ export default function NewPostEntry({
       preventDefault: true,
     },
     [onSubmitPost, draft, account, isHydrated]
+  );
+
+  const ref = useAppHotkeys(
+    'meta+enter',
+    isThreadContext ? handleAddCast : onSubmitPost,
+    {
+      scopes: [HotkeyScopes.EDITOR],
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+      preventDefault: true,
+    },
+    [isThreadContext, handleAddCast, onSubmitPost, draft, account, isHydrated]
   );
 
   const { uploadImage, isUploading, error, image } = useCloudinaryUpload();
