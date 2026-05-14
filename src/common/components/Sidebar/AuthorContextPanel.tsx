@@ -1,5 +1,6 @@
 import { Check, Copy, ExternalLink, Github, Twitter } from 'lucide-react';
 import Link from 'next/link';
+import { useParams, usePathname } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import ProfileInfoContent from '@/common/components/ProfileInfoContent';
 import {
@@ -22,24 +23,47 @@ type ExtendedProfile = {
   }>;
 };
 
+const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
+
+const getUsernameAndFidFromSlug = (slug?: string) => {
+  if (!slug) {
+    return { username: undefined, fid: undefined };
+  }
+  const fid = slug.startsWith('fid:') ? slug.slice(4) : undefined;
+  if (fid) {
+    return { username: undefined, fid: Number(fid) };
+  }
+  const username = slug.startsWith('@') ? slug.slice(1) : slug;
+  return { username, fid: undefined };
+};
+
 const AuthorContextPanel = () => {
-  const { selectedCast } = useNavigationStore();
+  const { selectedCast, selectedProfileFid } = useNavigationStore();
   const currentAccount = useAccountStore((state) => state.accounts[state.selectedAccountIdx]);
   const currentUserFid = currentAccount?.platformAccountId ? Number(currentAccount.platformAccountId) : undefined;
 
-  // If cast selected, show cast author. Otherwise show current user
-  const targetFid = selectedCast?.author?.fid || currentUserFid;
+  const pathname = usePathname();
+  const params = useParams();
+  const isOnProfileRoute = pathname.startsWith('/profile/');
+  const { fid: routeFid, username: routeUsername } = isOnProfileRoute
+    ? getUsernameAndFidFromSlug(params.slug as string)
+    : { fid: undefined, username: undefined };
 
-  const { data: profile, isLoading } = useProfile(
-    { fid: targetFid },
-    {
-      viewerFid: currentUserFid,
-      enabled: !!targetFid,
-    }
-  );
+  const fallbackFid = selectedCast?.author?.fid ?? selectedProfileFid ?? currentUserFid;
 
-  const isShowingCurrentUser = !selectedCast && !!currentUserFid;
-  const displayProfile = profile || selectedCast?.author;
+  const profileParams = isOnProfileRoute ? { fid: routeFid, username: routeUsername } : { fid: fallbackFid };
+  const profileEnabled = isOnProfileRoute ? !!(routeFid || routeUsername) : !!fallbackFid;
+  const profileViewerFid = currentUserFid ?? (isOnProfileRoute ? APP_FID : undefined);
+
+  const { data: profile, isLoading } = useProfile(profileParams, {
+    viewerFid: profileViewerFid,
+    includeAdditionalInfo: isOnProfileRoute,
+    enabled: profileEnabled,
+  });
+
+  const targetFid = isOnProfileRoute ? profile?.fid : fallbackFid;
+  const isShowingCurrentUser = !isOnProfileRoute && !selectedCast && !selectedProfileFid && !!currentUserFid;
+  const displayProfile = profile || (isOnProfileRoute ? undefined : selectedCast?.author);
   const extendedProfile = displayProfile as (typeof displayProfile & ExtendedProfile) | undefined;
 
   const unknownAppFids = useMemo(() => {
@@ -72,7 +96,7 @@ const AuthorContextPanel = () => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  if (!targetFid) {
+  if (!targetFid && !isOnProfileRoute) {
     return (
       <Sidebar side="right" collapsible="none" className="border-l border-sidebar-border/50 w-full hidden lg:flex">
         <SidebarContent className="p-4">
