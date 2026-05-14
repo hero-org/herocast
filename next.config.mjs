@@ -51,9 +51,8 @@ const nextConfig = {
       '@tanstack/react-virtual',
     ],
   },
-  // Limit ESLint to specific directories for faster builds
   eslint: {
-    dirs: ['src', 'app', 'pages'],
+    ignoreDuringBuilds: true,
   },
   webpack: (config) => {
     config.resolve.alias = {

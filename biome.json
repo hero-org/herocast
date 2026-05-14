@@ -35,7 +35,7 @@
         "noUnusedImports": "warn",
         "noUnusedFunctionParameters": "off",
         "useExhaustiveDependencies": "off",
-        "useHookAtTopLevel": "off",
+        "useHookAtTopLevel": "warn",
         "useParseIntRadix": "off"
       },
       "suspicious": {
@@ -104,5 +104,52 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "src/components/ui/**/*.ts",
+        "src/components/ui/**/*.tsx",
+        "!src/components/ui/sidebar.tsx",
+        "!src/components/ui/toaster.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "warn",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/stores", "@/stores/**"],
+                    "message": "UI primitives (src/components/ui) must not import stores. Lift state to src/common/components."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/stores/**/*.ts", "src/stores/**/*.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "warn",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/components/**", "@/common/components/**", "next/*"],
+                    "message": "Stores must not import UI components or Next.js internals."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { type ComponentType, type SVGProps, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { findCommandByAlias } from '@/common/constants/commandAliases';
 import type { CommandType } from '@/common/constants/commands';
 import { NewFeedbackPostDraft } from '@/common/constants/postDrafts';
@@ -264,98 +263,6 @@ export default function CommandPalette() {
   // Track Command Palette opening performance
   const openTimingRef = useRef<string | null>(null);
 
-  const setupHotkeysForCommands = useCallback(
-    (commands: CommandType[]) => {
-      const currentPage = pathname.split('/')[1];
-
-      // Group commands by shortcut to avoid duplicate registrations
-      const shortcutToCommands = new Map<string, CommandType[]>();
-
-      commands.forEach((command) => {
-        if (!command.shortcut && !command.shortcuts) {
-          return;
-        }
-
-        const shortcuts = (command.shortcuts || [command.shortcut])
-          .map((s) => s?.replace('cmd', 'meta'))
-          .filter((s): s is string => s !== undefined);
-
-        shortcuts.forEach((shortcut) => {
-          if (!shortcutToCommands.has(shortcut)) {
-            shortcutToCommands.set(shortcut, []);
-          }
-          shortcutToCommands.get(shortcut)!.push(command);
-        });
-      });
-
-      // Register each unique shortcut only once
-      shortcutToCommands.forEach((commandsForShortcut, shortcut) => {
-        // Smart detection of whether shortcut should work in form inputs
-        const shouldEnableOnFormTags = (() => {
-          // If any command explicitly requests it, honor that
-          if (commandsForShortcut.some((cmd) => cmd.options?.enableOnFormTags)) {
-            return true;
-          }
-
-          // Parse shortcut to check modifiers and key count
-          const parts = shortcut
-            .toLowerCase()
-            .split('+')
-            .map((p) => p.trim());
-          const hasCmd = parts.includes('cmd') || parts.includes('meta');
-          const hasCtrl = parts.includes('ctrl');
-          const hasAlt = parts.includes('alt') || parts.includes('option');
-          const hasShift = parts.includes('shift');
-
-          // Count non-modifier keys
-          const nonModifierKeys = parts.filter((p) => !['cmd', 'meta', 'ctrl', 'alt', 'option', 'shift'].includes(p));
-
-          // Enable if: has Cmd/Ctrl/Alt (these don't interfere with typing)
-          if (hasCmd || hasCtrl || hasAlt) {
-            return true;
-          }
-
-          // Don't enable if: Shift + single key (e.g., Shift+A produces 'A' when typing)
-          if (hasShift && nonModifierKeys.length === 1) {
-            return false;
-          }
-
-          // Don't enable for single keys or easily typable combinations
-          return false;
-        })();
-
-        useHotkeys(
-          shortcut,
-          () => {
-            // Execute all commands for this shortcut (usually just one)
-            commandsForShortcut.forEach((command) => {
-              if (command.page && currentPage !== command.page) {
-                return;
-              }
-
-              if (!command.enabled || (typeof command.enabled === 'function' && !command.enabled())) {
-                return;
-              }
-
-              if (command.navigateTo) {
-                router.push(command.navigateTo);
-              }
-              command.action();
-            });
-          },
-          {
-            delimiter: '-',
-            preventDefault: true,
-            enableOnFormTags: shouldEnableOnFormTags,
-            enableOnContentEditable: commandsForShortcut.some((cmd) => cmd.options?.enableOnContentEditable),
-          },
-          [commandsForShortcut, currentPage, router]
-        );
-      });
-    },
-    [router]
-  );
-
   useEffect(() => {
     if (!isCommandPaletteOpen) {
       setQuery('');
@@ -369,8 +276,6 @@ export default function CommandPalette() {
       }
     }
   }, [isCommandPaletteOpen]);
-
-  // Remove old setupHotkeysForCommands function call
 
   const onClick = useCallback(
     (command: CommandType) => {

@@ -24,8 +24,6 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!username && !fid) return <>{children}</>;
-
   const effectiveViewerFid = viewerFid || Number(process.env.NEXT_PUBLIC_APP_FID!);
 
   const { data: profile } = useProfile(
@@ -33,9 +31,11 @@ const ProfileHoverCard = ({ fid, username, viewerFid, children, className }: Pro
     {
       viewerFid: effectiveViewerFid,
       includeAdditionalInfo: false,
-      enabled: inView,
+      enabled: inView && !!(fid || username),
     }
   );
+
+  if (!username && !fid) return <>{children}</>;
 
   const profileContent = (
     <Link href={`/profile/${profile?.username || username}`} prefetch={false} className="w-full text-left">
