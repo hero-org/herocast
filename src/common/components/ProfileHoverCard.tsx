@@ -20,8 +20,6 @@ const ProfileHoverCard = memo(({ fid, username, viewerFid, children, className }
     delay: 0,
   });
 
-  if (!username && !fid) return null;
-
   const effectiveViewerFid = viewerFid || Number(process.env.NEXT_PUBLIC_APP_FID!);
 
   const { data: profile } = useProfile(
@@ -29,9 +27,11 @@ const ProfileHoverCard = memo(({ fid, username, viewerFid, children, className }
     {
       viewerFid: effectiveViewerFid,
       includeAdditionalInfo: false,
-      enabled: inView,
+      enabled: inView && !!(fid || username),
     }
   );
+
+  if (!username && !fid) return null;
 
   return (
     <HoverCard openDelay={200}>

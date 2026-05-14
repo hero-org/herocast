@@ -72,17 +72,18 @@ type NftSaleEmbedProps = {
 
 export default function NftSaleEmbed({ url, isSelected }: NftSaleEmbedProps) {
   const parsed = parseNftSaleUrl(url);
+  const chainId = parsed?.chainId ?? 0;
+  const contractAddress = parsed?.contractAddress ?? '';
+  const txHash = parsed?.txHash ?? '';
+  const { data: metadata, isLoading, isError } = useNftMetadata(chainId, contractAddress, txHash);
 
-  // If parsing fails, show fallback link to Zapper
   if (!parsed) {
     const base64 = url.replace('nft-sale://', '');
     return <FallbackCard zapperUrl={getZapperNftSaleUrl(base64)} isSelected={isSelected} />;
   }
 
-  const { chainId, contractAddress, txHash, rawBase64 } = parsed;
+  const { rawBase64 } = parsed;
   const zapperUrl = getZapperNftSaleUrl(rawBase64);
-
-  const { data: metadata, isLoading, isError } = useNftMetadata(chainId, contractAddress, txHash);
 
   if (isLoading) {
     return <NftSaleSkeleton />;

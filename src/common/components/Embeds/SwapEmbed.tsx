@@ -119,27 +119,23 @@ type SwapEmbedProps = {
 
 export default function SwapEmbed({ url, isSelected }: SwapEmbedProps) {
   const parsed = parseSwapUrl(url);
+  const chain = parsed?.chain ?? '';
+  const tokenAddress = parsed?.tokenAddress ?? '';
+  const txHash = parsed?.txHash ?? '';
+  const isChainSupported = !!parsed && !!getAlchemyNetworkForSwapChain(chain);
+  const { data: metadata, isLoading, isError } = useSwapMetadata(chain, tokenAddress, txHash, isChainSupported);
+  const { data: farcasterUser } = useFarcasterUser(metadata?.sender);
 
-  // If parsing fails, show fallback link to Zapper
   if (!parsed) {
     const base64 = url.replace('swap://', '');
     return <FallbackCard zapperUrl={getZapperSwapUrl(base64)} isSelected={isSelected} />;
   }
 
-  const { chain, tokenAddress, txHash, rawBase64 } = parsed;
+  const { rawBase64 } = parsed;
   const zapperUrl = getZapperSwapUrl(rawBase64);
   const explorerUrl = getExplorerTxUrlByChain(chain, txHash);
   const tokenUrl = getExplorerTokenUrl(chain, tokenAddress);
 
-  // Check if chain is supported by Alchemy
-  const isChainSupported = !!getAlchemyNetworkForSwapChain(chain);
-
-  const { data: metadata, isLoading, isError } = useSwapMetadata(chain, tokenAddress, txHash, isChainSupported);
-
-  // Fetch Farcaster user for the sender address
-  const { data: farcasterUser } = useFarcasterUser(metadata?.sender);
-
-  // Show fallback for unsupported chains
   if (!isChainSupported) {
     return (
       <FallbackCard

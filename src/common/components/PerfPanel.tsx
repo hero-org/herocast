@@ -11,11 +11,9 @@ export const PerfPanel: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('recent');
 
-  // Only show in development
-  if (process.env.NODE_ENV !== 'development') return null;
-
   // Toggle with Ctrl+Shift+P
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'P') {
         setIsVisible((prev) => !prev);
@@ -26,6 +24,7 @@ export const PerfPanel: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  if (process.env.NODE_ENV !== 'development') return null;
   if (!isVisible) return null;
 
   const recentMetrics = metrics.slice(0, 15);
