@@ -1,5 +1,12 @@
-import type { FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
-import type { FarcasterProvider, FeedResponse, GetNotificationsRequest, NotificationsResponse } from './types';
+import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
+import type {
+  FarcasterProvider,
+  FeedResponse,
+  GetNotificationsRequest,
+  NotificationsResponse,
+  SearchCastResult,
+  SearchCastsResponse,
+} from './types';
 import { UnsupportedProviderFeatureError as UnsupportedFeatureError } from './types';
 
 const DEFAULT_BASE_URL = 'https://haatz.quilibrium.com/v2/farcaster';
@@ -31,14 +38,6 @@ async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   return res.json();
 }
 
-function findUserByUsername(users: FarcasterUser[] | undefined, username: string) {
-  if (!users?.length) return null;
-
-  const normalizedUsername = username.toLowerCase();
-  const matchingUsernames = new Set([normalizedUsername, `${normalizedUsername}.eth`]);
-  return users.find((user) => matchingUsernames.has(user.username.toLowerCase())) || users[0];
-}
-
 function unsupported(method: string): never {
   throw new UnsupportedFeatureError('hypersnap', method);
 }
@@ -59,12 +58,12 @@ export function createHypersnapProvider(): FarcasterProvider {
     type: 'hypersnap',
 
     capabilities: {
-      trendingFeed: false,
-      profileCasts: false,
-      profileLikes: false,
+      trendingFeed: true,
+      profileCasts: true,
+      profileLikes: true,
       fidListFeed: false,
-      castLookup: false,
-      allChannels: false,
+      castLookup: true,
+      allChannels: true,
     },
 
     async getUser({ fid, signal }) {
@@ -74,11 +73,9 @@ export function createHypersnapProvider(): FarcasterProvider {
     },
 
     async getUserByUsername({ username, signal }) {
-      // /user/by_username not available; use search as workaround
-      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/search', { q: username }), signal);
-      const match = findUserByUsername(data.users, username);
-      if (!match) throw new Error(`User ${username} not found`);
-      return match;
+      const data = await fetchJson<{ user: FarcasterUser }>(buildUrl('user/by-username', { username }), signal);
+      if (!data.user) throw new Error(`User ${username} not found`);
+      return data.user;
     },
 
     async searchUsers({ q, limit, signal }) {
@@ -95,8 +92,8 @@ export function createHypersnapProvider(): FarcasterProvider {
       return fetchJson<FeedResponse>(buildUrl('feed', { feed_type: 'following', fid, limit, cursor }), signal);
     },
 
-    getTrendingFeed() {
-      return unsupported('getTrendingFeed');
+    async getTrendingFeed({ limit = 10, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('feed/trending', { limit, cursor }), signal);
     },
 
     async getChannelFeed({ parentUrl, limit = 15, cursor, signal }) {
@@ -104,24 +101,55 @@ export function createHypersnapProvider(): FarcasterProvider {
       return fetchJson<FeedResponse>(buildUrl('feed/channels', { channel_ids: channelId, limit, cursor }), signal);
     },
 
-    getProfileCasts() {
-      return unsupported('getProfileCasts');
+    async getProfileCasts({ fid, limit = 25, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('feed/user/casts', { fid, limit, cursor }), signal);
     },
 
-    getProfileLikes() {
-      return unsupported('getProfileLikes');
+    async getProfileLikes({ fid, limit = 25, signal }) {
+      // Hypersnap returns non-hydrated reactions; bulk-hydrate by hash, then re-order to like-order.
+      const data = await fetchJson<{ reactions: Array<{ cast: { hash: string } }> }>(
+        buildUrl('reaction/user', { fid, type: 'likes', limit }),
+        signal
+      );
+      const hashes = (data.reactions || []).map((r) => r.cast.hash).filter(Boolean);
+      if (hashes.length === 0) return { casts: [], next: { cursor: undefined } };
+      const hydrated = await fetchJson<{ casts: FarcasterCast[] }>(
+        buildUrl('cast/bulk', { hashes: hashes.join(',') }),
+        signal
+      );
+      const byHash = new Map((hydrated.casts || []).map((c) => [c.hash, c]));
+      const casts = hashes.map((h) => byHash.get(h)).filter((c): c is FarcasterCast => Boolean(c));
+      return { casts, next: { cursor: undefined } };
     },
 
     getFidListFeed() {
       return unsupported('getFidListFeed');
     },
 
-    async searchCasts() {
-      return unsupported('searchCasts');
+    async searchCasts({ q, limit, filters, signal }) {
+      if (filters && Object.keys(filters).length > 0) {
+        // Hypersnap /cast/search is keyword-only; route filtered queries to Neynar via fallback.
+        unsupported('searchCasts(filters)');
+      }
+      const data = await fetchJson<{ result: { casts: FarcasterCast[] } }>(
+        buildUrl('cast/search', { q, limit }),
+        signal
+      );
+      const results: SearchCastResult[] = (data.result?.casts || []).map((cast) => ({
+        hash: cast.hash,
+        fid: cast.author.fid,
+        text: cast.text,
+        timestamp: cast.timestamp,
+      }));
+      return { results, next: { cursor: undefined } } satisfies SearchCastsResponse;
     },
 
-    getCasts() {
-      return unsupported('getCasts');
+    async getCasts({ hashes, signal }) {
+      const data = await fetchJson<{ casts: FarcasterCast[] }>(
+        buildUrl('cast/bulk', { hashes: hashes.join(',') }),
+        signal
+      );
+      return data.casts || [];
     },
 
     async getChannel({ id, signal }) {
@@ -135,8 +163,9 @@ export function createHypersnapProvider(): FarcasterProvider {
       return data.channels || [];
     },
 
-    getAllChannels() {
-      return unsupported('getAllChannels');
+    async getAllChannels(opts) {
+      const data = await fetchJson<{ channels: FarcasterChannel[] }>(buildUrl('channel/all', {}), opts?.signal);
+      return data.channels || [];
     },
 
     async getNotifications({ fid, limit, cursor, type, signal }: GetNotificationsRequest) {
