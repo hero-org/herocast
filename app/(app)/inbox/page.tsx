@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { KbdTooltip } from '@/components/ui/kbd';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getProvider } from '@/lib/farcaster/providers';
 import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDraftStore } from '@/stores/useDraftStore';
@@ -167,37 +168,25 @@ const Inbox = () => {
       setLoadingByType((prev) => ({ ...prev, [tab]: true }));
 
       try {
-        const params = new URLSearchParams({
-          fid: viewerFid,
-          limit: limit.toString(),
+        const result = await getProvider().getNotifications({
+          fid: Number(viewerFid),
+          limit,
+          type: notificationTabToApiType(tab),
+          cursor: !reset ? cursorsByType.current[tab] : undefined,
         });
 
-        // Add type parameter if not "all" tab
-        const apiType = notificationTabToApiType(tab);
-        if (apiType) {
-          params.append('type', apiType);
-        }
-
-        // Add cursor for pagination if not reset
-        if (!reset && cursorsByType.current[tab]) {
-          params.append('cursor', cursorsByType.current[tab]!);
-        }
-
-        const response = await fetch(`/api/notifications?${params}`);
-        const data = await response.json();
-
-        if (data.notifications) {
+        if (result.notifications) {
           // Update notifications for this specific tab
           setNotificationsByType((prev) => ({
             ...prev,
-            [tab]: reset ? data.notifications : [...prev[tab], ...data.notifications],
+            [tab]: reset ? result.notifications : [...prev[tab], ...result.notifications],
           }));
 
           // Update cursor for this tab
-          cursorsByType.current[tab] = data.cursor;
+          cursorsByType.current[tab] = result.next?.cursor;
         }
 
-        return data.notifications || [];
+        return result.notifications || [];
       } catch (error) {
         console.error(`Error fetching notifications for ${tab}:`, error);
         return [];
@@ -243,17 +232,14 @@ const Inbox = () => {
 
       setIsLoadingParent(true);
       try {
-        const params = new URLSearchParams({
-          casts: parentHash,
-          viewerFid: viewerFid,
+        console.log(`Fetching parent cast: ${parentHash.substring(0, 10)}...`);
+        const casts = await getProvider().getCasts({
+          hashes: [parentHash],
+          viewerFid: Number(viewerFid),
         });
 
-        console.log(`Fetching parent cast: ${parentHash.substring(0, 10)}...`);
-        const response = await fetch(`/api/casts?${params}`);
-        const data = await response.json();
-
-        if (data.result?.casts?.length > 0) {
-          const cast = data.result.casts[0];
+        if (casts.length > 0) {
+          const cast = casts[0];
           setParentCast(cast);
           parentCastCache.set(cacheKey, { cast, timestamp: Date.now() });
         } else {

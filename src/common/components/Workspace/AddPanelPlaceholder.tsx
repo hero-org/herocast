@@ -23,6 +23,7 @@ import type { FarcasterChannel } from '@/common/types/farcaster';
 import type { FeedPanelConfig, InboxPanelConfig, PanelConfigUnion, PanelType } from '@/common/types/workspace.types';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getProvider } from '@/lib/farcaster/providers';
 import { cn } from '@/lib/utils';
 import { useListStore } from '@/stores/useListStore';
 
@@ -153,12 +154,8 @@ const panelOptions: PanelOption[] = [
 const getChannels = async (query: string): Promise<FarcasterChannel[]> => {
   if (query.length < 2) return [];
   try {
-    const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    const data = await response.json();
-    return take(data?.channels ?? [], 10);
+    const channels = await getProvider().searchChannels({ q: query });
+    return take(channels, 10);
   } catch (e) {
     console.error(`Error searching channels: ${e}`);
     return [];

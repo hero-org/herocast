@@ -15,6 +15,7 @@ import { getUsernameForFid } from '@/common/helpers/farcaster';
 import { createClient } from '@/common/helpers/supabase/component';
 import type { Json } from '@/common/types/database.types';
 import type { FarcasterUser } from '@/common/types/farcaster';
+import { getProvider } from '@/lib/farcaster/providers';
 import { AccountPlatformType, AccountStatusType } from '../../src/common/constants/accounts';
 import type { ChannelType } from '../../src/common/constants/channels';
 import type { CommandType } from '../../src/common/constants/commands';
@@ -693,12 +694,7 @@ export const hydrateAccountsComplete = async (accounts: AccountObjectType[]): Pr
 
   if (fids.length) {
     try {
-      const response = await fetch(`/api/users?fids=${fids.join(',')}&viewer_fid=${APP_FID}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.status}`);
-      }
-      const data = await response.json();
-      const users = data.users || [];
+      const users = await getProvider().getBulkUsers({ fids, viewerFid: APP_FID });
       return accountsWithChannels.map((account) => {
         const user = users.find((user: FarcasterUser) => user.fid === Number(account.platformAccountId));
         if (user) {

@@ -13,6 +13,7 @@ import { type FarcasterNotification, NotificationType } from '@/common/types/far
 import type { InboxPanelConfig } from '@/common/types/workspace.types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { getProvider } from '@/lib/farcaster/providers';
 import { useAccountStore } from '@/stores/useAccountStore';
 
 export interface InboxPanelHandle {
@@ -126,30 +127,18 @@ const InboxPanel = forwardRef<InboxPanelHandle, InboxPanelProps>(({ config, isCo
       setIsLoading(true);
 
       try {
-        const params = new URLSearchParams({
-          fid: viewerFid,
-          limit: DEFAULT_LIMIT.toString(),
+        const result = await getProvider().getNotifications({
+          fid: Number(viewerFid),
+          limit: DEFAULT_LIMIT,
           type: tabToApiType(config.tab),
-        });
-
-        if (!reset && cursor) {
-          params.append('cursor', cursor);
-        }
-
-        const response = await fetch(`/api/notifications?${params}`, {
+          cursor: !reset ? cursor : undefined,
           signal: abortControllerRef.current.signal,
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch notifications');
-        }
-
-        const data = await response.json();
-
-        if (data.notifications) {
-          setNotifications((prev) => (reset ? data.notifications : [...prev, ...data.notifications]));
-          setCursor(data.cursor);
-          setHasMore(!!data.cursor);
+        if (result.notifications) {
+          setNotifications((prev) => (reset ? result.notifications : [...prev, ...result.notifications]));
+          setCursor(result.next?.cursor);
+          setHasMore(!!result.next?.cursor);
         }
 
         lastUpdateTimeRef.current = Date.now();

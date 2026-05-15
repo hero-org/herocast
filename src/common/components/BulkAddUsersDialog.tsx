@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { getProvider } from '@/lib/farcaster/providers';
 
 interface BulkAddUsersDialogProps {
   open: boolean;
@@ -119,39 +120,34 @@ export function BulkAddUsersDialog({
 
       if (fidsToFetch.length > 0) {
         try {
-          // Fetch profiles in bulk via server-side API route
-          const response = await fetch(`/api/users?fids=${fidsToFetch.join(',')}&viewer_fid=${viewerFid}`);
+          // Fetch profiles in bulk via the Farcaster provider abstraction
+          const users = await getProvider().getBulkUsers({
+            fids: fidsToFetch.map((fid) => Number(fid)),
+            viewerFid: Number(viewerFid),
+          });
 
-          if (!response.ok) {
-            throw new Error('Failed to fetch users');
-          }
+          // Add fetched users to results
+          users.forEach((user: FarcasterUser) => {
+            const fidItem = batch.find((item) => parseInt(item.fid) === user.fid)!;
+            results.push({
+              input: fidItem.input,
+              fid: user.fid.toString(),
+              user,
+              isDuplicate: false,
+            });
+          });
 
-          const data = await response.json();
-
-          if (data.users) {
-            // Add fetched users to results
-            data.users.forEach((user: FarcasterUser) => {
-              const fidItem = batch.find((item) => parseInt(item.fid) === user.fid)!;
+          // Handle not found FIDs
+          const foundFids = new Set(users.map((u: FarcasterUser) => u.fid));
+          fidsToFetch.forEach((fid) => {
+            if (!foundFids.has(parseInt(fid))) {
+              const fidItem = batch.find((item) => item.fid === fid)!;
               results.push({
                 input: fidItem.input,
-                fid: user.fid.toString(),
-                user,
-                isDuplicate: false,
+                error: 'User not found',
               });
-            });
-
-            // Handle not found FIDs
-            const foundFids = new Set(data.users.map((u: FarcasterUser) => u.fid));
-            fidsToFetch.forEach((fid) => {
-              if (!foundFids.has(parseInt(fid))) {
-                const fidItem = batch.find((item) => item.fid === fid)!;
-                results.push({
-                  input: fidItem.input,
-                  error: 'User not found',
-                });
-              }
-            });
-          }
+            }
+          });
         } catch (error) {
           console.error('Error processing FID batch:', error);
           batch.forEach((item) => {
@@ -176,19 +172,15 @@ export function BulkAddUsersDialog({
       const username = usernameItems[i];
 
       try {
-        // Search for username via server-side API route
-        const response = await fetch(
-          `/api/users/search?q=${encodeURIComponent(username)}&viewer_fid=${viewerFid}&limit=1`
-        );
+        // Search for username via the Farcaster provider abstraction
+        const matches = await getProvider().searchUsers({
+          q: username,
+          viewerFid: Number(viewerFid),
+          limit: 1,
+        });
 
-        if (!response.ok) {
-          throw new Error('Failed to search user');
-        }
-
-        const data = await response.json();
-
-        if (data.users && data.users.length > 0) {
-          const user = data.users[0];
+        if (matches.length > 0) {
+          const user = matches[0];
           const fid = user.fid.toString();
 
           results.push({

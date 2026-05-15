@@ -11,8 +11,8 @@ import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { type AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
-import { getUserDataForFidOrUsername } from '../helpers/neynar';
 import { formatLargeNumber } from '../helpers/text';
+import { getUserDataForFidOrUsername } from '../helpers/userLookup';
 
 type ProfileSearchDropdownProps = {
   disabled?: boolean;

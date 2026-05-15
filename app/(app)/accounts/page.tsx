@@ -1,6 +1,5 @@
 'use client';
 
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { filter } from 'lodash';
 import isEmpty from 'lodash.isempty';
 import { Download, RefreshCw, UserPlus } from 'lucide-react';
@@ -27,6 +26,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { getProvider } from '@/lib/farcaster/providers';
 import { cn } from '@/lib/utils';
 import {
   type AccountObjectType,
@@ -142,8 +142,8 @@ export default function Accounts() {
     const { status, data } = await getWarpcastSignerStatus(pendingAccount.data.signerToken);
     if (status === WarpcastLoginStatus.success) {
       const fid = data.userFid;
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-      const user = (await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID! })).users[0];
+      const users = await getProvider().getBulkUsers({ fids: [fid], viewerFid: APP_FID });
+      const user = users[0];
       await setAccountActive(pendingAccount.id, user.username, {
         platform_account_id: user.fid.toString(),
         data,

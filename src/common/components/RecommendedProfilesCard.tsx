@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FarcasterUser } from '@/common/types/farcaster';
+import { getProvider } from '@/lib/farcaster/providers';
 import FollowButton from './FollowButton';
 import { LinkifiedText } from './LinkifiedText';
 
@@ -36,18 +37,9 @@ const RecommendedProfilesCard = () => {
   useEffect(() => {
     const getProfiles = async () => {
       try {
-        const response = await fetch('/api/users/active?limit=14');
-        if (!response.ok) {
-          console.error('Failed to fetch active users:', response.statusText);
-          return;
-        }
-
-        const data = await response.json();
-        if (!data || !data.users) {
-          return;
-        }
-
-        setProfiles([...defaultProfiles, ...data.users]);
+        const users = await getProvider().getActiveUsers({ limit: 14 });
+        if (users.length === 0) return;
+        setProfiles([...defaultProfiles, ...users]);
       } catch (err) {
         console.error('Error fetching active users:', err);
       }

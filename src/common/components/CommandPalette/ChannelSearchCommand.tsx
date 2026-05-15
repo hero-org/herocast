@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import type { FarcasterChannel } from '@/common/types/farcaster';
 import { CommandItem } from '@/components/ui/command';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getProvider } from '@/lib/farcaster/providers';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 
@@ -27,12 +28,8 @@ export const ChannelSearchCommand: React.FC<ChannelSearchCommandProps> = ({ quer
     const searchChannels = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-        const result = await response.json();
-        setChannels(result.channels || []);
+        const channels = await getProvider().searchChannels({ q: query });
+        setChannels(channels);
       } catch (error) {
         console.error('Failed to search channels:', error);
         setChannels([]);

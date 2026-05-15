@@ -5,6 +5,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import type { FarcasterUser } from '@/common/types/farcaster';
 import { CommandItem } from '@/components/ui/command';
+import { getProvider } from '@/lib/farcaster/providers';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 
 interface UserSearchCommandProps {
@@ -27,12 +28,12 @@ export const UserSearchCommand: React.FC<UserSearchCommandProps> = ({ query }) =
     const searchUsers = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}&viewer_fid=${APP_FID}&limit=5`);
-        if (!response.ok) {
-          throw new Error('Failed to search users');
-        }
-        const data = await response.json();
-        setUsers(data.users || []);
+        const users = await getProvider().searchUsers({
+          q: query,
+          viewerFid: Number(APP_FID),
+          limit: 5,
+        });
+        setUsers(users);
       } catch (error) {
         console.error('Failed to search users:', error);
         setUsers([]);

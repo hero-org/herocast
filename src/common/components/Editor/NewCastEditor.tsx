@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
+import { getProvider } from '@/lib/farcaster/providers';
 import { createFixedMentionsSuggestionConfig as createRenderMentionsSuggestionConfig } from '@/lib/mentions/fixedMentions';
 import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
@@ -52,12 +53,8 @@ const fetchUrlMetadata = async (url: string): Promise<Record<string, unknown>> =
 const getChannels = async (query: string): Promise<FarcasterChannel[]> => {
   if (query.length < 2) return [];
   try {
-    const response = await fetch(`/api/channels/search?q=${encodeURIComponent(query)}`);
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    const data = await response.json();
-    return take(data?.channels ?? [], 10);
+    const channels = await getProvider().searchChannels({ q: query });
+    return take(channels, 10);
   } catch (e) {
     console.error(`Error searching channels: ${e}`);
     return [];

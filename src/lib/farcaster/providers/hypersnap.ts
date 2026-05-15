@@ -9,13 +9,20 @@ import type {
 } from './types';
 import { UnsupportedProviderFeatureError as UnsupportedFeatureError } from './types';
 
-const DEFAULT_BASE_URL = 'https://haatz.quilibrium.com/v2/farcaster';
+const DIRECT_UPSTREAM = 'https://haatz.quilibrium.com/v2/farcaster';
 
+// SSR safety: `src/lib/farcaster/providers/index.ts` is `'use client'` and `getProviderType()`
+// returns 'neynar' when `window` is undefined, so this provider is never constructed server-side
+// via `getProvider()`. The SSR branch below is defensive only — route handlers must not call
+// `getProvider()` since they'd either bypass the proxy or import a client module from server.
 function getBaseUrl(): string {
   if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_HYPERSNAP_URL) {
     return process.env.NEXT_PUBLIC_HYPERSNAP_URL;
   }
-  return DEFAULT_BASE_URL;
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/api/hypersnap`;
+  }
+  return DIRECT_UPSTREAM;
 }
 
 function buildUrl(path: string, params: Record<string, string | number | undefined>): string {
@@ -62,8 +69,11 @@ export function createHypersnapProvider(): FarcasterProvider {
       profileCasts: true,
       profileLikes: true,
       fidListFeed: false,
-      castLookup: false,
+      castLookup: true,
       allChannels: true,
+      castConversation: true,
+      activeUsers: false,
+      castByIdentifier: true,
     },
 
     async getUser({ fid, signal }) {
@@ -78,9 +88,10 @@ export function createHypersnapProvider(): FarcasterProvider {
       return data.user;
     },
 
-    searchUsers() {
-      // Hypersnap user search is exact-prefix only — no fuzzy/display-name match. Fall back to Neynar.
-      return unsupported('searchUsers');
+    async searchUsers({ q, limit = 5, signal }) {
+      // Username-prefix match only (no display_name/bio ranking). Tracked in #715.
+      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/search', { q, limit }), signal);
+      return data.users || [];
     },
 
     async getBulkUsers({ fids, signal }) {
@@ -145,9 +156,15 @@ export function createHypersnapProvider(): FarcasterProvider {
       return { results, next: { cursor: undefined } } satisfies SearchCastsResponse;
     },
 
-    getCasts() {
-      // Hypersnap /cast/bulk omits viewer_context, so has_liked/has_recasted UI state would be wrong.
-      return unsupported('getCasts');
+    async getCasts({ hashes, signal }) {
+      // Hypersnap /cast/bulk omits viewer_context, so liked/recasted hearts render empty
+      // even when the viewer reacted. Tracked in #715 — acceptable degradation given
+      // the alternative (fall through to Neynar) is currently blocked by quota.
+      const data = await fetchJson<{ casts: FarcasterCast[] }>(
+        buildUrl('cast/bulk', { hashes: hashes.join(',') }),
+        signal
+      );
+      return data.casts || [];
     },
 
     async getChannel({ id, signal }) {
@@ -168,6 +185,51 @@ export function createHypersnapProvider(): FarcasterProvider {
 
     async getNotifications({ fid, limit, cursor, type, signal }: GetNotificationsRequest) {
       return fetchJson<NotificationsResponse>(buildUrl('notifications', { fid, limit, cursor, type }), signal);
+    },
+
+    async getConversation({ hash, signal }) {
+      // Hypersnap exposes /cast/conversation but only returns direct_replies — it does
+      // NOT populate chronological_parent_casts. Walk parent_hash manually via /cast.
+      // Tracked in #715.
+      const data = await fetchJson<{
+        conversation?: { cast?: FarcasterCast & { direct_replies?: FarcasterCast[] } };
+      }>(buildUrl('cast/conversation', { identifier: hash, type: 'hash' }), signal);
+      const focused = data.conversation?.cast;
+      if (!focused) throw new Error(`Conversation for ${hash} not found`);
+      const { direct_replies: replies = [], ...cast } = focused;
+
+      const parents: FarcasterCast[] = [];
+      let current = cast as FarcasterCast;
+      for (let depth = 0; depth < 10 && current.parent_hash; depth++) {
+        try {
+          const parentRes = await fetchJson<{ cast?: FarcasterCast }>(
+            buildUrl('cast', { identifier: current.parent_hash }),
+            signal
+          );
+          if (!parentRes.cast) break;
+          parents.unshift(parentRes.cast);
+          current = parentRes.cast;
+        } catch {
+          break;
+        }
+      }
+      return { parents, cast: cast as FarcasterCast, replies };
+    },
+
+    async getActiveUsers() {
+      // No Hypersnap discovery endpoint. RecommendedProfilesCard renders curated defaults
+      // when this returns empty — preferable to falling through to a blocked Neynar.
+      return [];
+    },
+
+    async getCastByIdentifier({ identifier, type, signal }) {
+      // Hypersnap supports hash lookup only — server explicitly rejects type=url
+      // ("Only hash identifier type is supported"). URL lookups (rare /conversation
+      // permalinks from Warpcast deep-links) fall back to Neynar via the fallback proxy.
+      if (type === 'url') unsupported('getCastByIdentifier(url)');
+      const data = await fetchJson<{ cast?: FarcasterCast }>(buildUrl('cast', { identifier }), signal);
+      if (!data.cast) throw new Error(`Cast ${identifier} not found`);
+      return data.cast;
     },
   };
 }

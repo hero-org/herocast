@@ -1,7 +1,11 @@
 import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
 import type {
+  ConversationResponse,
   FarcasterProvider,
   FeedResponse,
+  GetActiveUsersRequest,
+  GetCastByIdentifierRequest,
+  GetConversationRequest,
   GetNotificationsRequest,
   NotificationsResponse,
   SearchCastsResponse,
@@ -46,6 +50,9 @@ export function createNeynarProvider(): FarcasterProvider {
       fidListFeed: true,
       castLookup: true,
       allChannels: true,
+      castConversation: true,
+      activeUsers: true,
+      castByIdentifier: true,
     },
 
     async getUser({ fid, viewerFid, signal }) {
@@ -146,6 +153,49 @@ export function createNeynarProvider(): FarcasterProvider {
 
     async getNotifications({ fid, limit, cursor, type, signal }: GetNotificationsRequest) {
       return fetchJson<NotificationsResponse>(buildUrl('/api/notifications', { fid, limit, cursor, type }), signal);
+    },
+
+    async getConversation({ hash, viewerFid, replyDepth = 1, fold, sortType, signal }: GetConversationRequest) {
+      const data = await fetchJson<{
+        conversation?: {
+          cast?: FarcasterCast & { direct_replies?: FarcasterCast[] };
+          chronological_parent_casts?: FarcasterCast[];
+        };
+      }>(
+        buildUrl('/api/casts/conversation', {
+          identifier: hash,
+          reply_depth: replyDepth,
+          include_chronological_parent_casts: 'true',
+          viewer_fid: viewerFid,
+          fold,
+          sort_type: sortType,
+        }),
+        signal
+      );
+      const focused = data.conversation?.cast;
+      if (!focused) {
+        throw new Error(`Conversation for ${hash} not found`);
+      }
+      const { direct_replies: replies = [], ...cast } = focused;
+      return {
+        parents: data.conversation?.chronological_parent_casts || [],
+        cast: cast as FarcasterCast,
+        replies,
+      } satisfies ConversationResponse;
+    },
+
+    async getActiveUsers({ limit = 14, signal }: GetActiveUsersRequest) {
+      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('/api/users/active', { limit }), signal);
+      return data.users || [];
+    },
+
+    async getCastByIdentifier({ identifier, type, viewerFid, signal }: GetCastByIdentifierRequest) {
+      const data = await fetchJson<{ cast?: FarcasterCast }>(
+        buildUrl('/api/casts/lookup', { identifier, type, viewer_fid: viewerFid }),
+        signal
+      );
+      if (!data.cast) throw new Error(`Cast ${identifier} (${type}) not found`);
+      return data.cast;
     },
   };
 }

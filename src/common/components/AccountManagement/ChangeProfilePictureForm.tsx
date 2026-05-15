@@ -6,6 +6,7 @@ import { setUserDataInProtocol } from '@/common/helpers/farcaster';
 import type { FarcasterUser } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getProvider } from '@/lib/farcaster/providers';
 import type { AccountObjectType } from '@/stores/useAccountStore';
 import CloudinaryUpload from '../CloudinaryUpload';
 
@@ -27,13 +28,11 @@ const ChangeProfilePictureForm = ({ account, onSuccess }: ChangeProfilePictureFo
   useEffect(() => {
     const getUserInProtocol = async () => {
       try {
-        const response = await fetch(`/api/users?fids=${account.platformAccountId}&viewer_fid=${APP_FID}`);
-        if (!response.ok) {
-          console.error('Failed to fetch user:', response.status);
-          return;
-        }
-        const data = await response.json();
-        const user = data.users?.[0];
+        const users = await getProvider().getBulkUsers({
+          fids: [Number(account.platformAccountId)],
+          viewerFid: APP_FID,
+        });
+        const user = users[0];
         if (user) {
           setUserInProtocol(user);
         }
