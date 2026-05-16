@@ -32,6 +32,9 @@ export interface ProviderCapabilities {
   fidListFeed: boolean;
   castLookup: boolean;
   allChannels: boolean;
+  castConversation: boolean;
+  activeUsers: boolean;
+  castByIdentifier: boolean;
 }
 
 export interface FetchOptions {
@@ -107,6 +110,28 @@ export interface GetNotificationsRequest extends CursorRequest {
   type?: string;
 }
 
+export interface GetConversationRequest extends ViewerContextRequest {
+  hash: string;
+  replyDepth?: number;
+  fold?: 'above' | 'below';
+  sortType?: 'algorithmic' | 'recent';
+}
+
+export interface ConversationResponse {
+  parents: FarcasterCast[];
+  cast: FarcasterCast;
+  replies: FarcasterCast[];
+}
+
+export interface GetActiveUsersRequest extends FetchOptions {
+  limit?: number;
+}
+
+export interface GetCastByIdentifierRequest extends ViewerContextRequest {
+  identifier: string;
+  type: 'hash' | 'url';
+}
+
 export class UnsupportedProviderFeatureError extends Error {
   constructor(
     public readonly provider: ProviderType,
@@ -146,4 +171,13 @@ export interface FarcasterProvider {
 
   // Notifications
   getNotifications(request: GetNotificationsRequest): Promise<NotificationsResponse>;
+
+  // Threads / conversation
+  getConversation(request: GetConversationRequest): Promise<ConversationResponse>;
+
+  // Active users (recommendations / discovery)
+  getActiveUsers(request: GetActiveUsersRequest): Promise<FarcasterUser[]>;
+
+  // Single cast lookup by hash or Warpcast URL (used by embeds + permalinks)
+  getCastByIdentifier(request: GetCastByIdentifierRequest): Promise<FarcasterCast>;
 }

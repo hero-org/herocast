@@ -43,6 +43,9 @@ export function createFallbackProvider(primary: FarcasterProvider, fallback: Far
         fidListFeed: pc.fidListFeed || fc.fidListFeed,
         castLookup: pc.castLookup || fc.castLookup,
         allChannels: pc.allChannels || fc.allChannels,
+        castConversation: pc.castConversation || fc.castConversation,
+        activeUsers: pc.activeUsers || fc.activeUsers,
+        castByIdentifier: pc.castByIdentifier || fc.castByIdentifier,
       };
     },
   });

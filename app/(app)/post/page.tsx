@@ -12,7 +12,6 @@ const ThreadComposer = dynamic(() => import('@/common/components/ThreadComposer'
   ssr: false,
 });
 
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import map from 'lodash.map';
 import { Clock, SquarePen } from 'lucide-react';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -30,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getPlanLimitsForPlan } from '@/config/planLimits';
+import { getProvider } from '@/lib/farcaster/providers';
 import { useAccountStore } from '@/stores/useAccountStore';
 import DraftList from './components/DraftList';
 
@@ -170,11 +170,11 @@ export default function NewPost() {
     if (parentCastIds.length === 0) return;
 
     const fetchParentCasts = async () => {
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-      const res = await neynarClient.fetchBulkCasts(parentCastIds, {
+      const casts = await getProvider().getCasts({
+        hashes: parentCastIds,
         viewerFid: Number(selectedAccount?.platformAccountId),
       });
-      setParentCasts((res?.result?.casts || []) as unknown as FarcasterCast[]);
+      setParentCasts(casts);
     };
 
     fetchParentCasts();

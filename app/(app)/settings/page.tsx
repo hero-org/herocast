@@ -169,13 +169,11 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">
-                  {providerType === 'neynar' ? 'Neynar (Official)' : 'Hypersnap (Fork)'}
-                </p>
+                <p className="text-sm font-medium">{providerType === 'neynar' ? 'Neynar' : 'Hypersnap'}</p>
                 <p className="text-sm text-muted-foreground">
                   {providerType === 'neynar'
-                    ? 'Standard Farcaster API with full feature support'
-                    : 'Direct node connection — no API key needed, some features fall back to Neynar'}
+                    ? 'Hosted API by Neynar — full feature support'
+                    : 'Hyperchain via cached Herocast proxy — no API key, falls back to Neynar where unsupported'}
                 </p>
               </div>
               <Button

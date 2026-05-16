@@ -1,8 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { FarcasterCast } from '@/common/types/farcaster';
-import { apiFetch } from '@/lib/api-contracts';
-import { followingFeedResponseSchema } from '@/lib/api-contracts/feeds-following';
 import type { FeedResponse } from '@/lib/farcaster/providers';
+import { getProvider } from '@/lib/farcaster/providers';
 import { queryKeys } from '@/lib/queryKeys';
 
 const DEFAULT_LIMIT = 15;
@@ -10,36 +9,6 @@ const DEFAULT_LIMIT = 15;
 interface FollowingFeedOptions {
   limit?: number;
   enabled?: boolean;
-}
-
-/**
- * Build the following-feed URL with serialized query params.
- * Centralized so request/response stay in lockstep with the contract schema.
- */
-function buildFollowingFeedUrl(fid: number, limit: number, cursor?: string): string {
-  const params = new URLSearchParams({ fid: String(fid), limit: String(limit) });
-  if (cursor) params.set('cursor', cursor);
-  return `/api/feeds/following?${params.toString()}`;
-}
-
-/**
- * Fetch + Zod-validate one page of the following feed via the API contract.
- * The schema treats `casts` as `unknown[]`; consumers narrow to `FarcasterCast[]`.
- */
-async function fetchFollowingFeedPage(
-  fid: number,
-  limit: number,
-  cursor: string | undefined,
-  signal?: AbortSignal
-): Promise<FeedResponse> {
-  const data = await apiFetch(followingFeedResponseSchema, buildFollowingFeedUrl(fid, limit, cursor), {
-    signal,
-    perfName: 'feed:following',
-  });
-  return {
-    casts: data.casts as FarcasterCast[],
-    next: data.next,
-  };
 }
 
 /**
@@ -52,7 +21,7 @@ export function useFollowingFeed(fid: string, options?: FollowingFeedOptions) {
 
   return useQuery({
     queryKey: queryKeys.feeds.following(fid, { limit }),
-    queryFn: ({ signal }) => fetchFollowingFeedPage(Number(fid), limit, undefined, signal),
+    queryFn: ({ signal }) => getProvider().getFollowingFeed({ fid: Number(fid), limit, signal }),
     enabled: enabled && !!fid,
     // Override defaults for feed data which changes frequently
     staleTime: 1000 * 60 * 2, // 2 minutes for following feed
@@ -70,7 +39,8 @@ export function useFollowingFeedInfinite(fid: string, options?: FollowingFeedOpt
 
   return useInfiniteQuery({
     queryKey: queryKeys.feeds.following(fid, { limit }),
-    queryFn: ({ pageParam, signal }) => fetchFollowingFeedPage(Number(fid), limit, pageParam, signal),
+    queryFn: ({ pageParam, signal }) =>
+      getProvider().getFollowingFeed({ fid: Number(fid), limit, cursor: pageParam, signal }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!fid,

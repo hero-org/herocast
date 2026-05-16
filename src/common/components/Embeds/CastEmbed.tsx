@@ -1,6 +1,7 @@
 import isEmpty from 'lodash.isempty';
 import { useEffect, useState } from 'react';
 import type { FarcasterCast } from '@/common/types/farcaster';
+import { getProvider } from '@/lib/farcaster/providers';
 import { CastRow } from '../CastRow';
 import { EmbedSkeleton } from './EmbedSkeleton';
 
@@ -34,19 +35,13 @@ const CastEmbed = ({ url, castId, hideReactions }: CastEmbedProps) => {
           return;
         }
 
-        const params = new URLSearchParams({
+        const cast = await getProvider().getCastByIdentifier({
           identifier,
           type,
+          signal: controller.signal,
         });
-
-        const response = await fetch(`/api/casts/lookup?${params.toString()}`, { signal: controller.signal });
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
-        const res = await response.json();
-        if (!cancelled && res && res.cast) {
-          setCast(res.cast);
+        if (!cancelled) {
+          setCast(cast);
         }
       } catch (err) {
         // AbortError is expected on selection change — don't surface it.

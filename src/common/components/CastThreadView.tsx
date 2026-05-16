@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { CAST_AVATAR_CENTER, CAST_THREAD_LINE_LEFT } from '@/common/constants/layout';
 import type { FarcasterCast } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
+import { getProvider } from '@/lib/farcaster/providers';
 import { cn } from '@/lib/utils';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 import { CastRow } from './CastRow';
@@ -68,44 +69,25 @@ export const CastThreadView = ({ hash, cast, onBack, isActive, containerHeight =
       if (!threadHash) return;
 
       try {
-        const params = new URLSearchParams({
-          identifier: threadHash,
-          reply_depth: '1',
-          include_chronological_parent_casts: 'true',
+        const {
+          parents,
+          cast: focusedCast,
+          replies,
+        } = await getProvider().getConversation({
+          hash: threadHash,
+          replyDepth: 1,
         });
+        const orderedCasts = [...parents, focusedCast, ...replies];
+        setCasts(orderedCasts);
 
-        const response = await fetch(`/api/casts/conversation?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch cast conversation: ${response.statusText}`);
+        const focusedHash = cast?.hash || hash;
+        const focusedIdx = focusedHash ? orderedCasts.findIndex((c: FarcasterCast) => c.hash === focusedHash) : -1;
+        if (focusedIdx >= 0) {
+          setSelectedCastIdx(focusedIdx);
         }
 
-        const { conversation } = await response.json();
-        if (conversation?.cast?.direct_replies) {
-          const { direct_replies: replies, ...castObjectWithoutReplies } = conversation.cast;
-          const orderedCasts = (conversation.chronological_parent_casts || []).concat(
-            [castObjectWithoutReplies].concat(replies)
-          );
-          setCasts(orderedCasts);
-          // Set initial selection to the focused cast (the one we loaded the
-          // thread for) rather than the oldest parent. The virtualizer auto-
-          // scrolls to selectedCastIdx, so the focused cast lands in view
-          // with parents above scrollable up and replies below scrollable
-          // down — same UX as Twitter/X opening a tweet permalink.
-          const focusedHash = cast?.hash || hash;
-          const focusedIdx = focusedHash ? orderedCasts.findIndex((c: FarcasterCast) => c.hash === focusedHash) : -1;
-          if (focusedIdx >= 0) {
-            setSelectedCastIdx(focusedIdx);
-          }
-          // Auto-expand parent casts AND the root cast so the user lands on
-          // the full thread context immediately, no `read more...` clicks
-          // required for the casts they came here to read. Replies stay
-          // truncated to keep the list scannable.
-          const parentAndRootHashes = new Set<string>([
-            ...(conversation.chronological_parent_casts || []).map((c: FarcasterCast) => c.hash),
-            castObjectWithoutReplies.hash,
-          ]);
-          setExpandedCasts(parentAndRootHashes);
-        }
+        const parentAndRootHashes = new Set<string>([...parents.map((c) => c.hash), focusedCast.hash]);
+        setExpandedCasts(parentAndRootHashes);
       } catch (err) {
         console.error(`Error fetching cast thread: ${err}`);
       } finally {

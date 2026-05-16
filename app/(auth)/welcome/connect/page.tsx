@@ -1,6 +1,5 @@
 'use client';
 
-import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
@@ -12,6 +11,7 @@ import { getTimestamp } from '@/common/helpers/farcaster';
 import { useIsMounted } from '@/common/helpers/hooks';
 import { getWarpcastSignerStatus, WarpcastLoginStatus } from '@/common/helpers/warpcastLogin';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { getProvider } from '@/lib/farcaster/providers';
 import { type AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
@@ -45,8 +45,8 @@ const ConnectAccountPage = () => {
     const { status, data } = await getWarpcastSignerStatus(pendingAccount.data.signerToken);
     if (status === WarpcastLoginStatus.success) {
       const fid = data.userFid;
-      const neynarClient = new NeynarAPIClient(process.env.NEXT_PUBLIC_NEYNAR_API_KEY!);
-      const user = (await neynarClient.fetchBulkUsers([fid], { viewerFid: APP_FID! })).users[0];
+      const users = await getProvider().getBulkUsers({ fids: [fid], viewerFid: APP_FID });
+      const user = users[0];
       await setAccountActive(pendingAccount.id, user.username, {
         platform_account_id: user.fid.toString(),
         data,

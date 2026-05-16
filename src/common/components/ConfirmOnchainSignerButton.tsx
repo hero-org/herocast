@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAccount, useReadContract, useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { getProvider } from '@/lib/farcaster/providers';
 import { type AccountObjectType, hydrateAccounts, useAccountStore } from '@/stores/useAccountStore';
 import { KEY_GATEWAY } from '../constants/contracts/key-gateway';
 import { KEY_REGISTRY } from '../constants/contracts/key-registry';
@@ -83,13 +84,8 @@ const ConfirmOnchainSignerButton = ({ account }: ConfirmOnchainSignerButtonType)
       if (!isWalletOwnerOfFid) return;
 
       try {
-        const response = await fetch(`/api/users?fids=${idOfUser}&viewer_fid=${APP_FID}`);
-        if (!response.ok) {
-          console.error('Failed to fetch user:', response.status);
-          return;
-        }
-        const data = await response.json();
-        const user = data.users?.[0];
+        const users = await getProvider().getBulkUsers({ fids: [Number(idOfUser)], viewerFid: Number(APP_FID) });
+        const user = users[0];
         if (!user) {
           console.error('No user found for FID:', idOfUser);
           return;

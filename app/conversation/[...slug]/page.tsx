@@ -9,6 +9,7 @@ import { PageSkeleton } from '@/common/components/PageSkeleton';
 import type { FarcasterCast } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { getProvider } from '@/lib/farcaster/providers';
 import { useNavigationStore } from '@/stores/useNavigationStore';
 
 type LoadStatus = 'loading' | 'loaded' | 'not-found';
@@ -56,31 +57,18 @@ export default function ConversationPage() {
       setStatus('loading');
 
       try {
-        const lookupParams = new URLSearchParams({
+        const cast = await getProvider().getCastByIdentifier({
           identifier: payload.identifier,
           type: payload.type,
         });
-        const response = await fetch(`/api/casts/lookup?${lookupParams.toString()}`);
-        if (!response.ok) {
-          if (!cancelled) {
-            setStatus('not-found');
-          }
-          return;
-        }
-        const res = await response.json();
         if (cancelled) return;
-        if (res?.cast) {
-          setCast(res.cast);
-          updateSelectedCast(res.cast);
-          setStatus('loaded');
-        } else {
-          setStatus('not-found');
-        }
+        setCast(cast);
+        updateSelectedCast(cast);
+        setStatus('loaded');
       } catch (err) {
+        if (cancelled) return;
         console.error(`Error in conversation page: ${err} ${slug}`);
-        if (!cancelled) {
-          setStatus('not-found');
-        }
+        setStatus('not-found');
       }
     };
 

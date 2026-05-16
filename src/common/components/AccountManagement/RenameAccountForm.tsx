@@ -22,6 +22,7 @@ import type { FarcasterUser } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { getProvider } from '@/lib/farcaster/providers';
 import { type AccountObjectType, useAccountStore } from '@/stores/useAccountStore';
 
 export type RenameAccountFormValues = z.infer<typeof RenameAccountFormSchema>;
@@ -64,13 +65,11 @@ const RenameAccountForm = ({
   useEffect(() => {
     const getUserInProtocol = async () => {
       try {
-        const response = await fetch(`/api/users?fids=${account.platformAccountId}&viewer_fid=${APP_FID}`);
-        if (!response.ok) {
-          console.error('Failed to fetch user:', response.status);
-          return;
-        }
-        const data = await response.json();
-        const user = data.users?.[0];
+        const users = await getProvider().getBulkUsers({
+          fids: [Number(account.platformAccountId)],
+          viewerFid: APP_FID,
+        });
+        const user = users[0];
         if (user) {
           setUserInProtocol(user);
         }
@@ -107,13 +106,11 @@ const RenameAccountForm = ({
           return true;
         } else {
           try {
-            const response = await fetch(`/api/users?fids=${account.platformAccountId}&viewer_fid=${APP_FID}`);
-            if (!response.ok) {
-              console.error('Failed to fetch user:', response.status);
-              return false;
-            }
-            const data = await response.json();
-            const custodyAddress = data.users?.[0]?.custody_address;
+            const users = await getProvider().getBulkUsers({
+              fids: [Number(account.platformAccountId)],
+              viewerFid: APP_FID,
+            });
+            const custodyAddress = users[0]?.custody_address;
             const message = `Your connected wallet does not own the Farcaster account. Please connect with ${custodyAddress}. You are connected with ${address}`;
             console.log(message);
             form.setError('username', {
