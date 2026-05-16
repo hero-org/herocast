@@ -1,4 +1,3 @@
-import { getFarcasterMentions } from '@mod-protocol/farcaster';
 import { EditorContent } from '@tiptap/react';
 import { format, startOfToday } from 'date-fns';
 import { take } from 'lodash';
@@ -15,6 +14,7 @@ import { useAppHotkeys } from '@/common/hooks/useAppHotkeys';
 import { useCastEditor } from '@/common/hooks/useCastEditor';
 import { useChannelLookup } from '@/common/hooks/useChannelLookup';
 import { useCloudinaryUpload } from '@/common/hooks/useCloudinaryUpload';
+import type { FarcasterMention } from '@/common/types/embeds';
 import type { FarcasterChannel } from '@/common/types/farcaster';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -35,9 +35,6 @@ import { ChannelList } from '../ChannelList';
 import { ChannelPicker } from '../ChannelPicker';
 import { MentionList } from '../MentionsList';
 import { EmbedsEditor } from './EmbedsEditor';
-
-const API_URL = process.env.NEXT_PUBLIC_MOD_PROTOCOL_API_URL!;
-const getMentions = getFarcasterMentions(API_URL);
 
 // fetchUrlMetadata - simplified version (we don't use this for now, images go direct to cloudinary)
 const fetchUrlMetadata = async (url: string): Promise<Record<string, unknown>> => {
@@ -275,12 +272,23 @@ export default function NewPostEntry({
   // Create enhanced mention configuration that captures FIDs
   const mentionConfig = useMemo(() => {
     return createRenderMentionsSuggestionConfig({
-      getResults: async (query: string) => {
+      getResults: async (query: string): Promise<FarcasterMention[]> => {
+        if (query.length < 1) return [];
         try {
-          const results = await getMentions(query);
+          const rawFid = account?.platformAccountId ?? process.env.NEXT_PUBLIC_APP_FID;
+          const parsedFid = rawFid ? Number(rawFid) : Number.NaN;
+          const viewerFid = Number.isFinite(parsedFid) ? parsedFid : undefined;
+          const users = await getProvider().searchUsers({ q: query, viewerFid, limit: 5 });
+          const results: FarcasterMention[] = users.map((u) => ({
+            fid: u.fid,
+            username: u.username,
+            display_name: u.display_name,
+            avatar_url: u.pfp_url,
+            pfp_url: u.pfp_url,
+          }));
           // When results come back, check if any have FIDs and capture them
           // Use setTimeout to avoid state updates during render
-          if (results && Array.isArray(results)) {
+          if (results.length > 0) {
             setTimeout(() => {
               const newMentions = {};
               results.forEach((mention) => {
@@ -304,7 +312,7 @@ export default function NewPostEntry({
       },
       RenderList: MentionList,
     });
-  }, []);
+  }, [account?.platformAccountId]);
 
   const handleContentChange = useCallback(
     (text: string) => {
