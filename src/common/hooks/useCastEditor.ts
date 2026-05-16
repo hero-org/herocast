@@ -142,6 +142,8 @@ export function useCastEditor({
   // TipTap editor
   // immediatelyRender: false is required for SSR/Next.js to avoid hydration mismatches
   // See: https://tiptap.dev/docs/editor/getting-started/install/nextjs
+  // No deps array on useEditor by design — editor instance survives renders. Extension configs
+  // (suggestion handlers, paste/drop) are captured once at mount; read mutable state via refs (see #723).
   const editor = useTipTapEditor({
     extensions,
     content: '',
