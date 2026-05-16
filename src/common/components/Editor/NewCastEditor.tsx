@@ -129,6 +129,12 @@ export default function NewPostEntry({
 
   const lastSetTextRef = useRef<string | undefined>(draft.text);
 
+  // Read viewerFid via ref inside extension closures because useTipTapEditor has no deps array (see #723)
+  const viewerFidRef = useRef<string | undefined>(account?.platformAccountId);
+  useEffect(() => {
+    viewerFidRef.current = account?.platformAccountId;
+  }, [account?.platformAccountId]);
+
   // Use on-demand channel lookup for draft's parent URL
   const { channel: draftChannel } = useChannelLookup(draft.parentUrl);
 
@@ -275,7 +281,7 @@ export default function NewPostEntry({
       getResults: async (query: string): Promise<FarcasterMention[]> => {
         if (query.length < 1) return [];
         try {
-          const rawFid = account?.platformAccountId ?? process.env.NEXT_PUBLIC_APP_FID;
+          const rawFid = viewerFidRef.current ?? process.env.NEXT_PUBLIC_APP_FID;
           const parsedFid = rawFid ? Number(rawFid) : Number.NaN;
           const viewerFid = Number.isFinite(parsedFid) ? parsedFid : undefined;
           const users = await getProvider().searchUsers({ q: query, viewerFid, limit: 5 });
@@ -312,7 +318,7 @@ export default function NewPostEntry({
       },
       RenderList: MentionList,
     });
-  }, [account?.platformAccountId]);
+  }, []);
 
   const handleContentChange = useCallback(
     (text: string) => {
