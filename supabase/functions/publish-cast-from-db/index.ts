@@ -284,9 +284,15 @@ async function submitPreEncodedMessage({
   // Decode locally to recover the BLAKE3-20 hash before submission.
   // Per Spike 3 §S3-C1, we never trust the Hub response for the hash —
   // we already signed this message, so the hash is known client-side.
+  //
+  // Message.decode does NOT throw on malformed bytes; it returns a partial
+  // message with defaults. The hash field must be exactly BLAKE3-20 bytes,
+  // so validate the length to catch garbage payloads before we publish them.
   const decoded = Message.decode(messageBytes);
-  if (!decoded.hash || decoded.hash.length === 0) {
-    throw new Error('Pre-encoded message bytes are missing a hash field');
+  if (!decoded.hash || decoded.hash.length !== 20) {
+    throw new Error(
+      `Pre-encoded message bytes have invalid hash (length=${decoded.hash?.length ?? 0}, expected 20)`
+    );
   }
   const localHash = bytesToHex(decoded.hash);
 
