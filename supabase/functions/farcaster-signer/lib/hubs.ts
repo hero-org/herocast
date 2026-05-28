@@ -12,7 +12,12 @@
  * provider chain is exhausted the caller surfaces the error.
  */
 
-export type HubProvider = 'neynar' | 'hypersnap';
+// HubProvider is shared across edge functions — single source of truth lives
+// in _shared/ since each function has its own Deno module graph. Re-export
+// here so existing local imports (`import { HubProvider } from './hubs.ts'`)
+// keep working.
+export type { HubProvider } from '../../_shared/userPreferences.ts';
+import type { HubProvider } from '../../_shared/userPreferences.ts';
 
 const NEYNAR_HOSTS = [
   'https://snapchain-api.neynar.com',

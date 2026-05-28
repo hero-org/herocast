@@ -3,6 +3,7 @@ import { Message } from 'npm:@farcaster/core@0.14.19';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts';
 import { redactHeaders, redactSecrets } from '../_shared/redact.ts';
+import { getUserFarcasterProvider, type HubProvider } from '../_shared/userPreferences.ts';
 
 /**
  * Submission timeout for Hub /v1/submitMessage. Matches the signer service
@@ -236,37 +237,6 @@ async function callSignerService(
   return { hash: data.hash };
 }
 
-type HubProvider = 'neynar' | 'hypersnap';
-
-/**
- * Mirror of `farcaster-signer/lib/userPreferences.ts`. The cron uses a
- * service_role client (bypasses RLS) so this read always works for any user.
- * Read at PUBLISH time, not scheduling time (Spike 3 §11 lock-in).
- */
-async function getUserFarcasterProviderForCron(
-  supabaseClient: any,
-  userId: string
-): Promise<HubProvider> {
-  try {
-    const { data, error } = await supabaseClient
-      .from('user_preferences')
-      .select('preferences')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('[cron] userPreferences read failed:', error.message);
-      return 'neynar';
-    }
-
-    const prefs = data?.preferences as { farcasterProvider?: unknown } | null;
-    const val = prefs?.farcasterProvider;
-    return val === 'hypersnap' ? 'hypersnap' : 'neynar';
-  } catch (err) {
-    console.error('[cron] userPreferences unexpected error:', err);
-    return 'neynar';
-  }
-}
 
 async function submitPreEncodedMessage({
   encodedMessageBytes,
@@ -492,7 +462,7 @@ const publishDraft = async (supabaseClient, draftId) => {
       // Read the user-level Hub provider preference at PUBLISH time (not at
       // scheduling time — Spike 3 §11 lock-in). The cron's service-role client
       // bypasses RLS so this read always succeeds for any user.
-      const provider = await getUserFarcasterProviderForCron(supabaseClient, owner_user_id);
+      const provider = await getUserFarcasterProvider(supabaseClient, owner_user_id);
 
       // Check if we have pre-encoded message bytes (fast path — no signer call needed)
       if (draft.encoded_message_bytes && Array.isArray(draft.encoded_message_bytes)) {

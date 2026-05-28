@@ -9,7 +9,7 @@ import { corsHeaders, extractErrorCode, handleError } from '../lib/errors.ts';
 import type { HubProvider } from '../lib/hubs.ts';
 import { signAndSubmitUserData } from '../lib/sign.ts';
 import type { AuthResult } from '../lib/types.ts';
-import { getUserFarcasterProvider } from '../lib/userPreferences.ts';
+import { getUserFarcasterProvider } from '../../_shared/userPreferences.ts';
 import { UserDataRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**

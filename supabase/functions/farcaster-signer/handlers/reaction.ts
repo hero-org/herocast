@@ -9,7 +9,7 @@ import { corsHeaders, extractErrorCode, handleError, InvalidRequestError } from 
 import type { HubProvider } from '../lib/hubs.ts';
 import { removeReaction, signAndSubmitReaction } from '../lib/sign.ts';
 import type { AuthResult } from '../lib/types.ts';
-import { getUserFarcasterProvider } from '../lib/userPreferences.ts';
+import { getUserFarcasterProvider } from '../../_shared/userPreferences.ts';
 import { DeleteReactionRequestSchema, ReactionRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**

@@ -12,7 +12,7 @@ import type { HubProvider } from '../lib/hubs.ts';
 import { checkIdempotency, storeIdempotency } from '../lib/idempotency.ts';
 import { removeCast, signAndSubmitCast } from '../lib/sign.ts';
 import type { AuthResult } from '../lib/types.ts';
-import { getUserFarcasterProvider } from '../lib/userPreferences.ts';
+import { getUserFarcasterProvider } from '../../_shared/userPreferences.ts';
 import { type CastRequest, CastRequestSchema, DeleteCastRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**

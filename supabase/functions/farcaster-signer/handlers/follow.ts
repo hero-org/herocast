@@ -9,7 +9,7 @@ import { corsHeaders, extractErrorCode, handleError, InvalidRequestError } from 
 import type { HubProvider } from '../lib/hubs.ts';
 import { removeFollow, signAndSubmitFollow } from '../lib/sign.ts';
 import type { AuthResult } from '../lib/types.ts';
-import { getUserFarcasterProvider } from '../lib/userPreferences.ts';
+import { getUserFarcasterProvider } from '../../_shared/userPreferences.ts';
 import { FollowRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**
