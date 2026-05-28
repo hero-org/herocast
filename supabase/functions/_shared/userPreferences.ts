@@ -21,28 +21,20 @@
 export type HubProvider = 'neynar' | 'hypersnap';
 
 /**
- * Minimal structural type matching both the signer's typed `SupabaseClient`
- * and the cron's service-role client. Avoids picking a specifier style
- * (`npm:`, bare, `https://esm.sh/`) in this `_shared/` file — each caller
- * passes their own typed client and the shape is locally validated.
+ * Cross-function helper. Lives in `_shared/` because each Supabase edge
+ * function has its own Deno module graph and cannot import from a sibling
+ * function's `lib/`.
+ *
+ * `supabaseClient` is intentionally typed `any`: matching the real Supabase
+ * client structurally is awkward (`.maybeSingle()` returns a `PostgrestBuilder`
+ * thenable, not a `Promise`), and importing the typed `SupabaseClient` from
+ * `@supabase/supabase-js` here forces us to pick a Deno import specifier
+ * (`npm:`, bare, `https://esm.sh/`) that may not match each caller's import
+ * map. Each caller passes their own typed client; the query shape is locally
+ * validated by the chain below.
  */
-interface SupabaseLikeClient {
-  from(table: string): {
-    select(cols: string): {
-      eq(
-        col: string,
-        value: string
-      ): {
-        maybeSingle(): Promise<{ data: { preferences?: unknown } | null; error: { message: string } | null }>;
-      };
-    };
-  };
-}
-
-export async function getUserFarcasterProvider(
-  supabaseClient: SupabaseLikeClient,
-  userId: string
-): Promise<HubProvider> {
+// biome-ignore lint/suspicious/noExplicitAny: see docstring above
+export async function getUserFarcasterProvider(supabaseClient: any, userId: string): Promise<HubProvider> {
   try {
     const { data, error } = await supabaseClient
       .from('user_preferences')

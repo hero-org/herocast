@@ -224,7 +224,7 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
         const bodyText = await req.clone().text();
         const parsed = JSON.parse(bodyText);
         if (parsed.idempotency_key) {
-          await storeIdempotency(supabaseClient, accountId, parsed.idempotency_key, undefined, errorCode);
+          await storeIdempotency(supabaseClient, accountId, parsed.idempotency_key, undefined, extractErrorCode(error));
         }
       } catch {
         // Ignore errors when trying to store idempotency for failed requests
