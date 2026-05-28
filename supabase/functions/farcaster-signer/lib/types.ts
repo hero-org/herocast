@@ -4,6 +4,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+export type { HubProvider } from './hubs.ts';
+
 // ============================================================================
 // Request Types
 // ============================================================================
@@ -102,6 +104,7 @@ export type ErrorCode =
   | 'ACCOUNT_NOT_FOUND'
   | 'SIGNING_FAILED'
   | 'HUB_SUBMISSION_FAILED'
+  | 'HUB_UNKNOWN_STATE'
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
   | 'IDEMPOTENCY_CONFLICT'

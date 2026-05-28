@@ -179,7 +179,10 @@ export default function Settings() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setProviderType(providerType === 'neynar' ? 'hypersnap' : 'neynar')}
+                onClick={async () => {
+                  const next = providerType === 'neynar' ? 'hypersnap' : 'neynar';
+                  await setProviderType(next);
+                }}
               >
                 Switch to {providerType === 'neynar' ? 'Hypersnap' : 'Neynar'}
               </Button>

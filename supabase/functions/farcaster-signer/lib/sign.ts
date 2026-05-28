@@ -22,16 +22,16 @@ import {
   ReactionType,
   type UserDataType,
 } from 'npm:@farcaster/core@0.14.19';
-import { HubSubmissionFailedError } from './errors.ts';
+import { HubSubmissionFailedError, HubUnknownStateError } from './errors.ts';
+import { type HubProvider, pickHubChain } from './hubs.ts';
 
 // ============================================================================
-// Hub Endpoints
+// Hub Endpoints (now provider-aware — see ./hubs.ts)
 // ============================================================================
 
-/**
- * Hub endpoints to try in order of preference
- */
-const HUB_ENDPOINTS = ['https://snapchain-api.neynar.com', 'https://hub-api.neynar.com', 'https://hub.pinata.cloud'];
+// Per-request timeout for Hub submissions. Matches the legacy hub client used
+// in the client app and the budget chosen during Spike 3.
+const HUB_SUBMIT_TIMEOUT_MS = 8000;
 
 // ============================================================================
 // Types
@@ -50,6 +50,7 @@ export interface CastParams {
   mentions?: number[];
   mentionsPositions?: number[];
   castType?: 'cast' | 'long_cast';
+  provider?: HubProvider;
 }
 
 export interface ReactionParams {
@@ -58,18 +59,21 @@ export interface ReactionParams {
   type: 'like' | 'recast';
   targetFid: number;
   targetHash: string;
+  provider?: HubProvider;
 }
 
 export interface FollowParams {
   fid: number;
   privateKey: string;
   targetFid: number;
+  provider?: HubProvider;
 }
 
 export interface RemoveCastParams {
   fid: number;
   privateKey: string;
   castHash: string;
+  provider?: HubProvider;
 }
 
 export interface UserDataParams {
@@ -77,6 +81,7 @@ export interface UserDataParams {
   privateKey: string;
   type: UserDataType;
   value: string;
+  provider?: HubProvider;
 }
 
 // ============================================================================
@@ -113,16 +118,35 @@ function createSigner(privateKey: string): NobleEd25519Signer {
 }
 
 /**
- * Submit a message to the Hub using data_bytes approach
- * This bypasses Deno's protobuf serialization issues
+ * Convert bytes to a hex string (no leading 0x).
  */
-async function submitMessageToHub(message: Message, hubUrl: string): Promise<{ hash: string }> {
-  // CRITICAL: Use data_bytes to bypass protobuf serialization differences
-  // The Hub will use our pre-serialized bytes for hash verification
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/**
+ * Submit a message to the Hub using data_bytes approach.
+ *
+ * Behavior per Spike 3 (S3-P1 / S3-C1):
+ * - Bypasses Deno's protobuf serialization issues by including `dataBytes`.
+ * - 8s per-request timeout via AbortController. On timeout, throws
+ *   `HubUnknownStateError` so the caller does NOT silently retry against the
+ *   next host (the message may have landed).
+ * - `api_key` header is only set for Neynar. Hypersnap is unauthenticated.
+ * - Returns the locally-computed hash from `message.hash`, ignoring the Hub
+ *   response body shape entirely.
+ */
+async function submitMessageToHub(
+  message: Message,
+  hubUrl: string,
+  provider: HubProvider
+): Promise<{ hash: string }> {
+  // CRITICAL: Use data_bytes to bypass protobuf serialization differences.
+  // The Hub will use our pre-serialized bytes for hash verification.
   const dataBytes = MessageData.encode(message.data!).finish();
 
-  // Include both data and dataBytes - Hub should prefer dataBytes for hash verification
-  // when present, which bypasses re-serialization issues
   const messageWithDataBytes: Message = {
     data: message.data,
     hash: message.hash,
@@ -133,22 +157,38 @@ async function submitMessageToHub(message: Message, hubUrl: string): Promise<{ h
     dataBytes: dataBytes,
   };
 
-  // Encode message to bytes
   const messageBytes = Message.encode(messageWithDataBytes).finish();
 
-  // Use native fetch for binary data - more reliable in Deno than axios
-  const response = await fetch(`${hubUrl}/v1/submitMessage`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/octet-stream',
-      api_key: Deno.env.get('NEYNAR_API_KEY') || '',
-    },
-    body: messageBytes,
-  });
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/octet-stream',
+  };
+  if (provider === 'neynar') {
+    headers.api_key = Deno.env.get('NEYNAR_API_KEY') || '';
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), HUB_SUBMIT_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${hubUrl}/v1/submitMessage`, {
+      method: 'POST',
+      headers,
+      body: messageBytes,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if ((err as Error)?.name === 'AbortError') {
+      throw new HubUnknownStateError(hubUrl, provider);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
-    let errorData;
+    let errorData: { errCode?: string; message?: string };
     try {
       errorData = JSON.parse(errorText);
     } catch {
@@ -157,7 +197,53 @@ async function submitMessageToHub(message: Message, hubUrl: string): Promise<{ h
     throw new Error(errorData.errCode || errorData.message || `HTTP ${response.status}`);
   }
 
-  return response.json();
+  // Drain the body but ignore its shape — we trust the locally-computed hash.
+  await response.text().catch(() => '');
+
+  return { hash: bytesToHex(message.hash) };
+}
+
+/**
+ * Submit a message to the provider's hub chain.
+ *
+ * - On `HubUnknownStateError` (timeout): re-throws immediately. No chain
+ *   retry — the request may have already landed and a retry would risk a
+ *   silent duplicate publish.
+ * - On any other error (5xx / network / 4xx surfaced as `Error`): continues
+ *   to the next host in the chain (Neynar's 3-host internal redundancy).
+ * - Surfaces the final error if all hosts fail.
+ */
+async function submitMessageWithChain(
+  message: Message,
+  provider: HubProvider,
+  logPrefix: string
+): Promise<string> {
+  const hubs = pickHubChain(provider);
+  let lastError: unknown;
+  for (const hubUrl of hubs) {
+    try {
+      console.log(`[${logPrefix}] Trying hub: ${hubUrl} (provider=${provider})`);
+      const result = await submitMessageToHub(message, hubUrl, provider);
+      console.log(`[${logPrefix}] Success with hub: ${hubUrl}, hash: ${result.hash}`);
+      return result.hash;
+    } catch (err) {
+      if (err instanceof HubUnknownStateError) {
+        // Final state unknown — surface immediately, do NOT try next host.
+        throw err;
+      }
+      console.log(
+        `[${logPrefix}] Hub ${hubUrl} failed:`,
+        (err as { response?: { data?: { errCode?: string; message?: string } } })?.response?.data?.errCode ||
+          (err as { response?: { data?: { errCode?: string; message?: string } } })?.response?.data?.message ||
+          (err as Error)?.message
+      );
+      lastError = err;
+    }
+  }
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+  throw new Error('All Hub submission attempts failed');
 }
 
 // ============================================================================
@@ -169,7 +255,18 @@ async function submitMessageToHub(message: Message, hubUrl: string): Promise<{ h
  * Tries multiple Hub endpoints until one succeeds
  */
 export async function signAndSubmitCast(params: CastParams): Promise<string> {
-  const { fid, privateKey, text, parentUrl, parentCastId, embeds, mentions, mentionsPositions, castType } = params;
+  const {
+    fid,
+    privateKey,
+    text,
+    parentUrl,
+    parentCastId,
+    embeds,
+    mentions,
+    mentionsPositions,
+    castType,
+    provider = 'neynar',
+  } = params;
 
   const signer = createSigner(privateKey);
 
@@ -243,28 +340,16 @@ export async function signAndSubmitCast(params: CastParams): Promise<string> {
   }
 
   const message = msgResult.value;
-  let lastError: Error | null = null;
 
-  for (const hubUrl of HUB_ENDPOINTS) {
-    try {
-      console.log(`[signAndSubmitCast] Trying hub: ${hubUrl}`);
-
-      const result = await submitMessageToHub(message, hubUrl);
-
-      console.log(`[signAndSubmitCast] Success with hub: ${hubUrl}, hash: ${result.hash}`);
-      return result.hash;
-    } catch (error) {
-      console.log(
-        `[signAndSubmitCast] Hub ${hubUrl} failed:`,
-        error?.response?.data?.errCode || error?.response?.data?.message || error?.message
-      );
-      lastError = error;
-    }
+  try {
+    return await submitMessageWithChain(message, provider, 'signAndSubmitCast');
+  } catch (err) {
+    if (err instanceof HubUnknownStateError) throw err;
+    const error = err as { response?: { data?: unknown }; message?: string };
+    throw new HubSubmissionFailedError(`Failed to submit cast to all Hub endpoints: ${error?.message}`, {
+      lastError: error?.response?.data || error?.message,
+    });
   }
-
-  throw new HubSubmissionFailedError(`Failed to submit cast to all Hub endpoints: ${lastError?.message}`, {
-    lastError: lastError?.response?.data || lastError?.message,
-  });
 }
 
 // ============================================================================
@@ -275,7 +360,7 @@ export async function signAndSubmitCast(params: CastParams): Promise<string> {
  * Sign and submit a user data update (bio, display name, pfp, username)
  */
 export async function signAndSubmitUserData(params: UserDataParams): Promise<string> {
-  const { fid, privateKey, type, value } = params;
+  const { fid, privateKey, type, value, provider = 'neynar' } = params;
 
   const signer = createSigner(privateKey);
 
@@ -292,32 +377,23 @@ export async function signAndSubmitUserData(params: UserDataParams): Promise<str
   }
 
   const message = msgResult.value;
-  let lastError: Error | null = null;
 
-  for (const hubUrl of HUB_ENDPOINTS) {
-    try {
-      console.log(`[signAndSubmitUserData] Trying hub: ${hubUrl}`);
-
-      const result = await submitMessageToHub(message, hubUrl);
-
-      console.log(`[signAndSubmitUserData] Success with hub: ${hubUrl}, hash: ${result?.hash}`);
-      return result?.hash;
-    } catch (error) {
-      console.log(`[signAndSubmitUserData] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
-      lastError = error;
-    }
+  try {
+    return await submitMessageWithChain(message, provider, 'signAndSubmitUserData');
+  } catch (err) {
+    if (err instanceof HubUnknownStateError) throw err;
+    const error = err as { response?: { data?: unknown }; message?: string };
+    throw new HubSubmissionFailedError(`Failed to submit user data to all Hub endpoints: ${error?.message}`, {
+      lastError: error?.response?.data || error?.message,
+    });
   }
-
-  throw new HubSubmissionFailedError(`Failed to submit user data to all Hub endpoints: ${lastError?.message}`, {
-    lastError: lastError?.response?.data || lastError?.message,
-  });
 }
 
 /**
  * Remove a cast from the Farcaster network
  */
 export async function removeCast(params: RemoveCastParams): Promise<string> {
-  const { fid, privateKey, castHash } = params;
+  const { fid, privateKey, castHash, provider = 'neynar' } = params;
 
   const signer = createSigner(privateKey);
 
@@ -341,25 +417,16 @@ export async function removeCast(params: RemoveCastParams): Promise<string> {
   }
 
   const message = msgResult.value;
-  let lastError: Error | null = null;
 
-  for (const hubUrl of HUB_ENDPOINTS) {
-    try {
-      console.log(`[removeCast] Trying hub: ${hubUrl}`);
-
-      const result = await submitMessageToHub(message, hubUrl);
-
-      console.log(`[removeCast] Success with hub: ${hubUrl}, hash: ${result?.hash}`);
-      return result?.hash ?? castHash;
-    } catch (error) {
-      console.log(`[removeCast] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
-      lastError = error;
-    }
+  try {
+    return await submitMessageWithChain(message, provider, 'removeCast');
+  } catch (err) {
+    if (err instanceof HubUnknownStateError) throw err;
+    const error = err as { response?: { data?: unknown }; message?: string };
+    throw new HubSubmissionFailedError(`Failed to remove cast from all Hub endpoints: ${error?.message}`, {
+      lastError: error?.response?.data || error?.message,
+    });
   }
-
-  throw new HubSubmissionFailedError(`Failed to remove cast from all Hub endpoints: ${lastError?.message}`, {
-    lastError: lastError?.response?.data || lastError?.message,
-  });
 }
 
 // ============================================================================
@@ -370,7 +437,7 @@ export async function removeCast(params: RemoveCastParams): Promise<string> {
  * Sign and submit a reaction (like or recast) to the Farcaster network
  */
 export async function signAndSubmitReaction(params: ReactionParams): Promise<string> {
-  const { fid, privateKey, type, targetFid, targetHash } = params;
+  const { fid, privateKey, type, targetFid, targetHash, provider = 'neynar' } = params;
 
   const signer = createSigner(privateKey);
 
@@ -402,32 +469,23 @@ export async function signAndSubmitReaction(params: ReactionParams): Promise<str
   }
 
   const message = msgResult.value;
-  let lastError: Error | null = null;
 
-  for (const hubUrl of HUB_ENDPOINTS) {
-    try {
-      console.log(`[signAndSubmitReaction] Trying hub: ${hubUrl}`);
-
-      const result = await submitMessageToHub(message, hubUrl);
-
-      console.log(`[signAndSubmitReaction] Success with hub: ${hubUrl}, hash: ${result?.hash}`);
-      return result?.hash ?? targetHash;
-    } catch (error) {
-      console.log(`[signAndSubmitReaction] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
-      lastError = error;
-    }
+  try {
+    return await submitMessageWithChain(message, provider, 'signAndSubmitReaction');
+  } catch (err) {
+    if (err instanceof HubUnknownStateError) throw err;
+    const error = err as { response?: { data?: unknown }; message?: string };
+    throw new HubSubmissionFailedError(`Failed to submit reaction to all Hub endpoints: ${error?.message}`, {
+      lastError: error?.response?.data || error?.message,
+    });
   }
-
-  throw new HubSubmissionFailedError(`Failed to submit reaction to all Hub endpoints: ${lastError?.message}`, {
-    lastError: lastError?.response?.data || lastError?.message,
-  });
 }
 
 /**
  * Remove a reaction (like or recast) from the Farcaster network
  */
 export async function removeReaction(params: ReactionParams): Promise<string> {
-  const { fid, privateKey, type, targetFid, targetHash } = params;
+  const { fid, privateKey, type, targetFid, targetHash, provider = 'neynar' } = params;
 
   const signer = createSigner(privateKey);
 
@@ -459,25 +517,16 @@ export async function removeReaction(params: ReactionParams): Promise<string> {
   }
 
   const message = msgResult.value;
-  let lastError: Error | null = null;
 
-  for (const hubUrl of HUB_ENDPOINTS) {
-    try {
-      console.log(`[removeReaction] Trying hub: ${hubUrl}`);
-
-      const result = await submitMessageToHub(message, hubUrl);
-
-      console.log(`[removeReaction] Success with hub: ${hubUrl}, hash: ${result?.hash}`);
-      return result?.hash ?? targetHash;
-    } catch (error) {
-      console.log(`[removeReaction] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
-      lastError = error;
-    }
+  try {
+    return await submitMessageWithChain(message, provider, 'removeReaction');
+  } catch (err) {
+    if (err instanceof HubUnknownStateError) throw err;
+    const error = err as { response?: { data?: unknown }; message?: string };
+    throw new HubSubmissionFailedError(`Failed to remove reaction from all Hub endpoints: ${error?.message}`, {
+      lastError: error?.response?.data || error?.message,
+    });
   }
-
-  throw new HubSubmissionFailedError(`Failed to remove reaction from all Hub endpoints: ${lastError?.message}`, {
-    lastError: lastError?.response?.data || lastError?.message,
-  });
 }
 
 // ============================================================================
@@ -488,7 +537,7 @@ export async function removeReaction(params: ReactionParams): Promise<string> {
  * Sign and submit a follow link to the Farcaster network
  */
 export async function signAndSubmitFollow(params: FollowParams): Promise<string> {
-  const { fid, privateKey, targetFid } = params;
+  const { fid, privateKey, targetFid, provider = 'neynar' } = params;
 
   const signer = createSigner(privateKey);
 
@@ -510,32 +559,23 @@ export async function signAndSubmitFollow(params: FollowParams): Promise<string>
   }
 
   const message = msgResult.value;
-  let lastError: Error | null = null;
 
-  for (const hubUrl of HUB_ENDPOINTS) {
-    try {
-      console.log(`[signAndSubmitFollow] Trying hub: ${hubUrl}`);
-
-      const result = await submitMessageToHub(message, hubUrl);
-
-      console.log(`[signAndSubmitFollow] Success with hub: ${hubUrl}, hash: ${result?.hash}`);
-      return result?.hash ?? `follow-${targetFid}`;
-    } catch (error) {
-      console.log(`[signAndSubmitFollow] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
-      lastError = error;
-    }
+  try {
+    return await submitMessageWithChain(message, provider, 'signAndSubmitFollow');
+  } catch (err) {
+    if (err instanceof HubUnknownStateError) throw err;
+    const error = err as { response?: { data?: unknown }; message?: string };
+    throw new HubSubmissionFailedError(`Failed to submit follow to all Hub endpoints: ${error?.message}`, {
+      lastError: error?.response?.data || error?.message,
+    });
   }
-
-  throw new HubSubmissionFailedError(`Failed to submit follow to all Hub endpoints: ${lastError?.message}`, {
-    lastError: lastError?.response?.data || lastError?.message,
-  });
 }
 
 /**
  * Remove a follow link from the Farcaster network (unfollow)
  */
 export async function removeFollow(params: FollowParams): Promise<string> {
-  const { fid, privateKey, targetFid } = params;
+  const { fid, privateKey, targetFid, provider = 'neynar' } = params;
 
   const signer = createSigner(privateKey);
 
@@ -557,23 +597,14 @@ export async function removeFollow(params: FollowParams): Promise<string> {
   }
 
   const message = msgResult.value;
-  let lastError: Error | null = null;
 
-  for (const hubUrl of HUB_ENDPOINTS) {
-    try {
-      console.log(`[removeFollow] Trying hub: ${hubUrl}`);
-
-      const result = await submitMessageToHub(message, hubUrl);
-
-      console.log(`[removeFollow] Success with hub: ${hubUrl}, hash: ${result?.hash}`);
-      return result?.hash ?? `unfollow-${targetFid}`;
-    } catch (error) {
-      console.log(`[removeFollow] Hub ${hubUrl} failed:`, error?.response?.data?.errCode || error?.message);
-      lastError = error;
-    }
+  try {
+    return await submitMessageWithChain(message, provider, 'removeFollow');
+  } catch (err) {
+    if (err instanceof HubUnknownStateError) throw err;
+    const error = err as { response?: { data?: unknown }; message?: string };
+    throw new HubSubmissionFailedError(`Failed to remove follow from all Hub endpoints: ${error?.message}`, {
+      lastError: error?.response?.data || error?.message,
+    });
   }
-
-  throw new HubSubmissionFailedError(`Failed to remove follow from all Hub endpoints: ${lastError?.message}`, {
-    lastError: lastError?.response?.data || lastError?.message,
-  });
 }

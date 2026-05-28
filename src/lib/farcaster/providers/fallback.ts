@@ -1,3 +1,4 @@
+import { usePerformanceStore } from '@/stores/usePerformanceStore';
 import { type FarcasterProvider, UnsupportedProviderFeatureError } from './types';
 
 type ProviderMethod = (this: FarcasterProvider, ...args: unknown[]) => unknown;
@@ -19,6 +20,19 @@ export function createFallbackProvider(primary: FarcasterProvider, fallback: Far
           return await (value as ProviderMethod).apply(target, args);
         } catch (error) {
           if (error instanceof UnsupportedProviderFeatureError) {
+            usePerformanceStore.getState().addMetric({
+              name: 'provider:fallback',
+              duration: 0,
+              timestamp: Date.now(),
+              threshold: 0,
+              status: 'warning', // ensures PostHog emission
+              metadata: {
+                method: String(prop),
+                reason: 'unsupported',
+                from: primary.type,
+                to: fallback.type,
+              },
+            });
             const fallbackMethod = Reflect.get(fallback, prop);
             if (typeof fallbackMethod === 'function') {
               return (fallbackMethod as ProviderMethod).apply(fallback, args);

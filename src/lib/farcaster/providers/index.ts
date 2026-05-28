@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 import { getQueryClient } from '@/lib/queryClient';
+import { useUserSettingsStore } from '@/stores/useUserSettingsStore';
 import { createFallbackProvider } from './fallback';
 import { createHypersnapProvider } from './hypersnap';
 import { createNeynarProvider } from './neynar';
@@ -11,6 +12,10 @@ const STORAGE_KEY = 'farcaster-provider';
 
 export function getProviderType(): ProviderType {
   if (typeof window === 'undefined') return 'neynar';
+  // Prefer the hydrated store value
+  const storeValue = useUserSettingsStore.getState().farcasterProvider;
+  if (storeValue) return storeValue;
+  // Fallback for very early reads before store hydrate completes
   return (localStorage.getItem(STORAGE_KEY) as ProviderType) || 'neynar';
 }
 
@@ -70,12 +75,11 @@ export function useProviderSwitch() {
  * ```
  */
 export function useFarcasterProviderValue() {
-  const [providerType, _setProviderType] = useState<ProviderType>(getProviderType);
+  const providerType = useUserSettingsStore((s) => s.farcasterProvider);
 
-  const setProviderType = useCallback((type: ProviderType) => {
-    localStorage.setItem(STORAGE_KEY, type);
-    _provider = null; // Reset singleton
-    _setProviderType(type);
+  const setProviderType = useCallback(async (type: ProviderType) => {
+    await useUserSettingsStore.getState().setFarcasterProvider(type);
+    _provider = null; // Reset singleton so getProvider() rebuilds with the new type
     // Clear all cached data so it refreshes from the new provider
     getQueryClient().invalidateQueries();
   }, []);

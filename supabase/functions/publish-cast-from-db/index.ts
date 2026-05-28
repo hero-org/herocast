@@ -1,9 +1,21 @@
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
-import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
+import { Message } from 'npm:@farcaster/core@0.14.19';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import axios from 'npm:axios';
 import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts';
 import { redactHeaders, redactSecrets } from '../_shared/redact.ts';
+
+/**
+ * Submission timeout for Hub /v1/submitMessage. Matches the signer service
+ * (sign.ts HUB_SUBMIT_TIMEOUT_MS). Spike 3 §S3-P1: surface "unknown state"
+ * rather than fall back silently.
+ */
+const HUB_SUBMIT_TIMEOUT_MS = 8000;
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
@@ -224,28 +236,112 @@ async function callSignerService(
   return { hash: data.hash };
 }
 
-async function submitPreEncodedMessage({ encodedMessageBytes }: { encodedMessageBytes: number[] }): Promise<string> {
+type HubProvider = 'neynar' | 'hypersnap';
+
+/**
+ * Mirror of `farcaster-signer/lib/userPreferences.ts`. The cron uses a
+ * service_role client (bypasses RLS) so this read always works for any user.
+ * Read at PUBLISH time, not scheduling time (Spike 3 §11 lock-in).
+ */
+async function getUserFarcasterProviderForCron(
+  supabaseClient: any,
+  userId: string
+): Promise<HubProvider> {
+  try {
+    const { data, error } = await supabaseClient
+      .from('user_preferences')
+      .select('preferences')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[cron] userPreferences read failed:', error.message);
+      return 'neynar';
+    }
+
+    const prefs = data?.preferences as { farcasterProvider?: unknown } | null;
+    const val = prefs?.farcasterProvider;
+    return val === 'hypersnap' ? 'hypersnap' : 'neynar';
+  } catch (err) {
+    console.error('[cron] userPreferences unexpected error:', err);
+    return 'neynar';
+  }
+}
+
+async function submitPreEncodedMessage({
+  encodedMessageBytes,
+  provider,
+}: {
+  encodedMessageBytes: number[];
+  provider: HubProvider;
+}): Promise<string> {
   console.log('=== USING PRE-ENCODED MESSAGE BYTES ===');
   console.log('Message bytes length:', encodedMessageBytes.length);
+  console.log('Provider:', provider);
 
   const messageBytes = new Uint8Array(encodedMessageBytes);
 
-  const axiosInstance = axios.create({
-    headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
-  });
+  // Decode locally to recover the BLAKE3-20 hash before submission.
+  // Per Spike 3 §S3-C1, we never trust the Hub response for the hash —
+  // we already signed this message, so the hash is known client-side.
+  const decoded = Message.decode(messageBytes);
+  if (!decoded.hash || decoded.hash.length === 0) {
+    throw new Error('Pre-encoded message bytes are missing a hash field');
+  }
+  const localHash = bytesToHex(decoded.hash);
 
-  const writeClient = new HubRestAPIClient({
-    hubUrl: 'https://snapchain-api.neynar.com',
-    axiosInstance,
-  });
+  const hubUrl =
+    provider === 'hypersnap' ? 'https://haatz.quilibrium.com' : 'https://snapchain-api.neynar.com';
 
-  console.log('Submitting pre-encoded message bytes...');
-  const response = await writeClient.apis.submitMessage.submitMessage({
-    body: messageBytes,
-  });
+  // Per Spike 3 §S3-P1: 8s timeout, no cross-provider fallback.
+  // On timeout the caller catches and marks the draft as failed; we do NOT
+  // retry against the other Hub (the user picked this one).
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), HUB_SUBMIT_TIMEOUT_MS);
 
-  console.log('SUCCESS! Cast hash:', response.data.hash);
-  return response.data.hash;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/octet-stream',
+  };
+  if (provider === 'neynar') {
+    headers.api_key = Deno.env.get('NEYNAR_API_KEY') || '';
+  }
+
+  console.log('Submitting pre-encoded message bytes to', hubUrl);
+  let response: Response;
+  try {
+    response = await fetch(`${hubUrl}/v1/submitMessage`, {
+      method: 'POST',
+      headers,
+      body: messageBytes,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if ((err as Error)?.name === 'AbortError') {
+      throw new Error(
+        `Submission to ${hubUrl} (${provider}) timed out after ${HUB_SUBMIT_TIMEOUT_MS}ms. Status unknown — check the profile before retrying.`
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    let errorData: { errCode?: string; message?: string };
+    try {
+      errorData = JSON.parse(errorText) as { errCode?: string; message?: string };
+    } catch {
+      errorData = { message: errorText };
+    }
+    throw new Error(errorData.errCode || errorData.message || `HTTP ${response.status}`);
+  }
+
+  // Drain body but ignore its shape (Hypersnap and Neynar may differ).
+  await response.text().catch(() => '');
+
+  console.log('SUCCESS! Cast hash (local):', localHash);
+  return localHash;
 }
 
 async function submitViaSignerService({
@@ -387,11 +483,17 @@ const publishDraft = async (supabaseClient, draftId) => {
       console.log('submit draft to protocol - draftId:', draftId);
       console.log('account fid:', Number(account.platform_account_id));
 
+      // Read the user-level Hub provider preference at PUBLISH time (not at
+      // scheduling time — Spike 3 §11 lock-in). The cron's service-role client
+      // bypasses RLS so this read always succeeds for any user.
+      const provider = await getUserFarcasterProviderForCron(supabaseClient, owner_user_id);
+
       // Check if we have pre-encoded message bytes (fast path — no signer call needed)
       if (draft.encoded_message_bytes && Array.isArray(draft.encoded_message_bytes)) {
         console.log('Found pre-encoded message bytes, using reliable submission...');
         await submitPreEncodedMessage({
           encodedMessageBytes: draft.encoded_message_bytes,
+          provider,
         });
       } else {
         console.log('No pre-encoded bytes found, using fallback approach...');

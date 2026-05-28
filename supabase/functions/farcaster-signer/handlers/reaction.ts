@@ -5,9 +5,11 @@
 
 import { getAccountForSigning } from '../lib/accounts.ts';
 import { logSigningAction } from '../lib/audit.ts';
-import { corsHeaders, handleError, InvalidRequestError } from '../lib/errors.ts';
+import { corsHeaders, extractErrorCode, handleError, InvalidRequestError } from '../lib/errors.ts';
+import type { HubProvider } from '../lib/hubs.ts';
 import { removeReaction, signAndSubmitReaction } from '../lib/sign.ts';
 import type { AuthResult } from '../lib/types.ts';
+import { getUserFarcasterProvider } from '../lib/userPreferences.ts';
 import { DeleteReactionRequestSchema, ReactionRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**
@@ -18,6 +20,7 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
   const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
+  let provider: HubProvider = 'neynar';
 
   try {
     // Parse and validate request body
@@ -36,6 +39,9 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
     const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = signingAccount.userId;
 
+    // Read the user-level Hub provider preference (default 'neynar').
+    provider = await getUserFarcasterProvider(supabaseClient, signingAccount.userId);
+
     // Sign and submit the reaction
     const hash = await signAndSubmitReaction({
       fid: signingAccount.fid,
@@ -43,6 +49,7 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
       type: reactionType,
       targetFid: target.fid,
       targetHash: target.hash,
+      provider,
     });
 
     // Log success to audit
@@ -53,6 +60,7 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: reactionType,
         success: true,
       });
@@ -81,9 +89,10 @@ export async function handlePostReaction(req: Request, authResult: AuthResult): 
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'reaction',
         success: false,
-        errorCode: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: extractErrorCode(error),
       });
     }
 
@@ -99,6 +108,7 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
   const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
+  let provider: HubProvider = 'neynar';
 
   try {
     // Parse and validate request body
@@ -117,6 +127,9 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
     const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = signingAccount.userId;
 
+    // Read the user-level Hub provider preference (default 'neynar').
+    provider = await getUserFarcasterProvider(supabaseClient, signingAccount.userId);
+
     // Remove the reaction
     const hash = await removeReaction({
       fid: signingAccount.fid,
@@ -124,6 +137,7 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
       type: reactionType,
       targetFid: target.fid,
       targetHash: target.hash,
+      provider,
     });
 
     // Log success to audit
@@ -134,6 +148,7 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: `remove_${reactionType}`,
         success: true,
       });
@@ -162,9 +177,10 @@ export async function handleDeleteReaction(req: Request, authResult: AuthResult)
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'remove_reaction',
         success: false,
-        errorCode: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: extractErrorCode(error),
       });
     }
 

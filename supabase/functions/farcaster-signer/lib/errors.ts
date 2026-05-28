@@ -40,6 +40,7 @@ export const ErrorCodes = {
 
   // Hub errors
   HUB_SUBMISSION_FAILED: 'HUB_SUBMISSION_FAILED',
+  HUB_UNKNOWN_STATE: 'HUB_UNKNOWN_STATE',
 
   // Rate limiting
   RATE_LIMITED: 'RATE_LIMITED',
@@ -132,6 +133,24 @@ export class HubSubmissionFailedError extends SignerServiceError {
 }
 
 /**
+ * Hub submission timed out — final state is unknown (504).
+ *
+ * Per Spike 3 (S3-P1), a timeout against the user's selected provider is a
+ * terminal error: we do NOT fall back to the other provider (silent duplicate
+ * publish would be worse than a clear error). The Neynar branch's internal
+ * 3-host chain also does NOT retry on timeout — only on 5xx/network.
+ */
+export class HubUnknownStateError extends SignerServiceError {
+  constructor(hubUrl: string, provider: 'neynar' | 'hypersnap') {
+    super(
+      'HUB_UNKNOWN_STATE',
+      `Submission to ${hubUrl} (${provider}) timed out. Status unknown — check your profile before retrying.`,
+      504
+    );
+  }
+}
+
+/**
  * Rate limited error (429)
  */
 export class RateLimitedError extends SignerServiceError {
@@ -209,6 +228,22 @@ export function errorToResponse(error: SignerServiceError): Response {
       'Content-Type': 'application/json',
     },
   });
+}
+
+/**
+ * Map an unknown error to a stable audit `error_code` string.
+ *
+ * Centralizes the pattern previously inlined in `handlers/cast.ts` so all
+ * handlers (cast, reaction, follow, user-data) write the same shape to
+ * `signing_audit_log.error_code` — a code string like `HUB_UNKNOWN_STATE`,
+ * not a free-form error message.
+ */
+export function extractErrorCode(error: unknown): string {
+  if (error instanceof SignerServiceError) return error.code;
+  if (error instanceof Error && error.name === 'ValidationError') {
+    return (error as { code?: string }).code ?? 'INVALID_MESSAGE';
+  }
+  return 'INTERNAL_ERROR';
 }
 
 /**

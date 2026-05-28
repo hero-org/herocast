@@ -3,6 +3,7 @@ import { useDraftStore } from './useDraftStore';
 import { useListStore } from './useListStore';
 import { useNotificationStore } from './useNotificationStore';
 import { endTiming, startTiming } from './usePerformanceStore';
+import { useUserSettingsStore } from './useUserSettingsStore';
 import { useUserStore } from './useUserStore';
 import { useWorkspaceStore } from './useWorkspaceStore';
 
@@ -15,6 +16,7 @@ export const initializeStores = async () => {
     useDraftStore.getState().hydrate(),
     useNotificationStore.getState().hydrate(),
     useWorkspaceStore.getState().hydrate(),
+    useUserSettingsStore.getState().hydrate(),
   ]);
   // console.log('Done initializing stores 🤩')
 };
@@ -50,6 +52,7 @@ export const initializeStoresProgressive = async () => {
     useListStore.getState().hydrate(),
     useUserStore.getState().hydrate(),
     useWorkspaceStore.getState().hydrate(),
+    useUserSettingsStore.getState().hydrate(),
   ])
     .then(() => {
       const phase2Duration = endTiming(phase2TimingId, 3000); // Target: <3s for full load

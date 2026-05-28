@@ -7,17 +7,13 @@ import { processMentionsInText } from '../../_shared/mentions.ts';
 import { getAccountForSigning } from '../lib/accounts.ts';
 import { logSigningAction } from '../lib/audit.ts';
 import { resolveChannelToUrl } from '../lib/channels.ts';
-import { corsHeaders, handleError, InvalidRequestError, SignerServiceError } from '../lib/errors.ts';
+import { corsHeaders, extractErrorCode, handleError, InvalidRequestError } from '../lib/errors.ts';
+import type { HubProvider } from '../lib/hubs.ts';
 import { checkIdempotency, storeIdempotency } from '../lib/idempotency.ts';
 import { removeCast, signAndSubmitCast } from '../lib/sign.ts';
 import type { AuthResult } from '../lib/types.ts';
-import {
-  type CastRequest,
-  CastRequestSchema,
-  DeleteCastRequestSchema,
-  ValidationError,
-  validateRequest,
-} from '../lib/validate.ts';
+import { getUserFarcasterProvider } from '../lib/userPreferences.ts';
+import { type CastRequest, CastRequestSchema, DeleteCastRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**
  * Transform embeds from validation schema format (snake_case) to sign.ts format (camelCase)
@@ -75,6 +71,7 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
   const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
+  let provider: HubProvider = 'neynar';
 
   try {
     // 1. Parse JSON body
@@ -161,6 +158,9 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
     const account = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = account.userId;
 
+    // Read the user-level Hub provider preference (default 'neynar').
+    provider = await getUserFarcasterProvider(supabaseClient, account.userId);
+
     // 7. Sign and submit cast
     const hash = await signAndSubmitCast({
       fid: account.fid,
@@ -172,6 +172,7 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
       mentions: finalMentions,
       mentionsPositions: finalMentionsPositions,
       castType: validated.cast_type,
+      provider,
     });
 
     // 8. Store idempotency result if key provided
@@ -187,6 +188,7 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'cast',
         success: true,
       });
@@ -199,16 +201,6 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
       fid: account.fid,
     });
   } catch (error) {
-    // Determine error code for audit logging
-    let errorCode: string | undefined;
-    if (error instanceof SignerServiceError) {
-      errorCode = error.code;
-    } else if (error instanceof ValidationError) {
-      errorCode = error.code;
-    } else {
-      errorCode = 'INTERNAL_ERROR';
-    }
-
     // Log failed action to audit if we have an account ID
     if (accountId && auditUserId) {
       await logSigningAction({
@@ -217,9 +209,10 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'cast',
         success: false,
-        errorCode,
+        errorCode: extractErrorCode(error),
       });
     }
 
@@ -258,6 +251,7 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
   const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
+  let provider: HubProvider = 'neynar';
 
   try {
     // 1. Parse JSON body
@@ -276,11 +270,15 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
     const account = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = account.userId;
 
+    // Read the user-level Hub provider preference (default 'neynar').
+    provider = await getUserFarcasterProvider(supabaseClient, account.userId);
+
     // 4. Remove cast
     await removeCast({
       fid: account.fid,
       privateKey: account.privateKey,
       castHash: validated.cast_hash,
+      provider,
     });
 
     // 5. Log to audit
@@ -291,6 +289,7 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'remove_cast',
         success: true,
       });
@@ -303,16 +302,6 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
       fid: account.fid,
     });
   } catch (error) {
-    // Determine error code for audit logging
-    let errorCode: string | undefined;
-    if (error instanceof SignerServiceError) {
-      errorCode = error.code;
-    } else if (error instanceof ValidationError) {
-      errorCode = error.code;
-    } else {
-      errorCode = 'INTERNAL_ERROR';
-    }
-
     // Log failed action to audit if we have an account ID
     if (accountId && auditUserId) {
       await logSigningAction({
@@ -321,9 +310,10 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'remove_cast',
         success: false,
-        errorCode,
+        errorCode: extractErrorCode(error),
       });
     }
 
