@@ -197,10 +197,43 @@ async function submitMessageToHub(
     throw new Error(errorData.errCode || errorData.message || `HTTP ${response.status}`);
   }
 
-  // Drain the body but ignore its shape — we trust the locally-computed hash.
-  await response.text().catch(() => '');
+  await response.text().catch(() => ''); // drain
+  const hash = bytesToHex(message.hash);
+  console.log(`[hub] ${provider} submit ok`, { hash, fid: message.data!.fid });
 
-  return { hash: bytesToHex(message.hash) };
+  // A hub 200 is a mempool accept, not a block-stored confirmation. On Hypersnap
+  // a transient drop would otherwise be reported as success — confirm it persisted.
+  if (provider === 'hypersnap') {
+    await verifyPersisted(hubUrl, message.data!.fid, hash);
+  }
+
+  return { hash };
+}
+
+/**
+ * Poll castById until the cast is stored. A Hypersnap submit 200 is only a
+ * mempool accept; persistence lags ~2-4s (block production), so the happy path
+ * returns in a poll or two and only a genuine drop waits out the window.
+ */
+async function verifyPersisted(hubUrl: string, fid: number, hash: string): Promise<void> {
+  const url = `${hubUrl}/v1/castById?fid=${fid}&hash=0x${hash}`;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await new Promise((r) => setTimeout(r, attempt === 0 ? 1500 : 1300));
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      if (res.ok) return;
+    } catch {
+      // keep polling through transient errors
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+  throw new HubSubmissionFailedError(
+    `Hypersnap accepted the message but cast ${hash} did not persist within ~7s (likely a transient drop) — please retry.`,
+    { hash, hub: hubUrl }
+  );
 }
 
 /**

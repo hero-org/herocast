@@ -223,8 +223,12 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
       try {
         const bodyText = await req.clone().text();
         const parsed = JSON.parse(bodyText);
-        if (parsed.idempotency_key) {
-          await storeIdempotency(supabaseClient, accountId, parsed.idempotency_key, undefined, extractErrorCode(error));
+        const code = extractErrorCode(error);
+        // Don't cache transient hub failures — the cast never persisted, so a
+        // same-key retry must be allowed through rather than hitting a 409.
+        const retryable = code === 'HUB_SUBMISSION_FAILED' || code === 'HUB_UNKNOWN_STATE';
+        if (parsed.idempotency_key && !retryable) {
+          await storeIdempotency(supabaseClient, accountId, parsed.idempotency_key, undefined, code);
         }
       } catch {
         // Ignore errors when trying to store idempotency for failed requests
