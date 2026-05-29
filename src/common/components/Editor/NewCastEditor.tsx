@@ -85,6 +85,7 @@ type NewPostEntryProps = {
   draft: DraftType;
   onPost?: () => void;
   onRemove?: () => void;
+  /** When provided, Cmd+Enter adds the next thread post instead of publishing (thread-composer mode). */
   onAddCast?: () => void;
   hideChannel?: boolean;
   hideSchedule?: boolean;
@@ -152,19 +153,6 @@ export default function NewPostEntry({
     return true;
   };
 
-  const handleAddCast = useCallback(() => {
-    // No need to flush - controlled pattern keeps store in sync immediately
-    if (draft.threadId) {
-      const { addPostToThread } = useDraftStore.getState();
-      // Pass current draft's threadIndex to insert after this draft
-      const newDraftId = addPostToThread(draft.threadId, draft.threadIndex);
-      if (newDraftId) {
-        // Could optionally focus new editor here via onAddCast callback
-      }
-    }
-    onAddCast?.();
-  }, [draft.threadId, draft.threadIndex, onAddCast]);
-
   const onSubmitPost = async (): Promise<boolean> => {
     try {
       if (!isHydrated) return false;
@@ -207,9 +195,9 @@ export default function NewPostEntry({
     }
   };
 
-  const isThreadContext = !!draft.threadId || !!onAddCast;
-
-  // Cmd+Enter publishes; inside a thread it adds the next post (Cmd+Shift+Enter still publishes).
+  // Cmd+Shift+Enter publishes the current cast. In the thread composer (onAddCast present) the
+  // parent owns thread publishing, so each per-post editor disables this to avoid firing a
+  // single-cast publish from every mounted editor.
   useAppHotkeys(
     'meta+shift+enter',
     onSubmitPost,
@@ -218,20 +206,23 @@ export default function NewPostEntry({
       enableOnFormTags: true,
       enableOnContentEditable: true,
       preventDefault: true,
+      enabled: !onAddCast,
     },
     [onSubmitPost, draft, account, isHydrated]
   );
 
+  // Cmd+Enter publishes the cast. The thread composer passes onAddCast, so there it adds the
+  // next post instead (Cmd+Shift+Enter still publishes).
   const ref = useAppHotkeys(
     'meta+enter',
-    isThreadContext ? handleAddCast : onSubmitPost,
+    onAddCast ?? onSubmitPost,
     {
       scopes: [HotkeyScopes.EDITOR],
       enableOnFormTags: true,
       enableOnContentEditable: true,
       preventDefault: true,
     },
-    [isThreadContext, handleAddCast, onSubmitPost, draft, account, isHydrated]
+    [onAddCast, onSubmitPost, draft, account, isHydrated]
   );
 
   const { uploadImage, isUploading, error, image } = useCloudinaryUpload();

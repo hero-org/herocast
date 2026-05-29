@@ -122,6 +122,7 @@ export default function ThreadPostCard({
             hideSubmit={true}
             hideToolbar={!isFirst}
             borderless={true}
+            onAddCast={onAddPost}
           />
         </div>
 
