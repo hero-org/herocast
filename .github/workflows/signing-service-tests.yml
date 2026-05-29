@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'supabase/functions/farcaster-signer/**'
+      - 'supabase/functions/_shared/**'
       - '.github/workflows/signing-service-tests.yml'
   pull_request:
     paths:
       - 'supabase/functions/farcaster-signer/**'
+      - 'supabase/functions/_shared/**'
       - '.github/workflows/signing-service-tests.yml'
 
 jobs:
@@ -24,6 +26,10 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
+
+      # Type-checking lives in its own fast workflow (edge-functions-typecheck.yml)
+      # that covers every edge function. This workflow stays focused on the
+      # signer's integration tests against a live Supabase stack.
 
       - name: Start Supabase
         # Exclude services the signer tests don't need. Avoids the inbucket

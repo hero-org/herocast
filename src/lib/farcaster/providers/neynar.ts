@@ -1,4 +1,5 @@
 import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
+import { measureAsync } from '@/stores/usePerformanceStore';
 import type {
   ConversationResponse,
   FarcasterProvider,
@@ -11,6 +12,8 @@ import type {
   SearchCastsResponse,
 } from './types';
 
+const PROVIDER = 'neynar' as const;
+
 function buildUrl(path: string, params: Record<string, string | number | undefined>): string {
   const qs = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
@@ -22,13 +25,30 @@ function buildUrl(path: string, params: Record<string, string | number | undefin
   return query ? `${path}?${query}` : path;
 }
 
-async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(url, signal ? { signal } : undefined);
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Neynar API error ${res.status}: ${body || res.statusText}`);
+function extractMethodFromUrl(url: string): string {
+  try {
+    const path = new URL(url, 'http://x').pathname.replace(/^\/+/, '').replace(/^api\/hypersnap\//, ''); // strip the proxy prefix when present
+    return path.split('/').filter(Boolean).join(':') || 'unknown';
+  } catch {
+    return 'unknown';
   }
-  return res.json();
+}
+
+async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const method = extractMethodFromUrl(url);
+  return measureAsync(
+    `provider:${PROVIDER}:${method}`,
+    async () => {
+      const res = await fetch(url, signal ? { signal } : undefined);
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(`Neynar API error ${res.status}: ${body || res.statusText}`);
+      }
+      return res.json();
+    },
+    500,
+    { source: PROVIDER, method }
+  );
 }
 
 function findUserByUsername(users: FarcasterUser[] | undefined, username: string) {

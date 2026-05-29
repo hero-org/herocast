@@ -5,9 +5,11 @@
 
 import { getAccountForSigning } from '../lib/accounts.ts';
 import { logSigningAction } from '../lib/audit.ts';
-import { corsHeaders, handleError, InvalidRequestError } from '../lib/errors.ts';
+import { corsHeaders, extractErrorCode, handleError, InvalidRequestError } from '../lib/errors.ts';
+import type { HubProvider } from '../lib/hubs.ts';
 import { removeFollow, signAndSubmitFollow } from '../lib/sign.ts';
 import type { AuthResult } from '../lib/types.ts';
+import { getUserFarcasterProvider } from '../../_shared/userPreferences.ts';
 import { FollowRequestSchema, validateRequest } from '../lib/validate.ts';
 
 /**
@@ -18,6 +20,7 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
   const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
+  let provider: HubProvider = 'neynar';
 
   try {
     // Parse and validate request body
@@ -36,11 +39,15 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
     const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = signingAccount.userId;
 
+    // Read the user-level Hub provider preference (default 'neynar').
+    provider = await getUserFarcasterProvider(supabaseClient, signingAccount.userId);
+
     // Sign and submit the follow
     const hash = await signAndSubmitFollow({
       fid: signingAccount.fid,
       privateKey: signingAccount.privateKey,
       targetFid,
+      provider,
     });
 
     // Log success to audit
@@ -51,6 +58,7 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'follow',
         success: true,
       });
@@ -79,9 +87,10 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'follow',
         success: false,
-        errorCode: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: extractErrorCode(error),
       });
     }
 
@@ -97,6 +106,7 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
   const auditSource = source ?? 'user';
   let accountId: string | undefined;
   let auditUserId: string | undefined = authUserId;
+  let provider: HubProvider = 'neynar';
 
   try {
     // Parse and validate request body
@@ -115,11 +125,15 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
     const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = signingAccount.userId;
 
+    // Read the user-level Hub provider preference (default 'neynar').
+    provider = await getUserFarcasterProvider(supabaseClient, signingAccount.userId);
+
     // Remove the follow (unfollow)
     const hash = await removeFollow({
       fid: signingAccount.fid,
       privateKey: signingAccount.privateKey,
       targetFid,
+      provider,
     });
 
     // Log success to audit
@@ -130,6 +144,7 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'unfollow',
         success: true,
       });
@@ -158,9 +173,10 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
         userId: auditUserId,
         actorUserId: authUserId,
         source: auditSource,
+        provider,
         action: 'unfollow',
         success: false,
-        errorCode: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: extractErrorCode(error),
       });
     }
 

@@ -1,4 +1,5 @@
 import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
+import { measureAsync } from '@/stores/usePerformanceStore';
 import type {
   FarcasterProvider,
   FeedResponse,
@@ -9,6 +10,7 @@ import type {
 } from './types';
 import { UnsupportedProviderFeatureError as UnsupportedFeatureError } from './types';
 
+const PROVIDER = 'hypersnap' as const;
 const DIRECT_UPSTREAM = 'https://haatz.quilibrium.com/v2/farcaster';
 
 // SSR safety: `src/lib/farcaster/providers/index.ts` is `'use client'` and `getProviderType()`
@@ -36,13 +38,30 @@ function buildUrl(path: string, params: Record<string, string | number | undefin
   return url.toString();
 }
 
-async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(url, signal ? { signal } : undefined);
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Hypersnap error ${res.status}: ${body || res.statusText}`);
+function extractMethodFromUrl(url: string): string {
+  try {
+    const path = new URL(url, 'http://x').pathname.replace(/^\/+/, '').replace(/^api\/hypersnap\//, ''); // strip the proxy prefix when present
+    return path.split('/').filter(Boolean).join(':') || 'unknown';
+  } catch {
+    return 'unknown';
   }
-  return res.json();
+}
+
+async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+  const method = extractMethodFromUrl(url);
+  return measureAsync(
+    `provider:${PROVIDER}:${method}`,
+    async () => {
+      const res = await fetch(url, signal ? { signal } : undefined);
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(`Hypersnap error ${res.status}: ${body || res.statusText}`);
+      }
+      return res.json();
+    },
+    500,
+    { source: PROVIDER, method }
+  );
 }
 
 function unsupported(method: string): never {
@@ -100,7 +119,7 @@ export function createHypersnapProvider(): FarcasterProvider {
     },
 
     async getFollowingFeed({ fid, limit = 15, cursor, signal }) {
-      return fetchJson<FeedResponse>(buildUrl('feed', { feed_type: 'following', fid, limit, cursor }), signal);
+      return fetchJson<FeedResponse>(buildUrl('feed/following', { fid, limit, cursor }), signal);
     },
 
     getTrendingFeed() {

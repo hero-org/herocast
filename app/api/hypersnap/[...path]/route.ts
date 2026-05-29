@@ -12,6 +12,7 @@ const ROUTE_CONFIG: Record<string, { ttl: number | null }> = {
   'user/bulk': { ttl: 600 },
   'user/search': { ttl: 300 },
   feed: { ttl: 120 },
+  'feed/following': { ttl: 120 },
   'feed/channels': { ttl: 120 },
   'feed/user/casts': { ttl: 120 },
   'reaction/user': { ttl: 120 },

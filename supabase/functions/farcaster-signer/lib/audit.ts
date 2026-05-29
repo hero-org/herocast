@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { HubProvider } from './hubs.ts';
 
 /**
  * Audit logging for signing operations.
@@ -30,6 +31,11 @@ export interface AuditLogParams {
    * Request origin tag: 'user' | 'cron:publish' | 'cron:auto-interaction' | 'system'.
    */
   source: string;
+  /**
+   * Hub provider the message was submitted to ('neynar' | 'hypersnap'). Distinct
+   * from `source` which encodes request origin. Added per Spike 3 (S3-P1).
+   */
+  provider: HubProvider;
   action: string;
   success: boolean;
   errorCode?: string;
@@ -70,7 +76,7 @@ function getPrivilegedClient(): SupabaseClient {
  * @param params.errorCode - Error code if the operation failed (optional)
  */
 export async function logSigningAction(params: AuditLogParams): Promise<void> {
-  const { accountId, userId, actorUserId, source, action, success, errorCode } = params;
+  const { accountId, userId, actorUserId, source, provider, action, success, errorCode } = params;
 
   try {
     const client = getPrivilegedClient();
@@ -82,6 +88,7 @@ export async function logSigningAction(params: AuditLogParams): Promise<void> {
       action,
       success,
       error_code: errorCode ?? null,
+      provider,
     });
 
     if (error) {
@@ -91,6 +98,7 @@ export async function logSigningAction(params: AuditLogParams): Promise<void> {
         userId,
         actorUserId,
         source,
+        provider,
         action,
         success,
         errorCode,
@@ -103,6 +111,7 @@ export async function logSigningAction(params: AuditLogParams): Promise<void> {
       userId,
       actorUserId,
       source,
+      provider,
       action,
       success,
       errorCode,

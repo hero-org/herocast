@@ -2,7 +2,12 @@
  * Error handling for the Farcaster Signing Service
  */
 
-import type { ErrorCode, ErrorResponse } from './types.ts';
+import { type ErrorCode, ErrorCodes, type ErrorResponse } from './types.ts';
+
+// ErrorCodes (and the derived ErrorCode type) now live in types.ts as the
+// single source of truth. Re-export here so existing importers
+// (validate.ts, auth.ts, accounts.ts) keep working unchanged.
+export { ErrorCodes };
 
 // ============================================================================
 // CORS Headers
@@ -13,46 +18,6 @@ export const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-idempotency-key, x-account-id',
   'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
 };
-
-// ============================================================================
-// Error Codes
-// ============================================================================
-
-export const ErrorCodes = {
-  // Authentication errors
-  UNAUTHORIZED: 'UNAUTHORIZED',
-  MISSING_AUTH_HEADER: 'MISSING_AUTH_HEADER',
-  INVALID_TOKEN: 'INVALID_TOKEN',
-  EXPIRED_TOKEN: 'EXPIRED_TOKEN',
-
-  // Request validation errors
-  INVALID_REQUEST: 'INVALID_REQUEST',
-  INVALID_MESSAGE: 'INVALID_MESSAGE',
-  INVALID_ACCOUNT_ID: 'INVALID_ACCOUNT_ID',
-
-  // Account errors
-  ACCOUNT_NOT_FOUND: 'ACCOUNT_NOT_FOUND',
-  ACCOUNT_PENDING: 'ACCOUNT_PENDING',
-
-  // Signing errors
-  INVALID_FID: 'SIGNING_FAILED',
-  SIGNING_FAILED: 'SIGNING_FAILED',
-
-  // Hub errors
-  HUB_SUBMISSION_FAILED: 'HUB_SUBMISSION_FAILED',
-
-  // Rate limiting
-  RATE_LIMITED: 'RATE_LIMITED',
-
-  // Internal errors
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-
-  // Idempotency
-  IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT',
-
-  // Channel errors
-  CHANNEL_NOT_FOUND: 'CHANNEL_NOT_FOUND',
-} as const;
 
 // ============================================================================
 // Error Classes
@@ -128,6 +93,24 @@ export class SigningFailedError extends SignerServiceError {
 export class HubSubmissionFailedError extends SignerServiceError {
   constructor(message: string, details?: Record<string, unknown>) {
     super('HUB_SUBMISSION_FAILED', message, 502, details);
+  }
+}
+
+/**
+ * Hub submission timed out — final state is unknown (504).
+ *
+ * Per Spike 3 (S3-P1), a timeout against the user's selected provider is a
+ * terminal error: we do NOT fall back to the other provider (silent duplicate
+ * publish would be worse than a clear error). The Neynar branch's internal
+ * 3-host chain also does NOT retry on timeout — only on 5xx/network.
+ */
+export class HubUnknownStateError extends SignerServiceError {
+  constructor(hubUrl: string, provider: 'neynar' | 'hypersnap') {
+    super(
+      'HUB_UNKNOWN_STATE',
+      `Submission to ${hubUrl} (${provider}) timed out. Status unknown — check your profile before retrying.`,
+      504
+    );
   }
 }
 
@@ -209,6 +192,22 @@ export function errorToResponse(error: SignerServiceError): Response {
       'Content-Type': 'application/json',
     },
   });
+}
+
+/**
+ * Map an unknown error to a stable audit `error_code` string.
+ *
+ * Centralizes the pattern previously inlined in `handlers/cast.ts` so all
+ * handlers (cast, reaction, follow, user-data) write the same shape to
+ * `signing_audit_log.error_code` — a code string like `HUB_UNKNOWN_STATE`,
+ * not a free-form error message.
+ */
+export function extractErrorCode(error: unknown): string {
+  if (error instanceof SignerServiceError) return error.code;
+  if (error instanceof Error && error.name === 'ValidationError') {
+    return (error as { code?: string }).code ?? 'INVALID_MESSAGE';
+  }
+  return 'INTERNAL_ERROR';
 }
 
 /**

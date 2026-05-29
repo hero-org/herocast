@@ -1,16 +1,34 @@
 import * as Sentry from 'https://deno.land/x/sentry/index.mjs';
-import { HubRestAPIClient } from 'npm:@standard-crypto/farcaster-js-hub-rest';
+import { Message } from 'npm:@farcaster/core@0.14.19';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import axios from 'npm:axios';
 import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts';
 import { redactHeaders, redactSecrets } from '../_shared/redact.ts';
+import { getUserFarcasterProvider, type HubProvider } from '../_shared/userPreferences.ts';
+
+/**
+ * Submission timeout for Hub /v1/submitMessage. Matches the signer service
+ * (sign.ts HUB_SUBMIT_TIMEOUT_MS). Spike 3 §S3-P1: surface "unknown state"
+ * rather than fall back silently.
+ */
+const HUB_SUBMIT_TIMEOUT_MS = 8000;
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
   defaultIntegrations: false,
   tracesSampleRate: 1.0,
+  // profilesSampleRate is not part of the Deno SDK's DenoOptions type (the Deno
+  // Sentry SDK has no profiling support — profiling needs the native
+  // @sentry/profiling-node addon, which is unavailable in Deno). The SDK ignores
+  // this option at runtime, but we keep it for parity with the other edge
+  // functions; the cast is type-only and does not change the runtime object.
   profilesSampleRate: 1.0,
-});
+} as Parameters<typeof Sentry.init>[0]);
 
 Sentry.setTag('region', Deno.env.get('SB_REGION'));
 Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
@@ -43,13 +61,13 @@ function ensureHexHash(hash: string): string {
 }
 
 function normalizeMentions(draftData: any) {
-  const mentions = Array.isArray(draftData?.mentions) ? draftData.mentions.filter((m) => Number.isInteger(m)) : [];
+  const mentions = Array.isArray(draftData?.mentions) ? draftData.mentions.filter((m: number) => Number.isInteger(m)) : [];
   const positionsRaw = Array.isArray(draftData?.mentionsPositions)
     ? draftData.mentionsPositions
     : Array.isArray(draftData?.mentions_positions)
       ? draftData.mentions_positions
       : [];
-  const mentionsPositions = positionsRaw.filter((p) => Number.isInteger(p));
+  const mentionsPositions = positionsRaw.filter((p: number) => Number.isInteger(p));
 
   if (mentions.length !== mentionsPositions.length) {
     console.warn('Mentions and mentionsPositions length mismatch, clearing both');
@@ -224,28 +242,87 @@ async function callSignerService(
   return { hash: data.hash };
 }
 
-async function submitPreEncodedMessage({ encodedMessageBytes }: { encodedMessageBytes: number[] }): Promise<string> {
+
+async function submitPreEncodedMessage({
+  encodedMessageBytes,
+  provider,
+}: {
+  encodedMessageBytes: number[];
+  provider: HubProvider;
+}): Promise<string> {
   console.log('=== USING PRE-ENCODED MESSAGE BYTES ===');
   console.log('Message bytes length:', encodedMessageBytes.length);
+  console.log('Provider:', provider);
 
   const messageBytes = new Uint8Array(encodedMessageBytes);
 
-  const axiosInstance = axios.create({
-    headers: { api_key: Deno.env.get('NEYNAR_API_KEY') },
-  });
+  // Decode locally to recover the BLAKE3-20 hash before submission.
+  // Per Spike 3 §S3-C1, we never trust the Hub response for the hash —
+  // we already signed this message, so the hash is known client-side.
+  //
+  // Message.decode does NOT throw on malformed bytes; it returns a partial
+  // message with defaults. The hash field must be exactly BLAKE3-20 bytes,
+  // so validate the length to catch garbage payloads before we publish them.
+  const decoded = Message.decode(messageBytes);
+  if (!decoded.hash || decoded.hash.length !== 20) {
+    throw new Error(
+      `Pre-encoded message bytes have invalid hash (length=${decoded.hash?.length ?? 0}, expected 20)`
+    );
+  }
+  const localHash = bytesToHex(decoded.hash);
 
-  const writeClient = new HubRestAPIClient({
-    hubUrl: 'https://snapchain-api.neynar.com',
-    axiosInstance,
-  });
+  const hubUrl =
+    provider === 'hypersnap' ? 'https://haatz.quilibrium.com' : 'https://snapchain-api.neynar.com';
 
-  console.log('Submitting pre-encoded message bytes...');
-  const response = await writeClient.apis.submitMessage.submitMessage({
-    body: messageBytes,
-  });
+  // Per Spike 3 §S3-P1: 8s timeout, no cross-provider fallback.
+  // On timeout the caller catches and marks the draft as failed; we do NOT
+  // retry against the other Hub (the user picked this one).
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), HUB_SUBMIT_TIMEOUT_MS);
 
-  console.log('SUCCESS! Cast hash:', response.data.hash);
-  return response.data.hash;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/octet-stream',
+  };
+  if (provider === 'neynar') {
+    headers.api_key = Deno.env.get('NEYNAR_API_KEY') || '';
+  }
+
+  console.log('Submitting pre-encoded message bytes to', hubUrl);
+  let response: Response;
+  try {
+    response = await fetch(`${hubUrl}/v1/submitMessage`, {
+      method: 'POST',
+      headers,
+      body: messageBytes,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if ((err as Error)?.name === 'AbortError') {
+      throw new Error(
+        `Submission to ${hubUrl} (${provider}) timed out after ${HUB_SUBMIT_TIMEOUT_MS}ms. Status unknown — check the profile before retrying.`
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    let errorData: { errCode?: string; message?: string };
+    try {
+      errorData = JSON.parse(errorText) as { errCode?: string; message?: string };
+    } catch {
+      errorData = { message: errorText };
+    }
+    throw new Error(errorData.errCode || errorData.message || `HTTP ${response.status}`);
+  }
+
+  // Drain body but ignore its shape (Hypersnap and Neynar may differ).
+  await response.text().catch(() => '');
+
+  console.log('SUCCESS! Cast hash (local):', localHash);
+  return localHash;
 }
 
 async function submitViaSignerService({
@@ -276,7 +353,11 @@ async function submitViaSignerService({
   return response.hash;
 }
 
-const fixStuckDrafts = async (supabaseClient) => {
+// supabaseClient is intentionally typed `any` to match the _shared/userPreferences.ts
+// helper it is passed to (the typed SupabaseClient is awkward to model across Deno
+// import maps — see that file's docstring).
+// deno-lint-ignore no-explicit-any
+const fixStuckDrafts = async (supabaseClient: any) => {
   console.log('Checking for stuck drafts in publishing status...');
 
   // Find drafts stuck in publishing status for more than 10 minutes
@@ -309,7 +390,8 @@ const fixStuckDrafts = async (supabaseClient) => {
   }
 };
 
-const publishDraft = async (supabaseClient, draftId) => {
+// deno-lint-ignore no-explicit-any
+const publishDraft = async (supabaseClient: any, draftId: string) => {
   return Sentry.withScope(async (scope) => {
     scope.setTag('draftId', draftId);
 
@@ -387,11 +469,17 @@ const publishDraft = async (supabaseClient, draftId) => {
       console.log('submit draft to protocol - draftId:', draftId);
       console.log('account fid:', Number(account.platform_account_id));
 
+      // Read the user-level Hub provider preference at PUBLISH time (not at
+      // scheduling time — Spike 3 §11 lock-in). The cron's service-role client
+      // bypasses RLS so this read always succeeds for any user.
+      const provider = await getUserFarcasterProvider(supabaseClient, owner_user_id);
+
       // Check if we have pre-encoded message bytes (fast path — no signer call needed)
       if (draft.encoded_message_bytes && Array.isArray(draft.encoded_message_bytes)) {
         console.log('Found pre-encoded message bytes, using reliable submission...');
         await submitPreEncodedMessage({
           encodedMessageBytes: draft.encoded_message_bytes,
+          provider,
         });
       } else {
         console.log('No pre-encoded bytes found, using fallback approach...');
@@ -419,30 +507,48 @@ const publishDraft = async (supabaseClient, draftId) => {
         .eq('id', draftId);
       console.log('published draft id:', draftId, 'successfully!');
     } catch (e) {
+      const err = e as {
+        name?: string;
+        message?: string;
+        stack?: string;
+        response?: {
+          status?: unknown;
+          statusText?: unknown;
+          data?: unknown;
+          headers?: Record<string, unknown> | null;
+        };
+        config?: {
+          url?: unknown;
+          method?: unknown;
+          headers?: Record<string, unknown> | null;
+          data?: unknown;
+        };
+        request?: unknown;
+      };
       const errorMessage = `Failed to publish draft id ${draftId}: ${e}`;
       console.error('=== DETAILED ERROR ANALYSIS ===');
       console.error('Draft ID:', draftId);
-      console.error('Error name:', e.name);
-      console.error('Error message:', e.message);
-      console.error('Error stack:', e.stack);
+      console.error('Error name:', err.name);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
 
-      if (e.response) {
+      if (err.response) {
         console.error('=== HTTP RESPONSE ERROR ===');
-        console.error('Status:', e.response.status);
-        console.error('Status Text:', e.response.statusText);
-        console.error('Response Data:', redactSecrets(JSON.stringify(e.response.data, null, 2)));
-        console.error('Response Headers:', JSON.stringify(redactHeaders(e.response?.headers), null, 2));
+        console.error('Status:', err.response.status);
+        console.error('Status Text:', err.response.statusText);
+        console.error('Response Data:', redactSecrets(JSON.stringify(err.response.data, null, 2)));
+        console.error('Response Headers:', JSON.stringify(redactHeaders(err.response?.headers), null, 2));
       }
 
-      if (e.config) {
+      if (err.config) {
         console.error('=== REQUEST CONFIG ===');
-        console.error('URL:', e.config.url);
-        console.error('Method:', e.config.method);
-        console.error('Headers:', JSON.stringify(redactHeaders(e.config?.headers), null, 2));
-        console.error('Request Data:', redactSecrets(JSON.stringify(e.config.data, null, 2)));
+        console.error('URL:', err.config.url);
+        console.error('Method:', err.config.method);
+        console.error('Headers:', JSON.stringify(redactHeaders(err.config?.headers), null, 2));
+        console.error('Request Data:', redactSecrets(JSON.stringify(err.config.data, null, 2)));
       }
 
-      if (e.request && !e.response) {
+      if (err.request && !err.response) {
         console.error('=== REQUEST ERROR (No Response) ===');
         console.error('Request made but no response received');
         console.error('Network error or timeout');
@@ -551,7 +657,7 @@ Deno.serve(async (req) => {
       });
     } catch (error) {
       Sentry.captureException(error);
-      return new Response(JSON.stringify({ error: error?.message }), {
+      return new Response(JSON.stringify({ error: (error as { message?: string })?.message }), {
         headers: { 'Content-Type': 'application/json' },
         status: 500,
       });

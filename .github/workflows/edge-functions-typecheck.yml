@@ -1,0 +1,41 @@
+name: Edge Functions Typecheck
+
+# Supabase edge functions run on Deno with a module graph the browser-side
+# `pnpm check` (tsc) never sees. Without this gate, type errors in
+# supabase/functions/** only surface at deploy/runtime. Checking each
+# function's index.ts entrypoint walks its whole import graph
+# (handlers -> lib -> _shared), so one `deno check` per function covers it.
+#
+# Fast by design: no Supabase stack, just Deno + type-check. `deno check`
+# auto-resolves npm: specifiers into Deno's own cache, so no pnpm install is
+# needed. Runs on any edge-function change.
+
+on:
+  push:
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/edge-functions-typecheck.yml'
+  pull_request:
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/edge-functions-typecheck.yml'
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Type-check farcaster-signer
+        run: deno check --config supabase/functions/farcaster-signer/deno.json supabase/functions/farcaster-signer/index.ts
+
+      # The cron borrows the signer's deno.json for npm/import-map resolution
+      # (it has no deno.json of its own). If the cron grows independent deps,
+      # give it a dedicated config.
+      - name: Type-check publish-cast-from-db (cron)
+        run: deno check --config supabase/functions/farcaster-signer/deno.json supabase/functions/publish-cast-from-db/index.ts

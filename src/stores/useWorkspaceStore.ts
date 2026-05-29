@@ -5,6 +5,7 @@ import { createClient } from '@/common/helpers/supabase/component';
 import type { Json } from '@/common/types/database.types';
 import type { PanelConfig, PanelConfigUnion, PanelType, WorkspaceLayout } from '@/common/types/workspace.types';
 import { IndexedDBStorage } from './StoreStorage';
+import { patchUserPreferences } from './userPreferencesSync';
 
 const MAX_PANELS = 5;
 
@@ -90,35 +91,14 @@ const recalculateSizes = (panelCount: number): number[] => {
 };
 
 /**
- * Sync workspace layout to Supabase user_preferences table
+ * Sync workspace layout to Supabase user_preferences table.
+ * Uses shared patch helper so we merge into existing JSONB instead of
+ * overwriting other keys (e.g. farcasterProvider).
  */
 const syncLayoutToSupabase = async (layout: WorkspaceLayout): Promise<void> => {
   try {
-    const {
-      data: { user },
-    } = await getSupabaseClient().auth.getUser();
-
-    if (!user) {
-      console.log('[WorkspaceStore] No authenticated user, skipping Supabase sync');
-      return;
-    }
-
-    const { error } = await getSupabaseClient()
-      .from('user_preferences')
-      .upsert(
-        {
-          user_id: user.id,
-          preferences: { workspace: layout } as unknown as Json,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id' }
-      );
-
-    if (error) {
-      console.error('[WorkspaceStore] Failed to sync to Supabase:', error);
-    } else {
-      console.log('[WorkspaceStore] Synced to Supabase successfully');
-    }
+    await patchUserPreferences({ workspace: layout as unknown as Json });
+    console.log('[WorkspaceStore] Synced to Supabase successfully');
   } catch (err) {
     console.error('[WorkspaceStore] Error syncing to Supabase:', err);
   }
