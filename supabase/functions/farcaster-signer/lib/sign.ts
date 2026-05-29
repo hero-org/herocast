@@ -286,7 +286,9 @@ export async function signAndSubmitCast(params: CastParams): Promise<string> {
     embedsDeprecated: string[];
     parentUrl?: string;
     parentCastId?: { fid: number; hash: Uint8Array };
-    type?: CastType;
+    // Always set (resolvedCastType defaults to CAST). Non-optional so the body
+    // satisfies @farcaster/core's CastAddBody, which requires `type: CastType`.
+    type: CastType;
   } = {
     text,
     mentions: mentions ?? [],

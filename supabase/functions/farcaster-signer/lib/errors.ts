@@ -2,7 +2,12 @@
  * Error handling for the Farcaster Signing Service
  */
 
-import type { ErrorCode, ErrorResponse } from './types.ts';
+import { type ErrorCode, ErrorCodes, type ErrorResponse } from './types.ts';
+
+// ErrorCodes (and the derived ErrorCode type) now live in types.ts as the
+// single source of truth. Re-export here so existing importers
+// (validate.ts, auth.ts, accounts.ts) keep working unchanged.
+export { ErrorCodes };
 
 // ============================================================================
 // CORS Headers
@@ -13,47 +18,6 @@ export const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-idempotency-key, x-account-id',
   'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS',
 };
-
-// ============================================================================
-// Error Codes
-// ============================================================================
-
-export const ErrorCodes = {
-  // Authentication errors
-  UNAUTHORIZED: 'UNAUTHORIZED',
-  MISSING_AUTH_HEADER: 'MISSING_AUTH_HEADER',
-  INVALID_TOKEN: 'INVALID_TOKEN',
-  EXPIRED_TOKEN: 'EXPIRED_TOKEN',
-
-  // Request validation errors
-  INVALID_REQUEST: 'INVALID_REQUEST',
-  INVALID_MESSAGE: 'INVALID_MESSAGE',
-  INVALID_ACCOUNT_ID: 'INVALID_ACCOUNT_ID',
-
-  // Account errors
-  ACCOUNT_NOT_FOUND: 'ACCOUNT_NOT_FOUND',
-  ACCOUNT_PENDING: 'ACCOUNT_PENDING',
-
-  // Signing errors
-  INVALID_FID: 'SIGNING_FAILED',
-  SIGNING_FAILED: 'SIGNING_FAILED',
-
-  // Hub errors
-  HUB_SUBMISSION_FAILED: 'HUB_SUBMISSION_FAILED',
-  HUB_UNKNOWN_STATE: 'HUB_UNKNOWN_STATE',
-
-  // Rate limiting
-  RATE_LIMITED: 'RATE_LIMITED',
-
-  // Internal errors
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-
-  // Idempotency
-  IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT',
-
-  // Channel errors
-  CHANNEL_NOT_FOUND: 'CHANNEL_NOT_FOUND',
-} as const;
 
 // ============================================================================
 // Error Classes

@@ -96,19 +96,51 @@ export interface SuccessResponse {
 }
 
 /**
- * Error codes for signing service failures
+ * Error codes for signing service failures.
+ *
+ * Single source of truth: `ErrorCode` is derived from this const so the two
+ * can never drift (a drift between the const and a hand-maintained union
+ * previously caused a `deno check` failure at accounts.ts ACCOUNT_PENDING).
+ * `errors.ts` re-exports `ErrorCodes` for backward compatibility.
  */
-export type ErrorCode =
-  | 'UNAUTHORIZED'
-  | 'INVALID_REQUEST'
-  | 'ACCOUNT_NOT_FOUND'
-  | 'SIGNING_FAILED'
-  | 'HUB_SUBMISSION_FAILED'
-  | 'HUB_UNKNOWN_STATE'
-  | 'RATE_LIMITED'
-  | 'INTERNAL_ERROR'
-  | 'IDEMPOTENCY_CONFLICT'
-  | 'CHANNEL_NOT_FOUND';
+export const ErrorCodes = {
+  // Authentication errors
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  MISSING_AUTH_HEADER: 'MISSING_AUTH_HEADER',
+  INVALID_TOKEN: 'INVALID_TOKEN',
+  EXPIRED_TOKEN: 'EXPIRED_TOKEN',
+
+  // Request validation errors
+  INVALID_REQUEST: 'INVALID_REQUEST',
+  INVALID_MESSAGE: 'INVALID_MESSAGE',
+  INVALID_ACCOUNT_ID: 'INVALID_ACCOUNT_ID',
+
+  // Account errors
+  ACCOUNT_NOT_FOUND: 'ACCOUNT_NOT_FOUND',
+  ACCOUNT_PENDING: 'ACCOUNT_PENDING',
+
+  // Signing errors
+  INVALID_FID: 'SIGNING_FAILED',
+  SIGNING_FAILED: 'SIGNING_FAILED',
+
+  // Hub errors
+  HUB_SUBMISSION_FAILED: 'HUB_SUBMISSION_FAILED',
+  HUB_UNKNOWN_STATE: 'HUB_UNKNOWN_STATE',
+
+  // Rate limiting
+  RATE_LIMITED: 'RATE_LIMITED',
+
+  // Internal errors
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+
+  // Idempotency
+  IDEMPOTENCY_CONFLICT: 'IDEMPOTENCY_CONFLICT',
+
+  // Channel errors
+  CHANNEL_NOT_FOUND: 'CHANNEL_NOT_FOUND',
+} as const;
+
+export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
 /**
  * Error response from signing service
