@@ -13,6 +13,14 @@ import { UnsupportedProviderFeatureError as UnsupportedFeatureError } from './ty
 const PROVIDER = 'hypersnap' as const;
 const DIRECT_UPSTREAM = 'https://haatz.quilibrium.com/v2/farcaster';
 
+// Hypersnap's /feed/following interleaves replies with root casts (only ~15-20% are root
+// casts), so after dropping replies a raw fetch surfaces few top-level casts. We over-fetch
+// modestly to thicken each fetch. The feed is a continuous infinite scroll that keeps
+// fetching while the bottom sentinel stays in view, so a small multiplier is enough — the
+// scroll loop tops up the rest. Capped at the upstream max limit of 100.
+const FOLLOWING_FEED_OVERFETCH = 3;
+const FOLLOWING_FEED_MAX_LIMIT = 100;
+
 // SSR safety: `src/lib/farcaster/providers/index.ts` is `'use client'` and `getProviderType()`
 // returns 'neynar' when `window` is undefined, so this provider is never constructed server-side
 // via `getProvider()`. The SSR branch below is defensive only — route handlers must not call
@@ -119,7 +127,17 @@ export function createHypersnapProvider(): FarcasterProvider {
     },
 
     async getFollowingFeed({ fid, limit = 15, cursor, signal }) {
-      return fetchJson<FeedResponse>(buildUrl('feed/following', { fid, limit, cursor }), signal);
+      // Unlike Neynar's following feed (root-only), Hypersnap returns replies inline and
+      // ignores reply-filter params (with_replies, include_replies, filter_type, ...), so
+      // we filter client-side to match the native contract. Over-fetch to compensate, then
+      // return every root cast in the window (no truncation) so the cursor advances by the
+      // full upstream window and pagination never skips casts.
+      const fetchLimit = Math.min(FOLLOWING_FEED_MAX_LIMIT, limit * FOLLOWING_FEED_OVERFETCH);
+      const data = await fetchJson<FeedResponse>(
+        buildUrl('feed/following', { fid, limit: fetchLimit, cursor }),
+        signal
+      );
+      return { ...data, casts: (data.casts ?? []).filter((cast) => !cast.parent_hash) };
     },
 
     getTrendingFeed() {
