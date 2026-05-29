@@ -22,8 +22,13 @@ Sentry.init({
   dsn: Deno.env.get('SENTRY_DSN'),
   defaultIntegrations: false,
   tracesSampleRate: 1.0,
+  // profilesSampleRate is not part of the Deno SDK's DenoOptions type (the Deno
+  // Sentry SDK has no profiling support — profiling needs the native
+  // @sentry/profiling-node addon, which is unavailable in Deno). The SDK ignores
+  // this option at runtime, but we keep it for parity with the other edge
+  // functions; the cast is type-only and does not change the runtime object.
   profilesSampleRate: 1.0,
-});
+} as Parameters<typeof Sentry.init>[0]);
 
 Sentry.setTag('region', Deno.env.get('SB_REGION'));
 Sentry.setTag('execution_id', Deno.env.get('SB_EXECUTION_ID'));
@@ -56,13 +61,13 @@ function ensureHexHash(hash: string): string {
 }
 
 function normalizeMentions(draftData: any) {
-  const mentions = Array.isArray(draftData?.mentions) ? draftData.mentions.filter((m) => Number.isInteger(m)) : [];
+  const mentions = Array.isArray(draftData?.mentions) ? draftData.mentions.filter((m: number) => Number.isInteger(m)) : [];
   const positionsRaw = Array.isArray(draftData?.mentionsPositions)
     ? draftData.mentionsPositions
     : Array.isArray(draftData?.mentions_positions)
       ? draftData.mentions_positions
       : [];
-  const mentionsPositions = positionsRaw.filter((p) => Number.isInteger(p));
+  const mentionsPositions = positionsRaw.filter((p: number) => Number.isInteger(p));
 
   if (mentions.length !== mentionsPositions.length) {
     console.warn('Mentions and mentionsPositions length mismatch, clearing both');
@@ -348,7 +353,11 @@ async function submitViaSignerService({
   return response.hash;
 }
 
-const fixStuckDrafts = async (supabaseClient) => {
+// supabaseClient is intentionally typed `any` to match the _shared/userPreferences.ts
+// helper it is passed to (the typed SupabaseClient is awkward to model across Deno
+// import maps — see that file's docstring).
+// deno-lint-ignore no-explicit-any
+const fixStuckDrafts = async (supabaseClient: any) => {
   console.log('Checking for stuck drafts in publishing status...');
 
   // Find drafts stuck in publishing status for more than 10 minutes
@@ -381,7 +390,8 @@ const fixStuckDrafts = async (supabaseClient) => {
   }
 };
 
-const publishDraft = async (supabaseClient, draftId) => {
+// deno-lint-ignore no-explicit-any
+const publishDraft = async (supabaseClient: any, draftId: string) => {
   return Sentry.withScope(async (scope) => {
     scope.setTag('draftId', draftId);
 
@@ -497,30 +507,48 @@ const publishDraft = async (supabaseClient, draftId) => {
         .eq('id', draftId);
       console.log('published draft id:', draftId, 'successfully!');
     } catch (e) {
+      const err = e as {
+        name?: string;
+        message?: string;
+        stack?: string;
+        response?: {
+          status?: unknown;
+          statusText?: unknown;
+          data?: unknown;
+          headers?: Record<string, unknown> | null;
+        };
+        config?: {
+          url?: unknown;
+          method?: unknown;
+          headers?: Record<string, unknown> | null;
+          data?: unknown;
+        };
+        request?: unknown;
+      };
       const errorMessage = `Failed to publish draft id ${draftId}: ${e}`;
       console.error('=== DETAILED ERROR ANALYSIS ===');
       console.error('Draft ID:', draftId);
-      console.error('Error name:', e.name);
-      console.error('Error message:', e.message);
-      console.error('Error stack:', e.stack);
+      console.error('Error name:', err.name);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
 
-      if (e.response) {
+      if (err.response) {
         console.error('=== HTTP RESPONSE ERROR ===');
-        console.error('Status:', e.response.status);
-        console.error('Status Text:', e.response.statusText);
-        console.error('Response Data:', redactSecrets(JSON.stringify(e.response.data, null, 2)));
-        console.error('Response Headers:', JSON.stringify(redactHeaders(e.response?.headers), null, 2));
+        console.error('Status:', err.response.status);
+        console.error('Status Text:', err.response.statusText);
+        console.error('Response Data:', redactSecrets(JSON.stringify(err.response.data, null, 2)));
+        console.error('Response Headers:', JSON.stringify(redactHeaders(err.response?.headers), null, 2));
       }
 
-      if (e.config) {
+      if (err.config) {
         console.error('=== REQUEST CONFIG ===');
-        console.error('URL:', e.config.url);
-        console.error('Method:', e.config.method);
-        console.error('Headers:', JSON.stringify(redactHeaders(e.config?.headers), null, 2));
-        console.error('Request Data:', redactSecrets(JSON.stringify(e.config.data, null, 2)));
+        console.error('URL:', err.config.url);
+        console.error('Method:', err.config.method);
+        console.error('Headers:', JSON.stringify(redactHeaders(err.config?.headers), null, 2));
+        console.error('Request Data:', redactSecrets(JSON.stringify(err.config.data, null, 2)));
       }
 
-      if (e.request && !e.response) {
+      if (err.request && !err.response) {
         console.error('=== REQUEST ERROR (No Response) ===');
         console.error('Request made but no response received');
         console.error('Network error or timeout');
@@ -629,7 +657,7 @@ Deno.serve(async (req) => {
       });
     } catch (error) {
       Sentry.captureException(error);
-      return new Response(JSON.stringify({ error: error?.message }), {
+      return new Response(JSON.stringify({ error: (error as { message?: string })?.message }), {
         headers: { 'Content-Type': 'application/json' },
         status: 500,
       });

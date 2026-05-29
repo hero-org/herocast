@@ -27,14 +27,9 @@ jobs:
         with:
           deno-version: v1.x
 
-      # Type-check before spinning up Supabase so type regressions fail fast
-      # and cheap. Checking the index.ts entrypoint walks the whole import
-      # graph (handlers -> lib -> _shared), so a single check covers the
-      # function. The browser-side `pnpm check` (tsc) does NOT see this code —
-      # the edge function runs on Deno with a different module graph — so this
-      # is the only gate that catches edge-function type errors.
-      - name: Type-check edge function (deno check)
-        run: deno check --config supabase/functions/farcaster-signer/deno.json supabase/functions/farcaster-signer/index.ts
+      # Type-checking lives in its own fast workflow (edge-functions-typecheck.yml)
+      # that covers every edge function. This workflow stays focused on the
+      # signer's integration tests against a live Supabase stack.
 
       - name: Start Supabase
         # Exclude services the signer tests don't need. Avoids the inbucket
