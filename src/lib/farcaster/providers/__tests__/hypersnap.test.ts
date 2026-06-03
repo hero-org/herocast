@@ -94,6 +94,23 @@ describe('createHypersnapProvider — new provider methods', () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => body });
   }
 
+  describe('getUserByUsername', () => {
+    it('strips a trailing .eth so haatz resolves the bare fname (#715 §4)', async () => {
+      mockJson({ user: { username: 'hellno.eth', fid: 13596 } });
+      await provider.getUserByUsername({ username: 'hellno.eth' });
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain('username=hellno');
+      expect(url).not.toContain('hellno.eth');
+    });
+
+    it('leaves a non-.eth username untouched', async () => {
+      mockJson({ user: { username: 'dwr', fid: 3 } });
+      await provider.getUserByUsername({ username: 'dwr' });
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain('username=dwr');
+    });
+  });
+
   describe('getFidListFeed', () => {
     it('returns casts and the upstream cursor', async () => {
       mockJson({ casts: [{ hash: '0xa' }, { hash: '0xb' }], next: { cursor: 'PAGE_2' } });

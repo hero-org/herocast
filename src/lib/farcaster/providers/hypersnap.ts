@@ -121,7 +121,15 @@ export function createHypersnapProvider(): FarcasterProvider {
     },
 
     async getUserByUsername({ username, signal }) {
-      const data = await fetchJson<{ user: FarcasterUser }>(buildUrl('user/by-username', { username }), signal);
+      // haatz's user/by-username indexes the bare fname, so an `.eth` suffix 404s
+      // (e.g. `hellno.eth` → 404 but `hellno` resolves to the same user). A bare
+      // 404 throws a plain Error here, which does NOT fall back to Neynar, so
+      // normalize the suffix away before the lookup. Tracked in #715 §4.
+      const normalized = username.toLowerCase().endsWith('.eth') ? username.slice(0, -4) : username;
+      const data = await fetchJson<{ user: FarcasterUser }>(
+        buildUrl('user/by-username', { username: normalized }),
+        signal
+      );
       if (!data.user) throw new Error(`User ${username} not found`);
       return data.user;
     },
