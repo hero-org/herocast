@@ -11,6 +11,7 @@ import {
   hexStringToBytes,
   Message,
   MessageData,
+  MessageType,
   makeCastAdd,
   makeCastRemove,
   makeLinkAdd,
@@ -127,6 +128,16 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 /**
+ * Persistence verification (the castById poll) is only valid for Hypersnap
+ * CastAdd messages: castById is cast-only, and a silently dropped *cast* is the
+ * only write whose loss actually hurts. Reactions/links/user-data/cast-removes
+ * are trusted on the hub 200 (castById cannot resolve them anyway).
+ */
+export function shouldVerifyPersistence(provider: HubProvider, messageType: number | undefined): boolean {
+  return provider === 'hypersnap' && messageType === MessageType.CAST_ADD;
+}
+
+/**
  * Submit a message to the Hub using data_bytes approach.
  *
  * Behavior per Spike 3 (S3-P1 / S3-C1):
@@ -202,8 +213,11 @@ async function submitMessageToHub(
   console.log(`[hub] ${provider} submit ok`, { hash, fid: message.data!.fid });
 
   // A hub 200 is a mempool accept, not a block-stored confirmation. On Hypersnap
-  // a transient drop would otherwise be reported as success — confirm it persisted.
-  if (provider === 'hypersnap') {
+  // a transient drop would otherwise be reported as success. Only CastAdd can be
+  // confirmed (castById is cast-only) and a silently-dropped *cast* is the only
+  // write whose loss actually hurts — so verify casts and trust the 200 for
+  // reactions/links/user-data/removes, which castById cannot look up anyway.
+  if (shouldVerifyPersistence(provider, message.data?.type)) {
     await verifyPersisted(hubUrl, message.data!.fid, hash);
   }
 
@@ -211,9 +225,11 @@ async function submitMessageToHub(
 }
 
 /**
- * Poll castById until the cast is stored. A Hypersnap submit 200 is only a
- * mempool accept; persistence lags ~2-4s (block production), so the happy path
- * returns in a poll or two and only a genuine drop waits out the window.
+ * Poll castById until the CastAdd is stored. Only valid for CastAdd messages —
+ * castById is cast-only, so callers MUST gate on message type (reactions, links,
+ * user-data, and cast removes are not resolvable here). A Hypersnap submit 200 is
+ * only a mempool accept; persistence lags ~2-4s (block production), so the happy
+ * path returns in a poll or two and only a genuine drop waits out the window.
  */
 async function verifyPersisted(hubUrl: string, fid: number, hash: string): Promise<void> {
   const url = `${hubUrl}/v1/castById?fid=${fid}&hash=0x${hash}`;
