@@ -121,11 +121,13 @@ export function createHypersnapProvider(): FarcasterProvider {
     },
 
     async getUserByUsername({ username, signal }) {
-      // haatz's user/by-username indexes the bare fname, so an `.eth` suffix 404s
-      // (e.g. `hellno.eth` → 404 but `hellno` resolves to the same user). A bare
-      // 404 throws a plain Error here, which does NOT fall back to Neynar, so
-      // normalize the suffix away before the lookup. Tracked in #715 §4.
-      const normalized = username.toLowerCase().endsWith('.eth') ? username.slice(0, -4) : username;
+      // haatz's user/by-username is case-sensitive and indexes the bare lowercase
+      // fname: `Hellno` and `hellno.eth` both 404, only `hellno` resolves. A bare
+      // 404 throws a plain Error here (no Neynar fallback), so normalize: lowercase
+      // and drop a trailing `.eth` (keep the bare lowercase if that's all there is).
+      // Tracked in #715 §4.
+      const lower = username.toLowerCase();
+      const normalized = lower.replace(/\.eth$/, '') || lower;
       const data = await fetchJson<{ user: FarcasterUser }>(
         buildUrl('user/by-username', { username: normalized }),
         signal

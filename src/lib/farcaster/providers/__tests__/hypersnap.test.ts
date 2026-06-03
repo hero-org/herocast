@@ -95,17 +95,17 @@ describe('createHypersnapProvider — new provider methods', () => {
   }
 
   describe('getUserByUsername', () => {
-    it('strips a trailing .eth so haatz resolves the bare fname (#715 §4)', async () => {
+    it('strips a trailing .eth and lowercases so haatz resolves the bare fname (#715 §4)', async () => {
       mockJson({ user: { username: 'hellno.eth', fid: 13596 } });
-      await provider.getUserByUsername({ username: 'hellno.eth' });
+      await provider.getUserByUsername({ username: 'Hellno.eth' });
       const url = fetchMock.mock.calls[0][0] as string;
       expect(url).toContain('username=hellno');
-      expect(url).not.toContain('hellno.eth');
+      expect(url).not.toContain('.eth');
     });
 
-    it('leaves a non-.eth username untouched', async () => {
+    it('lowercases the username (haatz user/by-username is case-sensitive)', async () => {
       mockJson({ user: { username: 'dwr', fid: 3 } });
-      await provider.getUserByUsername({ username: 'dwr' });
+      await provider.getUserByUsername({ username: 'DWR' });
       const url = fetchMock.mock.calls[0][0] as string;
       expect(url).toContain('username=dwr');
     });
