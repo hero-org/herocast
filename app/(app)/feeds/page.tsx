@@ -32,6 +32,7 @@ import { type AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountSto
 import { useDraftStore } from '@/stores/useDraftStore';
 import { useListStore } from '@/stores/useListStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { endInteraction, hasInAppNavigated, recordMetric } from '@/stores/usePerformanceStore';
 
 const getFeedKey = ({
   selectedChannelUrl,
@@ -216,6 +217,22 @@ export default function Feeds() {
     isLoadingFeed = channelQuery.isLoading;
     nextCursor = channelQuery.hasNextPage ? 'has-more' : '';
   }
+
+  // Perceived latency: once the selected feed's content is actually painted (not just a
+  // loading skeleton), resolve a pending feed switch and record cold start. Cold start is
+  // only recorded when feeds is the initial landing route (no prior in-app navigation), so
+  // `performance.now()` reflects time since page load and SPA navigations into /feeds don't
+  // masquerade as cold starts.
+  const coldStartRecordedRef = useRef(false);
+  const feedContentReady = !isLoadingFeed && casts.length > 0;
+  useEffect(() => {
+    if (!feedContentReady) return;
+    endInteraction('switch-feed', 200, { feedKey });
+    if (!coldStartRecordedRef.current && !hasInAppNavigated()) {
+      coldStartRecordedRef.current = true;
+      recordMetric('inp:cold-start', performance.now(), 200, { feedKey });
+    }
+  }, [feedContentReady, feedKey]);
 
   // Compute the count of "new" casts above the user's last acknowledged top.
   // `acknowledgedFirstHash` is null on the very first render (no pill yet),

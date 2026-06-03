@@ -31,6 +31,7 @@ import { useAccountStore } from '@/stores/useAccountStore';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { trackInteractionToPaint } from '@/stores/usePerformanceStore';
 
 // Client-side cache for parent casts (prevents repeated API calls)
 const parentCastCache = new Map<string, { cast: FarcasterCast | null; timestamp: number }>();
@@ -137,6 +138,11 @@ const Inbox = () => {
     [NotificationTab.follows]: false,
   });
   const [selectedNotificationIdx, setSelectedNotificationIdx] = useState<number>(0);
+  // Measure tap → read-state flip / selected cast paint
+  const selectNotification = useCallback((idx: number) => {
+    trackInteractionToPaint('open-notification', 100);
+    setSelectedNotificationIdx(idx);
+  }, []);
   const [activeTab, setActiveTab] = useState<NotificationTab>(NotificationTab.replies);
   const [parentCast, setParentCast] = useState<FarcasterCast | null>(null);
   const [isLoadingParent, setIsLoadingParent] = useState<boolean>(false);
@@ -853,7 +859,7 @@ const Inbox = () => {
               ? 'bg-muted border-l-blue-500'
               : 'cursor-pointer bg-background/80 hover:bg-muted/50 border-l-transparent'
           )}
-          onClick={() => setSelectedNotificationIdx(idx)}
+          onClick={() => selectNotification(idx)}
         >
           <div className="relative mt-1">
             <Avatar className="h-8 w-8">
@@ -1126,7 +1132,7 @@ const Inbox = () => {
                 setSelectedIdx={(idx) => {
                   // Don't update selection while loading to prevent jitter
                   if (!loadingByType[activeTab]) {
-                    setSelectedNotificationIdx(idx);
+                    selectNotification(idx);
                   }
                 }}
                 renderRow={renderNotificationRow}
