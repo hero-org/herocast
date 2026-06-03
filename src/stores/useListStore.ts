@@ -290,6 +290,16 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
     // Remove id from the update payload and use it in the where clause
     const { id, ...updateData } = search;
 
+    // Persistence-boundary backstop for the FID-list cap. Every client write
+    // path (bulk add, single add, direct update) funnels through here, so
+    // reject a FID list that would exceed MAX_FID_LIST_SIZE before it reaches
+    // Supabase — the bulk-add page calls this generic update, not updateFidList.
+    const existingList = useListStore.getState().lists.find((l) => l.id === id);
+    const nextContents = updateData.contents as { fids?: string[] } | undefined;
+    if (existingList?.type === 'fids' && nextContents?.fids && nextContents.fids.length > MAX_FID_LIST_SIZE) {
+      return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
+    }
+
     const { data, error } = await supabaseClient.from('list').update(updateData).eq('id', id).select();
 
     if (error) {

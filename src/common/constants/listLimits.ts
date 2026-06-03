@@ -18,6 +18,12 @@ export const MAX_FID_LIST_SIZE = 100;
 export const MAX_FID_LIST_SIZE_MESSAGE = 'Lists are limited to 100 accounts';
 
 /**
+ * Show an "approaching limit" warning once a FID list reaches 90% of
+ * {@link MAX_FID_LIST_SIZE}.
+ */
+export const MAX_FID_LIST_WARNING_THRESHOLD = 90;
+
+/**
  * Threshold at which to show a warning that the list is approaching its limit
  * Shows warning when list has 90% or more of the maximum capacity
  */

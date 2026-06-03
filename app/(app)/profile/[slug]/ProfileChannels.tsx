@@ -1,18 +1,31 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Loading } from '@/common/components/Loading';
 import { formatLargeNumber } from '@/common/helpers/text';
+import type { FarcasterChannel } from '@/common/types/farcaster';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUserChannels } from '@/hooks/queries/useChannelQueries';
+import { useAccountStore } from '@/stores/useAccountStore';
+import { useListStore } from '@/stores/useListStore';
 
 type ProfileChannelsProps = {
   fid?: number;
 };
 
-const getChannelUrl = (channel: { id: string; url?: string }) => `https://warpcast.com/~/channel/${channel.id}`;
-
 const ProfileChannels = ({ fid }: ProfileChannelsProps) => {
   const { data: channels, isLoading } = useUserChannels(fid, { enabled: !!fid });
+  const router = useRouter();
+  const { setSelectedChannelUrl } = useAccountStore();
+  const { setSelectedListId } = useListStore();
+
+  // Open the channel's feed inside herocast (same nav pattern as
+  // TrendingChannelsCard) rather than linking out to Warpcast.
+  const onSelectChannel = (channel: FarcasterChannel) => {
+    setSelectedChannelUrl(channel.parent_url || channel.url);
+    setSelectedListId(undefined);
+    router.push('/feeds');
+  };
 
   if (isLoading) {
     return <Loading />;
@@ -26,11 +39,10 @@ const ProfileChannels = ({ fid }: ProfileChannelsProps) => {
     <ul role="list" className="max-w-full md:max-w-2xl">
       {channels.map((channel) => (
         <li key={channel.id} className="border-b border-border">
-          <a
-            href={getChannelUrl(channel)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-x-3 px-2 py-3 hover:bg-sidebar/40 rounded-lg"
+          <button
+            type="button"
+            onClick={() => onSelectChannel(channel)}
+            className="flex w-full items-center gap-x-3 px-2 py-3 hover:bg-sidebar/40 rounded-lg text-left"
           >
             <Avatar className="h-10 w-10 flex-none">
               <AvatarImage src={channel.image_url || channel.icon_url} alt={channel.name} />
@@ -45,7 +57,7 @@ const ProfileChannels = ({ fid }: ProfileChannelsProps) => {
                 {formatLargeNumber(channel.member_count)} members
               </span>
             )}
-          </a>
+          </button>
         </li>
       ))}
     </ul>

@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BulkAddUsersDialog } from '@/common/components/BulkAddUsersDialog';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
-import { LIST_SIZE_WARNING_THRESHOLD, MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { MAX_FID_LIST_SIZE, MAX_FID_LIST_WARNING_THRESHOLD } from '@/common/constants/listLimits';
 import type { FarcasterUser } from '@/common/types/farcaster';
 import { type FidListContent, isFidListContent } from '@/common/types/list.types';
 import { Button } from '@/components/ui/button';
@@ -251,11 +251,11 @@ export default function ListPage() {
       const newUsersToAdd = users.filter(({ fid }) => !currentFids.includes(fid));
 
       // Check if adding these users would exceed the limit
-      if (currentFids.length + newUsersToAdd.length > MAX_USERS_PER_LIST) {
-        const availableSlots = MAX_USERS_PER_LIST - currentFids.length;
+      if (currentFids.length + newUsersToAdd.length > MAX_FID_LIST_SIZE) {
+        const availableSlots = MAX_FID_LIST_SIZE - currentFids.length;
         return {
           success: false,
-          error: `Cannot add ${newUsersToAdd.length} users. This list has ${currentFids.length} users and can only add ${availableSlots} more (max ${MAX_USERS_PER_LIST} users per list).`,
+          error: `Cannot add ${newUsersToAdd.length} users. This list has ${currentFids.length} users and can only add ${availableSlots} more (max ${MAX_FID_LIST_SIZE} users per list).`,
         };
       }
 
@@ -365,7 +365,7 @@ export default function ListPage() {
             <span className="text-sm text-muted-foreground">
               {filteredFids.length} {filteredFids.length === 1 ? 'user' : 'users'}
               {searchTerm && ` matching "${searchTerm}"`}
-              {content.fids.length > 0 && ` (${content.fids.length}/${MAX_USERS_PER_LIST} total)`}
+              {content.fids.length > 0 && ` (${content.fids.length}/${MAX_FID_LIST_SIZE} total)`}
             </span>
           </div>
         </div>
@@ -520,10 +520,10 @@ export default function ListPage() {
                     </p>
                     {isFidListContent(list.contents) &&
                       list.contents.fids &&
-                      list.contents.fids.length >= LIST_SIZE_WARNING_THRESHOLD && (
+                      list.contents.fids.length >= MAX_FID_LIST_WARNING_THRESHOLD && (
                         <p className="text-sm text-warning mt-1">
-                          Approaching limit: {MAX_USERS_PER_LIST - list.contents.fids.length} slots remaining (max{' '}
-                          {MAX_USERS_PER_LIST})
+                          Approaching limit: {MAX_FID_LIST_SIZE - list.contents.fids.length} slots remaining (max{' '}
+                          {MAX_FID_LIST_SIZE})
                         </p>
                       )}
                   </div>
@@ -541,10 +541,10 @@ export default function ListPage() {
                 </div>
                 {isFidListContent(list.contents) &&
                   list.contents.fids &&
-                  list.contents.fids.length >= MAX_USERS_PER_LIST && (
+                  list.contents.fids.length >= MAX_FID_LIST_SIZE && (
                     <p className="text-sm text-muted-foreground mt-3">
-                      This list has reached the maximum limit of {MAX_USERS_PER_LIST} users. Remove some users to add
-                      new ones.
+                      This list has reached the maximum limit of {MAX_FID_LIST_SIZE} users. Remove some users to add new
+                      ones.
                     </p>
                   )}
               </CardContent>
@@ -572,7 +572,7 @@ export default function ListPage() {
                       !selectedProfile ||
                       (isFidListContent(list.contents) &&
                         list.contents.fids &&
-                        list.contents.fids.length >= MAX_USERS_PER_LIST)
+                        list.contents.fids.length >= MAX_FID_LIST_SIZE)
                     }
                     className="sm:w-auto w-full"
                   >
