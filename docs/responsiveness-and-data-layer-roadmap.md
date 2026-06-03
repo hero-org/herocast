@@ -5,8 +5,11 @@
 >
 > **Decision (this session):** Pursue **native sub-200ms feel** via two tracks — (A) stack-independent
 > responsiveness primitives shipped now, and (B) a phased **migration off Next.js 15 → TanStack Start
-> (SSR + server functions)**. Keep the Supabase + Neynar data layer for now. Measure **both** perceived
-> interaction latency (INP) **and** server round-trip latency.
+> (SSR), deployed on Cloudflare Workers**. Keep the Supabase + Neynar data layer for now. Measure
+> **both** perceived interaction latency (INP) **and** server round-trip latency.
+>
+> **Primary subgoal:** host the whole app on **Cloudflare** as a test in **reproducibility /
+> forkability** (which should be high) — fork → one-command deploy, minimal vendor glue.
 
 ## Goal
 
@@ -15,20 +18,27 @@ most: **cold start → feed switching → profile navigation → notification UX
 
 ## Architecture decision
 
-**Migrate Next.js 15 App Router → TanStack Start (SSR).** Drivers (this session):
-- Framework-native **loaders + intent preloading** (snappy nav).
-- **Type-safe routing + typed search-param state** (DX upgrade App Router can't match).
-- **Escape Next/Vercel coupling** — the same control / devex / lock-in motivation behind the
-  raw-Postgres question (#742). The router migration addresses the *framework* half of that itch.
-- _[Additional driver from owner — TBD, see Open Questions.]_
+**Migrate Next.js 15 App Router → TanStack Start (SSR), deployed on Cloudflare Workers.** Drivers (this session):
+- **Cloudflare hosting for high reproducibility / forkability** *(primary subgoal)* — fork → one-command
+  deploy, `wrangler` config in-repo, templated secrets, minimal vendor glue.
+- **Escape Next/Vercel coupling** — the control / devex / lock-in motivation behind the raw-Postgres
+  question (#742). The router migration addresses the *framework* half of that itch.
+- **Build speed** — Vite (Start's bundler) over Next builds.
+- **React 19** — first-class on Start.
+- **Better testing / easier OODA loop for agents** — Vite + typed routes + simpler runtime.
+- Framework-native **loaders + intent preloading** + **type-safe routing / search-param state**.
 
 **Not chosen:** Vite SPA + Router (we want SSR), sync-engine/local-first rewrite (deferred — see #742),
-and pure-incremental-on-Next (the lock-in driver justifies the move).
+and pure-incremental-on-Next (the lock-in + Cloudflare drivers justify the move).
 
 **Migration size (measured against the repo):** 25 page routes · 17 layout/loading/error files ·
 104 files importing `next/*` · 31 API routes (23 server-coupled: `maxDuration`, service-role keys,
-edge/runtime). The 31 API routes map to TanStack Start **server functions**. No Tauri currently wired
+edge/runtime). The 31 API routes map to Start **server functions** on Workers. No Tauri currently wired
 (`output: 'export'` is commented in `next.config`).
+
+**Cloudflare Workers note:** Workers limit **CPU time**, not wall-clock — so the slow (7-8s) I/O-bound
+Neynar proxy routes are fine; any *compute-heavy* route needs auditing (Phase 0). Secrets become Workers
+bindings; Node APIs via `nodejs_compat`; Sentry via its CF Workers SDK.
 
 ---
 
@@ -74,14 +84,15 @@ Ship these **now** — they're Query/Zustand-level and survive the migration.
 | 4 | [#739 — Optimistic feed insertion on publish](https://github.com/hero-org/herocast/issues/739) | posting | own cast visible < 200ms |
 | 5 | [#740 — Trim Phase-1 init off critical path](https://github.com/hero-org/herocast/issues/740) | cold start | interactive < 200ms |
 | 6 | [#741 — Optimistic account/channel mutations](https://github.com/hero-org/herocast/issues/741) | switching | pin/switch < 100ms |
-| 7 | **INP / action-to-paint instrumentation** *(proposed — not yet filed)* | all | the measurement contract |
+| 7 | [#743 — INP / action-to-paint instrumentation](https://github.com/hero-org/herocast/issues/743) **(do first)** | all | the measurement contract |
 
-## SOON/LATER — Track B: TanStack Start migration (phased epic)
+## SOON/LATER — Track B: TanStack Start on Cloudflare (phased epic)
 
-*(proposed epic — not yet filed; pending go-ahead)*
+**Epic: [#744 — Migrate Next.js 15 → TanStack Start (SSR) on Cloudflare Workers](https://github.com/hero-org/herocast/issues/744)**
 
-- **Phase 0 — Spike:** one route + auth + one API-route-as-server-function end-to-end on Start; validate
-  SSR, Sentry/PostHog, and the build. Decide go/no-go with evidence.
+- **Phase 0 — Spike:** stand up Start **on Cloudflare Workers** — one route + auth + one
+  API-route-as-server-function end-to-end; validate SSR, Sentry/PostHog, the build, and a forkable
+  `wrangler` deploy. Audit the 23 server-coupled routes for CPU-heavy work. Decide go/no-go with evidence.
 - **Phase 1 — Foundation:** Start app shell, root route, auth, providers (Query, themes), `next/font` +
   `next/image` replacements.
 - **Phase 2 — Routes:** port 25 pages to the typed route tree; loaders + `preload="intent"` deliver
@@ -92,8 +103,10 @@ Ship these **now** — they're Query/Zustand-level and survive the migration.
 ## LATER / EVALUATE
 
 - [#742 — Rawer/pooled Postgres vs full Supabase](https://github.com/hero-org/herocast/issues/742) —
-  **the data-layer half of the same lock-in motivation.** Re-evaluate *after* Start lands; a sync engine
-  (ElectricSQL / Zero) pairs naturally with a post-Start architecture if we revisit "native by construction."
+  **the data-layer half of the same lock-in motivation.** Re-evaluate *after* Start lands. The Cloudflare
+  move makes this *easier*: **Cloudflare Hyperdrive** provides pooled Postgres from Workers (the pooling
+  piece raw-Postgres needs), and a sync engine (ElectricSQL / Zero) pairs naturally with the post-Start /
+  Cloudflare architecture if we revisit "native by construction."
 - Service-worker offline shell; consolidate per-store IndexedDB DBs. *(skip for now)*
 
 ---
@@ -141,9 +154,14 @@ migration surface. Mitigation: Phase 0 spike with a go/no-go gate before committ
 
 ---
 
+## Resolved this session
+
+- **Primary driver = Cloudflare hosting for high reproducibility / forkability** (plus build speed,
+  React 19, better testing / agent OODA loop). Captured in the epic (#744) success criteria.
+- **Both proposed issues filed:** #743 (INP instrumentation, do first) and #744 (TanStack Start on
+  Cloudflare epic).
+
 ## Open questions
 
-- **The "something else" driver** behind the Start move (owner flagged one beyond prefetch / DX /
-  lock-in) — capture it so it's reflected in the epic's scope and success criteria.
-- **Go-ahead to file** the two proposed issues: Track A item 7 (INP instrumentation) and the Track B
-  TanStack Start epic.
+- Forkability bar: how turnkey must "fork → deploy" be — `wrangler deploy` + a secrets template, or a
+  fuller self-serve setup (seed data, Supabase project bootstrap)? Shapes Phase 1 / Phase 4 scope.
