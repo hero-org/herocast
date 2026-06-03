@@ -43,6 +43,10 @@ export const queryKeys = {
         viewerFid ?? null,
       ] as const,
     additionalInfo: (fid: number) => ['profiles', 'additionalInfo', fid] as const,
+    repliesAndRecasts: (fid: number | undefined, options?: { cursor?: string; limit?: number; single?: boolean }) =>
+      ['profiles', 'replies_and_recasts', fid, options ?? {}] as const,
+    popular: (fid: number | undefined, options?: { limit?: number }) =>
+      ['profiles', 'popular', fid, options ?? {}] as const,
   },
 
   // Cast queries
@@ -81,6 +85,23 @@ export const queryKeys = {
     all: ['channels'] as const,
     byUrl: (url: string) => ['channels', 'byUrl', url] as const,
     search: (query: string) => ['channels', 'search', query] as const,
+    trending: (options?: { limit?: number }) => ['channels', 'trending', options ?? {}] as const,
+    byUser: (fid: number | undefined, options?: { limit?: number }) =>
+      ['channels', 'byUser', fid, options ?? {}] as const,
+  },
+
+  // Cast reactions (who liked / recasted a cast)
+  reactions: {
+    all: ['reactions'] as const,
+    byCast: (hash: string, options?: { types?: string; limit?: number }) =>
+      ['reactions', 'byCast', hash, options ?? {}] as const,
+  },
+
+  // Affinity queries (best friends)
+  affinity: {
+    all: ['affinity'] as const,
+    bestFriends: (fid: number | undefined, options?: { limit?: number }) =>
+      ['affinity', 'bestFriends', fid, options ?? {}] as const,
   },
 
   // Embed queries

@@ -76,3 +76,152 @@ describe('createHypersnapProvider.getFollowingFeed', () => {
     expect(url).toContain('limit=100'); // 50 * 3 -> capped
   });
 });
+
+describe('createHypersnapProvider — new provider methods', () => {
+  const provider = createHypersnapProvider();
+  let fetchMock: jest.Mock<(input: unknown, init?: unknown) => Promise<unknown>>;
+
+  beforeEach(() => {
+    fetchMock = jest.fn<(input: unknown, init?: unknown) => Promise<unknown>>();
+    global.fetch = fetchMock as unknown as typeof fetch;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function mockJson(body: unknown) {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => body });
+  }
+
+  describe('getFidListFeed', () => {
+    it('returns casts and the upstream cursor', async () => {
+      mockJson({ casts: [{ hash: '0xa' }, { hash: '0xb' }], next: { cursor: 'PAGE_2' } });
+
+      const res = await provider.getFidListFeed({ fids: [1, 2, 3], limit: 15 });
+
+      expect(res.casts.map((c) => c.hash)).toEqual(['0xa', '0xb']);
+      expect(res.next?.cursor).toBe('PAGE_2');
+    });
+
+    it('caps the FID set at the first 100', async () => {
+      mockJson({ casts: [], next: { cursor: undefined } });
+
+      const tooManyFids = Array.from({ length: 150 }, (_, i) => i + 1);
+      await provider.getFidListFeed({ fids: tooManyFids, limit: 15 });
+
+      const url = fetchMock.mock.calls[0][0] as string;
+      const fidsParam = new URL(url, 'http://x').searchParams.get('fids') ?? '';
+      expect(fidsParam.split(',')).toHaveLength(100);
+      expect(fidsParam.split(',')[0]).toBe('1');
+      expect(fidsParam.split(',')[99]).toBe('100');
+    });
+  });
+
+  describe('getProfileRepliesAndRecasts', () => {
+    it('returns casts and cursor as-is', async () => {
+      mockJson({ casts: [{ hash: '0xreply' }], next: { cursor: 'NEXT' } });
+
+      const res = await provider.getProfileRepliesAndRecasts({ fid: 3, limit: 25 });
+
+      expect(res.casts.map((c) => c.hash)).toEqual(['0xreply']);
+      expect(res.next?.cursor).toBe('NEXT');
+    });
+  });
+
+  describe('getProfilePopular', () => {
+    it('returns casts with no pagination cursor', async () => {
+      mockJson({ casts: [{ hash: '0xpop1' }, { hash: '0xpop2' }] });
+
+      const res = await provider.getProfilePopular({ fid: 3, limit: 25 });
+
+      expect(res.casts.map((c) => c.hash)).toEqual(['0xpop1', '0xpop2']);
+      expect(res.next?.cursor).toBeUndefined();
+    });
+  });
+
+  describe('getTrendingChannels', () => {
+    it('returns the channel array', async () => {
+      mockJson({ channels: [{ id: 'degen' }, { id: 'base' }] });
+
+      const channels = await provider.getTrendingChannels({ limit: 10 });
+
+      expect(channels.map((c) => c.id)).toEqual(['degen', 'base']);
+    });
+
+    it('returns [] when channels is missing', async () => {
+      mockJson({});
+
+      const channels = await provider.getTrendingChannels();
+
+      expect(channels).toEqual([]);
+    });
+  });
+
+  describe('getUserChannels', () => {
+    it('returns the channel array', async () => {
+      mockJson({ channels: [{ id: 'memes' }] });
+
+      const channels = await provider.getUserChannels({ fid: 3, limit: 20 });
+
+      expect(channels.map((c) => c.id)).toEqual(['memes']);
+    });
+  });
+
+  describe('getCastReactions', () => {
+    it('maps reactions through and defaults missing fields to []/undefined', async () => {
+      const reactions = [
+        { reaction_type: 'like', reaction_timestamp: '2026-06-03T00:00:00Z', user: { fid: 1 } },
+        { reaction_type: 'recast', reaction_timestamp: '2026-06-03T00:01:00Z', user: { fid: 2 } },
+      ];
+      mockJson({ reactions, next: { cursor: 'MORE' } });
+
+      const res = await provider.getCastReactions({ hash: '0xcast' });
+
+      expect(res.reactions).toHaveLength(2);
+      expect(res.reactions[0].reaction_type).toBe('like');
+      expect(res.reactions[1].user.fid).toBe(2);
+      expect(res.next?.cursor).toBe('MORE');
+    });
+
+    it('defaults to likes,recasts and returns [] when reactions is missing', async () => {
+      mockJson({});
+
+      const res = await provider.getCastReactions({ hash: '0xcast' });
+
+      expect(res.reactions).toEqual([]);
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(new URL(url, 'http://x').searchParams.get('types')).toBe('likes,recasts');
+    });
+  });
+
+  describe('getBestFriends', () => {
+    it('returns the users array', async () => {
+      mockJson({ users: [{ fid: 1 }, { fid: 2 }] });
+
+      const users = await provider.getBestFriends({ fid: 3, limit: 5 });
+
+      expect(users.map((u) => u.fid)).toEqual([1, 2]);
+    });
+  });
+
+  describe('getActiveUsers', () => {
+    it('returns [] when viewerFid is missing without calling fetch', async () => {
+      const users = await provider.getActiveUsers({ limit: 14 });
+
+      expect(users).toEqual([]);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('returns suggested users when viewerFid is present', async () => {
+      mockJson({ users: [{ fid: 7 }, { fid: 8 }] });
+
+      const users = await provider.getActiveUsers({ limit: 14, viewerFid: 3 });
+
+      expect(users.map((u) => u.fid)).toEqual([7, 8]);
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(new URL(url, 'http://x').pathname).toContain('following/suggested');
+      expect(new URL(url, 'http://x').searchParams.get('fid')).toBe('3');
+    });
+  });
+});

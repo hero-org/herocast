@@ -1,6 +1,8 @@
 import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
 import { measureAsync } from '@/stores/usePerformanceStore';
 import type {
+  CastReaction,
+  CastReactionsResponse,
   FarcasterProvider,
   FeedResponse,
   GetNotificationsRequest,
@@ -20,6 +22,9 @@ const DIRECT_UPSTREAM = 'https://haatz.quilibrium.com/v2/farcaster';
 // scroll loop tops up the rest. Capped at the upstream max limit of 100.
 const FOLLOWING_FEED_OVERFETCH = 3;
 const FOLLOWING_FEED_MAX_LIMIT = 100;
+
+// Hypersnap's filter feed accepts at most 100 FIDs per request; slice larger lists.
+const FID_LIST_MAX_FIDS = 100;
 
 // SSR safety: `src/lib/farcaster/providers/index.ts` is `'use client'` and `getProviderType()`
 // returns 'neynar' when `window` is undefined, so this provider is never constructed server-side
@@ -95,12 +100,18 @@ export function createHypersnapProvider(): FarcasterProvider {
       trendingFeed: false,
       profileCasts: true,
       profileLikes: true,
-      fidListFeed: false,
+      fidListFeed: true,
       castLookup: true,
       allChannels: true,
       castConversation: true,
-      activeUsers: false,
+      activeUsers: true,
       castByIdentifier: true,
+      profileRepliesAndRecasts: true,
+      profilePopular: true,
+      trendingChannels: true,
+      userChannels: true,
+      castReactions: true,
+      bestFriends: true,
     },
 
     async getUser({ fid, signal }) {
@@ -171,8 +182,19 @@ export function createHypersnapProvider(): FarcasterProvider {
       return { casts, next: { cursor: undefined } };
     },
 
-    getFidListFeed() {
-      return unsupported('getFidListFeed');
+    async getFidListFeed({ fids, limit = 15, cursor, signal }) {
+      // Hypersnap's filter feed caps the FID set at 100; slice larger lists to the first 100.
+      const cappedFids = fids.slice(0, FID_LIST_MAX_FIDS);
+      return fetchJson<FeedResponse>(
+        buildUrl('feed', {
+          feed_type: 'filter',
+          filter_type: 'fids',
+          fids: cappedFids.join(','),
+          limit,
+          cursor,
+        }),
+        signal
+      );
     },
 
     async searchCasts({ q, limit, filters, signal }) {
@@ -224,13 +246,13 @@ export function createHypersnapProvider(): FarcasterProvider {
       return fetchJson<NotificationsResponse>(buildUrl('notifications', { fid, limit, cursor, type }), signal);
     },
 
-    async getConversation({ hash, signal }) {
+    async getConversation({ hash, replyDepth, signal }) {
       // Hypersnap exposes /cast/conversation but only returns direct_replies — it does
       // NOT populate chronological_parent_casts. Walk parent_hash manually via /cast.
       // Tracked in #715.
       const data = await fetchJson<{
         conversation?: { cast?: FarcasterCast & { direct_replies?: FarcasterCast[] } };
-      }>(buildUrl('cast/conversation', { identifier: hash, type: 'hash' }), signal);
+      }>(buildUrl('cast/conversation', { identifier: hash, type: 'hash', reply_depth: replyDepth ?? 2 }), signal);
       const focused = data.conversation?.cast;
       if (!focused) throw new Error(`Conversation for ${hash} not found`);
       const { direct_replies: replies = [], ...cast } = focused;
@@ -253,10 +275,16 @@ export function createHypersnapProvider(): FarcasterProvider {
       return { parents, cast: cast as FarcasterCast, replies };
     },
 
-    async getActiveUsers() {
-      // No Hypersnap discovery endpoint. RecommendedProfilesCard renders curated defaults
-      // when this returns empty — preferable to falling through to a blocked Neynar.
-      return [];
+    async getActiveUsers({ limit = 14, viewerFid, signal }) {
+      // Hypersnap's discovery is per-viewer via `following/suggested`. Without a viewer FID
+      // there's nothing to personalize on, so return empty — RecommendedProfilesCard then
+      // renders curated defaults rather than falling through to a blocked Neynar.
+      if (!viewerFid) return [];
+      const data = await fetchJson<{ users: FarcasterUser[] }>(
+        buildUrl('following/suggested', { fid: viewerFid, limit }),
+        signal
+      );
+      return data.users ?? [];
     },
 
     async getCastByIdentifier({ identifier, type, signal }) {
@@ -267,6 +295,46 @@ export function createHypersnapProvider(): FarcasterProvider {
       const data = await fetchJson<{ cast?: FarcasterCast }>(buildUrl('cast', { identifier }), signal);
       if (!data.cast) throw new Error(`Cast ${identifier} not found`);
       return data.cast;
+    },
+
+    async getProfileRepliesAndRecasts({ fid, limit = 25, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('feed/user/replies_and_recasts', { fid, limit, cursor }), signal);
+    },
+
+    async getProfilePopular({ fid, limit = 25, signal }) {
+      // Hypersnap's popular feed returns a fixed top-cast set with no pagination cursor.
+      const data = await fetchJson<{ casts: FarcasterCast[] }>(buildUrl('feed/user/popular', { fid, limit }), signal);
+      return { casts: data.casts ?? [], next: { cursor: undefined } };
+    },
+
+    async getTrendingChannels(request) {
+      const data = await fetchJson<{ channels: FarcasterChannel[] }>(
+        buildUrl('channel/trending', { limit: request?.limit }),
+        request?.signal
+      );
+      return data.channels ?? [];
+    },
+
+    async getUserChannels({ fid, limit, cursor, signal }) {
+      const data = await fetchJson<{ channels: FarcasterChannel[] }>(
+        buildUrl('user/channels', { fid, limit, cursor }),
+        signal
+      );
+      return data.channels ?? [];
+    },
+
+    async getCastReactions({ hash, types = 'likes,recasts', limit, cursor, signal }) {
+      // Entries arrive pre-hydrated with reaction_type/reaction_timestamp/user, matching CastReaction.
+      const data = await fetchJson<{ reactions: CastReaction[]; next?: { cursor?: string } }>(
+        buildUrl('reaction/cast', { hash, types, limit, cursor }),
+        signal
+      );
+      return { reactions: data.reactions ?? [], next: data.next } satisfies CastReactionsResponse;
+    },
+
+    async getBestFriends({ fid, limit, signal }) {
+      const data = await fetchJson<{ users: FarcasterUser[] }>(buildUrl('user/best_friends', { fid, limit }), signal);
+      return data.users ?? [];
     },
   };
 }

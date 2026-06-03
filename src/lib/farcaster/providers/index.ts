@@ -90,10 +90,15 @@ export function useFarcasterProviderValue() {
 }
 
 export type {
+  CastReaction,
+  CastReactionsResponse,
   FarcasterProvider,
   FeedResponse,
   FetchOptions,
+  GetActiveUsersRequest,
+  GetBestFriendsRequest,
   GetBulkUsersRequest,
+  GetCastReactionsRequest,
   GetCastsRequest,
   GetChannelFeedRequest,
   GetChannelRequest,
@@ -101,8 +106,10 @@ export type {
   GetFollowingFeedRequest,
   GetNotificationsRequest,
   GetProfileFeedRequest,
+  GetTrendingChannelsRequest,
   GetTrendingFeedRequest,
   GetUserByUsernameRequest,
+  GetUserChannelsRequest,
   GetUserRequest,
   NotificationsResponse,
   ProviderCapabilities,

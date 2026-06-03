@@ -10,8 +10,10 @@ import { CreateAccountPage } from '@/common/components/CreateAccountPage';
 import { NewCastsPill } from '@/common/components/Feed/NewCastsPill';
 import { PreviewPane } from '@/common/components/Feed/PreviewPane';
 import { SplitPaneShell } from '@/common/components/Feed/SplitPaneShell';
+import RecommendedProfilesCard from '@/common/components/RecommendedProfilesCard';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
+import TrendingChannelsCard from '@/common/components/TrendingChannelsCard';
 import { AccountStatusType } from '@/common/constants/accounts';
 import { createEmbedCastId, createParentCastId } from '@/common/constants/farcaster';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
@@ -669,40 +671,44 @@ export default function Feeds() {
       casts.length === 0 &&
       isHydrated &&
       !isLoadingFeed && (
-        <div className="w-full flex justify-center pt-12">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
-              <CardTitle>Feed is empty</CardTitle>
-              <CardDescription>
-                {listDetails ? `No results found for ${listDetails}` : 'Seems like there is nothing to see here.'}
-              </CardDescription>
-            </CardHeader>
-            <CardFooter className="flex gap-2">
-              <Button
-                className="flex-1"
-                disabled={isRefreshingPage}
-                onClick={async () => {
-                  setIsRefreshingPage(true);
-                  await hydrateAccounts();
-                  refreshFeed();
-                  setIsRefreshingPage(false);
-                }}
-              >
-                Refresh
-              </Button>
-              <Button
-                className="flex-1"
-                variant="outline"
-                onClick={() => {
-                  // Navigate to trending feed
-                  useAccountStore.setState({ selectedChannelUrl: CUSTOM_CHANNELS.TRENDING });
-                  setSelectedListId(undefined);
-                }}
-              >
-                Go to Trending
-              </Button>
-            </CardFooter>
-          </Card>
+        <div className="w-full">
+          <div className="w-full flex justify-center pt-12">
+            <Card className="w-full max-w-md mx-4">
+              <CardHeader>
+                <CardTitle>Feed is empty</CardTitle>
+                <CardDescription>
+                  {listDetails ? `No results found for ${listDetails}` : 'Seems like there is nothing to see here.'}
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="flex gap-2">
+                <Button
+                  className="flex-1"
+                  disabled={isRefreshingPage}
+                  onClick={async () => {
+                    setIsRefreshingPage(true);
+                    await hydrateAccounts();
+                    refreshFeed();
+                    setIsRefreshingPage(false);
+                  }}
+                >
+                  Refresh
+                </Button>
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={() => {
+                    // Navigate to trending feed
+                    useAccountStore.setState({ selectedChannelUrl: CUSTOM_CHANNELS.TRENDING });
+                    setSelectedListId(undefined);
+                  }}
+                >
+                  Go to Trending
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          <TrendingChannelsCard />
+          <RecommendedProfilesCard />
         </div>
       )
     );

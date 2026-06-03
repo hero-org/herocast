@@ -2,6 +2,7 @@
 
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { MAX_FID_LIST_SIZE, MAX_FID_LIST_SIZE_MESSAGE } from '@/common/constants/listLimits';
 import type { FarcasterUser } from '@/common/types/farcaster';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -223,11 +224,25 @@ export function BulkAddUsersDialog({
       return;
     }
 
+    // Hypersnap's FID-list feed hard-caps at 100, so never let an import push past it.
+    if (availableSlots <= 0) {
+      toast({
+        title: 'List is full',
+        description: MAX_FID_LIST_SIZE_MESSAGE,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Clip the import to the remaining slots and tell the user what was skipped.
+    const usersToAddSource = validUsers.slice(0, availableSlots);
+    const skippedCount = validUsers.length - usersToAddSource.length;
+
     setIsProcessing(true);
     setLastAddError(null);
 
     try {
-      const usersToAdd = validUsers.map((u) => ({
+      const usersToAdd = usersToAddSource.map((u) => ({
         fid: u.fid!,
         displayName: u.user!.username,
       }));
@@ -237,7 +252,10 @@ export function BulkAddUsersDialog({
       if (result.success) {
         toast({
           title: 'Success',
-          description: `Added ${usersToAdd.length} users to the list`,
+          description:
+            skippedCount > 0
+              ? `Added ${usersToAdd.length} users. Skipped ${skippedCount} — ${MAX_FID_LIST_SIZE_MESSAGE.toLowerCase()}.`
+              : `Added ${usersToAdd.length} users to the list`,
         });
         handleClose();
       } else {
@@ -266,6 +284,11 @@ export function BulkAddUsersDialog({
   const validCount = parsedUsers.filter((u) => u.user && !u.isDuplicate).length;
   const duplicateCount = parsedUsers.filter((u) => u.isDuplicate).length;
   const errorCount = parsedUsers.filter((u) => u.error).length;
+
+  // Hypersnap's FID-list feed hard-caps at 100, so clip imports to the remaining slots.
+  const availableSlots = Math.max(0, MAX_FID_LIST_SIZE - existingFids.length);
+  const addableCount = Math.min(validCount, availableSlots);
+  const overflowCount = Math.max(0, validCount - availableSlots);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -342,11 +365,27 @@ export function BulkAddUsersDialog({
               </div>
             </ScrollArea>
 
-            {validCount > 0 && (
+            {addableCount > 0 && (
               <Alert>
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertDescription>
-                  Ready to add {validCount} user{validCount !== 1 ? 's' : ''} to the list
+                  Ready to add {addableCount} user{addableCount !== 1 ? 's' : ''} to the list
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {overflowCount > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {MAX_FID_LIST_SIZE_MESSAGE}. This list has {existingFids.length}, so{' '}
+                  {availableSlots > 0 ? (
+                    <>
+                      only the first {availableSlots} will be added and {overflowCount} will be skipped.
+                    </>
+                  ) : (
+                    <>the list is full and no users can be added.</>
+                  )}
                 </AlertDescription>
               </Alert>
             )}
@@ -385,16 +424,16 @@ export function BulkAddUsersDialog({
               <Button variant="outline" onClick={() => setShowPreview(false)} disabled={isProcessing}>
                 Back
               </Button>
-              <Button onClick={handleAddUsers} disabled={isProcessing || validCount === 0}>
+              <Button onClick={handleAddUsers} disabled={isProcessing || addableCount === 0}>
                 {isProcessing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Adding...
                   </>
                 ) : lastAddError ? (
-                  `Retry Adding ${validCount} User${validCount !== 1 ? 's' : ''}`
+                  `Retry Adding ${addableCount} User${addableCount !== 1 ? 's' : ''}`
                 ) : (
-                  `Add ${validCount} User${validCount !== 1 ? 's' : ''}`
+                  `Add ${addableCount} User${addableCount !== 1 ? 's' : ''}`
                 )}
               </Button>
             </>

@@ -1,7 +1,7 @@
 import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { MAX_FID_LIST_SIZE, MAX_FID_LIST_SIZE_MESSAGE, MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
 import { createClient } from '@/common/helpers/supabase/component';
 import type { Tables, TablesInsert, TablesUpdate } from '@/common/types/database.types';
 import { type AutoInteractionListContent, type FidListContent, isFidListContent } from '@/common/types/list.types';
@@ -104,9 +104,9 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
 
     const content = list.contents as FidListContent;
     if (!content.fids.includes(fid)) {
-      // Check if adding would exceed the limit
-      if (content.fids.length >= MAX_USERS_PER_LIST) {
-        return { success: false, error: `List cannot exceed ${MAX_USERS_PER_LIST} users` };
+      // Backstop: Hypersnap's FID-list feed hard-caps at 100, so reject anything past it.
+      if (content.fids.length >= MAX_FID_LIST_SIZE) {
+        return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
       }
 
       // Add new FID to the beginning of the list
@@ -221,9 +221,9 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
       return { success: false, error: 'User not logged in' };
     }
 
-    // Validate FID list size
-    if (fids.length > MAX_USERS_PER_LIST) {
-      return { success: false, error: `List cannot exceed ${MAX_USERS_PER_LIST} users` };
+    // Validate FID list size (Hypersnap's FID-list feed hard-caps at 100)
+    if (fids.length > MAX_FID_LIST_SIZE) {
+      return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
     }
 
     // Find the highest idx to place the new list after it
@@ -308,9 +308,9 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
       return { success: false, error: 'FID list not found' };
     }
 
-    // Validate FID list size
-    if (fids.length > MAX_USERS_PER_LIST) {
-      return { success: false, error: `List cannot exceed ${MAX_USERS_PER_LIST} users` };
+    // Validate FID list size (Hypersnap's FID-list feed hard-caps at 100)
+    if (fids.length > MAX_FID_LIST_SIZE) {
+      return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
     }
 
     // Preserve displayNames if they exist in the current list
