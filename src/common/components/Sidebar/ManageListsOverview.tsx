@@ -15,6 +15,7 @@ import { getPlanLimitsForPlan } from '@/config/planLimits';
 import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
+import { beginInteraction } from '@/stores/usePerformanceStore';
 import UpgradeFreePlanCard from '../UpgradeFreePlanCard';
 import { SidebarHeader } from './SidebarHeader';
 
@@ -37,6 +38,8 @@ const ManageListsOverview = ({ collapsible, hideHeader, onItemClick }: ListsOver
   };
 
   const updateSelectedList = (id: string) => {
+    // Resolved when the new feed's content paints (feeds page content-ready effect)
+    beginInteraction('switch-feed');
     setSelectedListId(id);
     if (onItemClick) onItemClick();
   };
