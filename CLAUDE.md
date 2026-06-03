@@ -374,7 +374,7 @@ Only `warning` and `critical` metrics are sent to PostHog to reduce noise.
 | INP (perceived) | `inp:like`, `inp:recast` | 100ms | `CastRow/ReactionBar.tsx` |
 | INP (perceived) | `inp:open-notification` | 100ms | `app/(app)/inbox/page.tsx` |
 | INP (perceived) | `inp:publish` | 200ms | `Editor/NewCastEditor.tsx` |
-| INP (perceived) | `inp:switch-feed` | 200ms | `Sidebar/ChannelsOverview.tsx` + `feeds/page.tsx` |
+| INP (perceived) | `inp:switch-feed` | 200ms | `Sidebar/ChannelsOverview.tsx`, `Sidebar/ManageListsOverview.tsx` + `feeds/page.tsx` |
 | INP (perceived) | `inp:open-profile` | 200ms | `CastRow/Author.tsx`, `ProfileHoverCard.tsx` + `profile/[slug]/page.tsx` |
 | INP (perceived) | `inp:cold-start` | 200ms | `app/(app)/feeds/page.tsx` |
 | INP (page-level) | `inp:page` | 200ms | `useWebVitals` hook (`web-vitals` `onINP`) |
