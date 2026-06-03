@@ -39,8 +39,9 @@ export async function handlePostFollow(req: Request, authResult: AuthResult): Pr
     const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = signingAccount.userId;
 
-    // Read the user-level Hub provider preference (default 'neynar').
-    provider = await getUserFarcasterProvider(supabaseClient, signingAccount.userId);
+    // Prefer the provider the client sent (its live toggle); fall back to the
+    // stored user preference (default 'neynar') for clients/cron that omit it.
+    provider = validatedRequest.provider ?? (await getUserFarcasterProvider(supabaseClient, signingAccount.userId));
 
     // Sign and submit the follow
     const hash = await signAndSubmitFollow({
@@ -125,8 +126,9 @@ export async function handleDeleteFollow(req: Request, authResult: AuthResult): 
     const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = signingAccount.userId;
 
-    // Read the user-level Hub provider preference (default 'neynar').
-    provider = await getUserFarcasterProvider(supabaseClient, signingAccount.userId);
+    // Prefer the provider the client sent (its live toggle); fall back to the
+    // stored user preference (default 'neynar') for clients/cron that omit it.
+    provider = validatedRequest.provider ?? (await getUserFarcasterProvider(supabaseClient, signingAccount.userId));
 
     // Remove the follow (unfollow)
     const hash = await removeFollow({
