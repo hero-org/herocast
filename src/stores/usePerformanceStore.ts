@@ -141,6 +141,54 @@ export const recordMetric = (
 };
 
 /**
+ * Perceived interaction latency (tap → next paint), recorded as `inp:<name>` metrics.
+ * These live alongside the server round-trip metrics (`feed:*`, `nav:*`) in the store,
+ * `__perfSummary()`, and PostHog, and are the primary "native feel" contract.
+ */
+const pendingInteractions = new Map<string, number>();
+
+/**
+ * Stamp the start of a perceived interaction. Call synchronously inside the event handler.
+ * Resolve it from where the result/content paints via {@link endInteraction}.
+ */
+export const beginInteraction = (name: string): void => {
+  if (typeof window === 'undefined') return;
+  pendingInteractions.set(name, performance.now());
+};
+
+/**
+ * Resolve a pending interaction once its result/content has painted, recording `inp:<name>`.
+ * No-op if no matching interaction is pending, so it is safe to call from effects that also
+ * run on unrelated renders (pagination, refetch, deep-link entry).
+ */
+export const endInteraction = (name: string, threshold = 200, metadata?: Record<string, unknown>): void => {
+  const start = pendingInteractions.get(name);
+  if (start === undefined) return;
+  pendingInteractions.delete(name);
+  requestAnimationFrame(() => {
+    recordMetric(`inp:${name}`, performance.now() - start, threshold, metadata);
+  });
+};
+
+/**
+ * Convenience for instant in-place flows whose result paints in the current document:
+ * stamps now and records `inp:<name>` after the next paint.
+ */
+export const trackInteractionToPaint = (name: string, threshold = 200, metadata?: Record<string, unknown>): void => {
+  beginInteraction(name);
+  endInteraction(name, threshold, metadata);
+};
+
+// Flipped on the first client-side route change. Lets cold-start measurement distinguish a
+// genuine initial landing (`performance.now()` ≈ time since page load) from later SPA
+// navigations into the same route.
+let inAppNavigationOccurred = false;
+export const markInAppNavigation = (): void => {
+  inAppNavigationOccurred = true;
+};
+export const hasInAppNavigated = (): boolean => inAppNavigationOccurred;
+
+/**
  * Measure an async function's execution time
  * @param name - Name for the measurement
  * @param fn - Async function to measure

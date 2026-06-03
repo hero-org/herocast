@@ -28,6 +28,7 @@ import { createFixedMentionsSuggestionConfig as createRenderMentionsSuggestionCo
 import { cn } from '@/lib/utils';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useDraftStore } from '@/stores/useDraftStore';
+import { trackInteractionToPaint } from '@/stores/usePerformanceStore';
 import { isPaidUser } from '@/stores/useUserStore';
 import { DraftStatus, type DraftType } from '../../constants/farcaster';
 import { useTextLength } from '../../helpers/editor';
@@ -169,6 +170,9 @@ export default function NewPostEntry({
       }
 
       // No need to flush - controlled pattern keeps store in sync immediately
+
+      // Measure submit → cast leaves the composer (optimistic modal close)
+      trackInteractionToPaint('publish', 200);
 
       // Close modal immediately for better UX flow (optimistic close)
       onPost?.();

@@ -10,6 +10,7 @@ import { AppHotkeysProvider } from '@/common/components/AppHotkeysProvider';
 import { AuthProvider } from '@/common/context/AuthContext';
 import { ThemeProvider } from '@/common/hooks/ThemeProvider';
 import { useNavigationPerf } from '@/common/hooks/useNavigationPerf';
+import { useWebVitals } from '@/common/hooks/useWebVitals';
 import { loadPosthogAnalytics } from '@/lib/analytics';
 import { getQueryClient } from '@/lib/queryClient';
 
@@ -33,6 +34,11 @@ function NavigationPerfTracker() {
   return null;
 }
 
+function WebVitalsTracker() {
+  useWebVitals();
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [queryClient] = useState(() => getQueryClient());
@@ -52,6 +58,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <AuthProvider>
       <AppHotkeysProvider>
         <NavigationPerfTracker />
+        <WebVitalsTracker />
         {children}
       </AppHotkeysProvider>
     </AuthProvider>

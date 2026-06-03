@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CastRow } from '@/common/components/CastRow';
 import { Loading } from '@/common/components/Loading';
 import ProfileInfo from '@/common/components/ProfileInfo';
@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProfile } from '@/hooks/queries/useProfile';
 import { type ProfileFeedType, useProfileFeed } from '@/hooks/queries/useProfileFeed';
 import { useAccountStore } from '@/stores/useAccountStore';
+import { endInteraction } from '@/stores/usePerformanceStore';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
@@ -63,6 +64,13 @@ const ProfilePage = () => {
   });
 
   const casts = feedData?.casts ?? [];
+
+  // Resolve a pending "open profile" interaction once the profile content is visible.
+  // No-op when the page is reached without a tracked tap (e.g. deep link).
+  const profileReady = !isLoadingProfile && !!profile;
+  useEffect(() => {
+    if (profileReady) endInteraction('open-profile', 200);
+  }, [profileReady, profile?.fid]);
 
   const onSelectCast = (idx: number) => {
     setSelectedFeedIdx(idx);

@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { beginInteraction } from '@/stores/usePerformanceStore';
 import { addToClipboard } from '../../helpers/clipboard';
 import { removeCast } from '../../helpers/farcaster';
 import { toastCopiedToClipboard, toastSuccessCastDeleted, toastUnableToDeleteCast } from '../../helpers/toast';
@@ -50,7 +51,12 @@ export const AuthorAvatar: React.FC<AuthorAvatarProps> = ({ cast, isEmbed, hideA
   if (isEmbed || hideAuthor) return null;
   const username = cast.author.username;
   return (
-    <Link href={`/profile/${username}`} prefetch={false} className="flex shrink-0">
+    <Link
+      href={`/profile/${username}`}
+      prefetch={false}
+      className="flex shrink-0"
+      onClick={() => beginInteraction('open-profile')}
+    >
       <Avatar className={`relative ${AVATAR_SIZE_CLASS[size]} mr-1`}>
         <AvatarImage src={cast.author.pfp_url} />
         <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>

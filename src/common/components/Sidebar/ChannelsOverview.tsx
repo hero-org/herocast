@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CUSTOM_CHANNELS, useAccountStore } from '@/stores/useAccountStore';
 import { useListStore } from '@/stores/useListStore';
+import { beginInteraction } from '@/stores/usePerformanceStore';
 import CollapsibleList from './CollapsibleList';
 
 type ChannelsOverviewProps = {
@@ -24,6 +25,8 @@ const ChannelsOverview = ({ onItemClick }: ChannelsOverviewProps) => {
   if (!channels) channels = [];
 
   const onUpdateChannel = (url: string) => {
+    // Resolved when the new feed's content paints (feeds page content-ready effect)
+    beginInteraction('switch-feed');
     setSelectedChannelUrl(url);
     setSelectedListId(undefined);
     if (onItemClick) onItemClick();
