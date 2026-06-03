@@ -1,19 +1,34 @@
 # UX Responsiveness + Data-Layer Roadmap
 
 > **Status:** Spike / investigation (branch `claude/ux-responsiveness-tech-stack`). No feature code
-> ships from this branch — this document is the deliverable, alongside the GitHub issues it links.
+> ships from this branch — this document + the linked GitHub issues are the deliverable.
+>
+> **Decision (this session):** Pursue **native sub-200ms feel** via two tracks — (A) stack-independent
+> responsiveness primitives shipped now, and (B) a phased **migration off Next.js 15 → TanStack Start
+> (SSR + server functions)**. Keep the Supabase + Neynar data layer for now. Measure **both** perceived
+> interaction latency (INP) **and** server round-trip latency.
 
 ## Goal
 
 Make herocast feel **native — sub-200ms perceived responsiveness** on the interactions that matter
-most, and decide the long-term data-layer direction (stay on the full Supabase stack now vs. move to
-a rawer, pooled Postgres later).
+most: **cold start → feed switching → profile navigation → notification UX**.
 
-Priority surfaces (most-bothersome latency, in order): **cold start → feed switching → profile
-navigation → notification UX**.
+## Architecture decision
 
-The framing used throughout: **Now** = this branch / tracked here · **Soon** = GitHub issues ·
-**Later/Evaluate** = discovery issues · everything else = deliberately skipped.
+**Migrate Next.js 15 App Router → TanStack Start (SSR).** Drivers (this session):
+- Framework-native **loaders + intent preloading** (snappy nav).
+- **Type-safe routing + typed search-param state** (DX upgrade App Router can't match).
+- **Escape Next/Vercel coupling** — the same control / devex / lock-in motivation behind the
+  raw-Postgres question (#742). The router migration addresses the *framework* half of that itch.
+- _[Additional driver from owner — TBD, see Open Questions.]_
+
+**Not chosen:** Vite SPA + Router (we want SSR), sync-engine/local-first rewrite (deferred — see #742),
+and pure-incremental-on-Next (the lock-in driver justifies the move).
+
+**Migration size (measured against the repo):** 25 page routes · 17 layout/loading/error files ·
+104 files importing `next/*` · 31 API routes (23 server-coupled: `maxDuration`, service-role keys,
+edge/runtime). The 31 API routes map to TanStack Start **server functions**. No Tauri currently wired
+(`output: 'export'` is commented in `next.config`).
 
 ---
 
@@ -21,109 +36,114 @@ The framing used throughout: **Now** = this branch / tracked here · **Soon** = 
 
 | Capability | Where | Notes |
 |---|---|---|
-| Optimistic likes / recasts / follows | `src/hooks/mutations/useCastActions.ts`, `useFollow.ts` | snapshot + rollback pattern — the template for the remaining optimistic work |
-| React Query config | `src/lib/queryClient.ts` | `staleTime` 5m, `gcTime` 30m, retry×3 backoff, refetch on focus/reconnect |
-| Query-key hierarchy + dedup | `src/lib/queryKeys.ts` | prefix-based invalidation, request coalescing |
-| Phased store init | `src/stores/initializeStores.ts` | Phase 1 critical (~600ms), Phase 2 background (fire-and-forget) |
-| Perf instrumentation | `src/stores/usePerformanceStore.ts` | `measureAsync`, `startTiming`/`endTiming`, `window.__perfSummary()`; `useNavigationPerf` |
-| Loading skeletons | `PageSkeleton`, route `loading.tsx` | good coverage already |
+| TanStack Query v5 + Virtual | `@tanstack/react-query` ^5.90, `@tanstack/react-virtual` ^3.13 | **already the data layer** — comes with us to Start |
+| Optimistic likes / recasts / follows | `src/hooks/mutations/useCastActions.ts`, `useFollow.ts` | snapshot + rollback — the template for remaining optimistic work |
+| Query config | `src/lib/queryClient.ts` | `staleTime` 5m, `gcTime` 30m, retry×3 |
+| Query-key hierarchy | `src/lib/queryKeys.ts` | prefix invalidation, dedup |
+| Phased store init | `src/stores/initializeStores.ts` | Phase 1 ~600ms, Phase 2 background |
+| Perf instrumentation | `src/stores/usePerformanceStore.ts` | `measureAsync`, `__perfSummary()`, `useNavigationPerf` |
 
-## The specific gaps (verified against the code)
+## Verified gaps
 
-- ❌ **No persistent React Query cache** — in-memory only; feed blanks on refresh and re-fetches
-  Neynar (7–8s). No `react-query-persist` / `persistQueryClient` in the repo. *(cold start)*
-- ❌ **No `keepPreviousData` / `placeholderData`** anywhere — feed switch shows a blank frame. *(feed switching)*
-- ❌ **No `prefetchQuery` on intent** — nav waits for the route to commit before fetching; links are
-  `prefetch={false}`. *(profile navigation)*
-- ⚠️ **Notification read-state coupled to a 5s debounce** — `SYNC_INTERVAL = 5000` /
-  `debouncedSync()` in `src/stores/useNotificationStore.ts`. *(notification UX)*
-- ❌ **No optimistic feed insertion** on publish — modal closes optimistically
-  (`NewCastEditor.tsx`) but the feed cache isn't updated; own cast invisible until refresh.
-- ⚠️ **Phase-1 init awaits ~3 Supabase round-trips** (~600ms) before interactive.
+- ❌ No persistent Query cache (no `persistQueryClient` in repo) — feed blanks on refresh. *(cold start)*
+- ❌ No `keepPreviousData`/`placeholderData` anywhere — blank frame on feed switch. *(feed switching)*
+- ❌ No `prefetchQuery` on intent; links are `prefetch={false}`. *(profile nav — dissolves into Start)*
+- ⚠️ Notification read-state coupled to `SYNC_INTERVAL = 5000`ms debounce (`useNotificationStore.ts`). *(notifications)*
+- ❌ No optimistic feed insertion on publish (`NewCastEditor.tsx` closes modal but doesn't update cache).
+- ⚠️ Phase-1 init awaits ~3 Supabase round-trips (~600ms) before interactive.
+- ❌ No INP / action-to-paint measurement — we currently only measure server round-trips.
 
 ---
 
 ## NOW — this branch (tracked here, no feature code)
 
-- ✅ This roadmap document (categorization + rationale + coupling map).
-- ✅ Baseline benchmark **method** + first-pass estimates (below).
-- ✅ ADR: *stay on Supabase now, evaluate rawer Postgres later* (below).
-- ✅ Soon items filed as GitHub issues (linked below).
+- ✅ This roadmap (architecture decision + tracks + coupling map).
+- ✅ Measurement plan (INP + server, below).
+- ✅ Updated ADR (below).
+- Issues reframed to match (#736/#737 folded into Track B; #742 linked to lock-in).
 
-## SOON — GitHub issues (high-impact responsiveness primitives)
+## SOON — Track A: responsiveness primitives (current stack, port to Start unchanged)
 
-Ranked to the priority surfaces:
+Ship these **now** — they're Query/Zustand-level and survive the migration.
 
 | # | Issue | Surface | Target |
 |---|---|---|---|
-| 1 | [#735 — Persist React Query cache to IndexedDB](https://github.com/hero-org/herocast/issues/735) | cold start | feed first-paint < 200ms (cached) vs 7–8s |
-| 2 | [#736 — Instant feed switching (keepPreviousData + adjacent prefetch)](https://github.com/hero-org/herocast/issues/736) | feed switching | no blank frame; < 200ms |
-| 3 | [#737 — Prefetch-on-intent for profile/cast nav](https://github.com/hero-org/herocast/issues/737) | profile nav | warm-hover nav < 200ms |
-| 4 | [#738 — Snappy notification UX (optimistic read-state)](https://github.com/hero-org/herocast/issues/738) | notification UX | read-state change < 100ms |
-| 5 | [#739 — Optimistic feed insertion on publish](https://github.com/hero-org/herocast/issues/739) | posting | own cast visible < 200ms |
-| 6 | [#740 — Trim Phase-1 store init off critical path](https://github.com/hero-org/herocast/issues/740) | cold start | interactive < 200ms |
-| 7 | [#741 — Optimistic account/channel mutations](https://github.com/hero-org/herocast/issues/741) | switching | pin/switch < 100ms |
+| 1 | [#735 — Persist Query cache to IndexedDB](https://github.com/hero-org/herocast/issues/735) | cold start | feed first-paint < 200ms (cached) |
+| 2 | [#736 — `keepPreviousData` for feed switch](https://github.com/hero-org/herocast/issues/736) | feed switching | no blank frame (the prefetch half moves to Track B) |
+| 3 | [#738 — Optimistic notification read-state](https://github.com/hero-org/herocast/issues/738) | notifications | read-state change < 100ms |
+| 4 | [#739 — Optimistic feed insertion on publish](https://github.com/hero-org/herocast/issues/739) | posting | own cast visible < 200ms |
+| 5 | [#740 — Trim Phase-1 init off critical path](https://github.com/hero-org/herocast/issues/740) | cold start | interactive < 200ms |
+| 6 | [#741 — Optimistic account/channel mutations](https://github.com/hero-org/herocast/issues/741) | switching | pin/switch < 100ms |
+| 7 | **INP / action-to-paint instrumentation** *(proposed — not yet filed)* | all | the measurement contract |
 
-**Suggested sequencing:** #735 first (biggest perceived win, unblocks the rest by making cache warm),
-then #736 + #737 (the two prefetch/keep-previous primitives share machinery), then #738/#739/#741
-(optimistic-state work, all reuse the `useCastActions` snapshot+rollback template), with #740 as a
-parallel track on the init path.
+## SOON/LATER — Track B: TanStack Start migration (phased epic)
 
-## LATER / EVALUATE — discovery issues
+*(proposed epic — not yet filed; pending go-ahead)*
 
-- [#742 — Evaluate a rawer, pooled Postgres data layer vs. the full Supabase stack](https://github.com/hero-org/herocast/issues/742)
-  (control / cost / devex / lock-in). See ADR below.
-- **Route-level prefetch / service-worker offline shell** — revisit after #735 lands; the persistent
-  cache covers most of the perceived benefit first. *(skip for now)*
-- **Consolidate per-store IndexedDB databases** into one DB with multiple object stores — minor
-  startup win, not worth it until the above are done. *(skip for now)*
+- **Phase 0 — Spike:** one route + auth + one API-route-as-server-function end-to-end on Start; validate
+  SSR, Sentry/PostHog, and the build. Decide go/no-go with evidence.
+- **Phase 1 — Foundation:** Start app shell, root route, auth, providers (Query, themes), `next/font` +
+  `next/image` replacements.
+- **Phase 2 — Routes:** port 25 pages to the typed route tree; loaders + `preload="intent"` deliver
+  intent-prefetch natively (**absorbs #737 and the prefetch half of #736**).
+- **Phase 3 — Server functions:** migrate 31 API routes (23 server-coupled) to Start server functions.
+- **Phase 4 — Cutover & cleanup:** remove `next/*` (104 sites), Vercel-specific config, decommission.
 
----
+## LATER / EVALUATE
 
-## Baseline benchmark
-
-Reuse existing instrumentation — **no new infra**. Method below is repeatable; run it on a
-production-like build and paste the real numbers into the "Measured" column.
-
-Capture in dev console with `window.__perfSummary()`, or in prod via PostHog `performance_metric`
-events (`warning`/`critical` only).
-
-| Surface | How to measure | Metric key | Est. today | Measured (TODO) | Target |
-|---|---|---|---|---|---|
-| Cold start (blank→feed) | hard-reload `/feeds`, read summary | `store-init-total`, `feed:following`/`feed:trending` | ~600ms init + 7–8s feed cold | _run_ | < 200ms (warm) |
-| Profile navigation | click a profile from feed | `nav:/profile` (`useNavigationPerf`) | ~0.5–2s | _run_ | < 200ms |
-| Feed switching | switch channel | wrap switch in a temporary `measureAsync('feed-switch')` | blank frame + fetch | _run_ | < 200ms |
-| Notification UX | click a notification → read-state visible | manual timing / temp `measureAsync` | tied to 5s `SYNC_INTERVAL` for server, UI flip varies | _run_ | < 100ms |
-
-> The "Est. today" column is derived from the instrumentation thresholds and code analysis, **not a
-> live capture** — confirm with `__perfSummary()` on a real session before/after each Soon item.
+- [#742 — Rawer/pooled Postgres vs full Supabase](https://github.com/hero-org/herocast/issues/742) —
+  **the data-layer half of the same lock-in motivation.** Re-evaluate *after* Start lands; a sync engine
+  (ElectricSQL / Zero) pairs naturally with a post-Start architecture if we revisit "native by construction."
+- Service-worker offline shell; consolidate per-store IndexedDB DBs. *(skip for now)*
 
 ---
 
-## ADR: Stay on Supabase now, evaluate rawer Postgres later
+## Measurement plan (both layers)
 
-**Decision:** Keep the full Supabase stack for now. Track the rawer/pooled-Postgres direction as a
-discovery ([#742](https://github.com/hero-org/herocast/issues/742)); do not migrate on this branch.
+Add `web-vitals` `onINP()`, tag interactions on the six priority flows, and route results into the
+existing `usePerformanceStore` so **INP (perceived)** and **server round-trip** metrics sit side by side.
+INP is the "native feel" contract; server metrics become the "is background sync healthy" view.
 
-**Why now is fine:** The responsiveness wins above are almost entirely **client-side** (cache
-persistence, prefetch, optimistic state) and are independent of the database. They deliver the
-sub-200ms feel without touching the backend.
+| Flow | Primary (INP, perceived) | Secondary (server) | Target |
+|---|---|---|---|
+| Open profile | tap → first content paint | `nav:/profile` | < 200ms |
+| Switch feed | tap → new feed painted | feed fetch duration | < 200ms |
+| Like / recast | tap → icon flip | reaction POST | < 100ms |
+| Publish | submit → cast in feed | publish POST | < 200ms |
+| Open notification | tap → read-state flip | sync (`SYNC_INTERVAL`) | < 100ms |
+| Cold start | reload → feed visible | `store-init-*`, `feed:*` | < 200ms (warm) |
 
-**Coupling map (the swap surface):**
-- Supabase is called via the **JS SDK directly** in Zustand stores and `src/common/helpers/supabase.ts`
-  — there is **no data-access abstraction boundary** today.
-- Zustand owns config/accounts/channels (IndexedDB + Supabase); React Query owns feed/profile data
-  (Neynar). The two **don't overlap**, so a swap is scoped to the Supabase side only.
-- **Supabase Auth** is on the critical path; RLS likely guards tables. Entities/migrations live in
-  `src/lib/entities/` and `supabase/`.
+> **Why this matters:** once #735 lands, the user perceives <200ms while `feed:following` *still reports
+> 7s* (background refetch). Optimizing toward the server metric alone would mislead us — INP is what
+> tracks the goal. Capture via `__perfSummary()` (dev) / PostHog `performance_metric` (prod).
 
-**What a swap would require:** a thin data-access layer over the SDK call sites · connection pooling
-(PgBouncer/Supavisor) · re-homing auth (or keeping Supabase Auth, swapping only the DB) · re-adding
-retry/backoff · re-implementing RLS as app-layer authz.
+To run locally: check out this branch, `pnpm dev`, exercise the six flows, read `window.__perfSummary()`.
+*(INP rows require the instrumentation in Track A item 7 first — without it we'd only see server numbers.)*
 
-**Cheap, reversible first step (recommended regardless):** introduce the data-access boundary so the
-app stops calling the Supabase SDK directly. It improves testability today and de-risks any future
-swap. Pursue under #742.
+---
 
-**Re-evaluate when:** a concrete pressure shows up — measured PostREST/edge latency on a hot path, a
-cost cliff at scale, or a devex/lock-in blocker.
+## ADR: Migrate to TanStack Start; keep Supabase data layer for now
+
+**Decision:** Migrate the framework Next.js → TanStack Start (phased). Keep Supabase + Neynar as the
+data layer. Track responsiveness primitives independently and ship them on the current stack first.
+
+**Why split the framework and data decisions:** the lock-in/devex/control motivation applies to *both*
+Next/Vercel and the full Supabase stack — but they're separable. The framework migration (Start)
+addresses the larger day-to-day surface now; the data-layer question (#742) stays open and is best
+revisited *after* Start, when a sync-engine option could be evaluated against the new architecture.
+
+**Why responsiveness ≠ migration:** the primitives that deliver sub-200ms (#735, #738–#741) are
+Query/Zustand-level and ship today, porting to Start unchanged. Only router-level prefetch (#736/#737)
+waits for Start — and it comes for free there.
+
+**Risk:** TanStack Start is comparatively young; 31 server-coupled API routes + Sentry/PostHog are real
+migration surface. Mitigation: Phase 0 spike with a go/no-go gate before committing the full port.
+
+---
+
+## Open questions
+
+- **The "something else" driver** behind the Start move (owner flagged one beyond prefetch / DX /
+  lock-in) — capture it so it's reflected in the epic's scope and success criteria.
+- **Go-ahead to file** the two proposed issues: Track A item 7 (INP instrumentation) and the Track B
+  TanStack Start epic.
