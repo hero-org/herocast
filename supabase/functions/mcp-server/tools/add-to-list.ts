@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MAX_USERS_PER_LIST } from '../lib/constants.ts';
+import { MAX_FID_LIST_SIZE } from '../lib/constants.ts';
 import type { AuthContext, ToolDefinition, ToolResult } from '../lib/types.ts';
 
 const AddToListSchema = z.object({
@@ -103,13 +103,13 @@ export async function addToListTool(auth: AuthContext, input: unknown): Promise<
 
   // Check limit
   const newTotal = currentFidSet.size;
-  if (newTotal > MAX_USERS_PER_LIST) {
+  if (newTotal > MAX_FID_LIST_SIZE) {
     return {
       content: [
         {
           type: 'text',
           text: JSON.stringify({
-            error: `Adding ${added.length} users would exceed the limit of ${MAX_USERS_PER_LIST} users per list (current: ${currentFids.length})`,
+            error: `Adding ${added.length} users would exceed the limit of ${MAX_FID_LIST_SIZE} users per list (current: ${currentFids.length})`,
             code: 'LIST_LIMIT_EXCEEDED',
           }),
         },
