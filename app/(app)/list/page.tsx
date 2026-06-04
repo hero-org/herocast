@@ -8,6 +8,7 @@ import { BulkAddUsersDialog } from '@/common/components/BulkAddUsersDialog';
 import ProfileInfo from '@/common/components/ProfileInfo';
 import { ProfileSearchDropdown } from '@/common/components/ProfileSearchDropdown';
 import { MAX_FID_LIST_SIZE, MAX_FID_LIST_WARNING_THRESHOLD } from '@/common/constants/listLimits';
+import { mergeFidsCapped } from '@/common/helpers/fidLists';
 import type { FarcasterUser } from '@/common/types/farcaster';
 import { type FidListContent, isFidListContent } from '@/common/types/list.types';
 import { Button } from '@/components/ui/button';
@@ -247,33 +248,23 @@ export default function ListPage() {
       const currentFids = content.fids || [];
       const currentDisplayNames = content.displayNames || {};
 
-      // Check how many new users would be added
-      const newUsersToAdd = users.filter(({ fid }) => !currentFids.includes(fid));
+      // Dedupe by FID against the existing list AND within this batch (e.g. a
+      // username and its FID resolving to the same account), then cap on the real
+      // unique count — so a FID is never double-counted toward the limit nor
+      // inserted twice.
+      const merged = mergeFidsCapped(currentFids, currentDisplayNames, users, MAX_FID_LIST_SIZE);
 
-      // Check if adding these users would exceed the limit
-      if (currentFids.length + newUsersToAdd.length > MAX_FID_LIST_SIZE) {
-        const availableSlots = MAX_FID_LIST_SIZE - currentFids.length;
+      if (merged.exceedsCap) {
         return {
           success: false,
-          error: `Cannot add ${newUsersToAdd.length} users. This list has ${currentFids.length} users and can only add ${availableSlots} more (max ${MAX_FID_LIST_SIZE} users per list).`,
+          error: `Cannot add ${merged.addedCount} users. This list has ${currentFids.length} users and can only add ${merged.availableSlots} more (max ${MAX_FID_LIST_SIZE} users per list).`,
         };
       }
 
-      // Merge new users with existing ones
-      const newFids = [...currentFids];
-      const newDisplayNames = { ...currentDisplayNames };
-
-      users.forEach(({ fid, displayName }) => {
-        if (!currentFids.includes(fid)) {
-          newFids.push(fid);
-          newDisplayNames[fid] = displayName;
-        }
-      });
-
       // Create a new content object with both FIDs and display names
       const updatedContent: FidListContent = {
-        fids: newFids,
-        displayNames: newDisplayNames,
+        fids: merged.fids,
+        displayNames: merged.displayNames,
       };
 
       // Use the store's update method which properly handles RLS
