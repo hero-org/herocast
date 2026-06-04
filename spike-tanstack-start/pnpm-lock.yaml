@@ -11,6 +11,9 @@ importers:
       '@neynar/nodejs-sdk':
         specifier: 1.21.1
         version: 1.21.1(typescript@5.9.3)
+      '@officialunofficial/trek':
+        specifier: ^0.2.1
+        version: 0.2.1
       '@supabase/ssr':
         specifier: ^0.8.0
         version: 0.8.0(@supabase/supabase-js@2.107.0)
@@ -760,6 +763,9 @@ packages:
     resolution: {integrity: sha512-um0xL3fO7Mf4fDxcqx9KryrB7zgRM5JSlvGN5AGkP6JLM5XEKyjeAiPbNxdXVXQ16isuAhYpvP88NgL2BGd6aA==}
     engines: {node: '>=8.0.0', npm: '>=5.0.0'}
     hasBin: true
+
+  '@officialunofficial/trek@0.2.1':
+    resolution: {integrity: sha512-aIxfPL+Zzu/N05n7iaVglh9IKNOD+qaZt5TB5Pg4IkbLPtI9n6tFFLzo7MUN2sJHGvwxyAmbTg/vrTqvozFGAw==}
 
   '@oozcitak/dom@2.0.2':
     resolution: {integrity: sha512-GjpKhkSYC3Mj4+lfwEyI1dqnsKTgwGy48ytZEhm4A/xnH/8z9M3ZVXKr/YGQi3uCLs1AEBS+x5T2JPiueEDW8w==}
@@ -2663,6 +2669,8 @@ snapshots:
       node-fetch: 2.7.0
     transitivePeerDependencies:
       - encoding
+
+  '@officialunofficial/trek@0.2.1': {}
 
   '@oozcitak/dom@2.0.2':
     dependencies:

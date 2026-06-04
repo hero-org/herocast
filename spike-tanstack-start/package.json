@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@neynar/nodejs-sdk": "1.21.1",
+    "@officialunofficial/trek": "^0.2.1",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.91.1",
     "@tanstack/react-router": "^1.135.0",

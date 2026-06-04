@@ -12,7 +12,14 @@
 | 2 | `unstable_cache` replacement | ✅ **WORKS** | Cloudflare Cache API (`caches.default`): request 1 = `MISS`, request 2 = `HIT` (same `fetchedAt`). |
 | 3 | Supabase session cookie in a Start server fn | ✅ **WORKS** | `@supabase/ssr` `getAll/setAll` adapter reads the request cookie; `supabase.auth.getUser()` runs on workerd. |
 
-See [`FINDINGS.md`](./FINDINGS.md) for verbatim command output.
+### Phase 0.5 — the two unknowns the spike deliberately skipped (also ✅)
+
+| # | Unknown | Result | Evidence |
+|---|---------|--------|----------|
+| 4 | `embeds/metadata` WASM (`@officialunofficial/trek`) — only HIGH risk | ✅ **WORKS** | `import .wasm` module + `initSync({ module })`; parsed sample + live github.com on workerd. |
+| 5 | Auth **WRITE**/login cookie path (chunked `sb-*.0/.1`) | ✅ **WORKS** | TanStack `setCookie` emits chunked Set-Cookie; round-trip read reassembles via `combineChunks`. |
+
+See [`FINDINGS.md`](./FINDINGS.md) (Q1–Q3) and [`PHASE-0.5.md`](./PHASE-0.5.md) (WASM + auth-write, incl. codex corrections) for verbatim output.
 
 ## What's here (the thinnest slice)
 
