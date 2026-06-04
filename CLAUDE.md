@@ -369,7 +369,7 @@ Only `warning` and `critical` metrics are sent to PostHog to reduce noise.
 | Feed API | `feed:following` | 1000ms | `useFollowingFeed.ts` |
 | Feed API | `feed:trending` | 1000ms | `useTrendingFeed.ts` |
 | Store Init | `store-init-total` | 4000ms | `initializeStores.ts` |
-| Store Init | `store-init-phase1` | 1000ms | `initializeStores.ts` |
+| Store Init | `store-init-phase1` | 300ms | `initializeStores.ts` |
 | Store Init | `store-init-phase2` | 3000ms | `initializeStores.ts` |
 | INP (perceived) | `inp:like`, `inp:recast` | 100ms | `CastRow/ReactionBar.tsx` |
 | INP (perceived) | `inp:open-notification` | 100ms | `app/(app)/inbox/page.tsx` |
