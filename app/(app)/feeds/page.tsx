@@ -8,6 +8,7 @@ import { Key } from 'ts-key-enum';
 import { CompactCastRow } from '@/common/components/CastRow/CompactCastRow';
 import { CreateAccountPage } from '@/common/components/CreateAccountPage';
 import { NewCastsPill } from '@/common/components/Feed/NewCastsPill';
+import { countNewCastsAboveAcknowledged } from '@/common/components/Feed/newCastsCount';
 import { PreviewPane } from '@/common/components/Feed/PreviewPane';
 import { SplitPaneShell } from '@/common/components/Feed/SplitPaneShell';
 import RecommendedProfilesCard from '@/common/components/RecommendedProfilesCard';
@@ -236,17 +237,14 @@ export default function Feeds() {
     }
   }, [feedContentReady, feedKey]);
 
-  // Compute the count of "new" casts above the user's last acknowledged top.
-  // `acknowledgedFirstHash` is null on the very first render (no pill yet),
-  // and is reset to null on feed switch. When the acknowledged hash is no
-  // longer present in the array (e.g. a full server-side refresh that drops
-  // the previous head), treat as 0 — the conservative path avoids surprising
-  // the user with a giant "N new casts" count after the feed got nuked.
-  let newCastsCount = 0;
-  if (acknowledgedFirstHash !== null && casts.length > 0 && casts[0]?.hash !== acknowledgedFirstHash) {
-    const idx = casts.findIndex((c) => c.hash === acknowledgedFirstHash);
-    newCastsCount = idx === -1 ? 0 : idx;
-  }
+  // Count of "new" casts above the user's last acknowledged top, used to drive
+  // the NewCastsPill. Excludes the viewer's own optimistically-inserted casts
+  // (#739) — see countNewCastsAboveAcknowledged for the full rationale.
+  const newCastsCount = countNewCastsAboveAcknowledged(
+    casts,
+    acknowledgedFirstHash,
+    Number(account?.platformAccountId)
+  );
 
   // On desktop the preview pane already shows the selected cast, so click /
   // Enter / `o` should just update selection. Below the lg breakpoint there
