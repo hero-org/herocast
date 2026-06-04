@@ -460,30 +460,28 @@ const store = (set: StoreSet) => ({
   hydrateMinimal: async () => {
     if (useAccountStore.getState().isHydrated) return;
 
+    // Critical path: wait only for the locally-persisted store (IndexedDB) to
+    // finish rehydrating, then flip the UI gate. No Supabase round-trip here —
+    // warm loads paint instantly from cached accounts, and fresh account data
+    // is fetched off the critical path by hydrateComplete() during Phase 2.
     console.log('hydrating minimal 💧');
-    const accounts = await hydrateAccountsMinimal();
+    try {
+      await useAccountStore.persist.rehydrate();
+    } catch (error) {
+      console.error('Failed to rehydrate persisted account store:', error);
+    }
 
-    useAccountStore.setState({
-      ...useAccountStore.getState(),
-      accounts,
-      isHydrated: true, // Mark as hydrated for basic functionality
-    });
-
+    useAccountStore.setState({ isHydrated: true });
     console.log('done hydrating minimal 💧 basic functionality ready');
   },
   hydrateComplete: async () => {
-    const state = useAccountStore.getState();
-    if (state.accounts.length === 0) return;
-
+    // Background (Phase 2): fetch fresh accounts from Supabase and enrich them
+    // with channels + user metadata. Builds from the Supabase response so cold
+    // loads (nothing cached locally) populate correctly.
     console.log('hydrating complete 🌊');
-    const accounts = await hydrateAccountsComplete(state.accounts);
-    // Note: Removed hydrateChannels() - channels now loaded on-demand for better performance
+    const accounts = await hydrateAccounts();
 
-    useAccountStore.setState({
-      ...state,
-      accounts,
-    });
-
+    useAccountStore.setState({ accounts });
     console.log('done hydrating complete 🌊 full functionality ready');
   },
   updateAccountProperty: (

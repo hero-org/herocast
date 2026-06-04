@@ -438,7 +438,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 >
                   <Dialog.Panel className="relative mr-2 flex w-full max-w-xs flex-1">
                     {/* Mobile Sidebar */}
-                    <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-sidebar text-sidebar-foreground px-3 no-scrollbar">
+                    <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-sidebar text-sidebar-foreground px-3 pt-safe no-scrollbar">
                       <div className="flex h-14 shrink-0 items-center">
                         <Link href="/post" className="flex items-center hover:cursor-pointer">
                           <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
@@ -457,7 +457,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                       <LeftSidebarNav onNavigate={() => setSidebarOpen(false)} />
                       {isReadOnlyUser && renderUpgradeCard()}
                       {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
-                      <div className="mt-auto py-3">
+                      <div className="mt-auto py-3 pb-safe">
                         <AccountSwitcher />
                       </div>
                     </div>
@@ -482,7 +482,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 )}
               >
                 {/* Sidebar component */}
-                <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-sidebar text-sidebar-foreground px-3 no-scrollbar">
+                <div className="flex grow flex-col flex-1 gap-y-3 overflow-y-auto bg-sidebar text-sidebar-foreground px-3 pt-safe no-scrollbar">
                   <div className="flex h-14 shrink-0 items-center">
                     <Link href="/post" className="flex items-center hover:cursor-pointer">
                       <h2 className="text-xl font-bold leading-7 text-foreground sm:truncate sm:tracking-tight">
@@ -494,7 +494,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                   <LeftSidebarNav />
                   {isReadOnlyUser && renderUpgradeCard()}
                   {!isReadOnlyUser && !hasFinishedOnboarding && isHydrated && renderFinishOnboardingCard()}
-                  <div className="mt-auto py-3">
+                  <div className="mt-auto py-3 pb-safe">
                     <AccountSwitcher />
                   </div>
                 </div>
@@ -503,7 +503,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
                 <div className="flex-1 h-full flex flex-col min-w-0 min-h-0">
                   {/* Header */}
                   {!hideTitlebar && (title || headerActions) && (
-                    <div className="flex h-16 flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-border bg-background px-4 sm:px-6 md:px-4 min-w-0">
+                    <div className="flex min-h-[4rem] pt-safe flex-shrink-0 items-center gap-x-6 md:gap-x-0 border-b border-border bg-background px-4 sm:px-6 md:px-4 min-w-0">
                       <button
                         type="button"
                         className="-m-2.5 p-2.5 text-foreground lg:hidden flex-shrink-0"

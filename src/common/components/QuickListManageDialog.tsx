@@ -3,7 +3,7 @@
 import { Loader2, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { MAX_FID_LIST_SIZE } from '@/common/constants/listLimits';
 import { isFidListContent } from '@/common/types/list.types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -63,7 +63,7 @@ export function QuickListManageDialog({
   const listsAtCapacity = useMemo(() => {
     const atCapacity = new Set<string>();
     fidLists.forEach((list) => {
-      if (isFidListContent(list.contents) && list.contents.fids.length >= MAX_USERS_PER_LIST) {
+      if (isFidListContent(list.contents) && list.contents.fids.length >= MAX_FID_LIST_SIZE) {
         atCapacity.add(list.id);
       }
     });
@@ -188,7 +188,7 @@ export function QuickListManageDialog({
                             <p className="text-xs text-warning">List at capacity</p>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>This list has reached the maximum of {MAX_USERS_PER_LIST} users</p>
+                            <p>Lists are limited to {MAX_FID_LIST_SIZE} accounts</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

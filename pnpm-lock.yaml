@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@tanstack/query-core': 5.90.11
+
 importers:
 
   .:
@@ -170,6 +173,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.90.11
         version: 5.90.11(react@18.2.0)
+      '@tanstack/react-query-persist-client':
+        specifier: ^5.90.11
+        version: 5.90.11(@tanstack/react-query@5.90.11(react@18.2.0))(react@18.2.0)
       '@tanstack/react-virtual':
         specifier: ^3.13.12
         version: 3.13.12(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -389,6 +395,9 @@ importers:
       wagmi:
         specifier: ^2.15.2
         version: 2.15.2(@tanstack/query-core@5.90.11)(@tanstack/react-query@5.90.11(react@18.2.0))(@types/react@19.0.10)(bufferutil@4.0.9)(react@18.2.0)(typescript@5.8.2)(utf-8-validate@5.0.10)(viem@2.29.2(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2))(zod@3.24.2)
+      web-vitals:
+        specifier: ^5.3.0
+        version: 5.3.0
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -4117,10 +4126,19 @@ packages:
   '@tanstack/query-devtools@5.91.1':
     resolution: {integrity: sha512-l8bxjk6BMsCaVQH6NzQEE/bEgFy1hAs5qbgXl0xhzezlaQbPk6Mgz9BqEg2vTLPOHD8N4k+w/gdgCbEzecGyNg==}
 
+  '@tanstack/query-persist-client-core@5.91.8':
+    resolution: {integrity: sha512-aee4w+piU37e9Xe3VIoyE/T1ovKPJurRPTgZrNLnP8ExIM6EgmfLgDIYIdz69EUgVlaXOIwJH70dX2wo/TgKTQ==}
+
   '@tanstack/react-query-devtools@5.91.1':
     resolution: {integrity: sha512-tRnJYwEbH0kAOuToy8Ew7bJw1lX3AjkkgSlf/vzb+NpnqmHPdWM+lA2DSdGQSLi1SU0PDRrrCI1vnZnci96CsQ==}
     peerDependencies:
       '@tanstack/react-query': ^5.90.10
+      react: ^18 || ^19
+
+  '@tanstack/react-query-persist-client@5.90.11':
+    resolution: {integrity: sha512-AI4QWvzuxNG8akMTxvVyYY61NqfA45PCmyiER0pNyuHH5l/3TwudSzN00I25kjMcu9ZpD8OIlYfsmg36L8Olwg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.90.9
       react: ^18 || ^19
 
   '@tanstack/react-query@5.90.11':
@@ -4887,7 +4905,7 @@ packages:
   '@wagmi/core@2.17.1':
     resolution: {integrity: sha512-tbeNv8HquzrVj2Inv0bv229SejPABnWAmbBNvPJJedYpKStgXlbK4jnRhCf5qG5un3ZO/KYFGQYaghTzWSULGg==}
     peerDependencies:
-      '@tanstack/query-core': '>=5.0.0'
+      '@tanstack/query-core': 5.90.11
       typescript: '>=5.0.4'
       viem: 2.x
     peerDependenciesMeta:
@@ -9386,8 +9404,8 @@ packages:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
     engines: {node: '>= 8'}
 
-  web-vitals@5.1.0:
-    resolution: {integrity: sha512-ArI3kx5jI0atlTtmV0fWU3fjpLmq/nD3Zr1iFFlJLaqa5wLBkUSzINwBPySCX/8jRyjlmy1Volw1kz1g9XE4Jg==}
+  web-vitals@5.3.0:
+    resolution: {integrity: sha512-q6LWsLatGYZp5VGBIOvbTj6JBV2nOmC8KvWztXBmwJcfFAzhwKwbOxhUH306XY3CcaZDUlSmSuNPBsCn0bFu+g==}
 
   webextension-polyfill@0.10.0:
     resolution: {integrity: sha512-c5s35LgVa5tFaHhrZDnr3FpQpjj1BB+RXhLTYUxGqBVN460HkbM8TBtEqdXWbpTKfzwCcjAZVF7zXCYSKtcp9g==}
@@ -14357,9 +14375,19 @@ snapshots:
 
   '@tanstack/query-devtools@5.91.1': {}
 
+  '@tanstack/query-persist-client-core@5.91.8':
+    dependencies:
+      '@tanstack/query-core': 5.90.11
+
   '@tanstack/react-query-devtools@5.91.1(@tanstack/react-query@5.90.11(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@tanstack/query-devtools': 5.91.1
+      '@tanstack/react-query': 5.90.11(react@18.2.0)
+      react: 18.2.0
+
+  '@tanstack/react-query-persist-client@5.90.11(@tanstack/react-query@5.90.11(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@tanstack/query-persist-client-core': 5.91.8
       '@tanstack/react-query': 5.90.11(react@18.2.0)
       react: 18.2.0
 
@@ -17834,7 +17862,7 @@ snapshots:
       mute-stream: 0.0.8
       ora: 5.4.1
       run-async: 2.4.1
-      rxjs: 7.8.1
+      rxjs: 7.8.2
       string-width: 4.2.3
       strip-ansi: 6.0.1
       through: 2.3.8
@@ -19315,7 +19343,7 @@ snapshots:
       fflate: 0.4.8
       preact: 10.28.2
       query-selector-shadow-dom: 1.0.1
-      web-vitals: 5.1.0
+      web-vitals: 5.3.0
 
   preact@10.28.2: {}
 
@@ -20024,7 +20052,7 @@ snapshots:
       '@types/uuid': 8.3.4
       '@types/ws': 8.18.0
       buffer: 6.0.3
-      eventemitter3: 5.0.1
+      eventemitter3: 5.0.4
       uuid: 8.3.2
       ws: 8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
@@ -20949,7 +20977,7 @@ snapshots:
 
   web-streams-polyfill@3.3.3: {}
 
-  web-vitals@5.1.0: {}
+  web-vitals@5.3.0: {}
 
   webextension-polyfill@0.10.0: {}
 

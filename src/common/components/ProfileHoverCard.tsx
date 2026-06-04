@@ -4,6 +4,7 @@ import { memo } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useProfile } from '@/hooks/queries/useProfile';
+import { beginInteraction } from '@/stores/usePerformanceStore';
 import ProfileInfoContent from './ProfileInfoContent';
 
 type ProfileHoverCardProps = {
@@ -36,12 +37,21 @@ const ProfileHoverCard = memo(({ fid, username, viewerFid, children, className }
   return (
     <HoverCard openDelay={200}>
       <HoverCardTrigger ref={ref} className={`${className} text-left`} asChild>
-        <Link href={`/profile/${profile?.username || username}`} prefetch={false}>
+        <Link
+          href={`/profile/${profile?.username || username}`}
+          prefetch={false}
+          onClick={() => beginInteraction('open-profile')}
+        >
           {children}
         </Link>
       </HoverCardTrigger>
       <HoverCardContent side="bottom" className="border border-border overflow-hidden cursor-pointer">
-        <Link href={`/profile/${profile?.username || username}`} prefetch={false} className="w-full text-left">
+        <Link
+          href={`/profile/${profile?.username || username}`}
+          prefetch={false}
+          className="w-full text-left"
+          onClick={() => beginInteraction('open-profile')}
+        >
           <ProfileInfoContent profile={profile} isHoverCard={true} />
         </Link>
       </HoverCardContent>

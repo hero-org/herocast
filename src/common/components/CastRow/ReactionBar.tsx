@@ -10,9 +10,10 @@ import type { FarcasterCast } from '@/common/types/farcaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useLikeCast, useRecast, useRemoveRecast, useUnlikeCast } from '@/hooks/mutations/useCastActions';
 import { cn } from '@/lib/utils';
-import { endTiming, startTiming } from '@/stores/usePerformanceStore';
+import { trackInteractionToPaint } from '@/stores/usePerformanceStore';
 import { toastInfoReadOnlyMode } from '../../helpers/toast';
 import HotkeyTooltipWrapper from '../HotkeyTooltipWrapper';
+import { ReactionListDialog } from './ReactionListDialog';
 
 interface ReactionBarProps {
   cast: FarcasterCast;
@@ -102,18 +103,14 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({
       return;
     }
 
-    // Start performance measurement
-    const timingId = startTiming(`click-${key}`);
-
-    // Immediate optimistic update for instant UI feedback
+    // Immediate optimistic update for instant UI feedback; measure tap → icon flip
     if (key === CastReactionType.likes) {
+      trackInteractionToPaint('like', 100);
       setDidLike(!isActive);
     } else if (key === CastReactionType.recasts) {
+      trackInteractionToPaint('recast', 100);
       setDidRecast(!isActive);
     }
-
-    // End timing for UI update (should be <100ms)
-    endTiming(timingId, 100);
 
     if (!canSendReaction) {
       toastInfoReadOnlyMode();
@@ -225,6 +222,13 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({
     count?: number | string,
     icon?: React.ReactElement | null
   ) => {
+    // The likes / recasts counts open a list of the users who reacted. The
+    // icon still toggles the reaction (handled by the wrapper div below), so
+    // the count's own click stops propagation to avoid liking/recasting.
+    const isReactorListType = key === CastReactionType.likes || key === CastReactionType.recasts;
+    const hasReactors = typeof count === 'number' && count > 0;
+    const countSpan = count !== null && <span className="">{count}</span>;
+
     return (
       <div
         key={`cast-${cast.hash}-${key}`}
@@ -235,7 +239,20 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({
         }}
       >
         {icon}
-        {count !== null && <span className="">{count}</span>}
+        {isReactorListType && hasReactors ? (
+          <ReactionListDialog castHash={cast.hash} type={key}>
+            <span
+              className="cursor-pointer hover:underline"
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              {count}
+            </span>
+          </ReactionListDialog>
+        ) : (
+          countSpan
+        )}
       </div>
     );
   };

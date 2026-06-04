@@ -31,6 +31,7 @@ import { useAccountStore } from '@/stores/useAccountStore';
 import { useDraftStore } from '@/stores/useDraftStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { trackInteractionToPaint } from '@/stores/usePerformanceStore';
 
 // Client-side cache for parent casts (prevents repeated API calls)
 const parentCastCache = new Map<string, { cast: FarcasterCast | null; timestamp: number }>();
@@ -147,15 +148,40 @@ const Inbox = () => {
   // Get current notifications for active tab
   const notifications = notificationsByType[activeTab];
 
-  // Generate unique ID for notification
-  const getNotificationId = (notification: FarcasterNotification): string => {
+  // Generate unique ID for notification (pure over its argument — memoized so the
+  // callbacks/effect that depend on it stay stable across renders)
+  const getNotificationId = useCallback((notification: FarcasterNotification): string => {
     if (notification.type === NotificationType.Follows && notification.follows) {
       // For follows, use the first follower's fid + timestamp
       return `follow-${notification.follows[0]?.user?.fid}-${notification.most_recent_timestamp}`;
     }
     // For other types, use cast hash + type + timestamp
     return `${notification.cast?.hash || 'unknown'}-${notification.type}-${notification.most_recent_timestamp}`;
-  };
+  }, []);
+
+  // Optimistically flip read-state for the notification at idx (no-op if already read)
+  const markNotificationReadAt = useCallback(
+    (idx: number) => {
+      const notification = notifications[idx];
+      if (!notification) return;
+      const notificationId = getNotificationId(notification);
+      if (!isRead(notificationId)) {
+        markAsRead(notificationId, activeTab);
+      }
+    },
+    [notifications, isRead, markAsRead, getNotificationId, activeTab]
+  );
+
+  // Select a notification and flip its read-state in the same tick, so the unread dot +
+  // tab badge clear on the same paint as the selection highlight (tap → paint < 16ms).
+  const selectNotification = useCallback(
+    (idx: number) => {
+      trackInteractionToPaint('open-notification', 100);
+      setSelectedNotificationIdx(idx);
+      markNotificationReadAt(idx);
+    },
+    [markNotificationReadAt]
+  );
 
   const isLoading = loadingByType[activeTab] || false;
   const loadMoreCursor = cursorsByType.current[activeTab];
@@ -339,11 +365,9 @@ const Inbox = () => {
     const notification = notifications[selectedNotificationIdx];
     if (!notification) return;
 
-    // Mark as read immediately when selected
-    const notificationId = getNotificationId(notification);
-    if (!isRead(notificationId)) {
-      markAsRead(notificationId, activeTab);
-    }
+    // Mark as read on selection (covers initial load + programmatic selection;
+    // interactive paths already flip synchronously via selectNotification)
+    markNotificationReadAt(selectedNotificationIdx);
 
     // Only update selected cast if the notification has a cast (not for follows)
     if (notification?.cast) {
@@ -378,9 +402,7 @@ const Inbox = () => {
     parentCast?.hash,
     loadingByType,
     activeTab,
-    isRead,
-    markAsRead,
-    getNotificationId,
+    markNotificationReadAt,
     updateSelectedCast,
   ]);
 
@@ -853,7 +875,7 @@ const Inbox = () => {
               ? 'bg-muted border-l-blue-500'
               : 'cursor-pointer bg-background/80 hover:bg-muted/50 border-l-transparent'
           )}
-          onClick={() => setSelectedNotificationIdx(idx)}
+          onClick={() => selectNotification(idx)}
         >
           <div className="relative mt-1">
             <Avatar className="h-8 w-8">
@@ -896,7 +918,7 @@ const Inbox = () => {
             ? 'bg-muted border-l-blue-500'
             : 'cursor-pointer bg-background/80 hover:bg-muted/50 border-l-transparent'
         )}
-        onClick={() => setSelectedNotificationIdx(idx)}
+        onClick={() => selectNotification(idx)}
       >
         <div className="relative mt-1">
           <Avatar className="h-8 w-8 flex-none">
@@ -1126,7 +1148,7 @@ const Inbox = () => {
                 setSelectedIdx={(idx) => {
                   // Don't update selection while loading to prevent jitter
                   if (!loadingByType[activeTab]) {
-                    setSelectedNotificationIdx(idx);
+                    selectNotification(idx);
                   }
                 }}
                 renderRow={renderNotificationRow}

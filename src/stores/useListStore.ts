@@ -1,7 +1,7 @@
 import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
+import { MAX_FID_LIST_SIZE, MAX_FID_LIST_SIZE_MESSAGE, MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
 import { createClient } from '@/common/helpers/supabase/component';
 import type { Tables, TablesInsert, TablesUpdate } from '@/common/types/database.types';
 import { type AutoInteractionListContent, type FidListContent, isFidListContent } from '@/common/types/list.types';
@@ -104,9 +104,9 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
 
     const content = list.contents as FidListContent;
     if (!content.fids.includes(fid)) {
-      // Check if adding would exceed the limit
-      if (content.fids.length >= MAX_USERS_PER_LIST) {
-        return { success: false, error: `List cannot exceed ${MAX_USERS_PER_LIST} users` };
+      // Backstop: Hypersnap's FID-list feed hard-caps at 100, so reject anything past it.
+      if (content.fids.length >= MAX_FID_LIST_SIZE) {
+        return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
       }
 
       // Add new FID to the beginning of the list
@@ -221,9 +221,9 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
       return { success: false, error: 'User not logged in' };
     }
 
-    // Validate FID list size
-    if (fids.length > MAX_USERS_PER_LIST) {
-      return { success: false, error: `List cannot exceed ${MAX_USERS_PER_LIST} users` };
+    // Validate FID list size (Hypersnap's FID-list feed hard-caps at 100)
+    if (fids.length > MAX_FID_LIST_SIZE) {
+      return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
     }
 
     // Find the highest idx to place the new list after it
@@ -290,6 +290,16 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
     // Remove id from the update payload and use it in the where clause
     const { id, ...updateData } = search;
 
+    // Persistence-boundary backstop for the FID-list cap. Every client write
+    // path (bulk add, single add, direct update) funnels through here, so
+    // reject a FID list that would exceed MAX_FID_LIST_SIZE before it reaches
+    // Supabase — the bulk-add page calls this generic update, not updateFidList.
+    const existingList = useListStore.getState().lists.find((l) => l.id === id);
+    const nextContents = updateData.contents as { fids?: string[] } | undefined;
+    if (existingList?.type === 'fids' && nextContents?.fids && nextContents.fids.length > MAX_FID_LIST_SIZE) {
+      return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
+    }
+
     const { data, error } = await supabaseClient.from('list').update(updateData).eq('id', id).select();
 
     if (error) {
@@ -308,9 +318,9 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
       return { success: false, error: 'FID list not found' };
     }
 
-    // Validate FID list size
-    if (fids.length > MAX_USERS_PER_LIST) {
-      return { success: false, error: `List cannot exceed ${MAX_USERS_PER_LIST} users` };
+    // Validate FID list size (Hypersnap's FID-list feed hard-caps at 100)
+    if (fids.length > MAX_FID_LIST_SIZE) {
+      return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
     }
 
     // Preserve displayNames if they exist in the current list

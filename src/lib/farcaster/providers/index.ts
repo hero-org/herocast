@@ -80,7 +80,9 @@ export function useFarcasterProviderValue() {
   const setProviderType = useCallback(async (type: ProviderType) => {
     await useUserSettingsStore.getState().setFarcasterProvider(type);
     _provider = null; // Reset singleton so getProvider() rebuilds with the new type
-    // Clear all cached data so it refreshes from the new provider
+    // Refetch everything from the new provider. The persisted snapshot is keyed by
+    // provider via the persist buster (see providers.tsx), so a stale provider's
+    // cache is discarded on the next cold start.
     getQueryClient().invalidateQueries();
   }, []);
 
@@ -90,10 +92,15 @@ export function useFarcasterProviderValue() {
 }
 
 export type {
+  CastReaction,
+  CastReactionsResponse,
   FarcasterProvider,
   FeedResponse,
   FetchOptions,
+  GetActiveUsersRequest,
+  GetBestFriendsRequest,
   GetBulkUsersRequest,
+  GetCastReactionsRequest,
   GetCastsRequest,
   GetChannelFeedRequest,
   GetChannelRequest,
@@ -101,8 +108,10 @@ export type {
   GetFollowingFeedRequest,
   GetNotificationsRequest,
   GetProfileFeedRequest,
+  GetTrendingChannelsRequest,
   GetTrendingFeedRequest,
   GetUserByUsernameRequest,
+  GetUserChannelsRequest,
   GetUserRequest,
   NotificationsResponse,
   ProviderCapabilities,

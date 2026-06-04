@@ -10,8 +10,10 @@ import { CreateAccountPage } from '@/common/components/CreateAccountPage';
 import { NewCastsPill } from '@/common/components/Feed/NewCastsPill';
 import { PreviewPane } from '@/common/components/Feed/PreviewPane';
 import { SplitPaneShell } from '@/common/components/Feed/SplitPaneShell';
+import RecommendedProfilesCard from '@/common/components/RecommendedProfilesCard';
 import { SelectableListWithHotkeys } from '@/common/components/SelectableListWithHotkeys';
 import SkeletonCastRow from '@/common/components/SkeletonCastRow';
+import TrendingChannelsCard from '@/common/components/TrendingChannelsCard';
 import { AccountStatusType } from '@/common/constants/accounts';
 import { createEmbedCastId, createParentCastId } from '@/common/constants/farcaster';
 import { HotkeyScopes } from '@/common/constants/hotkeys';
@@ -32,6 +34,7 @@ import { type AccountObjectType, CUSTOM_CHANNELS, hydrateAccounts, useAccountSto
 import { useDraftStore } from '@/stores/useDraftStore';
 import { useListStore } from '@/stores/useListStore';
 import { CastModalView, useNavigationStore } from '@/stores/useNavigationStore';
+import { endInteraction, hasInAppNavigated, recordMetric } from '@/stores/usePerformanceStore';
 
 const getFeedKey = ({
   selectedChannelUrl,
@@ -216,6 +219,22 @@ export default function Feeds() {
     isLoadingFeed = channelQuery.isLoading;
     nextCursor = channelQuery.hasNextPage ? 'has-more' : '';
   }
+
+  // Perceived latency: once the selected feed's content is actually painted (not just a
+  // loading skeleton), resolve a pending feed switch and record cold start. Cold start is
+  // only recorded when feeds is the initial landing route (no prior in-app navigation), so
+  // `performance.now()` reflects time since page load and SPA navigations into /feeds don't
+  // masquerade as cold starts.
+  const coldStartRecordedRef = useRef(false);
+  const feedContentReady = !isLoadingFeed && casts.length > 0;
+  useEffect(() => {
+    if (!feedContentReady) return;
+    endInteraction('switch-feed', 200, { feedKey });
+    if (!coldStartRecordedRef.current && !hasInAppNavigated()) {
+      coldStartRecordedRef.current = true;
+      recordMetric('inp:cold-start', performance.now(), 200, { feedKey });
+    }
+  }, [feedContentReady, feedKey]);
 
   // Compute the count of "new" casts above the user's last acknowledged top.
   // `acknowledgedFirstHash` is null on the very first render (no pill yet),
@@ -669,40 +688,44 @@ export default function Feeds() {
       casts.length === 0 &&
       isHydrated &&
       !isLoadingFeed && (
-        <div className="w-full flex justify-center pt-12">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
-              <CardTitle>Feed is empty</CardTitle>
-              <CardDescription>
-                {listDetails ? `No results found for ${listDetails}` : 'Seems like there is nothing to see here.'}
-              </CardDescription>
-            </CardHeader>
-            <CardFooter className="flex gap-2">
-              <Button
-                className="flex-1"
-                disabled={isRefreshingPage}
-                onClick={async () => {
-                  setIsRefreshingPage(true);
-                  await hydrateAccounts();
-                  refreshFeed();
-                  setIsRefreshingPage(false);
-                }}
-              >
-                Refresh
-              </Button>
-              <Button
-                className="flex-1"
-                variant="outline"
-                onClick={() => {
-                  // Navigate to trending feed
-                  useAccountStore.setState({ selectedChannelUrl: CUSTOM_CHANNELS.TRENDING });
-                  setSelectedListId(undefined);
-                }}
-              >
-                Go to Trending
-              </Button>
-            </CardFooter>
-          </Card>
+        <div className="w-full">
+          <div className="w-full flex justify-center pt-12">
+            <Card className="w-full max-w-md mx-4">
+              <CardHeader>
+                <CardTitle>Feed is empty</CardTitle>
+                <CardDescription>
+                  {listDetails ? `No results found for ${listDetails}` : 'Seems like there is nothing to see here.'}
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="flex gap-2">
+                <Button
+                  className="flex-1"
+                  disabled={isRefreshingPage}
+                  onClick={async () => {
+                    setIsRefreshingPage(true);
+                    await hydrateAccounts();
+                    refreshFeed();
+                    setIsRefreshingPage(false);
+                  }}
+                >
+                  Refresh
+                </Button>
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={() => {
+                    // Navigate to trending feed
+                    useAccountStore.setState({ selectedChannelUrl: CUSTOM_CHANNELS.TRENDING });
+                    setSelectedListId(undefined);
+                  }}
+                >
+                  Go to Trending
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          <TrendingChannelsCard />
+          <RecommendedProfilesCard />
         </div>
       )
     );

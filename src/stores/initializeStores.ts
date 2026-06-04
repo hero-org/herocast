@@ -28,27 +28,25 @@ export const initializeStoresProgressive = async () => {
   const totalTimingId = startTiming('store-init-total');
   const phase1TimingId = startTiming('store-init-phase1');
 
-  // Phase 1: Critical path - minimal data for basic functionality
+  // Phase 1: Critical path - local only. Rehydrate the account store from
+  // IndexedDB and flip its UI gate so the app shell + skeletons paint
+  // immediately. No Supabase round-trips happen here.
   console.log('Phase 1: Loading critical data 🚀');
-  await Promise.all([
-    useAccountStore.getState().hydrateMinimal(),
-    useDraftStore
-      .getState()
-      .hydrate(), // Drafts are quick to load
-    useNotificationStore
-      .getState()
-      .hydrate(), // Notification states are quick
-  ]);
+  await useAccountStore.getState().hydrateMinimal();
 
-  const phase1Duration = endTiming(phase1TimingId, 1000); // Target: <1s for critical path
+  const phase1Duration = endTiming(phase1TimingId, 300); // Target: <300ms, local rehydrate only
   console.log('Phase 1 complete - UI can be interactive! ✨');
 
-  // Phase 2: Background enhancement - full feature loading
+  // Phase 2: Background enhancement - every blocking Supabase round-trip runs
+  // here, off the critical path. The UI is already interactive and updates
+  // reactively as each store resolves.
   console.log('Phase 2: Loading complete data in background 🌊');
   const phase2TimingId = startTiming('store-init-phase2');
 
   Promise.all([
     useAccountStore.getState().hydrateComplete(),
+    useDraftStore.getState().hydrate(),
+    useNotificationStore.getState().hydrate(),
     useListStore.getState().hydrate(),
     useUserStore.getState().hydrate(),
     useWorkspaceStore.getState().hydrate(),

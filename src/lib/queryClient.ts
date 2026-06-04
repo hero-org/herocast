@@ -16,8 +16,11 @@ export function createQueryClient(): QueryClient {
         // Data is considered fresh for 5 minutes (matches current cache TTL)
         staleTime: 1000 * 60 * 5,
 
-        // Keep unused data in cache for 30 minutes before garbage collection
-        gcTime: 1000 * 60 * 30,
+        // Keep unused data for 24h so the IndexedDB-persisted cache (see
+        // queryPersister) survives navigation/idle gaps. gcTime must be >= the
+        // persister's maxAge, otherwise idle queries get evicted from memory and
+        // dropped from the next persisted snapshot.
+        gcTime: 1000 * 60 * 60 * 24,
 
         // Retry failed requests 3 times with exponential backoff
         retry: 3,

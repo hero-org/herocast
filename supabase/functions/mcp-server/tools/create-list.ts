@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { MAX_USERS_PER_LIST } from '../lib/constants.ts';
+import { MAX_FID_LIST_SIZE } from '../lib/constants.ts';
 import type { AuthContext, ToolDefinition, ToolResult } from '../lib/types.ts';
 
 const CreateListSchema = z
   .object({
     name: z.string().min(1).max(100),
     type: z.enum(['fids', 'search']),
-    fids: z.array(z.string()).max(MAX_USERS_PER_LIST).optional(),
+    fids: z.array(z.string()).max(MAX_FID_LIST_SIZE).optional(),
     term: z.string().min(1).optional(),
     filter_channel_id: z.string().optional(),
     filter_interval: z.string().optional(),

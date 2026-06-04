@@ -35,6 +35,12 @@ export interface ProviderCapabilities {
   castConversation: boolean;
   activeUsers: boolean;
   castByIdentifier: boolean;
+  profileRepliesAndRecasts: boolean;
+  profilePopular: boolean;
+  trendingChannels: boolean;
+  userChannels: boolean;
+  castReactions: boolean;
+  bestFriends: boolean;
 }
 
 export interface FetchOptions {
@@ -125,11 +131,47 @@ export interface ConversationResponse {
 
 export interface GetActiveUsersRequest extends FetchOptions {
   limit?: number;
+  /** Viewer FID — required by Hypersnap's per-FID `following/suggested`; ignored by Neynar's global active feed. */
+  viewerFid?: number;
 }
 
 export interface GetCastByIdentifierRequest extends ViewerContextRequest {
   identifier: string;
   type: 'hash' | 'url';
+}
+
+export interface GetTrendingChannelsRequest extends FetchOptions {
+  limit?: number;
+}
+
+export interface GetUserChannelsRequest extends FetchOptions {
+  fid: number;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface GetCastReactionsRequest extends FetchOptions {
+  hash: string;
+  /** Comma-separated reaction types: 'likes', 'recasts', or 'likes,recasts'. Defaults to 'likes,recasts'. */
+  types?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface GetBestFriendsRequest extends FetchOptions {
+  fid: number;
+  limit?: number;
+}
+
+export interface CastReaction {
+  reaction_type: 'like' | 'recast';
+  reaction_timestamp: string;
+  user: FarcasterUser;
+}
+
+export interface CastReactionsResponse {
+  reactions: CastReaction[];
+  next?: { cursor?: string };
 }
 
 export class UnsupportedProviderFeatureError extends Error {
@@ -180,4 +222,18 @@ export interface FarcasterProvider {
 
   // Single cast lookup by hash or Warpcast URL (used by embeds + permalinks)
   getCastByIdentifier(request: GetCastByIdentifierRequest): Promise<FarcasterCast>;
+
+  // Profile feeds — replies+recasts tab and top/popular tab
+  getProfileRepliesAndRecasts(request: GetProfileFeedRequest): Promise<FeedResponse>;
+  getProfilePopular(request: GetProfileFeedRequest): Promise<FeedResponse>;
+
+  // Channel discovery
+  getTrendingChannels(request?: GetTrendingChannelsRequest): Promise<FarcasterChannel[]>;
+  getUserChannels(request: GetUserChannelsRequest): Promise<FarcasterChannel[]>;
+
+  // Cast reactions list (who liked / recasted a cast)
+  getCastReactions(request: GetCastReactionsRequest): Promise<CastReactionsResponse>;
+
+  // Affinity (best friends) — provider plumbing for the sidebar follow-up
+  getBestFriends(request: GetBestFriendsRequest): Promise<FarcasterUser[]>;
 }

@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { FarcasterCast } from '@/common/types/farcaster';
 import type { FeedResponse } from '@/lib/farcaster/providers';
 import { getProvider } from '@/lib/farcaster/providers';
@@ -45,6 +45,8 @@ export function useFollowingFeedInfinite(fid: string, options?: FollowingFeedOpt
     getNextPageParam: (lastPage) => lastPage.next?.cursor,
     enabled: enabled && !!fid,
     staleTime: 1000 * 60 * 2, // 2 minutes for following feed
+    // Keep the previous feed painted while the new key loads — no blank frame on switch
+    placeholderData: keepPreviousData,
   });
 }
 
