@@ -48,22 +48,29 @@ export const Route = createFileRoute('/api/probe')({
         }
 
         // Q2 — cached trending (Cache API). cacheStatus reveals MISS then HIT.
-        const q2_cached = await getTrendingCached(neynarKey, 10);
+        // Wrapped so a missing NEYNAR_API_KEY yields a clean diagnostic, not a 500.
+        let q2_cache: any;
+        try {
+          const c = await getTrendingCached(neynarKey, 10);
+          q2_cache = { cacheStatus: c.cacheStatus, source: c.source, fetchedAt: c.fetchedAt, count: c.count };
+        } catch (e: any) {
+          q2_cache = { error: String(e?.message || e).slice(0, 300) };
+        }
 
         // Q3 — Supabase getUser() from request cookie.
-        const q3_auth = await getUserFromRequest(request, supabaseUrl, anonKey);
+        let q3_supabase: any;
+        try {
+          q3_supabase = await getUserFromRequest(request, supabaseUrl, anonKey);
+        } catch (e: any) {
+          q3_supabase = { error: String(e?.message || e).slice(0, 300) };
+        }
 
         return Response.json({
           runtime,
           q1_neynar_sdk: q1_sdk,
           q1_neynar_rest: q1_rest,
-          q2_cache: {
-            cacheStatus: q2_cached.cacheStatus,
-            source: q2_cached.source,
-            fetchedAt: q2_cached.fetchedAt,
-            count: q2_cached.count,
-          },
-          q3_supabase: q3_auth,
+          q2_cache,
+          q3_supabase,
         });
       },
     },
