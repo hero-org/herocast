@@ -65,9 +65,41 @@ dist/server/assets/getUser-CSlY47qq.js     2,615.13 kB   # the server chunk (axi
   "networkValidationAttempted": true }     // getUser() parsed the session + hit {url}/auth/v1/user (fails: dummy host)
 ```
 
-Full path proven: cookie read → session decoded → access_token extracted → network
-validation call to Supabase, all on workerd. Only a real Supabase backend (out of spike
-scope) is needed to return an actual user.
+Full path proven on **local workerd**: cookie read → session decoded → access_token
+extracted → network validation call to Supabase. Only a real Supabase backend (out of
+spike scope) is needed to return an actual user.
+
+### Review correction (codex-reviewed `getUser.ts` + the test cookie)
+The first cut of the synthetic cookie had real smells — fixed:
+- **Encoding:** `@supabase/ssr@0.8` expects `base64-` + **base64url** (`cookies.js:156`,
+  `stringFromBase64URL`), not standard base64. The original `Buffer…toString('base64')`
+  decoded only by luck (this payload had no `+`/`/`). Now built with the SDK's own
+  `stringToBase64URL` (`scripts/make-test-cookie.mjs`) so it can't drift.
+- **Storage key:** `sb-<ref>-auth-token` where ref = first hostname label of the Supabase
+  URL (`SupabaseClient.ts:324`). `getUserFromRequest` now derives + returns
+  `expectedStorageKey` and `sessionCookieMatched` so a test cookie can be made to match.
+- **`networkValidationAttempted`** was `sb.length > 0` (just "an sb cookie exists" —
+  misleading). Now inferred from the error class: `AuthRetryableFetchError`/`AuthApiError`
+  (or a real user) ⇒ network reached; `AuthSessionMissingError` ⇒ not reached.
+- **Cookie parsing** now uses ssr's own `parseCookieHeader` (one decode layer; the
+  hand-rolled `decodeURIComponent` risked a double-decode).
+
+Corrected local run (`node scripts/make-test-cookie.mjs spikedummyproject0000`):
+```json
+{ "expectedStorageKey": "sb-spikedummyproject0000-auth-token",
+  "supabaseCookiesSeen": ["sb-spikedummyproject0000-auth-token"],
+  "sessionCookieMatched": true,
+  "user": null,
+  "error": { "name": "AuthRetryableFetchError", "status": 0 },
+  "networkValidationAttempted": true }   // honestly inferred: session decoded + network reached
+```
+
+**Honesty note on the earlier EDGE Q3 run:** it returned `AuthSessionMissingError`, which
+means the deployed `SUPABASE_URL`'s ref did NOT match the test cookie name — so on the edge
+`getAll` *received* the cookie (`cookiesSeen` populated) but supabase-js short-circuited
+before decoding/network. The edge proved **cookie-read into the adapter**; the full
+decode→network path is proven on **local workerd**. To prove it on the edge too, send a
+cookie whose name equals the probe's `expectedStorageKey`.
 
 ## Request 4 — `GET /` SSR HTML (server-loaded list)
 
