@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo } from 'react';
 import { getQueryClient } from '@/lib/queryClient';
+import { removePersistedQueryCache } from '@/lib/queryPersister';
 import { useUserSettingsStore } from '@/stores/useUserSettingsStore';
 import { createFallbackProvider } from './fallback';
 import { createHypersnapProvider } from './hypersnap';
@@ -82,6 +83,9 @@ export function useFarcasterProviderValue() {
     _provider = null; // Reset singleton so getProvider() rebuilds with the new type
     // Clear all cached data so it refreshes from the new provider
     getQueryClient().invalidateQueries();
+    // Query keys don't include the provider, so drop the persisted snapshot too —
+    // otherwise the next cold start restores the previous provider's data.
+    void removePersistedQueryCache();
   }, []);
 
   const provider = useMemo(() => createProvider(providerType), [providerType]);
