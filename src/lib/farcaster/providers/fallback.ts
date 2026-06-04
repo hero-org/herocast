@@ -60,6 +60,12 @@ export function createFallbackProvider(primary: FarcasterProvider, fallback: Far
         castConversation: pc.castConversation || fc.castConversation,
         activeUsers: pc.activeUsers || fc.activeUsers,
         castByIdentifier: pc.castByIdentifier || fc.castByIdentifier,
+        profileRepliesAndRecasts: pc.profileRepliesAndRecasts || fc.profileRepliesAndRecasts,
+        profilePopular: pc.profilePopular || fc.profilePopular,
+        trendingChannels: pc.trendingChannels || fc.trendingChannels,
+        userChannels: pc.userChannels || fc.userChannels,
+        castReactions: pc.castReactions || fc.castReactions,
+        bestFriends: pc.bestFriends || fc.bestFriends,
       };
     },
   });

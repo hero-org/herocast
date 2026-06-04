@@ -5,6 +5,25 @@
 export const MAX_USERS_PER_LIST = 1000;
 
 /**
+ * Hard cap on the number of FIDs allowed in a single FID list.
+ * Hypersnap's FID-list feed hard-caps at 100 FIDs, so a list must not exceed
+ * 100 members or the feed will silently drop the overflow.
+ */
+export const MAX_FID_LIST_SIZE = 100;
+
+/**
+ * User-facing message shown whenever an action would push a FID list past
+ * {@link MAX_FID_LIST_SIZE}.
+ */
+export const MAX_FID_LIST_SIZE_MESSAGE = 'Lists are limited to 100 accounts';
+
+/**
+ * Show an "approaching limit" warning once a FID list reaches 90% of
+ * {@link MAX_FID_LIST_SIZE}.
+ */
+export const MAX_FID_LIST_WARNING_THRESHOLD = 90;
+
+/**
  * Threshold at which to show a warning that the list is approaching its limit
  * Shows warning when list has 90% or more of the maximum capacity
  */

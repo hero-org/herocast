@@ -40,6 +40,11 @@ const embedSchema = z.union([urlEmbedSchema, castIdEmbedSchema]);
 
 const castTypeSchema = z.enum(['cast', 'long_cast']);
 
+// Optional hub-provider override sent by the client (its live toggle). When
+// present, handlers prefer it over the stored user preference; absent for
+// scheduled/cron publishes, which read the stored preference at publish time.
+const providerSchema = z.enum(['neynar', 'hypersnap']).optional();
+
 const mentionsSchema = z.array(z.number().int().positive()).max(5, 'Maximum 5 mentions allowed');
 const mentionsPositionsSchema = z.array(z.number().int().nonnegative()).max(5, 'Maximum 5 mention positions allowed');
 
@@ -67,6 +72,7 @@ export const CastRequestSchema = z
     mentions: mentionsSchema.optional(),
     mentions_positions: mentionsPositionsSchema.optional(),
     cast_type: castTypeSchema.optional(),
+    provider: providerSchema,
   })
   .refine((data) => !(data.channel_id && data.parent_url), {
     message: 'Use channel_id or parent_url, not both',
@@ -110,6 +116,7 @@ export const ReactionRequestSchema = z.object({
   account_id: uuidSchema,
   type: z.enum(['like', 'recast']),
   target: castIdSchema,
+  provider: providerSchema,
 });
 
 export type ReactionRequest = z.infer<typeof ReactionRequestSchema>;
@@ -124,6 +131,7 @@ export type ReactionRequest = z.infer<typeof ReactionRequestSchema>;
 export const FollowRequestSchema = z.object({
   account_id: uuidSchema,
   target_fid: z.number().int().positive(),
+  provider: providerSchema,
 });
 
 export type FollowRequest = z.infer<typeof FollowRequestSchema>;
@@ -138,6 +146,7 @@ export type FollowRequest = z.infer<typeof FollowRequestSchema>;
 export const DeleteCastRequestSchema = z.object({
   account_id: uuidSchema,
   cast_hash: hexHashSchema,
+  provider: providerSchema,
 });
 
 export type DeleteCastRequest = z.infer<typeof DeleteCastRequestSchema>;
@@ -155,6 +164,7 @@ export const DeleteReactionRequestSchema = z.object({
   account_id: uuidSchema,
   type: z.enum(['like', 'recast']),
   target: castIdSchema,
+  provider: providerSchema,
 });
 
 /**
@@ -169,6 +179,7 @@ export const UserDataRequestSchema = z.object({
   account_id: uuidSchema,
   type: z.nativeEnum(UserDataType),
   value: z.string().min(1, 'Value is required'),
+  provider: providerSchema,
 });
 
 export type DeleteReactionRequest = z.infer<typeof DeleteReactionRequestSchema>;

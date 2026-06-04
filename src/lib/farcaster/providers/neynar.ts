@@ -1,6 +1,7 @@
 import type { FarcasterCast, FarcasterChannel, FarcasterUser } from '@/common/types/farcaster';
 import { measureAsync } from '@/stores/usePerformanceStore';
 import type {
+  CastReactionsResponse,
   ConversationResponse,
   FarcasterProvider,
   FeedResponse,
@@ -73,6 +74,12 @@ export function createNeynarProvider(): FarcasterProvider {
       castConversation: true,
       activeUsers: true,
       castByIdentifier: true,
+      profileRepliesAndRecasts: true,
+      profilePopular: true,
+      trendingChannels: true,
+      userChannels: true,
+      castReactions: true,
+      bestFriends: true,
     },
 
     async getUser({ fid, viewerFid, signal }) {
@@ -216,6 +223,45 @@ export function createNeynarProvider(): FarcasterProvider {
       );
       if (!data.cast) throw new Error(`Cast ${identifier} (${type}) not found`);
       return data.cast;
+    },
+
+    async getProfileRepliesAndRecasts({ fid, limit = 25, cursor, signal }) {
+      return fetchJson<FeedResponse>(
+        buildUrl('/api/feeds/profile', { fid, type: 'replies_and_recasts', limit, cursor }),
+        signal
+      );
+    },
+
+    async getProfilePopular({ fid, limit = 25, cursor, signal }) {
+      return fetchJson<FeedResponse>(buildUrl('/api/feeds/profile', { fid, type: 'popular', limit, cursor }), signal);
+    },
+
+    async getTrendingChannels(request) {
+      const data = await fetchJson<{ channels: FarcasterChannel[] }>(
+        buildUrl('/api/channels/trending', { limit: request?.limit }),
+        request?.signal
+      );
+      return data.channels || [];
+    },
+
+    async getUserChannels({ fid, limit, cursor, signal }) {
+      const data = await fetchJson<{ channels: FarcasterChannel[] }>(
+        buildUrl('/api/users/channels', { fid, limit, cursor }),
+        signal
+      );
+      return data.channels || [];
+    },
+
+    async getCastReactions({ hash, types, limit, cursor, signal }) {
+      return fetchJson<CastReactionsResponse>(buildUrl('/api/casts/reactions', { hash, types, limit, cursor }), signal);
+    },
+
+    async getBestFriends({ fid, limit, signal }) {
+      const data = await fetchJson<{ users: FarcasterUser[] }>(
+        buildUrl('/api/users/best-friends', { fid, limit }),
+        signal
+      );
+      return data.users || [];
     },
   };
 }

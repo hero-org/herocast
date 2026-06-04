@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FarcasterUser } from '@/common/types/farcaster';
 import { getProvider } from '@/lib/farcaster/providers';
+import { useAccountStore } from '@/stores/useAccountStore';
 import FollowButton from './FollowButton';
 import { LinkifiedText } from './LinkifiedText';
 
@@ -33,11 +34,16 @@ const defaultProfiles: FarcasterUser[] = [
 
 const RecommendedProfilesCard = () => {
   const [profiles, setProfiles] = useState<FarcasterUser[]>(defaultProfiles);
+  const accounts = useAccountStore((s) => s.accounts);
+  const selectedAccountIdx = useAccountStore((s) => s.selectedAccountIdx);
+  const activeFid = accounts[selectedAccountIdx]?.platformAccountId
+    ? Number(accounts[selectedAccountIdx].platformAccountId)
+    : undefined;
 
   useEffect(() => {
     const getProfiles = async () => {
       try {
-        const users = await getProvider().getActiveUsers({ limit: 14 });
+        const users = await getProvider().getActiveUsers({ limit: 14, viewerFid: activeFid });
         if (users.length === 0) return;
         setProfiles([...defaultProfiles, ...users]);
       } catch (err) {
@@ -46,7 +52,7 @@ const RecommendedProfilesCard = () => {
     };
 
     getProfiles();
-  }, []);
+  }, [activeFid]);
 
   return (
     <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-8">

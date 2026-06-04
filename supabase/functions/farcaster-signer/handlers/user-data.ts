@@ -32,8 +32,9 @@ export async function handlePostUserData(req: Request, authResult: AuthResult): 
     const signingAccount = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = signingAccount.userId;
 
-    // Read the user-level Hub provider preference (default 'neynar').
-    provider = await getUserFarcasterProvider(supabaseClient, signingAccount.userId);
+    // Prefer the provider the client sent (its live toggle); fall back to the
+    // stored user preference (default 'neynar') for clients/cron that omit it.
+    provider = validatedRequest.provider ?? (await getUserFarcasterProvider(supabaseClient, signingAccount.userId));
 
     const hash = await signAndSubmitUserData({
       fid: signingAccount.fid,

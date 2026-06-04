@@ -2,6 +2,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Plus, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
+import { MAX_FID_LIST_SIZE } from '@/common/constants/listLimits';
 import type { FidListContent } from '@/common/types/list.types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -94,6 +95,9 @@ export function UserListsView({ lists, isLoading }: UserListsViewProps) {
                 <CardTitle className="text-lg">{list.name}</CardTitle>
                 <CardDescription>
                   {content.fids.length} {content.fids.length === 1 ? 'user' : 'users'}
+                  {content.fids.length >= MAX_FID_LIST_SIZE && (
+                    <span className="ml-2 text-warning">Full ({MAX_FID_LIST_SIZE} max)</span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>

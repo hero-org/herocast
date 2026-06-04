@@ -15,6 +15,7 @@ import axios from 'axios';
 import { type Address, encodeAbiParameters } from 'viem';
 import { mnemonicToAccount } from 'viem/accounts';
 import type { FarcasterEmbed } from '@/common/types/embeds';
+import { useUserSettingsStore } from '@/stores/useUserSettingsStore';
 import { useTextLength } from '../helpers/editor';
 import { isDev } from './env';
 import { publicClient, publicClientTestnet } from './rainbowkit';
@@ -103,7 +104,10 @@ const callSignerService = async (
       Authorization: `Bearer ${session.access_token}`,
       apikey: anonKey,
     },
-    body: JSON.stringify(body),
+    // Attach the client's current provider so interactive writes go to the hub
+    // the user has selected right now; the signer prefers this over the stored
+    // preference (cron/scheduled publishes omit it and read the stored value).
+    body: JSON.stringify({ ...body, provider: useUserSettingsStore.getState().farcasterProvider }),
   });
 
   let data: SignerServiceResponse | null = null;

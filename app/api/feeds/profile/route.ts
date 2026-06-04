@@ -1,9 +1,12 @@
 import { FeedType, FilterType, NeynarAPIClient, ReactionsType } from '@neynar/nodejs-sdk';
+import axios from 'axios';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const timeoutThreshold = 19000; // 19 seconds timeout to ensure it completes within 20 seconds
 const TIMEOUT_ERROR_MESSAGE = 'Request timed out';
 const API_KEY = process.env.NEXT_PUBLIC_NEYNAR_API_KEY;
+
+const VALID_TYPES = ['casts', 'likes', 'replies_and_recasts', 'popular'] as const;
 
 // In-memory cache for profile feed (2 minute TTL)
 const feedCache = new Map<string, { data: any; timestamp: number }>();
@@ -48,8 +51,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing fid parameter' }, { status: 400 });
     }
 
-    if (!type || (type !== 'casts' && type !== 'likes')) {
-      return NextResponse.json({ error: 'Invalid type parameter (must be "casts" or "likes")' }, { status: 400 });
+    if (!type || !VALID_TYPES.includes(type as (typeof VALID_TYPES)[number])) {
+      return NextResponse.json(
+        { error: `Invalid type parameter (must be one of: ${VALID_TYPES.join(', ')})` },
+        { status: 400 }
+      );
     }
 
     const fid = parseInt(fidParam, 10);
@@ -102,7 +108,7 @@ export async function GET(request: NextRequest) {
           casts: response.casts || [],
           next: response.next || {},
         };
-      } else {
+      } else if (type === 'likes') {
         // Fetch user's likes/reactions
         const options: any = { limit };
 
@@ -115,6 +121,26 @@ export async function GET(request: NextRequest) {
         normalizedResponse = {
           casts: response.reactions.map(({ cast }) => cast),
           next: response.next || {},
+        };
+      } else {
+        // replies_and_recasts / popular — no SDK helper, call the v2 feed endpoints directly.
+        const path = type === 'popular' ? 'feed/user/popular' : 'feed/user/replies_and_recasts';
+        const params = new URLSearchParams({ fid: String(fid), limit: String(limit) });
+        if (cursor) {
+          params.append('cursor', cursor);
+        }
+
+        const response = await axios.get(`https://api.neynar.com/v2/farcaster/${path}?${params.toString()}`, {
+          headers: {
+            accept: 'application/json',
+            api_key: API_KEY,
+          },
+          signal: controller.signal,
+        });
+
+        normalizedResponse = {
+          casts: response.data?.casts || [],
+          next: response.data?.next || {},
         };
       }
 

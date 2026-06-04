@@ -12,13 +12,24 @@ import { useProfile } from '@/hooks/queries/useProfile';
 import { type ProfileFeedType, useProfileFeed } from '@/hooks/queries/useProfileFeed';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { endInteraction } from '@/stores/usePerformanceStore';
+import ProfileChannels from './ProfileChannels';
 
 const APP_FID = Number(process.env.NEXT_PUBLIC_APP_FID!);
 
 enum FeedTypeEnum {
   casts = 'Casts',
+  replies = 'Replies',
+  popular = 'Top',
   likes = 'Likes',
+  channels = 'Channels',
 }
+
+const FEED_TYPE_TO_PROFILE_FEED: Record<Exclude<FeedTypeEnum, FeedTypeEnum.channels>, ProfileFeedType> = {
+  [FeedTypeEnum.casts]: 'casts',
+  [FeedTypeEnum.replies]: 'replies_and_recasts',
+  [FeedTypeEnum.popular]: 'popular',
+  [FeedTypeEnum.likes]: 'likes',
+};
 
 const getUsernameAndFidFromSlug = (slug?: string) => {
   if (!slug) {
@@ -58,9 +69,10 @@ const ProfilePage = () => {
   );
 
   // Use React Query for feed fetching
-  const feedTypeKey: ProfileFeedType = feedType === FeedTypeEnum.casts ? 'casts' : 'likes';
+  const isChannelsTab = feedType === FeedTypeEnum.channels;
+  const feedTypeKey: ProfileFeedType = isChannelsTab ? 'casts' : FEED_TYPE_TO_PROFILE_FEED[feedType];
   const { data: feedData, isLoading: isLoadingFeed } = useProfileFeed(profile?.fid, feedTypeKey, {
-    enabled: !!profile?.fid,
+    enabled: !!profile?.fid && !isChannelsTab,
   });
 
   const casts = feedData?.casts ?? [];
@@ -111,7 +123,7 @@ const ProfilePage = () => {
   const renderFeed = () => (
     <>
       <Tabs value={feedType} className="p-5 w-full max-w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-5">
           {Object.keys(FeedTypeEnum).map((key) => {
             return (
               <TabsTrigger
@@ -127,7 +139,9 @@ const ProfilePage = () => {
         </TabsList>
       </Tabs>
       <div className="px-5">
-        {isLoadingFeed ? (
+        {isChannelsTab ? (
+          <ProfileChannels fid={profile?.fid} />
+        ) : isLoadingFeed ? (
           <Loading />
         ) : (
           <SelectableListWithHotkeys

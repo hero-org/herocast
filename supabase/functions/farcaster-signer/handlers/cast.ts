@@ -158,8 +158,9 @@ export async function handlePostCast(req: Request, authResult: AuthResult): Prom
     const account = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = account.userId;
 
-    // Read the user-level Hub provider preference (default 'neynar').
-    provider = await getUserFarcasterProvider(supabaseClient, account.userId);
+    // Prefer the provider the client sent (its live toggle); fall back to the
+    // stored user preference (default 'neynar') for clients/cron that omit it.
+    provider = validated.provider ?? (await getUserFarcasterProvider(supabaseClient, account.userId));
 
     // 7. Sign and submit cast
     const hash = await signAndSubmitCast({
@@ -274,8 +275,9 @@ export async function handleDeleteCast(req: Request, authResult: AuthResult): Pr
     const account = await getAccountForSigning(supabaseClient, accountId, authUserId);
     auditUserId = account.userId;
 
-    // Read the user-level Hub provider preference (default 'neynar').
-    provider = await getUserFarcasterProvider(supabaseClient, account.userId);
+    // Prefer the provider the client sent (its live toggle); fall back to the
+    // stored user preference (default 'neynar') for clients/cron that omit it.
+    provider = validated.provider ?? (await getUserFarcasterProvider(supabaseClient, account.userId));
 
     // 4. Remove cast
     await removeCast({
