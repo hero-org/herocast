@@ -23,7 +23,11 @@ const PERSIST_WRITE_DEBOUNCE_MS = 1000;
 /** Persisted snapshots older than this are discarded on restore. */
 export const QUERY_PERSIST_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
-/** Bump when the persisted cache shape changes, to invalidate old snapshots. */
+/**
+ * Manual schema version for the persisted cache — bump when the dehydrated query
+ * shape changes incompatibly. The active data provider is appended at mount (see
+ * providers.tsx) so switching providers discards the previous provider's snapshot.
+ */
 export const QUERY_PERSIST_BUSTER = 'v1';
 
 /** Query-key roots we persist. Keep in sync with `queryKeys`. */
@@ -35,7 +39,8 @@ const PERSISTED_QUERY_ROOTS = new Set(['feeds', 'profiles']);
  * casts, errors, pending) stays memory-only.
  */
 export function shouldPersistQuery(query: Query): boolean {
-  return defaultShouldDehydrateQuery(query) && PERSISTED_QUERY_ROOTS.has(query.queryKey[0] as string);
+  const root = query.queryKey[0];
+  return defaultShouldDehydrateQuery(query) && typeof root === 'string' && PERSISTED_QUERY_ROOTS.has(root);
 }
 
 // Memoized connection that resolves to null (never rejects) when IndexedDB is
@@ -62,8 +67,8 @@ function getDB(): Promise<IDBPDatabase | null> {
   return dbPromise;
 }
 
-/** Delete the persisted snapshot (e.g. on data-provider switch). */
-export async function removePersistedQueryCache(): Promise<void> {
+/** Delete the persisted snapshot (used internally when a restore is busted/expired). */
+async function removePersistedQueryCache(): Promise<void> {
   const db = await getDB();
   if (!db) return;
   try {
