@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/common/hooks/ThemeProvider';
 import { useNavigationPerf } from '@/common/hooks/useNavigationPerf';
 import { useWebVitals } from '@/common/hooks/useWebVitals';
 import { loadPosthogAnalytics } from '@/lib/analytics';
+import { getProviderType } from '@/lib/farcaster/providers';
 import { getQueryClient } from '@/lib/queryClient';
 import {
   createIDBPersister,
@@ -49,6 +50,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [queryClient] = useState(() => getQueryClient());
   const [persister] = useState(() => createIDBPersister());
+  // Scope the persisted snapshot to the active provider — neynar/hypersnap share
+  // query keys but return different data, so the buster discards a stale
+  // provider's snapshot on the next cold start. Read once at mount; provider is
+  // seeded synchronously from localStorage so this is correct before hydration.
+  const [persistBuster] = useState(() => `${QUERY_PERSIST_BUSTER}-${getProviderType()}`);
   const needsWallet = walletRoutes.some((route) => pathname?.startsWith(route));
 
   useEffect(() => {
@@ -77,7 +83,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       persistOptions={{
         persister,
         maxAge: QUERY_PERSIST_MAX_AGE,
-        buster: QUERY_PERSIST_BUSTER,
+        buster: persistBuster,
         dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
       }}
     >
