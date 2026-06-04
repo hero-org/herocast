@@ -1,0 +1,33 @@
+{
+  "name": "spike-tanstack-start",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "THROWAWAY Phase-0 feasibility spike for hero-org/herocast#754. Proves 3 unknowns on Cloudflare Workers (workerd): Neynar SDK, unstable_cache replacement, Supabase cookie getUser(). NOT production code.",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "vite build && wrangler deploy",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@neynar/nodejs-sdk": "1.21.1",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.91.1",
+    "@tanstack/react-router": "^1.135.0",
+    "@tanstack/react-start": "^1.135.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "wrangler": "^4.0.0"
+  }
+}

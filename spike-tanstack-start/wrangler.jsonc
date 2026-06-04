@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "spike-tanstack-start",
+  "compatibility_date": "2026-06-04",
+  // THE flag under test: gives axios/Node-built-in-dependent packages (e.g. the
+  // Neynar SDK) a Node compatibility baseline on workerd.
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true }
+}

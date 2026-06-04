@@ -1,0 +1,5 @@
+# Copy to .dev.vars for local dev. The forkability bar (#754) targets exactly this:
+# `wrangler deploy` + a secrets template stands up a fork.
+NEYNAR_API_KEY=your-neynar-api-key
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key

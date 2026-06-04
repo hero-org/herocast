@@ -1,0 +1,10 @@
+node_modules
+dist
+.output
+.wrangler
+.vinxi
+.nitro
+.tanstack
+src/routeTree.gen.ts
+# secrets — never commit. .dev.vars.example documents the shape.
+.dev.vars
