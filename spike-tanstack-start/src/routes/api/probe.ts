@@ -1,6 +1,8 @@
 // Clean JSON evidence vehicle for the 3 unknowns. Server route handler → runs on
 // workerd. curl /api/probe twice to see the Cache API flip MISS → HIT.
 import { createFileRoute } from '@tanstack/react-router';
+// Canonical Cloudflare env access — works on the edge where process.env may be empty.
+import { env as cfEnv } from 'cloudflare:workers';
 import {
   fetchTrendingViaSDK,
   fetchTrendingViaREST,
@@ -9,6 +11,8 @@ import {
 import { getUserFromRequest } from '../../lib/getUser';
 
 function envVar(key: string): string {
+  const v = (cfEnv as any)?.[key];
+  if (v != null && v !== '') return String(v);
   return (globalThis as any).process?.env?.[key] ?? '';
 }
 
@@ -25,6 +29,9 @@ export const Route = createFileRoute('/api/probe')({
           hasProcess: typeof (globalThis as any).process !== 'undefined',
           neynarKeyPresent: Boolean(neynarKey),
           supabaseEnvPresent: Boolean(supabaseUrl && anonKey),
+          // which binding source actually held the secret on this runtime
+          keyFromCfEnv: Boolean((cfEnv as any)?.NEYNAR_API_KEY),
+          keyFromProcessEnv: Boolean((globalThis as any).process?.env?.NEYNAR_API_KEY),
           userAgent: (globalThis as any).navigator?.userAgent ?? null,
         };
 

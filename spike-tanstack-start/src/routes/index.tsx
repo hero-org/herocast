@@ -1,12 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
+import { env as cfEnv } from 'cloudflare:workers';
 import { getTrendingCached } from '../lib/trending';
 import { getUserFromRequest, type GetUserResult } from '../lib/getUser';
 
-// process.env is populated per-request on workerd when nodejs_compat is on (vars +
-// .dev.vars). Module-scope reads would be undefined, so read inside the handler.
+// Canonical Cloudflare env access; falls back to process.env (populated under
+// nodejs_compat). Read inside the handler — module-scope reads are undefined on Workers.
 function envVar(key: string): string {
+  const v = (cfEnv as any)?.[key];
+  if (v != null && v !== '') return String(v);
   return (globalThis as any).process?.env?.[key] ?? '';
 }
 
