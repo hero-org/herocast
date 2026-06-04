@@ -16,8 +16,12 @@ export const queryKeys = {
   feeds: {
     all: ['feeds'] as const,
     trending: (options?: { cursor?: string; limit?: number }) => ['feeds', 'trending', options ?? {}] as const,
+    // Prefix (sans options) for matching every `{limit}`/`{cursor}` variant of a
+    // feed query with `exact: false` — e.g. optimistic cache writes on publish.
+    followingPrefix: (fid: string) => ['feeds', 'following', fid] as const,
     following: (fid: string, options?: { cursor?: string; limit?: number }) =>
       ['feeds', 'following', fid, options ?? {}] as const,
+    channelPrefix: (parentUrl: string, fid: string) => ['feeds', 'channel', parentUrl, fid] as const,
     channel: (parentUrl: string, fid: string, options?: { cursor?: string; limit?: number }) =>
       ['feeds', 'channel', parentUrl, fid, options ?? {}] as const,
     list: (listId: string, options?: { cursor?: string; limit?: number; contentsHash?: string }) =>

@@ -26,6 +26,8 @@ import {
   toastSuccessCastScheduled,
 } from '@/common/helpers/toast';
 import type { FarcasterEmbed } from '@/common/types/embeds';
+import { insertPublishedCastIntoFeeds } from '@/lib/optimisticPublish';
+import { getQueryClient } from '@/lib/queryClient';
 import { type AccountObjectType, useAccountStore } from './useAccountStore';
 import { CastModalView, useNavigationStore } from './useNavigationStore';
 
@@ -394,6 +396,10 @@ const store = (set: StoreSet) => ({
           };
         }
       });
+
+      // Optimistically surface the cast in the feed immediately (#739) instead
+      // of waiting for the next refetch / manual refresh.
+      insertPublishedCastIntoFeeds(getQueryClient(), draft, account, hash);
 
       toastSuccessCastPublished(draft.text);
       onPost?.();
