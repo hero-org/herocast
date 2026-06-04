@@ -275,3 +275,23 @@
     --density-pad-y: 12px;
   }
 }
+
+@layer utilities {
+  /*
+   * iOS standalone PWA safe-area helpers.
+   *
+   * Launched from the Home Screen we use `viewport-fit=cover` with a
+   * `black-translucent` status bar (see `app/layout.tsx`), so the web view
+   * extends under the status bar / notch. Without padding, top-of-screen
+   * controls (hamburger menu, header actions) sit beneath the status bar and
+   * cannot be tapped — iOS routes those touches to the status bar, not the
+   * page. `env(safe-area-inset-*)` resolves to 0 on platforms without insets,
+   * so these utilities are no-ops on web and desktop.
+   */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
