@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
-import { endTiming, startTiming } from '@/stores/usePerformanceStore';
+import { endTiming, markInAppNavigation, startTiming } from '@/stores/usePerformanceStore';
 
 /**
  * Hook to track page navigation performance
@@ -22,6 +22,7 @@ export function useNavigationPerf() {
 
     // Path changed - end previous timing if exists and start new one
     if (prevPathRef.current !== pathname) {
+      markInAppNavigation();
       if (timingIdRef.current) {
         endTiming(timingIdRef.current, 300, {
           from: prevPathRef.current,

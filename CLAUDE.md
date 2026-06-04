@@ -371,6 +371,24 @@ Only `warning` and `critical` metrics are sent to PostHog to reduce noise.
 | Store Init | `store-init-total` | 4000ms | `initializeStores.ts` |
 | Store Init | `store-init-phase1` | 1000ms | `initializeStores.ts` |
 | Store Init | `store-init-phase2` | 3000ms | `initializeStores.ts` |
+| INP (perceived) | `inp:like`, `inp:recast` | 100ms | `CastRow/ReactionBar.tsx` |
+| INP (perceived) | `inp:open-notification` | 100ms | `app/(app)/inbox/page.tsx` |
+| INP (perceived) | `inp:publish` | 200ms | `Editor/NewCastEditor.tsx` |
+| INP (perceived) | `inp:switch-feed` | 200ms | `Sidebar/ChannelsOverview.tsx`, `Sidebar/ManageListsOverview.tsx` + `feeds/page.tsx` |
+| INP (perceived) | `inp:open-profile` | 200ms | `CastRow/Author.tsx`, `ProfileHoverCard.tsx` + `profile/[slug]/page.tsx` |
+| INP (perceived) | `inp:cold-start` | 200ms | `app/(app)/feeds/page.tsx` |
+| INP (page-level) | `inp:page` | 200ms | `useWebVitals` hook (`web-vitals` `onINP`) |
+
+### Perceived Interaction Latency (INP)
+
+Perceived "tap → paint" latency is the primary responsiveness contract (vs. server
+round-trip metrics like `feed:*`). Use these from `@/stores/usePerformanceStore`:
+
+- `trackInteractionToPaint(name, threshold)` — instant in-place flows; call synchronously in
+  the handler, records `inp:<name>` after the next paint.
+- `beginInteraction(name)` / `endInteraction(name, threshold)` — navigate-to-content flows;
+  call `beginInteraction` in the handler and `endInteraction` from where the content paints
+  (`endInteraction` is a safe no-op if nothing is pending).
 
 ### Adding New Tracking
 

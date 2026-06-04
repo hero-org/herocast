@@ -10,7 +10,7 @@ import type { FarcasterCast } from '@/common/types/farcaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useLikeCast, useRecast, useRemoveRecast, useUnlikeCast } from '@/hooks/mutations/useCastActions';
 import { cn } from '@/lib/utils';
-import { endTiming, startTiming } from '@/stores/usePerformanceStore';
+import { trackInteractionToPaint } from '@/stores/usePerformanceStore';
 import { toastInfoReadOnlyMode } from '../../helpers/toast';
 import HotkeyTooltipWrapper from '../HotkeyTooltipWrapper';
 import { ReactionListDialog } from './ReactionListDialog';
@@ -103,18 +103,14 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({
       return;
     }
 
-    // Start performance measurement
-    const timingId = startTiming(`click-${key}`);
-
-    // Immediate optimistic update for instant UI feedback
+    // Immediate optimistic update for instant UI feedback; measure tap → icon flip
     if (key === CastReactionType.likes) {
+      trackInteractionToPaint('like', 100);
       setDidLike(!isActive);
     } else if (key === CastReactionType.recasts) {
+      trackInteractionToPaint('recast', 100);
       setDidRecast(!isActive);
     }
-
-    // End timing for UI update (should be <100ms)
-    endTiming(timingId, 100);
 
     if (!canSendReaction) {
       toastInfoReadOnlyMode();
