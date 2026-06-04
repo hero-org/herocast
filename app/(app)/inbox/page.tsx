@@ -148,15 +148,16 @@ const Inbox = () => {
   // Get current notifications for active tab
   const notifications = notificationsByType[activeTab];
 
-  // Generate unique ID for notification
-  const getNotificationId = (notification: FarcasterNotification): string => {
+  // Generate unique ID for notification (pure over its argument — memoized so the
+  // callbacks/effect that depend on it stay stable across renders)
+  const getNotificationId = useCallback((notification: FarcasterNotification): string => {
     if (notification.type === NotificationType.Follows && notification.follows) {
       // For follows, use the first follower's fid + timestamp
       return `follow-${notification.follows[0]?.user?.fid}-${notification.most_recent_timestamp}`;
     }
     // For other types, use cast hash + type + timestamp
     return `${notification.cast?.hash || 'unknown'}-${notification.type}-${notification.most_recent_timestamp}`;
-  };
+  }, []);
 
   // Optimistically flip read-state for the notification at idx (no-op if already read)
   const markNotificationReadAt = useCallback(
