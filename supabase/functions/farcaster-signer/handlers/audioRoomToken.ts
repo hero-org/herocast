@@ -124,6 +124,22 @@ interface MintRequestBody {
 export async function handleMintAudioRoomToken(req: Request, authResult: AuthResult): Promise<Response> {
   const { userId, supabaseClient } = authResult;
 
+  // SECURITY: this endpoint returns the Farcaster bearer, which must stay
+  // server-side. The same-origin proxy (a server-side fetch) sends NO `Origin`
+  // header; a browser fetch ALWAYS sends one and JS cannot strip it (Origin is
+  // a forbidden header). So reject any request carrying an Origin — this blocks
+  // XSS-driven bearer extraction directly from a victim's session, with no new
+  // config. The legitimate caller is the server proxy only.
+  if (req.headers.get('origin')) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: { code: 'FORBIDDEN', message: 'audio-room-token is server-only' },
+      }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   let body: MintRequestBody;
   try {
     body = (await req.json()) as MintRequestBody;

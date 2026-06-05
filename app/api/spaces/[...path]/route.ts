@@ -43,6 +43,24 @@ const TIMEOUT_MS = 19_000;
 
 const ACCOUNT_HEADER = 'x-herocast-account-id';
 
+/**
+ * Allowlist of Farcaster audio-room control-plane paths this proxy may reach.
+ * Locks the catch-all to the v1 Spaces surface so a caller's bearer can't be
+ * used to drive arbitrary first-party `client.farcaster.xyz` endpoints.
+ */
+const ALLOWED_PATHS: Record<string, Set<string>> = {
+  GET: new Set(['v1/audio-rooms', 'v1/audio-rooms/scheduled', 'v1/audio-room', 'v1/audio-room/participants']),
+  POST: new Set([
+    'v1/audio-rooms',
+    'v1/audio-room/join',
+    'v1/audio-room/leave',
+    'v1/audio-room/heartbeat',
+    'v1/audio-room/start-scheduled',
+    'v1/audio-room/end',
+    'v1/audio-room/update',
+  ]),
+};
+
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
@@ -166,6 +184,9 @@ async function handle(request: NextRequest, pathSegments: string[], method: 'GET
   if (!path) {
     return jsonError('Missing Farcaster audio-room path', 400);
   }
+  if (!ALLOWED_PATHS[method]?.has(path)) {
+    return jsonError('Forbidden audio-room path', 403);
+  }
   const targetUrl = `${FARCASTER_AUDIO_BASE_URL}/${path}${forwardSearch}`;
 
   const controller = new AbortController();
@@ -174,7 +195,7 @@ async function handle(request: NextRequest, pathSegments: string[], method: 'GET
   try {
     let bearer: string;
     try {
-      bearer = await getServerBearer(accountId, accessToken);
+      bearer = await getServerBearer(user.id, accountId, accessToken);
     } catch (mintErr) {
       const status = (mintErr as { status?: number })?.status;
       // Diagnostic (dev): surface the real mint failure. Never logs the bearer.
@@ -193,7 +214,7 @@ async function handle(request: NextRequest, pathSegments: string[], method: 'GET
     if (upstream.status === 401) {
       let fresh: string;
       try {
-        fresh = await getServerBearer(accountId, accessToken, true);
+        fresh = await getServerBearer(user.id, accountId, accessToken, true);
       } catch {
         return jsonError('Spaces authorization expired', 401);
       }

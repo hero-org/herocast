@@ -94,9 +94,10 @@ async function mintBearer(accountId: string, accessToken: string): Promise<Cache
     throw Object.assign(new Error(message), { status: response.status });
   }
 
-  const entry: CachedBearer = { token: data.token, expiresAt: data.expiresAt };
-  bearerCache.set(accountId, entry);
-  return entry;
+  // The caller (`getServerBearer`) owns the cache write so it can key the
+  // entry by `${userId}:${accountId}` (the mint here is owner-scoped per the
+  // forwarded access token, but the cache must not be reusable cross-user).
+  return { token: data.token, expiresAt: data.expiresAt };
 }
 
 /**
@@ -106,16 +107,30 @@ async function mintBearer(accountId: string, accessToken: string): Promise<Cache
  *
  * @returns the bearer token string (never logged by callers).
  */
-export async function getServerBearer(accountId: string, accessToken: string, forceRefresh = false): Promise<string> {
-  const cached = bearerCache.get(accountId);
+export async function getServerBearer(
+  userId: string,
+  accountId: string,
+  accessToken: string,
+  forceRefresh = false
+): Promise<string> {
+  // SECURITY: key the cache by the CALLER's user id, not just the account id.
+  // A cache HIT returns without re-minting, and minting is the only place
+  // account ownership is enforced (via the forwarded access token). Keying by
+  // accountId alone would let any authenticated user reuse another user's
+  // warm bearer by sending that account id in the proxy header. With
+  // `${userId}:${accountId}`, a cross-account lookup misses → re-mints with the
+  // caller's own token → the edge fn rejects it (not their account).
+  const key = `${userId}:${accountId}`;
+  const cached = bearerCache.get(key);
   if (!forceRefresh && !isStale(cached)) {
     return cached!.token;
   }
   const fresh = await mintBearer(accountId, accessToken);
+  bearerCache.set(key, fresh);
   return fresh.token;
 }
 
 /** Drop a cached bearer (e.g. on a hard auth failure). Test/maintenance hook. */
-export function invalidateServerBearer(accountId: string): void {
-  bearerCache.delete(accountId);
+export function invalidateServerBearer(userId: string, accountId: string): void {
+  bearerCache.delete(`${userId}:${accountId}`);
 }

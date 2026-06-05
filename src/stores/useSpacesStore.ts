@@ -433,13 +433,21 @@ const store = (set: StoreSet, get: () => SpacesStore): SpacesStore => ({
       if (runtime.livekit === lk) await teardown(get, set, { serverLeave: true });
       return;
     }
-    // Superseded while connecting → drop this connection.
+    // Superseded by a newer join while connecting → drop quietly (the
+    // superseding attempt owns cleanup).
     if (myToken !== runtime.joinToken || !liveSessionFor(get, accountId)) {
       try {
         await lk.disconnect();
       } catch {
         /* ignore */
       }
+      return;
+    }
+    // The SELECTED account changed DURING `lk.connect()` — a window the
+    // account subscription (installed below) can't catch. Don't go live under
+    // the wrong identity: leave the seat we just took and tear down.
+    if (getSelectedIdentity()?.accountId !== accountId) {
+      if (runtime.livekit === lk) await teardown(get, set, { serverLeave: true });
       return;
     }
 
