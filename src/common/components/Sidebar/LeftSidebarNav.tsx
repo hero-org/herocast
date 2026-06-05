@@ -5,6 +5,7 @@ import {
   Newspaper,
   PenSquare,
   Plus,
+  Radio,
   Search,
   Settings,
   User,
@@ -13,6 +14,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type React from 'react';
+import { SPACES_ENABLED } from '@/common/constants/spaces';
 import { cn } from '@/lib/utils';
 import { renderShortcut } from './CollapsibleNavSection';
 import { SidebarFeedList } from './feeds/SidebarFeedList';
@@ -67,6 +69,15 @@ const mainNavItems: NavItem[] = [
     icon: <Search className="h-5 w-5" />,
     shortcut: '/',
   },
+  ...(SPACES_ENABLED
+    ? [
+        {
+          name: 'Spaces',
+          href: '/spaces',
+          icon: <Radio className="h-5 w-5" />,
+        },
+      ]
+    : []),
 ];
 
 const bottomNavItems: NavItem[] = [

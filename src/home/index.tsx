@@ -26,8 +26,10 @@ import LeftSidebarNav from '@/common/components/Sidebar/LeftSidebarNav';
 import LeftSidebarToggle from '@/common/components/Sidebar/LeftSidebarToggle';
 import PublishedCastsRightSidebar from '@/common/components/Sidebar/PublishedCastsRightSidebar';
 import RightSidebarToggle from '@/common/components/Sidebar/RightSidebarToggle';
+import { LiveSpaceBar } from '@/common/components/Spaces/LiveSpaceBar';
 import { AccountPlatformType } from '@/common/constants/accounts';
 import { LOCAL_STORAGE_ONBOARDING_COMPLETED_KEY } from '@/common/constants/localStorage';
+import { SPACES_ENABLED } from '@/common/constants/spaces';
 import useInitializeStores from '@/common/hooks/useInitializeStores';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -556,6 +558,7 @@ const Home = ({ children }: { children: React.ReactNode }) => {
           </div>
         </SidebarProvider>
         <Toaster theme="system" position="bottom-right" />
+        {SPACES_ENABLED && <LiveSpaceBar />}
       </div>
     </FarcasterProviderContext.Provider>
   );

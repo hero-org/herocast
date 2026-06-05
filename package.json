@@ -142,6 +142,7 @@
     "linkify-plugin-mention": "4.3.2",
     "linkify-react": "4.3.2",
     "linkifyjs": "4.3.2",
+    "livekit-client": "^2.19.1",
     "lodash.clonedeep": "^4.5.0",
     "lodash.debounce": "^4.0.8",
     "lodash.filter": "^4.6.0",

@@ -12,8 +12,10 @@
  *   POST /follow   - Follow a user
  *   DELETE /follow - Unfollow a user
  *   POST /user-data - Update user data (bio, display name, pfp, username)
+ *   POST /audio-room-token - Mint a Farcaster audio-room (Spaces) bearer
  */
 
+import { handleMintAudioRoomToken } from './handlers/audioRoomToken.ts';
 import { handleDeleteCast, handlePostCast } from './handlers/cast.ts';
 import { handleDeleteFollow, handlePostFollow } from './handlers/follow.ts';
 import { handleDeleteReaction, handlePostReaction } from './handlers/reaction.ts';
@@ -60,6 +62,9 @@ Deno.serve(async (req: Request) => {
 
       case 'POST /user-data':
         return await handlePostUserData(req, authResult);
+
+      case 'POST /audio-room-token':
+        return await handleMintAudioRoomToken(req, authResult);
 
       default:
         return new Response(
