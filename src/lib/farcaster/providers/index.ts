@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { getQueryClient } from '@/lib/queryClient';
 import { useUserSettingsStore } from '@/stores/useUserSettingsStore';
 import { createFallbackProvider } from './fallback';
@@ -26,12 +26,19 @@ function createProvider(type: ProviderType): FarcasterProvider {
   return createNeynarProvider();
 }
 
-// Singleton for use outside React (store hydration, etc.)
+// Singleton for use outside React (store hydration, feed hooks, searchService, etc.). Rebuilt
+// whenever the resolved provider type changes: the settings store seeds synchronously from
+// localStorage, but the authoritative value arrives later from Supabase during hydrate(). A
+// singleton pinned at first call would otherwise stay on the wrong provider for the whole
+// session — on a device whose localStorage wasn't seeded yet, that means every feed query runs
+// against the quota-limited Neynar default and silently comes back empty (the onboarding
+// empty-feeds bug).
 let _provider: FarcasterProvider | null = null;
 
 export function getProvider(): FarcasterProvider {
-  if (!_provider) {
-    _provider = createProvider(getProviderType());
+  const type = getProviderType();
+  if (!_provider || _provider.type !== type) {
+    _provider = createProvider(type);
   }
   return _provider;
 }
@@ -85,6 +92,20 @@ export function useFarcasterProviderValue() {
     // cache is discarded on the next cold start.
     getQueryClient().invalidateQueries();
   }, []);
+
+  // hydrate() resolves the authoritative provider from Supabase after the synchronous
+  // localStorage seed, so providerType can flip (e.g. neynar → hypersnap) once the remote
+  // preference loads on a device whose localStorage wasn't seeded yet. When it does, drop the
+  // stale singleton and refetch — the data hooks read getProvider() (not this context), so
+  // without a refetch they keep serving the old provider's empty/quota-limited results. The
+  // ref skips the initial render so a correctly-seeded load doesn't double-fetch.
+  const seededProviderTypeRef = useRef(providerType);
+  useEffect(() => {
+    if (seededProviderTypeRef.current === providerType) return;
+    seededProviderTypeRef.current = providerType;
+    _provider = null;
+    getQueryClient().invalidateQueries();
+  }, [providerType]);
 
   const provider = useMemo(() => createProvider(providerType), [providerType]);
 

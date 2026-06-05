@@ -724,8 +724,17 @@ export default function Feeds() {
               </CardFooter>
             </Card>
           </div>
-          <TrendingChannelsCard />
-          <RecommendedProfilesCard />
+          {/* Discovery prompts ("Follow more profiles…", trending channels) are onboarding
+              guidance for the home/following feed — a thin following graph is why it's empty.
+              On a specific channel, list, or search, an empty result means that source has no
+              casts (or isn't indexed), not that the user follows too few people, so suppress
+              them there to avoid the off-context "Follow more profiles" prompt. */}
+          {isFollowingFeed && (
+            <>
+              <TrendingChannelsCard />
+              <RecommendedProfilesCard />
+            </>
+          )}
         </div>
       )
     );

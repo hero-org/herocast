@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { createHypersnapProvider } from '../hypersnap';
+import { UnsupportedProviderFeatureError } from '../types';
 
 // Avoid pulling in zustand/posthog via the real performance store — just run the work.
 jest.mock('@/stores/usePerformanceStore', () => ({
@@ -219,6 +220,36 @@ describe('createHypersnapProvider — new provider methods', () => {
       const users = await provider.getBestFriends({ fid: 3, limit: 5 });
 
       expect(users.map((u) => u.fid)).toEqual([1, 2]);
+    });
+  });
+
+  describe('getChannelFeed', () => {
+    it('always defers to the fallback provider (haatz feed/channels is unindexed for most channels)', () => {
+      // Throws synchronously so the fallback proxy routes the whole query to Neynar — no upstream call.
+      expect(() => provider.getChannelFeed({ parentUrl: 'https://warpcast.com/~/channel/degen' })).toThrow(
+        UnsupportedProviderFeatureError
+      );
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('searchCasts', () => {
+    it('runs a plain keyword search against cast/search when only interval/viewerFid are set', async () => {
+      mockJson({ result: { casts: [{ hash: '0xc1', author: { fid: 5 }, text: 'gm', timestamp: 't1' }] } });
+
+      const res = await provider.searchCasts({ q: 'ethereum', limit: 10, filters: { interval: 'd7', viewerFid: '3' } });
+
+      expect(res.results.map((r) => r.hash)).toEqual(['0xc1']);
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(new URL(url, 'http://x').pathname).toContain('cast/search');
+      expect(new URL(url, 'http://x').searchParams.get('q')).toBe('ethereum');
+    });
+
+    it('falls back (throws unsupported) when a match-narrowing filter is present', async () => {
+      await expect(
+        provider.searchCasts({ q: 'ethereum', limit: 10, filters: { channelId: 'degen', interval: 'd7' } })
+      ).rejects.toBeInstanceOf(UnsupportedProviderFeatureError);
+      expect(fetchMock).not.toHaveBeenCalled();
     });
   });
 
