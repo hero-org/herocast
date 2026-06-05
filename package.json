@@ -44,7 +44,9 @@
   },
   "pnpm": {
     "overrides": {
-      "@tanstack/query-core": "5.90.11"
+      "@tanstack/query-core": "5.90.11",
+      "react": "$react",
+      "react-dom": "$react-dom"
     },
     "onlyBuiltDependencies": [
       "@nestjs/core",
@@ -164,10 +166,10 @@
     "posthog-js": "^1.335.5",
     "prop-types": "^15.8.1",
     "radix-colors-for-tailwind": "^2.0.0",
-    "react": "18.2.0",
+    "react": "^19.0.0",
     "react-aria": "^3.38.1",
     "react-day-picker": "^9.7.0",
-    "react-dom": "18.2.0",
+    "react-dom": "^19.0.0",
     "react-easy-sort": "^1.8.0",
     "react-hook-form": "^7.54.2",
     "react-hotkeys-hook": "^5.1.0",
@@ -215,7 +217,8 @@
     "@types/lodash.uniqby": "^4.7.9",
     "@types/node": "^20.17.24",
     "@types/ramda": "^0.29.12",
-    "@types/react-dom": "^18.3.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.21",
     "buffer": "^6.0.3",
     "cross-env": "^7.0.3",
