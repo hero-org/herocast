@@ -1,0 +1,26 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# herocast-web — secrets template (forkability bar, hero-org/herocast#754)
+#
+# LOCAL DEV:  copy this file to `.dev.vars` (gitignored) and fill in real values.
+#             `wrangler dev` / `vite dev` load `.dev.vars` automatically.
+#
+# PRODUCTION: `.dev.vars` is dev-only. Push each secret to the deployed Worker:
+#               wrangler secret put NEYNAR_API_KEY
+#               wrangler secret put SUPABASE_URL
+#               wrangler secret put SUPABASE_ANON_KEY
+#             On the edge these are read via `import { env } from 'cloudflare:workers'`
+#             (see src/lib/env.ts) — NOT from .dev.vars.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Neynar (Farcaster API). Server-side only.
+NEYNAR_API_KEY=your-neynar-api-key
+
+# Supabase. Server-side client (auth cookie read + login callback write).
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# NOTE: this file is WORKER-RUNTIME config only (read via cloudflare:workers /
+# process.env). It does NOT feed Vite's import.meta.env. The browser Supabase client
+# (Phase 2) reads VITE_*-prefixed vars, which Vite inlines at BUILD time from .env.local
+# (local) or the build environment (prod) — see .env.local.example. Server secrets here
+# are runtime; VITE_* are build-time. Don't mix them up.

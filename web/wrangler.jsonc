@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Rename this for your fork. This is the deployed Worker name.
+  "name": "herocast-web",
+  "compatibility_date": "2026-06-04",
+  // Gives axios/Node-built-in-dependent packages (e.g. the Neynar SDK) a Node
+  // compatibility baseline on workerd. Proven necessary + sufficient by the Phase-0
+  // spike (#754): Neynar SDK + @supabase/ssr both run under this flag.
+  "compatibility_flags": ["nodejs_compat"],
+  // TanStack Start's server entry. The Vite build (@cloudflare/vite-plugin) emits the
+  // final deployable config to dist/server/wrangler.json — deploy/run with
+  //   wrangler deploy -c dist/server/wrangler.json
+  //   wrangler dev    -c dist/server/wrangler.json
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true }
+  //
+  // SECRETS (forkability bar, #754): do NOT put NEYNAR_API_KEY / SUPABASE_* here.
+  // Local dev: copy .dev.vars.example -> .dev.vars (gitignored).
+  // Production: `wrangler secret put NEYNAR_API_KEY` (and SUPABASE_URL,
+  // SUPABASE_ANON_KEY). See README.md "Secrets". Read them on the edge via
+  // `import { env } from 'cloudflare:workers'` (see src/lib/env.ts).
+}

@@ -1,0 +1,18 @@
+node_modules
+dist
+.output
+.wrangler
+.vinxi
+.nitro
+.tanstack
+# TanStack Router generates this on dev/build — never commit it.
+src/routeTree.gen.ts
+# Cloudflare Workers generated types.
+worker-configuration.d.ts
+# Secrets — never commit. The .example files document the shape.
+# .dev.vars   = worker-runtime secrets (cloudflare:workers / process.env)
+# .env.local  = client build-time vars Vite inlines (import.meta.env.VITE_*)
+.dev.vars
+.env
+.env.local
+.env.*.local
