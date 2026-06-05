@@ -97,6 +97,13 @@ export function useCastSearchInfinite(
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.results.length < lastPage.limitUsed) return undefined;
 
+      // Stop when a page adds no new cast hashes. Guards against providers that ignore `offset`
+      // and return a single fixed page (hypersnap /cast/search has no pagination): without this,
+      // a full first page would refetch identical results forever. Neynar's offset pages always
+      // bring new hashes, so this never short-circuits real pagination.
+      const priorHashes = new Set(allPages.slice(0, -1).flatMap((page) => page.results.map((r) => r.hash)));
+      if (!lastPage.results.some((r) => !priorHashes.has(r.hash))) return undefined;
+
       const nextOffset = allPages.reduce((sum, page) => sum + page.results.length, 0);
       return { offset: nextOffset, limit };
     },

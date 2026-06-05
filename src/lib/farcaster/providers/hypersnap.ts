@@ -81,17 +81,6 @@ function unsupported(method: string): never {
   throw new UnsupportedFeatureError('hypersnap', method);
 }
 
-/** Extract channel ID from a Warpcast channel URL like https://warpcast.com/~/channel/degen */
-function channelIdFromUrl(parentUrl: string): string {
-  try {
-    const pathname = new URL(parentUrl).pathname.replace(/\/+$/, '');
-    return pathname.split('/').pop() || parentUrl;
-  } catch {
-    // Not a valid URL, treat as raw channel ID
-    return parentUrl;
-  }
-}
-
 export function createHypersnapProvider(): FarcasterProvider {
   return {
     type: 'hypersnap',
@@ -166,9 +155,15 @@ export function createHypersnapProvider(): FarcasterProvider {
       return unsupported('getTrendingFeed');
     },
 
-    async getChannelFeed({ parentUrl, limit = 15, cursor, signal }) {
-      const channelId = channelIdFromUrl(parentUrl);
-      return fetchJson<FeedResponse>(buildUrl('feed/channels', { channel_ids: channelId, limit, cursor }), signal);
+    getChannelFeed() {
+      // haatz feed/channels only returns casts indexed under the warpcast.com/~/channel/<id>
+      // parent_url. Token-gated (chain://) channels, farcaster.xyz channels, and most large
+      // legacy channels (degen, base, founders, nouns, evm, …) store casts under a different
+      // parent_url, so feed/channels returns an empty page for them — the "some channels are
+      // just empty" report. A per-page empty→fallback heuristic would mix hypersnap and Neynar
+      // cursors and break infinite-scroll pagination, so route every channel feed to Neynar for
+      // one consistent pagination source. Revert when haatz indexes channel feeds by id.
+      return unsupported('getChannelFeed');
     },
 
     async getProfileCasts({ fid, limit = 25, cursor, signal }) {
@@ -208,8 +203,15 @@ export function createHypersnapProvider(): FarcasterProvider {
     },
 
     async searchCasts({ q, limit, filters, signal }) {
-      if (filters && Object.keys(filters).length > 0) {
-        // Hypersnap /cast/search is keyword-only; route filtered queries to Neynar via fallback.
+      // haatz /cast/search is keyword-only. `interval` and `viewerFid` are ALWAYS present
+      // (searchService injects a default recency window plus the viewer FID), yet neither
+      // changes which casts match — interval is a best-effort recency window and viewerFid only
+      // adds reaction context. Treating them as "filters" would force every plain keyword search
+      // to the quota-limited Neynar /api/search, which comes back empty. So only fall back for
+      // filters that actually narrow the match set (author / channel / parent_url / mode / sort).
+      const matchNarrowingFilterKeys = ['authorFid', 'channelId', 'parentUrl', 'mode', 'sortType'];
+      if (filters && matchNarrowingFilterKeys.some((key) => filters[key])) {
+        // Hypersnap /cast/search is keyword-only; route narrowed queries to Neynar via fallback.
         unsupported('searchCasts(filters)');
       }
       const data = await fetchJson<{ result: { casts: FarcasterCast[] } }>(
