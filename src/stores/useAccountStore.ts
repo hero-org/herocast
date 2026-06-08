@@ -101,9 +101,13 @@ interface AccountStoreActions {
   addAccount: (props: AddAccountProps) => void;
   addChannel: (props: AddChannelProps) => void;
   updatedPinnedChannelIndices: ({ oldIndex, newIndex }: UpdatedPinnedChannelIndicesProps) => void;
-  setAccountActive: (accountId: string, name: string, data: { platform_account_id: string; data?: object }) => void;
+  setAccountActive: (
+    accountId: string,
+    name: string,
+    data: { platform_account_id: string; data?: object }
+  ) => Promise<void>;
   updateAccountUsername: (accountId: string) => void;
-  removeAccount: (id: string) => void;
+  removeAccount: (id: string) => Promise<void>;
   setCurrentAccountById: (platformAccountId: string) => void;
   setCurrentAccountIdx: (idx: number) => void;
   setSelectedChannelUrl: (url: string | null) => void;
@@ -138,6 +142,17 @@ const getSupabaseClient = () => {
     supabaseClientInstance = createClient();
   }
   return supabaseClientInstance;
+};
+
+// Keep `selectedAccountIdx` on the same account (by id) after a splice; clamp into range if it's gone.
+const resolveSelectedAccountIdx = (
+  accounts: AccountObjectType[],
+  selectedAccountId: string | undefined,
+  fallbackIdx: number
+) => {
+  const byId = accounts.findIndex((account) => account.id === selectedAccountId);
+  if (byId !== -1) return byId;
+  return Math.max(0, Math.min(fallbackIdx, accounts.length - 1));
 };
 
 const store = (set: StoreSet) => ({
@@ -199,29 +214,40 @@ const store = (set: StoreSet) => ({
     console.log('----> addAccount done');
   },
   setAccountActive: async (accountId: string, name: string, data: { platform_account_id: string; data?: object }) => {
-    set(async (state) => {
-      const { error } = await getSupabaseClient()
-        .from('accounts')
-        .update({
-          name,
-          status: AccountStatusType.active,
-          platform_account_id: data.platform_account_id,
-          ...(data.data ? { data: data.data as unknown as Record<string, Json> } : {}),
-        })
-        .eq('id', accountId)
-        .select();
+    const previous = useAccountStore.getState().accounts.find((account) => account.id === accountId);
+    if (!previous) return;
+    const snapshot = { status: previous.status, name: previous.name, platformAccountId: previous.platformAccountId };
 
-      // console.log('response setAccountActive - data', data, 'error', error);
-      if (!error) {
-        const accountIndex = state.accounts.findIndex((account) => account.id === accountId);
-        const account = state.accounts[accountIndex];
-        account.status = AccountStatusType.active;
-        account.name = name;
-        account.platformAccountId = data.platform_account_id;
-        state.accounts[accountIndex] = account;
-      }
-      console.log('-----> setAcountActive done');
+    // Update local state immediately for optimistic UI
+    set((state) => {
+      const account = state.accounts.find((account) => account.id === accountId);
+      if (!account) return;
+      account.status = AccountStatusType.active;
+      account.name = name;
+      account.platformAccountId = data.platform_account_id;
     });
+
+    // Await: callers re-hydrate from Supabase immediately after, so the write must land first
+    const { error } = await getSupabaseClient()
+      .from('accounts')
+      .update({
+        name,
+        status: AccountStatusType.active,
+        platform_account_id: data.platform_account_id,
+        ...(data.data ? { data: data.data as unknown as Record<string, Json> } : {}),
+      })
+      .eq('id', accountId);
+
+    if (error) {
+      console.error('Failed to activate account, rolling back', error);
+      set((state) => {
+        const account = state.accounts.find((account) => account.id === accountId);
+        if (!account) return;
+        account.status = snapshot.status;
+        account.name = snapshot.name;
+        account.platformAccountId = snapshot.platformAccountId;
+      });
+    }
   },
   updateAccountUsername: async (accountId: string) => {
     set(async (state) => {
@@ -253,21 +279,33 @@ const store = (set: StoreSet) => ({
     await new Promise((resolve) => setTimeout(resolve, 500)); // sleep to avoid rate limiting
   },
   removeAccount: async (id: string) => {
-    await getSupabaseClient()
+    const current = useAccountStore.getState();
+    const idx = current.accounts.findIndex((account) => account.id === id);
+    if (idx === -1) return;
+    const removedAccount = current.accounts[idx];
+    const selectedAccountId = current.accounts[current.selectedAccountIdx]?.id;
+
+    // Update local state immediately for optimistic UI, keeping the same account selected
+    set((state) => {
+      state.accounts.splice(idx, 1);
+      state.selectedAccountIdx = resolveSelectedAccountIdx(state.accounts, selectedAccountId, state.selectedAccountIdx);
+    });
+
+    // Persist in background; restore the account if the write fails
+    const { error } = await getSupabaseClient()
       .from('accounts')
       .update({ status: AccountStatusType.removed })
-      .eq('id', id)
-      .select()
-      .then(({ error, data }) => {
-        console.log('removeAccount - data', data, 'error', error);
-      });
+      .eq('id', id);
 
-    set((state) => {
-      const idx = state.accounts.findIndex((account) => account.id === id);
-      const copy = [...state.accounts];
-      copy.splice(idx, 1);
-      state.accounts = copy;
-    });
+    if (error) {
+      console.error('Failed to remove account, rolling back', error);
+      set((state) => {
+        if (state.accounts.some((account) => account.id === id)) return;
+        const selectedNowId = state.accounts[state.selectedAccountIdx]?.id;
+        state.accounts.splice(Math.min(idx, state.accounts.length), 0, removedAccount);
+        state.selectedAccountIdx = resolveSelectedAccountIdx(state.accounts, selectedNowId, state.selectedAccountIdx);
+      });
+    }
   },
   setCurrentAccountIdx: (idx: number) => {
     set((state) => {
@@ -315,53 +353,78 @@ const store = (set: StoreSet) => ({
     });
   },
   addPinnedChannel: (channel: ChannelType) => {
+    const { accounts, selectedAccountIdx } = useAccountStore.getState();
+    const account = accounts[selectedAccountIdx];
+    if (!account) return;
+    const accountId = account.id;
+    const idx = account.channels.length;
+
+    // Update local state immediately for optimistic UI
     set((state) => {
       const account = state.accounts[state.selectedAccountIdx];
-      const idx = account.channels.length;
-      const newChannel = { ...channel, idx };
-      account.channels = [...account.channels, newChannel];
-      state.accounts[state.selectedAccountIdx] = account;
-
-      if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
-        getSupabaseClient()
-          .from('accounts_to_channel')
-          .insert({
-            account_id: account.id,
-            channel_id: channel.id,
-            index: idx,
-          })
-          .select('*')
-          .then(({ error, data }) => {
-            // console.log('response - data', data, 'error', error);
-          });
-      }
+      account.channels = [...account.channels, { ...channel, idx }];
     });
+
+    if (account.platform === AccountPlatformType.farcaster_local_readonly) return;
+
+    // Persist in background; unpin on failure
+    getSupabaseClient()
+      .from('accounts_to_channel')
+      .insert({ account_id: accountId, channel_id: channel.id, index: idx })
+      .then(({ error }) => {
+        if (!error) return;
+        console.error('Failed to pin channel, rolling back', error);
+        set((state) => {
+          const account = state.accounts.find((a) => a.id === accountId);
+          if (!account) return;
+          const removeIdx = findIndex(account.channels, ['url', channel.url]);
+          if (removeIdx !== -1) account.channels.splice(removeIdx, 1);
+        });
+      });
   },
   removePinnedChannel: (channel: ChannelType) => {
+    if (!channel) {
+      console.log('no channel to remove', channel);
+      return;
+    }
+    const { accounts, selectedAccountIdx } = useAccountStore.getState();
+    const account = accounts[selectedAccountIdx];
+    if (!account) return;
+    const accountId = account.id;
+    const index = findIndex(account.channels, ['url', channel.url]);
+    if (index === -1) return;
+    const removedChannel = account.channels[index];
+
+    // Update local state immediately for optimistic UI
     set((state) => {
       const account = state.accounts[state.selectedAccountIdx];
-
-      if (!channel) {
-        console.log('no channel or account id', channel);
-        return;
-      }
-      const index = findIndex(account.channels, ['url', channel.url]);
+      const i = findIndex(account.channels, ['url', channel.url]);
+      if (i === -1) return;
       const copy = [...account.channels];
-      copy.splice(index, 1);
+      copy.splice(i, 1);
       account.channels = copy;
-      state.accounts[state.selectedAccountIdx] = account;
-
-      if (account.platform !== AccountPlatformType.farcaster_local_readonly) {
-        getSupabaseClient()
-          .from('accounts_to_channel')
-          .delete()
-          .eq('account_id', account.id)
-          .eq('channel_id', channel.id)
-          .then(({ error, data }) => {
-            // console.log('response - data', data, 'error', error);
-          });
-      }
     });
+
+    if (account.platform === AccountPlatformType.farcaster_local_readonly) return;
+
+    // Persist in background; re-pin on failure
+    getSupabaseClient()
+      .from('accounts_to_channel')
+      .delete()
+      .eq('account_id', accountId)
+      .eq('channel_id', channel.id)
+      .then(({ error }) => {
+        if (!error) return;
+        console.error('Failed to unpin channel, rolling back', error);
+        set((state) => {
+          const account = state.accounts.find((a) => a.id === accountId);
+          if (!account) return;
+          if (findIndex(account.channels, ['url', channel.url]) !== -1) return;
+          const copy = [...account.channels];
+          copy.splice(Math.min(index, copy.length), 0, removedChannel);
+          account.channels = copy;
+        });
+      });
   },
   addChannel: ({ name, url, iconUrl, account }: AddChannelProps) => {
     set(async (state) => {
