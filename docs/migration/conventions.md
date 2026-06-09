@@ -48,3 +48,27 @@ A module reachable from the client route graph that imports server-only code (`c
 ## cf-canary verification (every unit's "done")
 
 `pnpm web:build` green (bundle < 3 MB gzip) → `pnpm web:serve` (node ≥22, `wrangler dev`) → exercise the ported surface at `cf.herocast.xyz` (or local `:port/<route>`). Confirm `pnpm web:typecheck` **and** the live app's `pnpm typecheck` both stay 0 (coexistence). Then update `strategy.md` status.
+
+## Agent execution protocol (parallel agents, one workspace)
+
+Used when a unit is fanned out to **parallel agents sharing one git workspace** (the Phase-1 pattern). Each unit spec assigns disjoint **areas**; this is the shared rulebook every area prompt references.
+
+**Bootstrap (every agent):** read `strategy.md` + `conventions.md` + this unit's `phase-N-*.md` spec. That is your entire context — don't read the whole repo.
+
+**Stay in your lane:**
+- Create/edit ONLY the files your area lists. Never touch another area's files, the live app (`app/`, `pages/`, `next.config.mjs`, `vercel.json`, `src/globals.css`), or a shared file you weren't assigned (`package.json`, `vite.config.mts`).
+- Reuse the seams in this doc — do NOT reinvent or fork them.
+- `import type` for type-only imports (verbatimModuleSyntax). Server-only code → `.server.ts`.
+
+**Log (so parallel agents + the integrator stay in sync):** append progress, decisions, and a final `DONE — <files> — <decisions/risks>` to `.context/<unit>/<area>.md` (the gitignored shared `.context` dir). Record any cross-area assumption ("I export `X` from `@/web/lib/...`").
+
+**Verify your own work, don't build:** run `pnpm web:typecheck` and confirm *your* files are clean (sibling-file errors are expected until integration). **Do NOT run `pnpm web:build` / `web:serve` / vite concurrently** — they regenerate `routeTree.gen.ts` and bind a port; that's the integrator's job.
+
+**DO NOT commit or push.** Parallel agents share one git index — concurrent `git commit` collides on `.git/index.lock` and stages each other's half-finished files. Workers only write files + log, then stop.
+
+**Integrator (one agent / the human, AFTER all areas report DONE):**
+1. `pnpm web:typecheck` + `pnpm web:build`; fix integration glue only (barrels, import paths) — do not redesign.
+2. Re-run the live app's `pnpm typecheck` (coexistence) + cf-canary verify (`pnpm web:serve`, node ≥22).
+3. **Tier-1 review:** `/code-review` on the diff → apply fixes.
+4. **Codex review (independent):** `codex exec "review the working-tree diff against docs/migration/conventions.md for bugs, drift, duplication, and convention violations — verdict + prioritized gap list"` (or launch the `codex` subagent / a Conductor Codex agent on the diff). Address findings.
+5. Commit (`feat(#754 <unit>): …`) + push; update the status cell in `strategy.md`.
