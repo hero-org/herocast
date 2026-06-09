@@ -10,6 +10,12 @@
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
     "strict": true,
+    // Match the live Next tsconfig (root tsconfig.json is `noImplicitAny: false`). The
+    // TanStack build REUSES large amounts of the existing src/ (stores, hooks, contexts,
+    // components) written under that looser posture; pulling them into this strict program
+    // would otherwise surface their pre-existing implicit-anys. strictNullChecks et al stay
+    // on for new src/web code. (Surfaced by unit #3 — first to pull deep shared chains.)
+    "noImplicitAny": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,

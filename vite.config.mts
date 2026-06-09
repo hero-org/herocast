@@ -64,6 +64,13 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      // `@/*` → src/* build-wide. vite-tsconfig-paths only remaps imports in files inside
+      // tsconfig.tanstack's `include` (src/web); transitively-pulled shared files
+      // (src/common, src/stores, …) need this explicit alias so Rollup resolves their
+      // `@/...` imports too. Safe: @rollup/plugin-alias matches `@` only as an exact import
+      // or a `@/`-prefixed one, so it never catches scoped packages (`@tanstack/*`,
+      // `@rainbow-me/*`). (Surfaced by unit #3 — first to pull deep shared chains.)
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
       // Vite analogue of the next.config.mjs webpack alias: @farcaster/core lists
       // @faker-js/faker as a prod dependency; stub it to avoid the +7.9 MB bundle hit.
       '@faker-js/faker': fileURLToPath(new URL('./src/lib/faker-stub.ts', import.meta.url)),

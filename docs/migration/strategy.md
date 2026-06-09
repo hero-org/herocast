@@ -29,7 +29,7 @@ Sizes leveled (S/M/L, none >~2× another). Status: ☐ todo · ◐ in-progress �
 | 0 | infra: cf.herocast.xyz canary deploy + CI prebuild | S | ☐ | — | `phase-2-infra-canary.md` |
 | 1 | chore: bump vite 6→7 (unblocks Vercel target) | S | ☐ | — | `phase-2-vite7.md` |
 | 2 | port: `next/navigation` → TanStack adapter (54 sites) | L | ✅ | — *(gate)* | `phase-2-navigation-seam.md` |
-| 3 | port: provider tree (wallet/posthog/persist/auth ctx) | L | ☐ | 2 | `phase-2-providers.md` |
+| 3 | port: provider tree (wallet/posthog/persist/auth ctx) | L | ✅ | 2 | `phase-2-providers.md` |
 | 4 | port: stores + RQ hooks SSR-safety pass | S–M | ☐ | 3 | `phase-2-stores-hooks.md` |
 | 5 | port: app shell + sidebar + command palette | L | ☐ | 2,3,4 | `phase-2-shell.md` |
 | 6 | port: feeds + profile (CastRow + react-virtual) | L | ☐ | 5 | `phase-2-feeds-profile.md` |
@@ -111,6 +111,11 @@ Run a codex subagent across the whole `src/web` tree (not a single diff) at:
 - **After #2–#5 (foundation chain):** is the shared substrate coherent? any duplicated nav/env/cache logic?
 - **After the surface tier (#6–#9):** do surfaces reuse CastRow/editor/providers, or re-implement? slop check.
 - **Before #13 cutover:** full parity + duplication + dead-code sweep; resolve the Tauri consumer question (`phase-1.md §10`).
+
+## Deferred / known follow-ups (surfaced during units; not yet fixed)
+
+- **[#9 auth/accounts] `src/common/helpers/rainbowkit.tsx:9` reads `process.env.NEXT_PUBLIC_ALCHEMY_API_KEY` at module scope → `undefined` under Vite** (not inlined), so wagmi transports resolve to `…/v2/undefined`. The wallet modal still *opens* (so it didn't block #3), but RPC calls fail. Fix when porting wallet functionality: make it host-agnostic (`import.meta.env.VITE_ALCHEMY_API_KEY ?? process.env.NEXT_PUBLIC_ALCHEMY_API_KEY`) — it's a *shared* file so the change must keep the Next build working. Add `VITE_ALCHEMY_API_KEY` to `.env.local.example`. (Same class as the PostHog `VITE_*` fix in #3.)
+- **[cutover/#13] Revisit `noImplicitAny`.** #3 set `tsconfig.tanstack.json` `noImplicitAny: false` to match the root Next tsconfig (the reused `src/` carries pre-existing implicit-anys). `strictNullChecks` etc. stay on. Once the shared graph is typed, consider a stricter `src/web/**`-only sub-project to restore `noImplicitAny` for *new* code without forcing it on reused code.
 
 ## Links
 - `conventions.md` — reuse contract + gotchas (read before every unit)
