@@ -28,7 +28,7 @@ Sizes leveled (S/M/L, none >~2× another). Status: ☐ todo · ◐ in-progress �
 | — | **Phase 1 foundation** | — | ✅ | — | `phase-1.md` (PR #763) |
 | 0 | infra: cf.herocast.xyz canary deploy + CI prebuild | S | ☐ | — | `phase-2-infra-canary.md` |
 | 1 | chore: bump vite 6→7 (unblocks Vercel target) | S | ☐ | — | `phase-2-vite7.md` |
-| 2 | port: `next/navigation` → TanStack adapter (54 sites) | L | ☐ | — *(gate)* | `phase-2-navigation-seam.md` |
+| 2 | port: `next/navigation` → TanStack adapter (54 sites) | L | ✅ | — *(gate)* | `phase-2-navigation-seam.md` |
 | 3 | port: provider tree (wallet/posthog/persist/auth ctx) | L | ☐ | 2 | `phase-2-providers.md` |
 | 4 | port: stores + RQ hooks SSR-safety pass | S–M | ☐ | 3 | `phase-2-stores-hooks.md` |
 | 5 | port: app shell + sidebar + command palette | L | ☐ | 2,3,4 | `phase-2-shell.md` |

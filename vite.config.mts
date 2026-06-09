@@ -67,6 +67,25 @@ export default defineConfig({
       // Vite analogue of the next.config.mjs webpack alias: @farcaster/core lists
       // @faker-js/faker as a prod dependency; stub it to avoid the +7.9 MB bundle hit.
       '@faker-js/faker': fileURLToPath(new URL('./src/lib/faker-stub.ts', import.meta.url)),
+      // Unit #2 navigation seam (#754): drop-in `next/*` → TanStack adapters. The SAME
+      // shared `src/` components are consumed by both builds; `next build` resolves these
+      // specifiers to real Next, while `vite build` (this config) re-points them to our
+      // adapters — so no live-app call site is edited. Build-time ONLY: `next` is NOT a
+      // runtime dependency of the TanStack tree. Defined at top level (like the faker
+      // alias above) so they reach BOTH the SSR/workerd and the client environments; the
+      // `environments.client` block below MERGES with (does not replace) these. Targets are
+      // owned by sibling areas — A: navigation barrel (`lib/navigation/index.ts`); C:
+      // link/image primitives + the `next/dynamic` lazy shim (`lib/dynamic.tsx`) — and are
+      // resolved to absolute paths, mirroring the faker/cloudflare-stub aliases here.
+      // Vite propagates this top-level resolve.alias into EVERY environment's resolver
+      // (the workerd `ssr` env AND the `client` env), so the next/* adapters reach both
+      // bundles — verified: all four appear in environments.client.resolve.alias after
+      // config resolution. (The environments.client block below adds only the client-only
+      // cloudflare:workers stub; it does not remove these.)
+      'next/navigation': fileURLToPath(new URL('./src/web/lib/navigation/index.ts', import.meta.url)),
+      'next/link': fileURLToPath(new URL('./src/web/components/link.tsx', import.meta.url)),
+      'next/image': fileURLToPath(new URL('./src/web/components/image.tsx', import.meta.url)),
+      'next/dynamic': fileURLToPath(new URL('./src/web/lib/dynamic.tsx', import.meta.url)),
       // NON-CF builds only: there is no @cloudflare/vite-plugin to register the
       // `cloudflare:workers` builtin in ANY environment, so alias it everywhere to the
       // empty stub. serverEnv() then falls through to process.env (populated on Node/
