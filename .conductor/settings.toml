@@ -1,0 +1,17 @@
+"$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
+
+# Shared Conductor config for herocast.
+#
+# The Run button starts the LIVE Next app (the primary app, untouched by the migration).
+# Migration workspaces run the TanStack → Cloudflare canary MANUALLY:
+#   pnpm web:dev    (vite dev, fast iteration)
+#   pnpm web:serve  (wrangler dev on the built bundle — needs node >=22)
+# See docs/migration/strategy.md + conventions.md.
+#
+# `pnpm rebuild esbuild workerd` is required because pnpm v10 skips native postinstall
+# build scripts; it's harmless for non-migration workspaces.
+
+[scripts]
+setup = "pnpm install && pnpm rebuild esbuild workerd"
+run = "pnpm dev --port $CONDUCTOR_PORT"
+run_mode = "concurrent"
