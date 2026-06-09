@@ -16,6 +16,9 @@
 // which races against Rollup resolving the `cloudflare:workers` import here. The
 // client-build alias in vite.config.mts (cloudflare:workers → empty stub) is a
 // belt-and-suspenders backstop for any client path that still references the specifier.
+// On NON-Cloudflare builds (TARGET=vercel/node) there is no cloudflare plugin to provide
+// the builtin, so vite.config aliases this specifier to the same empty stub for ALL
+// environments — `workerEnv` is then `{}` and serverEnv() falls through to process.env.
 import { env as workerEnv } from 'cloudflare:workers';
 
 /**

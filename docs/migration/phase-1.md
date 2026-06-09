@@ -18,6 +18,16 @@ Built in-place under `src/web/` and verified on real `workerd`: `pnpm web:build`
 4. **Probe serves at `/migration-probe`** (no leading underscore — a leading `_` is TanStack's *pathless* convention and would mount it at `/`). Supersedes §4.10 / §2.
 5. **Server/client boundary enforced via the `.server.ts` filename convention** + thin server-fn wrapper modules (the runtime `@tanstack/react-start/server-only` marker is unreliable under `vite build`); `cloudflare:workers` aliased to an empty stub scoped to `environments.client`. New gotcha for Phase 2 — see §6 R13.
 
+### 0.1 Host portability — the framework is NOT Cloudflare-locked
+
+The framework migration and the hosting choice are **orthogonal axes**. TanStack Start emits a universal WHATWG `fetch(request)` server entry, so the host is a **build-plugin swap**, not a code change. Seams added so the same `src/web` code runs on either host:
+- **`TARGET` build flag** (`vite.config.mts`, default `cloudflare`). The non-CF branch drops `cloudflare()` and top-level-aliases `cloudflare:workers` → the empty stub so `serverEnv()` falls through to `process.env`.
+- **`CacheBackend` interface** (`trending.server.ts`): `CloudflareCacheBackend` (`caches.default`) + `MemoryCacheBackend` (Map+TTL for Node/Vercel), chosen by runtime capability. Also the seam the 12 `unstable_cache` sites port onto in Phase 3.
+
+**Vercel is a supported target — but BLOCKED on vite 6 (verified by spike).** The wiring is `nitro({ config: { preset: 'vercel' } })` from `nitro/vite` (nitro v3), dropped into the non-CF host-plugin slot. It does NOT build on the repo's vite 6: nitro v3's Vercel Build-Output finalize runs in vite 7's `buildApp` **plugin** hook, which vite 6 never invokes — so the build exits 0 but emits only static assets (no `functions/`/`config.json`) and is not deployable. The `nitro` dep + a `web:build:vercel` script were reverted (footgun); the gate is documented at the slot in `vite.config.mts`. **Re-enable when the repo moves to vite 7.**
+
+**vite 7 bump is small + isolated:** vite is consumed ONLY by this TanStack build (`next.config.mjs` has zero vite refs), so the bump cannot affect the live Next/Vercel app. `@cloudflare/vite-plugin@1.40` already accepts vite `^7`, `@tanstack/react-start@1.168` already peer-wants vite `>=7`; the only real work is bumping `vite` 6→7 + the matching `@vitejs/plugin-react` and clearing any vite-7 build fallout in the isolated `src/web` build. Tracked separately (not on the P2/P3 critical path).
+
 ---
 
 ## 1. Objective & Non-Goals

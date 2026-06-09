@@ -103,6 +103,7 @@ edgefunctions/supabase/.temp
 
 dist/
 .vercel
+.nitro/
 
 # Sentry Config File
 .sentryclirc
