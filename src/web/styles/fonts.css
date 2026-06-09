@@ -1,0 +1,75 @@
+/*
+ * fonts.css — font wiring for the TanStack Start shell.
+ *
+ * Replaces Next's `next/font` injection WITHOUT touching the shared src/globals.css
+ * (the live Next app imports that file; keeping it byte-identical is the coexistence
+ * guarantee). The TanStack shell links this file separately. Family names, weights,
+ * and styles mirror app/layout.tsx (localFont + next/font/google) exactly so Tailwind's
+ * fontFamily.sans/display/mono tokens — which resolve to var(--font-*) — render the same.
+ *
+ * Vite inlines these @imports via its built-in postcss-import, so the @fontsource faces
+ * and the Satoshi @font-face blocks ship in one bundled stylesheet.
+ */
+
+/* Inter (--font-sans, weights 400/500/600/700) + JetBrains Mono (--font-mono,
+   weights 400/500/600). Variable fonts cover the full range in app/layout.tsx. */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+/* Satoshi (--font-display), 6 local faces. Replaces next/font/local in app/layout.tsx.
+   Weight/style mapping is IDENTICAL to that localFont config (Medium & MediumItalic
+   map to 600, not 500). Paths are relative to this file: src/web/styles/fonts.css ->
+   ../../assets/fonts/ -> src/assets/fonts/ (the woff2 already live there). */
+@font-face {
+  font-family: 'Satoshi';
+  src: url('../../assets/fonts/Satoshi-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('../../assets/fonts/Satoshi-Medium.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('../../assets/fonts/Satoshi-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('../../assets/fonts/Satoshi-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('../../assets/fonts/Satoshi-MediumItalic.woff2') format('woff2');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('../../assets/fonts/Satoshi-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Font CSS vars on :root — but ONLY within this stylesheet, which the live Next app
+   never links (it uses next/font), so they cannot leak into it. :root (rather than a
+   .tanstack-root class on <body>) ensures the html-level `font-family: var(--font-sans)`
+   in globals.css resolves too. These feed both tailwind.config.js fontFamily.* and the
+   var(--font-*) refs. Fallback stacks match what app/layout.tsx's next/font produces. */
+:root {
+  --font-sans: 'Inter Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Satoshi', 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}

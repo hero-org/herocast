@@ -119,3 +119,12 @@ scripts/benchmark-results/
 
 # Claude Code local state (per-machine permissions, runtime locks)
 .claude/
+
+# TanStack Start / Cloudflare Workers (Phase 1, #754)
+src/web/routeTree.gen.ts
+worker-configuration.d.ts
+.dev.vars
+
+# TanStack Start / Cloudflare Workers build artifacts (Phase 1 migration)
+.wrangler/
+dist/

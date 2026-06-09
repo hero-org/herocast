@@ -1,0 +1,27 @@
+{
+  // Standalone TypeScript config for the TanStack Start / Vite build.
+  // Deliberately does NOT extend the root tsconfig.json: that one is the live Next
+  // app's config (jsx: "preserve" + the next plugin), which is incompatible with the
+  // Vite/react-jsx pipeline. This config governs everything under src/web/.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/web", "env.d.ts"]
+}
