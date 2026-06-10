@@ -140,11 +140,18 @@ jobs:
           fi
           fail=0
           for path in /migration-probe /providers-probe; do
-            # No `-f`: capture the REAL status via -w even on 4xx/5xx (000 on net error).
-            code=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "${base}${path}") || true
+            # A freshly-deployed *.workers.dev route can 404 for a few seconds while it
+            # propagates globally (observed on the first deploy). Retry up to 8× before
+            # failing. No `-f`: capture the REAL status via -w even on 4xx/5xx (000 on net error).
+            code=000
+            for attempt in $(seq 1 8); do
+              code=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "${base}${path}") || true
+              [ "${code}" = "200" ] && break
+              [ "${attempt}" -lt 8 ] && { echo "  ${path} -> ${code} (attempt ${attempt}/8); retry in 8s…"; sleep 8; }
+            done
             echo "GET ${base}${path} -> ${code}"
             if [ "${code}" != "200" ]; then
-              echo "::error::${base}${path} returned ${code} (expected 200)"
+              echo "::error::${base}${path} returned ${code} after retries (expected 200)"
               fail=1
             fi
           done
