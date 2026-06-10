@@ -2,16 +2,30 @@
 
 # Shared Conductor config for herocast.
 #
-# The Run button starts the LIVE Next app (the primary app, untouched by the migration).
-# Migration workspaces run the TanStack → Cloudflare canary MANUALLY:
-#   pnpm web:dev    (vite dev, fast iteration)
-#   pnpm web:serve  (wrangler dev on the built bundle — needs node >=22)
-# See docs/migration/strategy.md + conventions.md.
+# RUN button is BRANCH-AWARE so this shared config does not change the live app's dev
+# ergonomics off the migration branches:
+#   - migration branch (migration/* or *cloudflare*) → the TanStack → Cloudflare CANARY
+#     (`pnpm web:build && pnpm web:serve` = build the bundle, then `wrangler dev -c
+#     dist/server/wrangler.json`). Exercising the canary locally is the per-unit "done"
+#     check (see docs/migration/conventions.md).
+#   - any other branch (incl. main) → the LIVE Next app (`pnpm dev`), exactly as before.
+#     So merging this file to main does NOT repoint a normal contributor's Run button.
+# Fast inner loop on a migration branch (no build step): `pnpm web:dev` (vite dev).
 #
-# `pnpm rebuild esbuild workerd` is required because pnpm v10 skips native postinstall
-# build scripts; it's harmless for non-migration workspaces.
+# ⚠ Node >= 22 is required for the web:* toolchain (wrangler/workerd). The repo .nvmrc
+#   pins v20 for the live Next app — in a migration workspace run `nvm use 22` first.
+# ⚠ run_mode is "concurrent" (multiple workspaces may run at once). `wrangler dev` binds
+#   its default port (8787), so two CANARY servers running SIMULTANEOUSLY collide —
+#   run the canary in one workspace at a time, or pass a `--port`.
+#
+# The live Next app + Vercel are UNTOUCHED: `pnpm dev` / `pnpm build` / next.config.mjs
+# / vercel.json are unchanged. `pnpm rebuild esbuild workerd` is required because pnpm
+# v10 skips native postinstall build scripts (harmless for non-migration workspaces).
+# See docs/migration/strategy.md + conventions.md + phase-2-infra-canary.md.
 
 [scripts]
 setup = "pnpm install && pnpm rebuild esbuild workerd"
-run = "pnpm dev --port $CONDUCTOR_PORT"
+# TOML literal string (single-quoted → no escaping). `git rev-parse` failure (detached
+# HEAD / no git) yields "" → falls through to the safe default (the live Next app).
+run = 'case "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" in migration/*|*cloudflare*) pnpm web:build && pnpm web:serve ;; *) pnpm dev --port $CONDUCTOR_PORT ;; esac'
 run_mode = "concurrent"

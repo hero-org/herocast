@@ -1,0 +1,132 @@
+name: cf-web-canary
+
+# Deploys the TanStack Start → Cloudflare Workers CANARY (worker: `herocast-web`,
+# served at https://cf.herocast.xyz) on every push to the migration branch. This is
+# the preview app for epic #754 — it is SEPARATE from the live Next.js/Vercel deploy
+# and CANNOT affect it:
+#   - It only ever runs on `hellno/cloudflare-hosting-state` (branch filter below +
+#     a job-level ref guard), so it never fires on `main` or PRs into `main`.
+#   - It runs `pnpm web:build` (vite) + `wrangler deploy`, never `next build` / Vercel.
+#   - The worker is its own deploy target; no Vercel project, DNS, or prod path is touched.
+# See docs/migration/phase-2-infra-canary.md + strategy.md.
+
+on:
+  push:
+    branches: [hellno/cloudflare-hosting-state]
+  workflow_dispatch:
+
+# One deploy at a time; cancel an in-flight deploy when a newer commit lands.
+concurrency:
+  group: cf-web-canary
+  cancel-in-progress: true
+
+# Least privilege: the job only reads the repo and talks to Cloudflare via the API
+# token. It needs no write scopes on the GitHub repo.
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Belt-and-suspenders: even a manual workflow_dispatch from another branch must NOT
+    # deploy. Only the migration branch ref is ever allowed to reach Cloudflare.
+    if: github.ref == 'refs/heads/hellno/cloudflare-hosting-state'
+    steps:
+      # Actions are pinned to major tags (@v4) to match the repo convention (build.yaml,
+      # edge-functions-typecheck.yml, etc.). Switch to full commit SHAs only if the repo
+      # adopts SHA-pinning everywhere — pinning this one workflow alone would be inconsistent.
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # Node >= 22: the canary toolchain (wrangler/workerd) requires it. Intentionally
+      # NEWER than the live app's CI (build.yaml pins node 20.12.2) — the two build
+      # graphs are independent, so this never affects the Next/Vercel build.
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # pnpm v10 skips native postinstall build scripts; esbuild + workerd need their
+      # binaries rebuilt or `vite build` / wrangler fail. (R3 in phase-1.md.)
+      - name: Rebuild native binaries (esbuild, workerd)
+        run: pnpm rebuild esbuild workerd
+
+      # Build the worker bundle → emits dist/server/wrangler.json (the deployable
+      # config). VITE_* are inlined at BUILD time (client config, public once bundled);
+      # they are OPTIONAL for the probes (which read server secrets at RUNTIME via
+      # wrangler secrets). Provide them as repo secrets to light up the browser Supabase
+      # client + PostHog on the canary; unset → empty string, the build still succeeds.
+      - name: Build canary worker bundle
+        run: pnpm web:build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+
+      # Deploy with the repo-pinned wrangler (4.98.0) using the GENERATED config. Capture
+      # the workers.dev URL wrangler prints so the next step can smoke the worker that is
+      # live RIGHT NOW (no custom DNS needed). Runtime secrets (NEYNAR_API_KEY,
+      # SUPABASE_URL, SUPABASE_ANON_KEY) are set ONCE via `wrangler secret put` and persist
+      # on the worker across deploys — CI does NOT need them. CI needs ONLY the two
+      # Cloudflare auth secrets below. (The default GHA shell is `bash -eo pipefail`.)
+      - name: Deploy to Cloudflare (herocast-web)
+        id: deploy
+        run: |
+          pnpm exec wrangler deploy -c dist/server/wrangler.json | tee deploy.log
+          url="$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' deploy.log | head -n1 || true)"
+          echo "worker_url=${url}" >> "$GITHUB_OUTPUT"
+          echo "Deployed worker URL: ${url:-<none printed — workers.dev may be disabled>}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # BLOCKING canary gate. The throwaway probes are the per-deploy smoke test
+      # (strategy.md — "the probe is the canary on every deploy"). Both are designed to
+      # return 200 even with NO secrets set (migration-probe renders the empty state;
+      # providers-probe is client-rendered), so this gates purely on "is the freshly
+      # deployed worker serving?" — meaningful from the very first deploy, no DNS needed.
+      - name: Smoke-check probes on the live worker (blocking)
+        run: |
+          set -u
+          base='${{ steps.deploy.outputs.worker_url }}'
+          if [ -z "${base}" ]; then
+            echo "::warning::no workers.dev URL captured from deploy output; skipping live smoke"
+            exit 0
+          fi
+          fail=0
+          for path in /migration-probe /providers-probe; do
+            # No `-f`: capture the REAL status via -w even on 4xx/5xx (000 on net error).
+            code=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "${base}${path}") || true
+            echo "GET ${base}${path} -> ${code}"
+            if [ "${code}" != "200" ]; then
+              echo "::error::${base}${path} returned ${code} (expected 200)"
+              fail=1
+            fi
+          done
+          exit "${fail}"
+
+      # Secondary check on the eventual custom domain. NON-BLOCKING until the
+      # cf.herocast.xyz custom domain is configured (spec §6 step 3 / §7).
+      - name: Smoke-check custom domain cf.herocast.xyz
+        continue-on-error: true # MUST flip to false once cf.herocast.xyz DNS is live (phase-2-infra-canary.md §7 step 4)
+        run: |
+          set -u
+          fail=0
+          for path in /migration-probe /providers-probe; do
+            code=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "https://cf.herocast.xyz${path}") || true
+            echo "GET cf.herocast.xyz${path} -> ${code}"
+            if [ "${code}" != "200" ]; then
+              echo "::warning::cf.herocast.xyz${path} returned ${code} (custom domain may not be configured yet)"
+              fail=1
+            fi
+          done
+          exit "${fail}"
