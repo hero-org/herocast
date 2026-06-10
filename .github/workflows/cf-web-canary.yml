@@ -1,15 +1,15 @@
 name: cf-web-canary
 
-# Deploys the TanStack Start → Cloudflare Workers CANARY (worker: `herocast-web`,
-# served at https://cf.herocast.xyz) on every push to the migration branch. This is
-# the preview app for epic #754 — it is SEPARATE from the live Next.js/Vercel deploy
-# and CANNOT affect it:
+# Deploys the TanStack Start → Cloudflare Workers CANARY (worker: `herocast-web`) on
+# every push to the migration branch. The canary is served on its *.workers.dev URL —
+# the custom domain cf.herocast.xyz is DISABLED until herocast.xyz DNS moves to Cloudflare
+# (it currently uses Namecheap DNS → Vercel; see wrangler.jsonc + spec §6). This is the
+# preview app for epic #754 — SEPARATE from the live Next.js/Vercel deploy, and it CANNOT
+# affect it:
 #   - It only ever runs on `hellno/cloudflare-hosting-state` (branch filter below +
 #     a job-level ref guard), so it never fires on `main` or PRs into `main`.
 #   - It runs `pnpm web:build` (vite) + `wrangler deploy`, never `next build` / Vercel.
-#   - The worker is its own deploy target. `wrangler deploy` provisions ONLY the new
-#     cf.herocast.xyz subdomain (custom_domain in wrangler.jsonc); it never touches the
-#     Vercel project or the apex / `www` DNS records the live app uses.
+#   - No custom domain ⇒ NO DNS is touched at all; the worker is its own target.
 # See docs/migration/phase-2-infra-canary.md + strategy.md.
 
 on:
@@ -149,20 +149,6 @@ jobs:
             fi
           done
           exit "${fail}"
-
-      # Secondary check on the eventual custom domain. NON-BLOCKING until the
-      # cf.herocast.xyz custom domain is configured (spec §6 step 3 / §7).
-      - name: Smoke-check custom domain cf.herocast.xyz
-        continue-on-error: true # MUST flip to false once cf.herocast.xyz DNS is live (phase-2-infra-canary.md §7 step 4)
-        run: |
-          set -u
-          fail=0
-          for path in /migration-probe /providers-probe; do
-            code=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "https://cf.herocast.xyz${path}") || true
-            echo "GET cf.herocast.xyz${path} -> ${code}"
-            if [ "${code}" != "200" ]; then
-              echo "::warning::cf.herocast.xyz${path} returned ${code} (custom domain may not be configured yet)"
-              fail=1
-            fi
-          done
-          exit "${fail}"
+      # (A custom-domain smoke for cf.herocast.xyz is intentionally omitted — the domain
+      # is disabled until herocast.xyz DNS is on Cloudflare. Re-add a 200-check here when
+      # you re-enable the `routes` block in wrangler.jsonc; see phase-2-infra-canary.md §6.)
