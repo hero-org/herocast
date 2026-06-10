@@ -13,7 +13,19 @@
   //   wrangler deploy -c dist/server/wrangler.json
   //   wrangler dev    -c dist/server/wrangler.json
   "main": "@tanstack/react-start/server-entry",
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Custom domain for the canary (unit #0, #754). `custom_domain: true` makes
+  // `wrangler deploy` provision cf.herocast.xyz + its proxied DNS record + TLS cert
+  // automatically — NO dashboard step. The @cloudflare/vite-plugin carries `routes`
+  // through to the generated dist/server/wrangler.json.
+  // PREREQUISITES (else the deploy fails loudly, by design): the zone `herocast.xyz`
+  // must be on THIS Cloudflare account, `cf.herocast.xyz` must have no pre-existing
+  // conflicting CNAME, and the API token needs Workers Scripts:Edit + Workers Routes:Edit
+  // + DNS:Edit + Zone:Read. This is a NEW subdomain — it never touches the apex/`www`
+  // records the live Vercel app uses. To make the FIRST deploy workers.dev-only
+  // (decoupled from the domain), comment this `routes` block out, deploy, then re-enable.
+  // See docs/migration/phase-2-infra-canary.md §6.
+  "routes": [{ "pattern": "cf.herocast.xyz", "custom_domain": true }]
   //
   // SECRETS (forkability bar): do NOT put NEYNAR_API_KEY / SUPABASE_* here.
   // Local dev: copy .dev.vars.example -> .dev.vars (gitignored).

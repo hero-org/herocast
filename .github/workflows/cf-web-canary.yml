@@ -7,7 +7,9 @@ name: cf-web-canary
 #   - It only ever runs on `hellno/cloudflare-hosting-state` (branch filter below +
 #     a job-level ref guard), so it never fires on `main` or PRs into `main`.
 #   - It runs `pnpm web:build` (vite) + `wrangler deploy`, never `next build` / Vercel.
-#   - The worker is its own deploy target; no Vercel project, DNS, or prod path is touched.
+#   - The worker is its own deploy target. `wrangler deploy` provisions ONLY the new
+#     cf.herocast.xyz subdomain (custom_domain in wrangler.jsonc); it never touches the
+#     Vercel project or the apex / `www` DNS records the live app uses.
 # See docs/migration/phase-2-infra-canary.md + strategy.md.
 
 on:
@@ -26,12 +28,37 @@ permissions:
   contents: read
 
 jobs:
+  # Cheap gate so pushing this workflow BEFORE the CF secrets exist doesn't spam failed
+  # runs: if the two Cloudflare secrets aren't set, the deploy job is skipped (neutral,
+  # not red). Secrets can't be read in an `if:` directly, so map them to env here.
+  guard:
+    runs-on: ubuntu-latest
+    # Branch isolation (layer 1): the gate itself only runs on the migration branch, so a
+    # workflow_dispatch from any other branch produces no deploy.
+    if: github.ref == 'refs/heads/hellno/cloudflare-hosting-state'
+    outputs:
+      configured: ${{ steps.creds.outputs.configured }}
+    steps:
+      - name: Check Cloudflare credentials are configured
+        id: creds
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "${CF_TOKEN}" ] && [ -n "${CF_ACCT}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID not set — skipping deploy. Add them in repo Settings → Secrets → Actions (see docs/migration/phase-2-infra-canary.md §7)."
+          fi
+
   deploy:
+    needs: guard
+    # Run only when the gate saw BOTH secrets AND we're on the migration branch
+    # (belt-and-suspenders layer 2 — never deploy from main / another ref).
+    if: needs.guard.outputs.configured == 'true' && github.ref == 'refs/heads/hellno/cloudflare-hosting-state'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Belt-and-suspenders: even a manual workflow_dispatch from another branch must NOT
-    # deploy. Only the migration branch ref is ever allowed to reach Cloudflare.
-    if: github.ref == 'refs/heads/hellno/cloudflare-hosting-state'
     steps:
       # Actions are pinned to major tags (@v4) to match the repo convention (build.yaml,
       # edge-functions-typecheck.yml, etc.). Switch to full commit SHAs only if the repo
@@ -77,14 +104,23 @@ jobs:
       # live RIGHT NOW (no custom DNS needed). Runtime secrets (NEYNAR_API_KEY,
       # SUPABASE_URL, SUPABASE_ANON_KEY) are set ONCE via `wrangler secret put` and persist
       # on the worker across deploys — CI does NOT need them. CI needs ONLY the two
-      # Cloudflare auth secrets below. (The default GHA shell is `bash -eo pipefail`.)
+      # Cloudflare auth secrets below.
       - name: Deploy to Cloudflare (herocast-web)
         id: deploy
         run: |
+          set -u
+          # `| tee` would MASK wrangler's exit code (the pipeline takes tee's 0 — verified:
+          # a tokenless deploy still reported success). Check wrangler's status explicitly
+          # via PIPESTATUS; do NOT rely on the runner's pipefail being enabled.
           pnpm exec wrangler deploy -c dist/server/wrangler.json | tee deploy.log
+          ec=${PIPESTATUS[0]}
+          if [ "${ec}" -ne 0 ]; then
+            echo "::error::wrangler deploy failed (exit ${ec})"
+            exit "${ec}"
+          fi
           url="$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' deploy.log | head -n1 || true)"
           echo "worker_url=${url}" >> "$GITHUB_OUTPUT"
-          echo "Deployed worker URL: ${url:-<none printed — workers.dev may be disabled>}"
+          echo "Deployed worker URL: ${url:-<none captured — workers.dev may be disabled>}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
