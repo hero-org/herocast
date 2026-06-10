@@ -16,7 +16,7 @@
 | `next/link` / `next/image` | `@/web/components/link.tsx` / `image.tsx` | Already stubbed in Phase 1. `<Link>` uses `preload="intent"`. |
 | `next/dynamic` (`ssr:false`) | TanStack lazy + `import.meta.env.DEV` guards | Editor/wallet are the main consumers. |
 | `@faker-js/faker` | the Vite `resolve.alias` → `src/lib/faker-stub.ts` (in `vite.config.mts`) | Already wired; prevents a +7.9 MB regression when `@farcaster/core` lands. |
-| Pick a host (CF vs Vercel) | the **`TARGET` flag** in `vite.config.mts` | `cloudflare` (default) vs `vercel` (gated on vite 7 — see `phase-1.md §0.1`). |
+| Pick a host (CF vs Vercel) | the **`TARGET` flag** in `vite.config.mts` | `cloudflare` (default) vs `vercel` (unblocked on vite 7 by unit #1 — `web:build:vercel`; see `phase-1.md §0.1`). |
 
 ## The `.server.ts` boundary convention (load-bearing — R13)
 

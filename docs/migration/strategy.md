@@ -5,7 +5,7 @@
 ## What we're doing (two orthogonal axes)
 
 1. **Framework:** Next.js 15 App Router → **TanStack Start (SSR)**. The heavy work. Strangler-fig: port unit by unit; each step independently shippable + reversible.
-2. **Hosting:** Vercel → **Cloudflare Workers**. Largely a build-plugin swap — TanStack Start emits a universal `fetch` handler. Vercel-on-vite-7 is wired-but-gated (see `phase-1.md §0.1`).
+2. **Hosting:** Vercel → **Cloudflare Workers**. Largely a build-plugin swap — TanStack Start emits a universal `fetch` handler. Vercel-on-vite-7 is wired + live as of unit #1 (`web:build:vercel`; see `phase-1.md §0.1`).
 
 **Safety net:** Next.js on **Vercel stays untouched and is the live app the entire time.** The TanStack app is a separate Worker (`herocast-web`) served at **`cf.herocast.xyz`**, grown route-by-route. Nothing here can break the Vercel build (separate build graph; `src/web` is excluded from the Next tsconfig).
 
@@ -27,7 +27,7 @@ Sizes leveled (S/M/L, none >~2× another). Status: ☐ todo · ◐ in-progress �
 |---|------|------|--------|------------|------|
 | — | **Phase 1 foundation** | — | ✅ | — | `phase-1.md` (PR #763) |
 | 0 | infra: cf.herocast.xyz canary deploy + CI prebuild | S | ☐ | — | `phase-2-infra-canary.md` |
-| 1 | chore: bump vite 6→7 (unblocks Vercel target) | S | ☐ | — | `phase-2-vite7.md` |
+| 1 | chore: bump vite 6→7 (unblocks Vercel target) | S | ✅ | — | `phase-2-vite7.md` |
 | 2 | port: `next/navigation` → TanStack adapter (54 sites) | L | ✅ | — *(gate)* | `phase-2-navigation-seam.md` |
 | 3 | port: provider tree (wallet/posthog/persist/auth ctx) | L | ✅ | 2 | `phase-2-providers.md` |
 | 4 | port: stores + RQ hooks SSR-safety pass | S–M | ☐ | 3 | `phase-2-stores-hooks.md` |

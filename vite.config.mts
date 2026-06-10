@@ -1,6 +1,7 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
+import { nitro } from 'nitro/vite';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, type PluginOption } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -11,7 +12,8 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // so the HOST is a build-plugin swap (CF plugin vs Vercel/Nitro), not a code change.
 //
 //   TARGET=cloudflare (default) → @cloudflare/vite-plugin, deploy via wrangler.
-//   TARGET=vercel              → Nitro vite plugin (wired by the Vercel spike, #9).
+//   TARGET=vercel              → Nitro vite plugin, deploy via `vercel deploy --prebuilt`
+//                                (wired by unit #1's vite 6→7 bump — see the slot comment below).
 //
 // The only host-specific app seams are env access (cloudflare:workers → process.env
 // fallback in env.server.ts) and the edge cache (CacheBackend in trending.server.ts);
@@ -25,16 +27,17 @@ const cloudflareWorkersStub = fileURLToPath(new URL('./src/web/lib/cloudflare-wo
 
 // Host plugin goes FIRST (it pins the SSR environment).
 //   TARGET=cloudflare → @cloudflare/vite-plugin (pins SSR env to workerd).
-//   TARGET=vercel     → host-plugin slot is intentionally EMPTY today. The Vercel path
-//                       is `nitro({ config: { preset: 'vercel' } })` from `nitro/vite`
-//                       (verified-correct wiring), but it is BLOCKED on vite 6: nitro v3's
-//                       Vercel Build-Output finalize runs in vite 7's `buildApp` PLUGIN
-//                       hook, which vite 6 never invokes — so the build exits 0 but emits
-//                       only static assets (no functions/config.json) and is NOT
-//                       deployable. When the repo moves to vite 7, add `nitro` as a devDep
-//                       and put `nitro({ config: { preset: 'vercel' } })` here. (The env +
-//                       cache seams below are already host-portable and ready.)
-const hostPlugins: PluginOption[] = isCloudflare ? [cloudflare({ viteEnvironment: { name: 'ssr' } })] : [];
+//   TARGET=vercel     → `nitro({ config: { preset: 'vercel' } })` from `nitro/vite` (nitro v3).
+//                       UNBLOCKED by the vite 6→7 bump (unit #1, #754): nitro v3's Vercel
+//                       Build-Output finalize runs in vite 7's `buildApp` PLUGIN hook, which
+//                       vite 6 never invoked — so on vite 6 the build exited 0 but emitted only
+//                       static assets (no functions/config.json) and was not deployable. On
+//                       vite 7 the hook fires and `.vercel/output/{functions,config.json}` is
+//                       emitted. Build with `TARGET=vercel vite build` (script: `web:build:vercel`).
+//                       (The env + cache seams below are already host-portable and ready.)
+const hostPlugins: PluginOption[] = isCloudflare
+  ? [cloudflare({ viteEnvironment: { name: 'ssr' } })]
+  : [nitro({ config: { preset: 'vercel' } })];
 
 export default defineConfig({
   // Plugin ORDER IS LOAD-BEARING — do NOT reorder (any change here is a bug, R1 in the plan):

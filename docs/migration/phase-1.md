@@ -24,9 +24,9 @@ The framework migration and the hosting choice are **orthogonal axes**. TanStack
 - **`TARGET` build flag** (`vite.config.mts`, default `cloudflare`). The non-CF branch drops `cloudflare()` and top-level-aliases `cloudflare:workers` → the empty stub so `serverEnv()` falls through to `process.env`.
 - **`CacheBackend` interface** (`trending.server.ts`): `CloudflareCacheBackend` (`caches.default`) + `MemoryCacheBackend` (Map+TTL for Node/Vercel), chosen by runtime capability. Also the seam the 12 `unstable_cache` sites port onto in Phase 3.
 
-**Vercel is a supported target — but BLOCKED on vite 6 (verified by spike).** The wiring is `nitro({ config: { preset: 'vercel' } })` from `nitro/vite` (nitro v3), dropped into the non-CF host-plugin slot. It does NOT build on the repo's vite 6: nitro v3's Vercel Build-Output finalize runs in vite 7's `buildApp` **plugin** hook, which vite 6 never invokes — so the build exits 0 but emits only static assets (no `functions/`/`config.json`) and is not deployable. The `nitro` dep + a `web:build:vercel` script were reverted (footgun); the gate is documented at the slot in `vite.config.mts`. **Re-enable when the repo moves to vite 7.**
+**Vercel is a supported target — UNBLOCKED on vite 7 (unit #1, ✅).** The wiring is `nitro({ config: { preset: 'vercel' } })` from `nitro/vite` (nitro v3), dropped into the non-CF host-plugin slot. It did NOT build on the repo's old vite 6 (verified by spike): nitro v3's Vercel Build-Output finalize runs in vite 7's `buildApp` **plugin** hook, which vite 6 never invoked — so the build exited 0 but emitted only static assets (no `functions/`/`config.json`) and was not deployable. **Unit #1's vite 6→7 bump fires that hook:** `TARGET=vercel vite build` (script `web:build:vercel`) now emits a deployable `.vercel/output/{config.json (Build Output API v3), functions/__server.func (streaming; function `runtime` = build-node major, so build on node ≥22 to ship `nodejs22.x` not EOL `nodejs20.x`), static/}` (+ `nitro.json`). The `nitro` devDep + `web:build:vercel` script are re-added and the slot in `vite.config.mts` is wired live.
 
-**vite 7 bump is small + isolated:** vite is consumed ONLY by this TanStack build (`next.config.mjs` has zero vite refs), so the bump cannot affect the live Next/Vercel app. `@cloudflare/vite-plugin@1.40` already accepts vite `^7`, `@tanstack/react-start@1.168` already peer-wants vite `>=7`; the only real work is bumping `vite` 6→7 + the matching `@vitejs/plugin-react` and clearing any vite-7 build fallout in the isolated `src/web` build. Tracked separately (not on the P2/P3 critical path).
+**vite 7 bump — ✅ done (unit #1):** vite is consumed ONLY by this TanStack build (`next.config.mjs` has zero vite refs), so the bump could not affect the live Next/Vercel app. `@cloudflare/vite-plugin@1.40` accepts vite `^7`, `@tanstack/react-start@1.168` peer-wants vite `>=7` (the bump **fixed** that previously-tolerated mismatch); shipped `vite ^7.3.5` + `@vitejs/plugin-react ^5.2.0` (the latest 5.x line — 6.x requires vite `^8`). No build fallout in the isolated `src/web` build (web:build/web:typecheck/live typecheck all 0; CF probes 200). One benign vite-7 default shift: `build.target` `'modules'` → `'baseline-widely-available'` (Chrome/Edge 107+, FF 104+, Safari 16+) — accepted (modern targets, smaller output; no explicit `build.target` pinned).
 
 ---
 
@@ -100,7 +100,7 @@ All of the following must be checkable in the single PR:
 Each piece notes **what**, **source branch**, **approach**, and the **load-bearing gotcha**. Snippets are skeletons, not full files.
 
 ### 4.1 — Build config: `vite.config.ts`
-- **What:** Vite 6 config wiring Cloudflare + TanStack Start + React + tsconfig paths.
+- **What:** Vite config wiring Cloudflare + TanStack Start + React + tsconfig paths *(vite 6 as built in Phase 1; bumped to vite 7 in unit #1 — see §0.1)*.
 - **From:** `feat/tanstack-start-phase1` (has `tsconfigPaths`); spike confirms the inner three.
 - **Approach:** plugins-only config; no `resolve` block yet (faker alias added in 4.6).
 - **Gotcha (load-bearing):** **Plugin order is non-negotiable.**
@@ -310,17 +310,17 @@ Pin the **spike-proven** exact versions (override the `web/` branch's loose `^`)
 | `@tanstack/react-query` | `5.90.x` |
 | `@cloudflare/vite-plugin` | `1.40.0` |
 | `wrangler` | `4.98.0` |
-| `vite` | `6.4.x` |
+| `vite` | `7.3.x` *(bumped 6→7 in unit #1; was `6.4.x` in Phase 1)* |
 | (`workerd` resolved) | `1.20260603.x` |
 | `@supabase/ssr` | `0.8.0` (matches `main`) |
 | `@supabase/supabase-js` | `2.91.x` (matches `main`'s `^2.91.1`) |
 | `@neynar/nodejs-sdk` | `1.21.1` (exact, matches `main`) |
 | `@fontsource-variable/inter` | `5.1.x` |
 | `@fontsource-variable/jetbrains-mono` | `5.1.x` |
-| `@vitejs/plugin-react` | `4.3.x` |
+| `@vitejs/plugin-react` | `5.2.x` *(bumped with vite 7 in unit #1; was `4.3.x` — 6.x needs vite `^8`)* |
 | `vite-tsconfig-paths` | `5.1.x` |
 | `react` / `react-dom` | `^19.0.0` (from `main`) |
-| `@types/node` | `22.x` |
+| `@types/node` | `^20.17.x` *(stays node 20 — shared with the live Next app; NOT 22.x. The TanStack tsconfig uses `types: ["vite/client"]`, not `@types/node`. See `phase-2-vite7.md` accepted nits.)* |
 
 `compatibility_date: "2026-06-04"`, `compatibility_flags: ["nodejs_compat"]`.
 
