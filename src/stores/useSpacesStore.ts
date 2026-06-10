@@ -24,6 +24,7 @@
 'use client';
 
 import { type Draft, create as mutativeCreate } from 'mutative';
+import { toast } from 'sonner';
 import { create } from 'zustand';
 import {
   SPACE_DISCOVERY_LIMIT,
@@ -33,7 +34,12 @@ import {
   SPACE_POLL_INTERVAL_MS,
   SPACE_SEAT_TTL_MS,
 } from '@/common/constants/spaces';
-import { createLiveKitRoom, type LiveKitRoomHandle, MicPermissionError } from '@/common/helpers/spaces/livekitRoom';
+import {
+  createLiveKitRoom,
+  type LiveKitRoomHandle,
+  MicPermissionError,
+  type SpaceCloseReason,
+} from '@/common/helpers/spaces/livekitRoom';
 import * as spacesApi from '@/common/helpers/spaces/spacesApi';
 import {
   type AudioRoom,
@@ -87,6 +93,9 @@ interface SpacesRuntime {
   accountUnsub: (() => void) | null;
   /** Guards against overlapping join() calls and identifies the live attempt. */
   joinToken: number;
+  /** Room we already showed an "ended" toast for — the LiveKit Disconnected
+   *  event and the room-state poll can both detect the end; toast only once. */
+  endNotifiedRoomId: string | null;
 }
 
 const runtime: SpacesRuntime = {
@@ -99,6 +108,7 @@ const runtime: SpacesRuntime = {
   visibilityListener: null,
   accountUnsub: null,
   joinToken: 0,
+  endNotifiedRoomId: null,
 };
 
 // ---- Account identity helpers --------------------------------------
@@ -164,6 +174,27 @@ function filterStaleSeats(participants: AudioRoomParticipant[]): AudioRoomPartic
   });
 }
 
+// ---- Session-ended notification -------------------------------------
+
+/**
+ * Toast that the session ended for an external reason (host ended the Space,
+ * we were removed, connection lost). NOT called for a user-initiated leave or
+ * a host's own end — those are deliberate. Deduped per room because both the
+ * LiveKit Disconnected event and the room-state poll can detect the same end.
+ */
+function notifySessionEnded(roomId: string, reason: SpaceCloseReason, roomTitle?: string): void {
+  if (runtime.endNotifiedRoomId === roomId) return;
+  runtime.endNotifiedRoomId = roomId;
+  const title = roomTitle ? `“${roomTitle}”` : 'The space';
+  if (reason === 'room-ended') {
+    toast.info(`${title} has ended`);
+  } else if (reason === 'removed') {
+    toast.warning('You were removed from this space');
+  } else {
+    toast.warning('Disconnected from the space');
+  }
+}
+
 // ---- Timer / lifecycle helpers (operate via get/set) ---------------
 
 function clearTimers(): void {
@@ -177,16 +208,38 @@ function clearTimers(): void {
   }
 }
 
-/** One participant-poll tick. Drops the result if the session changed. */
+/**
+ * One poll tick: participants + the authoritative room snapshot. The snapshot
+ * is the robust "this space ended" signal — when the host ends the Space the
+ * control plane flips `room.state` to `'ended'`, even if our LiveKit socket
+ * never gets a clean ROOM_DELETED. On an ended room: toast + full teardown.
+ * Drops results if the session changed.
+ */
 async function pollOnce(get: () => SpacesStore, set: StoreSet, accountId: string, roomId: string): Promise<void> {
   if (!liveSessionFor(get, accountId)) return;
-  const participants = await spacesApi.fetchParticipants(accountId, roomId);
+  const [participants, room] = await Promise.all([
+    spacesApi.fetchParticipants(accountId, roomId),
+    spacesApi.fetchRoom(accountId, roomId),
+  ]);
   // Re-check after the await: switched/left mid-request → drop the stale result.
-  if (!liveSessionFor(get, accountId)) return;
+  const session = liveSessionFor(get, accountId);
+  if (!session) return;
+
+  // `room === null` is a degraded read (transient error) — NOT proof the room
+  // ended; only an explicit ended state tears the session down.
+  if (room && (room.state === 'ended' || room.endedAt)) {
+    notifySessionEnded(roomId, 'room-ended', room.title ?? session.room.title);
+    // No server /leave: the room is gone; the seat dies with it.
+    void teardown(get, set, { serverLeave: false });
+    return;
+  }
+
   const filtered = filterStaleSeats(participants);
   set((state) => {
     if (!state.session || state.session.accountId !== accountId) return;
     state.session.participants = filtered;
+    // Keep the room snapshot fresh (title/listenerCount edits by the host).
+    if (room) state.session.room = room;
   });
 }
 
@@ -371,6 +424,8 @@ const store = (set: StoreSet, get: () => SpacesStore): SpacesStore => ({
 
     const myToken = ++runtime.joinToken;
     const { accountId, accountFid } = identity;
+    // Fresh join → this room may end (again) later and deserves a fresh toast.
+    runtime.endNotifiedRoomId = null;
 
     // 1) Mint via the proxy /join (throws on failure → user stays out).
     let joinResult;
@@ -418,12 +473,15 @@ const store = (set: StoreSet, get: () => SpacesStore): SpacesStore => ({
         }
       });
     });
-    lk.onClosed(() => {
-      // Terminal disconnect (e.g. LiveKit token expiry). v1: tear down + leave.
+    lk.onClosed((reason: SpaceCloseReason) => {
+      // Terminal disconnect: host ended the Space (ROOM_DELETED), we were
+      // removed, or the LiveKit token expired. v1: toast + tear down + leave.
       // A future optimization can re-mint via /join and reconnect here; for v1
       // we leave cleanly so the user is never stuck on dead audio.
       if (runtime.livekit !== lk) return; // superseded
-      void teardown(get, set, { serverLeave: true });
+      notifySessionEnded(roomId, reason, get().session?.room.title);
+      // Skip the server /leave when the room itself ended (it's gone).
+      void teardown(get, set, { serverLeave: reason !== 'room-ended' });
     });
 
     try {

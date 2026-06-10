@@ -24,5 +24,6 @@ module.exports = {
     '/supabase/functions/', // Deno-based tests, run separately
     '/__tests__/fixtures/', // shared fixture data, not test files
     '/.context/', // gitignored scratch space (research clones, plan docs, etc.)
+    '/.claude/', // agent worktrees/settings — their test copies run in their own checkout
   ],
 };

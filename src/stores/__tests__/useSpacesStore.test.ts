@@ -40,7 +40,12 @@ const mockLk = {
   isMicEnabled: jest.fn<() => boolean>(() => false),
   onActiveSpeakers: jest.fn<(cb: (fids: number[]) => void) => void>(),
   onConnStateChange: jest.fn<(cb: (s: string) => void) => void>(),
-  onClosed: jest.fn<(cb: () => void) => void>(),
+  onClosed: jest.fn<(cb: (reason: string) => void) => void>(),
+};
+
+const mockToast = {
+  info: jest.fn(),
+  warning: jest.fn(),
 };
 
 class MockMicPermissionError extends Error {
@@ -50,6 +55,7 @@ class MockMicPermissionError extends Error {
   }
 }
 
+jest.mock('sonner', () => ({ toast: mockToast }));
 jest.mock('@/common/helpers/spaces/spacesApi', () => mockApi);
 jest.mock('@/common/helpers/spaces/livekitRoom', () => ({
   createLiveKitRoom: () => mockLk,
@@ -95,8 +101,13 @@ beforeEach(() => {
   accountState.selectedAccountIdx = 0;
   mockLk.isMicEnabled.mockReturnValue(false);
   mockApi.fetchParticipants.mockResolvedValue([]);
+  mockApi.fetchRoom.mockResolvedValue(null);
   resetStore();
 });
+
+/** Flush the microtask queue + one macrotask so void-fired poll/heartbeat
+ *  ticks (and their teardown) settle. */
+const flush = () => new Promise((r) => setTimeout(r, 0));
 
 // Tear down any timers/handles the store armed during a join so intervals
 // don't leak across tests (the node env runs real setInterval).
@@ -229,6 +240,90 @@ describe('endSpace', () => {
     expect(mockApi.endRoom).toHaveBeenCalledWith('acct-1', 'room-1');
     expect(mockApi.leaveRoom).not.toHaveBeenCalled(); // /end already closes the room
     expect(useSpacesStore.getState().session).toBeNull();
+  });
+});
+
+describe('space-ended detection', () => {
+  it('poll sees room.state=ended → toasts once and tears down without a server leave', async () => {
+    mockApi.joinRoom.mockResolvedValue(joinPayload('listener'));
+    // The immediate post-join poll returns an authoritatively-ended room.
+    mockApi.fetchRoom.mockResolvedValue(room('room-1', 'ended'));
+
+    await useSpacesStore.getState().join('room-1');
+    await flush();
+
+    expect(useSpacesStore.getState().session).toBeNull();
+    expect(mockToast.info).toHaveBeenCalledTimes(1);
+    expect(mockToast.info).toHaveBeenCalledWith(expect.stringContaining('has ended'));
+    // The room is gone — no point firing /leave at it.
+    expect(mockApi.leaveRoom).not.toHaveBeenCalled();
+    expect(mockLk.disconnect).toHaveBeenCalled();
+  });
+
+  it('LiveKit terminal disconnect (room-ended) → toasts and tears down', async () => {
+    mockApi.joinRoom.mockResolvedValue(joinPayload('listener'));
+    let closedCb: ((reason: string) => void) | undefined;
+    mockLk.onClosed.mockImplementation((cb: (reason: string) => void) => {
+      closedCb = cb;
+    });
+
+    await useSpacesStore.getState().join('room-1');
+    expect(useSpacesStore.getState().session).not.toBeNull();
+
+    closedCb!('room-ended');
+    await flush();
+
+    expect(useSpacesStore.getState().session).toBeNull();
+    expect(mockToast.info).toHaveBeenCalledTimes(1);
+    expect(mockApi.leaveRoom).not.toHaveBeenCalled();
+  });
+
+  it('LiveKit removed-from-room → warning toast and server leave', async () => {
+    mockApi.joinRoom.mockResolvedValue(joinPayload('listener'));
+    let closedCb: ((reason: string) => void) | undefined;
+    mockLk.onClosed.mockImplementation((cb: (reason: string) => void) => {
+      closedCb = cb;
+    });
+
+    await useSpacesStore.getState().join('room-1');
+    closedCb!('removed');
+    await flush();
+
+    expect(useSpacesStore.getState().session).toBeNull();
+    expect(mockToast.warning).toHaveBeenCalledWith(expect.stringContaining('removed'));
+    expect(mockApi.leaveRoom).toHaveBeenCalledWith('acct-1', 'room-1');
+  });
+
+  it('does NOT treat a degraded (null) room read as ended', async () => {
+    mockApi.joinRoom.mockResolvedValue(joinPayload('listener'));
+    mockApi.fetchRoom.mockResolvedValue(null); // transient read failure
+
+    await useSpacesStore.getState().join('room-1');
+    await flush();
+
+    expect(useSpacesStore.getState().session).not.toBeNull();
+    expect(mockToast.info).not.toHaveBeenCalled();
+  });
+
+  it('refreshes session.room from the poll snapshot while live', async () => {
+    mockApi.joinRoom.mockResolvedValue(joinPayload('listener'));
+    mockApi.fetchRoom.mockResolvedValue({ ...room('room-1', 'live'), title: 'Renamed by host' });
+
+    await useSpacesStore.getState().join('room-1');
+    await flush();
+
+    expect(useSpacesStore.getState().session?.room.title).toBe('Renamed by host');
+  });
+
+  it('user-initiated leave does not toast', async () => {
+    mockApi.joinRoom.mockResolvedValue(joinPayload('listener'));
+    await useSpacesStore.getState().join('room-1');
+
+    await useSpacesStore.getState().leave();
+    await flush();
+
+    expect(mockToast.info).not.toHaveBeenCalled();
+    expect(mockToast.warning).not.toHaveBeenCalled();
   });
 });
 
