@@ -119,3 +119,4 @@ scripts/benchmark-results/
 
 # Claude Code local state (per-machine permissions, runtime locks)
 .claude/
+.context/

@@ -34,6 +34,9 @@ export class MicPermissionError extends Error {
   }
 }
 
+/** Why a terminal disconnect happened — drives the user-facing message. */
+export type SpaceCloseReason = 'room-ended' | 'removed' | 'other';
+
 export interface LiveKitRoomHandle {
   /** Connect to the SFU and start playing remote audio. Call inside a user
    *  gesture (the Join click) so autoplay is permitted. */
@@ -47,8 +50,9 @@ export interface LiveKitRoomHandle {
   onActiveSpeakers(cb: (fids: number[]) => void): void;
   /** Connected / Reconnecting / Disconnected → SpaceConnState. */
   onConnStateChange(cb: (s: SpaceConnState) => void): void;
-  /** Terminal disconnect (token expiry / kicked) — store rejoins or leaves. */
-  onClosed(cb: () => void): void;
+  /** Terminal disconnect (room ended / kicked / token expiry) — store leaves
+   *  and surfaces `reason` to the user. */
+  onClosed(cb: (reason: SpaceCloseReason) => void): void;
 }
 
 /**
@@ -69,7 +73,7 @@ export function createLiveKitRoom(): LiveKitRoomHandle {
   // Callbacks registered before connect; wired once the Room exists.
   let activeSpeakersCb: ((fids: number[]) => void) | null = null;
   let connStateCb: ((s: SpaceConnState) => void) | null = null;
-  let closedCb: (() => void) | null = null;
+  let closedCb: ((reason: SpaceCloseReason) => void) | null = null;
 
   /** Map a livekit ConnectionState string to our SpaceConnState. */
   function mapConnState(state: string): SpaceConnState {
@@ -150,7 +154,17 @@ export function createLiveKitRoom(): LiveKitRoomHandle {
     async connect(wsUrl: string, token: string): Promise<void> {
       closed = false;
       const livekit = await import('livekit-client');
-      const { Room, RoomEvent, Track } = livekit;
+      const { Room, RoomEvent, Track, DisconnectReason } = livekit;
+
+      /** Map LiveKit's DisconnectReason to our close reason. The host ending
+       *  the Space deletes the LiveKit room → ROOM_DELETED on every client. */
+      const mapCloseReason = (reason: unknown): SpaceCloseReason => {
+        if (reason === DisconnectReason.ROOM_DELETED || reason === DisconnectReason.ROOM_CLOSED) {
+          return 'room-ended';
+        }
+        if (reason === DisconnectReason.PARTICIPANT_REMOVED) return 'removed';
+        return 'other';
+      };
 
       const r = new Room({
         // Audio-only social rooms: always hear everyone, no adaptive logic.
@@ -175,14 +189,14 @@ export function createLiveKitRoom(): LiveKitRoomHandle {
         connStateCb?.(mapConnState(String(state)));
       });
 
-      r.on(RoomEvent.Disconnected, () => {
+      r.on(RoomEvent.Disconnected, (reason?: unknown) => {
         // Terminal: token expired, kicked, or server closed the room. The
         // store decides whether to re-mint a LiveKit token via /join and
         // reconnect (long room) or leave.
         if (closed) return;
         closed = true;
         connStateCb?.('ended');
-        closedCb?.();
+        closedCb?.(mapCloseReason(reason));
       });
 
       await r.connect(wsUrl, token);
@@ -245,7 +259,7 @@ export function createLiveKitRoom(): LiveKitRoomHandle {
       connStateCb = cb;
     },
 
-    onClosed(cb: () => void): void {
+    onClosed(cb: (reason: SpaceCloseReason) => void): void {
       closedCb = cb;
     },
   };
