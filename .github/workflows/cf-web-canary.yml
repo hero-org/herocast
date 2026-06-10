@@ -1,19 +1,26 @@
 name: cf-web-canary
 
 # Deploys the TanStack Start → Cloudflare Workers CANARY (worker: `herocast-web`,
-# served at https://cf.herocast.xyz) on every push to the migration branch. This is the
-# preview app for epic #754 — SEPARATE from the live Next.js/Vercel deploy, and it CANNOT
-# affect it:
-#   - It only ever runs on `hellno/cloudflare-hosting-state` (branch filter below +
-#     a job-level ref guard), so it never fires on `main` or PRs into `main`.
-#   - It runs `pnpm web:build` (vite) + `wrangler deploy`, never `next build` / Vercel.
+# served at https://cf.herocast.xyz) on every push to `main` (i.e. on merge). This is the
+# migration preview app for epic #754 — SEPARATE from the live Next.js/Vercel deploy, and
+# it CANNOT affect it:
+#   - The Cloudflare worker (cf.herocast.xyz) and Vercel (herocast.xyz) are DIFFERENT
+#     targets. This runs `pnpm web:build` (vite) + `wrangler deploy` only — never
+#     `next build`, and it never touches the Vercel project or the live app.
 #   - The only DNS touched is the cf.herocast.xyz subdomain (custom_domain); the Vercel
 #     apex / `www` records stay DNS-only, so the live app is unaffected.
+#   - `paths-ignore` skips docs/supabase/markdown-only commits so they don't redeploy.
+#   - A failed canary deploy shows as a red `cf-web-canary` check on the main commit, but
+#     is isolated — it does not block Vercel or break the live app.
 # See docs/migration/phase-2-infra-canary.md + strategy.md.
 
 on:
   push:
-    branches: [hellno/cloudflare-hosting-state]
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'supabase/**'
+      - '**/*.md'
   workflow_dispatch:
 
 # One deploy at a time; cancel an in-flight deploy when a newer commit lands.
@@ -32,9 +39,9 @@ jobs:
   # not red). Secrets can't be read in an `if:` directly, so map them to env here.
   guard:
     runs-on: ubuntu-latest
-    # Branch isolation (layer 1): the gate itself only runs on the migration branch, so a
+    # Belt-and-suspenders ref guard (layer 1): only deploy from `main`, so a
     # workflow_dispatch from any other branch produces no deploy.
-    if: github.ref == 'refs/heads/hellno/cloudflare-hosting-state'
+    if: github.ref == 'refs/heads/main'
     outputs:
       configured: ${{ steps.creds.outputs.configured }}
     steps:
@@ -53,9 +60,9 @@ jobs:
 
   deploy:
     needs: guard
-    # Run only when the gate saw BOTH secrets AND we're on the migration branch
-    # (belt-and-suspenders layer 2 — never deploy from main / another ref).
-    if: needs.guard.outputs.configured == 'true' && github.ref == 'refs/heads/hellno/cloudflare-hosting-state'
+    # Run only when the gate saw BOTH secrets AND we're on `main` (belt-and-suspenders
+    # layer 2 — a manual dispatch from another branch never deploys).
+    if: needs.guard.outputs.configured == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

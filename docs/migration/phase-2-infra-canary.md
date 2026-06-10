@@ -3,7 +3,7 @@
 > **Epic #754 · Migration unit #0** (see `strategy.md` for the map, `conventions.md` for the reuse contract).
 > Size **S**. Blocked by: nothing. Unblocks the API tier (#10 data routes, #11 auth/onchain) and gives **every** future unit a REAL deployed canary to verify against.
 
-**One-line goal:** stand up a hands-off deploy of the TanStack Start worker (`herocast-web` → `cf.herocast.xyz`) on every push to the migration branch, so a unit's "done" is a live URL — with the Next.js/Vercel app **completely untouched**.
+**One-line goal:** stand up a hands-off deploy of the TanStack Start worker (`herocast-web` → `cf.herocast.xyz`) on every push to `main`, so a unit's "done" is a live URL — with the Next.js/Vercel app **completely untouched** (the worker is a separate Cloudflare target).
 
 This unit ships **infra + config only**. It does **not** port any page, route, provider, or store — those are owned by units #2–#12. The probes it deploys (`/migration-probe`, `/providers-probe`, `/nav-probe`) already exist on the branch from Phase 1 + units #2/#3.
 
@@ -13,7 +13,7 @@ This unit ships **infra + config only**. It does **not** port any page, route, p
 
 ### Objective
 1. **Conductor**: a fresh migration workspace installs the canary toolchain and can run the canary from the Run button (`.conductor/settings.toml`), with local secrets copied in automatically (`.worktreeinclude`).
-2. **CI**: a GitHub Actions workflow (`.github/workflows/cf-web-canary.yml`) prebuilds (node 22 + `pnpm rebuild esbuild workerd`) and `wrangler deploy`s the worker on every push to `hellno/cloudflare-hosting-state` — gated so it can never touch prod/Vercel.
+2. **CI**: a GitHub Actions workflow (`.github/workflows/cf-web-canary.yml`) prebuilds (node 22 + `pnpm rebuild esbuild workerd`) and `wrangler deploy`s the worker on every push to `main` (paths-ignore docs/supabase/md). The worker is a separate Cloudflare target, so this never runs `next build` or touches the Vercel deploy / live app.
 3. **Runbook**: the one-time manual steps (CF login, `wrangler secret put`, GitHub repo secrets, custom domain) documented here with **no secret values committed anywhere**.
 
 ### Non-Goals
@@ -29,7 +29,7 @@ This unit ships **infra + config only**. It does **not** port any page, route, p
 
 - [x] `.conductor/settings.toml`: `setup` installs deps + `pnpm rebuild esbuild workerd`; Run button is **branch-aware** — the canary (`web:build && web:serve`) on `migration/*` / `*cloudflare*` branches, the live Next app (`pnpm dev`) everywhere else (incl. `main`); `run_mode = "concurrent"`.
 - [x] `.worktreeinclude` copies `.dev.vars` + `.env.local` into every new workspace (the existing `.env*` glob already matches `.env.local`; `.dev.vars` is listed explicitly — **already satisfied, unchanged**).
-- [x] `.github/workflows/cf-web-canary.yml`: triggers on push to the migration branch + `workflow_dispatch`; node 22; `pnpm install` → `pnpm rebuild esbuild workerd` → `pnpm web:build` → `wrangler deploy -c dist/server/wrangler.json`; uses `secrets.CLOUDFLARE_API_TOKEN` + `secrets.CLOUDFLARE_ACCOUNT_ID`; branch-gated (filter **and** a job-level ref guard) so it never runs on `main`/PRs.
+- [x] `.github/workflows/cf-web-canary.yml`: triggers on push to `main` (with `paths-ignore` for docs/supabase/markdown) + `workflow_dispatch`; node 22; `pnpm install` → `pnpm rebuild esbuild workerd` → `pnpm web:build` → `wrangler deploy -c dist/server/wrangler.json`; uses `secrets.CLOUDFLARE_API_TOKEN` + `secrets.CLOUDFLARE_ACCOUNT_ID`; ref-gated to `main` (branch filter **and** a job-level guard) + a `guard` job that skips cleanly when the CF secrets are absent.
 - [x] YAML + TOML parse clean; no secret literal in any committed file.
 - [x] **DONE — verified live.** GitHub secrets `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` set; `herocast.xyz` DNS moved to Cloudflare (Vercel apex/`www` records DNS-only → live app unaffected); the `cf.herocast.xyz` custom-domain route is enabled. CI deploys `herocast-web` and the **blocking smoke confirms `https://cf.herocast.xyz/{migration-probe,providers-probe}` return 200** (run `27282715666`). Remaining (optional): `wrangler secret put` the runtime keys so the probes render real Neynar/Supabase data instead of the empty state.
 
@@ -56,7 +56,7 @@ This unit ships **infra + config only**. It does **not** port any page, route, p
 
 ## 4. CI design notes (the footguns this avoids)
 
-- **Branch isolation, two layers.** `on.push.branches: [hellno/cloudflare-hosting-state]` + a job-level `if: github.ref == 'refs/heads/hellno/cloudflare-hosting-state'`. The `if` guard matters because `workflow_dispatch` can be launched against any branch — without it, a manual run from `main` would deploy. With it, the only ref that can reach Cloudflare is the migration branch.
+- **Ref gating + paths-ignore.** `on.push.branches: [main]` with `paths-ignore` (docs/supabase/markdown) + a job-level `if: github.ref == 'refs/heads/main'`. The `if` guard matters because `workflow_dispatch` can be launched against any branch — with it, only `main` can reach Cloudflare. Deploying the worker from `main` is **additive**: it's a separate Cloudflare target from Vercel (which serves `herocast.xyz`/`www`), so it never affects the live app. A failed canary deploy surfaces as a red `cf-web-canary` check on the main commit, isolated from Vercel.
 - **No `next build`, no Vercel, no DNS.** The job only runs `vite build` (via `web:build`) + `wrangler deploy`. The Vercel project and the Next build graph are never invoked; with the custom domain disabled, the deploy touches **no DNS at all** — the canary is served on the worker's own `*.workers.dev` hostname.
 - **Node 22, deliberately divergent from the live CI.** `build.yaml` pins node 20.12.2 for the Next app; this workflow uses node 22 because wrangler/workerd require it. Independent graphs ⇒ safe.
 - **`pnpm rebuild esbuild workerd`** is a discrete step — pnpm v10 skips native postinstall scripts, so without it the build/deploy fails (R3, `phase-1.md §6`).
@@ -130,7 +130,7 @@ gh secret set CLOUDFLARE_API_TOKEN  -R hero-org/herocast   # paste the token at 
 gh secret set CLOUDFLARE_ACCOUNT_ID -R hero-org/herocast   # paste the account id
 ```
 For **Path A** the token needs only **Workers Scripts: Edit** (the "Edit Cloudflare Workers" template is enough). Then:
-1. Push to `hellno/cloudflare-hosting-state` (or **Actions → cf-web-canary → Run workflow**).
+1. Merge to `main` — or **Actions → cf-web-canary → Run workflow** on `main` (the manual button is the way to redeploy on demand).
 2. The run deploys and the **blocking** smoke verifies `/migration-probe` + `/providers-probe` return 200 on the `*.workers.dev` URL (printed in the deploy log) — that URL is the canary every later unit verifies against.
 3. `wrangler secret put` the three runtime keys (§6 Path A step 4) so trending/auth return real data.
 4. (Later) wire `cf.herocast.xyz` via §6 Path B.
