@@ -1,15 +1,14 @@
 name: cf-web-canary
 
-# Deploys the TanStack Start → Cloudflare Workers CANARY (worker: `herocast-web`) on
-# every push to the migration branch. The canary is served on its *.workers.dev URL —
-# the custom domain cf.herocast.xyz is DISABLED until herocast.xyz DNS moves to Cloudflare
-# (it currently uses Namecheap DNS → Vercel; see wrangler.jsonc + spec §6). This is the
+# Deploys the TanStack Start → Cloudflare Workers CANARY (worker: `herocast-web`,
+# served at https://cf.herocast.xyz) on every push to the migration branch. This is the
 # preview app for epic #754 — SEPARATE from the live Next.js/Vercel deploy, and it CANNOT
 # affect it:
 #   - It only ever runs on `hellno/cloudflare-hosting-state` (branch filter below +
 #     a job-level ref guard), so it never fires on `main` or PRs into `main`.
 #   - It runs `pnpm web:build` (vite) + `wrangler deploy`, never `next build` / Vercel.
-#   - No custom domain ⇒ NO DNS is touched at all; the worker is its own target.
+#   - The only DNS touched is the cf.herocast.xyz subdomain (custom_domain); the Vercel
+#     apex / `www` records stay DNS-only, so the live app is unaffected.
 # See docs/migration/phase-2-infra-canary.md + strategy.md.
 
 on:
@@ -99,50 +98,32 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
 
-      # Deploy with the repo-pinned wrangler (4.98.0) using the GENERATED config. Capture
-      # the workers.dev URL wrangler prints so the next step can smoke the worker that is
-      # live RIGHT NOW (no custom DNS needed). Runtime secrets (NEYNAR_API_KEY,
-      # SUPABASE_URL, SUPABASE_ANON_KEY) are set ONCE via `wrangler secret put` and persist
-      # on the worker across deploys — CI does NOT need them. CI needs ONLY the two
-      # Cloudflare auth secrets below.
+      # Deploy with the repo-pinned wrangler (4.98.0) using the GENERATED config. The worker
+      # is served on the cf.herocast.xyz custom domain (the `routes` block disables the
+      # *.workers.dev URL). Runtime secrets (NEYNAR_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY)
+      # are set ONCE via `wrangler secret put` and persist across deploys — CI does NOT need
+      # them. CI needs ONLY the two Cloudflare auth secrets below. No pipe here → wrangler's
+      # non-zero exit propagates and fails the step under the default `bash -e` (a `| tee`
+      # would mask it — verified earlier: a tokenless deploy otherwise reported "success").
       - name: Deploy to Cloudflare (herocast-web)
-        id: deploy
-        run: |
-          set -u
-          # `| tee` would MASK wrangler's exit code (the pipeline takes tee's 0 — verified:
-          # a tokenless deploy still reported success). Check wrangler's status explicitly
-          # via PIPESTATUS; do NOT rely on the runner's pipefail being enabled.
-          pnpm exec wrangler deploy -c dist/server/wrangler.json | tee deploy.log
-          ec=${PIPESTATUS[0]}
-          if [ "${ec}" -ne 0 ]; then
-            echo "::error::wrangler deploy failed (exit ${ec})"
-            exit "${ec}"
-          fi
-          url="$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' deploy.log | head -n1 || true)"
-          echo "worker_url=${url}" >> "$GITHUB_OUTPUT"
-          echo "Deployed worker URL: ${url:-<none captured — workers.dev may be disabled>}"
+        run: pnpm exec wrangler deploy -c dist/server/wrangler.json
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      # BLOCKING canary gate. The throwaway probes are the per-deploy smoke test
-      # (strategy.md — "the probe is the canary on every deploy"). Both are designed to
-      # return 200 even with NO secrets set (migration-probe renders the empty state;
-      # providers-probe is client-rendered), so this gates purely on "is the freshly
-      # deployed worker serving?" — meaningful from the very first deploy, no DNS needed.
-      - name: Smoke-check probes on the live worker (blocking)
+      # BLOCKING canary gate — the throwaway probes ARE the per-deploy smoke test
+      # (strategy.md — "the probe is the canary on every deploy") on the canary's real URL,
+      # cf.herocast.xyz. Both 200 even with NO secrets (migration-probe renders the empty
+      # state; providers-probe is client-rendered), so this gates purely on "is the freshly
+      # deployed worker serving?". A new version can take a few seconds to propagate at the
+      # edge, so each probe is retried up to 8×.
+      - name: Smoke-check probes on cf.herocast.xyz (blocking)
         run: |
           set -u
-          base='${{ steps.deploy.outputs.worker_url }}'
-          if [ -z "${base}" ]; then
-            echo "::warning::no workers.dev URL captured from deploy output; skipping live smoke"
-            exit 0
-          fi
+          base=https://cf.herocast.xyz
           fail=0
           for path in /migration-probe /providers-probe; do
-            # A freshly-deployed *.workers.dev route can 404 for a few seconds while it
-            # propagates globally (observed on the first deploy). Retry up to 8× before
-            # failing. No `-f`: capture the REAL status via -w even on 4xx/5xx (000 on net error).
+            # No `-f`: capture the REAL status via -w even on 4xx/5xx (000 on net error).
             code=000
             for attempt in $(seq 1 8); do
               code=$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "${base}${path}") || true
@@ -156,6 +137,3 @@ jobs:
             fi
           done
           exit "${fail}"
-      # (A custom-domain smoke for cf.herocast.xyz is intentionally omitted — the domain
-      # is disabled until herocast.xyz DNS is on Cloudflare. Re-add a 200-check here when
-      # you re-enable the `routes` block in wrangler.jsonc; see phase-2-infra-canary.md §6.)
