@@ -1,0 +1,5 @@
+# Static gitignored files copied into every new Conductor workspace.
+# Lets a fresh workspace run both the Next app (next dev) and the TanStack→CF canary
+# (wrangler dev) without re-creating local secrets.
+.env*
+.dev.vars

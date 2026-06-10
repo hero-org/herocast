@@ -1,0 +1,6 @@
+# Local Worker runtime secrets (server-only). Copy to `.dev.vars` (gitignored).
+# Read on the edge via `cloudflare:workers` env (see src/web/lib/env.ts).
+# In production these are set with `wrangler secret put <NAME>`.
+NEYNAR_API_KEY=
+SUPABASE_URL=
+SUPABASE_ANON_KEY=

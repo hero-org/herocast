@@ -3,6 +3,9 @@
   "version": "0.1",
   "license": "",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -20,7 +23,14 @@
     "supabase:setup": "node scripts/apply-pgsodium-grants.js",
     "benchmark": "npx tsx scripts/benchmark.ts",
     "benchmark:prod": "npx tsx scripts/benchmark.ts --prod",
-    "benchmark:compare": "npx tsx scripts/benchmark-compare.ts"
+    "benchmark:compare": "npx tsx scripts/benchmark-compare.ts",
+    "web:dev": "vite dev",
+    "web:build": "vite build",
+    "web:build:vercel": "cross-env TARGET=vercel vite build",
+    "web:serve": "wrangler dev -c dist/server/wrangler.json",
+    "web:deploy": "vite build && wrangler deploy -c dist/server/wrangler.json",
+    "web:deploy:dry-run": "vite build && wrangler deploy --dry-run -c dist/server/wrangler.json",
+    "web:typecheck": "tsc --noEmit -p tsconfig.tanstack.json"
   },
   "browserslist": {
     "production": [
@@ -58,7 +68,8 @@
       "keccak",
       "sharp",
       "supabase",
-      "utf-8-validate"
+      "utf-8-validate",
+      "workerd"
     ]
   },
   "dependencies": {
@@ -73,6 +84,8 @@
     "@farcaster/frame-sdk": "^0.0.64",
     "@farcaster/hub-web": "^0.9.7",
     "@farcaster/miniapp-host": "^0.2.14",
+    "@fontsource-variable/inter": "^5.1.0",
+    "@fontsource-variable/jetbrains-mono": "^5.1.0",
     "@gumlet/react-hls-player": "^1.0.1",
     "@headlessui/react": "^2.2.0",
     "@hookform/resolvers": "^3.10.0",
@@ -117,6 +130,8 @@
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-query": "^5.90.11",
     "@tanstack/react-query-persist-client": "^5.90.11",
+    "@tanstack/react-router": "~1.170.0",
+    "@tanstack/react-start": "~1.168.0",
     "@tanstack/react-virtual": "^3.13.12",
     "@tiptap/extension-link": "^3.13.0",
     "@tiptap/extension-mention": "^3.13.0",
@@ -196,6 +211,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.12",
+    "@cloudflare/vite-plugin": "1.40.0",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@jest/globals": "^29.7.0",
     "@next/bundle-analyzer": "^16.1.5",
@@ -219,6 +235,7 @@
     "@types/ramda": "^0.29.12",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "autoprefixer": "^10.4.21",
     "buffer": "^6.0.3",
     "cross-env": "^7.0.3",
@@ -229,11 +246,15 @@
     "kysely-codegen": "^0.15.0",
     "lint-staged": "^16.2.7",
     "madge": "^6.1.0",
+    "nitro": "3.0.260603-beta",
     "playwright": "^1.58.0",
     "postcss": "^8.5.3",
     "ramda": "^0.29.1",
     "supabase": "^1.226.4",
     "ts-jest": "^29.2.6",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "vite": "^7.3.5",
+    "vite-tsconfig-paths": "^5.1.0",
+    "wrangler": "4.98.0"
   }
 }
