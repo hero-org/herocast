@@ -1,5 +1,13 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
+// Root-layout chrome (unit #5) — the same three the Next root layout (app/layout.tsx)
+// mounts on EVERY route, incl. /login: cmd+k command palette, global hotkey registry
+// (needs AppHotkeysProvider from the #3 provider tree, hence inside <Providers>), and
+// the dev-only perf panel. Shared modules, untouched — their next/* imports resolve to
+// the src/web adapters via the unit-#2 vite aliases.
+import CommandPalette from '@/common/components/CommandPalette';
+import { GlobalHotkeys } from '@/common/components/GlobalHotkeys';
+import { PerfPanel } from '@/common/components/PerfPanel';
 // ?url -> bundled stylesheets linked in the SSR <head> (no FOUC).
 //   - @/globals.css        the shared design-token stylesheet (colors, utilities)
 //   - @/web/styles/fonts.css  the @font-face + --font-* variable declarations
@@ -71,7 +79,12 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body className="tanstack-root font-sans no-scrollbar">
-        <Providers>{children}</Providers>
+        <Providers>
+          <GlobalHotkeys />
+          <CommandPalette />
+          <PerfPanel />
+          {children}
+        </Providers>
         <Scripts />
       </body>
     </html>

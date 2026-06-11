@@ -29,5 +29,9 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/web", "env.d.ts"]
+  // src/common/types/global.d.ts: ambient Window augmentations (e.g.
+  // __linkify_plugins_registered) that shared components rely on; it is never imported,
+  // so it must be in `include` (the root Next tsconfig gets it via its src/ glob).
+  // (Surfaced by unit #5 — first to pull the CastRow/linkify chain.)
+  "include": ["src/web", "src/common/types/global.d.ts", "env.d.ts"]
 }

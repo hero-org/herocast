@@ -25,6 +25,35 @@ const isCloudflare = TARGET === 'cloudflare';
 // @cloudflare/vite-plugin isn't present to provide the real builtin.
 const cloudflareWorkersStub = fileURLToPath(new URL('./src/web/lib/cloudflare-workers-client-stub.ts', import.meta.url));
 
+// Unit #5 (#754 app shell): component modules loaded ONLY via the next/dynamic shim with
+// `ssr:false` — never executed during SSR, but Rollup still emits their chunks into the
+// worker (a dynamic import is statically analyzable), which pushed the bundle past the
+// 3 MB gzip limit (WalletProviders drags rainbowkit/wagmi + ~15 locale/OS chunks ≈ 600 KiB
+// gzip; NewCastEditor drags TipTap ≈ 280 KiB). Aliased to a throwing stub in the CF `ssr`
+// environment ONLY (see `environments.ssr` below); the client bundle keeps the real
+// modules. If a later unit needs one of these SSR-rendered, remove its name from the
+// regex AND re-check `web:deploy:dry-run` stays < 3 MB.
+const ssrClientOnlyStub = fileURLToPath(new URL('./src/web/lib/ssr-client-only-stub.tsx', import.meta.url));
+// - WalletProviders / NewCastEditor: app modules loaded only via the dynamic shim (ssr:false).
+// - @walletconnect/ethereum-provider: dynamically imported by wagmi's walletconnect
+//   connector (wagmi is statically in the server graph via shared store/helper chains, but
+//   a wallet CONNECTION can only start in a browser — the import never runs during SSR).
+const ssrClientOnlyModules = /\/(?:WalletProviders|Editor\/NewCastEditor)(?:\.tsx)?$|^@walletconnect\/ethereum-provider$/;
+
+// A plugin (not `environments.ssr.resolve.alias`) because the @cloudflare/vite-plugin
+// owns the `ssr` environment's config and a user-level env alias is dropped on merge
+// (verified via `resolveConfig` — the entry never reaches environments.ssr.resolve.alias).
+// `applyToEnvironment` scopes the resolveId hook to the workerd env; the client env
+// resolves the real modules and code-splits them exactly as before.
+const ssrClientOnlyStubPlugin: PluginOption = {
+  name: 'herocast:ssr-client-only-stub',
+  enforce: 'pre',
+  applyToEnvironment: (environment) => environment.name === 'ssr',
+  resolveId(source) {
+    return ssrClientOnlyModules.test(source) ? ssrClientOnlyStub : undefined;
+  },
+};
+
 // Host plugin goes FIRST (it pins the SSR environment).
 //   TARGET=cloudflare → @cloudflare/vite-plugin (pins SSR env to workerd).
 //   TARGET=vercel     → `nitro({ config: { preset: 'vercel' } })` from `nitro/vite` (nitro v3).
@@ -65,6 +94,12 @@ export default defineConfig(({ mode }) => {
     'process.env.NEXT_PUBLIC_HYPERSNAP_URL': inlinePublic('NEXT_PUBLIC_HYPERSNAP_URL'),
     'process.env.NEXT_PUBLIC_ENABLE_SPACES': inlinePublic('NEXT_PUBLIC_ENABLE_SPACES'),
     'process.env.NEXT_PUBLIC_URL': inlinePublic('NEXT_PUBLIC_URL'),
+    // Unit #5 (#754 app shell): the shell's lazy editor chunk (NewCastModal →
+    // NewCastEditor via the next/dynamic shim) reads these three public keys
+    // (useCloudinaryUpload + the dev-env guard in NewCastEditor).
+    'process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME': inlinePublic('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME'),
+    'process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET': inlinePublic('NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET'),
+    'process.env.NEXT_PUBLIC_VERCEL_ENV': inlinePublic('NEXT_PUBLIC_VERCEL_ENV'),
     'process.env.NEXT_PUBLIC_NEYNAR_API_KEY': 'undefined', // secret — never inline (#751)
     'process.env.NEXT_PUBLIC_APP_MNENOMIC': 'undefined', // secret — never inline
   };
@@ -94,6 +129,9 @@ export default defineConfig(({ mode }) => {
   //   4. tsconfigPaths() resolves the `@/*` -> src/* alias from tsconfig.tanstack.json (no drift)
   plugins: [
     ...hostPlugins,
+    // Worker-bundle diet (unit #5) — see ssrClientOnlyStubPlugin above. CF-only: the
+    // 3 MB compressed Worker limit doesn't apply to the Vercel/Nitro target.
+    ...(isCloudflare ? [ssrClientOnlyStubPlugin] : []),
     tanstackStart({
       // `srcDirectory` re-roots the whole framework into src/web/ so the new TanStack
       // source stays isolated from the live Next app and is trivially deletable. Per the
