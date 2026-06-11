@@ -34,3 +34,14 @@ export function createClient(): SupabaseClient<Database> {
   supabaseInstance = createBrowserClient<Database>(url, anonKey);
   return supabaseInstance;
 }
+
+/**
+ * Lazy accessor for the singleton browser client. Identical to calling createClient()
+ * (which caches internally) — the separate name exists so modules that must be importable
+ * without env vars present (the zustand stores, anything reachable from SSR) have one
+ * canonical way to defer client creation (and its missing-env throw) to first use instead
+ * of module scope. Do not call at module scope.
+ */
+export function getSupabaseClient(): SupabaseClient<Database> {
+  return createClient();
+}

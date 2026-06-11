@@ -17,6 +17,8 @@
 | `next/dynamic` (`ssr:false`) | TanStack lazy + `import.meta.env.DEV` guards | Editor/wallet are the main consumers. |
 | `@faker-js/faker` | the Vite `resolve.alias` → `src/lib/faker-stub.ts` (in `vite.config.mts`) | Already wired; prevents a +7.9 MB regression when `@farcaster/core` lands. |
 | Pick a host (CF vs Vercel) | the **`TARGET` flag** in `vite.config.mts` | `cloudflare` (default) vs `vercel` (unblocked on vite 7 by unit #1 — `web:build:vercel`; see `phase-1.md §0.1`). |
+| Browser Supabase client from shared code (stores etc.) | `getSupabaseClient()` — `src/common/helpers/supabase/component.ts` *(unit #4)* | Lazy + singleton. **Never call `createClient()`/`getSupabaseClient()` at module scope** — it throws without env and breaks SSR import. |
+| Read public `NEXT_PUBLIC_*` config in shared code | the **`define` allowlist** in `vite.config.mts` *(unit #4)* | Vite does NOT inline `NEXT_PUBLIC_*`. Each public key shared code reads must be added to the allowlist (sourced from `.env.local`, `VITE_X` preferred) or it is silently `undefined` in the TanStack build. **Secrets are pinned to `undefined` there — never add a secret.** |
 
 ## The `.server.ts` boundary convention (load-bearing — R13)
 
