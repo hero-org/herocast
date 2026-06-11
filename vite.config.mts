@@ -47,7 +47,7 @@ const ssrClientOnlyModules = /\/(?:WalletProviders|Editor\/NewCastEditor)(?:\.ts
 // resolves the real modules and code-splits them exactly as before.
 const ssrClientOnlyStubPlugin: PluginOption = {
   name: 'herocast:ssr-client-only-stub',
-  enforce: 'pre',
+  enforce: 'pre', // run ahead of vite's alias/resolver passes so the stub wins the resolution
   applyToEnvironment: (environment) => environment.name === 'ssr',
   resolveId(source) {
     return ssrClientOnlyModules.test(source) ? ssrClientOnlyStub : undefined;

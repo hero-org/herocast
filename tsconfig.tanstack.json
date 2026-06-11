@@ -29,9 +29,10 @@
       "@/*": ["src/*"]
     }
   },
-  // src/common/types/global.d.ts: ambient Window augmentations (e.g.
-  // __linkify_plugins_registered) that shared components rely on; it is never imported,
-  // so it must be in `include` (the root Next tsconfig gets it via its src/ glob).
+  // src/common/types/*.d.ts: ambient declarations (e.g. global.d.ts's Window
+  // augmentations) that shared components rely on; they are never imported, so they
+  // must be in `include` (the root Next tsconfig gets them via its src/ glob). A glob,
+  // not per-file entries, so future ambient files don't silently go missing here.
   // (Surfaced by unit #5 — first to pull the CastRow/linkify chain.)
-  "include": ["src/web", "src/common/types/global.d.ts", "env.d.ts"]
+  "include": ["src/web", "src/common/types/**/*.d.ts", "env.d.ts"]
 }

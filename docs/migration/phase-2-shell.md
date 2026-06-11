@@ -73,3 +73,4 @@ __root.tsx            Providers + GlobalHotkeys + CommandPalette + PerfPanel   (
 - **[#6+] Sidebar links target un-ported routes** — each page unit lands its `_app.<page>.tsx` child; until then those links hit the default not-found. Consider a branded `notFoundComponent` on `__root` in a later unit if the gap lingers.
 - **[#9] Replace `src/web/routes/login.tsx` placeholder** with the real auth surface (and the worker-side OAuth write, `phase-1.md §4.4`).
 - **[#13] Delete `/shell-probe`** with the other probes at cutover.
+- **[CI] `ssrClientOnlyModules` is a hand-maintained list** keyed on import specifiers: a renamed import path (e.g. a barrel re-export of `NewCastEditor`) or a future `ssr:false` heavyweight silently re-enters the worker bundle and only fails at the 3 MB deploy gate. `web:deploy:dry-run` already measures — consider asserting a gzip budget in CI (the unit-#0 prebuild) so the regression is caught pre-merge.

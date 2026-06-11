@@ -16,6 +16,11 @@
 //
 // NOTE: logged-out browsers are client-redirected to /login by AuthContext (didLoad +
 // no user) — expected; the SSR HTML is still the full shell (verify with curl).
+//
+// NAMING: the `_app.` prefix is the pathless-LAYOUT-child convention (mounts at
+// /shell-probe inside the shell) — it does NOT contradict the root-level probe rule
+// ("filename must not start with `_`", see stores-probe.tsx): that rule is about not
+// accidentally making a probe itself pathless.
 import { createFileRoute } from '@tanstack/react-router';
 import { useAccountStore } from '@/stores/useAccountStore';
 import { useNavigationStore } from '@/stores/useNavigationStore';
@@ -27,7 +32,8 @@ export const Route = createFileRoute('/_app/shell-probe')({
 function ShellProbe() {
   // Rendering at all means the store init gate (pageRequiresHydrate && !isHydrated)
   // opened — i.e. initializeStoresProgressive() ran on the client and hydrateMinimal()
-  // flipped isHydrated. These reads are the evidence panel.
+  // flipped isHydrated. The first two reads evidence that; the palette read is just a
+  // live observable for the cmd+k round-trip.
   const isHydrated = useAccountStore((s) => s.isHydrated);
   const accountCount = useAccountStore((s) => s.accounts.length);
   const isCommandPaletteOpen = useNavigationStore((s) => s.isCommandPaletteOpen);
