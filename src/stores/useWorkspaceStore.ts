@@ -26,11 +26,19 @@ const generateUUID = (): string => {
 
 /**
  * Default layout: Single trending feed panel at 100%
+ *
+ * The default panel uses a FIXED id (not generateUUID()): this function runs at module
+ * scope to seed the store's initial state, and generating random values during module
+ * evaluation is disallowed on Cloudflare workerd (SSR) — it also kept server- and
+ * client-rendered initial layouts from matching. Panels added at runtime (addPanel)
+ * still get random UUIDs; a persisted/hydrated layout replaces this default wholesale.
  */
+const DEFAULT_PANEL_ID = 'panel-default';
+
 const createDefaultLayout = (): WorkspaceLayout => ({
   panels: [
     {
-      id: generateUUID(),
+      id: DEFAULT_PANEL_ID,
       type: 'feed',
       config: { feedType: 'trending' },
       collapsed: false,

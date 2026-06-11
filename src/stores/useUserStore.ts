@@ -2,7 +2,7 @@ import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { addUnsafeCustomerForUser, getCustomersForUser } from '@/common/helpers/supabase';
-import { createClient } from '@/common/helpers/supabase/component';
+import { getSupabaseClient } from '@/common/helpers/supabase/component';
 import { toastErrorUpgradeAccount } from '@/common/helpers/toast';
 import type { Tables, TablesInsert } from '@/common/types/database.types';
 
@@ -24,8 +24,6 @@ export const mutative = (config) => (set, get) => config((fn) => set(mutativeCre
 
 type StoreSet = (fn: (draft: Draft<UserStore>) => void) => void;
 
-const supabaseClient = createClient();
-
 const store = (set: StoreSet) => ({
   customer: undefined,
   addUnsafeCustomerForUser: async (customer: Omit<InsertCustomer, 'user_id'>) => {
@@ -34,7 +32,7 @@ const store = (set: StoreSet) => ({
       return;
     }
 
-    addUnsafeCustomerForUser(supabaseClient, customer).then((didAddCustomer) => {
+    addUnsafeCustomerForUser(getSupabaseClient(), customer).then((didAddCustomer) => {
       if (!didAddCustomer) {
         toastErrorUpgradeAccount('Failed to store upgrade data');
         return;
@@ -46,7 +44,7 @@ const store = (set: StoreSet) => ({
     });
   },
   hydrate: async () => {
-    getCustomersForUser(supabaseClient).then((customer) => {
+    getCustomersForUser(getSupabaseClient()).then((customer) => {
       set((state) => {
         state.customer = customer;
       });

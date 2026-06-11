@@ -2,7 +2,7 @@ import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { MAX_FID_LIST_SIZE, MAX_FID_LIST_SIZE_MESSAGE, MAX_USERS_PER_LIST } from '@/common/constants/listLimits';
-import { createClient } from '@/common/helpers/supabase/component';
+import { getSupabaseClient } from '@/common/helpers/supabase/component';
 import type { Tables, TablesInsert, TablesUpdate } from '@/common/types/database.types';
 import { type AutoInteractionListContent, type FidListContent, isFidListContent } from '@/common/types/list.types';
 
@@ -78,8 +78,6 @@ export const mutative =
 
 type StoreSet = (fn: (draft: Draft<ListStore>) => void) => void;
 
-const supabaseClient = createClient();
-
 const store = (set: StoreSet, get: () => ListStore): ListStore => ({
   lists: [],
   searches: [],
@@ -117,7 +115,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
         updatedDisplayNames[fid] = displayName;
       }
 
-      const { data, error } = await supabaseClient
+      const { data, error } = await getSupabaseClient()
         .from('list')
         .update({
           contents: {
@@ -155,7 +153,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
         delete updatedDisplayNames[fid];
       }
 
-      const { data, error } = await supabaseClient
+      const { data, error } = await getSupabaseClient()
         .from('list')
         .update({
           contents: {
@@ -191,7 +189,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
         [fid]: displayName,
       };
 
-      const { data, error } = await supabaseClient
+      const { data, error } = await getSupabaseClient()
         .from('list')
         .update({
           contents: {
@@ -216,7 +214,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
   addFidList: async (name: string, fids: string[]) => {
     const {
       data: { user },
-    } = await supabaseClient.auth.getUser();
+    } = await getSupabaseClient().auth.getUser();
     if (!user) {
       return { success: false, error: 'User not logged in' };
     }
@@ -235,7 +233,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
       displayNames: {}, // Initialize empty display names mapping
     };
 
-    const { data: list, error } = await supabaseClient
+    const { data: list, error } = await getSupabaseClient()
       .from('list')
       .insert({
         name,
@@ -258,7 +256,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
   addList: async (newList: AddListType) => {
     const {
       data: { user },
-    } = await supabaseClient.auth.getUser();
+    } = await getSupabaseClient().auth.getUser();
     if (!user) {
       return { success: false, error: 'User not logged in' };
     }
@@ -267,7 +265,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
     const lists = useListStore.getState().lists;
     const highestIdx = lists.length > 0 ? Math.max(...lists.map((list) => list.idx)) : 0;
 
-    const { data: list, error } = await supabaseClient
+    const { data: list, error } = await getSupabaseClient()
       .from('list')
       .insert({
         ...newList,
@@ -300,7 +298,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
       return { success: false, error: MAX_FID_LIST_SIZE_MESSAGE };
     }
 
-    const { data, error } = await supabaseClient.from('list').update(updateData).eq('id', id).select();
+    const { data, error } = await getSupabaseClient().from('list').update(updateData).eq('id', id).select();
 
     if (error) {
       return { success: false, error: `Failed to update list: ${error.message}` };
@@ -329,7 +327,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
       displayNames = existingList.contents.displayNames || {};
     }
 
-    const { data, error } = await supabaseClient
+    const { data, error } = await getSupabaseClient()
       .from('list')
       .update({
         name,
@@ -352,7 +350,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
     return { success: true };
   },
   removeList: async (listId: string) => {
-    const { error } = await supabaseClient.from('list').delete().eq('id', listId);
+    const { error } = await getSupabaseClient().from('list').delete().eq('id', listId);
     if (error) {
       return { success: false, error: 'Failed to remove list' };
     }
@@ -394,7 +392,10 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
     if (useListStore.getState().isHydrated) return;
 
     try {
-      const { data: lists, error } = await supabaseClient.from('list').select('*').order('idx', { ascending: true });
+      const { data: lists, error } = await getSupabaseClient()
+        .from('list')
+        .select('*')
+        .order('idx', { ascending: true });
 
       if (error) {
         throw new Error('Failed to fetch lists from server');
@@ -422,7 +423,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
   ) => {
     const {
       data: { user },
-    } = await supabaseClient.auth.getUser();
+    } = await getSupabaseClient().auth.getUser();
     if (!user) {
       return { success: false, error: 'User not logged in' };
     }
@@ -447,7 +448,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
       requiredKeywords,
     };
 
-    const { data: list, error } = await supabaseClient
+    const { data: list, error } = await getSupabaseClient()
       .from('list')
       .insert({
         name,
@@ -477,7 +478,7 @@ const store = (set: StoreSet, get: () => ListStore): ListStore => ({
     const currentContent = list.contents as AutoInteractionListContent;
     const updatedContent = { ...currentContent, ...settings };
 
-    const { data, error } = await supabaseClient
+    const { data, error } = await getSupabaseClient()
       .from('list')
       .update({
         contents: updatedContent,

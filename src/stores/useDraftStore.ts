@@ -18,7 +18,7 @@ import {
 } from '@/common/constants/farcaster';
 import { NewPostDraft } from '@/common/constants/postDrafts';
 import { formatPlaintextToHubCastMessage, getMentionFidsByUsernames, submitCast } from '@/common/helpers/farcaster';
-import { createClient } from '@/common/helpers/supabase/component';
+import { getSupabaseClient } from '@/common/helpers/supabase/component';
 import {
   toastErrorCastPublish,
   toastInfoReadOnlyMode,
@@ -270,8 +270,6 @@ export const mutative = (config) => (set, get) => config((fn) => set(mutativeCre
 
 type StoreSet = (fn: (draft: Draft<DraftStore>) => void) => void;
 
-const supabaseClient = createClient();
-
 const store = (set: StoreSet) => ({
   drafts: [],
   isHydrated: false,
@@ -447,7 +445,7 @@ const store = (set: StoreSet) => ({
       }
 
       // Insert into DB (async OUTSIDE set)
-      const { data, error } = await supabaseClient
+      const { data, error } = await getSupabaseClient()
         .from('draft')
         .insert({
           account_id: account.id,
@@ -531,7 +529,7 @@ const store = (set: StoreSet) => ({
     });
   },
   removeScheduledDraftFromDB: async (draftId: string): Promise<boolean> => {
-    const { data, error } = await supabaseClient
+    const { data, error } = await getSupabaseClient()
       .from('draft')
       .update({ status: DraftStatus.removed })
       .eq('id', draftId)
@@ -549,7 +547,7 @@ const store = (set: StoreSet) => ({
     return true;
   },
   hydrate: async () => {
-    supabaseClient
+    getSupabaseClient()
       .from('draft')
       .select('*')
       .neq('status', DraftStatus.removed)

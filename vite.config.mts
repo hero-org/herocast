@@ -3,7 +3,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import { nitro } from 'nitro/vite';
 import { fileURLToPath } from 'node:url';
-import { defineConfig, type PluginOption } from 'vite';
+import { defineConfig, loadEnv, type PluginOption } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // TanStack Start + Cloudflare Workers wiring (proven by the Phase-0 spike, see
@@ -39,7 +39,54 @@ const hostPlugins: PluginOption[] = isCloudflare
   ? [cloudflare({ viteEnvironment: { name: 'ssr' } })]
   : [nitro({ config: { preset: 'vercel' } })];
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Unit #4 (#754 stores/hooks SSR-safety): the shared stores + hooks read PUBLIC client
+  // config via `process.env.NEXT_PUBLIC_*`, which the Next build inlines but Vite does not
+  // (the reads resolve to `undefined`, and Supabase client creation then throws). Inline
+  // the public keys here at build time, sourced from the same `.env.local` the Next app
+  // already uses (`VITE_X` preferred, `NEXT_PUBLIC_X` accepted). This is build-time text
+  // replacement across BOTH the client and workerd bundles — public values only.
+  //
+  // SECRETS ARE PINNED OUT: `NEXT_PUBLIC_NEYNAR_API_KEY` and `NEXT_PUBLIC_APP_MNENOMIC`
+  // are deliberately forced to `undefined` so they can never be inlined into the client
+  // bundle (#751 — the TanStack path keeps the Neynar key server-side via serverEnv()).
+  const publicEnv = loadEnv(mode, process.cwd(), ['VITE_', 'NEXT_PUBLIC_']);
+  // `define` values are CODE TEXT injected into the bundle: a set key becomes a quoted
+  // string via JSON.stringify; an unset key becomes the text `undefined` (JSON.stringify
+  // of undefined is undefined, so `?? 'undefined'` kicks in), which evaluates to the
+  // literal undefined at runtime — keeping the existing `!url` guards in shared code
+  // working. Do NOT "simplify" the `?? 'undefined'` away.
+  const inlinePublic = (nextKey: string): string =>
+    JSON.stringify(publicEnv[nextKey.replace(/^NEXT_PUBLIC_/, 'VITE_')] ?? publicEnv[nextKey]) ?? 'undefined';
+  const define = {
+    'process.env.NEXT_PUBLIC_SUPABASE_URL': inlinePublic('NEXT_PUBLIC_SUPABASE_URL'),
+    'process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY': inlinePublic('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+    'process.env.NEXT_PUBLIC_APP_FID': inlinePublic('NEXT_PUBLIC_APP_FID'),
+    'process.env.NEXT_PUBLIC_HYPERSNAP_URL': inlinePublic('NEXT_PUBLIC_HYPERSNAP_URL'),
+    'process.env.NEXT_PUBLIC_ENABLE_SPACES': inlinePublic('NEXT_PUBLIC_ENABLE_SPACES'),
+    'process.env.NEXT_PUBLIC_URL': inlinePublic('NEXT_PUBLIC_URL'),
+    'process.env.NEXT_PUBLIC_NEYNAR_API_KEY': 'undefined', // secret — never inline (#751)
+    'process.env.NEXT_PUBLIC_APP_MNENOMIC': 'undefined', // secret — never inline
+  };
+
+  return {
+  define,
+  build: {
+    rollupOptions: {
+      treeshake: {
+        // Unit #4 (#754): @farcaster/core's single-file bundle runs `Factory.build()` AT
+        // MODULE SCOPE inside its test-factory definitions (`MessageDataFactory.params({
+        // verificationRemoveBody: VerificationRemoveBodyFactory.build(...) })`), which
+        // calls `randomBytes` during module evaluation — workerd forbids that in global
+        // scope ("Disallowed operation called within global scope") and the SSR render
+        // dies. Nothing in the app imports `Factories`, so declaring the module
+        // side-effect-free lets Rollup tree-shake the whole factory chain (incl. the
+        // offending module-scope calls) out of both bundles. Everything else keeps
+        // default side-effect handling.
+        moduleSideEffects: (id) => !id.includes('/@farcaster/core/'),
+      },
+    },
+  },
   // Plugin ORDER IS LOAD-BEARING — do NOT reorder (any change here is a bug, R1 in the plan):
   //   1. host plugin (cloudflare) pins the SSR environment to workerd
   //   2. tanstackStart() MUST come before viteReact()
@@ -125,4 +172,5 @@ export default defineConfig({
         },
       }
     : {}),
+  };
 });

@@ -3,7 +3,7 @@ import debounce from 'lodash.debounce';
 import { type Draft, create as mutativeCreate } from 'mutative';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { createClient } from '@/common/helpers/supabase/component';
+import { getSupabaseClient } from '@/common/helpers/supabase/component';
 
 const IDB_DATABASE_NAME = 'herocast-notifications';
 const IDB_STORE_NAME = 'notification-read-states';
@@ -17,8 +17,6 @@ const READ_STATE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
 // Mutative middleware
 const mutative = (config) => (set, get) => config((fn) => set(mutativeCreate(fn)), get);
-
-const supabaseClient = createClient();
 
 interface NotificationReadState {
   notificationId: string;
@@ -209,7 +207,7 @@ const store = (set: StoreSet, get) => ({
   hydrate: async () => {
     try {
       // Fetch read states from Supabase
-      const { data, error } = await supabaseClient
+      const { data, error } = await getSupabaseClient()
         .from('notification_read_states')
         .select('notification_id, notification_type, read_at')
         .order('read_at', { ascending: false });
@@ -289,7 +287,7 @@ const store = (set: StoreSet, get) => ({
       // Get current user
       const {
         data: { user },
-      } = await supabaseClient.auth.getUser();
+      } = await getSupabaseClient().auth.getUser();
       if (!user) {
         console.log('No authenticated user, skipping sync');
         return;
@@ -318,7 +316,7 @@ const store = (set: StoreSet, get) => ({
       if (typeof navigator !== 'undefined' && navigator.sendBeacon && document.visibilityState === 'hidden') {
         const {
           data: { session },
-        } = await supabaseClient.auth.getSession();
+        } = await getSupabaseClient().auth.getSession();
         if (session) {
           const payload = {
             items,
@@ -338,7 +336,7 @@ const store = (set: StoreSet, get) => ({
       }
 
       // Regular sync
-      const { error } = await supabaseClient.from('notification_read_states').upsert(items, {
+      const { error } = await getSupabaseClient().from('notification_read_states').upsert(items, {
         onConflict: 'user_id,notification_id',
         ignoreDuplicates: false,
       });
