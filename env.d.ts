@@ -2,7 +2,7 @@
 
 // Ambient module for the Cloudflare Workers runtime `env` binding. Declaring it here
 // keeps `tsc` green before `wrangler types` has generated worker-configuration.d.ts.
-// Read this only inside server handlers (see src/web/lib/env.ts) — module-scope reads
+// Read this only inside server handlers (see src/web/lib/env.server.ts) — module-scope reads
 // on workerd return undefined.
 declare module 'cloudflare:workers' {
   export const env: Record<string, string | undefined>;
