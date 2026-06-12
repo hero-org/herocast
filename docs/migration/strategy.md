@@ -31,7 +31,7 @@ Sizes leveled (S/M/L, none >~2× another). Status: ☐ todo · ◐ in-progress �
 | 2 | port: `next/navigation` → TanStack adapter (54 sites) | L | ✅ | — *(gate)* | `phase-2-navigation-seam.md` |
 | 3 | port: provider tree (wallet/posthog/persist/auth ctx) | L | ✅ | 2 | `phase-2-providers.md` |
 | 4 | port: stores + RQ hooks SSR-safety pass | S–M | ✅ | 3 | `phase-2-stores-hooks.md` |
-| 5 | port: app shell + sidebar + command palette | L | 🔍 | 2,3,4 | `phase-2-shell.md` |
+| 5 | port: app shell + sidebar + command palette | L | 🔍 | 2,3,4 | `phase-2-shell.md` (PR #766) |
 | 6 | port: feeds + profile (CastRow + react-virtual) | L | ☐ | 5 | `phase-2-feeds-profile.md` |
 | 7 | port: inbox + search + conversation | M–L | ☐ | 6 | `phase-2-inbox-search.md` |
 | 8 | port: editor (TipTap) + embeds | L | ☐ | 3,5 | `phase-2-editor.md` |
