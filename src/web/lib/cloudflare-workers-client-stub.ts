@@ -4,8 +4,8 @@
 // @cloudflare/vite-plugin only registers as a builtin in the worker (`ssr`)
 // environment. The CLIENT Rollup build has no such builtin, so when the client
 // import graph reaches a module that imports `cloudflare:workers` (the route tree
-// statically pulls in the server route handlers → supabase/server.ts →
-// src/web/lib/env.ts), the client build dies with
+// statically pulls in the server route handlers → supabase/server.server.ts →
+// src/web/lib/env.server.ts), the client build dies with
 //   "Rollup failed to resolve import 'cloudflare:workers'".
 //
 // TanStack Start's `@tanstack/react-start/server-only` marker is the intended way to

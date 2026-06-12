@@ -19,6 +19,7 @@
 | Pick a host (CF vs Vercel) | the **`TARGET` flag** in `vite.config.mts` | `cloudflare` (default) vs `vercel` (unblocked on vite 7 by unit #1 — `web:build:vercel`; see `phase-1.md §0.1`). |
 | Browser Supabase client from shared code (stores etc.) | `getSupabaseClient()` — `src/common/helpers/supabase/component.ts` *(unit #4)* | Lazy + singleton. **Never call `createClient()`/`getSupabaseClient()` at module scope** — it throws without env and breaks SSR import. |
 | Read public `NEXT_PUBLIC_*` config in shared code | the **`define` allowlist** in `vite.config.mts` *(unit #4)* | Vite does NOT inline `NEXT_PUBLIC_*`. Each public key shared code reads must be added to the allowlist (sourced from `.env.local`, `VITE_X` preferred) or it is silently `undefined` in the TanStack build. **Secrets are pinned to `undefined` there — never add a secret.** |
+| Mount a page inside the app chrome (sidebar/titlebar/palette) | a **child of the `_app` pathless layout** — `src/web/routes/_app.<page>.tsx` *(unit #5)* | `_app.tsx` renders the untouched `src/home` shell around the Outlet; `__root.tsx` already mounts CommandPalette/GlobalHotkeys/PerfPanel. Do NOT wrap a page in `Home` again or re-mount the chrome. Auth-tier pages (login etc.) sit OUTSIDE `_app`, like `routes/login.tsx`. |
 
 ## The `.server.ts` boundary convention (load-bearing — R13)
 

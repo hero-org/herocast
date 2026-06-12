@@ -131,3 +131,4 @@ worker-configuration.d.ts
 # TanStack Start / Cloudflare Workers build artifacts (Phase 1 migration)
 .wrangler/
 dist/
+.gstack/
