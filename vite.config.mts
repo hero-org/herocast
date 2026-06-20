@@ -54,6 +54,23 @@ const ssrClientOnlyStubPlugin: PluginOption = {
   },
 };
 
+// Stub `node:tty` in the workerd (`ssr`) bundle. The Neynar SDK used by unit #10's data
+// route handlers pulls axios → follow-redirects → debug → supports-color, which imports
+// `node:tty` (calls `tty.isatty` at module load). workerd has no `node:tty` builtin, so
+// the route tree's eager import of those handlers crashes worker INIT ("No such module
+// node:tty") and every route 500s. Same plugin shape + rationale as ssrClientOnlyStubPlugin
+// (env-level ssr aliases are dropped on merge by the cloudflare plugin). The stub returns
+// `isatty() === false` (no color on the edge) — purely cosmetic, zero behavior change.
+const nodeTtyStub = fileURLToPath(new URL('./src/web/lib/node-tty-stub.ts', import.meta.url));
+const nodeTtyStubPlugin: PluginOption = {
+  name: 'herocast:node-tty-stub',
+  enforce: 'pre',
+  applyToEnvironment: (environment) => environment.name === 'ssr',
+  resolveId(source) {
+    return source === 'node:tty' || source === 'tty' ? nodeTtyStub : undefined;
+  },
+};
+
 // Host plugin goes FIRST (it pins the SSR environment).
 //   TARGET=cloudflare → @cloudflare/vite-plugin (pins SSR env to workerd).
 //   TARGET=vercel     → `nitro({ config: { preset: 'vercel' } })` from `nitro/vite` (nitro v3).
@@ -131,7 +148,7 @@ export default defineConfig(({ mode }) => {
     ...hostPlugins,
     // Worker-bundle diet (unit #5) — see ssrClientOnlyStubPlugin above. CF-only: the
     // 3 MB compressed Worker limit doesn't apply to the Vercel/Nitro target.
-    ...(isCloudflare ? [ssrClientOnlyStubPlugin] : []),
+    ...(isCloudflare ? [ssrClientOnlyStubPlugin, nodeTtyStubPlugin] : []),
     tanstackStart({
       // `srcDirectory` re-roots the whole framework into src/web/ so the new TanStack
       // source stays isolated from the live Next app and is trivially deletable. Per the
