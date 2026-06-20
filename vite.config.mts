@@ -35,10 +35,20 @@ const cloudflareWorkersStub = fileURLToPath(new URL('./src/web/lib/cloudflare-wo
 // regex AND re-check `web:deploy:dry-run` stays < 3 MB.
 const ssrClientOnlyStub = fileURLToPath(new URL('./src/web/lib/ssr-client-only-stub.tsx', import.meta.url));
 // - WalletProviders / NewCastEditor: app modules loaded only via the dynamic shim (ssr:false).
+// - VideoEmbed (unit #6, #754 feeds+profile): Embeds/index.tsx STATICALLY imports
+//   './VideoEmbed', which lazy-loads @gumlet/react-hls-player via the dynamic shim
+//   (ssr:false). Mounting CastRow (feeds/profile pages) pulls Embeds into the worker graph,
+//   so Rollup would emit the HLS chunk into the worker bundle; stubbing VideoEmbed in the
+//   ssr env keeps it out. The import specifier is RELATIVE ('./VideoEmbed'), so the
+//   alternation entry is `VideoEmbed` (matches /VideoEmbed$), NOT `Embeds/VideoEmbed`
+//   (which would never match the relative source). Safe: VideoEmbed never renders during
+//   SSR (feeds SSRs the shell hydration gate; profile SSRs its own <Loading/> until client
+//   React Query resolves), so the stub's throw is never reached.
 // - @walletconnect/ethereum-provider: dynamically imported by wagmi's walletconnect
 //   connector (wagmi is statically in the server graph via shared store/helper chains, but
 //   a wallet CONNECTION can only start in a browser — the import never runs during SSR).
-const ssrClientOnlyModules = /\/(?:WalletProviders|Editor\/NewCastEditor)(?:\.tsx)?$|^@walletconnect\/ethereum-provider$/;
+const ssrClientOnlyModules =
+  /\/(?:WalletProviders|Editor\/NewCastEditor|VideoEmbed)(?:\.tsx)?$|^@walletconnect\/ethereum-provider$/;
 
 // A plugin (not `environments.ssr.resolve.alias`) because the @cloudflare/vite-plugin
 // owns the `ssr` environment's config and a user-level env alias is dropped on merge
