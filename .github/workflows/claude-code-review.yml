@@ -3,28 +3,18 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+    # Scope to code changes to skip reviews on docs-only / config-only PRs:
+    # paths: ["src/**", "app/**", "pages/**"]
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-    
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
       issues: read
       id-token: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,45 +27,28 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          # Pin the model. The action's old default (claude-sonnet-4-20250514) has been
-          # retired and now returns API 404 (not_found_error), failing this job. Pin the
-          # current Sonnet (drop-in replacement, fast/cost-appropriate for per-PR review).
-          # Swap to "claude-opus-4-8" for deeper (slower, costlier) reviews.
+          # Pin the model. The action's old default (claude-sonnet-4-20250514) was retired
+          # and now returns API 404 (not_found_error). claude-sonnet-4-6 is the current
+          # Sonnet (drop-in replacement). Swap to "claude-opus-4-8" for deeper reviews.
           model: "claude-sonnet-4-6"
 
-          # Direct prompt for automated review (no @claude mention needed)
+          # Update a single review comment across pushes instead of posting a new one each time.
+          use_sticky_comment: true
+
+          # High-signal, terse review. The generic "review for quality/bugs/perf/security/
+          # tests, be constructive" prompt produced long essays on every push; this asks for
+          # only confirmed, important problems with a hard cap and a one-line LGTM otherwise.
           direct_prompt: |
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
-            
-            Be constructive and helpful in your feedback.
+            Review this PR for HIGH-SIGNAL issues only. Be terse.
 
-          # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
-          # use_sticky_comment: true
-          
-          # Optional: Customize review based on file types
-          # direct_prompt: |
-          #   Review this PR focusing on:
-          #   - For TypeScript files: Type safety and proper interface usage
-          #   - For API endpoints: Security, input validation, and error handling
-          #   - For React components: Performance, accessibility, and best practices
-          #   - For tests: Coverage, edge cases, and test quality
-          
-          # Optional: Different prompts for different authors
-          # direct_prompt: |
-          #   ${{ github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR' && 
-          #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
-          #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
-          
-          # Optional: Add specific tools for running tests or linting
-          # allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck)"
-          
-          # Optional: Skip review for certain conditions
-          # if: |
-          #   !contains(github.event.pull_request.title, '[skip-review]') &&
-          #   !contains(github.event.pull_request.title, '[WIP]')
+            Report ONLY:
+            - Correctness bugs (logic errors, races, null/undefined, off-by-one, wrong API use)
+            - Security issues (injection, auth/authz, secret or credential exposure)
+            - Data-loss or breaking-change risks
 
+            Rules:
+            - Max 5 findings, ordered by severity. If there are none, reply with exactly
+              "LGTM — no significant issues found." and nothing else.
+            - One line per finding: `path:line — the problem — the fix` (fix <= 1 sentence).
+            - Skip style, naming, formatting, nitpicks, praise, and any summary of what the
+              PR does. Only flag what you are confident is a real problem; do not speculate.
