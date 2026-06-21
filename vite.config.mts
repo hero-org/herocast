@@ -47,8 +47,26 @@ const ssrClientOnlyStub = fileURLToPath(new URL('./src/web/lib/ssr-client-only-s
 // - @walletconnect/ethereum-provider: dynamically imported by wagmi's walletconnect
 //   connector (wagmi is statically in the server graph via shared store/helper chains, but
 //   a wallet CONNECTION can only start in a browser — the import never runs during SSR).
+// - AccountsPage / WelcomeConnectPage (unit #9, #754 auth/accounts): the /accounts and
+//   /welcome/connect ROUTE COMPONENTS. Both render client-only (Home's `isHydrated=false`
+//   hydrate gate for /accounts; WalletProviders null-on-SSR for the /welcome/connect wallet
+//   route), so neither's body ever renders during SSR. Their import graphs pull the
+//   wagmi/rainbowkit wallet stack AND — load-bearing — @farcaster/hub-web's TEST FACTORIES
+//   (via warpcastLogin's `NobleEd25519Signer`, AccountManagement's `Change*Form → UserDataType`,
+//   and getProvider). hub-web's single-file bundle runs `Factory.build()` → `randomBytes`
+//   (@noble/hashes crypto.getRandomValues) AT MODULE SCOPE; workerd forbids that in global
+//   scope ("Disallowed operation called within global scope"). Crucially, when ONLY a lazy
+//   route (feeds) or a lazily-chunked component (CreateAccountPage) imports that factory
+//   code it stays in a lazy chunk and runs harmlessly inside a request handler (proven by
+//   #6) — but these two EAGER route components share those modules with the eager graph, so
+//   Rollup HOISTS the factory into the eager worker-entry chunk where it runs at init and
+//   EVERY route 500s. Stubbing the two page components in the ssr env keeps their whole
+//   client-only graph (wallet stack + the hub-web factory) out of the worker entirely; the
+//   throwing stub never renders server-side (both pages are gated). The client bundle keeps
+//   the real pages and code-splits as before. (This subsumes stubbing the individual wallet
+//   leaves — the buttons are only reachable via these two pages.)
 const ssrClientOnlyModules =
-  /\/(?:WalletProviders|Editor\/NewCastEditor|VideoEmbed)(?:\.tsx)?$|^@walletconnect\/ethereum-provider$/;
+  /\/(?:WalletProviders|Editor\/NewCastEditor|VideoEmbed|AccountsPage|WelcomeConnectPage)(?:\.tsx)?$|^@walletconnect\/ethereum-provider$/;
 
 // A plugin (not `environments.ssr.resolve.alias`) because the @cloudflare/vite-plugin
 // owns the `ssr` environment's config and a user-level env alias is dropped on merge
@@ -127,6 +145,12 @@ export default defineConfig(({ mode }) => {
     'process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME': inlinePublic('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME'),
     'process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET': inlinePublic('NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET'),
     'process.env.NEXT_PUBLIC_VERCEL_ENV': inlinePublic('NEXT_PUBLIC_VERCEL_ENV'),
+    // Unit #9 (#754 auth/accounts): the wallet config (src/common/helpers/rainbowkit.tsx)
+    // builds its wagmi transports from this public Alchemy key. The host-agnostic read there
+    // prefers import.meta.env.VITE_ALCHEMY_API_KEY (inlined natively by Vite) and falls back
+    // to this — so the fallback resolves to a literal (not a `process is not defined` throw)
+    // in the browser bundle when VITE_ALCHEMY_API_KEY is unset. Public value, not a secret.
+    'process.env.NEXT_PUBLIC_ALCHEMY_API_KEY': inlinePublic('NEXT_PUBLIC_ALCHEMY_API_KEY'),
     'process.env.NEXT_PUBLIC_NEYNAR_API_KEY': 'undefined', // secret — never inline (#751)
     'process.env.NEXT_PUBLIC_APP_MNENOMIC': 'undefined', // secret — never inline
   };
@@ -145,6 +169,15 @@ export default defineConfig(({ mode }) => {
         // side-effect-free lets Rollup tree-shake the whole factory chain (incl. the
         // offending module-scope calls) out of both bundles. Everything else keeps
         // default side-effect handling.
+        //
+        // NB (unit #9, #754 auth/accounts): the SAME `Factory.build()→randomBytes` crash also
+        // lives in `@farcaster/hub-web`'s single-file bundle, but it cannot be dropped here —
+        // the factory vars are transitively REFERENCED by used hub-web exports, so
+        // `moduleSideEffects:false` does not elide them. It's instead kept OUT of the eager
+        // worker-entry chunk by stubbing the two client-only route pages that would hoist it
+        // there (AccountsPage/WelcomeConnectPage — see `ssrClientOnlyModules` above). When it
+        // lives only in lazy route/component chunks (feeds, CreateAccountPage) it runs inside
+        // a request handler, which workerd allows.
         moduleSideEffects: (id) => !id.includes('/@farcaster/core/'),
       },
     },
