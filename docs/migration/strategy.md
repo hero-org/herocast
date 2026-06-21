@@ -34,7 +34,7 @@ Sizes leveled (S/M/L, none >~2× another). Status: ☐ todo · ◐ in-progress �
 | 5 | port: app shell + sidebar + command palette | L | ✅ | 2,3,4 | `phase-2-shell.md` (PR #766) |
 | 6 | port: feeds + profile (CastRow + react-virtual) | L | ✅ | 5 | `phase-2-feeds-profile.md` (PR #768) |
 | 7 | port: inbox + search + conversation | M–L | ☐ | 6 | `phase-2-inbox-search.md` |
-| 8 | port: editor (TipTap) + embeds | L | ☐ | 3,5 | `phase-2-editor.md` |
+| 8 | port: editor (TipTap) + embeds | L | 🔍 | 3,5 | `phase-2-editor.md` (PR #770) |
 | 9 | port: auth + accounts + onboarding (OAuth write) | L | 🔍 | 3,5 | `phase-2-auth-accounts.md` (PR #771) |
 | 10 | port: data API routes behind FarcasterProvider (~19) | L | ✅ | 0,4 | `phase-3-data-routes.md` (PR #767) |
 | 11 | port: auth/onchain/proxy routes + trek-WASM | L | ☐ | 0,9 | `phase-3-auth-onchain-wasm.md` |
