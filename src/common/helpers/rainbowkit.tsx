@@ -6,7 +6,14 @@ import { arbitrum, base, mainnet, optimism, polygon, zora } from '@wagmi/core/ch
 import { createPublicClient } from 'viem';
 import { isDev } from './env';
 
-const alchemyApiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+// Host-agnostic public key read (#754 unit #9). Vite does NOT inline `NEXT_PUBLIC_*`, so
+// under the TanStack/Vite build this must come from `import.meta.env.VITE_ALCHEMY_API_KEY`
+// (else the transports resolve to `…/v2/undefined` and every RPC fails). The live
+// Next/webpack build has no `import.meta.env` (it is `undefined` there) — the `?.` keeps
+// that from throwing at module load and falls back to `process.env.NEXT_PUBLIC_*`, which
+// `next build` inlines. `import.meta as any` keeps the root-tsconfig `pnpm typecheck` green
+// (it has no `vite/client` types). Public value, never a secret.
+const alchemyApiKey = (import.meta as any).env?.VITE_ALCHEMY_API_KEY ?? process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 const optimismHttp = http(`https://opt-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);
 const mainnetHttp = http(`https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`);

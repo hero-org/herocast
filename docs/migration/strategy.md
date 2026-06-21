@@ -34,8 +34,8 @@ Sizes leveled (S/M/L, none >~2× another). Status: ☐ todo · ◐ in-progress �
 | 5 | port: app shell + sidebar + command palette | L | ✅ | 2,3,4 | `phase-2-shell.md` (PR #766) |
 | 6 | port: feeds + profile (CastRow + react-virtual) | L | ✅ | 5 | `phase-2-feeds-profile.md` (PR #768) |
 | 7 | port: inbox + search + conversation | M–L | 🔍 | 6 | `phase-2-inbox-search.md` (PR #769) |
-| 8 | port: editor (TipTap) + embeds | L | ☐ | 3,5 | `phase-2-editor.md` |
-| 9 | port: auth + accounts + onboarding (OAuth write) | L | ☐ | 3,5 | `phase-2-auth-accounts.md` |
+| 8 | port: editor (TipTap) + embeds | L | 🔍 | 3,5 | `phase-2-editor.md` (PR #770) |
+| 9 | port: auth + accounts + onboarding (OAuth write) | L | 🔍 | 3,5 | `phase-2-auth-accounts.md` (PR #771) |
 | 10 | port: data API routes behind FarcasterProvider (~19) | L | ✅ | 0,4 | `phase-3-data-routes.md` (PR #767) |
 | 11 | port: auth/onchain/proxy routes + trek-WASM | L | ☐ | 0,9 | `phase-3-auth-onchain-wasm.md` |
 | 12 | port: standalone subtrees + CRUD *(tracking bucket — decompose when foundation lands)* | bucket | ☐ | 5,10,11 | `phase-2-standalone-surfaces.md` |
@@ -114,7 +114,7 @@ Run a codex subagent across the whole `src/web` tree (not a single diff) at:
 
 ## Deferred / known follow-ups (surfaced during units; not yet fixed)
 
-- **[#9 auth/accounts] `src/common/helpers/rainbowkit.tsx:9` reads `process.env.NEXT_PUBLIC_ALCHEMY_API_KEY` at module scope → `undefined` under Vite** (not inlined), so wagmi transports resolve to `…/v2/undefined`. The wallet modal still *opens* (so it didn't block #3), but RPC calls fail. Fix when porting wallet functionality: make it host-agnostic (`import.meta.env.VITE_ALCHEMY_API_KEY ?? process.env.NEXT_PUBLIC_ALCHEMY_API_KEY`) — it's a *shared* file so the change must keep the Next build working. Add `VITE_ALCHEMY_API_KEY` to `.env.local.example`. (Same class as the PostHog `VITE_*` fix in #3.)
+- ~~**[#9 auth/accounts] `src/common/helpers/rainbowkit.tsx:9` reads `process.env.NEXT_PUBLIC_ALCHEMY_API_KEY` at module scope → `undefined` under Vite**~~ **RESOLVED in #9.** Made host-agnostic: `(import.meta as any).env?.VITE_ALCHEMY_API_KEY ?? process.env.NEXT_PUBLIC_ALCHEMY_API_KEY` (the `?.` keeps the Next/webpack build — where `import.meta.env` is undefined — from throwing; the `as any` keeps the root-tsconfig typecheck green). Added `VITE_ALCHEMY_API_KEY` to `.env.local.example` + a `define`-allowlist entry in `vite.config.mts`. Wallet RPC works once `VITE_ALCHEMY_API_KEY` is set at build (canary item).
 - **[cutover/#13] Revisit `noImplicitAny`.** #3 set `tsconfig.tanstack.json` `noImplicitAny: false` to match the root Next tsconfig (the reused `src/` carries pre-existing implicit-anys). `strictNullChecks` etc. stay on. Once the shared graph is typed, consider a stricter `src/web/**`-only sub-project to restore `noImplicitAny` for *new* code without forcing it on reused code.
 
 ## Links
