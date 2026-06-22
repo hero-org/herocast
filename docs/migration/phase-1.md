@@ -342,7 +342,7 @@ Keep all data access behind `createServerFn` so Phase 2 page ports inherit a kno
 
 ## 10. Open Questions / Explicitly Deferred
 
-- **Tauri desktop consumer** — the desktop build currently targets the Next app; how it consumes the TanStack app must be resolved **before Phase 4 cutover** (not Phase 1/2). *Open.*
+- ~~**Tauri desktop consumer** — the desktop build currently targets the Next app; how it consumes the TanStack app must be resolved **before Phase 4 cutover** (not Phase 1/2).~~ **DIRECTION SET (still deferred past #13):** ship the desktop app as the same TanStack Start app wrapped by the **Deno desktop runtime** (auto-detects TanStack Start; reuses the host-portability seam), not a revived Tauri. Full analysis + the local-vs-remote-server (secrets) decision live in `desktop-deno-runtime.md`. Lands after cutover; canary-gated.
 - **#758 (trek serde-flatten bug)** — independently shippable to *prod Next* now (read top-level `result.*`); fold the fix into the WASM port in Phase 2 regardless. *Deferred to P2, can pre-fix.*
 - **#751 (server-only `NEYNAR_API_KEY`)** — env seam enables it; actual lockdown lands when API routes port. *Deferred to P2.*
 - **Auth read path — PROVEN with a real session** (live probe run): chunked `sb-*` cookie read + `getUser()` returns a real Supabase UUID on workerd. What remains unproven: the worker's OWN OAuth `exchangeCodeForSession` *write* end-to-end (login THROUGH the worker) + stale-chunk deletion (`maxAge:0`). *Validate early in P2.*
