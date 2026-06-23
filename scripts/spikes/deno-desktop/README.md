@@ -38,20 +38,24 @@
 **~1.7 GB** app directory (`libcef.so` alone is ~1.5 GB). The runner deletes the bundle afterward;
 `.gitignore` here is a backstop so it can never be committed.
 
-## Findings so far (run 2026-06-23, canary aa90115 on Linux x86_64)
+## Findings (2026-06-23 — Linux x86_64 cloud sandbox + macOS arm64 device)
 
-- **Stage 2 — PASS (both checks).** `serverEnv()` reads the OS env via `process.env` (Deno's
-  Node-compat shim populates it with `--allow-env`), and `getCacheBackend()` picks `memory`. So
-  the host seams need **zero Deno-specific code** — only the `cloudflare:workers` *import* needs
-  aliasing, exactly as the existing `TARGET=vercel` branch already does.
-- **Stage 1 — `deno desktop` exists and compiles a bundle.** Bare `deno desktop <script>` *builds*
-  a redistributable app dir (it does not open a window — `--hmr` is the dev/run mode, and a window
-  needs a display this container lacks). Framework auto-detect (`deno desktop` with no arg) is
-  confirmed in `--help`.
-- **⚠️ Bundle size reality-check.** On Linux the default backend is **CEF (full Chromium)**, not the
-  "lean OS-native webview" the marketing implies — hence the ~1.7 GB output. macOS/Windows may use
-  native WKWebView/WebView2 (unverified here). This tempers the "small binaries like Tauri" claim
-  in the doc for at least the Linux target.
+- **Stage 2 — PASS (both checks, both OSes).** `serverEnv()` reads the OS env via `process.env`
+  (Deno's Node-compat shim populates it with `--allow-env`), and `getCacheBackend()` picks
+  `memory`. So the host seams need **zero Deno-specific code** — only the `cloudflare:workers`
+  *import* needs aliasing, exactly as the existing `TARGET=vercel` branch already does.
+- **Stage 1 — works end-to-end on macOS.** `deno desktop --output Hello.app hello.ts` built a
+  signed `.app` in ~20 s (after backend download); `open Hello.app` launched it and the **window
+  rendered the HTML** (screenshot-verified). Process tree = full Chromium multi-process. Framework
+  auto-detect (`deno desktop` with no arg) confirmed in `--help`. (On the headless Linux sandbox
+  the same command *builds* but can't open a window — no display.)
+- **❌ "Small binaries / native webview" is FALSE on both platforms.** Default backend is **CEF
+  (full Chromium)**, not WKWebView/WebView2/WRY:
+  - **macOS arm64: 295 MB `.app`** for hello-world (225 MB is the Chromium Embedded Framework) —
+    **Electron-class, not Tauri-class** (Tauri ≈ 10–30 MB).
+  - **Linux x86_64: ~1.7 GB** app dir (`libcef.so` ~1.5 GB, likely an unstripped canary build).
+- **⚠️ Version reporting:** the canary that ships `deno desktop` reports `2.8.3+<hash>`, not the
+  documented `2.9.0`. Gate on the subcommand's presence, never a version number.
 
 ## Stage 3 (follow-up, not in this scaffold)
 
