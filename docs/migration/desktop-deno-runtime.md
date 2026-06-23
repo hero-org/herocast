@@ -15,12 +15,23 @@ no separate "consumer" shim, and it reuses the host-portability seam the migrati
 around (`vite.config.mts`: universal `fetch` server entry, host = build-plugin swap; the seam
 fall-through is **spike-verified**).
 
-**Reality check from the spike (don't skip):** Deno desktop is **Chromium-backed (CEF) —
-Electron-class, NOT the lean native-webview runtime the marketing implies**. A hello-world `.app`
-is **295 MB on macOS** (verified on-device; window launches + renders). So the choice is **DX +
-portability (one TS codebase, no Rust) vs. binary size** — if a small native binary is a hard
-requirement, **Tauri** is still the only option here. It's also **canary / experimental** today,
-which is fine given the timing (desktop is dormant; this lands after #13 cutover).
+**Reality check from the spike (don't skip):** Deno desktop has **three selectable backends**
+(`--backend cef|webview|raw`, or `desktop.backend` in `deno.json`). The two that matter:
+- **`webview`** — native OS WebView (WKWebView / WebView2 / WebKitGTK). "Just your code plus a
+  backend shim" → **Tauri-like sizes**. Docs say it's the default. **NOT YET TESTED here** — and it
+  carries the classic native-webview catch: per-OS rendering/feature inconsistency (WebGPU, Web
+  Audio), and **no DevTools**. herocast's heavy UI (TipTap, HLS video embeds, wallet flows) is
+  exactly the kind of surface that exposes WebKitGTK/WKWebView quirks.
+- **`cef`** — bundled Chromium. Identical cross-platform rendering + full web platform + DevTools,
+  at **~295 MB** (measured on macOS, hello-world; window launches + renders). Electron-class.
+
+⚠️ The canary I tested **silently defaulted to CEF** despite the docs saying `webview` is default
+(same canary-vs-docs drift as the version string) — so **pin `desktop.backend` explicitly**. The
+size verdict is therefore backend-dependent, not a flat "Electron-class." Net: Deno desktop can be
+**Tauri-like (webview) OR Electron-like (cef) from one codebase** — which is arguably *better* than
+either, IF the webview backend renders herocast's UI correctly across OSes (the open risk). It's
+also **canary / experimental** today, which is fine given the timing (desktop is dormant; this
+lands after #13 cutover).
 
 ## Current state (why this is even a question)
 
@@ -47,7 +58,7 @@ build-target swap rather than a rewrite** — Deno becomes a third host alongsid
 |---|---|---|
 | Consumes the TanStack app | **Natively** — auto-detects TanStack Start, runs the prod server in-process | Needs a custom shim to point a webview at the app |
 | Toolchain | All TypeScript; cross-compiles macOS/Win/Linux from one machine | Requires Rust + per-platform native build setup |
-| Webview | **CEF / full Chromium (Electron-class).** Verified on macOS (295 MB hello-world `.app`) and Linux (~1.7 GB) — *not* a lean native webview | OS-native (WRY) — genuinely small (~10–30 MB) |
+| Webview | **Selectable: `webview` (native, Tauri-like size, untested + per-OS quirks) or `cef` (Chromium, 295 MB macOS verified, consistent + DevTools).** Pin it via `desktop.backend` | OS-native (WRY) — genuinely small (~10–30 MB), no choice |
 | Auto-update | Built in — binary-diff via `latest.json` manifest + rollback | Hand-wired (was never finished here) |
 | Native APIs | `Deno.BrowserWindow` (windowing), `Deno.autoUpdate()`, `bindings` (webview→Deno) | Rust commands |
 | Bundle limits | None — the workerd 3 MB diet in `vite.config.mts` is **not needed** on desktop | None |
@@ -102,39 +113,43 @@ Ran via `scripts/spikes/deno-desktop/run.sh` (see that dir for the scaffold). St
   it, and the window **rendered the HTML** (verified by screenshot). Process tree is full Chromium
   multi-process (GPU / network / storage / renderer helpers). Build was fast (~20 s after the
   backend download). Framework auto-detect (`deno desktop` with no arg) confirmed in `--help`.
-- **❌ The "small binaries / native webview" pitch is FALSE on both platforms tested.** The default
-  backend is **CEF (full Chromium)**, not WKWebView/WebView2/WRY:
-  - **macOS arm64: a 295 MB `.app`** for a hello-world — 225 MB of that is
-    `Chromium Embedded Framework.framework`. That is **Electron-class, not Tauri-class** (Tauri
-    ships ~10–30 MB via the OS webview).
-  - **Linux x86_64: a ~1.7 GB app dir** (`libcef.so` ~1.5 GB — likely an unstripped canary build;
-    macOS shows the framework can be far smaller, but it is still Chromium either way).
-- **⚠️ Version reporting:** the canary that ships `deno desktop` reports `2.8.3+<hash>`, *not* the
-  documented `2.9.0`. Gate on the subcommand's presence, never a version number. `deno desktop` is
-  also self-labeled "experimental and subject to change."
+- **Size is backend-dependent — and I only measured CEF.** Deno desktop has `--backend cef|webview|raw`:
+  - **CEF (what I measured):** macOS arm64 **295 MB `.app`** for hello-world (225 MB =
+    `Chromium Embedded Framework.framework`); Linux x86_64 **~1.7 GB** (`libcef.so` ~1.5 GB, likely
+    unstripped canary). Electron-class, consistent rendering, DevTools.
+  - **`webview` (native OS webview — NOT YET TESTED):** docs promise "just your code plus a backend
+    shim" → Tauri-like size, at the cost of per-OS rendering/feature inconsistency + no DevTools.
+    **This is the single highest-value remaining probe** (run `--backend webview` with herocast's
+    real UI). My earlier "no small-binary advantage" line was wrong — it was CEF-only.
+- **⚠️ Two canary-vs-docs drifts — gate on actual behavior, not the docs:**
+  1. **Version** reports `2.8.3+<hash>`, not the documented `2.9.0`. Gate on the subcommand's presence.
+  2. **Default backend** was **CEF** in the canary I ran, though docs say `webview` is default. So
+     **always pin `desktop.backend` explicitly** rather than relying on the default. `deno desktop`
+     is also self-labeled "experimental and subject to change."
 
 ## Recommendation & timing
 
-- **The "small binary" advantage over Tauri does NOT exist — decide on DX vs. size, with eyes
-  open.** Deno desktop is Chromium-backed (Electron-class: 295 MB on macOS for hello-world). It is
-  *not* the lean, Tauri-like runtime the marketing implies. What it genuinely buys us is **DX +
-  portability**: one TypeScript codebase, native TanStack-Start auto-detect, no Rust toolchain, and
-  it reuses our existing host-portability seam (seam fall-through verified). The trade is real:
-  - **Choose Deno desktop** if all-TS DX and "the desktop app *is* the TanStack app" outweigh
-    bundle size, and we accept Electron-class downloads + a canary/experimental dependency.
-  - **Choose Tauri** if a small binary is a hard requirement (the only small-webview option here;
-    cost is the Rust toolchain + a shim to consume the TanStack app).
-  - **Electron** is no longer obviously worse on size, but adds nothing Deno desktop doesn't.
-  - My lean: **size is rarely a dealbreaker for a power-user desktop client, and the all-TS /
-    auto-detect DX is a big maintenance win — so Deno desktop, contingent on it reaching a stable
-    (non-canary) release before we ship.** If herocast wants to advertise a tiny native app, Tauri
-    wins instead.
+- **Deno desktop is the leading candidate — its key edge is that ONE codebase spans both size
+  tiers.** It buys us **DX + portability**: one TypeScript codebase, native TanStack-Start
+  auto-detect, no Rust toolchain, and it reuses our verified host-portability seam. Unlike Tauri
+  (always small webview) or Electron (always Chromium), Deno desktop lets us pick `--backend
+  webview` (Tauri-like size) or `--backend cef` (Electron-like, consistent rendering + DevTools)
+  per build — even ship webview as default and offer a CEF build for users who hit rendering bugs.
+  - **Choose Tauri instead** only if a small binary is a *hard* requirement AND we don't trust the
+    `webview` backend's maturity (cost: Rust toolchain + a shim to consume the TanStack app).
+  - **Electron** adds nothing Deno desktop doesn't.
+  - My lean: **Deno desktop**, defaulting to the `webview` backend if it renders herocast cleanly
+    (the open probe), falling back to CEF if not — contingent on it reaching a **stable
+    (non-canary)** release before we ship.
 - **Park behind #13 cutover.** This cannot land while Next is the live app. Re-evaluate once the
   TanStack app is the default web build — and once `deno desktop` is out of canary.
-- **Remaining unknowns (don't block the decision, do block shipping):** Windows/WebView2 path,
-  Stage 3 (the *real* app, not hello-world, under `deno desktop` via a `TARGET=deno` build),
-  auto-update in practice, and the native-API needs (OS keychain for signers, OAuth deep-link
-  callback, notifications) + the wallet/TipTap stack under CEF.
+- **Remaining unknowns (don't block the decision, do block shipping):**
+  1. **`--backend webview` size + rendering fidelity for herocast's real UI** (TipTap, HLS video,
+     wallet) across macOS/Windows/Linux — *the* gating probe; decides the size story.
+  2. **Stage 3** — the real app (not hello-world) under `deno desktop` via a `TARGET=deno` build.
+  3. **Native-API needs** — OS keychain for signer/private-key storage, OAuth deep-link callback
+     (Farcaster auth-kit / Supabase), notifications, and auto-update in practice.
+  4. **Windows/WebView2 path** (untested).
 
 ## Links
 - Deno desktop docs — https://docs.deno.com/runtime/desktop/

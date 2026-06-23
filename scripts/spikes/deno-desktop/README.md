@@ -49,13 +49,14 @@
   rendered the HTML** (screenshot-verified). Process tree = full Chromium multi-process. Framework
   auto-detect (`deno desktop` with no arg) confirmed in `--help`. (On the headless Linux sandbox
   the same command *builds* but can't open a window — no display.)
-- **❌ "Small binaries / native webview" is FALSE on both platforms.** Default backend is **CEF
-  (full Chromium)**, not WKWebView/WebView2/WRY:
-  - **macOS arm64: 295 MB `.app`** for hello-world (225 MB is the Chromium Embedded Framework) —
-    **Electron-class, not Tauri-class** (Tauri ≈ 10–30 MB).
-  - **Linux x86_64: ~1.7 GB** app dir (`libcef.so` ~1.5 GB, likely an unstripped canary build).
-- **⚠️ Version reporting:** the canary that ships `deno desktop` reports `2.8.3+<hash>`, not the
-  documented `2.9.0`. Gate on the subcommand's presence, never a version number.
+- **Size is `--backend`-dependent — I measured CEF only.** `deno desktop --backend cef|webview|raw`:
+  - **CEF (measured):** macOS arm64 **295 MB `.app`** (225 MB = Chromium Embedded Framework);
+    Linux x86_64 **~1.7 GB** (`libcef.so` ~1.5 GB, likely unstripped canary). Electron-class.
+  - **`webview` (native OS webview — NOT TESTED):** docs promise Tauri-like size ("code + a backend
+    shim"), at the cost of per-OS rendering quirks + no DevTools. **Highest-value next probe.**
+- **⚠️ Two canary-vs-docs drifts:** (1) version reports `2.8.3+<hash>`, not the documented `2.9.0`
+  — gate on the subcommand's presence; (2) the canary **defaulted to CEF** though docs say
+  `webview` is default — **pin `desktop.backend` explicitly**.
 
 ## Stage 3 (follow-up, not in this scaffold)
 
