@@ -41,7 +41,7 @@ build-target swap rather than a rewrite** — Deno becomes a third host alongsid
 |---|---|---|
 | Consumes the TanStack app | **Natively** — auto-detects TanStack Start, runs the prod server in-process | Needs a custom shim to point a webview at the app |
 | Toolchain | All TypeScript; cross-compiles macOS/Win/Linux from one machine | Requires Rust + per-platform native build setup |
-| Webview | OS-native (small binaries, like WRY — not bundled Chromium) | OS-native (WRY) |
+| Webview | **Backend-dependent — verify per OS.** On Linux the spike got a **CEF/Chromium** backend (~1.7 GB bundle), *not* a lean native webview; macOS/Windows may use native WKWebView/WebView2 (unverified) | OS-native (WRY) — genuinely small |
 | Auto-update | Built in — binary-diff via `latest.json` manifest + rollback | Hand-wired (was never finished here) |
 | Native APIs | `Deno.BrowserWindow` (windowing), `Deno.autoUpdate()`, `bindings` (webview→Deno) | Rust commands |
 | Bundle limits | None — the workerd 3 MB diet in `vite.config.mts` is **not needed** on desktop | None |
@@ -82,15 +82,42 @@ Default to **(B)**; reserve **(A)** only for genuinely local surfaces.
 3. **Interactive stack under the native webview** — wallet (wagmi / rainbowkit / auth-kit) and
    the TipTap editor under React 19 + SSR (still flagged un-QA'd in `phase-1.md §10`).
 
+## Spike results (run 2026-06-23, Deno canary aa90115, Linux x86_64)
+
+Ran via `scripts/spikes/deno-desktop/run.sh` (see that dir for the scaffold).
+
+- **Seam fall-through — PASS (both checks).** On Deno, `serverEnv()` reads the OS env via
+  `process.env` (Node-compat shim, populated with `--allow-env`) and `getCacheBackend()` picks the
+  in-process `memory` backend. **The host seams need zero Deno-specific code** — only the
+  `cloudflare:workers` *import* needs aliasing, which the existing `TARGET=vercel` branch already
+  does. This confirms Deno is a build-target swap, not a code change. ✅
+- **`deno desktop` exists and compiles a bundle.** Subcommand present on canary; framework
+  auto-detect confirmed in `--help`. Bare `deno desktop <script>` *builds* a redistributable app
+  dir (window launch is `--hmr` / a display, n/a in the headless container).
+- **⚠️ Two claims from the marketing did NOT hold on Linux:**
+  1. **Version** — the canary that ships `deno desktop` reports `2.8.3+<hash>`, not the documented
+     `2.9.0`. Gate on the subcommand's presence, never a version number.
+  2. **"Small binaries / native webview"** — Linux pulled a **~1.5 GB CEF/Chromium backend** →
+     **~1.7 GB** app bundle. This is the single biggest open risk to the "lean, Tauri-like"
+     pitch; **measure macOS/Windows bundle sizes before committing** (they may use native
+     WKWebView/WebView2 and be far smaller, but that's unverified).
+
 ## Recommendation & timing
 
-- **Do not revive Tauri.** It is dormant, needs Rust, and would still need a custom shim to
-  consume the TanStack app. Deno desktop subsumes that work via the existing portability seam.
+- **Lean toward Deno desktop over reviving Tauri — but the bundle-size finding is now a real
+  gate, not a footnote.** The architectural fit is proven (seam fall-through PASS; auto-detects
+  TanStack Start; no Rust; one portability seam). What's *not* proven is the "small binaries"
+  pitch: Linux shipped ~1.7 GB of CEF. If macOS/Windows also land on Chromium, that erases the
+  main advantage over Tauri's lean WRY, and Tauri (or Electron, which we'd then be matching on
+  size anyway) returns to the table. **Decision rule: measure macOS/Windows bundles in Stage 3;
+  if they're native-webview-small, commit to Deno desktop; if they're also Chromium-heavy,
+  re-open the Tauri-vs-Deno-vs-Electron call with size as a first-class criterion.**
 - **Park behind #13 cutover.** This cannot land while Next is the live app. Re-evaluate once
   the TanStack app is the default web build.
-- **Caveat — canary.** Deno desktop ships in Deno v2.9.0 and is not yet stable
-  (`deno upgrade canary`; the command, config keys, and TS APIs may change). Fine for a spike
-  now; not for a shipped binary until it stabilizes. The timing works in our favor.
+- **Caveat — canary + experimental.** `deno desktop` is canary-only and self-labeled
+  "experimental and subject to change" (the command, config keys, and TS APIs may move). Note the
+  canary reports `2.8.3+<hash>`, *not* the documented `2.9.0`. Fine for a spike now; not for a
+  shipped binary until it stabilizes. The timing works in our favor.
 
 ## Links
 - Deno desktop docs — https://docs.deno.com/runtime/desktop/

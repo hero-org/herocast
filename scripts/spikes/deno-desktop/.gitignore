@@ -1,0 +1,4 @@
+# deno desktop build artifacts (Stage 1 --build) — ~1.7 GB, never commit
+hello
+hello.so
+*.app
