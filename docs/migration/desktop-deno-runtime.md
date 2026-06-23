@@ -1,158 +1,116 @@
 # Desktop consumer — Deno desktop runtime
 
-> Resolves the **open question** parked in `phase-1.md §10` ("the desktop build currently
-> targets the Next app; how it consumes the TanStack app must be resolved before Phase 4
-> cutover"). This is the recommended answer. **Deferred until after #13 cutover** — it cannot
-> and should not land while Next is still the live app — but the decision is made here so the
-> §10 question is closed rather than open.
+> Resolves the open question parked in `phase-1.md §10` ("the desktop build currently targets the
+> Next app; how it consumes the TanStack app must be resolved before Phase 4 cutover"). **Decision
+> is made; execution is deferred until after #13 cutover.** The old **Tauri integration has been
+> removed** from the repo — it was already dormant (no `src-tauri/`, no Tauri deps, dead/commented
+> CI, stale `rls` scripts that no longer existed).
 
-## TL;DR
+## Decision
 
-Candidate: ship the desktop app as the **same TanStack Start app**, wrapped by the [Deno desktop
-runtime](https://docs.deno.com/runtime/desktop/), instead of reviving Tauri. Deno desktop
-auto-detects and runs TanStack Start natively, so the desktop binary *is* the migrated app —
-no separate "consumer" shim, and it reuses the host-portability seam the migration was built
-around (`vite.config.mts`: universal `fetch` server entry, host = build-plugin swap; the seam
-fall-through is **spike-verified**).
+Ship the desktop app as the **same TanStack Start app**, wrapped by the
+[Deno desktop runtime](https://docs.deno.com/runtime/desktop/). The desktop binary *is* the
+migrated app — no separate "consumer" shim.
 
-**Reality check from the spike (don't skip):** Deno desktop has **three selectable backends**
-(`--backend cef|webview|raw`, or `desktop.backend` in `deno.json`). The two that matter:
-- **`webview`** — native OS WebView (WKWebView / WebView2 / WebKitGTK). "Just your code plus a
-  backend shim" → **Tauri-like sizes**. Docs say it's the default. **NOT YET TESTED here** — and it
-  carries the classic native-webview catch: per-OS rendering/feature inconsistency (WebGPU, Web
-  Audio), and **no DevTools**. herocast's heavy UI (TipTap, HLS video embeds, wallet flows) is
-  exactly the kind of surface that exposes WebKitGTK/WKWebView quirks.
-- **`cef`** — bundled Chromium. Identical cross-platform rendering + full web platform + DevTools,
-  at **~295 MB** (measured on macOS, hello-world; window launches + renders). Electron-class.
+- **Rendering backend: `cef`** (bundled Chromium). It gives identical rendering across OSes + full
+  web-platform support + DevTools, which is what herocast's heavy UI needs (TipTap editor, HLS
+  video embeds, wallet popups).
+- **Binary size is explicitly NOT a priority right now.** Deno desktop also has a native `webview`
+  backend (much smaller binaries) — that's a *later optimization*, not a blocker, and only worth it
+  if it renders our UI cleanly across platforms.
 
-⚠️ The canary I tested **silently defaulted to CEF** despite the docs saying `webview` is default
-(same canary-vs-docs drift as the version string) — so **pin `desktop.backend` explicitly**. The
-size verdict is therefore backend-dependent, not a flat "Electron-class." Net: Deno desktop can be
-**Tauri-like (webview) OR Electron-like (cef) from one codebase** — which is arguably *better* than
-either, IF the webview backend renders herocast's UI correctly across OSes (the open risk). It's
-also **canary / experimental** today, which is fine given the timing (desktop is dormant; this
-lands after #13 cutover).
+## Why Deno desktop
 
-## Current state (why this is even a question)
+- **It auto-detects & runs TanStack Start natively** — the desktop app is literally our web app, no
+  glue layer.
+- **One TypeScript codebase, one toolchain** — no second language/build system to maintain.
+- **It reuses our host-portability seam.** `vite.config.mts` already emits a universal `fetch`
+  server entry where the host is a build-plugin swap (`TARGET=cloudflare` / `vercel`). Deno is just
+  another target.
+- **Selectable rendering backend** — `cef` now for fidelity; `webview` later if we ever want small
+  binaries, from the same codebase.
 
-CLAUDE.md still describes Tauri as the desktop platform, but on the migration branch the Tauri
-integration is **dormant**:
+## What the spike already proved ✅
 
-- No `src-tauri/` directory; the `rls` / `rls:debug` / `rls:mac-universal` scripts CLAUDE.md
-  references no longer exist in `package.json`.
-- The Tauri steps in `.github/workflows/build.yaml` are fully commented out.
-- `CONTRIBUTING.md`: desktop is "...coming back soon via tauri...".
+(Full run notes: `scripts/spikes/deno-desktop/`. Verified on macOS arm64 + a Linux sandbox, 2026-06-23.)
 
-So there is no working desktop build to preserve — the field is open. Meanwhile the migration
-(epic #754) deliberately made the app **host-portable**: TanStack Start emits a universal
-WHATWG `fetch(request)` server entry, and the host is a build-plugin swap
-(`TARGET=cloudflare` vs `vercel`), not a code change (`vite.config.mts:9-20`). The only
-host-specific seams are env access (`cloudflare:workers` → `process.env` fallback in
-`env.server.ts`) and the edge cache (`CacheBackend` in `trending.server.ts`), and both already
-degrade gracefully on non-CF runtimes. **That portability is what makes Deno desktop a
-build-target swap rather than a rewrite** — Deno becomes a third host alongside CF and Vercel.
+- **Host seams fall through on Deno with zero new code.** `serverEnv()` → `process.env`;
+  `getCacheBackend()` → in-process memory backend. Only the `cloudflare:workers` *import* needs
+  aliasing, which the existing `TARGET=vercel` branch already does → Deno is a build-target swap,
+  not a rewrite.
+- **`deno desktop` builds + launches + renders end-to-end** (macOS, hello-world; window verified by
+  screenshot; full Chromium multi-process under `cef`).
+- **Bake-in caveats:** it's **canary / experimental** today; **pin `desktop.backend`** in
+  `deno.json` (the canary defaulted to `cef` despite the docs); gate tooling on the `deno desktop`
+  subcommand's presence, not the version string (canary reports `2.8.3+<hash>`).
 
-## Why Deno desktop over reviving Tauri
+## The one architectural decision to settle: where does the server run?
 
-| | Deno desktop | Tauri (dormant) |
-|---|---|---|
-| Consumes the TanStack app | **Natively** — auto-detects TanStack Start, runs the prod server in-process | Needs a custom shim to point a webview at the app |
-| Toolchain | All TypeScript; cross-compiles macOS/Win/Linux from one machine | Requires Rust + per-platform native build setup |
-| Webview | **Selectable: `webview` (native, Tauri-like size, untested + per-OS quirks) or `cef` (Chromium, 295 MB macOS verified, consistent + DevTools).** Pin it via `desktop.backend` | OS-native (WRY) — genuinely small (~10–30 MB), no choice |
-| Auto-update | Built in — binary-diff via `latest.json` manifest + rollback | Hand-wired (was never finished here) |
-| Native APIs | `Deno.BrowserWindow` (windowing), `Deno.autoUpdate()`, `bindings` (webview→Deno) | Rust commands |
-| Bundle limits | None — the workerd 3 MB diet in `vite.config.mts` is **not needed** on desktop | None |
+herocast keeps `NEYNAR_API_KEY` / `APP_MNENOMIC` server-side (#751) — which assumes a **trusted
+remote server**. A desktop binary running the TanStack server *locally* would ship those secrets to
+every user.
 
-The workerd-bundle stubs (`WalletProviders`, `NewCastEditor`, `VideoEmbed`, the hub-web
-factories, `node:tty`) exist only to fit Cloudflare's 3 MB compressed Worker limit. A desktop
-target has no such limit, so the desktop build is *simpler* than the CF one.
+→ **Hybrid (recommended):** the native UI runs locally, but data/auth server fns **proxy the
+deployed worker** (`cf.herocast.xyz`). Secrets stay server-side; local-only surfaces (drafts in
+sessionStorage, accounts/settings in IndexedDB) stay local. This is the model **Issue D2** implements.
 
-## The decision that matters: local server vs. remote server
+---
 
-This is a **secrets** problem. herocast deliberately keeps `NEYNAR_API_KEY` and `APP_MNEMONIC`
-server-side (#751; `vite.config.mts` forces them to `undefined` in client bundles). That model
-assumes a **trusted remote server**. A Deno desktop binary that runs the server *on the user's
-machine* breaks that assumption. Two shapes follow:
+## Plan to get desktop to users — proof-driven, 3 follow-up issues
 
-- **(A) Self-contained / local server** — Deno desktop's headline mode: the TanStack server is
-  bundled into the binary, the webview hits `localhost`, works offline. But server fns then run
-  locally, so any baked-in secret ships to every user; you also lose the edge cache. Only viable
-  if those keys move to a per-user model.
+Sequential: **D1 → D2 → D3.** Each issue ships only when its **PROOF** is captured (a screenshot, a
+grep result, a working login). All land **after #13 cutover**.
 
-- **(B) Hybrid — RECOMMENDED** — the desktop binary runs the **UI / client** natively, but
-  data + auth server fns proxy to the already-deployed remote worker (`cf.herocast.xyz`).
-  Secrets stay server-side, the edge cache stays, and you still get native windowing /
-  auto-update / deep links. Preserves the "one codebase, host = build swap" promise with no
-  secret leak. Local-only surfaces that already work in any webview (drafts in sessionStorage,
-  accounts/settings in IndexedDB) stay local regardless.
+### D1 — "It runs": the real herocast app under `deno desktop`
 
-Default to **(B)**; reserve **(A)** only for genuinely local surfaces.
+**Do:**
+- Add a `TARGET=deno` branch to `vite.config.mts` `hostPlugins` (Nitro `deno-server`/`deno-deploy`
+  preset, mirroring the existing `vercel` branch) and alias `cloudflare:workers` → the empty stub
+  for all environments.
+- Add `deno.json` with `{ "desktop": { "backend": "cef" } }`.
+- `TARGET=deno vite build` → universal `fetch` server entry; `deno desktop` wraps it.
 
-## Open questions to settle in a spike (see the spike scaffold)
+**PROOF (acceptance):**
+- The actual app opens in a desktop window; `/feeds` renders real casts; sidebar nav + opening a
+  thread work; no fatal console errors. → screenshot + a 5-line manual checklist in the PR.
+- `pnpm web:typecheck` + the existing CF build stay green (the `TARGET=deno` branch is additive).
 
-1. **Build consumption** — does `deno desktop` run TanStack Start's default Node/Deno server
-   output, or does it need a dedicated `TARGET=deno` preset? Confirm the CF-only seams
-   (`cloudflare:workers`, `CacheBackend`) fall through cleanly on Deno as documented.
-2. **Native API maturity for herocast's needs** — OS keychain for signer/private-key storage,
-   OAuth deep-link callback handling (Farcaster auth-kit / Supabase redirect), notifications.
-   Windowing + auto-update are documented; keychain is the unknown.
-3. **Interactive stack under the native webview** — wallet (wagmi / rainbowkit / auth-kit) and
-   the TipTap editor under React 19 + SSR (still flagged un-QA'd in `phase-1.md §10`).
+### D2 — "It's correct & secure": secrets-safe data/auth + key custody
 
-## Spike results (Linux x86_64 cloud sandbox + macOS arm64 device, 2026-06-23)
+**Do:**
+- Implement the **hybrid** server model — data/auth server fns target the remote worker; nothing
+  secret in the binary.
+- Make the real **login** flow work in the desktop window (if the OAuth callback needs native
+  deep-link handling, that piece moves to D3).
+- **Signer / private-key custody:** store via the **OS keychain**, not webview IndexedDB — or
+  document a hardened interim with a tracked follow-up.
 
-Ran via `scripts/spikes/deno-desktop/run.sh` (see that dir for the scaffold). Stage 1 (the real
-`deno desktop` build + window launch) was run on a macOS arm64 device; Stage 2 ran on both.
+**PROOF:**
+- Grep the built app bundle for `NEYNAR_API_KEY` / `APP_MNENOMIC` → **absent**.
+- Live: log in + post a cast + load a feed, all from the desktop app against the remote worker.
+- Key-custody location documented + verified (keychain entry exists; keys are **not** in IndexedDB).
 
-- **Seam fall-through — PASS (both checks, both OSes).** On Deno, `serverEnv()` reads the OS env
-  via `process.env` (Node-compat shim, populated with `--allow-env`) and `getCacheBackend()` picks
-  the in-process `memory` backend. **The host seams need zero Deno-specific code** — only the
-  `cloudflare:workers` *import* needs aliasing, which the existing `TARGET=vercel` branch already
-  does. This confirms Deno is a build-target swap, not a code change. ✅
-- **`deno desktop` works end-to-end on macOS.** Built `hello.ts` → a signed `Hello.app`, launched
-  it, and the window **rendered the HTML** (verified by screenshot). Process tree is full Chromium
-  multi-process (GPU / network / storage / renderer helpers). Build was fast (~20 s after the
-  backend download). Framework auto-detect (`deno desktop` with no arg) confirmed in `--help`.
-- **Size is backend-dependent — and I only measured CEF.** Deno desktop has `--backend cef|webview|raw`:
-  - **CEF (what I measured):** macOS arm64 **295 MB `.app`** for hello-world (225 MB =
-    `Chromium Embedded Framework.framework`); Linux x86_64 **~1.7 GB** (`libcef.so` ~1.5 GB, likely
-    unstripped canary). Electron-class, consistent rendering, DevTools.
-  - **`webview` (native OS webview — NOT YET TESTED):** docs promise "just your code plus a backend
-    shim" → Tauri-like size, at the cost of per-OS rendering/feature inconsistency + no DevTools.
-    **This is the single highest-value remaining probe** (run `--backend webview` with herocast's
-    real UI). My earlier "no small-binary advantage" line was wrong — it was CEF-only.
-- **⚠️ Two canary-vs-docs drifts — gate on actual behavior, not the docs:**
-  1. **Version** reports `2.8.3+<hash>`, not the documented `2.9.0`. Gate on the subcommand's presence.
-  2. **Default backend** was **CEF** in the canary I ran, though docs say `webview` is default. So
-     **always pin `desktop.backend` explicitly** rather than relying on the default. `deno desktop`
-     is also self-labeled "experimental and subject to change."
+### D3 — "It's shippable": signing, deep-links, auto-update, a real download
 
-## Recommendation & timing
+**Do:**
+- **Code-sign + notarize** the macOS build (Windows signing if in scope); add a CI release job
+  (replaces the deleted Tauri CI).
+- Register the **deep-link / custom URL scheme** for the auth callback.
+- Wire **`Deno.autoUpdate()`** with a `latest.json` manifest; verify rollback on a bad build.
 
-- **Deno desktop is the leading candidate — its key edge is that ONE codebase spans both size
-  tiers.** It buys us **DX + portability**: one TypeScript codebase, native TanStack-Start
-  auto-detect, no Rust toolchain, and it reuses our verified host-portability seam. Unlike Tauri
-  (always small webview) or Electron (always Chromium), Deno desktop lets us pick `--backend
-  webview` (Tauri-like size) or `--backend cef` (Electron-like, consistent rendering + DevTools)
-  per build — even ship webview as default and offer a CEF build for users who hit rendering bugs.
-  - **Choose Tauri instead** only if a small binary is a *hard* requirement AND we don't trust the
-    `webview` backend's maturity (cost: Rust toolchain + a shim to consume the TanStack app).
-  - **Electron** adds nothing Deno desktop doesn't.
-  - My lean: **Deno desktop**, defaulting to the `webview` backend if it renders herocast cleanly
-    (the open probe), falling back to CEF if not — contingent on it reaching a **stable
-    (non-canary)** release before we ship.
-- **Park behind #13 cutover.** This cannot land while Next is the live app. Re-evaluate once the
-  TanStack app is the default web build — and once `deno desktop` is out of canary.
-- **Remaining unknowns (don't block the decision, do block shipping):**
-  1. **`--backend webview` size + rendering fidelity for herocast's real UI** (TipTap, HLS video,
-     wallet) across macOS/Windows/Linux — *the* gating probe; decides the size story.
-  2. **Stage 3** — the real app (not hello-world) under `deno desktop` via a `TARGET=deno` build.
-  3. **Native-API needs** — OS keychain for signer/private-key storage, OAuth deep-link callback
-     (Farcaster auth-kit / Supabase), notifications, and auto-update in practice.
-  4. **Windows/WebView2 path** (untested).
+**PROOF:**
+- A signed, notarized build a **non-developer can download from Releases, install, open, and log
+  into**.
+- Update test: the app pulls + applies a newer build; a deliberately-broken build rolls back.
+
+## Gating preconditions — don't start D1 until
+
+- **#13 cutover is done** (TanStack is the default web app).
+- **`deno desktop` has a stable (non-canary) release** — or we *consciously* accept canary risk for
+  an early internal beta only.
 
 ## Links
-- Deno desktop docs — https://docs.deno.com/runtime/desktop/
+- Deno desktop docs — https://docs.deno.com/runtime/desktop/ · backends — https://docs.deno.com/runtime/desktop/backends/
 - `phase-1.md §10` — the original open question (now pointed here)
 - `strategy.md` — deferred follow-ups
-- Spike scaffold — `scripts/spikes/deno-desktop/` (throwaway; see its README)
+- Spike scaffold + run notes — `scripts/spikes/deno-desktop/` (throwaway)

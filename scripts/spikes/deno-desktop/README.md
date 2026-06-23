@@ -52,8 +52,9 @@
 - **Size is `--backend`-dependent — I measured CEF only.** `deno desktop --backend cef|webview|raw`:
   - **CEF (measured):** macOS arm64 **295 MB `.app`** (225 MB = Chromium Embedded Framework);
     Linux x86_64 **~1.7 GB** (`libcef.so` ~1.5 GB, likely unstripped canary). Electron-class.
-  - **`webview` (native OS webview — NOT TESTED):** docs promise Tauri-like size ("code + a backend
-    shim"), at the cost of per-OS rendering quirks + no DevTools. **Highest-value next probe.**
+  - **`webview` (native OS webview — NOT TESTED):** docs promise much smaller binaries ("code + a
+    backend shim"), at the cost of per-OS rendering quirks + no DevTools. A later size optimization,
+    not a blocker — `cef` is the chosen default for rendering fidelity.
 - **⚠️ Two canary-vs-docs drifts:** (1) version reports `2.8.3+<hash>`, not the documented `2.9.0`
   — gate on the subcommand's presence; (2) the canary **defaulted to CEF** though docs say
   `webview` is default — **pin `desktop.backend` explicitly**.
