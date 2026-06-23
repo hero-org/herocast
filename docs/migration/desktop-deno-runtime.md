@@ -58,10 +58,12 @@ sessionStorage, accounts/settings in IndexedDB) stay local. This is the model **
 
 ## Plan to get desktop to users — proof-driven, 3 follow-up issues
 
-Sequential: **D1 → D2 → D3.** Each issue ships only when its **PROOF** is captured (a screenshot, a
-grep result, a working login). All land **after #13 cutover**.
+Sequential: **D1 → D2 → D3** ([#772](https://github.com/hero-org/herocast/issues/772) →
+[#773](https://github.com/hero-org/herocast/issues/773) →
+[#774](https://github.com/hero-org/herocast/issues/774)). Each issue ships only when its **PROOF**
+is captured (a screenshot, a grep result, a working login). All land **after #13 cutover**.
 
-### D1 — "It runs": the real herocast app under `deno desktop`
+### D1 (#772) — "It runs": the real herocast app under `deno desktop`
 
 **Do:**
 - Add a `TARGET=deno` branch to `vite.config.mts` `hostPlugins` (Nitro `deno-server`/`deno-deploy`
@@ -75,7 +77,7 @@ grep result, a working login). All land **after #13 cutover**.
   thread work; no fatal console errors. → screenshot + a 5-line manual checklist in the PR.
 - `pnpm web:typecheck` + the existing CF build stay green (the `TARGET=deno` branch is additive).
 
-### D2 — "It's correct & secure": secrets-safe data/auth + key custody
+### D2 (#773) — "It's correct & secure": secrets-safe data/auth + key custody
 
 **Do:**
 - Implement the **hybrid** server model — data/auth server fns target the remote worker; nothing
@@ -90,7 +92,7 @@ grep result, a working login). All land **after #13 cutover**.
 - Live: log in + post a cast + load a feed, all from the desktop app against the remote worker.
 - Key-custody location documented + verified (keychain entry exists; keys are **not** in IndexedDB).
 
-### D3 — "It's shippable": signing, deep-links, auto-update, a real download
+### D3 (#774) — "It's shippable": signing, deep-links, auto-update, a real download
 
 **Do:**
 - **Code-sign + notarize** the macOS build (Windows signing if in scope); add a CI release job
