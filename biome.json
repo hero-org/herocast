@@ -17,6 +17,7 @@
       "!.context",
       "!.next",
       "!supabase/functions",
+      "!scripts/spikes",
       "!src/common/types/database.types.ts"
     ]
   },

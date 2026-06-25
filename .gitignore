@@ -93,7 +93,7 @@ next-env.d.ts
 # Electron-Forge
 out/
 
-# tauri output
+# build output
 build/
 
 # Sentry Auth Token

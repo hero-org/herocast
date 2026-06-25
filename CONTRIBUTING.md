@@ -248,7 +248,7 @@ https://supabase.com/docs/reference/cli/supabase-functions
 
 ### Run as a Native App
 
-...coming back soon via [tauri](https://tauri.app/)...
+A desktop build is being rebuilt on the [Deno desktop runtime](https://docs.deno.com/runtime/desktop/), wrapping the TanStack Start app — landing after the TanStack cutover. See `docs/migration/desktop-deno-runtime.md`.
 
 ### DB Scheme: Accounts
 

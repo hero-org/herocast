@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-herocast is an open source Farcaster client built with Next.js, focused on professional users and power features. The application supports multi-account management, advanced content creation, analytics, and both web and desktop (Tauri) platforms.
+herocast is an open source Farcaster client built with Next.js, focused on professional users and power features. The application supports multi-account management, advanced content creation, analytics, and web (with a desktop build planned — see `docs/migration/desktop-deno-runtime.md`).
 
 ## Common Development Commands
 
@@ -33,11 +33,9 @@ herocast is an open source Farcaster client built with Next.js, focused on profe
 - `pnpm run format` - Format code with Prettier
 - `pnpm test` - Run Jest tests
 
-### Desktop App (Tauri)
+### Desktop App
 
-- `pnpm run rls` - Build production Tauri app
-- `pnpm run rls:debug` - Build debug Tauri app
-- `pnpm run rls:mac-universal` - Build universal macOS binary
+No desktop build commands are wired today. Desktop packaging is being rebuilt on the **Deno desktop runtime** (wrapping the TanStack Start app), landing after the TanStack cutover. See `docs/migration/desktop-deno-runtime.md`.
 
 ## Architecture Overview
 
@@ -51,7 +49,7 @@ herocast is an open source Farcaster client built with Next.js, focused on profe
   - Supabase for server-side data (lists, analytics, billing)
   - SessionStorage for temporary data (drafts)
 - **Authentication**: Farcaster auth-kit, Supabase auth, wallet connections
-- **Desktop**: Tauri for cross-platform desktop application
+- **Desktop**: planned on the Deno desktop runtime (wraps the TanStack app); not currently wired — see `docs/migration/desktop-deno-runtime.md`
 
 ### Key Directories
 
@@ -293,7 +291,7 @@ When content doesn't scroll, check for missing `min-h-0` on flex children. This 
 - Vercel for web deployment
 - Sentry integration for error monitoring
 - PostHog for analytics
-- Tauri for desktop app distribution
+- Desktop distribution planned via the Deno desktop runtime (post-cutover)
 
 ## Performance Tracking
 

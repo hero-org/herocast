@@ -110,14 +110,16 @@ Do NOT start work that another unit owns (check the table's Blocked-by). Ask if 
 Run a codex subagent across the whole `src/web` tree (not a single diff) at:
 - **After #2–#5 (foundation chain):** is the shared substrate coherent? any duplicated nav/env/cache logic?
 - **After the surface tier (#6–#9):** do surfaces reuse CastRow/editor/providers, or re-implement? slop check.
-- **Before #13 cutover:** full parity + duplication + dead-code sweep; resolve the Tauri consumer question (`phase-1.md §10`).
+- **Before #13 cutover:** full parity + duplication + dead-code sweep; the desktop-consumer question (`phase-1.md §10`) is **decided** — **Deno desktop runtime** wrapping the TanStack app (`desktop-deno-runtime.md`; spike-verified end-to-end on macOS). Execution is sequenced as 3 proof-driven follow-up issues (D1 runs → D2 secure → D3 shippable) that all land *after* cutover, so it is not a blocker for the sweep.
 
 ## Deferred / known follow-ups (surfaced during units; not yet fixed)
 
 - ~~**[#9 auth/accounts] `src/common/helpers/rainbowkit.tsx:9` reads `process.env.NEXT_PUBLIC_ALCHEMY_API_KEY` at module scope → `undefined` under Vite**~~ **RESOLVED in #9.** Made host-agnostic: `(import.meta as any).env?.VITE_ALCHEMY_API_KEY ?? process.env.NEXT_PUBLIC_ALCHEMY_API_KEY` (the `?.` keeps the Next/webpack build — where `import.meta.env` is undefined — from throwing; the `as any` keeps the root-tsconfig typecheck green). Added `VITE_ALCHEMY_API_KEY` to `.env.local.example` + a `define`-allowlist entry in `vite.config.mts`. Wallet RPC works once `VITE_ALCHEMY_API_KEY` is set at build (canary item).
+- **[post-#13] Desktop consumer — DECIDED: TanStack app via Deno desktop runtime.** Closes the `phase-1.md §10` open question (Tauri removed from the repo). Reuses the host-portability seam (a Deno build target alongside CF/Vercel; seam fall-through spike-verified; built+launched+rendered on macOS). Backend pinned to `cef` (rendering fidelity; size deprioritized). Default to the **hybrid** server shape (native UI, data/auth server fns proxy the remote worker so secrets stay server-side). Execution = 3 proof-driven issues: **D1 (#772)** real app runs under `deno desktop` → **D2 (#773)** secrets-safe data/auth + key custody → **D3 (#774)** signing/deep-links/auto-update + a real download. Gated on cutover + `deno desktop` leaving canary. Full plan in `desktop-deno-runtime.md`; spike in `scripts/spikes/deno-desktop/`.
 - **[cutover/#13] Revisit `noImplicitAny`.** #3 set `tsconfig.tanstack.json` `noImplicitAny: false` to match the root Next tsconfig (the reused `src/` carries pre-existing implicit-anys). `strictNullChecks` etc. stay on. Once the shared graph is typed, consider a stricter `src/web/**`-only sub-project to restore `noImplicitAny` for *new* code without forcing it on reused code.
 
 ## Links
 - `conventions.md` — reuse contract + gotchas (read before every unit)
 - `phase-1.md` — foundation spec + proven patterns
+- `desktop-deno-runtime.md` — desktop consumer direction (Deno desktop runtime; post-cutover)
 - Epic: hero-org/herocast#754 · Phase 1: PR #763
